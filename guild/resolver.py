@@ -557,6 +557,21 @@ def _archive_type(source_path, source):
 
 
 def _resolve_archive_files(source_path, archive_type, source, unpack_dir):
+    """Returns resolved files in an archive.
+
+    If source has a select spec, it's applied to the contents of the
+    archive to return a list of matching source paths. If source does
+    not have a select spec, the root paths from archive members are
+    returned.
+
+    Directories are resolved, even though directories are not
+    typically defined as archive members (archives store files -
+    directories are implied by a file path).
+
+    Only paths corresponding to archive members are returned. Files
+    that are in unpack dir that are not members of the archive are not
+    returned.
+    """
     unpacked = _ensure_unpacked(source_path, archive_type, unpack_dir)
     if source.select:
         return _selected_source_paths(unpack_dir, unpacked, source.select)
@@ -685,12 +700,18 @@ def _gen_unpack(unpack_dir, list_members, member_name, extract):
     members = list_members()
     names = [member_name(m) for m in members]
     to_extract = [
-        m
-        for m, name in zip(members, names)
+        member
+        for member, name in zip(members, names)
         if not os.path.exists(os.path.join(unpack_dir, name))
     ]
     extract(unpack_dir, to_extract)
-    return names
+    return _dirs_for_unpack_names(names) + names
+
+
+def _dirs_for_unpack_names(names):
+    dirs = {name.rsplit("/", 1)[0] for name in names}
+    names = set(names)
+    return sorted(dirs - names)
 
 
 def _write_cached_unpacked(unpacked, unpack_dir, source_path):

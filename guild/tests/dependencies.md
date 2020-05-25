@@ -503,18 +503,16 @@ archive) from an archive.
 The pattern `foo/bar` specifies that the unpacked directory should be
 resolved.
 
-TODO: FIX
-
-    >> with LogCapture() as log:
+    >>> with LogCapture() as log:
     ...     resolve(zip_source_2)
     {'resolved': ['<unpack-dir>/foo/a.txt', '<unpack-dir>/foo/bar'],
-     'staged': ['foo/a.txt', 'foo/bar']
+     'staged': ['a.txt', 'bar'],
      'unpacked': ['.guild-cache-foo.zip.unpacked',
                   'foo/a.txt',
                   'foo/bar/a.txt',
                   'foo/bar/b.txt']}
 
-    >> log.print_all()
+    >>> log.print_all()
     Unpacking .../samples/projects/resources/foo.zip
 
 In this example, the same archive is used to select `*.txt` files
@@ -527,20 +525,18 @@ from.
     >>> zip_source_3.select
     [SelectSpec(pattern='.+\\.txt', reduce=None)]
 
-TODO: FIX
-
-    >> with LogCapture() as log:
+    >>> with LogCapture() as log:
     ...     resolve(zip_source_3)
     {'resolved': ['<unpack-dir>/foo/a.txt',
                   '<unpack-dir>/foo/bar/a.txt',
                   '<unpack-dir>/foo/bar/b.txt'],
-     'staged': [''],
+     'staged': ['a.txt', 'b.txt'],
      'unpacked': ['.guild-cache-foo.zip.unpacked',
                   'foo/a.txt',
                   'foo/bar/a.txt',
                   'foo/bar/b.txt']}
 
-    >> log.print_all()
+    >>> log.print_all()
     Unpacking .../samples/projects/resources/foo.zip
 
 Note that select does not include leading paths.
