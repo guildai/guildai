@@ -359,7 +359,7 @@ def _iter_resolved_op_runs(deps, flag_vals):
             if not source.uri.startswith("operation:"):
                 continue
             resolver = resolver_for_source(source, dep)
-            assert isinstance(resolver, resolverlib.OperationOutputResolver), resolver
+            assert isinstance(resolver, resolverlib.OperationResolver), resolver
             run_id_prefix = flag_vals.get(dep.resdef.name)
             try:
                 run = resolver.resolve_op_run(run_id_prefix, include_staged=True)

@@ -1,10 +1,10 @@
 # Selecting resources
 
-These tests cover `guild.resolver._dir_source_files`, which is
+These tests cover `guild.resolver._resolve_source_dir_files`, which is
 responsible for selecting files from a directory according the rules
 specified in a resource source.
 
-    >>> from guild.resolver import _dir_source_files
+    >>> from guild.resolver import _resolve_source_dir_files
 
 For our tests we'll use the samples files in `select-files`:
 
@@ -38,7 +38,7 @@ The files selected for each source:
     >>> for src in r1_sources:
     ...   print("---")
     ...   print(src.select)
-    ...   pprint(_dir_source_files(samples_dir, src))
+    ...   pprint(_resolve_source_dir_files(samples_dir, src))
     ---
     [SelectSpec(pattern='a.*', reduce=None)]
     ['.../samples/select-files/a',

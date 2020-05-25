@@ -493,18 +493,19 @@ archive) from an archive.
     >>> zip_source_2.uri
     'file:foo.zip'
 
-The pattern `foo/bar` specifies that the unpacked directory should be
-resolved.
-
     >>> zip_source_2.select
     [SelectSpec(pattern='foo/bar', reduce=None),
      SelectSpec(pattern='foo/a.txt', reduce=None)]
 
+The pattern `foo/bar` specifies that the unpacked directory should be
+resolved.
+
 TODO: FIX
 
     >> with LogCapture() as log:
-    ...     resolve(zip_source_2, test_resdef)
+    ...     resolve(zip_source_2)
     {'resolved': ['<unpack-dir>/foo/a.txt', '<unpack-dir>/foo/bar'],
+     'staged': ['foo/a.txt', 'foo/bar']
      'unpacked': ['.guild-cache-foo.zip.unpacked',
                   'foo/a.txt',
                   'foo/bar/a.txt',
@@ -526,10 +527,11 @@ from.
 TODO: FIX
 
     >> with LogCapture() as log:
-    ...     resolve(zip_source_2, test_resdef)
+    ...     resolve(zip_source_3)
     {'resolved': ['<unpack-dir>/foo/a.txt',
                   '<unpack-dir>/foo/bar/a.txt',
                   '<unpack-dir>/foo/bar/b.txt'],
+     'staged': [''],
      'unpacked': ['.guild-cache-foo.zip.unpacked',
                   'foo/a.txt',
                   'foo/bar/a.txt',

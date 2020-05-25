@@ -2,72 +2,78 @@
   resources:
     test:
       sources:
-        # resource 0
+        # source 0
         - file: archive1.zip
           sha256: 8d172fde27ec89ae0a76832f8ff714e3e498b23d14bac7edfb55e3c4729e3265
           select: a.txt
-        # resource 1
+        # source 1
         - file: archive2.tar
-        # resource 2
+        # source 2
         - file: archive3.tar
           unpack: no
-        # resource 3
+        # source 3
         - file: test.txt
           sha256: f33ae3bc9a22cd7564990a794789954409977013966fb1a8f43c35776b833a95
-        # resource 4
+        # source 4
         - file: badhash.txt
           sha256: xxx
-        # resource 5
+        # source 5
         - file: files
-        # resource 6
+        # source 6
         - file: files
           select: .+\.txt
-        # resource 7
+        # source 7
         - file: doesnt-exist
-        # resource 8
+        # source 8
         - file: test.txt
           rename:
             pattern: (.+)\.txt
             repl: \1.config
-        # resource 9
+        # source 9
         - file: foo
           select:
             - bar
             - a.txt
-        # resource 10
+        # source 10
         - file: foo.zip
           select:
             - foo/bar
             - foo/a.txt
-        # resource 11
+        # source 11
         - file: foo.zip
           select: .+\.txt
 
     test2:
       path: foo
       sources:
+        # source 0
         - file: test.txt
+        # source 1
         - file: files/a.bin
           path: bar
 
     test3:
       sources:
+        # source 0
         - file: files
           # Fully specified rename (map)
           rename:
             pattern: files
             repl: all_files
+        # source 1
         - file: files
           select: .+\.bin
           path: bin
           # Inline rename ('PATTERN REPL' string)
           rename: \.bin ''
+        # source 2
         - file: archive1.zip
           select: .+\.txt
           path: archive1
           rename:
             pattern: (.+)\.txt
             repl: \g<1>2.txt
+        # source 3
         - file: archive2.tar
           rename:
             pattern: (.+)
@@ -75,9 +81,12 @@
 
     test4:
       sources:
+        # source 0
         - config: config.yml
+        # source 1
         - config: config.yml
           rename: config c2
+        # source 2
         - config: config.yml
           path: c3
           params:
@@ -94,3 +103,11 @@
         d:
           default: 33
           arg-name: c.d
+
+    DELME:
+      main: guild.pass
+      requires:
+        - file: foo.zip
+          select:
+            - foo/bar
+            - foo/a.txt

@@ -39,6 +39,10 @@ DEFAULT_MATCHING_RUN_STATUS = (
     "terminated",
 )
 
+###################################################################
+# Resolver base/core classes
+###################################################################
+
 
 class ResolutionError(Exception):
     pass
@@ -59,16 +63,56 @@ class Resolver(object):
         raise NotImplementedError()
 
 
+###################################################################
+# Resolver factory
+###################################################################
+
+
+def for_resdef_source(source, resource):
+    cls = _resolver_class_for_source(source)
+    if not cls:
+        return None
+    return cls(source, resource)
+
+
+def _resolver_class_for_source(source):
+    scheme = source.parsed_uri.scheme
+    if scheme == "file":
+        return FileResolver
+    elif scheme in ["http", "https"]:
+        return URLResolver
+    elif scheme == "module":
+        return ModuleResolver
+    elif scheme == "operation":
+        return _operation_resolver_cls(source.resdef)
+    elif scheme == "config":
+        return ConfigResolver
+    else:
+        return None
+
+
+def _operation_resolver_cls(resdef):
+    if not hasattr(resdef, "modeldef"):
+        return None
+
+    def cls(source, resource):
+        return OperationResolver(source, resource, resdef.modeldef)
+
+    return cls
+
+
+###################################################################
+# File resolver
+###################################################################
+
+
 class FileResolver(Resolver):
     def resolve(self, resolve_context):
         if self.resource.config:
             return _resolve_config_path(self.resource.config, self.source.resdef.name)
         source_path = self._abs_source_path()
-        unpack_dir = self._unpack_dir(source_path, resolve_context.unpack_dir)
-        if os.path.isdir(source_path) and not self.source.select:
-            resolved = [source_path]
-        else:
-            resolved = resolve_source_files(source_path, self.source, unpack_dir)
+        unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)
+        resolved = self._resolve_source_files(source_path, unpack_dir)
         post_process(self.source, unpack_dir or os.path.dirname(source_path))
         return resolved
 
@@ -80,6 +124,19 @@ class FileResolver(Resolver):
                 return abs_path
         raise ResolutionError("cannot find source file %s" % source_path)
 
+    def _resolve_source_files(self, source_path, unpack_dir):
+        """Resolves source files for file resolver.
+
+        If source_path is a directory and there are no selection
+        criteria, the directory itself is returned as resolved. Note
+        this is different from operation resolver, which returns list
+        of root names in the selected run directory when there are no
+        selection criteria.
+        """
+        if os.path.isdir(source_path) and not self.source.select:
+            return [source_path]
+        return resolve_source_files(source_path, self.source, unpack_dir)
+
     def _source_location_paths(self):
         yield self.resource.location
         try:
@@ -90,34 +147,10 @@ class FileResolver(Resolver):
             for parent in modeldef.parents:
                 yield parent.dir
 
-    @staticmethod
-    def _unpack_dir(source_path, explicit_unpack_dir):
-        """Returns unpack dir for local archives.
 
-        If explicit_unpack_dir is specified (non blank) it is always
-        used. Otherwise a location under the resource cache is used
-        based on the value of source_path. In this case, source_path
-        must be absolute.
-
-        As with downloaded archives, local archives are unacked into a
-        resource cache dir. This avoid unpacking project local files
-        within the project.
-
-        """
-        if explicit_unpack_dir:
-            return explicit_unpack_dir
-        assert os.path.isabs(source_path), source_path
-        key = "\n".join(["file", source_path]).encode("utf-8")
-        digest = hashlib.sha224(key).hexdigest()
-        return os.path.join(var.cache_dir("resources"), digest)
-
-
-def _resolve_config_path(config, resource_name):
-    config_path = os.path.abspath(str(config))
-    if not os.path.exists(config_path):
-        raise ResolutionError("%s does not exist" % config_path)
-    log.info("Using %s for %s resource", os.path.relpath(config_path), resource_name)
-    return [config_path]
+###################################################################
+# URL Resolver
+###################################################################
 
 
 class URLResolver(Resolver):
@@ -142,14 +175,10 @@ class URLResolver(Resolver):
                 log.exception(self.source.uri)
             raise ResolutionError(e)
         else:
-            unpack_dir = self._unpack_dir(source_path, resolve_context.unpack_dir)
+            unpack_dir = _url_unpack_dir(source_path, resolve_context.unpack_dir)
             resolved = resolve_source_files(source_path, self.source, unpack_dir)
             post_process(self.source, unpack_dir or os.path.dirname(source_path))
             return resolved
-
-    @staticmethod
-    def _unpack_dir(source_path, explicit_unpack_dir):
-        return explicit_unpack_dir or os.path.dirname(source_path)
 
 
 def url_source_download_dir(source):
@@ -158,103 +187,23 @@ def url_source_download_dir(source):
     return os.path.join(var.cache_dir("resources"), digest)
 
 
-def post_process(source, cwd, use_cache=True):
-    if not source.post_process:
-        return
-    cmd_in = source.post_process.strip().replace("\n", " ")
-    cmd = _apply_source_script_functions(cmd_in, source)
-    if use_cache:
-        cmd_digest = hashlib.sha1(cmd.encode()).hexdigest()
-        process_marker = os.path.join(cwd, ".guild-cache-{}.post".format(cmd_digest))
-        if os.path.exists(process_marker):
-            return
-    log.info("Post processing %s resource in %s: %r", source.resdef.name, cwd, cmd)
-    try:
-        subprocess.check_call(cmd, shell=True, cwd=cwd)
-    except subprocess.CalledProcessError as e:
-        raise ResolutionError(
-            "error post processing %s resource: %s" % (source.resdef.name, e)
-        )
-    else:
-        util.touch(process_marker)
+def _url_unpack_dir(source_path, explicit_unpack_dir):
+    return explicit_unpack_dir or os.path.dirname(source_path)
 
 
-def _apply_source_script_functions(script, source):
-    funs = [("project-src", (_project_src_source_script, [source]))]
-    for name, fun in funs:
-        script = _apply_source_script_function(name, fun, script)
-    return script
+###################################################################
+# Operation resolver
+###################################################################
 
 
-def _apply_source_script_function(name, fun, script):
-    return "".join(
-        [
-            _apply_source_script_function_to_part(part, name, fun)
-            for part in _split_source_script(name, script)
-        ]
-    )
-
-
-def _split_source_script(fun_name, script):
-    return re.split(r"(\$\(%s .*?\))" % fun_name, script)
-
-
-def _apply_source_script_function_to_part(part, fun_name, fun):
-    m = re.match(r"\$\(%s (.*?)\)" % fun_name, part)
-    if m is None:
-        return part
-    args = util.shlex_split(m.group(1))
-    fun, extra_args = fun
-    log.debug("Applying %s to %s", fun_name, args)
-    return fun(*(args + extra_args))
-
-
-def _project_src_source_script(path, source):
-    roots = [_resdef_dir(source.resdef)] + _resdef_parent_dirs(source.resdef)
-    for root in roots:
-        full_path = os.path.join(root, path)
-        if os.path.exists(full_path):
-            log.debug("Found %s under %s", path, root)
-            return full_path
-    raise ResolutionError(
-        "project-src failed: could not find '%s' in path '%s'"
-        % (path, os.path.pathsep.join(roots))
-    )
-
-
-def _resdef_dir(resdef):
-    """Return directory for a resource definition.
-
-    The ResourceDef interface doesn't provide a directory, but we can
-    infer a directory by checking for 'modeldef' and 'dist'
-    attributes, both of which are associated with a Guild file and
-    therefore a directory.
-    """
-    if hasattr(resdef, "modeldef"):
-        return resdef.modeldef.guildfile.dir
-    elif hasattr(resdef, "dist"):
-        return resdef.dist.guildfile.dir
-    else:
-        raise AssertionError(resdef)
-
-
-def _resdef_parent_dirs(resdef):
-    try:
-        modeldef = resdef.modeldef
-    except AttributeError:
-        return []
-    else:
-        return [parent.dir for parent in modeldef.parents]
-
-
-class OperationOutputResolver(FileResolver):
+class OperationResolver(FileResolver):
     def __init__(self, source, resource, modeldef):
-        super(OperationOutputResolver, self).__init__(source, resource)
+        super(OperationResolver, self).__init__(source, resource)
         self.modeldef = modeldef
 
     def resolve(self, resolve_context):
         source_path = self._source_path()
-        unpack_dir = self._unpack_dir(source_path, resolve_context.unpack_dir)
+        unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)
         return resolve_source_files(source_path, self.source, unpack_dir)
 
     def _source_path(self):
@@ -367,6 +316,11 @@ class opref_match_filter(object):
         return self.opref.is_op_run(run, match_regex=True)
 
 
+###################################################################
+# Module resolver
+###################################################################
+
+
 class ModuleResolver(Resolver):
     def resolve(self, resolve_context):
         module_name = self.source.parsed_uri.path
@@ -376,6 +330,11 @@ class ModuleResolver(Resolver):
             raise ResolutionError(str(e))
         else:
             return []
+
+
+###################################################################
+# Config resolver
+###################################################################
 
 
 class ConfigResolver(FileResolver):
@@ -476,49 +435,31 @@ class ConfigResolver(FileResolver):
         return json.dumps(s, sort_keys=True)
 
 
+###################################################################
+# Resolve source files support
+###################################################################
+
+
 def resolve_source_files(source_path, source, unpack_dir):
     if not unpack_dir:
         raise ValueError("unpack_dir required")
-    _verify_path(source_path, source.sha256)
     log.debug("resolving source files for '%s' from %s", source, source_path)
-    return _resolve_source_files(source_path, source, unpack_dir)
-
-
-def _verify_path(path, sha256):
-    if not os.path.exists(path):
-        raise ResolutionError("'%s' does not exist" % path)
-    if sha256:
-        if os.path.isdir(path):
-            log.warning("cannot verify '%s' because it's a directory", path)
-            return
-        _verify_file_hash(path, sha256)
-
-
-def _verify_file_hash(path, sha256):
-    actual = util.file_sha256(path, use_cache=True)
-    if actual != sha256:
-        raise ResolutionError(
-            "'%s' has an unexpected sha256 (expected %s but got %s)"
-            % (path, sha256, actual)
-        )
-
-
-def _resolve_source_files(source_path, source, unpack_dir):
     if os.path.isdir(source_path):
-        return _dir_source_files(source_path, source)
+        return _resolve_source_dir_files(source_path, source)
     else:
-        unpacked = _maybe_unpack(source_path, source, unpack_dir)
-        if unpacked is not None:
-            return unpacked
-        else:
-            return [source_path]
+        return _resolve_source_file_or_archive_files(source_path, source, unpack_dir)
 
 
-def _dir_source_files(dir, source):
+def _resolve_source_dir_files(source_path, source):
     if source.select:
-        return _selected_source_paths(dir, _all_dir_files(dir), source.select)
+        return _selected_dir_files(source_path, source.select)
     else:
-        return _all_source_paths(dir, os.listdir(dir))
+        return _root_dir_files(source_path)
+
+
+def _selected_dir_files(source_path, select):
+    all_files = _all_dir_files(source_path)
+    return _selected_source_paths(source_path, all_files, select)
 
 
 def _all_dir_files(dir):
@@ -553,22 +494,48 @@ def _match_paths(paths, pattern_str):
         return [m for m in [p.match(path) for path in paths] if m]
 
 
-def _all_source_paths(root, files):
-    root_names = [path.split("/")[0] for path in sorted(files)]
+def _root_dir_files(source_path):
+    return _root_paths(source_path, os.listdir(source_path))
+
+
+def _root_paths(root, files):
+    root_names = {path.split("/")[0] for path in sorted(files)}
     return [
         os.path.join(root, name)
-        for name in set(root_names)
+        for name in sorted(root_names)
         if not name.startswith(".guild")
     ]
 
 
-def _maybe_unpack(source_path, source, unpack_dir):
-    if not source.unpack:
-        return None
-    archive_type = _archive_type(source_path, source)
-    if not archive_type:
-        return None
-    return _unpack(source_path, archive_type, source.select, unpack_dir)
+def _resolve_source_file_or_archive_files(source_path, source, unpack_dir):
+    _verify_path(source_path, source.sha256)
+    if source.unpack:
+        archive_type = _archive_type(source_path, source)
+        if archive_type:
+            return _resolve_archive_files(source_path, archive_type, source, unpack_dir)
+        else:
+            return [source_path]
+    else:
+        return [source_path]
+
+
+def _verify_path(path, sha256):
+    if not os.path.exists(path):
+        raise ResolutionError("'%s' does not exist" % path)
+    if sha256:
+        if os.path.isdir(path):
+            log.warning("cannot verify '%s' because it's a directory", path)
+            return
+        _verify_file_hash(path, sha256)
+
+
+def _verify_file_hash(path, sha256):
+    actual = util.file_sha256(path, use_cache=True)
+    if actual != sha256:
+        raise ResolutionError(
+            "'%s' has an unexpected sha256 (expected %s but got %s)"
+            % (path, sha256, actual)
+        )
 
 
 def _archive_type(source_path, source):
@@ -585,62 +552,67 @@ def _archive_type(source_path, source):
         return None
 
 
-def _unpack(source_path, archive_type, select, unpack_dir):
-    assert unpack_dir
-    unpacked = _list_unpacked(source_path, unpack_dir)
-    if unpacked:
-        return _for_unpacked(unpack_dir, unpacked, select)
-    elif archive_type == "zip":
-        return _unzip(source_path, select, unpack_dir)
-    elif archive_type == "tar":
-        return _untar(source_path, select, unpack_dir)
-    elif archive_type == "gzip":
-        return _gunzip(source_path, select, unpack_dir)
+def _resolve_archive_files(source_path, archive_type, source, unpack_dir):
+    unpacked = _ensure_unpacked(source_path, archive_type, unpack_dir)
+    if source.select:
+        return _selected_source_paths(unpack_dir, unpacked, source.select)
     else:
-        raise ResolutionError(
-            "'%s' cannot be unpacked "
-            "(unsupported archive type '%s')" % (source_path, type)
-        )
+        return _root_paths(unpack_dir, unpacked)
 
 
-def _list_unpacked(src, unpack_dir):
-    unpacked_src = _unpacked_src(unpack_dir, src)
-    unpacked_time = util.getmtime(unpacked_src)
-    if not unpacked_time or unpacked_time < util.getmtime(src):
+def _ensure_unpacked(source_path, archive_type, unpack_dir):
+    assert unpack_dir
+    cached = _read_cached_unpacked(source_path, unpack_dir)
+    if cached:
+        return cached
+    unpacked = _unpack(source_path, archive_type, unpack_dir)
+    _write_cached_unpacked(unpacked, unpack_dir, source_path)
+    return unpacked
+
+
+def _read_cached_unpacked(source_path, unpack_dir):
+    cache_path = _unpacked_cache_path(unpack_dir, source_path)
+    cache_time = util.getmtime(cache_path)
+    if not cache_time or cache_time < util.getmtime(source_path):
         return None
-    lines = open(unpacked_src, "r").readlines()
+    lines = open(cache_path, "r").readlines()
     return [l.rstrip() for l in lines]
 
 
-def _unpacked_src(unpack_dir, src):
-    name = os.path.basename(src)
+def _unpacked_cache_path(unpack_dir, source_path):
+    name = os.path.basename(source_path)
     return os.path.join(unpack_dir, ".guild-cache-%s.unpacked" % name)
 
 
-def _for_unpacked(root, unpacked, select):
-    if select:
-        return _selected_source_paths(root, unpacked, select)
+def _unpack(source_path, archive_type, unpack_dir):
+    if archive_type == "zip":
+        return _unzip(source_path, unpack_dir)
+    elif archive_type == "tar":
+        return _untar(source_path, unpack_dir)
+    elif archive_type == "gzip":
+        return _gunzip(source_path, unpack_dir)
     else:
-        return _all_source_paths(root, unpacked)
+        raise ResolutionError(
+            "'%s' cannot be unpacked "
+            "(unsupported archive type '%s')" % (source_path, archive_type)
+        )
 
 
-def _unzip(src, select, unpack_dir):
+def _unzip(src, unpack_dir):
     import zipfile
 
     zf = zipfile.ZipFile(src)
     log.info("Unpacking %s", src)
-    return _gen_unpack(
-        unpack_dir, src, zf.namelist, lambda name: name, zf.extractall, select
-    )
+    return _gen_unpack(unpack_dir, zf.namelist, lambda name: name, zf.extractall)
 
 
-def _untar(src, select, unpack_dir):
+def _untar(src, unpack_dir):
     import tarfile
 
     tf = tarfile.open(src)
     log.info("Unpacking %s", src)
     return _gen_unpack(
-        unpack_dir, src, _tar_members_fun(tf), _tar_member_name, tf.extractall, select
+        unpack_dir, _tar_members_fun(tf), _tar_member_name, tf.extractall
     )
 
 
@@ -655,14 +627,12 @@ def _tar_member_name(tfinfo):
     return _strip_leading_dotdir(tfinfo.name)
 
 
-def _gunzip(src, select, unpack_dir):
+def _gunzip(src, unpack_dir):
     return _gen_unpack(
         unpack_dir,
-        src,
         _gzip_list_members_fun(src),
         _gzip_member_name_fun,
         _gzip_extract_fun(src),
-        select,
     )
 
 
@@ -707,7 +677,7 @@ def _strip_leading_dotdir(path):
         return path
 
 
-def _gen_unpack(unpack_dir, src, list_members, member_name, extract, select):
+def _gen_unpack(unpack_dir, list_members, member_name, extract):
     members = list_members()
     names = [member_name(m) for m in members]
     to_extract = [
@@ -716,47 +686,143 @@ def _gen_unpack(unpack_dir, src, list_members, member_name, extract, select):
         if not os.path.exists(os.path.join(unpack_dir, name))
     ]
     extract(unpack_dir, to_extract)
-    _write_unpacked(names, unpack_dir, src)
-    if select:
-        return _selected_source_paths(unpack_dir, names, select)
-    else:
-        return _all_source_paths(unpack_dir, names)
+    return names
 
 
-def _write_unpacked(unpacked, unpack_dir, src):
-    with open(_unpacked_src(unpack_dir, src), "w") as f:
+def _write_cached_unpacked(unpacked, unpack_dir, source_path):
+    cache_path = _unpacked_cache_path(unpack_dir, source_path)
+    with open(cache_path, "w") as f:
         for path in unpacked:
             f.write(path + "\n")
 
 
-def for_resdef_source(source, resource):
-    cls = _resolver_class_for_source(source)
-    if not cls:
-        return None
-    return cls(source, resource)
+###################################################################
+# Post process support
+###################################################################
 
 
-def _resolver_class_for_source(source):
-    scheme = source.parsed_uri.scheme
-    if scheme == "file":
-        return FileResolver
-    elif scheme in ["http", "https"]:
-        return URLResolver
-    elif scheme == "module":
-        return ModuleResolver
-    elif scheme == "operation":
-        return _operation_output_cls(source.resdef)
-    elif scheme == "config":
-        return ConfigResolver
+def post_process(source, cwd, use_cache=True):
+    if not source.post_process:
+        return
+    cmd_in = source.post_process.strip().replace("\n", " ")
+    cmd = _apply_source_script_functions(cmd_in, source)
+    if use_cache:
+        cmd_digest = hashlib.sha1(cmd.encode()).hexdigest()
+        process_marker = os.path.join(cwd, ".guild-cache-{}.post".format(cmd_digest))
+        if os.path.exists(process_marker):
+            return
+    log.info("Post processing %s resource in %s: %r", source.resdef.name, cwd, cmd)
+    try:
+        subprocess.check_call(cmd, shell=True, cwd=cwd)
+    except subprocess.CalledProcessError as e:
+        raise ResolutionError(
+            "error post processing %s resource: %s" % (source.resdef.name, e)
+        )
     else:
-        return None
+        util.touch(process_marker)
 
 
-def _operation_output_cls(resdef):
-    if not hasattr(resdef, "modeldef"):
-        return None
+def _apply_source_script_functions(script, source):
+    funs = [("project-src", (_project_src_source_script, [source]))]
+    for name, fun in funs:
+        script = _apply_source_script_function(name, fun, script)
+    return script
 
-    def cls(source, resource):
-        return OperationOutputResolver(source, resource, resdef.modeldef)
 
-    return cls
+def _apply_source_script_function(name, fun, script):
+    return "".join(
+        [
+            _apply_source_script_function_to_part(part, name, fun)
+            for part in _split_source_script(name, script)
+        ]
+    )
+
+
+def _split_source_script(fun_name, script):
+    return re.split(r"(\$\(%s .*?\))" % fun_name, script)
+
+
+def _apply_source_script_function_to_part(part, fun_name, fun):
+    m = re.match(r"\$\(%s (.*?)\)" % fun_name, part)
+    if m is None:
+        return part
+    args = util.shlex_split(m.group(1))
+    fun, extra_args = fun
+    log.debug("Applying %s to %s", fun_name, args)
+    return fun(*(args + extra_args))
+
+
+def _project_src_source_script(path, source):
+    roots = [_resdef_dir(source.resdef)] + _resdef_parent_dirs(source.resdef)
+    for root in roots:
+        full_path = os.path.join(root, path)
+        if os.path.exists(full_path):
+            log.debug("Found %s under %s", path, root)
+            return full_path
+    raise ResolutionError(
+        "project-src failed: could not find '%s' in path '%s'"
+        % (path, os.path.pathsep.join(roots))
+    )
+
+
+def _resdef_dir(resdef):
+    """Return directory for a resource definition.
+
+    The ResourceDef interface doesn't provide a directory, but we can
+    infer a directory by checking for 'modeldef' and 'dist'
+    attributes, both of which are associated with a Guild file and
+    therefore a directory.
+    """
+    if hasattr(resdef, "modeldef"):
+        return resdef.modeldef.guildfile.dir
+    elif hasattr(resdef, "dist"):
+        return resdef.dist.guildfile.dir
+    else:
+        raise AssertionError(resdef)
+
+
+def _resdef_parent_dirs(resdef):
+    try:
+        modeldef = resdef.modeldef
+    except AttributeError:
+        return []
+    else:
+        return [parent.dir for parent in modeldef.parents]
+
+
+###################################################################
+# Utils / helpers
+###################################################################
+
+
+def _unpack_dir(source_path, explicit_unpack_dir):
+    """Returns unpack dir for local archives.
+
+    If explicit_unpack_dir is specified (non blank) it is always
+    used. Otherwise a location under the resource cache is used
+    based on the value of source_path. In this case, source_path
+    must be absolute.
+
+    As with downloaded archives, local archives are unacked into a
+    resource cache dir. This avoid unpacking project local files
+    within the project.
+
+    """
+    if explicit_unpack_dir:
+        return explicit_unpack_dir
+    assert os.path.isabs(source_path), source_path
+    digest = _file_source_digest(source_path)
+    return os.path.join(var.cache_dir("resources"), digest)
+
+
+def _file_source_digest(path):
+    key = "\n".join(["file", path]).encode("utf-8")
+    return hashlib.sha224(key).hexdigest()
+
+
+def _resolve_config_path(config, resource_name):
+    config_path = os.path.abspath(str(config))
+    if not os.path.exists(config_path):
+        raise ResolutionError("%s does not exist" % config_path)
+    log.info("Using %s for %s resource", os.path.relpath(config_path), resource_name)
+    return [config_path]
