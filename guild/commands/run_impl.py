@@ -1281,9 +1281,9 @@ def _test_output_scalars(S):
 
 def _open_output(path):
     if path == "-":
-        return util.StdinReader()
+        return util.StdinReader(stop_on_blank_line=sys.stdin.isatty())
     try:
-        return open(path, "r")
+        return open(path, "rb")
     except (IOError, OSError) as e:
         if e.errno == 2:
             cli.error("%s does not exist" % path)

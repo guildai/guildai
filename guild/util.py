@@ -1427,14 +1427,17 @@ class SysArgv(object):
 
 class StdinReader(object):
 
+    def __init__(self, stop_on_blank_line=False):
+        self.stop_on_blank_line = stop_on_blank_line
+
+
     __enter__ = lambda self, *_args: self
     __exit__ = lambda *_args: None
 
-    @staticmethod
-    def __iter__():
-        while True:
-            line = sys.stdin.readline()
-            if not line.strip():
+    def __iter__(self):
+        for line in sys.stdin:
+            line = line.rstrip()
+            if not line and self.stop_on_blank_line:
                 break
             yield line
 
