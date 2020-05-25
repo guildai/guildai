@@ -53,10 +53,6 @@ class InvalidOpDef(ValueError):
         return self.msg
 
 
-class OpInitError(Exception):
-    pass
-
-
 class ProcessError(Exception):
     pass
 
