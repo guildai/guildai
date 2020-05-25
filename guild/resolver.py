@@ -113,6 +113,7 @@ class FileResolver(Resolver):
         source_path = self._abs_source_path()
         unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)
         resolved = self._resolve_source_files(source_path, unpack_dir)
+        _check_source_resolved(resolved, self.source)
         post_process(self.source, unpack_dir or os.path.dirname(source_path))
         return resolved
 
@@ -177,6 +178,7 @@ class URLResolver(Resolver):
         else:
             unpack_dir = _url_unpack_dir(source_path, resolve_context.unpack_dir)
             resolved = resolve_source_files(source_path, self.source, unpack_dir)
+            _check_source_resolved(resolved, self.source)
             post_process(self.source, unpack_dir or os.path.dirname(source_path))
             return resolved
 
@@ -204,7 +206,9 @@ class OperationResolver(FileResolver):
     def resolve(self, resolve_context):
         source_path = self._source_path()
         unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)
-        return resolve_source_files(source_path, self.source, unpack_dir)
+        resolved = resolve_source_files(source_path, self.source, unpack_dir)
+        _check_source_resolved(resolved, self.source)
+        return resolved
 
     def _source_path(self):
         run_spec = str(self.resource.config) if self.resource.config else ""
@@ -826,3 +830,12 @@ def _resolve_config_path(config, resource_name):
         raise ResolutionError("%s does not exist" % config_path)
     log.info("Using %s for %s resource", os.path.relpath(config_path), resource_name)
     return [config_path]
+
+
+def _check_source_resolved(resolved, source):
+    if resolved:
+        return
+    if source.fail_if_empty:
+        raise ResolutionError("nothing resolved for %s" % source.name)
+    if source.warn_if_empty:
+        log.warning("nothing resolved for %s", source.name)

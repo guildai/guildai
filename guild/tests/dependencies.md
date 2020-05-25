@@ -227,7 +227,10 @@ The test resource has the following sources:
      <guild.resourcedef.ResourceSource 'file:test.txt'>,
      <guild.resourcedef.ResourceSource 'file:foo'>,
      <guild.resourcedef.ResourceSource 'file:foo.zip'>,
-     <guild.resourcedef.ResourceSource 'file:foo.zip'>]
+     <guild.resourcedef.ResourceSource 'file:foo.zip'>,
+     <guild.resourcedef.ResourceSource 'file:foo'>,
+     <guild.resourcedef.ResourceSource 'file:foo'>,
+     <guild.resourcedef.ResourceSource 'file:foo'>]
 
 In the tests below, we'll use a resolver to resolve each source.
 
@@ -539,6 +542,66 @@ TODO: FIX
 
     >> log.print_all()
     Unpacking .../samples/projects/resources/foo.zip
+
+Note that select does not include leading paths.
+
+### Nothing selected
+
+Sources 12, 13, and 14 demonstrate behavior when nothing is selected.
+
+Default behavior is to warn if nothing is resolved:
+
+    >>> nothing_selected_default = test_resdef.sources[12]
+    >>> nothing_selected_default.uri
+    'file:foo'
+
+    >>> nothing_selected_default.warn_if_empty
+    True
+
+    >>> nothing_selected_default.fail_if_empty
+    False
+
+    >>> with LogCapture(strip_ansi_format=True) as log:
+    ...     resolve(nothing_selected_default)
+    {'resolved': [], 'staged': [], 'unpacked': []}
+
+    >>> log.print_all()
+    WARNING: nothing resolved for file:foo
+
+Warning can be disabled with `warn-if-empty: false`:
+
+    >>> nothing_selected_warn = test_resdef.sources[13]
+    >>> nothing_selected_warn.uri
+    'file:foo'
+
+    >>> nothing_selected_warn.warn_if_empty
+    False
+
+    >>> nothing_selected_warn.fail_if_empty
+    False
+
+    >>> with LogCapture() as log:
+    ...     resolve(nothing_selected_warn)
+    {'resolved': [], 'staged': [], 'unpacked': []}
+
+    >>> log.print_all()
+
+A resolution can be made to fail by setting `fail-if-empty` to `true`:
+
+    >>> nothing_selected_fail = test_resdef.sources[14]
+    >>> nothing_selected_fail.uri
+    'file:foo'
+
+    >>> nothing_selected_fail.warn_if_empty
+    True
+
+    >>> nothing_selected_fail.fail_if_empty
+    True
+
+    >>> resolve(nothing_selected_fail)
+    Traceback (most recent call last):
+    DependencyError: could not resolve 'file:foo' in test resource: nothing
+    resolved for file:foo
 
 ### test2 resource
 

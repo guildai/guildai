@@ -42,6 +42,17 @@
         # source 11
         - file: foo.zip
           select: .+\.txt
+        # source 12
+        - file: foo
+          select: no-match
+        # source 13
+        - file: foo
+          select: no-match
+          warn-if-empty: no
+        # source 14
+        - file: foo
+          select: no-match
+          fail-if-empty: yes
 
     test2:
       path: foo

@@ -112,7 +112,12 @@ Operation that requires a `flag` run:
     >>> project.run("requires-flag")
     Resolving flag dependency
     Using output from run ... for flag resource
+    WARNING: nothing resolved for operation:flag
     hello requires-flag
+
+`required-flag` operation requires the `flag` operation, which doesn't
+provide any files to resolve. When we resolve the dependency, we get a
+warning message.
 
 Note that the `flag` argument was not included.
 
@@ -133,6 +138,7 @@ of the interface to the resource run ID.
     >>> project.run("requires-flag-2")
     Resolving flag dependency
     Using output from run ... for flag resource
+    WARNING: nothing resolved for operation:flag
     hello requires-flag-2 --flag ...
 
 Note in this case the flag is included in the args because it's
@@ -144,6 +150,7 @@ used for the resource.
     >>> project.run("requires-flag-3")
     Resolving foo dependency
     Using output from run ... for foo resource
+    WARNING: nothing resolved for foo
     hello requires-flag-3
 
     >>> project.run("requires-flag-3", flags={"foo": "invalid"})
@@ -169,6 +176,7 @@ We can force a lookup by setting `foo` to an empty string.
     >>> project.run("requires-flag-4", {"foo": ""})
     Resolving foo dependency
     Using output from run ... for foo resource
+    WARNING: nothing resolved for foo
     hello requires-flag-4 --FOO ''
 
 Note that the argument `--FOO` is provided as specified by the `foo`

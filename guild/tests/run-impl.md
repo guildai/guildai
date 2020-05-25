@@ -512,6 +512,9 @@ Create a downstream run.
     >>> run(cwd, gh, opspec="downstream")
     Resolving upstream dependency
     Using output from run ... for upstream resource
+    WARNING: nothing resolved for operation:upstream
+
+Note the warning - upstream doesn't provide any files to resolve.
 
 Restart the downstream run.
 
