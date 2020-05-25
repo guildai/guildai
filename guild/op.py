@@ -397,11 +397,11 @@ def _env_paths():
 
 
 def _resolve_deps(op, run, for_stage=False):
-    resolved = run.get("resolved_deps") or {}
+    resolved_deps = run.get("resolved_deps") or {}
     resolve_context = op_dep.ResolveContext(run)
     for dep in op.deps or []:
         log.info("Resolving %s dependency", dep.resdef.name)
-        resolved_sources = resolved.setdefault(dep.resdef.name, {})
+        resolved_sources = resolved_deps.setdefault(dep.resdef.name, {})
         for source in dep.resdef.sources:
             if source.name in resolved_sources:
                 log.info("Skipping %s because it's already resolved", source.name)
@@ -410,9 +410,9 @@ def _resolve_deps(op, run, for_stage=False):
                 log.info("Skipping operation dependency %s for stage", source.name)
                 continue
             paths = op_dep.resolve_source(source, dep, resolve_context)
-            rel_paths = [os.path.relpath(path, run.dir) for path in paths]
-            resolved_sources[source.name] = rel_paths
-    run.write_attr("resolved_deps", resolved)
+            resolved_paths = [os.path.relpath(path, run.dir) for path in paths]
+            resolved_sources[source.name] = resolved_paths
+    run.write_attr("resolved_deps", resolved_deps)
 
 
 def _is_operation_source(source):
