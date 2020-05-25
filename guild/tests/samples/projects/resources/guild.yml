@@ -114,11 +114,3 @@
         d:
           default: 33
           arg-name: c.d
-
-    DELME:
-      main: guild.pass
-      requires:
-        - file: foo.zip
-          select:
-            - foo/bar
-            - foo/a.txt
