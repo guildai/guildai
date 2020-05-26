@@ -747,6 +747,98 @@ config.
     >>> pprint(gf.default_model.get_operation("steps").steps)
     [{'flags': {'bar': 456, 'foo': 123}, 'run': 'op'}]
 
+Here's another approach, where `steps` includes flags defined for
+`op`.
+
+    >>> gf = guildfile.for_string("""
+    ... op:
+    ...   main: guild.pass
+    ...   flags:
+    ...     foo: 123
+    ...     bar: 456
+    ... steps:
+    ...   steps:
+    ...    - run: op
+    ...      flags:
+    ...        $include: :op
+    ...        bar: 789
+    ... """)
+
+    >>> pprint(gf.default_model.get_operation("steps").steps)
+    [{'flags': {'bar': 789, 'foo': 123}, 'run': 'op'}]
+
+And another case where steps includes a subset of flags.
+
+    >>> gf = guildfile.for_string("""
+    ... op:
+    ...   main: guild.pass
+    ...   flags:
+    ...     foo: 123
+    ...     bar: 456
+    ...     baz: 789
+    ... steps:
+    ...   steps:
+    ...    - run: op
+    ...      flags:
+    ...        $include: :op#bar,baz
+    ...        bar: 789
+    ... """)
+
+    >>> pprint(gf.default_model.get_operation("steps").steps)
+    [{'flags': {'bar': 789, 'baz': 789}, 'run': 'op'}]
+
+### Include targets
+
+Include targets are strings that contain model (top-level object),
+operation, and attr specs. They're processed by the private function
+`guildfile._split_include_ref`.
+
+    >>> def split(ref):
+    ...     return guildfile._split_include_ref(ref, "<string>")
+
+Some examples:
+
+    >>> split("")
+    Traceback (most recent call last):
+    GuildfileReferenceError: error in <string>: invalid include reference '':
+    operation references must be specified as CONFIG[#ATTRS] or MODEL:OPERATION[#ATTRS]
+
+    >>> split("shared-flags")
+    ('shared-flags', None, None)
+
+    >>> split("shared-flags#")
+    ('shared-flags', None, None)
+
+    >>> split("shared-flags#flag1")
+    ('shared-flags', None, 'flag1')
+
+    >>> split("shared-flags#flag1,flag2")
+    ('shared-flags', None, 'flag1,flag2')
+
+    >>> split(":some-op")
+    ('', 'some-op', None)
+
+    >>> split(":some-op#")
+    ('', 'some-op', None)
+
+    >>> split(":some-op#flag1")
+    ('', 'some-op', 'flag1')
+
+    >>> split(":some-op#flag1,flag2")
+    ('', 'some-op', 'flag1,flag2')
+
+    >>> split("some-model:some-op")
+    ('some-model', 'some-op', None)
+
+    >>> split("some-model:some-op#")
+    ('some-model', 'some-op', None)
+
+    >>> split("some-model:some-op#flag1")
+    ('some-model', 'some-op', 'flag1')
+
+    >>> split("some-model:some-op#flag1,flag2")
+    ('some-model', 'some-op', 'flag1,flag2')
+
 ## Model inheritance
 
 ### Data merging

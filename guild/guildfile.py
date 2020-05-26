@@ -43,6 +43,13 @@ ALL_TYPES = [
 
 MODEL_TYPES = ["model", "config"]
 
+STRING_SRC_P = re.compile(r"<.*>$")
+INCLUDE_REF_P = re.compile(r"([^:#]+)(?::([^#]+))?(?:#(.+))?")
+INCLUDE_REF_P1 = re.compile(r"([^:#]*):([^#]+)(?:#(.+))?")
+INCLUDE_REF_P2 = re.compile(r"([^:#]+)(?:#(.+))?")
+INCLUDE_REF_P_DESC = "CONFIG[#ATTRS] or MODEL:OPERATION[#ATTRS]"
+PARAM_P = re.compile(r"({{.*?}})")
+
 _cache = {}
 
 ###################################################################
@@ -113,7 +120,7 @@ def _required(name, data, guildfile, pop=False):
 
 
 def _string_source(src):
-    return re.match(r"<.*>$", src)
+    return STRING_SRC_P.match(src)
 
 
 ###################################################################
@@ -585,7 +592,7 @@ def _apply_includes(includes, gf_path, section_name, seen_includes, resolved):
         # Have to access guildfile.data here rather than use
         # guildfile.get because guildfile may not be initialized at
         # this point.
-        (include_model, include_op, include_attrs) = _split_include_ref(ref, gf_path[0])
+        include_model, include_op, include_attrs = _split_include_ref(ref, gf_path[0])
         include_data = _find_include_data(
             include_model, include_op, section_name, gf_path
         )
@@ -607,17 +614,23 @@ def _assert_guildfile_data(guildfile):
 
 
 def _split_include_ref(ref, src):
-    m = re.match("([^:#]+)(?::([^#]+))?(?:#(.+))?", ref)
-    if not m:
-        raise GuildfileReferenceError(
-            src,
-            (
-                "invalid include reference '%s': operation references "
-                "must be specified as "
-                "MODEL_OR_CONFIG[:OPERATION][#ATTRS]" % ref
-            ),
-        )
-    return m.groups()
+    m = INCLUDE_REF_P1.match(ref)
+    if m:
+        groups = m.groups()
+        assert len(groups) == 3, (groups, ref)
+        return groups
+    m = INCLUDE_REF_P2.match(ref)
+    if m:
+        groups = m.groups()
+        assert len(groups) == 2, (groups, ref)
+        return groups[0], None, groups[1]
+    raise GuildfileReferenceError(
+        src,
+        (
+            "invalid include reference '%s': operation references "
+            "must be specified as %s" % (ref, INCLUDE_REF_P_DESC)
+        ),
+    )
 
 
 def _find_include_data(model_name, op_name, section_name, gf_path):
@@ -897,7 +910,7 @@ def _resolve_list_param_refs(l, params):
 
 
 def _resolve_str_param_refs(s, params):
-    parts = [part for part in re.split(r"({{.*?}})", str(s)) if part != ""]
+    parts = [part for part in PARAM_P.split(str(s)) if part != ""]
     resolved = [_resolve_param_ref(part, params) for part in parts]
     if len(resolved) == 1:
         return resolved[0]
