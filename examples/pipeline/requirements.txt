@@ -1,0 +1,6 @@
+# python>=3.6
+
+matplotlib
+numpy
+torch
+torchvision

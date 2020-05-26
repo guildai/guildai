@@ -1,0 +1,44 @@
+prepare-images:
+  description: Prepare data for training
+  main: prepare
+  requires:
+    - url: https://download.pytorch.org/tutorial/hymenoptera_data.zip
+      sha256: fbc41b31d544714d18dd1230b1e2b455e1557766e13e67f9f5a7a23af7c02209
+      path: data
+
+train:
+  description: Train an image classifier
+  main: train
+  flags-dest: globals
+  flags-import:
+    - freeze_layers
+    - train_epochs
+    - lr
+    - momentum
+    - lr_decay_gamma
+    - lr_decay_epochs
+  flags:
+    epochs:
+      arg-name: train_epochs
+  requires:
+    - operation: prepare-images
+      name: images
+  output-scalars:
+    - step: Epoch (\step)
+    - 'train Loss: (?P<train_loss>\value) Acc: (?P<train_acc>\value)'
+    - 'val Loss: (?P<val_loss>\value) Acc: (?P<val_acc>\value)'
+    - 'Best val Acc: (?P<best_val_acc>\value)'
+  plugins: summary
+
+pipeline:
+  description: Train a using various flag combinations
+  flags:
+    epochs: 25
+  steps:
+    - run: prepare-images
+    - run: train
+      flags:
+        freeze_layers: [yes, no]
+        epochs: ${epochs}
+        lr: logspace[-5:-1:5]
+        momentum: [0.7,0.8,0.9]
