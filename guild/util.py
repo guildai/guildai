@@ -1426,10 +1426,8 @@ class SysArgv(object):
 
 
 class StdinReader(object):
-
     def __init__(self, stop_on_blank_line=False):
         self.stop_on_blank_line = stop_on_blank_line
-
 
     __enter__ = lambda self, *_args: self
     __exit__ = lambda *_args: None
