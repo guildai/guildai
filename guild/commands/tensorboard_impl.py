@@ -71,7 +71,7 @@ def _tensorboard_options(args):
 
 
 def _parse_tensorboard_opt(opt):
-    parts = opt.split("=")
+    parts = opt.split("=", 1)
     if len(parts) != 2:
         cli.error("invalid TensorBoard option %r - must be OPTION=VALUE" % opt)
     return parts
