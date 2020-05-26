@@ -345,7 +345,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
             except subprocess.CalledProcessError as e:
                 self.log.warning(
                     "cannot import flags from %s: %s",
-                    script.mod_path,
+                    script.src,
                     e.output.decode().strip(),
                 )
                 raise DataLoadError()
