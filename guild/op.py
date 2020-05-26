@@ -149,18 +149,24 @@ def _stage_run_proc_env(op, run):
 
 def run(op, quiet=False, pidfile=None, stop_after=None, extra_env=None):
     run = init_run(op)
+    try:
+        _resolve_deps(op, run)
+    finally:
+        op_util.clear_run_pending(run)
+    op_util.set_run_started(run)
+    op_util.clear_run_marker(run, "STAGED")
     if pidfile:
-        _start_in_background(run, op, pidfile, quiet, stop_after, extra_env)
+        _run_op_in_background(run, op, pidfile, quiet, stop_after, extra_env)
         return run, 0
     else:
-        exit_status = _run(run, op, quiet, stop_after, extra_env)
+        exit_status = _run_op(run, op, quiet, stop_after, extra_env)
         return run, exit_status
 
 
-def _start_in_background(run, op, pidfile, quiet, stop_after, extra_env):
+def _run_op_in_background(run, op, pidfile, quiet, stop_after, extra_env):
     import daemonize
 
-    action = lambda: _run(run, op, quiet, stop_after, extra_env)
+    action = lambda: _run_op(run, op, quiet, stop_after, extra_env)
     daemon = daemonize.Daemonize(
         app="guild_op", action=action, pid=pidfile, chdir=config.cwd()
     )
@@ -180,13 +186,7 @@ def _start_in_background(run, op, pidfile, quiet, stop_after, extra_env):
         raise
 
 
-def _run(run, op, quiet, stop_after, extra_env):
-    try:
-        _resolve_deps(op, run)
-    finally:
-        op_util.clear_run_pending(run)
-    op_util.set_run_started(run)
-    op_util.clear_run_marker(run, "STAGED")
+def _run_op(run, op, quiet, stop_after, extra_env):
     proc = _op_start_proc(op, run, quiet, extra_env)
     exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
     _op_finalize_run_attrs(run, exit_status)
