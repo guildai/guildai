@@ -149,12 +149,12 @@ def _stage_run_proc_env(op, run):
 
 def run(op, quiet=False, pidfile=None, stop_after=None, extra_env=None):
     run = init_run(op)
+    op_util.clear_run_marker(run, "STAGED")
     try:
         _resolve_deps(op, run)
     finally:
         op_util.clear_run_pending(run)
     op_util.set_run_started(run)
-    op_util.clear_run_marker(run, "STAGED")
     if pidfile:
         _run_op_in_background(run, op, pidfile, quiet, stop_after, extra_env)
         return run, 0

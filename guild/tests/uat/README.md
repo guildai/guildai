@@ -262,6 +262,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [export-import](export-import.md)
 - [pip-freeze](pip-freeze.md)
 - [no-run-output](no-run-output.md)
+- [staged-dependency-error](staged-dependency-error.md)
 
 ## Error cases
 
