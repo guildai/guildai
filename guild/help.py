@@ -435,7 +435,7 @@ def _format_flag_choices(choices, max_flag_len):
 
 def _choices_have_description(choices):
     for c in choices:
-        if c.description is not None:
+        if c.description:
             return True
     return False
 
@@ -447,7 +447,7 @@ def _format_flag_choices_dl(choices, out):
         [
             (
                 flag_util.encode_flag_val(choice.alias or choice.value),
-                "\n\n".join(choice.description.split("\n")),
+                "\n\n".join(choice.description.strip().split("\n")),
             )
             for choice in choices
         ],

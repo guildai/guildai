@@ -8,7 +8,7 @@ We use the `op-help` project to illustrate.
 
 Use `help_op` to print help for the operation rather than run it:
 
-    >>> project.run("op", help_op=True)
+    >>> project.run("op", help_op=True)  # doctest: +REPORT_UDIFF
     Usage: guild run [OPTIONS] op [FLAG]...
     <BLANKLINE>
     Sample operation
