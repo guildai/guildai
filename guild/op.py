@@ -330,9 +330,16 @@ def _op_finalize_run_attrs(run, exit_status):
 
 
 def _op_proc_env(op, run):
-    env = dict(op.cmd_env)
-    env.update(_op_proc_env_system(op))
-    env.update(_op_proc_env_run(run))
+    """Returns the proc env for op and associated run.
+
+    Proc env is made up of system env, op env, and run env. System env
+    is passed through unless otherwise defined by op env or run
+    env. Run env takes precedence when it conflicts with op end.
+    """
+    env = {}
+    env.update(_op_proc_system_env())
+    env.update(_op_proc_op_env(op))
+    env.update(_op_proc_run_env(run))
     return env
 
 
@@ -340,8 +347,13 @@ def _remove_private_env(env, op):
     return {name: val for name, val in env.items() if name not in op.private_env}
 
 
-def _op_proc_env_system(op):
-    env = util.safe_osenv()
+def _op_proc_system_env():
+    return util.safe_osenv()
+
+
+def _op_proc_op_env(op):
+    env = {}
+    env.update(op.cmd_env)
     env["GUILD_HOME"] = config.guild_home()
     env["LOG_LEVEL"] = _log_level()
     env["PYTHONPATH"] = _python_path(op)
@@ -349,7 +361,7 @@ def _op_proc_env_system(op):
     return env
 
 
-def _op_proc_env_run(run):
+def _op_proc_run_env(run):
     return {
         "RUN_DIR": run.dir,
         "RUN_ID": run.id,

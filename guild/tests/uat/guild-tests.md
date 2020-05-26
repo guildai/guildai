@@ -67,6 +67,7 @@ tests).
       needed:                      ok
       op-cmd:                      ok
       op-desc:                     ok
+      op-env:                      ok
       op-errors:                   ok
       op-main:                     ok
       op-utils:                    ok
