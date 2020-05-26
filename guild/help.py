@@ -435,7 +435,7 @@ def _format_flag_choices(choices, max_flag_len):
 
 def _choices_have_description(choices):
     for c in choices:
-        if c.description:
+        if c.description is not None:
             return True
     return False
 
