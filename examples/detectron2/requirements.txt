@@ -1,0 +1,8 @@
+# python>=3.6
+
+cython
+torch
+torchvision
+pycocotools
+opencv-python
+detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu102/index.html

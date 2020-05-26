@@ -1,0 +1,57 @@
+demo:
+  description: Run the demo to detect objects in images
+
+  main: demo --output .
+
+  flags:
+    config:
+      default: coco-segmentation-rcnn-50-3x
+      description: Configuration used to detect images
+      arg-skip: yes
+      choices:
+        - alias: coco-segmentation-rcnn-50-C4-1x
+          value: configs/COCO-InstanceSegmentation/mask_rcnn_R_50_C4_1x.yaml
+          description: ' ' # get Guild to format choices as vertical list
+
+        - alias: coco-segmentation-rcnn-50-C4-3x
+          value: configs/COCO-InstanceSegmentation/mask_rcnn_R_50_C4_3x.yaml
+
+        - alias: coco-segmentation-rcnn-50-DC5-1x
+          value: configs/COCO-InstanceSegmentation/mask_rcnn_R_50_DC5_1x.yaml
+
+        - alias: coco-segmentation-rcnn-50-DC5-3x
+          value: configs/COCO-InstanceSegmentation/mask_rcnn_R_50_DC5_3x.yaml
+
+        - alias: coco-segmentation-rcnn-50-FPN-1x
+          value: configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml
+
+        - alias: coco-segmentation-rcnn-50-FPN-3x
+          value: configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml
+
+    input:
+      description: >
+        Images to detect
+
+        Multiple images may be specified by separating each with a
+        space. Use wildcards to match multiple images.
+
+      default: 'images/*.jpg'
+      type: path
+
+  requires:
+    - url: https://github.com/facebookresearch/detectron2/archive/master.zip
+      select: detectron2-master/configs
+
+demo-all:
+  description: Run demo using all configs
+
+  flags:
+    $include: :demo#input
+
+  steps:
+    - demo config=coco-segmentation-rcnn-50-C4-1x input=${input}
+    - demo config=coco-segmentation-rcnn-50-C4-3x input=${input}
+    - demo config=coco-segmentation-rcnn-50-DC5-1x input=${input}
+    - demo config=coco-segmentation-rcnn-50-DC5-3x input=${input}
+    - demo config=coco-segmentation-rcnn-50-FPN-1x input=${input}
+    - demo config=coco-segmentation-rcnn-50-FPN-3x input=${input}
