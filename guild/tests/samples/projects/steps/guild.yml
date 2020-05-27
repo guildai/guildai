@@ -62,7 +62,7 @@
         - not-defined
     ignored-params:
       steps:
-        - m1:hello --run-dir /tmp --remote foo
+        - m1:hello --run-dir /tmp --stage
 
 - model: m4
   operations:
@@ -128,6 +128,9 @@
       main: guild.pass
       requires:
         - operation: upstream
+    loss:
+      flags:
+        x: 1
     steps-all:
       steps:
         - upstream
@@ -139,3 +142,8 @@
       steps:
         - run: downstream
           isolate-runs: no
+    steps-batch:
+      steps:
+        - run: loss x=[0:100] -O -m 5
+          opt-flags:
+            - random-starts=2

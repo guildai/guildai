@@ -271,7 +271,7 @@ def trial_results_for_runs(runs, scalars):
 
 
 def trial_runs(batch_run):
-    runs = var.runs(batch_run.dir, sort=["timestamp"])
+    runs = var.runs(batch_run.dir, sort=["timestamp"], force_root=True)
     # Update run dirs to real location rather than links under batch run.
     for run in runs:
         run.path = util.realpath(run.path)

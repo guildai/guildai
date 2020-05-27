@@ -61,3 +61,32 @@ its upstream requirement from all available runs.
     m6:downstream               completed
     m6:upstream                 completed
     m6:steps-all                completed
+
+Batch runs do not abide by run isolation as they're run under their
+own auspices.
+
+The `steps-batch` operation is an optimizing run that may log warnings
+that we're not interested in so we use `LogCapture`.
+
+    >>> with LogCapture():
+    ...     project.run("m6:steps-batch")
+    INFO: [guild] running loss: m6:loss --max-trials 5 --opt-flag
+    random-starts=2 --optimize x='[0:100]'
+    INFO: [guild] Random start for optimization (1 of 2)
+    INFO: [guild] Running trial ...: m6:loss (x=...)
+    loss: ...
+    INFO: [guild] Random start for optimization (2 of 2)
+    INFO: [guild] Running trial ...: m6:loss (x=...)
+    loss: ...
+    INFO: [guild] Found 2 previous trial(s) for use in optimization
+    INFO: [guild] Running trial ...: m6:loss (x=...)
+    loss: ...
+    INFO: [guild] Found 3 previous trial(s) for use in optimization
+    INFO: [guild] Running trial ...: m6:loss (x=...)
+    loss: ...
+    INFO: [guild] Found 4 previous trial(s) for use in optimization
+    INFO: [guild] Running trial ...: m6:loss (x=...)
+    loss: ...
+
+Note the the batch run is able to find previous trials even through
+the trials aren't children of the step parent.

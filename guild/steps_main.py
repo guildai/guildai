@@ -38,16 +38,24 @@ from guild import util
 log = None  # intialized in _init_logging
 
 STEP_USED_PARAMS = (
+    "batch_label",
+    "batch_tag",
+    "fail_on_trial_error",
     "flags",
+    "force_flags",
     "gpus",
     "label",
     "max_trials",
+    "maximize",
+    "minimize",
     "needed",
     "no_gpus",
     "opspec",
     "opt_flags",
+    "optimize",
     "optimizer",
     "random_seed",
+    "remote",
     "stop_after",
     "tag",
 )
@@ -67,19 +75,28 @@ class Step(object):
         self.op_spec = _apply_default_model(opspec_param, parent_opref)
         self.name = data.get("name") or opspec_param
         self.batch_files, flag_args = _split_batch_files(params["flags"])
-        self.flags = _init_step_flags(flag_args, parent_flags, self)
         self.checks = _init_checks(data)
         self.isolate_runs = bool(data.get("isolate-runs", True))
-        self.label = _resolve_param(params, "label", parent_flags)
-        self.tag = _resolve_param(params, "tag", parent_flags)
+        # Standard run params
+        self.batch_label = params["batch_label"]
+        self.batch_tag = params["batch_tag"]
+        self.fail_on_trial_error = params["fail_on_trial_error"]
+        self.flags = _init_step_flags(flag_args, parent_flags, self)
+        self.force_flags = params["force_flags"]
         self.gpus = _resolve_param(params, "gpus", parent_flags)
-        self.no_gpus = params["no_gpus"]
-        self.stop_after = params["stop_after"]
-        self.needed = params["needed"]
-        self.optimizer = params["optimizer"]
-        self.opt_flags = params["opt_flags"]
+        self.label = _resolve_param(params, "label", parent_flags)
         self.max_trials = params["max_trials"]
+        self.maximize = params["maximize"]
+        self.minimize = params["minimize"]
+        self.needed = params["needed"]
+        self.no_gpus = params["no_gpus"]
+        self.opt_flags = params["opt_flags"]
+        self.optimize = params["optimize"]
+        self.optimizer = params["optimizer"]
         self.random_seed = params["random_seed"]
+        self.remote = params["remote"]
+        self.stop_after = params["stop_after"]
+        self.tag = _resolve_param(params, "tag", parent_flags)
 
     def __str__(self):
         return self.name or self.op_spec
@@ -360,24 +377,40 @@ def _parent_run_options(parent_run):
 
 def _step_options(step):
     opts = []
+    if step.batch_label:
+        opts.extend(["--batch-label", step.batch_label])
+    if step.batch_tag:
+        opts.extend(["--batch-tag", step.batch_tag])
+    if step.fail_on_trial_error:
+        opts.append("--fail-on-trial-error")
+    if step.force_flags:
+        opts.append("--force-flags")
+    if step.gpus is not None:
+        opts.extend(["--gpus", str(step.gpus)])
     if step.label:
         opts.extend(["--label", step.label])
-    if step.gpus is not None:
-        opts.extend(["--gpus", step.gpus])
-    elif step.no_gpus:
-        opts.append("--no-gpus")
-    if step.stop_after:
-        opts.extend(["--stop-after", str(step.stop_after)])
-    if step.needed:
-        opts.append("--needed")
-    if step.optimizer:
-        opts.extend(["--optimizer", step.optimizer])
-    for flag in step.opt_flags:
-        opts.extend(["--opt-flag", flag])
     if step.max_trials:
         opts.extend(["--max-trials", str(step.max_trials)])
+    if step.maximize:
+        opts.extend(["--maximize", step.maximize])
+    if step.minimize:
+        opts.extend(["--minimize", step.minimize])
+    if step.needed:
+        opts.append("--needed")
+    if step.no_gpus:
+        opts.append("--no-gpus")
+    for flag in step.opt_flags:
+        opts.extend(["--opt-flag", flag])
+    if step.optimize:
+        opts.append("--optimize")
+    if step.optimizer:
+        opts.extend(["--optimizer", step.optimizer])
     if step.random_seed is not None:
         opts.extend(["--random-seed", str(step.random_seed)])
+    if step.remote:
+        opts.extend(["--remote", step.remote])
+    if step.stop_after:
+        opts.extend(["--stop-after", str(step.stop_after)])
     if step.tag:
         opts.extend(["--tag", step.tag])
     return opts

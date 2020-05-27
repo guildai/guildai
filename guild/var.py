@@ -66,28 +66,30 @@ def remote_dir(name=None):
     return path("remotes", name)
 
 
-def runs(root=None, sort=None, filter=None):
+def runs(root=None, sort=None, filter=None, force_root=False):
     filter = filter or (lambda _: True)
-    all_runs = _all_runs_f(root)
+    all_runs = _all_runs_f(root, force_root)
     runs = [run for run in all_runs() if filter(run)]
     if sort:
         runs = sorted(runs, key=_run_sort_key(sort))
     return runs
 
 
-def _all_runs_f(root):
+def _all_runs_f(root, force_root):
     root = root or runs_dir()
-    return util.find_apply([_parent_runs_override_f, _default_all_runs_f,], root)
+    return util.find_apply(
+        [_parent_runs_override_f, _default_all_runs_f], root, force_root
+    )
 
 
-def _parent_runs_override_f(root):
-    try:
-        runs_parent = os.environ["GUILD_RUNS_PARENT"]
-    except KeyError:
+def _parent_runs_override_f(root, force_root):
+    if force_root:
         return None
-    else:
-        log.debug("limitting to runs under parent %s", runs_parent)
-        return lambda: _runs_for_parent(runs_parent, root)
+    runs_parent = os.getenv("GUILD_RUNS_PARENT")
+    if not runs_parent:
+        return None
+    log.debug("limitting to runs under parent %s", runs_parent)
+    return lambda: _runs_for_parent(runs_parent, root)
 
 
 def _runs_for_parent(parent, root):
@@ -115,7 +117,7 @@ def _is_parent_run_path(path, runs_dir):
     return util.compare_paths(os.path.dirname(path), runs_dir)
 
 
-def _default_all_runs_f(root):
+def _default_all_runs_f(root, _force_root):
     return lambda: _all_runs(root)
 
 
