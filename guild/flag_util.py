@@ -268,7 +268,7 @@ def _decode_yaml_with_fix(s):
 
 
 def _is_scientific_notation_run_id(s):
-    return 3 <= len(s) <= 8 and SCIENTIFIC_NOTATION_RUN_ID_P.match(s)
+    return 3 <= len(s) <= 32 and SCIENTIFIC_NOTATION_RUN_ID_P.match(s)
 
 
 def _fix_surprising_number(val, s):
