@@ -1,0 +1,10 @@
+op:
+  main: sleep
+  flags-import: all
+
+steps:
+  flags:
+    sleep: 5
+  steps:
+    - op sleep=${sleep} -l step-1
+    - op sleep=${sleep} -l step-2
