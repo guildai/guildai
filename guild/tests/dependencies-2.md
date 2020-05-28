@@ -100,7 +100,7 @@ complete resource definition:
     >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
-    ...     path: data
+    ...     target-path: data
     ...     sources:
     ...       - url: http://my.co/stuff.gz
     ...         sha256: abc123
@@ -111,11 +111,11 @@ complete resource definition:
 
     >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependencyDef http://my.co/stuff.gz,http://my.co/more-suff.tar>
-      inline-resource: {'path': 'data',
-     'sources': [{'sha256': 'abc123',
+      inline-resource: {'sources': [{'sha256': 'abc123',
                   'unpack': False,
                   'url': 'http://my.co/stuff.gz'},
-                 {'sha256': 'dev456', 'url': 'http://my.co/more-suff.tar'}]}
+                 {'sha256': 'dev456', 'url': 'http://my.co/more-suff.tar'}],
+     'target-path': 'data'}
 
 ## Named inline resources
 
@@ -186,10 +186,13 @@ resource path, if a resource path is defined.
     ...   requires:
     ...     - operation: foo
     ...       select: .+\.txt
-    ...       path: bar
+    ...       target-path: bar
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies) # doctest: -NORMALIZE_PATHS
+    <guild.guildfile.OpDependencyDef foo>
+      inline-resource: {'sources': [{'operation': 'foo', 'select': '.+\\.txt', 'target-path': 'bar'}]}
+
     <guild.guildfile.OpDependencyDef foo>
       inline-resource: {'sources': [{'operation': 'foo',
                                      'path': 'bar',

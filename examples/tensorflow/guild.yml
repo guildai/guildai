@@ -3,7 +3,7 @@ train:
   main: mnist
   default: yes
   requires:
-    path: data
+    target-path: data
     default-unpack: no
     sources:
       - url: http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz

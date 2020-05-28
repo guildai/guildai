@@ -14,12 +14,12 @@ train:
 
     - operation: prepare-data
 
-      # The `path` attribute is used to store selected files in a path
-      # under the run directory. This is useful for strucuting the run
-      # directory - especially if the train operation expects files in
-      # a specific location.
+      # The `target-path` specifies that selected files are located in
+      # a path under the run directory. This is useful for strucuting
+      # the run directory - especially if the train operation expects
+      # files in a specific location.
 
-      path: data
+      target-path: data
 
       # Name must be defined to let users specify specific runs to be
       # used for the required operation. E.g. here we define the name

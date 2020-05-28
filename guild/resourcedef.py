@@ -58,7 +58,9 @@ class ResourceDef(object):
         self.fullname = fullname or name
         self.flag_name = data.get("flag-name")
         self.description = data.get("description", "")
-        self.path = data.get("path")
+        self.target_path = _init_target_path(
+            data.get("target-path"), data.get("path"), "resource %s" % self.fullname
+        )
         self.default_unpack = data.get("default-unpack", True)
         self.private = bool(data.get("private"))
         self.references = data.get("references", [])
@@ -150,6 +152,7 @@ class ResourceSource(object):
         rename=None,
         help=None,
         post_process=None,
+        target_path=None,
         path=None,
         params=None,
         **kw
@@ -169,7 +172,7 @@ class ResourceSource(object):
         self.fail_if_empty = fail_if_empty
         self.rename = _init_rename(rename)
         self.post_process = post_process
-        self.path = path
+        self.target_path = _init_target_path(target_path, path, "source %s" % self.name)
         self.params = params or {}
         self.help = help
         for key in kw:
@@ -273,6 +276,23 @@ def _split_rename_spec(spec):
         raise ResourceFormatError(
             "invalid rename spec %r: expected 'PATTERN REPL' or 'NAME'" % spec
         )
+
+
+def _init_target_path(target_path_arg, path_arg, context):
+    """Returns target path for two args.
+
+    The `path` source def attribute is renamed to `target-path` for
+    clarity. Maintains backward compatibility for specifying target
+    path as `path`.
+
+    Logs a warning if both values are provided and returns the value
+    of `target_path_arg`.
+    """
+    if target_path_arg and path_arg:
+        log.warning(
+            "target-path and path both specified for %s - using target-path", context
+        )
+    return target_path_arg or path_arg
 
 
 def _coerce_list(val, desc):

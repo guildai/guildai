@@ -19,7 +19,7 @@ print-msg-3:
 print-msg-4:
   exec: cat messages/msg.txt messages/msg-2.txt
   requires:
-    path: messages
+    target-path: messages
     sources:
       - msg.txt
       - msg-2.txt

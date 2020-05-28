@@ -129,7 +129,6 @@
     guild.commands.watch
     guild.commands.watch_impl
     guild.config
-    guild.deps
     guild.entry_point_util
     guild.exit_code
     guild.fail

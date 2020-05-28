@@ -641,6 +641,100 @@ However, no more than one is allowed:
     'url': 'http://files.com/bar.txt'} in resource 'sample:sample':
     conflicting attributes (file, url)
 
+### Target Path
+
+In 0.7, Guild renamed the `path` attr to `target-path` to help clarify
+how the value is used.
+
+The `path` value is supported forevermore without deprecation warning.
+
+    >>> gf = guildfile.for_string("""
+    ... op:
+    ...   requires:
+    ...    - file: foo.txt
+    ...      path: data
+    ... """)
+
+    >>> res = gf.default_model.get_operation("op").dependencies[0].inline_resource
+    >>> res.sources
+    [<guild.resourcedef.ResourceSource 'file:foo.txt'>]
+
+    >>> res.sources[0].target_path
+    'data'
+
+The `path` attribute is no longer supported in the API:
+
+    >>> res.sources[0].path
+    Traceback (most recent call last):
+    AttributeError: 'ResourceSource' object has no attribute 'path'
+
+The same holds for resources.
+
+    >>> gf = guildfile.for_string("""
+    ... - model: ''
+    ...   resources:
+    ...     foo:
+    ...       path: data
+    ... """)
+
+    >>> gf.default_model.resources[0].target_path
+    'data'
+
+    >>> gf.default_model.resources[0].path
+    Traceback (most recent call last):
+    AttributeError: 'ResourceDef' object has no attribute 'path'
+
+The preferred spelling is to use `target-path`:
+
+    >>> gf = guildfile.for_string("""
+    ... op:
+    ...   requires:
+    ...    - file: foo.txt
+    ...      target-path: data
+    ... """)
+
+    >>> res = gf.default_model.get_operation("op").dependencies[0].inline_resource
+    >>> res.sources[0].target_path
+    'data'
+
+    >>> gf = guildfile.for_string("""
+    ... - model: ''
+    ...   resources:
+    ...     foo:
+    ...       target-path: data
+    ... """)
+
+    >>> gf.default_model.resources[0].target_path
+    'data'
+
+If both attritubtes are specified, Guild logs a warning.
+
+    >>> with LogCapture(strip_ansi_format=True) as log:
+    ...     _ = guildfile.for_string("""
+    ... op:
+    ...   requires:
+    ...    - file: foo.txt
+    ...      path: data1
+    ...      target-path: data2
+    ... """)
+
+    >>> log.print_all()
+    WARNING: target-path and path both specified for source file:foo.txt
+    - using target-path
+
+    >>> with LogCapture(strip_ansi_format=True) as log:
+    ...     _ = guildfile.for_string("""
+    ... - model: ''
+    ...   resources:
+    ...     foo:
+    ...       path: data1
+    ...       target-path: data2
+    ... """)
+
+    >>> log.print_all()
+    WARNING: target-path and path both specified for resource :foo
+    - using target-path
+
 ## References
 
 A list of references may be included for each model. These can be used

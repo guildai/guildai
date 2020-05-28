@@ -291,17 +291,24 @@ def _link_to_source(source_path, source, target_dir):
 
 def _link_path(source_path, source, target_dir):
     basename = os.path.basename(source_path)
-    res_path = source.resdef.path or ""
-    if source.path:
-        res_path = os.path.join(res_path, source.path)
-    if os.path.isabs(res_path):
+    target_path = _target_path_for_source(source)
+    if os.path.isabs(target_path):
         raise OpDependencyError(
             "invalid path '%s' in %s resource (path must be relative)"
-            % (res_path, source.resdef.name)
+            % (target_path, source.resdef.name)
         )
     if source.rename:
         basename = _rename_source(basename, source.rename)
-    return os.path.join(target_dir, res_path, basename)
+    return os.path.join(target_dir, target_path, basename)
+
+
+def _target_path_for_source(source):
+    """Returns target path for source.
+
+    If target path is defined for the source, it redefined any value
+    defined for the resource parent.
+    """
+    return source.target_path or source.resdef.target_path or ""
 
 
 def _rename_source(name, rename):

@@ -72,15 +72,13 @@
 
   resources:
     msg-file:
-      sources:
-        - file: msg.txt
-          sha256: 0bc96b4f4757a80c0a3f9b9bc14de789e5eb1d75659904de68241cfc7030e7de
+      - file: msg.txt
+        sha256: 0bc96b4f4757a80c0a3f9b9bc14de789e5eb1d75659904de68241cfc7030e7de
 
     from-file-output:
-      path: from-file
-      sources:
-        - operation: from-file
-          select: output
+      - operation: from-file
+        select: output
+        target-path: from-file
 
 - model: _check
   operations:

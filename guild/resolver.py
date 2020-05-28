@@ -221,7 +221,7 @@ class OperationResolver(FileResolver):
         log.info(
             "Using output from run %s for %s resource", run.id, self.source.resdef.name
         )
-        return run.path
+        return run.dir
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
         oprefs = self._source_oprefs()

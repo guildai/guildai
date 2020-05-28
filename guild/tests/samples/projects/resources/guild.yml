@@ -55,13 +55,16 @@
           fail-if-empty: yes
 
     test2:
-      path: foo
+      target-path: foo
       sources:
         # source 0
         - file: test.txt
         # source 1
         - file: files/a.bin
-          path: bar
+          target-path: bar
+        # source 2
+        - file: test.txt
+          target-path: /abs/path
 
     test3:
       sources:
@@ -74,13 +77,13 @@
         # source 1
         - file: files
           select: .+\.bin
-          path: bin
+          target-path: bin
           # Inline rename ('PATTERN REPL' string)
           rename: \.bin ''
         # source 2
         - file: archive1.zip
           select: .+\.txt
-          path: archive1
+          target-path: archive1
           rename:
             pattern: (.+)\.txt
             repl: \g<1>2.txt
@@ -99,7 +102,7 @@
           rename: config c2
         # source 2
         - config: config.yml
-          path: c3
+          target-path: c3
           params:
             a: 111
             c.d: 333

@@ -1,10 +1,10 @@
 # Dependencies
 
-Guild dependencies are managed by the `deps` module:
+Guild dependencies are managed by the `op_dep` module:
 
-    >>> from guild import deps
+    >>> from guild import op_dep
 
-The primary function of `deps` is to resolve dependencies defined in
+The primary function of `op_dep` is to resolve dependencies defined in
 operations.
 
 To illustrate, we'll define a model operation that requires a
@@ -234,35 +234,27 @@ The test resource has the following sources:
 
 In the tests below, we'll use a resolver to resolve each source.
 
-In addition to a source, a resolver needs a resource (see
-`guild.deps.Resource`), which is a live representation of the resource
-definition. The resource provides additional context to the resolver,
-including resource location, the operation that requires the resource,
-and additional configuration that may be provided for the resolution
-process.
-
-Let's create a resource for our resolvers. The resource requires a
-resource def, a location, which is the sample project directory, and a
-context.
-
 Helper to resolve a source:
 
     >>> def resolve(source, context_run=None):
-    ...     target_dir = context_run.dir if context_run else mkdtemp()
-    ...     ctx = deps.ResolutionContext(
-    ...         target_dir=target_dir,
-    ...         opdef=None,
-    ...         resource_config={})
+    ...     context_run = context_run or runlib.for_dir(mkdtemp())
+    ...     #target_dir = context_run.dir if context_run else mkdtemp()
+    ...     #ctx = deps.ResolutionContext(
+    ...     #    target_dir=target_dir,
+    ...     #    opdef=None,
+    ...     #    resource_config={})
     ...     project_dir = sample("projects", "resources")
-    ...     res = deps.Resource(source.resdef, project_dir, ctx)
+    ...     #res = deps.Resource(source.resdef, project_dir, ctx)
+    ...     dep = op_dep.OpDependency(source.resdef, project_dir, {})
     ...     resolve_context = ResolveContext(context_run)
-    ...     resolved = res.resolve_source(source, resolve_context)
+    ...     resolved = op_dep.resolve_source(source, dep, resolve_context)
+    ...     #resolved = res.resolve_source(source, resolve_context)
     ...     for i, val in enumerate(resolved):
     ...         resolved[i] = val.replace(resolve_context.unpack_dir, "<unpack-dir>") \
     ...                          .replace(project_dir, "<project-dir>")
     ...         if context_run:
     ...             resolved[i] = resolved[i].replace(context_run.dir, "<run-dir>")
-    ...     staged = findl(target_dir)
+    ...     staged = findl(context_run.dir)
     ...     unpacked = findl(resolve_context.unpack_dir)
     ...     pprint({"resolved": resolved, "staged": staged, "unpacked": unpacked})
 
@@ -400,9 +392,10 @@ match.
 
     >>> resolve(invalid_source)
     Traceback (most recent call last):
-    DependencyError: could not resolve 'file:badhash.txt' in test resource:
+    OpDependencyError: could not resolve 'file:badhash.txt' in test resource:
     '.../samples/projects/resources/badhash.txt' has an unexpected sha256
     (expected xxx but got ...)
+
 
 #### Directory source file
 
@@ -444,7 +437,7 @@ Non-existing files generate an error when resolved:
 
     >>> resolve(noexist_source)
     Traceback (most recent call last):
-    DependencyError: could not resolve 'file:doesnt-exist' in test resource:
+    OpDependencyError: could not resolve 'file:doesnt-exist' in test resource:
     cannot find source file doesnt-exist
 
 #### Renaming sources
@@ -525,7 +518,7 @@ from.
     >>> zip_source_3.select
     [SelectSpec(pattern='.+\\.txt', reduce=None)]
 
-    >>> with LogCapture() as log:
+    >>> with LogCapture(strip_ansi_format=True) as log:
     ...     resolve(zip_source_3)
     {'resolved': ['<unpack-dir>/foo/a.txt',
                   '<unpack-dir>/foo/bar/a.txt',
@@ -538,8 +531,10 @@ from.
 
     >>> log.print_all()
     Unpacking .../samples/projects/resources/foo.zip
+    WARNING: .../a.txt already exists, skipping link
 
-Note that select does not include leading paths.
+There is more than one file that matches `a.txt` so Guild prints a
+warnings message that it skipped creating the second link.
 
 ### Nothing selected
 
@@ -596,7 +591,7 @@ A resolution can be made to fail by setting `fail-if-empty` to `true`:
 
     >>> resolve(nothing_selected_fail)
     Traceback (most recent call last):
-    DependencyError: could not resolve 'file:foo' in test resource: nothing
+    OpDependencyError: could not resolve 'file:foo' in test resource: nothing
     resolved for file:foo
 
 ### test2 resource
@@ -607,14 +602,15 @@ directory.
     >>> test2_resdef = res_model.get_resource("test2")
     >>> test2_resdef.sources
     [<guild.resourcedef.ResourceSource 'file:test.txt'>,
-     <guild.resourcedef.ResourceSource 'file:files/a.bin'>]
+     <guild.resourcedef.ResourceSource 'file:files/a.bin'>,
+     <guild.resourcedef.ResourceSource 'file:test.txt'>]
 
 The default path is defined at the resource level:
 
-    >>> test2_resdef.path
+    >>> test2_resdef.target_path
     'foo'
 
-#### Resource path
+#### Resource-level target path
 
 The first source doesn't specify a path and therefore uses the
 resource path.
@@ -623,7 +619,7 @@ resource path.
     >>> file_nopath.uri
     'file:test.txt'
 
-    >>> print(file_nopath.path)
+    >>> print(file_nopath.target_path)
     None
 
     >>> resolve(file_nopath)
@@ -631,22 +627,38 @@ resource path.
      'staged': ['foo/test.txt'],
      'unpacked': []}
 
-#### Source path
+#### Source-level target path
 
-The second resource does specify a path. This path is appended to the
+The second resource does specify a path. This path replaces the
 resource path.
 
     >>> file_path = test2_resdef.sources[1]
     >>> file_path.uri
     'file:files/a.bin'
 
-    >>> file_path.path
+    >>> file_path.target_path
     'bar'
+
+    >>> file_path.resdef.target_path
+    'foo'
 
     >>> resolve(file_path)
     {'resolved': ['<project-dir>/files/a.bin'],
-     'staged': ['foo/bar/a.bin'],
+     'staged': ['bar/a.bin'],
      'unpacked': []}
+
+#### Absolute target path
+
+A target path cannot be absolute.
+
+    >>> abs_path = test2_resdef.sources[2]
+
+    >>> abs_path.target_path
+    '/abs/path'
+
+    >>> resolve(abs_path)
+    Traceback (most recent call last):
+    OpDependencyError: invalid path '/abs/path' in test2 resource (path must be relative)
 
 ### test3 resource
 
@@ -668,7 +680,7 @@ The first source specifies the `files` directory but renames it to
     >>> all_files.uri
     'file:files'
 
-    >>> print(all_files.path)
+    >>> print(all_files.target_path)
     None
 
     >>> all_files.select
@@ -690,7 +702,7 @@ strip off the `.bin` suffix. The files are additionally stored in a
     >>> bin_files.uri
     'file:files'
 
-    >>> bin_files.path
+    >>> bin_files.target_path
     'bin'
 
     >>> bin_files.select # doctest: -NORMALIZE_PATHS
@@ -713,7 +725,7 @@ in an `archive1` directory (path) and adds a `2` to their basename.
     >>> archive1_txt_files.uri
     'file:archive1.zip'
 
-    >>> archive1_txt_files.path
+    >>> archive1_txt_files.target_path
     'archive1'
 
     >>> archive1_txt_files.select # doctest: -NORMALIZE_PATHS
@@ -740,7 +752,7 @@ renames them with an `archive2_` prefix.
     >>> archive2_files.uri
     'file:archive2.tar'
 
-    >>> print(archive2_files.path)
+    >>> print(archive2_files.target_path)
     None
 
     >>> archive2_files.select
@@ -862,7 +874,7 @@ Out third source defines params that are applied to config.
 
 This source is also stored under a path:
 
-    >>> param_config.path
+    >>> param_config.target_path
     'c3'
 
 Resolve in the context of a run without flags:

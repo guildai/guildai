@@ -44,7 +44,7 @@
     data:
       description: "Yann Lecun's MNIST dataset in compressed IDX format"
       private: yes
-      path: data
+      target-path: data
       sources:
       - url: http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
         sha256: 440fcabf73cc546fa21475e81ea370265605f56be210a4024d2ca8f203523609
