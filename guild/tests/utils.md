@@ -62,44 +62,129 @@ Two filters matching both vals (alternate order);
 
 ## Resolving references
 
+Use `resolve_refs` to resolve references in a string.
+
+    >>> from guild.util import resolve_refs
+
+Empty string:
+
+    >>> resolve_refs("", {})
+    ''
+
+Missing ref generates an error:
+
+    >>> resolve_refs("${a}", {})
+    Traceback (most recent call last):
+    UndefinedReferenceError: a
+
+    >>> resolve_refs("foo ${bar} baz", {})
+    Traceback (most recent call last):
+    UndefinedReferenceError: bar
+
+A default may be provided to use for missing values:
+
+    >>> resolve_refs("${a}", {}, "")
+    ''
+
+    >>> resolve_refs("foo ${bar} baz", {}, "<missing>")
+    'foo <missing> baz'
+
+Single refs are resolved using the applicable typed value:
+
+    >>> resolve_refs("${a}", {"a": "a"})
+    'a'
+
+    >>> resolve_refs("${a}", {"a": 123})
+    123
+
+    >>> resolve_refs("${a}", {"a": 1.234})
+    1.234
+
+    >>> resolve_refs("${a}", {"a": True})
+    True
+
+    >>> print(resolve_refs("${a}", {"a": None}))
+    None
+
+    >>> print(resolve_refs("${a}", {"a": [1, 'a', True, None]}))
+    [1, 'a', True, None]
+
+When used in a string, resolved refs are encoded:
+
+    >>> resolve_refs("foo ${bar} baz", {"bar": "bar"})
+    'foo bar baz'
+
+    >>> resolve_refs("foo ${bar} baz", {"bar": 123})
+    'foo 123 baz'
+
+    >>> resolve_refs("foo ${bar} baz", {"bar": 1.234})
+    'foo 1.234 baz'
+
+    >>> resolve_refs("foo ${bar} baz", {"bar": True})
+    'foo true baz'
+
+    >>> resolve_refs("foo ${bar} baz", {"bar": None})
+    'foo null baz'
+
+    >>> normlf(resolve_refs(
+    ...     "foo ${bar} baz",
+    ...     {"bar": [1, 'a', True, None]})) # doctest: -NORMALIZE_PATHS
+    'foo - 1\n- a\n- true\n- null baz'
+
+Escaped references aren't resolved:
+
+    >>> resolve_refs("\${a}", {}) # doctest: -NORMALIZE_PATHS
+    '${a}'
+
+    >>> resolve_refs("\${a}", {"a": "a"}) # doctest: -NORMALIZE_PATHS
+    '${a}'
+
+    >>> resolve_refs("foo \${bar} baz", {}) # doctest: -NORMALIZE_PATHS
+    'foo ${bar} baz'
+
+    >>> resolve_refs("foo \${bar} baz", {"bar": "bar"}) # doctest: -NORMALIZE_PATHS
+    'foo ${bar} baz'
+
+### `resolve_all_refs`
+
 A map of vals may contain references to other vals. Use
 `resolve_all_refs` to resolve all references in the map.
 
-    >>> from guild.util import resolve_all_refs as resolve
+    >>> from guild.util import resolve_all_refs
 
 No references:
 
-    >>> resolve({"a": 1})
+    >>> resolve_all_refs({"a": 1})
     {'a': 1}
 
-    >>> resolve({"a": "1"})
+    >>> resolve_all_refs({"a": "1"})
     {'a': '1'}
 
 Reference to undefined value:
 
-    >>> resolve({"a": "${b}"})
+    >>> resolve_all_refs({"a": "${b}"})
     Traceback (most recent call last):
     UndefinedReferenceError: b
 
-    >>> resolve({"a": "${b}"}, undefined="foo")
+    >>> resolve_all_refs({"a": "${b}"}, undefined="foo")
     {'a': 'foo'}
 
 Reference to a value:
 
-    >>> pprint(resolve({"a": "${b}", "b": 1}))
+    >>> pprint(resolve_all_refs({"a": "${b}", "b": 1}))
     {'a': 1, 'b': 1}
 
 Reference to a value with a reference:
 
-    >>> pprint(resolve({"a": "${b}", "b": "${c}", "c": 1}))
+    >>> pprint(resolve_all_refs({"a": "${b}", "b": "${c}", "c": 1}))
     {'a': 1, 'b': 1, 'c': 1}
 
 Reference embedded in a string:
 
-    >>> pprint(resolve({"a": "b equals ${b}", "b": 1}))
+    >>> pprint(resolve_all_refs({"a": "b equals ${b}", "b": 1}))
     {'a': 'b equals 1', 'b': 1}
 
-    >>> resolve(
+    >>> resolve_all_refs(
     ... {"msg": "${x} + ${y} = ${z}",
     ...  "x": "one",
     ...  "y": "two",
@@ -108,13 +193,13 @@ Reference embedded in a string:
 
 Reference cycle:
 
-    >>> resolve({"a": "${b}", "b": "${a}"})
+    >>> resolve_all_refs({"a": "${b}", "b": "${a}"})
     Traceback (most recent call last):
     ReferenceCycleError: ['b', 'a', 'b']
 
 Resolving non string values:
 
-    >>> resolve({
+    >>> resolve_all_refs({
     ...   "msg": "${i} ${f} ${none}",
     ...   "i": 1,
     ...   "f": 1.2345,
@@ -123,6 +208,11 @@ Resolving non string values:
 
 Note that None is resolved as 'null' for consistency with flag inputs,
 which convert the string 'null' into None.
+
+A reference can be escaped:
+
+    >>> resolve_all_refs({"a": "\${foo}"})
+    {'a': '${foo}'}
 
 ## Testing text files
 

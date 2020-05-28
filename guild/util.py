@@ -42,6 +42,8 @@ PLATFORM = platform.system()
 
 OS_ENVIRON_BLACKLIST = set(["_"])
 
+REF_P = re.compile(r"(\\?\${.+?})")
+
 
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""
@@ -485,7 +487,7 @@ def resolve_all_refs(kv, undefined=_raise_error_marker):
 def _resolve_refs_recurse(val, kv, undefined, stack):
     if not isinstance(val, six.string_types):
         return val
-    parts = [part for part in re.split(r"(\\?\${.+?})", val) if part != ""]
+    parts = [part for part in REF_P.split(val) if part != ""]
     resolved = list(_iter_resolved_ref_parts(parts, kv, undefined, stack))
     if len(resolved) == 1:
         return resolved[0]
@@ -494,9 +496,9 @@ def _resolve_refs_recurse(val, kv, undefined, stack):
 
 
 def _resolved_part_str(part):
-    if part is None:
-        return "null"
-    return str(part)
+    if isinstance(part, six.string_types):
+        return part
+    return encode_yaml(part)
 
 
 def resolve_rel_paths(kv):
@@ -532,7 +534,7 @@ def _iter_resolved_ref_parts(parts, kv, undefined, stack):
             yield _resolve_refs_recurse(ref_val, kv, undefined, stack)
             stack.pop()
         elif part.startswith("\\${") and part.endswith("}"):
-            yield part[1:-1]
+            yield part[1:]
         else:
             yield part
 
