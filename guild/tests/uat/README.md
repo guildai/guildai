@@ -263,6 +263,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [pip-freeze](pip-freeze.md)
 - [no-run-output](no-run-output.md)
 - [staged-dependency-error](staged-dependency-error.md)
+- [link-vs-copy-dep](link-vs-copy-dep.md)
 
 ## Error cases
 

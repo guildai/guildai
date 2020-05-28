@@ -61,6 +61,7 @@ class ResourceDef(object):
         self.target_path = _init_target_path(
             data.get("target-path"), data.get("path"), "resource %s" % self.fullname
         )
+        self.target_type = data.get("target-type")
         self.default_unpack = data.get("default-unpack", True)
         self.private = bool(data.get("private"))
         self.references = data.get("references", [])
@@ -153,6 +154,7 @@ class ResourceSource(object):
         help=None,
         post_process=None,
         target_path=None,
+        target_type=None,
         path=None,
         params=None,
         **kw
@@ -173,6 +175,7 @@ class ResourceSource(object):
         self.rename = _init_rename(rename)
         self.post_process = post_process
         self.target_path = _init_target_path(target_path, path, "source %s" % self.name)
+        self.target_type = target_type
         self.params = params or {}
         self.help = help
         for key in kw:
@@ -191,7 +194,7 @@ class ResourceSource(object):
         return self.name
 
     def __repr__(self):
-        return "<guild.resourcedef.ResourceSource '%s'>" % self.uri
+        return "<guild.resourcedef.ResourceSource '%s'>" % self.name
 
     def __str__(self):
         return self.uri

@@ -583,6 +583,11 @@ def symlink(target, link):
         os.symlink(target, link)
 
 
+def copyfile(src, dest):
+    shutil.copyfile(src, dest)
+    shutil.copymode(src, dest)
+
+
 def _windows_symlink(target, link):
     if os.path.isdir(target):
         args = ["mklink", "/D", link, target]

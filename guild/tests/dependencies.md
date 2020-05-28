@@ -208,7 +208,8 @@ Here are the model resources:
     [<guild.guildfile.ResourceDef 'test'>,
      <guild.guildfile.ResourceDef 'test2'>,
      <guild.guildfile.ResourceDef 'test3'>,
-     <guild.guildfile.ResourceDef 'test4'>]
+     <guild.guildfile.ResourceDef 'test4'>,
+     <guild.guildfile.ResourceDef 'test5'>]
 
 ### test resource
 
@@ -922,6 +923,200 @@ Let's resolve with a run that has flags.
     c:
       d: 444
     e: hello
+
+### test5 and test6 resources
+
+The `test5` and `test6` resources illustrates different `target-type`
+attributes.
+
+    >>> test5_resdef = res_model.get_resource("test5")
+    >>> test5_resdef.sources
+    [<guild.resourcedef.ResourceSource 'default-type'>,
+     <guild.resourcedef.ResourceSource 'copy-type'>,
+     <guild.resourcedef.ResourceSource 'link-type'>,
+     <guild.resourcedef.ResourceSource 'invalid-type'>,
+     <guild.resourcedef.ResourceSource 'dir-copy'>,
+     <guild.resourcedef.ResourceSource 'archive-dir-copy'>]
+
+#### Default target type
+
+The first source doesn't specify a target type. By default, target
+type is 'link'.
+
+    >>> default_type = test5_resdef.sources[0]
+    >>> default_type.uri
+    'file:test.txt'
+
+    >>> print(default_type.target_type)
+    None
+
+Let's specify a run to resolve for so we can check the type of files
+created.
+
+    >>> run = runlib.for_dir(mkdtemp())
+
+    >>> resolve(default_type, run)
+    {'resolved': ['<project-dir>/test.txt'],
+     'staged': ['test.txt'],
+     'unpacked': []}
+
+The resolved file:
+
+    >>> resolved = path(run.dir, "test.txt")
+    >>> cat(resolved)
+    12345
+
+The type of file resolved is a link:
+
+    >>> islink(resolved), resolved
+    (True, ...)
+
+#### Copy target type
+
+The second source explicitly specifies 'copy' as target type.
+
+    >>> copy_type = test5_resdef.sources[1]
+    >>> copy_type.uri
+    'file:test.txt'
+
+    >>> copy_type.target_type
+    'copy'
+
+    >>> run = runlib.for_dir(mkdtemp())
+
+    >>> resolve(copy_type, run)
+    {'resolved': ['<project-dir>/test.txt'],
+     'staged': ['test.txt'],
+     'unpacked': []}
+
+The type of file resolved is a copy:
+
+    >>> resolved = path(run.dir, "test.txt")
+    >>> cat(resolved)
+    12345
+
+    >>> iscopy = lambda x: isfile(x) and not islink(x)
+    >>> iscopy(resolved), resolved
+    (True, ...)
+
+#### Explicit link target type
+
+The third source explicitly specifies 'link' as target type.
+
+    >>> link_type = test5_resdef.sources[2]
+    >>> link_type.uri
+    'file:test.txt'
+
+    >>> link_type.target_type
+    'link'
+
+    >>> run = runlib.for_dir(mkdtemp())
+
+    >>> resolve(link_type, run)
+    {'resolved': ['<project-dir>/test.txt'],
+     'staged': ['test.txt'],
+     'unpacked': []}
+
+The type of file resolved is a link:
+
+    >>> resolved = path(run.dir, "test.txt")
+    >>> cat(resolved)
+    12345
+
+    >>> islink(resolved), resolved
+    (True, ...)
+
+#### Invalid target type
+
+The fourth source defines an invalid target type.
+
+    >>> invalid_type = test5_resdef.sources[3]
+    >>> invalid_type.uri
+    'file:test.txt'
+
+    >>> invalid_type.target_type
+    'invalid'
+
+    >>> run = runlib.for_dir(mkdtemp())
+
+    >>> resolve(invalid_type, run)
+    Traceback (most recent call last):
+    OpDependencyError: unsupported target-type 'invalid' in source invalid-type
+    (expected 'link' or 'copy')
+
+#### Copy resolved dirs
+
+The next source specifies that a directory source by copied.
+
+    >>> dir_copy = test5_resdef.sources[4]
+    >>> dir_copy.uri
+    'file:foo'
+
+Nothing is selected, so we expect the directory itself to be copied.
+
+    >>> dir_copy.select
+    []
+
+    >>> dir_copy.target_type
+    'copy'
+
+    >>> run = runlib.for_dir(mkdtemp())
+
+    >>> resolve(dir_copy, run)
+    {'resolved': ['<project-dir>/foo'],
+     'staged': ['foo/a.txt', 'foo/bar/a.txt', 'foo/bar/b.txt'],
+     'unpacked': []}
+
+Each staged file is a copy:
+
+    >>> iscopy(path(run.dir, "foo", "a.txt")), run.dir
+    (True, ...)
+
+    >>> iscopy(path(run.dir, "foo", "bar", "a.txt")), run.dir
+    (True, ...)
+
+    >>> iscopy(path(run.dir, "foo", "bar", "b.txt")), run.dir
+    (True, ...)
+
+#### Copy resolved dirs
+
+The next source is a directory within an archive that's copied.
+
+    >>> archive_dir_copy = test5_resdef.sources[5]
+    >>> archive_dir_copy.uri
+    'file:foo.zip'
+
+The path `foo/bar` within the archive is selected.
+
+    >>> archive_dir_copy.select
+    [SelectSpec(pattern='foo/bar', reduce=None)]
+
+The selection is copied.
+
+    >>> archive_dir_copy.target_type
+    'copy'
+
+    >>> run = runlib.for_dir(mkdtemp())
+
+    >>> with LogCapture() as log:
+    ...     resolve(archive_dir_copy, run)
+    {'resolved': ['<unpack-dir>/foo/bar'],
+     'staged': ['bar/a.txt', 'bar/b.txt'],
+     'unpacked': ['.guild-cache-foo.zip.unpacked',
+                  'foo/a.txt',
+                  'foo/bar/a.txt',
+                  'foo/bar/b.txt']}
+
+    >>> log.print_all()
+    Unpacking .../samples/projects/resources/foo.zip
+
+Each staged file is a copy:
+
+    >>> iscopy(path(run.dir, "bar", "a.txt")), run.dir
+    (True, ...)
+
+    >>> iscopy(path(run.dir, "bar", "b.txt")), run.dir
+    (True, ...)
 
 ## Alternative resource defs
 

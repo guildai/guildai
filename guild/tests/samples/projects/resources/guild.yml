@@ -107,6 +107,33 @@
             a: 111
             c.d: 333
 
+    test5:
+      sources:
+        # source 0
+        - file: test.txt
+          name: default-type
+        # source 1
+        - file: test.txt
+          target-type: copy
+          name: copy-type
+        # source 2
+        - file: test.txt
+          target-type: link
+          name: link-type
+        # source 3
+        - file: test.txt
+          target-type: invalid
+          name: invalid-type
+        # source 4
+        - file: foo
+          target-type: copy
+          name: dir-copy
+        # source 5
+        - file: foo.zip
+          target-type: copy
+          select: foo/bar
+          name: archive-dir-copy
+
   operations:
     test4:
       main: guild.pass

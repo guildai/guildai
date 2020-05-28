@@ -33,6 +33,8 @@ MODEL_RES_P = re.compile(r"(%s)$" % RES_TERM)
 GUILDFILE_RES_P = re.compile(r"(%s):(%s)$" % (RES_TERM, RES_TERM))
 PACKAGE_RES_P = re.compile(r"(%s)/(%s)$" % (RES_TERM, RES_TERM))
 
+DEFAULT_TARGET_TYPE = "link"
+
 ###################################################################
 # Exception classes
 ###################################################################
@@ -225,7 +227,7 @@ def resolve_source(source, dep, resolve_context):
             _unknown_source_resolution_error(source, dep, e)
         else:
             for path in source_paths:
-                _link_to_source(path, source, resolve_context.run.dir)
+                _apply_resolved_source(path, source, resolve_context.run.dir)
             return source_paths
     assert last_resolution_error
     _source_resolution_error(source, dep, last_resolution_error)
@@ -283,32 +285,76 @@ def _unknown_source_resolution_error(source, dep, e):
     )
 
 
-def _link_to_source(source_path, source, target_dir):
-    source_path = util.strip_trailing_sep(source_path)
-    link = _link_path(source_path, source, target_dir)
-    _symlink(source_path, link)
+def _apply_resolved_source(source_path, source, target_dir):
+    target_type = _target_type_for_source(source)
+    target_path = _target_path_for_source(source_path, source, target_dir)
+    if target_type == "link":
+        _link_to_source(source_path, target_path)
+    elif target_type == "copy":
+        _copy_source(source_path, target_path)
+    else:
+        assert False, (target_type, source, source.resdef)
 
 
-def _link_path(source_path, source, target_dir):
-    basename = os.path.basename(source_path)
-    target_path = _target_path_for_source(source)
-    if os.path.isabs(target_path):
-        raise OpDependencyError(
-            "invalid path '%s' in %s resource (path must be relative)"
-            % (target_path, source.resdef.name)
+def _target_type_for_source(source):
+    if source.target_type:
+        return _validate_target_type(source.target_type, "source %s" % source.name)
+    if source.resdef.target_type:
+        return _validate_target_type(
+            source.resdef.target_type, "resource %s" % source.resdef.name
         )
-    if source.rename:
-        basename = _rename_source(basename, source.rename)
-    return os.path.join(target_dir, target_path, basename)
+    return DEFAULT_TARGET_TYPE
 
 
-def _target_path_for_source(source):
+def _validate_target_type(val, desc):
+    if val in ("link", "copy"):
+        return val
+    raise OpDependencyError(
+        "unsupported target-type '%s' in %s (expected 'link' or 'copy')"
+        % (val, desc)
+    )
+
+
+def _target_path_for_source(source_path, source, target_dir):
     """Returns target path for source.
 
     If target path is defined for the source, it redefined any value
     defined for the resource parent.
     """
+    target_path = _source_target_path_attr(source)
+    if os.path.isabs(target_path):
+        raise OpDependencyError(
+            "invalid path '%s' in %s resource (path must be relative)"
+            % (target_path, source.resdef.name)
+        )
+    basename = os.path.basename(source_path)
+    if source.rename:
+        basename = _rename_source(basename, source.rename)
+    return os.path.join(target_dir, target_path, basename)
+
+
+def _source_target_path_attr(source):
     return source.target_path or source.resdef.target_path or ""
+
+
+def _link_to_source(source_path, link):
+    assert os.path.isabs(link), link
+    source_path = util.strip_trailing_sep(source_path)
+    if os.path.lexists(link) or os.path.exists(link):
+        log.warning("%s already exists, skipping link", link)
+        return
+    util.ensure_dir(os.path.dirname(link))
+    log.debug("resolving source %s as link %s", source_path, link)
+    source_rel_path = _source_rel_path(source_path, link)
+    util.symlink(source_rel_path, link)
+
+
+def _source_rel_path(source, link):
+    source_dir, source_name = os.path.split(source)
+    real_link = util.realpath(link)
+    link_dir = os.path.dirname(real_link)
+    source_rel_dir = os.path.relpath(source_dir, link_dir)
+    return os.path.join(source_rel_dir, source_name)
 
 
 def _rename_source(name, rename):
@@ -326,23 +372,17 @@ def _rename_source(name, rename):
     return name
 
 
-def _symlink(source_path, link):
-    assert os.path.isabs(link), link
-    if os.path.lexists(link) or os.path.exists(link):
-        log.warning("%s already exists, skipping link", link)
+def _copy_source(source_path, dest_path):
+    assert os.path.isabs(dest_path), dest_path
+    if os.path.lexists(dest_path) or os.path.exists(dest_path):
+        log.warning("%s already exists, skipping copy", dest_path)
         return
-    util.ensure_dir(os.path.dirname(link))
-    log.debug("resolving source %s as link %s", source_path, link)
-    rel_source_path = _rel_source_path(source_path, link)
-    util.symlink(rel_source_path, link)
-
-
-def _rel_source_path(source, link):
-    source_dir, source_name = os.path.split(source)
-    real_link = util.realpath(link)
-    link_dir = os.path.dirname(real_link)
-    source_rel_dir = os.path.relpath(source_dir, link_dir)
-    return os.path.join(source_rel_dir, source_name)
+    util.ensure_dir(os.path.dirname(dest_path))
+    log.debug("resolving source %s as copy %s", source_path, dest_path)
+    if os.path.isdir(source_path):
+        util.copytree(source_path, dest_path)
+    else:
+        util.copyfile(source_path, dest_path)
 
 
 ###################################################################
