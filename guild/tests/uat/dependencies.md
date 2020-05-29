@@ -14,6 +14,18 @@ These are general dependency tests.
     file.txt
     <exit 0>
 
+    >>> run("guild runs info -d")
+    id: ...
+    flags:
+    scalars:
+    dependencies:
+      file:file.txt:
+        file:file.txt:
+          paths:
+          - .../examples/dependencies/file.txt
+          uri: file:file.txt
+    <exit 0>
+
 Change dependency source using default source name - not allowed.
 
     >>> run("guild run file file:file.txt=guild.yml -y")
@@ -32,6 +44,20 @@ flag.
 
     >>> run("guild ls -n")
     guild.yml
+    <exit 0>
+
+    >>> run("guild runs info -d")
+    id: ...
+    flags:
+      src: guild.yml
+    scalars:
+    dependencies:
+      src:
+        file:file.txt:
+          config: guild.yml
+          paths:
+          - .../examples/dependencies/guild.yml
+          uri: file:file.txt
     <exit 0>
 
 Missing file dependency:
@@ -68,6 +94,18 @@ Missing file dependency:
     dir/b
     <exit 0>
 
+    >>> run("guild runs info -d")
+    id: ...
+    flags:
+    scalars:
+    dependencies:
+      data:
+        data:
+          paths:
+          - .../examples/dependencies/dir
+          uri: file:dir
+    <exit 0>
+
 ## URL
 
 Note that we can't assert the resolution message as the resource may
@@ -80,6 +118,18 @@ be cached, which prints a different message.
 
     >>> run("guild ls -n")
     file.txt
+    <exit 0>
+
+    >>> run("guild runs info -d")
+    id: ...
+    flags:
+    scalars:
+    dependencies:
+      https://guild-pub.s3.amazonaws.com/uat/file.txt:
+        https://guild-pub.s3.amazonaws.com/uat/file.txt:
+          paths:
+          - .../file.txt
+          uri: https://guild-pub.s3.amazonaws.com/uat/file.txt
     <exit 0>
 
 ## Operations
@@ -95,6 +145,20 @@ Required file op:
     file.txt
     <exit 0>
 
+    >>> run("guild runs info -d")
+    id: ...
+    flags:
+      file: ...
+    scalars:
+    dependencies:
+      file:
+        operation:file:
+          config: ...
+          paths:
+          - ../.../file.txt
+          uri: operation:file
+    <exit 0>
+
 Required dir op:
 
     >>> run("guild run dir-op -y")
@@ -106,6 +170,20 @@ Required dir op:
     dir/
     dir/a
     dir/b
+    <exit 0>
+
+    >>> run("guild runs info -d")
+    id: ...
+    flags:
+      dir: ...
+    scalars:
+    dependencies:
+      dir:
+        operation:dir:
+          config: ...
+          paths:
+          - ../.../dir
+          uri: operation:dir
     <exit 0>
 
 ## Config
@@ -131,6 +209,21 @@ Run without specifying flag values.
     lr: 0.1
     <exit 0>
 
+    >>> run("guild runs info -d")
+    id: ...
+    flags:
+      batch-size: null
+      dropout: null
+      lr: null
+    scalars:
+    dependencies:
+      config:config.yml:
+        config:config.yml:
+          paths:
+          - .guild/generated/.../config.yml
+          uri: config:config.yml
+    <exit 0>
+
 Set two of the three flag values.
 
     >>> run("guild run config lr=0.2 dropout=0.3 -y")
@@ -145,6 +238,21 @@ Set two of the three flag values.
     batch-size: 100
     dropout: 0.3
     lr: 0.2
+    <exit 0>
+
+    >>> run("guild runs info -d")
+    id: ...
+    flags:
+      batch-size: null
+      dropout: 0.3
+      lr: 0.2
+    scalars:
+    dependencies:
+      config:config.yml:
+        config:config.yml:
+          paths:
+          - .guild/generated/.../config.yml
+          uri: config:config.yml
     <exit 0>
 
 Use modified config.
@@ -221,6 +329,21 @@ JSON format with flags:
     Resolving module:sklearn dependency
     <exit 0>
 
+    >>> run("guild runs info -d")
+    id: ...
+    flags:
+    scalars:
+    dependencies:
+      module:pandas:
+        module:pandas:
+          paths: []
+          uri: module:pandas
+      module:sklearn:
+        module:sklearn:
+          paths: []
+          uri: module:sklearn
+    <exit 0>
+
     >>> run("guild run missing-module -y")
     Resolving module:missing.module dependency
     guild: run failed because a dependency was not met: could not
@@ -228,9 +351,11 @@ JSON format with flags:
     ...
     <exit 1>
 
-## All
+## All Ops
 
-    >>> run("guild run all -y", ignore="Refreshing") # doctest: +REPORT_UDIFF
+Make sure `all-ops` runs:
+
+    >>> run("guild run all-ops -y") # doctest: +REPORT_UDIFF
     INFO: [guild] running file: file
     Resolving file:file.txt dependency
     INFO: [guild] running dir: dir
@@ -259,4 +384,113 @@ JSON format with flags:
     Resolving config:config.yml dependency
     INFO: [guild] running json-config: json-config
     Resolving config:config.json dependency
+    <exit 0>
+
+## All resources
+
+`all-resources` resolves a similar set of requirements, configured as
+named resources.
+
+    >>> run("guild run all-resources -y") # doctest: +REPORT_UDIFF
+    Resolving file dependency
+    Resolving dir dependency
+    Resolving url dependency
+    Using cached file .../file.txt
+    Resolving file-op dependency
+    Using output from run ... for file-op resource
+    Resolving dir-op dependency
+    Using output from run ... for dir-op resource
+    Resolving config dependency
+    Resolving modules dependency
+    Resolving downstream dependency
+    Using output from run ... for downstream resource
+    Resolving customizable-file dependency
+    Resolving modified-config dependency
+    Resolving json-config dependency
+    <exit 0>
+
+    >>> run("guild ls")
+    ???:
+      config.json
+      config.yml
+      customizable-file.txt
+      dir-op/
+      dir/
+      dir/a
+      dir/b
+      file-file.txt
+      file-op.txt
+      file.txt
+      modified-config.yml
+      url-file.txt
+    <exit 0>
+
+    >>> run("guild runs info -d")
+    id: ...
+    flags:
+      dir-op: ...
+      downstream: ...
+      file-op: ...
+    scalars:
+    dependencies:
+      config:
+        config:config.yml:
+          paths:
+          - .guild/generated/.../config.yml
+          uri: config:config.yml
+      customizable-file:
+        file:file.txt:
+          paths:
+          - .../examples/dependencies/file.txt
+          uri: file:file.txt
+      dir:
+        data:
+          paths:
+          - .../examples/dependencies/dir
+          uri: file:dir
+      dir-op:
+        operation:dir:
+          config: ...
+          paths:
+          - ../.../dir
+          uri: operation:dir
+      downstream:
+        upstream:
+          config: ...
+          paths:
+          - ../.../file.txt
+          uri: operation:file
+      file:
+        file:file.txt:
+          paths:
+          - .../examples/dependencies/file.txt
+          uri: file:file.txt
+      file-op:
+        operation:file:
+          config: ...
+          paths:
+          - ../.../file.txt
+          uri: operation:file
+      json-config:
+        config:config.json:
+          paths:
+          - .guild/generated/.../config.json
+          uri: config:config.json
+      modified-config:
+        config:config.yml:
+          paths:
+          - .guild/generated/.../config.yml
+          uri: config:config.yml
+      modules:
+        module:pandas:
+          paths: []
+          uri: module:pandas
+        module:sklearn:
+          paths: []
+          uri: module:sklearn
+      url:
+        https://guild-pub.s3.amazonaws.com/uat/file.txt:
+          paths:
+          - .../file.txt
+          uri: https://guild-pub.s3.amazonaws.com/uat/file.txt
     <exit 0>

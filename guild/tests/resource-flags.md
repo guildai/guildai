@@ -2,64 +2,6 @@
 
     >>> project = Project(sample("projects", "resource-flags"))
 
-Guild file reference:
-
-    >>> cat(path(project.cwd, "guild.yml"))  # doctest: +REPORT_UDIFF
-    - operations:
-        flag:
-          main: guild.pass hello flag
-          flags-dest: args
-          flags:
-            foo: 123
-    <BLANKLINE>
-        resource:
-          main: guild.pass hello resource
-          flags-dest: args
-          requires:
-            - file: foo.txt
-              flag-name: foo
-    <BLANKLINE>
-        flag-and-resource:
-          main: guild.pass hello flag-and-resource
-          flags-dest: args
-          flags:
-            foo: 123
-          requires:
-            - file: foo.txt
-              flag-name: foo
-    <BLANKLINE>
-        requires-flag:
-          main: guild.pass hello requires-flag
-          flags-dest: args
-          requires:
-            - operation: flag
-    <BLANKLINE>
-        requires-flag-2:
-          main: guild.pass hello requires-flag-2
-          flags-dest: args
-          flags:
-            flag: null
-          requires:
-            - operation: flag
-    <BLANKLINE>
-        requires-flag-3:
-          main: guild.pass hello requires-flag-3
-          flags-dest: args
-          requires:
-            - operation: flag
-              name: foo
-    <BLANKLINE>
-        requires-flag-4:
-          main: guild.pass hello requires-flag-4
-          flags-dest: args
-          flags:
-            foo:
-              default: invalid
-              arg-name: FOO
-          requires:
-            - operation: flag
-              name: foo
-
 Operation defined with only `foo` flag:
 
     >>> project.run("flag")
@@ -112,7 +54,6 @@ Operation that requires a `flag` run:
     >>> project.run("requires-flag")
     Resolving flag dependency
     Using output from run ... for flag resource
-    WARNING: nothing resolved for operation:flag
     hello requires-flag
 
 `required-flag` operation requires the `flag` operation, which doesn't
@@ -138,7 +79,6 @@ of the interface to the resource run ID.
     >>> project.run("requires-flag-2")
     Resolving flag dependency
     Using output from run ... for flag resource
-    WARNING: nothing resolved for operation:flag
     hello requires-flag-2 --flag ...
 
 Note in this case the flag is included in the args because it's
@@ -150,7 +90,6 @@ used for the resource.
     >>> project.run("requires-flag-3")
     Resolving foo dependency
     Using output from run ... for foo resource
-    WARNING: nothing resolved for foo
     hello requires-flag-3
 
     >>> project.run("requires-flag-3", flags={"foo": "invalid"})
@@ -176,8 +115,7 @@ We can force a lookup by setting `foo` to an empty string.
     >>> project.run("requires-flag-4", {"foo": ""})
     Resolving foo dependency
     Using output from run ... for foo resource
-    WARNING: nothing resolved for foo
-    hello requires-flag-4 --FOO ''
+    hello requires-flag-4 --FOO ...
 
 Note that the argument `--FOO` is provided as specified by the `foo`
 flag def for the operation.

@@ -10,7 +10,8 @@ Helpers:
     ...         with SetGuildHome(guild_home):
     ...             with Env({"NO_RUN_OUTPUT": "1",
     ...                       "NO_WARN_RUNDIR": "1"}):
-    ...                 with LogCapture(echo_to_stdout=True, strip_ansi_format=True):
+    ...                 with LogCapture(echo_to_stdout=True,
+    ...                                 strip_ansi_format=True):
     ...                     try:
     ...                         run_impl.run(**kw)
     ...                     except SystemExit as e:
@@ -314,8 +315,9 @@ Run upstream again.
     >>> runs = var.runs(path(gh, "runs"))
     >>> len(runs)
     1
-    >>> runs[0].get("resolved_deps")
-    {'file:src.txt': {'file:src.txt': ['../../../.../src.txt']}}
+    >>> pprint(runs[0].get("deps"))
+    {'file:src.txt': {'file:src.txt': {'paths': ['.../src.txt'],
+                                       'uri': 'file:src.txt'}}}
 
     >>> cat(path(runs[0].dir, "src.txt"))
     hello
@@ -330,8 +332,18 @@ Run downstream again.
     >>> len(runs)
     2
 
-    >>> runs[0].get("resolved_deps")
-    {'upstream': {'operation:upstream': ['../.../src.txt']}}
+    >>> deps = runs[0].get("deps")
+    >>> pprint(deps)
+    {'upstream': {'operation:upstream': {'config': '...',
+                                         'paths': ['../.../src.txt'],
+                                         'uri': 'operation:upstream'}}}
+
+The 'config' item associated with an operation dependency (source) is
+the resolved run ID.
+
+    >>> (deps["upstream"]["operation:upstream"]["config"] == runs[1].id,
+    ...  (deps, runs[1].id))
+    (True, ...)
 
     >>> cat(path(runs[0].dir, "src.txt"))
     hello
@@ -467,8 +479,9 @@ This staged run is configured to use the currently staged upstream.
     >>> staged_downstream = runs[0]
     >>> staged_upstream = runs[1]
 
-    >>> staged_downstream.get("flags")["upstream"] == staged_upstream.short_id
-    True
+    >>> (staged_downstream.get("flags")["upstream"] == staged_upstream.id,
+    ...  (staged_downstream.get("flags"), staged_upstream.id))
+    (True, ...)
 
 If we run upstream, this will not effect the staged downstream.
 
@@ -484,9 +497,11 @@ Let's run the staged downstream.
 The resolved dep for the downstream corresponds to the staged
 upstream, not the latest upstream.
 
-    >>> upstream_dep = staged_downstream.get("resolved_deps")["upstream"]["operation:upstream"][0]
-    >>> staged_upstream.id in upstream_dep
-    True
+    >>> downstream_deps = staged_downstream.get("deps")
+    >>> (staged_upstream.id ==
+    ...  downstream_deps["upstream"]["operation:upstream"]["config"],
+    ...  (downstream_deps, staged_upstream.id))
+    (True, ...)
 
 ## Restarts and resolved resources
 

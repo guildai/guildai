@@ -409,22 +409,37 @@ def _env_paths():
 
 
 def _resolve_deps(op, run, for_stage=False):
-    resolved_deps = run.get("resolved_deps") or {}
     resolve_context = op_dep.ResolveContext(run)
+    deps_attr = run.get("deps") or {}
     for dep in op.deps or []:
-        log.info("Resolving %s dependency", dep.resdef.name)
-        resolved_sources = resolved_deps.setdefault(dep.resdef.name, {})
-        for source in dep.resdef.sources:
-            if source.name in resolved_sources:
-                log.info("Skipping %s because it's already resolved", source.name)
-                continue
-            if for_stage and _is_operation_source(source):
-                log.info("Skipping operation dependency %s for stage", source.name)
-                continue
-            paths = op_dep.resolve_source(source, dep, resolve_context)
-            resolved_paths = [os.path.relpath(path, run.dir) for path in paths]
-            resolved_sources[source.name] = resolved_paths
-    run.write_attr("resolved_deps", resolved_deps)
+        resolved_sources = deps_attr.setdefault(dep.resdef.name, {})
+        _apply_resolve_dep_sources(
+            dep, resolve_context, run, for_stage, resolved_sources
+        )
+    run.write_attr("deps", deps_attr)
+
+
+def _apply_resolve_dep_sources(dep, resolve_context, run, for_stage, resolved):
+    log.info("Resolving %s dependency", dep.resdef.name)
+    for source in dep.resdef.sources:
+        if source.name in resolved:
+            log.info("Skipping %s because it's already resolved", source.name)
+            continue
+        if for_stage and _is_operation_source(source):
+            log.info("Skipping operation dependency %s for stage", source.name)
+            continue
+        run_rel_resolved_paths = _resolve_dep_source(source, dep, resolve_context, run)
+        resolved[source.name] = source_info = {
+            "uri": source.uri,
+            "paths": run_rel_resolved_paths
+        }
+        if dep.config:
+            source_info["config"] = dep.config
+
+
+def _resolve_dep_source(source, dep, resolve_context, run):
+    resolved_abs_paths = op_dep.resolve_source(source, dep, resolve_context)
+    return [os.path.relpath(path, run.dir) for path in resolved_abs_paths]
 
 
 def _is_operation_source(source):

@@ -98,7 +98,11 @@ the `--deps` option of `guild runs info`:
     scalars:
     dependencies:
       hello-file:
-        - ../.../alt-msg
+        operation:hello-file:
+          config: ...
+          paths:
+          - ../.../alt-msg
+          uri: operation:hello-file
     <exit 0>
 
 Here's a preview of the command:

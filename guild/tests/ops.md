@@ -32,11 +32,11 @@ Generated files:
 
     >>> find(op.run_dir)
     .guild/attrs/cmd
+    .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/id
     .guild/attrs/initialized
-    .guild/attrs/resolved_deps
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/opref
@@ -55,9 +55,9 @@ Files for a staged run:
     .guild/ENV
     .guild/STAGED
     .guild/attrs/cmd
+    .guild/attrs/deps
     .guild/attrs/id
     .guild/attrs/initialized
-    .guild/attrs/resolved_deps
     .guild/attrs/started
     .guild/opref
 

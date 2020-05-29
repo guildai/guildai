@@ -396,7 +396,7 @@ def _apply_op_flags_for_opdef(
         opdef, user_flag_vals, force_flags
     )
     resource_flagdefs.extend(resolved_resource_flagdefs)
-    _apply_default_resolved_runs(opdef, op_cmd, opdef_flag_vals)
+    _apply_default_dep_runs(opdef, op_cmd, opdef_flag_vals)
     for name, val in opdef_flag_vals.items():
         if name in user_flag_vals or name not in op_flag_vals:
             op_flag_vals[name] = val
@@ -415,24 +415,71 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
         _no_such_flag_error(e.flag_name, opdef)
 
 
-def _apply_default_resolved_runs(opdef, op_cmd, flag_vals):
+def _apply_default_dep_runs(opdef, op_cmd, flag_vals):
     for run, dep in op_dep.resolved_op_runs_for_opdef(opdef, flag_vals):
-        flag_name = _dep_flag_name(dep)
-        if not opdef.get_flagdef(flag_name):
-            _ensure_op_cmd_flag_arg_skip(flag_name, op_cmd)
-        if flag_name in flag_vals and flag_vals.get(flag_name) is None:
-            flag_vals[flag_name] = run.short_id
+        dep_flag_name = _dep_flag_name(dep)
+        _ensure_dep_flag_op_cmd_arg_skip(dep_flag_name, opdef, op_cmd)
+        _apply_dep_run_id(run.id, dep_flag_name, flag_vals)
 
 
 def _dep_flag_name(dep):
     return dep.resdef.flag_name or dep.resdef.name
 
 
-def _ensure_op_cmd_flag_arg_skip(flag_name, op_cmd):
+def _ensure_dep_flag_op_cmd_arg_skip(flag_name, opdef, op_cmd):
+    """Ensures that a dep flag does not appear as an op cmd arg.
+
+    An exception is made if the flag is defined in the opdef, which
+    which case the opdef flag is used to control op cmd args.
+    """
+    if opdef.get_flagdef(flag_name):
+        return
     cmd_flag = op_cmd.cmd_flags.setdefault(flag_name, op_cmd_lib.CmdFlag())
     cmd_flag.flag_name = flag_name
     cmd_flag.arg_skip = True
-    return cmd_flag
+
+
+def _apply_dep_run_id(run_id, dep_flag_name, flag_vals):
+    """Applies a full run ID to a flag value.
+
+    If the current flag value is unset or None, run ID is set without
+    further checks.
+
+    If the current flag value is a string, it must be a prefix of
+    run_id or an assertion error is raised.
+
+    If the current flag value is a list, one and only one item in the
+    list must be a prefix of run_id or an assertion error is raised.
+
+    If the current flag value is neither a string nor a list, function
+    raises an assertion error.
+
+    This assertive behavior places the onus on the caller to ensure
+    that resolved runs correspond unambiguously to specified flag
+    values.
+
+    """
+    val = flag_vals.get(dep_flag_name)
+    if val is None:
+        flag_vals[dep_flag_name] = run_id
+    elif isinstance(val, six.string_types):
+        assert run_id.startswith(val), (val, run_id, dep_flag_name, flag_vals)
+        flag_vals[dep_flag_name] = run_id
+    elif isinstance(val, list):
+        _apply_dep_run_id_to_list(run_id, val)
+        flag_vals[dep_flag_name] = val
+    else:
+        assert False, (type(val), dep_flag_name, flag_vals)
+
+
+def _apply_dep_run_id_to_list(run_id, l):
+    applied = False
+    for i, x in enumerate(l):
+        if run_id.startswith(x):
+            assert not applied, (run_id, l)
+            l[i] = run_id
+            applied = True
+    assert applied, (run_id, l)
 
 
 def _edit_op_flags(op):
@@ -692,7 +739,7 @@ def _check_flags_for_resolved_deps(flag_vals, run):
 
     Used to prevent redefinition of dependencies for a run.
     """
-    resolved_deps = run.get("resolved_deps") or {}
+    resolved_deps = run.get("deps") or {}
     for name in flag_vals:
         if name in resolved_deps:
             _flag_for_resolved_dep_error(name, run)

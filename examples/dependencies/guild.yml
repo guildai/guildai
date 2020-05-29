@@ -127,7 +127,7 @@
       requires:
         - module: missing.module
 
-    all:
+    all-ops:
       description: Run all non-broken depepdency operations
       steps:
         - file
@@ -141,3 +141,75 @@
         - customizable-file src=guild.yml
         - modified-config
         - json-config
+
+    all-resources:
+      description: Run one op that requires all named resources
+      main: guild.pass
+      requires:  # Refs to named resources, defined below.
+        - file
+        - dir
+        - url
+        - file-op
+        - dir-op
+        - config
+        - modules
+        - downstream
+        - customizable-file
+        - modified-config
+        - json-config
+
+  # Named resources - mirror the inline resources above.
+  resources:
+    file:
+      - file: file.txt
+        rename: file file-file
+        target-type: copy
+
+    dir:
+      - file: dir
+        name: data
+        target-type: copy
+
+    url:
+      - url: https://guild-pub.s3.amazonaws.com/uat/file.txt
+        rename: file url-file
+        target-type: copy
+
+    file-op:
+      - operation: file
+        select: file.txt
+        rename: file file-op
+
+    dir-op:
+      - operation: dir
+        rename: dir dir-op
+
+    config:
+      - config: config.yml
+
+    modules:
+      - module: pandas
+      - module: sklearn
+
+    # Alternate resource names
+
+    downstream:
+      - operation: file
+        name: upstream
+
+    # Other
+
+    customizable-file:
+      - file: file.txt
+        rename: file customizable-file
+        target-type: copy
+
+    modified-config:
+      - config: config.yml
+        params:
+          lr: 0.001
+          dropout: 0.4
+        rename: config modified-config
+
+    json-config:
+      - config: config.json

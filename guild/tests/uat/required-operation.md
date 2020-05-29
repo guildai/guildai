@@ -1,5 +1,7 @@
 # Required operation 1
 
+These tets illustrate how Guild handles operation dependencies.
+
 Use required-operation project.
 
     >>> cd(example("required-operation"))
@@ -112,8 +114,12 @@ Info for the latest train run, including dependencies:
     scalars:
     dependencies:
       prepared-data:
-        - ../.../data1.txt
-        - ../.../subdir
+        prepared-data:
+          config: ...
+          paths:
+          - ../.../data1.txt
+          - ../.../subdir
+          uri: operation:prepare-data
     <exit 0>
 
 Confirm that the latest train op used the data prep run we specified.
@@ -124,10 +130,15 @@ Confirm that the latest train op used the data prep run we specified.
 
 Run a batch where using the two prepared data runs.
 
+First, the run IDs of the two prepare-data ops:
+
     >>> len(data_prep_runs)
     2
     >>> data_prep_1 = data_prep_runs[0].id
     >>> data_prep_2 = data_prep_runs[1].id
+
+Run train using the two run IDs:
+
     >>> run("guild run train prepared-data=[%s,%s] -y"
     ...     % (data_prep_1, data_prep_2))
     INFO: [guild] Running trial ...: train (prepared-data=...)
@@ -145,3 +156,20 @@ Verify train runs used the expected prepare runs:
     True
     >>> train_runs[0].get("flags")["prepared-data"] == data_prep_2
     True
+
+Try again, but using an invalid run ID for one of the specified
+prepared-data flag items. We use `--fail-on-trial-error` to highlight
+the batch error.
+
+    >>> run("guild run train prepared-data=[%s,xxx_invalid] "
+    ...     "--fail-on-trial-error -y" % data_prep_1)
+    WARNING: cannot find a suitable run for required resource 'prepared-data'
+    INFO: [guild] Running trial ...: train (prepared-data=...)
+    INFO: [guild] Resolving prepared-data dependency
+    INFO: [guild] Using output from run ... for prepared-data resource
+    INFO: [guild] Running trial ...: train (prepared-data=xxx_invalid)
+    INFO: [guild] Resolving prepared-data dependency
+    ERROR: [guild] trial ... exited with an error (see log for details)
+    ERROR: [guild] stopping batch because a trial failed (remaining staged trials
+    may be started as needed)
+    <exit 1>

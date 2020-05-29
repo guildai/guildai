@@ -13,7 +13,8 @@ See [guild.yml](guild.yml) for a list of examples.
 ## Operations
 
 ```
-all                        Run all non-broken depepdency operations
+all-ops                    Run all non-broken depepdency operations
+all-resources              Run a single op with full set of named dependencies
 config                     Configuration file dependency
 customizable-file          File dependency that can be customized with flag
 dir                        Directory dependency
@@ -61,5 +62,11 @@ $ guild cat -p config.yml
 To run all non-broken dependency examples, run:
 
 ```
-$ guild run all
+$ guild run all-op
+```
+
+To run a single operation that requires multiple resources, run:
+
+```
+$ guild run al-resources
 ```

@@ -75,6 +75,7 @@ LATEST_RUN_ARG = ["1"]
 CORE_RUN_ATTRS = [
     "cmd",
     "compare",
+    "deps",
     "env",
     "exit_status",
     "exit_status.remote",
@@ -89,7 +90,6 @@ CORE_RUN_ATTRS = [
     "pip_freeze",
     "platform",
     "random_seed",
-    "resolved_deps",
     "run_params",
     "sourcecode_digest",
     "started",
@@ -99,7 +99,7 @@ CORE_RUN_ATTRS = [
 ]
 
 LEGACY_RUN_ATTRS = [
-    "deps",
+    "resolved_deps",
     "opdef",
 ]
 
@@ -664,7 +664,7 @@ def _run_info_data(run, args):
     if args.env:
         data.append(("environment", run.get("env") or {}))
     if args.deps:
-        data.append(("dependencies", _resolved_deps(run)))
+        data.append(("dependencies", run.get("deps") or {}))
     if args.private_attrs and args.json:
         _maybe_append_proto_data(run, data)
     return data
@@ -733,11 +733,6 @@ def _s_step(s):
     return s["last_step"]
 
 
-def _resolved_deps(run):
-    deps = run.get("resolved_deps") or {}
-    return {res_name: _res_sources_paths(sources) for res_name, sources in deps.items()}
-
-
 def _res_sources_paths(sources):
     paths = []
     for source_paths in sources.values():
@@ -769,21 +764,26 @@ def _tuple_lists_to_dict(data):
 
 
 def _print_run_info_ordered(data):
-    fmt = flag_util.encode_flag_val
+    # Use consistent formatting across flags and run info output.
+    encode_val = flag_util.encode_flag_val
     for name, val in data:
         if isinstance(val, list):
             cli.out("%s:" % name)
             for item in val:
-                cli.out("  - %s" % fmt(item))
+                cli.out("  - %s" % encode_val(item))
         elif isinstance(val, dict):
             cli.out("%s:" % name)
             for item_name, item_val in _sort_run_info_attr(name, val):
                 if isinstance(item_val, list):
                     cli.out("  %s:" % item_name)
                     for item_item in item_val:
-                        cli.out("    - %s" % fmt(item_item))
+                        cli.out("    - %s" % encode_val(item_item))
+                elif isinstance(item_val, dict):
+                    cli.out("  %s:" % item_name)
+                    # Use full YAML formatting for config blocks.
+                    cli.out(_indent(util.encode_yaml(item_val), 4))
                 else:
-                    cli.out("  %s: %s" % (item_name, fmt(item_val)))
+                    cli.out("  %s: %s" % (item_name, encode_val(item_val)))
         else:
             cli.out("%s: %s" % (name, val))
 
@@ -798,6 +798,11 @@ def _sort_run_info_attr(name, val):
 def _sort_run_info_scalars(val):
     key = lambda item: _split_scalar_key(item[0])
     return sorted(val.items(), key=key)
+
+
+def _indent(s, spaces):
+    prefix = " " * spaces
+    return "\n".join(["%s%s" % (prefix, line) for line in s.split("\n")])
 
 
 def label(args, ctx):

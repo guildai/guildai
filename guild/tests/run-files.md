@@ -33,6 +33,7 @@ The files generated for our run:
     >>> first_run = runs[0]
     >>> print_files(project.ls(first_run, all=True))  # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
+    .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
@@ -44,7 +45,6 @@ The files generated for our run:
     .guild/attrs/pip_freeze
     .guild/attrs/platform
     .guild/attrs/random_seed
-    .guild/attrs/resolved_deps
     .guild/attrs/run_params
     .guild/attrs/sourcecode_digest
     .guild/attrs/started
@@ -84,7 +84,7 @@ files.
     - --msg
     - hi
 
-    >>> project.cat(first_run, ".guild/attrs/resolved_deps")
+    >>> project.cat(first_run, ".guild/attrs/deps")
     {}
 
     >>> project.cat(first_run, ".guild/attrs/exit_status")
@@ -135,6 +135,7 @@ The latest run is the trial:
 
     >>> print_files(project.ls(trial_run, all=True))  # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
+    .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
@@ -146,7 +147,6 @@ The latest run is the trial:
     .guild/attrs/pip_freeze
     .guild/attrs/platform
     .guild/attrs/random_seed
-    .guild/attrs/resolved_deps
     .guild/attrs/run_params
     .guild/attrs/sourcecode_digest
     .guild/attrs/started
@@ -183,6 +183,7 @@ Its files:
 
     >>> print_files(project.ls(batch_run, all=True))  # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
+    .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
@@ -194,7 +195,6 @@ Its files:
     .guild/attrs/pip_freeze
     .guild/attrs/platform
     .guild/attrs/random_seed
-    .guild/attrs/resolved_deps
     .guild/attrs/run_params
     .guild/attrs/sourcecode_digest
     .guild/attrs/started

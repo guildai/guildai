@@ -51,14 +51,13 @@ required dependency.
 Here's a helper to get the run ID of the train dependency:
 
     >>> def train_dep(serve_run):
-    ...     deps = serve_run.get("resolved_deps")
+    ...     deps = serve_run.get("deps")
     ...     assert "train" in deps, deps
     ...     train_sources = deps["train"]
     ...     assert "operation:train" in train_sources, deps
-    ...     train_op_paths = train_sources["operation:train"]
-    ...     assert len(train_op_paths) == 1, deps
-    ...     model_path = train_op_paths[0]
-    ...     return os.path.basename(os.path.dirname(model_path))
+    ...     op_train_info = train_sources["operation:train"]
+    ...     assert "config" in op_train_info, deps
+    ...     return op_train_info["config"]
 
 Let's confirm that the run ID of the serve train dependency equals the
 expected run.

@@ -26,6 +26,7 @@
       flags-dest: args
       requires:
         - operation: flag
+          warn-if-empty: false
 
     requires-flag-2:
       main: guild.pass hello requires-flag-2
@@ -34,6 +35,7 @@
         flag: null
       requires:
         - operation: flag
+          warn-if-empty: false
 
     requires-flag-3:
       main: guild.pass hello requires-flag-3
@@ -41,6 +43,7 @@
       requires:
         - operation: flag
           name: foo
+          warn-if-empty: false
 
     requires-flag-4:
       main: guild.pass hello requires-flag-4
@@ -52,3 +55,4 @@
       requires:
         - operation: flag
           name: foo
+          warn-if-empty: false

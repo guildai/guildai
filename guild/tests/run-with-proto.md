@@ -63,6 +63,7 @@ Files that are the same:
 
     >>> pprint(sorted(same))  # doctest: +REPORT_UDIFF
     ['.guild/attrs/cmd',
+     '.guild/attrs/deps',
      '.guild/attrs/exit_status',
      '.guild/attrs/flags',
      '.guild/attrs/host',
@@ -71,7 +72,6 @@ Files that are the same:
      '.guild/attrs/pip_freeze',
      '.guild/attrs/platform',
      '.guild/attrs/random_seed',
-     '.guild/attrs/resolved_deps',
      '.guild/attrs/sourcecode_digest',
      '.guild/attrs/user',
      '.guild/opref',
