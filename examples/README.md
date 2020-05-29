@@ -5,6 +5,11 @@
 - [api](api/README.md) - Use Guild API from a sample operation
 - [dependencies](dependencies/README.md) - File and operation
   dependencies
+- [detectron2](detectron2/README.md) - Implementation of Facebook's
+  [Detectron2](https://github.com/facebookresearch/detectron2) demo in
+  Guild
+- [features](features/README.md) - Preliminary examples of supporting
+  feature selection in Guild
 - [flags](flags/README.md) - Various methods of defining and using
   flags
 - [get-started](get-started/README.md) - Example from [Guild Get
@@ -20,6 +25,10 @@
 - [notebooks](notebooks/README.md) - Use of `guild.ipy` in a Notebook
 - [package](package/README.md) - Package version of
   [hello](hello/README.md) example
+- [parallel-runs](parallel-runs/README.md) - Examples of running
+  operations in parallel
+- [pipeline](pipeline/README.md) - Sample prepare/train pipeline
+  illustrating operation dependencies
 - [project-sourcecode](project-sourcecode/README.md) - Configuring
   project source code used for an operation
 - [required-operation](required-operation/README.md) - Use of
