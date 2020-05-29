@@ -310,8 +310,7 @@ def _validate_target_type(val, desc):
     if val in ("link", "copy"):
         return val
     raise OpDependencyError(
-        "unsupported target-type '%s' in %s (expected 'link' or 'copy')"
-        % (val, desc)
+        "unsupported target-type '%s' in %s (expected 'link' or 'copy')" % (val, desc)
     )
 
 
@@ -417,6 +416,7 @@ def _iter_resolved_op_runs(deps, flag_vals):
                     )
                 else:
                     yield run, dep
+
 
 def _iter_flag_val_items(val):
     if isinstance(val, list):

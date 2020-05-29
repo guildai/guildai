@@ -431,7 +431,7 @@ def _apply_resolve_dep_sources(dep, resolve_context, run, for_stage, resolved):
         run_rel_resolved_paths = _resolve_dep_source(source, dep, resolve_context, run)
         resolved[source.name] = source_info = {
             "uri": source.uri,
-            "paths": run_rel_resolved_paths
+            "paths": run_rel_resolved_paths,
         }
         if dep.config:
             source_info["config"] = dep.config
