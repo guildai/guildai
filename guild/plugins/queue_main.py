@@ -98,16 +98,17 @@ def _safe_next_run(state):
         )
         return None
     else:
-        return _next_run(state)
+        # Must only be called when we have a lock.
+        return _unsafe_next_run(state)
     finally:
         state.lock.release()
 
 
-def _next_run(state):
+def _unsafe_next_run(state):
     """Returns the next run for the queue.
 
     Note that this call is NOT safe across multiple queue
-    instances. Use `safe_next_run` to ensure that multiple queues is
+    instances. Use `safe_next_run` to ensure that multiple queues use
     proper locking.
     """
     blocking = _blocking_runs(state)
@@ -116,6 +117,8 @@ def _next_run(state):
     _log_state(state)
     for run in staged:
         if _can_start(run, blocking, state):
+            # Setting run to PENDING takes it out of the running for
+            # other queues to start.
             op_util.set_run_pending(run)
             return run
     return None
@@ -230,11 +233,15 @@ def _start_run(run, state):
 
 
 def _run(run, state):
-    env = {
+    env = _run_env(run)
+    gapi.run(restart=run.id, extra_env=env, gpus=state.gpus)
+
+
+def _run_env(run):
+    return {
         "NO_RESTARTING_MSG": "1",
         "PYTHONPATH": run.guild_path("job-packages"),
     }
-    gapi.run(restart=run.id, extra_env=env, gpus=state.gpus)
 
 
 def _log_waiting(state):

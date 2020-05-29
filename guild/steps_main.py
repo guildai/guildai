@@ -326,7 +326,7 @@ def _run_step(step, parent_run):
     env["NO_WARN_RUNDIR"] = "1"
     if step.isolate_runs:
         env["GUILD_RUNS_PARENT"] = parent_run.id
-    cwd = os.getenv("CMD_DIR")
+    cwd = os.getenv("PROJECT_DIR") or os.getenv("CMD_DIR")
     log.info("running %s: %s", step, _format_step_cmd(cmd))
     log.debug("step cwd %s", cwd)
     log.debug("step command: %s", cmd)
