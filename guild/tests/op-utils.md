@@ -143,13 +143,21 @@ Various exponent notation:
     {'lr': 1e-06}
 
     >>> p_flags(["run=1234567e1"])
-    {'run': 12345670.0}
+    {'run': '1234567e1'}
 
     >>> p_flags(["run=1e2345671"])
-    {'run': inf}
+    {'run': '1e2345671'}
 
     >>> p_flags(["lr=1.0e-06"])
     {'lr': 1e-06}
+
+Note that a float can be forced by adding a decimal:
+
+    >>> p_flags(["num=1234567.0e1"])
+    {'num': 12345670.0}
+
+    >>> p_flags(["num=1.0e2345671"])
+    {'num': inf}
 
 Strings:
 
