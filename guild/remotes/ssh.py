@@ -555,9 +555,9 @@ def _runs_filter_args(
     if unmarked:
         args.append("--unmarked")
     if started:
-        args.append(["--started", started])
+        args.extend(["--started", started])
     if digest:
-        args.append(["--digest", digest])
+        args.extend(["--digest", digest])
     return args
 
 
