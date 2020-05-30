@@ -35,6 +35,7 @@ Verify that there are no runs to satisfy downstream requirements:
 Run the downstream op without an upstream op, which is required:
 
     >>> run("guild run downstream -r guild-uat -y")
+    Getting remote run info
     WARNING: cannot find a suitable run for required resource 'upstream'
     Building package
     ...
@@ -65,10 +66,56 @@ Verify that we now have an upstream run:
 Show run preview to confirm that Guild is finding the remote upstream
 to provide as a default value.
 
-    >> run("guild run downstream -r guild-uat", timeout=15)
+    >>> run("guild run downstream -r guild-uat", timeout=5)
+    Getting remote run info
+    You are about to run downstream on guild-uat
+      upstream: ...
+    Continue? (Y/n)
+    <exit -9>
 
 Run downstream again:
 
-    >> run("guild run downstream -r guild-uat -y")
+    >>> run("guild run downstream -r guild-uat -y")
+    Getting remote run info
+    Building package
+    ...
+    Successfully installed gpkg.anonymous-...-0.0.0
+    Starting downstream on guild-uat as ...
+    Resolving upstream dependency
+    Using output from run ... for upstream resource
+    Run ... stopped with a status of 'completed'
+    <exit 0>
 
-    >> TODO
+Remote runs:
+
+    >>> run("guild runs -r guild-uat")
+    [1:...]  gpkg.anonymous-.../downstream  ...  completed  upstream=...
+    [2:...]  gpkg.anonymous-.../upstream    ...  completed
+    [3:...]  gpkg.anonymous-.../downstream  ...  error
+    <exit 0>
+
+Specify an invalid upstream run ID reference:
+
+    >>> run("guild run downstream upstream=xxx -r guild-uat", timeout=5)
+    Getting remote run info
+    WARNING: cannot find a suitable run for required resource 'upstream'
+    You are about to run downstream on guild-uat
+      upstream: xxx
+    Continue? (Y/n)
+    <exit -9>
+
+If we let this invalid value pass through, Guild runs the operation,
+but it fails.
+
+    >>> run("guild run downstream upstream=xxx -r guild-uat -y")
+    Getting remote run info
+    WARNING: cannot find a suitable run for required resource 'upstream'
+    Building package
+    ...
+    Successfully installed gpkg.anonymous-...-0.0.0
+    Starting downstream on guild-uat as ...
+    WARNING: cannot find a suitable run for required resource 'upstream'
+    Resolving upstream dependency
+    guild: run failed because a dependency was not met: could not resolve
+    'operation:upstream' in upstream resource: no suitable run for upstream
+    <exit 1>

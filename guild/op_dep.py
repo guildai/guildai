@@ -240,7 +240,7 @@ def _dep_resource_locations(dep):
 
 
 def _resolve_source_for_location(source, dep, location, resolve_context):
-    res_proxy = _ResourceProxy(location, dep.config)
+    res_proxy = ResourceProxy(location, dep.config)
     resolver = resolverlib.for_resdef_source(source, res_proxy)
     if not resolver:
         raise OpDependencyError(
@@ -250,11 +250,11 @@ def _resolve_source_for_location(source, dep, location, resolve_context):
 
 
 def resolver_for_source(source, dep):
-    res_proxy = _ResourceProxy(dep.res_location, dep.config)
+    res_proxy = ResourceProxy(dep.res_location, dep.config)
     return resolverlib.for_resdef_source(source, res_proxy)
 
 
-class _ResourceProxy(object):
+class ResourceProxy(object):
     """Proxy for guild.deps.Resource, used by resolver API.
 
     The APIs in guild.deps and guild.resolver are to be replaced by
@@ -389,22 +389,23 @@ def _copy_source(source_path, dest_path):
 ###################################################################
 
 
-def resolved_op_runs_for_opdef(opdef, flag_vals):
+def resolved_op_runs_for_opdef(opdef, flag_vals, resolver_factory=None):
     try:
         deps = deps_for_opdef(opdef, flag_vals)
     except OpDependencyError as e:
         log.debug("error resolving runs for opdef: %s", e)
         return []
     else:
-        return list(_iter_resolved_op_runs(deps, flag_vals))
+        return list(_iter_resolved_op_runs(deps, flag_vals, resolver_factory))
 
 
-def _iter_resolved_op_runs(deps, flag_vals):
+def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
+    resolver_factory = resolver_factory or resolver_for_source
     for dep in deps:
         for source in dep.resdef.sources:
             if not source.uri.startswith("operation:"):
                 continue
-            resolver = resolver_for_source(source, dep)
+            resolver = resolver_factory(source, dep)
             assert isinstance(resolver, resolverlib.OperationResolver), resolver
             for run_id_prefix in _iter_flag_val_items(flag_vals.get(dep.resdef.name)):
                 try:

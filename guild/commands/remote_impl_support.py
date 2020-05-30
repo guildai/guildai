@@ -93,8 +93,13 @@ def _runs_select_names():
 def _arg_kw(args, names, ignore):
     kw_in = args.as_kw()
     kw = {name: kw_in[name] for name in names}
-    for name in names + ignore:
+    for name in names:
         del kw_in[name]
+    for name in ignore:
+        try:
+            del kw_in[name]
+        except KeyError:
+            pass
     assert not kw_in, kw_in
     return kw
 
@@ -205,7 +210,7 @@ def _run_kw(args):
 
 def one_run(run_id_prefix, args):
     remote = remote_support.remote_for_args(args)
-    cli.note("Getting remote run info")
+    cli.note_once("Getting remote run info")
     try:
         return remote.one_run(run_id_prefix)
     except remotelib.RemoteProcessError as e:
@@ -377,29 +382,39 @@ def _handle_not_supported(remote):
     cli.error("remote '%s' does not support this operation" % remote.name)
 
 
-def filtered_runs_for_pull(remote, args):
-    cli.note("Getting remote run info")
+def filtered_runs(args):
+    remote = remote_support.remote_for_args(args)
+    cli.note_once("Getting remote run info")
     with op_handler(remote):
-        return remote.filtered_runs(**_filtered_runs_for_pull_kw(args))
+        return remote.filtered_runs(**_filtered_runs_kw(args))
 
 
-def _filtered_runs_for_pull_kw(args):
+def _filtered_runs_kw(args):
     names = _runs_filter_names()
     ignore = [
+        "all",
+        "archive",
         "delete",
+        "deleted",
+        "json",
+        "limit",
+        "more",
         "remote",
         "runs",
+        "verbose",
         "yes",
     ]
     return _arg_kw(args, names, ignore)
 
 
-def push_runs(remote, runs, args):
+def push_runs(runs, args):
+    remote = remote_support.remote_for_args(args)
     with op_handler(remote):
         remote.push(runs, args.delete)
 
 
-def pull_runs(remote, runs, args):
+def pull_runs(runs, args):
+    remote = remote_support.remote_for_args(args)
     with op_handler(remote):
         remote.pull(runs, args.delete)
 

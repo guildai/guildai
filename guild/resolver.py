@@ -224,9 +224,12 @@ class OperationResolver(FileResolver):
         return run.dir
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
+        return self._resolve_op_run(run_id_prefix, include_staged, marked_or_latest_run)
+
+    def _resolve_op_run(self, run_id_prefix, include_staged, resolve_run_cb):
         oprefs = self._source_oprefs()
         status = _matching_run_status(include_staged)
-        run = marked_or_latest_run(oprefs, run_id_prefix, status)
+        run = resolve_run_cb(oprefs, run_id_prefix, status)
         if not run:
             raise ResolutionError(
                 "no suitable run for %s"

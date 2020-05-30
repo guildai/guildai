@@ -34,6 +34,7 @@ from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import op_util
 from guild import remote
+from guild import resolver as resolverlib
 from guild import run as runlib
 from guild import run_util
 from guild import summary
@@ -360,6 +361,7 @@ def _op_init_op_flags(args, op):
             op._op_cmd,
             op._op_flag_vals,
             op._resource_flagdefs,
+            args,
         )
     if args.edit_flags:
         _edit_op_flags(op)
@@ -370,7 +372,7 @@ def _apply_run_flags(run, flag_vals):
 
 
 def _apply_op_flags_for_opdef(
-    opdef, user_flag_vals, force_flags, op_cmd, op_flag_vals, resource_flagdefs
+    opdef, user_flag_vals, force_flags, op_cmd, op_flag_vals, resource_flagdefs, args
 ):
     """Applies opdef and user-provided flags to `op_flag_vals`.
 
@@ -396,7 +398,7 @@ def _apply_op_flags_for_opdef(
         opdef, user_flag_vals, force_flags
     )
     resource_flagdefs.extend(resolved_resource_flagdefs)
-    _apply_default_dep_runs(opdef, op_cmd, opdef_flag_vals)
+    _apply_default_dep_runs(opdef, op_cmd, opdef_flag_vals, args)
     for name, val in opdef_flag_vals.items():
         if name in user_flag_vals or name not in op_flag_vals:
             op_flag_vals[name] = val
@@ -415,11 +417,22 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
         _no_such_flag_error(e.flag_name, opdef)
 
 
-def _apply_default_dep_runs(opdef, op_cmd, flag_vals):
-    for run, dep in op_dep.resolved_op_runs_for_opdef(opdef, flag_vals):
+def _apply_default_dep_runs(opdef, op_cmd, flag_vals, args):
+    resolver_factory = _resolver_factory(args)
+    for run, dep in op_dep.resolved_op_runs_for_opdef(
+        opdef, flag_vals, resolver_factory
+    ):
         dep_flag_name = _dep_flag_name(dep)
         _ensure_dep_flag_op_cmd_arg_skip(dep_flag_name, opdef, op_cmd)
         _apply_dep_run_id(run.id, dep_flag_name, flag_vals)
+
+
+def _resolver_factory(args):
+    if args.remote:
+        return _remote_resolver_for_source_f(args.remote)
+    else:
+        # Use default.
+        return None
 
 
 def _dep_flag_name(dep):
@@ -445,26 +458,21 @@ def _apply_dep_run_id(run_id, dep_flag_name, flag_vals):
     If the current flag value is unset or None, run ID is set without
     further checks.
 
-    If the current flag value is a string, it must be a prefix of
-    run_id or an assertion error is raised.
+    If the current flag value is a string and is a prefix of run_id,
+    the value is replaced with the full run ID.
 
-    If the current flag value is a list, one and only one item in the
-    list must be a prefix of run_id or an assertion error is raised.
+    If the current flag value is a list, the first item in the list
+    that is a prefix of the run ID is updated with the full run ID.
 
     If the current flag value is neither a string nor a list, function
     raises an assertion error.
-
-    This assertive behavior places the onus on the caller to ensure
-    that resolved runs correspond unambiguously to specified flag
-    values.
-
     """
     val = flag_vals.get(dep_flag_name)
     if val is None:
         flag_vals[dep_flag_name] = run_id
     elif isinstance(val, six.string_types):
-        assert run_id.startswith(val), (val, run_id, dep_flag_name, flag_vals)
-        flag_vals[dep_flag_name] = run_id
+        if run_id.startswith(val):
+            flag_vals[dep_flag_name] = run_id
     elif isinstance(val, list):
         _apply_dep_run_id_to_list(run_id, val)
         flag_vals[dep_flag_name] = val
@@ -473,13 +481,10 @@ def _apply_dep_run_id(run_id, dep_flag_name, flag_vals):
 
 
 def _apply_dep_run_id_to_list(run_id, l):
-    applied = False
     for i, x in enumerate(l):
         if run_id.startswith(x):
-            assert not applied, (run_id, l)
             l[i] = run_id
-            applied = True
-    assert applied, (run_id, l)
+            break
 
 
 def _edit_op_flags(op):
@@ -498,6 +503,68 @@ def _edit_op_flags(op):
         else:
             op._op_flag_vals = flag_vals
             break
+
+
+# =================================================================
+# Remote run resolver lookup support
+# =================================================================
+
+
+def _remote_resolver_for_source_f(remote):
+    def f(source, dep):
+        scheme = source.parsed_uri.scheme
+        assert scheme == "operation", source
+        resource = op_dep.ResourceProxy(dep.res_location, dep.config)
+        modeldef = source.resdef.modeldef
+        return _RemoteOperationResolver(remote, source, resource, modeldef)
+
+    return f
+
+
+class _RemoteOperationResolver(resolverlib.OperationResolver):
+    def __init__(self, remote, source, resource, modeldef):
+        super(_RemoteOperationResolver, self).__init__(source, resource, modeldef)
+        self.remote = remote
+
+    def resolve_op_run(self, run_id_prefix=None, include_staged=False):
+        return self._resolve_op_run(
+            run_id_prefix, include_staged, _remote_marked_or_latest_run_f(self.remote)
+        )
+
+
+def _remote_marked_or_latest_run_f(remote):
+    def f(oprefs, run_id_prefix=None, status=None):
+        runs = _remote_runs_for_marked_or_latest(remote, oprefs, run_id_prefix, status)
+        log.debug("remote runs for %s: %s", oprefs, runs)
+        if not runs:
+            return None
+        for run in runs:
+            if run.get("marked"):
+                return run
+        return runs[0]
+
+    return f
+
+
+def _remote_runs_for_marked_or_latest(remote, oprefs, run_id_prefix, status):
+    from guild.commands.runs_list import list_runs
+
+    args = click_util.Args(**list_runs.make_context("", []).params)
+    args.remote = remote
+    args.ops = [op.to_opspec() for op in oprefs]
+    args.completed = "completed" in status
+    args.running = "running" in status
+    args.terminated = "terminated" in status
+    args.staged = "staged" in status
+    return _filter_by_run_id_prefix(
+        remote_impl_support.filtered_runs(args), run_id_prefix
+    )
+
+
+def _filter_by_run_id_prefix(runs, run_id_prefix):
+    if not run_id_prefix:
+        return runs
+    return [run for run in runs if run.id.startswith(run_id_prefix)]
 
 
 # =================================================================

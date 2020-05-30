@@ -1075,16 +1075,15 @@ def import_(args, ctx):
 
 
 def push(args, ctx):
-    remote = remote_support.remote_for_args(args)
     preview = "You are about to copy (push%s) the following runs to %s:" % (
         _delete_clause(args),
-        remote.name,
+        args.remote,
     )
     confirm = "Continue?"
     no_runs = "No runs to copy."
 
     def push_f(runs):
-        remote_impl_support.push_runs(remote, runs, args)
+        remote_impl_support.push_runs(runs, args)
 
     runs_op(args, ctx, False, preview, confirm, no_runs, push_f, ALL_RUNS_ARG, True)
 
@@ -1097,19 +1096,18 @@ def _delete_clause(args):
 
 
 def pull(args, ctx):
-    remote = remote_support.remote_for_args(args)
     preview = "You are about to copy (pull%s) the following runs from %s:" % (
         _delete_clause(args),
-        remote.name,
+        args.remote,
     )
     confirm = "Continue?"
     no_runs = "No runs to copy."
 
     def pull_f(runs):
-        remote_impl_support.pull_runs(remote, runs, args)
+        remote_impl_support.pull_runs(runs, args)
 
     def filtered_runs_f(args, _ctx, _default_runs_arg, _force_deleted):
-        filtered = remote_impl_support.filtered_runs_for_pull(remote, args)
+        filtered = remote_impl_support.filtered_runs(args)
         return select_runs(filtered, args.runs, ctx)
 
     runs_op(
