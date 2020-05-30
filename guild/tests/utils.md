@@ -380,6 +380,18 @@ Tests:
     >>> quote("'a b c'")  # doctest: -NORMALIZE_PATHS
     '"\'a b c\'"'
 
+    >>> quote("~")
+    "'~'"
+
+    >>> quote("a ~ b")
+    "'a ~ b'"
+
+    >>> quote("*")
+    "'*'"
+
+    >>> quote("?")
+    "'?'"
+
 ## Shlex split
 
     >>> from guild.util import shlex_split as split

@@ -212,3 +212,44 @@ with `guild-home` is not specified.
 
     >>> ssh.guild_home
     'foo'
+
+## Misc
+
+    >>> from guild.remotes.ssh import _quote_arg as quote
+    >>> from guild.remotes.ssh import _noquote as noquote
+
+    >>> quote(None)
+    "''"
+
+    >>> quote("")
+    "''"
+
+    >>> quote("a b")
+    "'a b'"
+
+    >>> quote("~/a/b")
+    "'~/a/b'"
+
+    >>> quote(noquote(""))
+    ''
+
+    >>> quote(noquote("a b"))
+    'a b'
+
+    >>> quote(noquote("~/a/b"))
+    '~/a/b'
+
+    >>> quote(noquote(None)) is None
+    True
+
+    >>> quote(noquote(123))
+    123
+
+    >>> bool(noquote(""))
+    False
+
+    >>> bool(noquote(None))
+    False
+
+    >>> bool(noquote("a b"))
+    True

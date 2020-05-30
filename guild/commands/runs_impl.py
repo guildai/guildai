@@ -47,7 +47,6 @@ from guild import run_util
 from guild import util
 from guild import var
 
-from . import remote_support
 from . import remote_impl_support
 
 log = logging.getLogger("guild")

@@ -24,8 +24,6 @@ import sys
 
 import click
 
-from six.moves import shlex_quote as q
-
 from guild import click_util
 from guild import config
 from guild import op_util
@@ -319,28 +317,28 @@ class SSHRemote(remotelib.Remote):
             return ""
 
     def _start_op(self, remote_run_dir, opspec, restart, flags, run_id, stage, **opts):
-        cmd_lines = ["set -e"]
-        cmd_lines.extend(self._env_activate_cmd_lines())
-        cmd_lines.append(
-            "export PYTHONPATH=$(realpath {run_dir})/.guild/job-packages"
-            ":$PYTHONPATH".format(run_dir=remote_run_dir)
+        pidfile = ("%s/.guild/JOB" % remote_run_dir) if not stage else None
+        python_path = "$(realpath %s)/.guild/job-packages:$PYTHONPATH" % remote_run_dir
+        args = _run_args(
+            opspec=opspec if not restart else None,
+            op_flags=flags,
+            run_dir=_noquote(remote_run_dir) if not restart else None,
+            start=restart,
+            stage=stage,
+            pidfile=_noquote(pidfile),
+            quiet=True,
+            yes=True,
+            **opts
         )
-        cmd_lines.append("export NO_STAGED_MSG=1")
-        cmd_lines.append("export NO_IMPORT_FLAGS_PROGRESS=1")
-        cmd_lines.append(
-            _remote_run_cmd(
-                remote_run_dir=remote_run_dir,
-                opspec=opspec,
-                start=restart,
-                op_flags=flags,
-                stage=stage,
-                **opts
-            )
-        )
-        cmd = "; ".join(cmd_lines)
+        env = {
+            "PYTHONPATH": python_path,
+            "NO_STAGED_MSG": "1",
+            "NO_IMPORT_FLAGS_PROGRESS": "1",
+            "NO_WARN_RUNDIR": "1",
+        }
         if not stage:
             log.info("Starting %s on %s as %s", opspec, self.name, run_id)
-        self._ssh_cmd(cmd)
+        self._guild_cmd("run", args, env)
 
     def _watch_started_op(self, remote_run_dir):
         cmd_lines = ["set -e"]
@@ -366,12 +364,8 @@ class SSHRemote(remotelib.Remote):
         self._guild_cmd("runs list", opts)
 
     def filtered_runs(self, **filters):
-        cmd_lines = ["set -e"]
-        cmd_lines.extend(self._env_activate_cmd_lines())
         opts = _filtered_runs_filter_opts(**filters)
-        cmd_lines.append("guild runs list %s" % " ".join(opts))
-        cmd = "; ".join(cmd_lines)
-        out = self._ssh_output(cmd)
+        out = self._guild_cmd_output("runs list", opts)
         if not out:
             data = []
         else:
@@ -442,8 +436,8 @@ class SSHRemote(remotelib.Remote):
         cmd_lines.append("export GUILD_HOME=%s" % self.guild_home)
         if env:
             cmd_lines.extend(self._cmd_env(env))
-        quoted_args = [util.shlex_quote(arg) for arg in args]
-        cmd_lines.append("guild %s %s" % (name, " ".join(quoted_args)))
+        quoted_args = [_quote_arg(arg) for arg in args]
+        cmd_lines.append("guild %s %s" % (name, _join_args(quoted_args)))
         return "; ".join(cmd_lines)
 
     def _guild_cmd_output(self, name, args, env=None):
@@ -496,6 +490,47 @@ class SSHRemote(remotelib.Remote):
         self._guild_cmd("cat", _cat_args(**opts))
 
 
+def _join_args(args):
+    try:
+        return " ".join(args)
+    except TypeError:
+        assert False, args
+
+
+class _noquote(object):
+    """Wraper to signify that a value must not be quoted."""
+
+    def __init__(self, val):
+        self.val = val
+
+    def __nonzero__(self):
+        return bool(self.val)
+
+    __bool__ = __nonzero__
+
+
+def _quote_arg(arg):
+    """Returns arg, quoted as needed.
+
+    Special handling for args starting and ending with double-quotes -
+    these are assumed to be quoted and are returned unmodified.
+    """
+    if isinstance(arg, _noquote):
+        return arg.val
+    return util.shlex_quote(arg)
+
+
+def _noquote_arg(arg):
+    """Returns value denoted as one not to be quoted by _quote_arg.
+
+    Use for paths that should not be quoted to support variable
+    substitution.
+    """
+    if arg is None:
+        return None
+    return ""
+
+
 def _list_runs_filter_opts(deleted, all, more, limit, **filters):
     opts = []
     if all:
@@ -537,7 +572,7 @@ def _runs_filter_args(
     if error:
         args.append("--error")
     for label in labels:
-        args.extend(["--label", q(label)])
+        args.extend(["--label", label])
     for op in ops:
         args.extend(["--operation", op])
     if running:
@@ -600,14 +635,13 @@ def _build_package(src_dir, dist_dir):
         package_impl.main(args)
 
 
-def _remote_run_cmd(
+def _run_args(
     batch_label,
     batch_tag,
     fail_on_trial_error,
     force_flags,
     force_sourcecode,
     gpus,
-    stage_trials,
     label,
     max_trials,
     maximize,
@@ -619,71 +653,75 @@ def _remote_run_cmd(
     opt_flags,
     optimize,
     optimizer,
+    pidfile,
     proto,
+    quiet,
     random_seed,
-    remote_run_dir,
+    run_dir,
     stage,
+    stage_trials,
     start,
     stop_after,
     tag,
+    yes,
 ):
-    cmd = [
-        "NO_WARN_RUNDIR=1",
-        "guild",
-        "run",
-        "--quiet",
-        "--yes",
-    ]
-    if start:
-        cmd.extend(["--start", remote_run_dir])
-    else:
-        cmd.extend([q(opspec), "--run-dir", remote_run_dir])
-    if stage:
-        cmd.append("--stage")
-    else:
-        cmd.extend(["--pidfile", "%s/.guild/JOB" % remote_run_dir])
-    if proto:
-        cmd.extend(["--proto", proto])
-    if force_sourcecode:
-        cmd.extend(["--force-sourcecode", force_sourcecode])
-    if label:
-        cmd.extend(["--label", q(label)])
-    if tag:
-        cmd.extend(["--tag", q(tag)])
+    args = []
     if batch_label:
-        cmd.extend(["--batch-label", q(batch_label)])
+        args.extend(["--batch-label", batch_label])
     if batch_tag:
-        cmd.extend(["--batch-tag", q(batch_tag)])
-    if gpus:
-        cmd.extend(["--gpus", q(gpus)])
-    if no_gpus:
-        cmd.append("--no-gpus")
-    if force_flags:
-        cmd.append("--force-flags")
-    if needed:
-        cmd.append("--needed")
-    if stop_after:
-        cmd.extend(["--stop-after", str(stop_after)])
+        args.extend(["--batch-tag", batch_tag])
     if fail_on_trial_error:
-        cmd.append("--fail-on-trial-error")
-    if optimize:
-        cmd.append("--optimize")
-    if optimizer:
-        cmd.extend(["--optimizer", optimizer])
-    for val in opt_flags:
-        cmd.extend(["--opt-flag", val])
-    if minimize:
-        cmd.extend(["--minimize", minimize])
-    if maximize:
-        cmd.extend(["--maximize", maximize])
-    if random_seed is not None:
-        cmd.extend(["--random-seed", str(random_seed)])
+        args.append("--fail-on-trial-error")
+    if force_flags:
+        args.append("--force-flags")
+    if force_sourcecode:
+        args.extend(["--force-sourcecode", force_sourcecode])
+    if gpus:
+        args.extend(["--gpus", gpus])
+    if label:
+        args.extend(["--label", label])
     if max_trials is not None:
-        cmd.extend(["--max-trials", str(max_trials)])
+        args.extend(["--max-trials", str(max_trials)])
+    if maximize:
+        args.extend(["--maximize", maximize])
+    if minimize:
+        args.extend(["--minimize", minimize])
+    if needed:
+        args.append("--needed")
+    if no_gpus:
+        args.append("--no-gpus")
+    for opt_flag_assign in opt_flags:
+        args.extend(["--opt-flag", opt_flag_assign])
+    if optimize:
+        args.append("--optimize")
+    if optimizer:
+        args.extend(["--optimizer", optimizer])
+    if pidfile:
+        args.extend(["--pidfile", pidfile])
+    if proto:
+        args.extend(["--proto", proto])
+    if quiet:
+        args.append("--quiet")
+    if random_seed is not None:
+        args.extend(["--random-seed", str(random_seed)])
+    if run_dir:
+        args.extend(["--run-dir", run_dir])
+    if stage:
+        args.append("--stage")
     if stage_trials:
-        cmd.append("--stage-trials")
-    cmd.extend([q(arg) for arg in op_flags])
-    return " ".join(cmd)
+        args.append("--stage-trials")
+    if start:
+        args.extend(["--start", start])
+    if stop_after:
+        args.extend(["--stop-after", str(stop_after)])
+    if tag:
+        args.extend(["--tag", tag])
+    if yes:
+        args.append("--yes")
+    if opspec:
+        args.append(opspec)
+    args.extend(op_flags)
+    return args
 
 
 def _watch_run_args(
@@ -694,9 +732,9 @@ def _watch_run_args(
         return ["--pid", pid]
     args = []
     for op in ops:
-        args.extend(["-o", q(op)])
+        args.extend(["-o", op])
     for label in labels:
-        args.extend(["-l", q(label)])
+        args.extend(["-l", label])
     if unlabeled:
         args.append("-u")
     if marked:
@@ -755,9 +793,9 @@ def _stop_runs_args(
 ):
     args = []
     for op in ops:
-        args.extend(["-o", q(op)])
+        args.extend(["-o", op])
     for label in labels:
-        args.extend(["-l", q(label)])
+        args.extend(["-l", label])
     if unlabeled:
         args.append("-u")
     if no_wait:

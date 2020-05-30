@@ -511,6 +511,13 @@ def _edit_op_flags(op):
 
 
 def _remote_resolver_for_source_f(remote):
+    """Returns a function used to resolve a source.
+
+    We install a hook to handle remote cases. The base
+    OperationResolver doesn't handle remote lookups. We implement a
+    remote version that uses a customized callback for returning a
+    remote 'latest or marked' run matching the op requirements.
+    """
     def f(source, dep):
         scheme = source.parsed_uri.scheme
         assert scheme == "operation", source
@@ -522,17 +529,28 @@ def _remote_resolver_for_source_f(remote):
 
 
 class _RemoteOperationResolver(resolverlib.OperationResolver):
+    """Customized operation resolver that handles remote cases.
+
+    Overrides `resolve_op_run` to lookup remote runs instead of the
+    default resolver's lookup of local runs.
+    """
     def __init__(self, remote, source, resource, modeldef):
         super(_RemoteOperationResolver, self).__init__(source, resource, modeldef)
         self.remote = remote
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
+        """Remote version of default `resolve_op_run`.
+
+        Uses a remote-enabled callback for resolving a candidate run
+        the the op dependency.
+        """
         return self._resolve_op_run(
             run_id_prefix, include_staged, _remote_marked_or_latest_run_f(self.remote)
         )
 
 
 def _remote_marked_or_latest_run_f(remote):
+    """Returns a remote-enabled lookup function for 'marked or latest run'."""
     def f(oprefs, run_id_prefix=None, status=None):
         runs = _remote_runs_for_marked_or_latest(remote, oprefs, run_id_prefix, status)
         log.debug("remote runs for %s: %s", oprefs, runs)
@@ -547,6 +565,11 @@ def _remote_marked_or_latest_run_f(remote):
 
 
 def _remote_runs_for_marked_or_latest(remote, oprefs, run_id_prefix, status):
+    """Returns a list of candidate runs for 'marked or latest' consideration.
+
+    Uses `remote_impl_support.filtered_runs` to get remote runs
+    matching the specified opdef list, run ID prefix, and status list.
+    """
     from guild.commands.runs_list import list_runs
 
     args = click_util.Args(**list_runs.make_context("", []).params)
@@ -556,6 +579,7 @@ def _remote_runs_for_marked_or_latest(remote, oprefs, run_id_prefix, status):
     args.running = "running" in status
     args.terminated = "terminated" in status
     args.staged = "staged" in status
+    log.debug("filtered runs params for remote list: %r", args.as_kw())
     return _filter_by_run_id_prefix(
         remote_impl_support.filtered_runs(args), run_id_prefix
     )
