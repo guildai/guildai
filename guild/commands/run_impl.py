@@ -354,14 +354,14 @@ def _op_init_op_flags(args, op):
     if op._run:
         _apply_run_flags(op._run, op._op_flag_vals)
     if op._opdef:
-        _apply_op_flags_for_opdef(
+        _apply_op_flags_vals_for_opdef(
             op._opdef,
             op._user_flag_vals,
             args.force_flags or op._batch_trials,
             op._op_cmd,
+            args,
             op._op_flag_vals,
             op._resource_flagdefs,
-            args,
         )
     if args.edit_flags:
         _edit_op_flags(op)
@@ -371,8 +371,8 @@ def _apply_run_flags(run, flag_vals):
     flag_vals.update(run.get("flags") or {})
 
 
-def _apply_op_flags_for_opdef(
-    opdef, user_flag_vals, force_flags, op_cmd, op_flag_vals, resource_flagdefs, args
+def _apply_op_flags_vals_for_opdef(
+    opdef, user_flag_vals, force_flags, op_cmd, args, op_flag_vals, resource_flagdefs,
 ):
     """Applies opdef and user-provided flags to `op_flag_vals`.
 
@@ -398,7 +398,7 @@ def _apply_op_flags_for_opdef(
         opdef, user_flag_vals, force_flags
     )
     resource_flagdefs.extend(resolved_resource_flagdefs)
-    _apply_default_dep_runs(opdef, op_cmd, opdef_flag_vals, args)
+    _apply_default_dep_runs(opdef, op_cmd, args, opdef_flag_vals)
     for name, val in opdef_flag_vals.items():
         if name in user_flag_vals or name not in op_flag_vals:
             op_flag_vals[name] = val
@@ -417,7 +417,8 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
         _no_such_flag_error(e.flag_name, opdef)
 
 
-def _apply_default_dep_runs(opdef, op_cmd, flag_vals, args):
+def _apply_default_dep_runs(opdef, op_cmd, args, flag_vals):
+    """Applies default run IDs to flag_vals for dependencues."""
     resolver_factory = _resolver_factory(args)
     for run, dep in op_dep.resolved_op_runs_for_opdef(
         opdef, flag_vals, resolver_factory
@@ -518,6 +519,7 @@ def _remote_resolver_for_source_f(remote):
     remote version that uses a customized callback for returning a
     remote 'latest or marked' run matching the op requirements.
     """
+
     def f(source, dep):
         scheme = source.parsed_uri.scheme
         assert scheme == "operation", source
@@ -534,6 +536,7 @@ class _RemoteOperationResolver(resolverlib.OperationResolver):
     Overrides `resolve_op_run` to lookup remote runs instead of the
     default resolver's lookup of local runs.
     """
+
     def __init__(self, remote, source, resource, modeldef):
         super(_RemoteOperationResolver, self).__init__(source, resource, modeldef)
         self.remote = remote
@@ -551,6 +554,7 @@ class _RemoteOperationResolver(resolverlib.OperationResolver):
 
 def _remote_marked_or_latest_run_f(remote):
     """Returns a remote-enabled lookup function for 'marked or latest run'."""
+
     def f(oprefs, run_id_prefix=None, status=None):
         runs = _remote_runs_for_marked_or_latest(remote, oprefs, run_id_prefix, status)
         log.debug("remote runs for %s: %s", oprefs, runs)
