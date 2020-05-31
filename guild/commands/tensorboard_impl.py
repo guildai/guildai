@@ -61,7 +61,11 @@ def main(args):
             log.debug("Stopping")
             monitor.stop()
             if not args.keep_logdir:
-                log.debug("Removing logdir %s", logdir)  # Handled by ctx mgr
+                # Removal of temp logdir occurs when context manager
+                # exits.
+                log.debug("Removing logdir %s", logdir)
+            else:
+                print("TensorBoard logs saved in %s" % logdir)
     if util.PLATFORM != "Windows":
         cli.out()
 
