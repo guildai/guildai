@@ -107,6 +107,7 @@ tests).
       steps-run-isolation:         ok
       summary:                     ok
       tables:                      ok
+      tensorboard:                 ok
       test:                        ok
       test-flags:                  ok
       tfevents:                    ok

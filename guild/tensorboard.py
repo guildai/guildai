@@ -429,7 +429,6 @@ def _remove_orphaned_run_file_links(run_logdir):
 def create_app(logdir, reload_interval, path_prefix="", tensorboard_options=None):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
-        from tensorboard import default
         from tensorboard import program
         from tensorboard.backend import application
     try:
@@ -439,7 +438,7 @@ def create_app(logdir, reload_interval, path_prefix="", tensorboard_options=None
     else:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Warning)
-            plugins = default.get_plugins() + default.get_dynamic_plugins()
+            plugins = _plugins()
             log.debug("TensorBoard plugins: %s", plugins)
             tb = TensorBoard(plugins)
         argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
@@ -450,6 +449,13 @@ def create_app(logdir, reload_interval, path_prefix="", tensorboard_options=None
         return application.standard_tensorboard_wsgi(
             tb.flags, tb.plugin_loaders, tb.assets_zip_provider
         )
+
+
+def _plugins():
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", Warning)
+        from tensorboard import default
+    return default.get_plugins() + default.get_dynamic_plugins()
 
 
 def _base_tb_args(logdir, reload_interval, path_prefix):
@@ -536,3 +542,10 @@ def serve_forever(
     app = create_app(logdir, reload_interval, tensorboard_options=tensorboard_options)
     setup_logging()
     run_simple_server(app, host, port, ready_cb)
+
+
+if __name__ == "__main__":
+    import json
+
+    data = {"plugins": ["%s.%s" % (p.__module__, p.__name__) for p in _plugins()]}
+    json.dump(data, sys.stdout)
