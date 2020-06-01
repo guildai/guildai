@@ -1139,7 +1139,7 @@ def shlex_split(s):
     # If s is None, this call will block (see
     # https://bugs.python.org/issue27775)
     s = s or ""
-    return shlex.split(s)
+    return shlex.split(s, posix=True)
 
 
 def shlex_quote(s):
