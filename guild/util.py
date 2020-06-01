@@ -230,13 +230,15 @@ class LoopingThread(threading.Thread):
         self._stopped = threading.Event()
 
     def run(self):
-        loop(
-            cb=self._cb,
-            wait=self._stop.wait,
-            interval=self._interval,
-            first_interval=self._first_interval,
-        )
-        self._stopped.set()
+        try:
+            loop(
+                cb=self._cb,
+                wait=self._stop.wait,
+                interval=self._interval,
+                first_interval=self._first_interval,
+            )
+        finally:
+            self._stopped.set()
 
     def stop(self):
         self._stop.set()
