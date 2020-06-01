@@ -332,15 +332,40 @@ def _sorted_table_rows(table, header, args):
     return _table_rows(table, header)
 
 
+class _SortKey(object):
+
+    def __init__(self, val, max=False):
+        self.val = val
+        self.max = max
+
+    def __lt__(self, other):
+        try:
+            other_val = other.val
+        except AttributeError:
+            assert False, other
+        else:
+            return _key_lt(self.val, other_val, self.max)
+
+def _key_lt(val, other, max):
+    if val is None:
+        return other is not None and not max
+    if other is None:
+        return max
+    val_type = type(val)
+    other_type = type(other)
+    if val_type == other_type:
+        return val < other
+    if val_type in (int, float, bool) and other_type in (int, float, bool):
+        return val < other
+    return str(val) < str(other)
+
+
 def _sort_table(table, sort_col, reverse=False):
     def key(row):
         for name, val in itertools.chain(row[0], row[1], row[2]):
-            if name == sort_col and val is not None:
-                return val
-        if reverse:
-            return float("-inf")
-        else:
-            return float("inf")
+            if name == sort_col:
+                return _SortKey(val, not reverse)
+        return _SortKey(None, not reverse)
 
     return sorted(table, key=key, reverse=reverse)
 
