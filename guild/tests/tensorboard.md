@@ -238,7 +238,7 @@ With this new run, let's run the monitor.
     >>> log.print_all()
     DEBUG: [guild] Refreshing runs
     DEBUG: [guild] hparam experiment:
-           hparams=['a', 'c', 'b', 'd', 'extra_metrics', 'sourcecode']
+           hparams=['a', 'b', 'c', 'd', 'extra_metrics', 'sourcecode']
            metrics=['m1', 'time']
     DEBUG: [guild] Creating link ...
 
@@ -264,7 +264,7 @@ each incompatibility.
     WARNING: Runs found with hyperparameter values that cannot be displayed in the
              HPARAMS plugin: a='0', c=bye, d=1. Restart this command to view them.
     DEBUG: [guild] hparam experiment:
-           hparams=['a', 'c', 'b', 'd', 'extra_metrics', 'sourcecode']
+           hparams=['a', 'b', 'c', 'd', 'extra_metrics', 'sourcecode']
            metrics=['m1', 'time']
     DEBUG: [guild] Creating link ...
 
@@ -285,7 +285,7 @@ In this case, the monitor warns of new hyperparameters.
     WARNING: Runs found with hyperparameter values that cannot be displayed in the
              HPARAMS plugin: a='0', c=bye. Restart this command to view them.
     DEBUG: [guild] hparam experiment:
-           hparams=['a', 'c', 'b', 'd', 'extra_metrics', 'sourcecode']
+           hparams=['a', 'b', 'c', 'd', 'extra_metrics', 'sourcecode']
            metrics=['m1', 'time']
     DEBUG: [guild] Creating link ...
 
@@ -314,6 +314,6 @@ original set. This too causes the monitor to log a warning.
     WARNING: Runs found with new metrics: m2, m3. These runs will NOT appear in the
              HPARAMS plugin. Restart this command to view them.
     DEBUG: [guild] hparam experiment:
-           hparams=['a', 'c', 'b', 'd', 'extra_metrics', 'sourcecode']
+           hparams=['a', 'b', 'c', 'd', 'extra_metrics', 'sourcecode']
            metrics=['m1', 'time']
     DEBUG: [guild] Creating link ...

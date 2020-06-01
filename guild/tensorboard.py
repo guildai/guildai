@@ -290,7 +290,7 @@ def _add_hparam_experiment(hparam_experiment, writer):
     hparams, metrics = hparam_experiment
     if log.getEffectiveLevel() <= logging.DEBUG:
         log.debug(
-            "hparam experiment: hparams=%r metrics=%r", list(hparams), list(metrics)
+            "hparam experiment: hparams=%r metrics=%r", sorted(hparams), sorted(metrics)
         )
     writer.add_hparam_experiment(hparams, metrics)
 
