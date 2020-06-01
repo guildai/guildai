@@ -1,2 +1,2 @@
 keras
-tensorflow
+tensorflow-cpu
