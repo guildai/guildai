@@ -426,7 +426,13 @@ def _remove_orphaned_run_file_links(run_logdir):
                     log.warning("error deleting orphaned link '%s': %s", path, e)
 
 
-def create_app(logdir, reload_interval, path_prefix="", tensorboard_options=None):
+def create_app(
+    logdir,
+    reload_interval,
+    path_prefix="",
+    tensorboard_options=None,
+    plugins_blacklist=None,
+):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
         from tensorboard import program
@@ -438,8 +444,7 @@ def create_app(logdir, reload_interval, path_prefix="", tensorboard_options=None
     else:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Warning)
-            plugins = _plugins()
-            log.debug("TensorBoard plugins: %s", plugins)
+            plugins = _plugins(plugins_blacklist)
             tb = TensorBoard(plugins)
         argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
             tensorboard_options
@@ -451,11 +456,37 @@ def create_app(logdir, reload_interval, path_prefix="", tensorboard_options=None
         )
 
 
-def _plugins():
+def _plugins(blacklist=None):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
         from tensorboard import default
-    return default.get_plugins() + default.get_dynamic_plugins()
+
+    base_plugins = default.get_plugins() + default.get_dynamic_plugins()
+    plugins = _filter_blacklist_plugins(blacklist, base_plugins)
+    log.debug("TensorBoard plugins: %s", plugins)
+    return plugins
+
+
+def _filter_blacklist_plugins(blacklist, plugins):
+    if not blacklist:
+        return plugins
+    log.debug("TensorBoard blacklisted plugins: %s", blacklist)
+    return [
+        plugin for plugin in plugins if not _is_blacklisted_plugin(plugin, blacklist)
+    ]
+
+
+def _is_blacklisted_plugin(plugin, blacklist):
+    plugin_name = _plugin_name(plugin)
+    plugin_name = str(plugin)
+    return any((name in plugin_name for name in blacklist))
+
+
+def _plugin_name(plugin):
+    # TB plugins can be classes or loader, or who knows what - this
+    # method is a quick-and-dirty way to get a string/name to match
+    # against.
+    return str(plugin)
 
 
 def _base_tb_args(logdir, reload_interval, path_prefix):

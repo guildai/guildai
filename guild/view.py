@@ -36,6 +36,7 @@ MODULE_DIR = os.path.dirname(__file__)
 
 TB_RUNS_MONITOR_INTERVAL = 5
 TB_REFRESH_INTERVAL = 5
+TB_PLUGINS_BLACKLIST = ["WhatIfToolPluginLoader"]
 
 
 class ViewData(object):
@@ -157,7 +158,10 @@ class TBServer(object):
         self._monitor.run_once(exit_on_error=True)
         self._monitor.start()
         self._app = self._tb_mod.create_app(
-            self.log_dir, TB_REFRESH_INTERVAL, path_prefix=self._path_prefix()
+            self.log_dir,
+            TB_REFRESH_INTERVAL,
+            path_prefix=self._path_prefix(),
+            plugins_blacklist=TB_PLUGINS_BLACKLIST,
         )
         self._started = True
 
