@@ -40,6 +40,11 @@ DEFAULT_OUTPUT_SCALARS = [
     r"^(\key):\s+(\value)$",
 ]
 
+HPARAM_TYPE_NUMBER = "number"
+HPARAM_TYPE_BOOL = "bool"
+HPARAM_TYPE_STRING = "string"
+HPARAM_TYPE_NONE = "none"
+
 
 class EventFileWriter(object):
     def __init__(
@@ -85,6 +90,18 @@ class EventFileWriter(object):
 
     def close(self):
         self._writer.close()
+
+
+class _HParamState(object):
+    def __init__(self):
+        self._numeric = set()
+        self._discrete = {}
+
+    def add_numeric(self, name):
+        self._numeric.add(name)
+
+    def add_discrete(self, name, vals):
+        self._discrete[name] = vals
 
 
 class SummaryWriter(object):
@@ -184,33 +201,66 @@ def _HParamExperiment(hparams, metrics):
     from tensorboard.plugins.hparams import summary_v2 as hp
 
     return hp.hparams_config_pb(
-        hparams=[_HParam(key, vals) for key, vals in hparams.items()],
-        metrics=[hp.Metric(tag) for tag in metrics],
+        hparams=[_HParam(key, vals) for key, vals in sorted(hparams.items())],
+        metrics=[hp.Metric(tag) for tag in sorted(metrics)],
     )
 
 
 def _HParam(name, vals):
+    """Returns an `HParam` object for flag name and known values.
+
+    Uses real interval domain iff all values are numeric.
+
+    Uses discrete interval iff all values are strings.
+
+    Otherwise does not use a domain.
+    """
     from tensorboard.plugins.hparams import summary_v2 as hp
 
-    if _all_numbers(vals):
-        min_val = float(min(vals))
-        max_val = float(max(vals))
-        return hp.HParam(name, hp.RealInterval(min_val, max_val))
+    type = hparam_type(vals)
+    if type == HPARAM_TYPE_NUMBER:
+        return hp.HParam(name, hp.RealInterval(float("-inf"), float("inf")))
+    elif type == HPARAM_TYPE_BOOL:
+        return hp.HParam(name, hp.Discrete((True, False)))
+    elif type == HPARAM_TYPE_STRING:
+        return hp.HParam(name, hp.Discrete(vals))
+    elif type == HPARAM_TYPE_NONE:
+        return hp.HParam(name)
     else:
-        legal_vals = [_valid_param_val(val) for val in vals]
-        return hp.HParam(name, hp.Discrete(legal_vals))
+        assert False, type
 
 
-def _all_numbers(vals):
-    return all((isinstance(val, (int, float)) for val in vals))
+def hparam_type(vals):
+    types = set([_hparam_val_type(val) for val in vals])
+    if len(types) == 1:
+        return types.pop()
+    return HPARAM_TYPE_NONE
 
 
-def _valid_param_val(val):
-    if isinstance(val, (int, float, bool, six.string_types)):
-        return val
-    if val is None:
-        return ""
-    return str(val)
+def _hparam_val_type(val):
+    # pylint: disable=unidiomatic-typecheck
+    if isinstance(val, six.string_types):
+        return HPARAM_TYPE_STRING
+    elif type(val) in (float, int):
+        return HPARAM_TYPE_NUMBER
+    elif val is True or val is False:
+        return HPARAM_TYPE_BOOL
+    else:
+        return HPARAM_TYPE_NONE
+
+
+def is_hparam_numeric(vals):
+    # Avoid isinstance to check for numeric as booleans extend int.
+    # pylint: disable=unidiomatic-typecheck
+    return all((type(val) in (int, float) for val in vals))
+
+
+def is_hparam_boolean(vals):
+    return all((val in (True, False) for val in vals))
+
+
+def is_hparam_string(vals):
+    return all((isinstance(val, six.string_types) for val in vals))
 
 
 def _HParamSessionStart(name, hparams):

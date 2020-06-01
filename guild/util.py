@@ -407,22 +407,45 @@ def _top_level_dir(path):
 
 class LogCapture(object):
     def __init__(
-        self, use_root_handler=False, echo_to_stdout=False, strip_ansi_format=False
+        self,
+        use_root_handler=False,
+        echo_to_stdout=False,
+        strip_ansi_format=False,
+        log_level=None,
     ):
         self._records = []
         self._use_root_handler = use_root_handler
         self._echo_to_stdout = echo_to_stdout
         self._strip_ansi_format = strip_ansi_format
+        self._log_level = log_level
+        self._saved_log_levels = {}
 
     def __enter__(self):
+        assert not self._saved_log_levels
         for logger in self._iter_loggers():
             logger.addFilter(self)
+            self._apply_log_level(logger)
         self._records = []
         return self
 
     def __exit__(self, *exc):
         for logger in self._iter_loggers():
+            self._restore_log_level(logger)
             logger.removeFilter(self)
+        self._saved_log_levels.clear()
+
+    def _apply_log_level(self, logger):
+        if self._log_level is not None:
+            self._saved_log_levels[logger] = logger.level
+            logger.setLevel(self._log_level)
+
+    def _restore_log_level(self, logger):
+        try:
+            level = self._saved_log_levels[logger]
+        except KeyError:
+            pass
+        else:
+            logger.setLevel(level)
 
     @staticmethod
     def _iter_loggers():

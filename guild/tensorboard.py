@@ -25,6 +25,7 @@ import warnings
 
 from werkzeug import serving
 
+from guild import flag_util
 from guild import run_util
 from guild import query
 from guild import summary
@@ -65,40 +66,28 @@ class _RunsMonitorState(object):
         self.log_images = not logspec or "images" in logspec
         self.log_hparams = not logspec or "hparams" in logspec
         self.hparam_experiment = None
-        self.hparam_experiment_runs_digest = None
+        self.last_runs_digest = None
 
 
 def RunsMonitor(logdir, list_runs_cb, interval=None, logspec=None, run_name_cb=None):
     state = _RunsMonitorState(logdir, logspec)
     if state.log_hparams:
-        list_runs_cb = _hparam_init_support(list_runs_cb, state)
+        list_runs_cb = _list_runs_f(list_runs_cb, state)
     return run_util.RunsMonitor(
         logdir, list_runs_cb, _refresh_run_cb(state), interval, run_name_cb
     )
 
 
-def _hparam_init_support(list_runs_cb, state):
+def _list_runs_f(list_runs_cb, state):
     def f():
         runs = list_runs_cb()
-        _refresh_hparam_experiment(runs, state)
+        runs_digest = _runs_digest(runs)
+        if runs and runs_digest != state.last_runs_digest:
+            _ensure_hparam_experiment(runs, state)
+        state.last_runs_digest = runs_digest
         return runs
 
     return f
-
-
-def _refresh_hparam_experiment(runs, state):
-    if runs:
-        runs_digest = _runs_digest(runs)
-        if runs_digest == state.hparam_experiment_runs_digest:
-            return
-        hparams = _experiment_hparams(runs)
-        metrics = _experiment_metrics(runs)
-        _log_hparam_experiment(runs, hparams, metrics)
-        state.hparam_experiment = hparams, metrics
-        state.hparam_experiment_runs_digest = runs_digest
-    else:
-        state.hparam_experiment = None
-        state.hparam_experiment_runs_digest = None
 
 
 def _runs_digest(runs):
@@ -106,6 +95,15 @@ def _runs_digest(runs):
     for run_id in sorted([run.id for run in runs]):
         digest.update(run_id.encode())
     return digest.hexdigest()
+
+
+def _ensure_hparam_experiment(runs, state):
+    hparams = _experiment_hparams(runs)
+    metrics = _experiment_metrics(runs)
+    if not state.hparam_experiment:
+        state.hparam_experiment = hparams, metrics
+    else:
+        _maybe_warn_hidden_hparam_data(hparams, metrics, state)
 
 
 def _experiment_hparams(runs):
@@ -160,14 +158,76 @@ def _run_root_scalars(run):
     return [tag for tag in _iter_scalar_tags(run.dir) if filter_default_scalar(tag)]
 
 
-def _log_hparam_experiment(runs, hparams, metrics):
-    # Conditional to avoid work if not debugging
-    if log.getEffectiveLevel() <= logging.DEBUG:
-        log.debug(
-            "hparam experiment:\n  runs=%s\n  hparams=%s\n  metrics=%s",
-            [run.id for run in runs],
-            list(hparams),
-            list(metrics),
+def _maybe_warn_hidden_hparam_data(hparams, metrics, state):
+    assert state.hparam_experiment
+    exp_hparams, exp_metrics = state.hparam_experiment
+    _maybe_warn_new_hparams(hparams, exp_hparams)
+    _maybe_warn_bad_domain_hparams(hparams, exp_hparams)
+    _maybe_warn_new_metrics(metrics, exp_metrics)
+
+
+def _maybe_warn_new_hparams(hparams, exp_hparams):
+    added = set(hparams) - set(exp_hparams)
+    if added:
+        log.warning(
+            "Runs found with new hyperparameters: %s. These hyperparameters will "
+            "NOT appear in the HPARAMS plugin. Restart this command to view "
+            "them.",
+            ", ".join(sorted(added)),
+        )
+
+
+def _maybe_warn_bad_domain_hparams(hparams, exp_hparams):
+    bad_domain_hparams = _bad_domain_hparams(hparams, exp_hparams)
+    if bad_domain_hparams:
+        flag_assigns = [
+            flag_util.flag_assign(name, val) for name, val in bad_domain_hparams
+        ]
+        log.warning(
+            "Runs found with hyperparameter values that cannot be displayed in the "
+            "HPARAMS plugin: %s. Restart this command to view them.",
+            ", ".join(sorted(flag_assigns)),
+        )
+
+
+def _bad_domain_hparams(hparams, exp_hparams):
+    bad = []
+    for name, vals in hparams.items():
+        try:
+            exp_vals = exp_hparams[name]
+        except KeyError:
+            continue
+        else:
+            bad.extend(_bad_domain_hparam_vals(name, vals, exp_vals))
+    return bad
+
+
+def _bad_domain_hparam_vals(name, vals, exp_vals):
+    exp_type = summary.hparam_type(exp_vals)
+    if exp_type == summary.HPARAM_TYPE_NONE:
+        return []
+    return [
+        (name, bad_val)
+        for bad_val in _incompatible_hparam_vals(vals, exp_type, exp_vals)
+    ]
+
+
+def _incompatible_hparam_vals(vals, exp_type, exp_vals):
+    for val in vals:
+        val_type = summary.hparam_type([val])
+        if val_type != exp_type or (
+            val_type == summary.HPARAM_TYPE_STRING and val not in exp_vals
+        ):
+            yield val
+
+
+def _maybe_warn_new_metrics(metrics, exp_metrics):
+    added = metrics - exp_metrics
+    if added:
+        log.warning(
+            "Runs found with new metrics: %s. These runs will NOT appear in the "
+            "HPARAMS plugin. Restart this command to view them.",
+            ", ".join(sorted(added)),
         )
 
 
@@ -228,6 +288,10 @@ def _hparams_writer(logdir):
 
 def _add_hparam_experiment(hparam_experiment, writer):
     hparams, metrics = hparam_experiment
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        log.debug(
+            "hparam experiment: hparams=%r metrics=%r", list(hparams), list(metrics)
+        )
     writer.add_hparam_experiment(hparams, metrics)
 
 
@@ -575,8 +639,12 @@ def serve_forever(
     run_simple_server(app, host, port, ready_cb)
 
 
+def test_output(out):
+    data = {"plugins": ["%s.%s" % (p.__module__, p.__name__) for p in _plugins()]}
+    json.dump(data, out)
+
+
 if __name__ == "__main__":
     import json
 
-    data = {"plugins": ["%s.%s" % (p.__module__, p.__name__) for p in _plugins()]}
-    json.dump(data, sys.stdout)
+    test_output(sys.stdout)

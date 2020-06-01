@@ -323,12 +323,12 @@ def format_flag_assigns(flags, truncate_floats=False, shorten_paths=False):
     NAME=FORMATTED_VALUE.
     """
     return [
-        _flag_assign(name, val, truncate_floats, shorten_paths)
+        flag_assign(name, val, truncate_floats, shorten_paths)
         for name, val in sorted(flags.items())
     ]
 
 
-def _flag_assign(name, val, truncate_floats, shorten_paths):
+def flag_assign(name, val, truncate_floats=False, shorten_paths=False):
     return "%s=%s" % (name, format_flag(val, truncate_floats, shorten_paths))
 
 
