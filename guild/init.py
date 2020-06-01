@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import errno
 import logging
 import re
 import os
@@ -32,6 +33,10 @@ class InitError(Exception):
     pass
 
 
+class PermissionError(InitError):
+    pass
+
+
 class RequiredParamError(InitError):
     def __init__(self, name, param):
         super(RequiredParamError, self).__init__(name, param)
@@ -42,8 +47,40 @@ class RequiredParamError(InitError):
         return "missing required parameter '%s'" % self.name
 
 
-def init_env(path, local_resource_cache=False):
-    init_guild_dir(os.path.join(path, ".guild"), local_resource_cache)
+def init_env(path, guild_home=None, local_resource_cache=False):
+    try:
+        _init_env(path, guild_home, local_resource_cache)
+    except OSError as e:
+        _handle_init_os_error(e)
+
+
+def _init_env(path, guild_home, local_resource_cache):
+    guild_dir = os.path.join(path, ".guild")
+    if guild_home:
+        _link_guild_dir(guild_home, guild_dir)
+    else:
+        init_guild_dir(guild_dir, local_resource_cache)
+
+
+def _link_guild_dir(src, link):
+    if os.path.lexists(link):
+        link_target = os.path.realpath(link)
+        if not util.compare_paths(src, link_target):
+            log.warning(
+                "Guild directory %s exists (links to %s), "
+                "skipping link to Guild home %s",
+                link,
+                link_target,
+                src,
+            )
+        return
+    elif os.path.exists(link):
+        log.warning(
+            "Guild directory %s exists, skipping link to Guild home %s", link, src
+        )
+        return
+    util.ensure_dir(os.path.dirname(link))
+    util.symlink(src, link)
 
 
 def init_guild_dir(path, local_resource_cache=False):
@@ -180,3 +217,12 @@ def _write_lines(lines, path):
     with open(path, "w") as f:
         for line in lines:
             f.write(line)
+
+
+def _handle_init_os_error(e):
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        log.exception("init")
+    if e.errno == errno.EACCES:
+        raise PermissionError(e.filename)
+    else:
+        raise InitError(e)

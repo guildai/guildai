@@ -393,8 +393,8 @@ def mktemp_guild_dir():
     return guild_dir
 
 
-def find(root, followlinks=False):
-    paths = findl(root, followlinks)
+def find(root, followlinks=False, includedirs=False):
+    paths = findl(root, followlinks, includedirs)
     if not paths:
         print("<empty>")
     else:
@@ -402,12 +402,12 @@ def find(root, followlinks=False):
             print(path)
 
 
-def findl(root, followlinks=False):
+def findl(root, followlinks=False, includedirs=False):
     all = []
     relpath = lambda path, name: (os.path.relpath(os.path.join(path, name), root))
     for path, dirs, files in os.walk(root, followlinks=followlinks):
         for name in dirs:
-            if os.path.islink(os.path.join(path, name)):
+            if includedirs or os.path.islink(os.path.join(path, name)):
                 all.append(relpath(path, name))
         for name in files:
             all.append(relpath(path, name))

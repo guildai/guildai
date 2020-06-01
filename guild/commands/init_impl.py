@@ -45,11 +45,13 @@ class Config(object):
         self.env_dir = os.path.abspath(args.dir)
         self.env_name = self._init_env_name(args.name, self.env_dir)
         self.guild = args.guild
+        self.guild_home = self._init_guild_home(args)
+        self.no_isolate = args.no_isolate
         self.user_reqs = self._init_user_reqs(args)
         self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
         self.venv_python = self._init_venv_python(args, self.user_reqs)
         self.paths = args.path
-        self.local_resource_cache = args.local_resource_cache
+        self.isolate_resources = args.isolate_resources
         self.prompt_params = self._init_prompt_params()
         self.no_progress = args.no_progress
 
@@ -61,6 +63,14 @@ class Config(object):
         if basename != "venv":
             return basename
         return os.path.basename(os.path.dirname(abs_env_dir))
+
+    @staticmethod
+    def _init_guild_home(args):
+        if args.guild_home:
+            return args.guild_home
+        if args.no_isolate:
+            return config.guild_home()
+        return None
 
     @staticmethod
     def _init_venv_python(args, user_reqs):
@@ -100,13 +110,15 @@ class Config(object):
             params.append(("Guild", self.guild))
         else:
             params.append(("Guild", _implicit_guild_version()))
+        if self.guild_home:
+            params.append(("Guild home", self.guild_home))
         if self.guild_pkg_reqs:
             params.append(("Guild package requirements", self.guild_pkg_reqs))
         if self.user_reqs:
             params.append(("Python requirements", self.user_reqs))
         if self.paths:
             params.append(("Additional paths", self.paths))
-        if self.local_resource_cache:
+        if self.isolate_resources:
             params.append(("Resource cache", "local"))
         else:
             params.append(("Resource cache", "shared"))
@@ -249,7 +261,12 @@ def _test_symlinks():
 
 def _init_guild_env(config):
     cli.out("Initializing Guild environment in {}".format(config.env_dir))
-    init.init_env(config.env_dir, config.local_resource_cache)
+    try:
+        init.init_env(config.env_dir, config.guild_home, config.isolate_resources)
+    except init.PermissionError as e:
+        cli.error("unable to write to %s - do you have write permission?" % e.args[0])
+    except init.InitError as e:
+        cli.error(e)
 
 
 def _init_venv(config):

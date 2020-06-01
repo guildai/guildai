@@ -45,6 +45,24 @@ from guild import click_util
     ),
 )
 @click.option(
+    "-H",
+    "--no-isolate",
+    is_flag=True,
+    help=(
+        "Use current Guild home for the environment. Ignored if `--guild-home` "
+        "is also specified, this option is ignored."
+    ),
+)
+@click.option(
+    "-h",
+    "--guild-home",
+    metavar="PATH",
+    help=(
+        "Alternative Guild home location associated with the environment. "
+        "By default, Guild home is '.guild' in the environment directory."
+    ),
+)
+@click.option(
     "-r",
     "--requirement",
     metavar="REQ",
@@ -70,8 +88,7 @@ from guild import click_util
     ),
 )
 @click.option(
-    "-l",
-    "--local-resource-cache",
+    "-l", "--isolate-resources",
     is_flag=True,
     help="Use a local cache when initializing an environment.",
 )

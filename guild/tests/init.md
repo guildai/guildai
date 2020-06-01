@@ -23,12 +23,14 @@ Here's a helper function to generate a Config object.
     ...     name=None,
     ...     python=None,
     ...     guild=None,
+    ...     guild_home=None,
+    ...     no_isolate=False,
     ...     no_reqs=False,
     ...     path=(),
     ...     requirement=(),
     ...     tensorflow=None,
     ...     skip_tensorflow=False,
-    ...     local_resource_cache=False,
+    ...     isolate_resources=False,
     ...     no_progress=False)
     ...   arg_kw.update(kw)
     ...   args = click_util.Args(**arg_kw)
@@ -86,3 +88,113 @@ Note that there are cycles in the Guild package requirements in the
 sample project: `pkg-a` requires `pkg-b` and vise-versa. Guild init
 stop traversing package requirements if it's already processed a Guild
 file.
+
+## Guild home
+
+The `--guild-home` can be used to explicitly set the location of Guild
+home.
+
+    >>> pprint(config(guild_home="foo").prompt_params)
+    [('Location', '...'),
+     ('Name', 'init-env'),
+     ('Python interpreter', 'default'),
+     ('Guild', '...'),
+     ('Guild home', 'foo'),
+     ('Guild package requirements',
+      ('Pillow', 'pkg-a', 'pkg-b', 'tensorflow-any')),
+     ('Resource cache', 'shared')]
+
+If `--no-isolate` is specified, the current Guild home path is used.
+
+    >>> from guild import config as configlib
+    >>> gh = configlib.guild_home()
+
+    >>> params = config(no_isolate=True).prompt_params
+    >>> dict(params).get("Guild home") == gh, (params, gh)
+    (True, ...)
+
+However, `guild_home` if specified overrides this value.
+
+    >>> params = config(no_isolate=True, guild_home="bar").prompt_params
+    >>> dict(params).get("Guild home")
+    'bar'
+
+## Using init
+
+The module `guild.init` is used to perform initialization.
+
+    >>> from guild import init
+
+### Init Guild env
+
+Use `init_env` to initialize a Guild environment.
+
+Our target directory:
+
+    >>> env_dir = mkdtemp()
+
+Initialize an env:
+
+    >>> init.init_env(env_dir)
+
+The generated files:
+
+    >>> find(env_dir, includedirs=True)
+    .guild
+    .guild/.guild-nocopy
+    .guild/cache
+    .guild/cache/resources
+    .guild/cache/runs
+    .guild/runs
+    .guild/trash
+
+If we specify `guild_home`, we get a link to that directory instead.
+
+Build a sample directory to link to:
+
+    >>> guild_home = mkdtemp()
+    >>> touch(path(guild_home, "foo"))
+    >>> touch(path(guild_home, "bar"))
+    >>> mkdir(path(guild_home, "baz"))
+    >>> touch(path(guild_home, "baz", "bam"))
+
+Target env directory:
+
+    >>> env_dir = mkdtemp()
+
+Initialize the environment specifying the target Guild home.
+
+    >>> init.init_env(env_dir, guild_home=guild_home)
+
+The directory structure is simply a link to the target Guild home.
+
+    >>> find(env_dir)
+    .guild
+
+    >>> real_guild_dir = realpath(path(env_dir, ".guild"))
+    >>> real_guild_dir == guild_home, (real_guild_dir, guild_home)
+    (True, ...)
+
+Follow the link to the target:
+
+    >>> find(env_dir, includedirs=True, followlinks=True)
+    .guild
+    .guild/bar
+    .guild/baz
+    .guild/baz/bam
+    .guild/foo
+
+### Write permission
+
+    >>> env_path = mkdtemp()
+
+Set path to read only.
+
+    >>> import stat
+    >>> os.chmod(env_path, stat.S_IREAD)
+
+Attempt to initialize the read only location.
+
+    >>> init.init_env(env_path)
+    Traceback (most recent call last):
+    PermissionError: .../.guild

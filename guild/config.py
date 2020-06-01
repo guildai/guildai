@@ -93,7 +93,7 @@ def default_guild_home():
         return os.environ["GUILD_HOME"]
     except KeyError:
         base = _default_guild_home_base()
-        return os.path.join(base, ".guild")
+        return os.path.realpath(os.path.join(base, ".guild"))
 
 
 def _default_guild_home_base():
