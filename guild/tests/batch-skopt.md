@@ -77,7 +77,7 @@ Range with an initial value and opt flags:
 Range with a null value:
 
     >>> run("gp", None, 2)
-    ERROR: [guild] flags for batch (noise=0.1, x=0.1) do not contain
+    ERROR: [guild] flags for batch (noise=0.1, x=null) do not contain
     any search dimensions
     Try specifying a range for one or more flags as NAME=[MIN:MAX].
     <exit 1>

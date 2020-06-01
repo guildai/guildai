@@ -1391,8 +1391,13 @@ def _flag_missing(val):
 
 
 def _apply_default_flag_vals(flagdefs, flag_vals):
+    """Applies default values to flag_vals.
+
+    Skips flag values that are already defined in flag_vals.
+
+    """
     for flagdef in flagdefs:
-        if flag_vals.get(flagdef.name) is None:
+        if flagdef.name not in flag_vals:
             flag_vals[flagdef.name] = flagdef.default
 
 

@@ -59,6 +59,7 @@ We can change the values at the run command:
     ...   "b1": False,
     ...   "b2": True,
     ...   "s3": "hello",
+    ...   "s4": None,
     ...   "f4": "there",
     ... })
     --b1 'no'
@@ -73,8 +74,9 @@ We can change the values at the run command:
     --s1 'a'
     --s2 'a b'
     --s3 'hello'
-    --s4 '-0.00034'
     --s5 ''
+
+Note that `--s4` does not appear because the flag value is None.
 
 ## Passing arguments as globals
 
@@ -124,6 +126,7 @@ And with modified flags:
     ...   "b1": False,
     ...   "b2": True,
     ...   "s3": "hello",
+    ...   "s4": None,
     ...   "f4": "there",
     ... })
     b1: False
@@ -138,7 +141,6 @@ And with modified flags:
     s1: 'a'
     s2: 'a b'
     s3: 'hello'
-    s4: -0.00034
     s5: ''
 
 ## Flag list values
