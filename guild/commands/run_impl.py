@@ -360,8 +360,8 @@ def _op_init_op_flags(args, op):
             args.force_flags or op._batch_trials,
             op._op_cmd,
             args,
-            op._op_flag_vals,
             op._resource_flagdefs,
+            op._op_flag_vals,
         )
     if args.edit_flags:
         _edit_op_flags(op)
@@ -372,7 +372,7 @@ def _apply_run_flags(run, flag_vals):
 
 
 def _apply_op_flags_vals_for_opdef(
-    opdef, user_flag_vals, force_flags, op_cmd, args, op_flag_vals, resource_flagdefs,
+    opdef, user_flag_vals, force_flags, op_cmd, args, resource_flagdefs, op_flag_vals
 ):
     """Applies opdef and user-provided flags to `op_flag_vals`.
 
@@ -394,17 +394,22 @@ def _apply_op_flags_vals_for_opdef(
     resources and should not be included in flag args unless the a
     flag def is explicitly provided.
     """
-    opdef_flag_vals, resolved_resource_flagdefs = _flag_vals_for_opdef(
+    flag_vals, resolved_resource_flagdefs = _flag_vals_for_opdef(
         opdef, user_flag_vals, force_flags
     )
     resource_flagdefs.extend(resolved_resource_flagdefs)
-    _apply_default_dep_runs(opdef, op_cmd, args, opdef_flag_vals)
-    for name, val in opdef_flag_vals.items():
+    _apply_default_dep_runs(opdef, op_cmd, args, flag_vals)
+    for name, val in flag_vals.items():
         if name in user_flag_vals or name not in op_flag_vals:
             op_flag_vals[name] = val
 
 
 def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
+    """Returns flag vals for opdef.
+
+    Results includes defaults for opdef overridden by user flag vals
+    where specified.
+    """
     try:
         return op_util.flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
     except op_util.MissingRequiredFlags as e:
