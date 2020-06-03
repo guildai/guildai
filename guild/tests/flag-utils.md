@@ -240,6 +240,19 @@ Guild provides an exception to let the value pass through as a string:
     >>> decode("[1:2]")
     '[1:2]'
 
+### Quoted lists
+
+To specify a string that looks like a list, quote the list.
+
+    >>> decode("'[]'")
+    '[]'
+
+    >>> decode("'[a]'")
+    '[a]'
+
+    >>> decode("'[1,2,3,a,b,c]'")
+    '[1,2,3,a,b,c]'
+
 ### Concatenated lists
 
 Guild provides a shorthand for generating lists that follows Pythons
