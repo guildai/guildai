@@ -40,7 +40,7 @@ log = logging.getLogger("guild")
 
 PLATFORM = platform.system()
 
-OS_ENVIRON_BLACKLIST = set(["_"])
+UNSAFE_OS_ENVIRON = set(["_"])
 
 REF_P = re.compile(r"(\\?\${.+?})")
 
@@ -249,7 +249,7 @@ def safe_osenv():
     return {
         name: val
         for name, val in os.environ.items()
-        if name not in OS_ENVIRON_BLACKLIST
+        if name not in UNSAFE_OS_ENVIRON
     }
 
 

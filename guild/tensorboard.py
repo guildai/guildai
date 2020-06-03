@@ -495,7 +495,7 @@ def create_app(
     reload_interval,
     path_prefix="",
     tensorboard_options=None,
-    plugins_blacklist=None,
+    disabled_plugins=None,
 ):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
@@ -508,7 +508,7 @@ def create_app(
     else:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Warning)
-            plugins = _plugins(plugins_blacklist)
+            plugins = _plugins(disabled_plugins)
             tb = TensorBoard(plugins)
         argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
             tensorboard_options
@@ -520,30 +520,30 @@ def create_app(
         )
 
 
-def _plugins(blacklist=None):
+def _plugins(disabled=None):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
         from tensorboard import default
 
     base_plugins = default.get_plugins() + default.get_dynamic_plugins()
-    plugins = _filter_blacklist_plugins(blacklist, base_plugins)
+    plugins = _filter_disabled_plugins(disabled, base_plugins)
     log.debug("TensorBoard plugins: %s", plugins)
     return plugins
 
 
-def _filter_blacklist_plugins(blacklist, plugins):
-    if not blacklist:
+def _filter_disabled_plugins(disabled, plugins):
+    if not disabled:
         return plugins
-    log.debug("TensorBoard blacklisted plugins: %s", blacklist)
+    log.debug("TensorBoard disableded plugins: %s", disabled)
     return [
-        plugin for plugin in plugins if not _is_blacklisted_plugin(plugin, blacklist)
+        plugin for plugin in plugins if not _is_disableded_plugin(plugin, disabled)
     ]
 
 
-def _is_blacklisted_plugin(plugin, blacklist):
+def _is_disableded_plugin(plugin, disabled):
     plugin_name = _plugin_name(plugin)
     plugin_name = str(plugin)
-    return any((name in plugin_name for name in blacklist))
+    return any((name in plugin_name for name in disabled))
 
 
 def _plugin_name(plugin):
