@@ -27,58 +27,136 @@ The `-l` option tells Guild to use a resource cache that's local,
 rather than shared. This ensures that downloaded image datasets are
 removed when you remove the example environment `venv`.
 
+Activate the environment:
+
+    $ source guild-env
+
 ## Prepare Images
 
 Start by prepraing the images for training.
 
     $ guild run prepare-images
 
-This generates some `pth` files that are read by the `train`
-operation. List the generated files using `ls`.
+This runs the underlying [`prepare.py`](prepare.py), which downloads a
+sample data set of images and prepares PyTorch `DataLoader` objects to
+serve them to downstream training runs. The script saves the loaders
+in `pth` files.
+
+List the generated files using `ls`.
 
     $ guild ls
+
+Here are the files associated with the run:
+
+```
+<run dir>:
+  data/
+  data/hymenoptera_data/
+  prepare-samples.png
+  train.pth
+  val.pth
+```
+
+Note `train.pth` and `val.pth` - these are saved data loaders. These
+files, along with `data`, are used later by `train` runs. When you
+generate a data set using `prepare-images`, you can reuse those files
+for multiple training runs without regenerating them.
 
 The script also generates a plot of sample prepared images. Open the
 image to review a handful of prepared images.
 
-    $ guild open -p prepared-samples.png
+    $ guild open -p prepare-samples.png
 
 ## Train Model (Fine Tune)
 
-Next, run a training run with a single epoch. This runs quickly to let
-you review the results.
+The `train` operation requires files from `prepare-images` above. This
+is referred to in Guild as a *dependency*. The dependency is defined
+in [`guild.yml`](guild.yml) under the `requires` attribute of the
+`train` operation:
+
+``` yaml
+train:
+  ...
+  requires:
+    - operation: prepare-images
+      name: images
+```
+
+This tells Guild to look for a `prepare-images` run and *create links
+to its files in the `train` run directory.* When you run `train`,
+required files are available within the current working directory.
+
+Run `train` with a single epoch (we're not interested in high accuracy
+for this demo):
 
     $ guild run train epochs=1
 
-Review the default flags. These flags are imported from the training
-script according to the configuration in[guild.yml](guild.yml).
+Guild prompts you with a preview message showing the run flag
+values.
 
-Press `Enter` to train a model.
+```
+You are about to run train
+  epochs: 25
+  freeze_layers: no
+  images: <run ID>
+  lr: 0.001
+  lr_decay_epochs: 7
+  lr_decay_gamma: 0.1
+  momentum: 0.9
+Continue? (Y/n)
+```
 
-Guild runs [`train.py`](train.py), which is defined as the `main` spec
-in [`guild.yml`](guild.yml). Flags are set as global variables. This
-allows the script to be run with minimial-to-no modifications. In fact
-the only modifications to the [original
-code](https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html)
-is to use variables to define train behavior. These variables are
-exposed to users as flags through Guild.
+Note the `images` flag. This indicates the run used to satisfy the
+`images` dependency defined for `train`. By default, Guild selects the
+most recent non-error run for the required operation. You can select a
+different run by specifying the run ID as a flag assignment.
 
-The training run generates a saved model along with
-`predict-samples.png`, which is a sample of images and their predicted
-classes. View the generated files using `ls`.
+Press `Enter` to start the run.
+
+Before Guild starts the [underlying script](train.py) for `train`, it
+*resolves all dependencies defined for the operation*. If Guild cannot
+resolve all dependencies, it exits with an error message prior to
+running the script.
+
+In this case, Guild resolves the `images` dependency by creating links
+to its files in the `train` run directory.
+
+Wait for the operation to finish and list its files:
 
     $ guild ls
 
+Note that `train` generates `model.pth`, which is the saved trained
+model. It also generates `predict-images.png`, which contains a sample
+of prediction results.
+
+Note also that the `train` run directory contains files from
+the selected `prepare-images` run:
+
+```
+  data/
+  prepare-samples.png
+  train.pth
+  val.pth
+```
+
+You can verify that these files are links to the applicable
+`prepare-images` run directory.
+
+> Hint: an easy way to explore a run directory is to use `guild open`,
+> which opens the latest run directory in your local file explorer.
+
 ## Train Model (Freeze Layers)
 
-Run `train` again but using frozen layers.
+Run `train` again using frozen layers.
 
     $ guild run train freeze_layers=yes epochs=1
 
-This corresponds to the `model_conv` training in the original
-script. [`train.py`](train.py) is modified to only generate one
-model. Frozen layers are controlled by the `freeze_layers` global
-variable, which is exposed as a flag by Guild.
+This corresponds to [*ConvNet as fixed feature
+extractor*](https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html#convnet-as-fixed-feature-extractor)
+in the PyTorch tutorial. Note that [`train.py`](train.py) is modified
+to only generate one model rather than multiple models like the
+tutorial. Frozen layers are controlled by the `freeze_layers` global
+variable, which is exposed as a flag.
 
 You can generate one of each model this way:
 
@@ -86,11 +164,8 @@ You can generate one of each model this way:
 
 Guild runs `train` once for each value of `freeze_layers`.
 
-`train.py` specializes in training one model. Guild specializes in
-running `train.py` with different parameters (flag values). This lets
-you experiment with different training scenarios without modifying
-`train.py`. As a matter of "best practices", the more configurable you
-make a script, more you can experiment with it using tools like Guild.
+As with the first `train` run, each subsequent train run uses output
+from a `prepare-images` run. This saves time and disk space.
 
 ## Pipeline
 
