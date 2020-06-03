@@ -127,6 +127,10 @@ class ResourceDef(object):
     def _coerce_source_data(data):
         return {name.replace("-", "_"): data[name] for name in data}
 
+    @staticmethod
+    def _uncoerce_attr_key(key):
+        return key.replace("_", "-")
+
 
 def _coerce_resdef(data):
     if isinstance(data, dict):
@@ -180,7 +184,9 @@ class ResourceSource(object):
         self.help = help
         for key in kw:
             log.warning(
-                "unexpected source attribute '%s' in resource %r", key, resdef.fullname
+                "unexpected source attribute '%s' in resource %r",
+                self.resdef._uncoerce_attr_key(key),
+                self.name,
             )
 
     @property

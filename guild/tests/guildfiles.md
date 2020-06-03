@@ -735,6 +735,23 @@ If both attritubtes are specified, Guild logs a warning.
     WARNING: target-path and path both specified for resource :foo
     - using target-path
 
+### Unrecognized Source Attrs
+
+    >>> with LogCapture(strip_ansi_format=True) as log:
+    ...     _ = guildfile.for_string("""
+    ... - model: ''
+    ...   resources:
+    ...     foo:
+    ...       - file: f
+    ...         target-path: p
+    ...         foo: 123
+    ...         foo-bar: 456
+    ... """)
+
+    >>> log.print_all()
+    WARNING: unexpected source attribute 'foo-bar' in resource 'file:f'
+    WARNING: unexpected source attribute 'foo' in resource 'file:f'
+
 ## References
 
 A list of references may be included for each model. These can be used
