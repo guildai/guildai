@@ -14,7 +14,7 @@ provided by the parent operation.
     INFO: [guild] running upstream: m6:upstream
     INFO: [guild] running downstream: m6:downstream
     Resolving upstream dependency
-    Using output from run ... for upstream resource
+    Using run ... for upstream resource
     WARNING: nothing resolved for operation:upstream
 
     >>> project.print_runs(status=True)
@@ -50,7 +50,7 @@ its upstream requirement from all available runs.
     >>> project.run("m6:steps-downstream-fixed")
     INFO: [guild] running downstream: m6:downstream
     Resolving upstream dependency
-    Using output from run ... for upstream resource
+    Using run ... for upstream resource
     WARNING: nothing resolved for operation:upstream
 
     >>> project.print_runs(status=True)

@@ -222,7 +222,7 @@ executables.
     INFO: [guild] 1 of 1 checks passed
     INFO: [guild] running print-msg-2: print-msg-2
     Resolving print-msg dependency
-    Using output from run ... for print-msg resource
+    Using run ... for print-msg resource
     hola
     INFO: [guild] checking run ... files 'msg.txt'
     INFO: [guild] comparing run ... file msg.txt to .../inline-resources/msg.txt

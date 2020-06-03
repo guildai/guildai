@@ -33,7 +33,7 @@ And now serve again:
 
     >>> project.run("serve")
     Resolving train dependency
-    Using output from run ... for train resource
+    Using run ... for train resource
     Serving ./trained-model
 
 Let's confirm that the dependency used matches the run we expect.
@@ -86,7 +86,7 @@ And run serve again:
 
     >>> project.run("serve")
     Resolving train dependency
-    Using output from run ... for train resource
+    Using run ... for train resource
     Serving ./trained-model
 
 Our runs:
@@ -124,7 +124,7 @@ Next we explicitly specify a different train operation for serve:
 
     >>> project.run("serve", flags={"train": explicit_train_run.id})
     Resolving train dependency
-    Using output from run ... for train resource
+    Using run ... for train resource
     Serving ./trained-model
 
 Let's confirm that the latest run is using the expected train run.
@@ -159,7 +159,7 @@ And run serve, this time without an explicit train run:
 
     >>> project.run("serve")
     Resolving train dependency
-    Using output from run ... for train resource
+    Using run ... for train resource
     Serving ./trained-model
 
 And confirm that the train dependency uses the marked run:
@@ -216,7 +216,7 @@ Let's run the serve op:
 
     >>> project.run("serve")
     Resolving train dependency
-    Using output from run ... for train resource
+    Using run ... for train resource
     Serving ./trained-model
 
 And check our train dep:

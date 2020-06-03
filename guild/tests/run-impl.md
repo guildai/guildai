@@ -326,7 +326,7 @@ Run downstream again.
 
     >>> run(cwd, gh, opspec="downstream")
     Resolving upstream dependency
-    Using output from run ... for upstream resource
+    Using run ... for upstream resource
 
     >>> runs = var.runs(path(gh, "runs"), sort=["-timestamp"])
     >>> len(runs)
@@ -375,14 +375,14 @@ Run downstream with the default (second) upstream.
 
     >>> run(cwd, gh, opspec="downstream")
     Resolving upstream dependency
-    Using output from run ... for upstream resource
+    Using run ... for upstream resource
 
 Run downstream again but with the first upstream.
 
     >>> run(cwd, gh, opspec="downstream",
     ...     flags=["upstream=%s" % upstream_1.id])
     Resolving upstream dependency
-    Using output from run ... for upstream resource
+    Using run ... for upstream resource
 
 Verify that our two downstreams are using the expected upstreams by
 looking for the markers.
@@ -428,7 +428,7 @@ Guild doesn't attempt to resolve operation dependencies when staging.
     >>> gh = run_gh(cwd, opspec="downstream", stage=True)
     WARNING: cannot find a suitable run for required resource 'upstream'
     Resolving upstream dependency
-    Skipping operation dependency operation:upstream for stage
+    Skipping resolution of operation:upstream because it's being staged
     downstream staged as ...
     To start the operation, use 'guild run --start ...'
 
@@ -469,7 +469,7 @@ Let's stage downstream again.
 
     >>> run(cwd, gh, opspec="downstream", stage=True)
     Resolving upstream dependency
-    Skipping operation dependency operation:upstream for stage
+    Skipping resolution of operation:upstream because it's being staged
     downstream staged as ...
     To start the operation, use 'guild run --start ...'
 
@@ -492,7 +492,7 @@ Let's run the staged downstream.
 
     >>> run(cwd, gh, restart=staged_downstream.id)
     Resolving upstream dependency
-    Using output from run ... for upstream resource
+    Using run ... for upstream resource
 
 The resolved dep for the downstream corresponds to the staged
 upstream, not the latest upstream.
@@ -526,7 +526,7 @@ Create a downstream run.
 
     >>> run(cwd, gh, opspec="downstream")
     Resolving upstream dependency
-    Using output from run ... for upstream resource
+    Using run ... for upstream resource
     WARNING: nothing resolved for operation:upstream
 
 Note the warning - upstream doesn't provide any files to resolve.
@@ -542,7 +542,7 @@ Restart the downstream run.
 
     >>> run(cwd, gh, restart=downstream.id)
     Resolving upstream dependency
-    Skipping operation:upstream because it's already resolved
+    Skipping resolution of operation:upstream because it's already resolved
 
 Note that a new run was NOT generated.
 

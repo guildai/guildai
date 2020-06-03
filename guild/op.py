@@ -423,10 +423,14 @@ def _apply_resolve_dep_sources(dep, resolve_context, run, for_stage, resolved):
     log.info("Resolving %s dependency", dep.resdef.name)
     for source in dep.resdef.sources:
         if source.name in resolved:
-            log.info("Skipping %s because it's already resolved", source.name)
+            log.info(
+                "Skipping resolution of %s because it's already resolved", source.name
+            )
             continue
         if for_stage and _is_operation_source(source):
-            log.info("Skipping operation dependency %s for stage", source.name)
+            log.info(
+                "Skipping resolution of %s because it's being staged", source.name
+            )
             continue
         run_rel_resolved_paths = _resolve_dep_source(source, dep, resolve_context, run)
         resolved[source.name] = source_info = {

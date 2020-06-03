@@ -26,7 +26,7 @@ Stage the downstream op:
     >>> run("guild run downstream --stage -y")
     WARNING: cannot find a suitable run for required resource 'upstream'
     Resolving upstream dependency
-    Skipping operation dependency operation:upstream for stage
+    Skipping resolution of operation:upstream because it's being staged
     downstream staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>

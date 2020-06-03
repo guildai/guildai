@@ -46,7 +46,7 @@ When we don't preview the operation or otherwise specify a run for
 
     >>> run("guild run file-op --stage --yes")
     Resolving file dependency
-    Skipping operation dependency operation:file for stage
+    Skipping resolution of operation:file because it's being staged
     file-op staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>
@@ -63,7 +63,7 @@ Start staged upstream op.
 
     >>> run("guild run --start %s --yes" % upstream.id)
     Resolving file:file.txt dependency
-    Skipping file:file.txt because it's already resolved
+    Skipping resolution of file:file.txt because it's already resolved
     <exit 0>
 
 Note that the file dependency is skipped because it was already

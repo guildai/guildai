@@ -257,13 +257,13 @@ and evaluation scenario.
     prepared data
     INFO: [guild] running train: m4:train loss=1.0
     Resolving prepare dependency
-    Using output from run ... for prepare resource
+    Using run ... for prepare resource
     loss=1.0
     INFO: [guild] running eval: m4:evaluate acc=0.5
     Resolving prepare dependency
-    Using output from run ... for prepare resource
+    Using run ... for prepare resource
     Resolving train dependency
-    Using output from run ... for train resource
+    Using run ... for train resource
     acc=0.5
 
 Here are the generated runs:
