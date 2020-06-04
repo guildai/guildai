@@ -79,7 +79,8 @@ class FileSelect(object):
         return result is True, rule_results
 
     def prune_dirs(self, src_root, relroot, dirs):
-        for name in list(dirs):
+        pruned = []
+        for name in sorted(dirs):
             last_rule_result = None
             relpath = os.path.join(relroot, name)
             for rule in self.rules:
@@ -90,7 +91,9 @@ class FileSelect(object):
                     last_rule_result = rule_result
             if last_rule_result is False:
                 log.debug("skipping directory %s", relpath)
+                pruned.append(name)
                 dirs.remove(name)
+        return pruned
 
 
 def reduce_file_select_results(results):
@@ -323,7 +326,10 @@ def copytree(dest, select, root_start=None, followlinks=True, handler_cls=None):
     for root, dirs, files in os.walk(src, followlinks=followlinks):
         dirs.sort()
         relroot = _relpath(root, src)
-        select.prune_dirs(src, relroot, dirs)
+        pruned = select.prune_dirs(src, relroot, dirs)
+        for name in pruned:
+            relpath = os.path.join(relroot, name)
+            handler.ignore(relpath, [])
         for name in sorted(files):
             relpath = os.path.join(relroot, name)
             selected, results = select.select_file(src, relpath)

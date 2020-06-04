@@ -197,7 +197,8 @@ def _find_module(module):
         except ImportError:
             pass
         else:
-            f.close()
+            if f:
+                f.close()
             return ModuleInfo(path, package)
     raise ImportError("No module named %s" % module)
 

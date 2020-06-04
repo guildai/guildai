@@ -487,6 +487,7 @@ Test source code:
       ./d.csv
       ./guild.yml
     Skipped:
+      ./subproject
       ./logo.png
     <exit 0>
 
