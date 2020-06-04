@@ -32,6 +32,7 @@ Write a Guild file that defines flags and requirements.
 The other project files:
 
     >>> write(path(project.cwd, "test.py"), """
+    ... from __future__ import print_function
     ... a = 1
     ... b = 2
     ... print(a, b)
@@ -43,7 +44,7 @@ Run `op`:
 
     >>> project.run("op")
     Resolving file:a.txt dependency
-    (1, 123)
+    1 123
 
 Stage `op`:
 
@@ -70,7 +71,7 @@ Start the staged run. We can change flag values at this point.
     >>> project.run(start=runs[0].id)
     Resolving file:a.txt dependency
     Skipping resolution of file:a.txt because it's already resolved
-    (2, 123)
+    2 123
 
     >>> print_runs()
     op  a=2 b=123  completed
@@ -81,7 +82,7 @@ Restart the initial run.
     >>> project.run(restart=runs[1].id)
     Resolving file:a.txt dependency
     Skipping resolution of file:a.txt because it's already resolved
-    (1, 123)
+    1 123
 
     >>> print_runs()
     op  a=1 b=123  completed
