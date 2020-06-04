@@ -274,7 +274,14 @@ def _op_init_opdef(opspec, op):
         if op._user_flag_vals or op._force_sourcecode:
             # We need opdef for restart/run-with-proto when user specifies
             # flag values or when force-sourcecode is specified.
-            op._opdef = _opdef_for_run(op._run)
+            try:
+                op._opdef = _opdef_for_run(op._run)
+            except SystemExit:
+                log.warning(
+                    "operation definition required when "
+                    "setting flag on start/restart"
+                )
+                raise
     else:
         op._opdef = _default_opdef()
 
@@ -1997,13 +2004,6 @@ def _incompatible_with_restart_error(option, restart_option):
     cli.error(
         "%s cannot be used with --%s\n"
         "Try 'guild run --help' for more information." % (option, restart_option)
-    )
-
-
-def _flags_with_restart_error(option="restart"):
-    cli.error(
-        "flags cannot be used with --%s\n"
-        "Try 'guild run --help' for more information." % option
     )
 
 

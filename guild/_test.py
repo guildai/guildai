@@ -361,6 +361,7 @@ def test_globals():
         "re": re,
         "realpath": util.realpath,
         "relpath": os.path.relpath,
+        "rm": os.remove,
         "rmdir": util.safe_rmtree,
         "sample": sample,
         "samples_dir": samples_dir,

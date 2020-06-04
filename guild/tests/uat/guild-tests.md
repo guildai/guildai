@@ -55,6 +55,7 @@ tests).
       index:                       ok
       init:                        ok
       ipy:                         ok
+      isolate-runs-from-project:   ok
       keras:                       ok
       locks:                       ok
       logging:                     ok
