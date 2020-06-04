@@ -88,7 +88,8 @@ from guild import click_util
     ),
 )
 @click.option(
-    "-l", "--isolate-resources",
+    "-l",
+    "--isolate-resources",
     is_flag=True,
     help="Use a local cache when initializing an environment.",
 )

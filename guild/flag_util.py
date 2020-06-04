@@ -138,7 +138,6 @@ def _special_flag_function(s):
 
     Raises TypeError if the arguments provided to flag function are
     invalid.
-
     """
     name, args = decode_flag_function(s)
     if _is_anonymous_flag_function(name, args):

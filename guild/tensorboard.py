@@ -535,9 +535,7 @@ def _filter_disabled_plugins(disabled, plugins):
     if not disabled:
         return plugins
     log.debug("TensorBoard disableded plugins: %s", disabled)
-    return [
-        plugin for plugin in plugins if not _is_disableded_plugin(plugin, disabled)
-    ]
+    return [plugin for plugin in plugins if not _is_disableded_plugin(plugin, disabled)]
 
 
 def _is_disableded_plugin(plugin, disabled):

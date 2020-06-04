@@ -333,7 +333,6 @@ def _sorted_table_rows(table, header, args):
 
 
 class _SortKey(object):
-
     def __init__(self, val, max=False):
         self.val = val
         self.max = max
@@ -345,6 +344,7 @@ class _SortKey(object):
             assert False, other
         else:
             return _key_lt(self.val, other_val, self.max)
+
 
 def _key_lt(val, other, max):
     if val is None:

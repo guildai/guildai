@@ -428,9 +428,7 @@ def _apply_resolve_dep_sources(dep, resolve_context, run, for_stage, resolved):
             )
             continue
         if for_stage and _is_operation_source(source):
-            log.info(
-                "Skipping resolution of %s because it's being staged", source.name
-            )
+            log.info("Skipping resolution of %s because it's being staged", source.name)
             continue
         run_rel_resolved_paths = _resolve_dep_source(source, dep, resolve_context, run)
         resolved[source.name] = source_info = {
