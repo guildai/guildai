@@ -354,7 +354,10 @@ def _op_proc_system_env():
 def _op_proc_op_env(op):
     env = {}
     env.update(op.cmd_env)
+    if op.opref:
+        env["GUILD_OP"] = op.opref.to_opspec()
     env["GUILD_HOME"] = config.guild_home()
+    env["GUILD_SOURCECODE"] = _guild_sourcecode_env(op)
     env["LOG_LEVEL"] = _log_level()
     env["PYTHONPATH"] = _python_path(op)
     env["CMD_DIR"] = os.getcwd()
@@ -368,6 +371,10 @@ def _op_proc_run_env(run):
     }
 
 
+def _guild_sourcecode_env(op):
+    return os.path.pathsep.join(op.sourcecode_paths)
+
+
 def _log_level():
     try:
         return os.environ["LOG_LEVEL"]
@@ -376,8 +383,15 @@ def _log_level():
 
 
 def _python_path(op):
-    paths = op.sourcecode_paths + _guild_paths() + _env_paths()
+    paths = _op_pythonpath_env(op) + op.sourcecode_paths + _guild_paths() + _env_paths()
     return os.path.pathsep.join(paths)
+
+
+def _op_pythonpath_env(op):
+    env = op.cmd_env.get("PYTHONPATH")
+    if not env:
+        return []
+    return env.split(os.path.pathsep)
 
 
 def _guild_paths():

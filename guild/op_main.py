@@ -199,8 +199,24 @@ def _find_module(module):
         else:
             if f:
                 f.close()
+            else:
+                path = _find_package_main(path)
+                if path is None:
+                    raise ImportError(
+                        "No module named %s.__main__ ('%s' is a package "
+                        "and cannot be directly executed)" % (module, module)
+                    )
             return ModuleInfo(path, package)
     raise ImportError("No module named %s" % module)
+
+
+def _find_package_main(mod_path):
+    names = ["__main__.py", "__main__.pyc"]
+    for name in names:
+        path = os.path.join(mod_path, name)
+        if os.path.exists(path):
+            return path
+    return None
 
 
 def _flags_dest(args):

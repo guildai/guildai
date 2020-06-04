@@ -59,10 +59,11 @@ We can optionally show env for a run:
       FLAG_EPOCHS: '1'
       FLAG_LEARNING_RATE: '0.5'
       GUILD_HOME: ...
-      GUILD_OP: logreg:train
+      GUILD_OP: gpkg.mnist/logreg:train
       GUILD_PKG: ...
       GUILD_PKGDIR: ...
       GUILD_PLUGINS: ''
+      GUILD_SOURCECODE: .guild/sourcecode
       ...
       LOG_LEVEL: '20'
       ...
@@ -134,7 +135,6 @@ JSON output, including private attrs:
                     "__flag_args__"
                 ],
                 "cmd-env": {
-                    "GUILD_OP": "logreg:train",
                     "GUILD_PLUGINS": "",
                     "PROJECT_DIR": ".../gpkg/mnist"
                 },

@@ -27,6 +27,9 @@ For our tests, assert various locations:
 
 With empty system env and op env:
 
+    >>> print(op.opref)
+    None
+
     >>> op.cmd_env
     {}
 
@@ -35,7 +38,7 @@ With empty system env and op env:
     ...         env = op_env(op, run)
 
     >>> sorted(env)
-    ['CMD_DIR', 'GUILD_HOME', 'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID']
+    ['CMD_DIR', 'GUILD_HOME', 'GUILD_SOURCECODE', 'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID']
 
     >>> env["CMD_DIR"] == cwd, (env, cwd)
     (True, ...)
@@ -52,6 +55,13 @@ With empty system env and op env:
     >>> env["RUN_ID"] == run.id, (env, run.id)
     (True, ...)
 
+If we specify an `opref`, we get `GUILD_OP` in the env.
+
+    >>> from guild import opref
+    >>> op.opref = opref.OpRef("script", ".", "", "", "test.py")
+    >>> op_env(op, run).get("GUILD_OP")
+    './test.py'
+
 ## System env
 
 With some system env - a new var and a var that Guild defines.
@@ -63,8 +73,8 @@ With some system env - a new var and a var that Guild defines.
 `FOO` is available, in addition to the vars above.
 
     >>> sorted(env)
-    ['CMD_DIR', 'FOO', 'GUILD_HOME', 'LOG_LEVEL', 'PYTHONPATH',
-     'RUN_DIR', 'RUN_ID']
+    ['CMD_DIR', 'FOO', 'GUILD_HOME', 'GUILD_OP', 'GUILD_SOURCECODE',
+     'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID']
 
 `FOO` is as set in system env:
 
@@ -98,8 +108,8 @@ operation defines env using the `env` attribute.
 The env contains the expected vars:
 
     >>> sorted(env)
-    ['BAR', 'CMD_DIR', 'FOO', 'GUILD_HOME', 'LOG_LEVEL', 'PYTHONPATH',
-     'RUN_DIR', 'RUN_ID']
+    ['BAR', 'CMD_DIR', 'FOO', 'GUILD_HOME', 'GUILD_OP', 'GUILD_SOURCECODE',
+     'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID']
 
 As `FOO` is defined by the op, it overrides the system env:
 
@@ -121,3 +131,47 @@ Neither is `RUN_DIR`:
 
     >>> env["RUN_DIR"] == run.dir, (env, run.dir)
     (True, ...)
+
+## Project examples
+
+These tests use the project `op-env`.
+
+    >>> project = Project(sample("projects", "op-env"))
+
+The `test` operation defined `env`.
+
+    >>> gf = guildfile.for_dir(project.cwd)
+
+    >>> pprint(gf.default_model.get_operation("test").env)
+    {'BAR': '2', 'FOO': 1, 'PYTHONPATH': 'hello'}
+
+This is applied to the run.
+
+    >>> run, out = project.run_capture("test")
+
+    >>> print(out)
+    globals: 1 1.1 hello True False
+    env FLAG_B1: 1
+    env FLAG_B2: 0
+    env FLAG_F: 1.1
+    env FLAG_I: 1
+    env FLAG_S: hello
+
+The environment contains the specified op env. Note that `PYTHONPATH`
+is a combination of the op env and additional path entries. This
+allows the operation to insert additional entries in front of the
+default entries.
+
+    >>> pprint(run.get("env"))
+    {...'BAR': '2',
+     ...
+     'FLAGS_DEST': 'globals',
+     'FLAG_B1': '1',
+     'FLAG_B2': '0',
+     'FLAG_F': '1.1',
+     'FLAG_I': '1',
+     'FLAG_S': 'hello',
+     'FOO': '1',
+     ...
+     'PYTHONPATH': 'hello:.guild/sourcecode...',
+     ...}

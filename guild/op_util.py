@@ -1097,7 +1097,6 @@ def _apply_flag_args_marker(exec_args):
 def _op_cmd_env(opdef, extra_env):
     env = dict(opdef.env or {})
     env.update(extra_env or {})
-    env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["PROJECT_DIR"] = opdef.guildfile.dir or ""
     if opdef.flags_dest:

@@ -217,7 +217,8 @@ class PythonScriptPlugin(pluginlib.Plugin):
         try:
             sys_path, mod_path = python_util.find_module(main_spec, model_paths)
         except ImportError as e:
-            self.log.warning("cannot import flags from %s: %s", main_spec, e)
+            if os.getenv("NO_WARN_FLAGS_IMPORT") != "1":
+                self.log.warning("cannot import flags from %s: %s", main_spec, e)
             return {}
         else:
             package = self._main_spec_package(main_spec)

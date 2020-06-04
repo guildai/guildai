@@ -16,6 +16,9 @@ We use the `fail.py` script in `optimizers` sample project.
 
     >>> project = Project(sample("projects/optimizers"))
 
+The project contains some invalid operation specs and as a result,
+generates warnings whenver an operation is run.
+
 When we run `fail.py`, the script generates an error by raising an
 exception.
 
@@ -90,25 +93,54 @@ correctly defined.
 
     >>> project = Project(sample("projects/op-main-package"))
 
+The `op-main-package` contains operation defs that generate warnings
+due to mis-specifications (see tests below). These warnings are logged
+whenever the project Guild file is loaded. We can run a `pass` (no-op)
+operation to generate these warnings.
+
+    >>> project.run("pass")
+    WARNING: cannot import flags from abc_123: No module named abc_123
+    WARNING: cannot import flags from pkg: No module named pkg.__main__
+    ('pkg' is a package and cannot be directly executed)
+
+The warnings are suppressed as needed by setting
+`NO_WARN_FLAGS_IMPORT` below for tests.
+
 Guild uses different methods of loading modules depending on whether
 the module is loaded with global flag assignments.
 
 Here's the case where globals are not used (i.e. dest args):
 
-    >>> project.run("op-args")
+    >>> with Env({"NO_WARN_FLAGS_IMPORT": "1"}):
+    ...     project.run("args")
     hello from __main__ in pkg
     hello from pkg.main_impl in pkg
 
 Here's the case where globals are used:
 
-    >>> project.run("op-globals")
+    >>> with Env({"NO_WARN_FLAGS_IMPORT": "1"}):
+    ...    project.run("globals")
     hello from __main__ in pkg
     hello from pkg.main_impl in pkg
 
 The same scheme applies when `main` contains a path to the package, as
 is the case with `op-args-2`.
 
-    >>> with Env({"NO_IMPORT_FLAGS_CACHE": "1"}):
-    ...     project.run("op-args-2")
+    >>> with Env({"NO_IMPORT_FLAGS_CACHE": "1", "NO_WARN_FLAGS_IMPORT": "1"}):
+    ...     project.run("args-2")
     hello from __main__ in pkg
     hello from pkg.main_impl in pkg
+
+We can execute a package provided it contains a `__main__` module.
+
+    >>> with Env({"NO_WARN_FLAGS_IMPORT": "1"}):
+    ...    project.run("pkg-main")
+    a package!
+
+A package that does not contain a `__main__` module causes an error.
+
+    >>> with Env({"NO_WARN_FLAGS_IMPORT": "1"}):
+    ...     project.run("pkg")
+    guild: No module named pkg.__main__ ('pkg' is a package and cannot
+    be directly executed)
+    <exit 1>

@@ -498,16 +498,30 @@ def _find_module(main_mod, model_paths):
         for sys_path_item in [main_mod_sys_path] + sys.path:
             cur_path = os.path.join(sys_path_item, *module_path)
             try:
-                mod_info = imp.find_module(module_name_part, [cur_path])
+                f, maybe_mod_path, _desc = imp.find_module(module_name_part, [cur_path])
             except ImportError:
                 pass
             else:
-                _f, found_path, _desc = mod_info
-                # Don't attempt to import flags from anything other
-                # than a file ending in '.py'
-                if os.path.isfile(found_path) and found_path.endswith(".py"):
-                    return main_mod_sys_path, found_path
+                if f:
+                    f.close()
+                else:
+                    maybe_mod_path = _find_package_main(maybe_mod_path)
+                    if not maybe_mod_path:
+                        raise ImportError(
+                            "No module named %s.__main__ ('%s' is a package "
+                            "and cannot be directly executed)" % (module, module)
+                        )
+                return main_mod_sys_path, maybe_mod_path
     raise ImportError("No module named %s" % main_mod)
+
+
+def _find_package_main(mod_path):
+    names = ["__main__.py", "__main__.pyc"]
+    for name in names:
+        path = os.path.join(mod_path, name)
+        if os.path.exists(path):
+            return path
+    return None
 
 
 def _split_module(main_mod, gf_dir):

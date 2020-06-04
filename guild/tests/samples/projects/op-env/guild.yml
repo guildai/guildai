@@ -1,0 +1,6 @@
+test:
+  flags-import: yes
+  env:
+    FOO: 1
+    BAR: '2'
+    PYTHONPATH: hello
