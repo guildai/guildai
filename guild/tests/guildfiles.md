@@ -749,8 +749,8 @@ If both attritubtes are specified, Guild logs a warning.
     ... """)
 
     >>> log.print_all()
-    WARNING: unexpected source attribute 'foo-bar' in resource 'file:f'
     WARNING: unexpected source attribute 'foo' in resource 'file:f'
+    WARNING: unexpected source attribute 'foo-bar' in resource 'file:f'
 
 ## References
 
