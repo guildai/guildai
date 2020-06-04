@@ -91,17 +91,13 @@ If we restar either run with different flag values, we get an
 error. In this case, we need the Guild file.
 
     >>> project.run(restart=runs[0].id, flags={"a": 33, "b": 44})
-    WARNING: operation definition required when setting flag on start/restart
-    guild: cannot find operation op
-    You may need to include a model in the form MODEL:OPERATION. Try 'guild
-    operations' for a list of available operations.
+    guild: cannot find definition for operation 'op' in run ...
+    The definition is required when setting flags for start or restart.
     <exit 1>
 
     >>> project.run(restart=runs[1].id, flags={"a": "55", "b": True})
-    WARNING: operation definition required when setting flag on start/restart
-    guild: cannot find operation op
-    You may need to include a model in the form MODEL:OPERATION. Try 'guild
-    operations' for a list of available operations.
+    guild: cannot find definition for operation 'op' in run ...
+    The definition is required when setting flags for start or restart.
     <exit 1>
 
 Runs have not changed.

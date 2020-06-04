@@ -274,14 +274,7 @@ def _op_init_opdef(opspec, op):
         if op._user_flag_vals or op._force_sourcecode:
             # We need opdef for restart/run-with-proto when user specifies
             # flag values or when force-sourcecode is specified.
-            try:
-                op._opdef = _opdef_for_run(op._run)
-            except SystemExit:
-                log.warning(
-                    "operation definition required when "
-                    "setting flag on start/restart"
-                )
-                raise
+            op._opdef = _opdef_for_run(op._run)
     else:
         op._opdef = _default_opdef()
 
@@ -290,13 +283,13 @@ def _opdef_for_run(run):
     if isinstance(run, remote.RunProxy):
         return _opdef_for_remote_run(run)
     opspec = run.opref.to_opspec()
-    return _opdef_for_opspec(opspec)
+    return _opdef_for_opspec(opspec, run)
 
 
 def _opdef_for_remote_run(run):
     if _cwd_remote_run(run):
         return _opdef_for_opspec(_cwd_opspec(run.opref))
-    return _opdef_for_opspec(run.opref.to_opspec())
+    return _opdef_for_opspec(run.opref.to_opspec(), run)
 
 
 def _cwd_remote_run(run):
@@ -312,7 +305,7 @@ def _cwd_opspec(opref):
     return "%s:%s" % (opref.model_name, opref.op_name)
 
 
-def _opdef_for_opspec(opspec):
+def _opdef_for_opspec(opspec, for_run=None):
     try:
         return op_util.opdef_for_opspec(opspec)
     except op_util.InvalidOpSpec:
@@ -320,7 +313,10 @@ def _opdef_for_opspec(opspec):
     except op_util.CwdGuildfileError as e:
         _guildfile_error(e.path, str(e))
     except op_util.NoSuchModel as e:
-        _no_such_model_op_error(opspec)
+        if for_run:
+            _missing_run_opdef_error(opspec, for_run)
+        else:
+            _no_such_model_op_error(opspec)
     except op_util.MultipleMatchingModels as e:
         _multiple_models_error(e.model_ref, e.matches)
     except op_util.NoSuchOperation as e:
@@ -2021,6 +2017,14 @@ def _guildfile_error(gf_path, msg):
     cli.error(
         "guildfile in %s contains an error (see above for details)"
         % cmd_impl_support.cwd_desc(gf_path)
+    )
+
+
+def _missing_run_opdef_error(opspec, run):
+    cli.error(
+        "cannot find definition for operation '%s' in run %s\n"
+        "The definition is required when setting flags for start or restart."
+        "" % (opspec, run.id)
     )
 
 

@@ -231,17 +231,15 @@ We can restart without flags:
 However, if we specify any flags, Guild complains.
 
     >>> run(cwd, gh, restart=run_id, flags=["foo=111"])
-    cannot find operation op
-    You may need to include a model in the form MODEL:OPERATION. Try
-    'guild operations' for a list of available operations.
+    cannot find definition for operation 'op' in run ...
+    The definition is required when setting flags for start or restart.
     <exit 1>
 
 It doesn't matter if the flags apply to the original operation or not.
 
     >>> run(cwd, gh, restart=run_id, flags=["other_flag=111"])
-    cannot find operation op
-    You may need to include a model in the form MODEL:OPERATION. Try
-    'guild operations' for a list of available operations.
+    cannot find definition for operation 'op' in run ...
+    The definition is required when setting flags for start or restart.
     <exit 1>
 
 ## Batch operation errors
