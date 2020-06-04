@@ -221,17 +221,17 @@ def _args_dest(args):
 
 
 def _globals_dest(args):
-    base_args, flags = _split_args_and_flags(args)
+    base_args, flags = _base_args_and_flags_for_globals(args)
     return "globals", base_args, flags
 
 
-def _split_args_and_flags(args):
+def _base_args_and_flags_for_globals(args):
     flags, other_args = op_util.args_to_flags(args)
     return other_args, flags
 
 
 def _global_dest(args, global_name):
-    base_args, flags = _split_args_and_flags(args)
+    base_args, flags = _base_args_and_flags_for_globals(args)
     flags = util.nested_config(flags)
     global_dest = op_util.global_dest(global_name, flags)
     return "globals", base_args, global_dest

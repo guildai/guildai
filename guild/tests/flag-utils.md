@@ -112,9 +112,22 @@ Dicts:
     >>> encode_decode({})
     ('{}', {}, True)
 
+    >>> encoded, decoded, match = encode_decode({"a": [1,2,3], "b": 123, "c": {1,2,3}})
+    >>> encoded
+    '{a: [1, 2, 3], b: 123, c: !!set {1: null, 2: null, 3: null}}'
+
+    >>> pprint(decoded) # doctest: -PY3
+    {'a': [1, 2, 3], 'b': 123, 'c': set([1, 2, 3])}
+
+    >>> pprint(decoded) # doctest: -PY2
+    {'a': [1, 2, 3], 'b': 123, 'c': {1, 2, 3}}
+
+    >>> match
+    True
+
 Capture result to pprint the decoded value:
 
-    >>> encoded, decoded, test = encode_decode({
+    >>> encoded, decoded, match = encode_decode({
     ...     "a": 1.123,
     ...     "b": "c d",
     ...     "e": True,
@@ -126,12 +139,12 @@ Capture result to pprint the decoded value:
     >>> pprint(decoded)
     {'a': 1.123, 'b': 'c d', 'e': True, 'f': [1, 2, 'g h']}
 
-    >>> test
+    >>> match
     True
 
 ### Formatting flags
 
-Flags can be formatted using the `format_flag_assigns` function.
+Flags can be formatted using the `flag_assigns` function.
 
 Formatted flags are returned as a sorted list of `NAME=VALUE` where
 `VALUE` is the formatted flag value for `NAME`.
@@ -139,7 +152,7 @@ Formatted flags are returned as a sorted list of `NAME=VALUE` where
 Here's a function to print the formatted flags:
 
     >>> def format(flags, truncate_floats=False):
-    ...     formatted = flag_util.format_flag_assigns(flags, truncate_floats)
+    ...     formatted = flag_util.flag_assigns(flags, truncate_floats)
     ...     for s in formatted:
     ...         print(s)
 

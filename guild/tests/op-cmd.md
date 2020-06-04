@@ -37,8 +37,8 @@ Helper functions:
 
     >>> CmdFlag = op_cmd.CmdFlag
 
-    >>> def generate(cmd_args, cmd_env, cmd_flags, flag_vals):
-    ...     cmd = op_cmd.OpCmd(cmd_args, cmd_env, cmd_flags)
+    >>> def generate(cmd_args, cmd_env, cmd_flags, flag_vals, flags_dest="args"):
+    ...     cmd = op_cmd.OpCmd(cmd_args, cmd_env, cmd_flags, flags_dest)
     ...     args, env = op_cmd.generate(cmd, flag_vals, resolve_params=flag_vals)
     ...     print(args)
     ...     pprint(env)
@@ -72,17 +72,32 @@ Various flag values:
     ['--c', '']
     {'FLAG_C': ''}
 
-    >>> generate(["__flag_args__"], {}, {}, {"c": True})
+Boolean and None values are handled differently for "args" and
+"globals" flags dest.
+
+    >>> generate(["__flag_args__"], {}, {}, {"c": True}, "args")
+    ['--c', '1']
+    {'FLAG_C': '1'}
+
+    >>> generate(["__flag_args__"], {}, {}, {"c": True}, "globals")
     ['--c', 'yes']
-    {'FLAG_C': 'yes'}
+    {'FLAG_C': '1'}
 
-    >>> generate(["__flag_args__"], {}, {}, {"c": False})
+    >>> generate(["__flag_args__"], {}, {}, {"c": False}, "args")
+    ['--c', '']
+    {'FLAG_C': '0'}
+
+    >>> generate(["__flag_args__"], {}, {}, {"c": False}, "globals")
     ['--c', 'no']
-    {'FLAG_C': 'no'}
+    {'FLAG_C': '0'}
 
-    >>> generate(["__flag_args__"], {}, {}, {"c": None})
+    >>> generate(["__flag_args__"], {}, {}, {"c": None}, "args")
     []
-    {}
+    {'FLAG_C': ''}
+
+    >>> generate(["__flag_args__"], {}, {}, {"c": None}, "globals")
+    []
+    {'FLAG_C': ''}
 
 Sort order:
 
@@ -135,6 +150,20 @@ Params in non-flag template:
     []
     {'A': '123'}
 
+    >>> generate([], {"A": "123"}, {}, {})
+    []
+    {'A': '123'}
+
+    >>> generate([], {"A": ""}, {}, {"B": ""}, "args")
+    []
+    {'A': '', 'FLAG_B': ''}
+
+    >>> generate(
+    ...     [], {"A": True, "B": False, "C": None}, {},
+    ...     {"D": True, "E": False, "F": None}, "args")
+    []
+    {'A': '1', 'B': '0', 'C': '', 'FLAG_D': '1', 'FLAG_E': '0', 'FLAG_F': ''}
+
 Flags override command env.
 
     >>> generate([], {"A": 123}, {"A": CmdFlag(env_name="A")}, {"A": 456})
@@ -174,8 +203,8 @@ from data with `for_data`.
 
 Helpers:
 
-    >>> def as_data(cmd_args, cmd_env, cmd_flags):
-    ...     template = op_cmd.OpCmd(cmd_args, cmd_env, cmd_flags)
+    >>> def as_data(cmd_args, cmd_env, cmd_flags, flags_dest):
+    ...     template = op_cmd.OpCmd(cmd_args, cmd_env, cmd_flags, flags_dest)
     ...     data = op_cmd.as_data(template)
     ...     template2 = op_cmd.for_data(data)
     ...     data2 = op_cmd.as_data(template2)
@@ -184,16 +213,17 @@ Helpers:
 
 Examples:
 
-    >>> as_data([], {}, {})
+    >>> as_data([], {}, {}, None)
     {'cmd-args': []}
 
-    >>> as_data(["a", "b"], {}, {"a": CmdFlag()})
+    >>> as_data(["a", "b"], {}, {"a": CmdFlag()}, None)
     {'cmd-args': ['a', 'b']}
 
-    >>> as_data(["a", "b"], {"c": 1}, {"a": CmdFlag(arg_name="A")})
+    >>> as_data(["a", "b"], {"c": 1}, {"a": CmdFlag(arg_name="A")}, "globals")
     {'cmd-args': ['a', 'b'],
      'cmd-env': {'c': 1},
-     'cmd-flags': {'a': {'arg-name': 'A'}}}
+     'cmd-flags': {'a': {'arg-name': 'A'}},
+     'flags-dest': 'globals'}
 
     >>> as_data(
     ...     ["a", "b"],
@@ -204,10 +234,12 @@ Examples:
     ...       "d": CmdFlag(arg_name="D",
     ...                    arg_skip=False,
     ...                    arg_switch="2"),
-    ...       "e": CmdFlag()})
+    ...       "e": CmdFlag()},
+    ...     "args")
     {'cmd-args': ['a', 'b'],
      'cmd-env': {'C': 123, 'D': '456'},
      'cmd-flags': {'a': {'arg-name': 'A'},
                    'b': {'arg-skip': True},
                    'c': {'arg-switch': 'C'},
-                   'd': {'arg-name': 'D', 'arg-switch': '2'}}}
+                   'd': {'arg-name': 'D', 'arg-switch': '2'}},
+     'flags-dest': 'args'}

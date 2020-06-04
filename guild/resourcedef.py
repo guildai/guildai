@@ -182,7 +182,7 @@ class ResourceSource(object):
         self.target_type = target_type
         self.params = params or {}
         self.help = help
-        for key in kw:
+        for key in sorted(kw):
             log.warning(
                 "unexpected source attribute '%s' in resource %r",
                 self.resdef._uncoerce_attr_key(key),

@@ -247,9 +247,7 @@ class LoopingThread(threading.Thread):
 
 def safe_osenv():
     return {
-        name: val
-        for name, val in os.environ.items()
-        if name not in UNSAFE_OS_ENVIRON
+        name: val for name, val in os.environ.items() if name not in UNSAFE_OS_ENVIRON
     }
 
 
@@ -1208,8 +1206,8 @@ class _log_apply_msg(object):
         return "%s %s %s %s" % (self.f.__module__, self.f.__name__, self.args, self.kw)
 
 
-def encode_yaml(val):
-    encoded = yaml.safe_dump(val, default_flow_style=False, indent=2)
+def encode_yaml(val, default_flow_style=False):
+    encoded = yaml.safe_dump(val, default_flow_style=default_flow_style, indent=2)
     return _strip_encoded_yaml(encoded)
 
 

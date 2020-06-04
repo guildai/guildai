@@ -677,9 +677,7 @@ def _default_run_label(flag_vals):
     """
     non_null = {name: val for name, val in flag_vals.items() if val is not None}
     return " ".join(
-        flag_util.format_flag_assigns(
-            non_null, truncate_floats=True, shorten_paths=True
-        )
+        flag_util.flag_assigns(non_null, truncate_floats=True, shorten_paths=True)
     )
 
 
@@ -1024,11 +1022,11 @@ def op_cmd_for_opdef(opdef, extra_cmd_env=None):
     Some operations require additional information from the opdef,
     which is returned as the second element of the two-tuple.
     """
-    extra_cmd_env = extra_cmd_env or {}
     cmd_args, run_attrs = _op_cmd_args_and_run_attrs(opdef)
-    cmd_env = _op_cmd_env(opdef, extra_cmd_env)
+    cmd_env = _op_cmd_env(opdef, extra_cmd_env or {})
     cmd_flags = _op_cmd_flags(opdef)
-    op_cmd = op_cmd_lib.OpCmd(cmd_args, cmd_env, cmd_flags)
+    cmd_flags_dest = opdef.flags_dest or "args"
+    op_cmd = op_cmd_lib.OpCmd(cmd_args, cmd_env, cmd_flags, cmd_flags_dest)
     return op_cmd, run_attrs
 
 
@@ -1433,16 +1431,18 @@ def args_to_flags(args):
 
     If args contains `--` then all args before the last occuring `--`
     are included in `other_args`.
+
+    Uses `util.decode_yaml()` to decode flag arg values.
     """
     flags = {}
-    args, other_args = split_args_for_flags(args)
+    flag_args, other_args = split_args_for_flags(args)
     name = None
-    for arg in args:
+    for arg in flag_args:
         if arg[:2] == "--":
             name = arg[2:]
             flags[name] = True
         elif arg[:1] == "-":
-            val = flag_util.decode_flag_val(arg)
+            val = util.decode_yaml(arg)
             if isinstance(val, (int, float)):
                 flags[name] = val
             elif len(arg) == 2:
@@ -1452,7 +1452,7 @@ def args_to_flags(args):
                 name = None
                 flags[arg[1]] = arg[2:]
         elif name is not None:
-            flags[name] = flag_util.decode_flag_val(arg)
+            flags[name] = util.decode_yaml(arg)
             name = None
         else:
             other_args.append(arg)
@@ -1481,7 +1481,7 @@ def global_dest(global_name, flags):
 
 
 def flags_desc(flags, truncate_floats=False, delim=", "):
-    formatted = flag_util.format_flag_assigns(flags, truncate_floats)
+    formatted = flag_util.flag_assigns(flags, truncate_floats)
     return delim.join(formatted)
 
 

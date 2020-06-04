@@ -137,7 +137,8 @@ JSON output, including private attrs:
                     "GUILD_OP": "logreg:train",
                     "GUILD_PLUGINS": "",
                     "PROJECT_DIR": ".../gpkg/mnist"
-                }
+                },
+                "flags-dest": "args"
             },
             "output-scalars": null,
             "python-requires": null,

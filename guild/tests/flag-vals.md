@@ -4,6 +4,8 @@ These tests illustrate how Guild conveys flag values from both
 configuration (Guild files) and user specified values on the command
 line.
 
+Related tests: [quoted-flag-vals](quoted-flag-vals.md).
+
 We'll use the `flag-vals` project:
 
     >>> project = Project(sample("projects", "flag-vals"))
@@ -38,8 +40,8 @@ the operation:
 Here's the output for the default values:
 
     >>> project.run("args")
-    --b1 'yes'
-    --b2 'no'
+    --b1 '1'
+    --b2 ''
     --f1 '1.1'
     --f2 '1.0'
     --f3 '0.1'
@@ -62,8 +64,8 @@ We can change the values at the run command:
     ...   "s4": None,
     ...   "f4": "there",
     ... })
-    --b1 'no'
-    --b2 'yes'
+    --b1 ''
+    --b2 '1'
     --f1 '1.1'
     --f2 '1.0'
     --f3 '0.1'
@@ -117,7 +119,7 @@ And the run output:
     s1: 'a'
     s2: 'a b'
     s3: '123e4'
-    s4: -0.00034
+    s4: '-0.00034'
     s5: ''
 
 And with modified flags:
@@ -171,11 +173,11 @@ When we run this operation, it generates three trials:
 
     >>> project.run("args-batch") # doctest: +REPORT_UDIFF
     INFO: [guild] Running trial ...: args-batch
-    (b1=yes, b2=no, f1=1.1, f2=1.0, f3=0.1, f4=12300.0, f5=-6.78e-07,
-    f6=6543210.0, i=456, l=1, s1=a, s2='a b', s3='123e4', s4='-0.00034',
-    s5='')
-    --b1 'yes'
-    --b2 'no'
+          (b1=yes, b2=no, f1=1.1, f2=1.0, f3=0.1, f4=12300.0, f5=-6.78e-07,
+           f6=6543210.0, i=456, l=1, s1=a, s2='a b', s3='123e4', s4='-0.00034',
+           s5='')
+    --b1 '1'
+    --b2 ''
     --f1 '1.1'
     --f2 '1.0'
     --f3 '0.1'
@@ -190,11 +192,11 @@ When we run this operation, it generates three trials:
     --s4 '-0.00034'
     --s5 ''
     INFO: [guild] Running trial ...: args-batch
-    (b1=yes, b2=no, f1=1.1, f2=1.0, f3=0.1, f4=12300.0, f5=-6.78e-07,
-    f6=6543210.0, i=456, l=2.3, s1=a, s2='a b', s3='123e4', s4='-0.00034',
-    s5='')
-    --b1 'yes'
-    --b2 'no'
+          (b1=yes, b2=no, f1=1.1, f2=1.0, f3=0.1, f4=12300.0, f5=-6.78e-07,
+           f6=6543210.0, i=456, l=2.3, s1=a, s2='a b', s3='123e4', s4='-0.00034',
+           s5='')
+    --b1 '1'
+    --b2 ''
     --f1 '1.1'
     --f2 '1.0'
     --f3 '0.1'
@@ -209,11 +211,11 @@ When we run this operation, it generates three trials:
     --s4 '-0.00034'
     --s5 ''
     INFO: [guild] Running trial ...: args-batch
-    (b1=yes, b2=no, f1=1.1, f2=1.0, f3=0.1, f4=12300.0, f5=-6.78e-07,
-    f6=6543210.0, i=456, l=foo, s1=a, s2='a b', s3='123e4', s4='-0.00034',
-    s5='')
-    --b1 'yes'
-    --b2 'no'
+          (b1=yes, b2=no, f1=1.1, f2=1.0, f3=0.1, f4=12300.0, f5=-6.78e-07,
+           f6=6543210.0, i=456, l=foo, s1=a, s2='a b', s3='123e4', s4='-0.00034',
+           s5='')
+    --b1 '1'
+    --b2 ''
     --f1 '1.1'
     --f2 '1.0'
     --f3 '0.1'

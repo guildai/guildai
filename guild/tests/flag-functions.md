@@ -23,8 +23,9 @@ responsible for parsing functions.
     >>> from guild import flag_util
     >>> decode = flag_util.decode_flag_function
 
-Unnamed functions must have at least two arguments, each argument
-separated by a colon `:`.
+Anonymous functions must be in the format `[ARG1:ARG2[:REST_ARGS]*`.
+
+The following are NOT anonymous functions:
 
     >>> decode("[]")
     Traceback (most recent call last):
@@ -37,6 +38,30 @@ separated by a colon `:`.
     >>> decode("[1,2,3]")
     Traceback (most recent call last):
     ValueError: not a function
+
+    >>> encoded = flag_util.encode_flag_val({"a": [1,2,3], "b": 123, "c": {1,2,3}})
+    >>> encoded
+    '{a: [1, 2, 3], b: 123, c: !!set {1: null, 2: null, 3: null}}'
+
+    >>> decode(encoded)
+    Traceback (most recent call last):
+    ValueError: not a function
+
+    >>> decode("[this has spaces:yes:[1,2,3]]")
+    Traceback (most recent call last):
+    ValueError: not a function
+
+Values may be quoted to prevent them from being treated as functions:
+
+    >>> decode("'[1:2]'")
+    Traceback (most recent call last):
+    ValueError: not a function
+
+    >>> decode("'[1:2:3]'")
+    Traceback (most recent call last):
+    ValueError: not a function
+
+The following are anonymous functions:
 
     >>> decode("[1:2]")
     (None, (1, 2))
@@ -78,9 +103,6 @@ Arguments may be of any type:.
 
     >>> decode("[hello:1:1.2]")
     (None, ('hello', 1, 1.2))
-
-    >>> decode("[this has spaces:yes:[1,2,3]]")
-    (None, ('this has spaces', True, [1, 2, 3]))
 
     >>> decode("myfun[hello:1:1.2]")
     ('myfun', ('hello', 1, 1.2))

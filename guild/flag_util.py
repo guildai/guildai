@@ -47,14 +47,10 @@ def encode_flag_val(val):
         return "null"
     elif isinstance(val, list):
         return _encode_list(val)
-    elif isinstance(val, float):
-        return util.encode_yaml(val)
-    elif isinstance(val, six.string_types):
-        return _encode_str(val)
     elif isinstance(val, dict):
         return _encode_dict(val)
     else:
-        return str(val)
+        return util.encode_yaml(val, default_flow_style=True)
 
 
 def _encode_list(val_list):
@@ -62,25 +58,11 @@ def _encode_list(val_list):
     return "[%s]" % joined
 
 
-def _encode_str(s):
-    return _quote_float(util.encode_yaml(s))
-
-
 def _encode_dict(d):
     encoded_kv = [
         (encode_flag_val(k), encode_flag_val(v)) for k, v in sorted(d.items())
     ]
     return "{%s}" % ", ".join(["%s: %s" % kv for kv in encoded_kv])
-
-
-def _quote_float(s):
-    """Returns s quoted if s can be coverted to a float."""
-    try:
-        float(s)
-    except ValueError:
-        return s
-    else:
-        return "'%s'" % s
 
 
 def decode_flag_val(s, nofix=False):
@@ -95,7 +77,7 @@ def _decode_flag_val(s, nofix=False):
         return s
     decoders = [
         (int, ValueError),
-        (_special_flag_function, ValueError),
+        (_flag_function_or_expanded_sequence, ValueError),
         (_concatenated_list, ValueError),
         (
             util.decode_yaml if nofix else _decode_yaml_with_fix,
@@ -112,16 +94,12 @@ def _decode_flag_val(s, nofix=False):
     return s
 
 
-def _special_flag_function(s):
-    """Tries to decode s as a special flag function.
+def _flag_function_or_expanded_sequence(s):
+    """Returns a flag function spec or expanded function if applicable.
 
-    A test for special flag function is applied before YAML parsing. A
-    special flag function is one of: anonymous flag function or range
-    function.
-
-    If s can be decoded as an anonymous flag function it is returned
-    as a string value to prevent it from being decoded by YAML, which
-    can accidentally decode it as a list (see below for details).
+    If s can be decoded as a flag function it is returned as a string
+    value to prevent it from being decoded by YAML, which can
+    accidentally decode it as a list (see below for details).
 
     If s can be expanded to a sequence, the return value is a list
     containing the expanded items.
@@ -300,17 +278,11 @@ def decode_flag_function(s):
 
 
 def _split_flag_function(s):
-    result = util.find_apply([_split_anonymous_function, _split_named_function], s)
+    result = util.find_apply([_split_named_function, _split_anonymous_function], s)
     if result is None:
         raise ValueError("not a function")
     return result
 
-
-def _split_anonymous_function(s):
-    m = ANONYMOUS_FUNCTION_P.match(s)
-    if not m:
-        return None
-    return None, m.group(1).strip()
 
 def _split_named_function(s):
     m = NAMED_FUNCTION_P.match(s)
@@ -319,18 +291,34 @@ def _split_named_function(s):
     return m.group(1), m.group(2).strip()
 
 
+def _split_anonymous_function(s):
+    # Regex is not sufficient to handle differences between anonymous
+    # functions and YAML encoded lists. We perform a sniff test to see
+    # if it might be an anonymous function and then confirm by
+    # decoding it as YAML and testing the result.
+    if s[:1] == "[" and s[-1:] == "]" and ":" in s:
+        try:
+            l = util.decode_yaml(s)
+        except Exception:
+            return None, s[1:-1]
+        else:
+            if len(l) == 1 and isinstance(l[0], (six.string_types, int)):
+                return None, s[1:-1]
+    return None
+
+
 def is_flag_function(val):
     if not isinstance(val, six.string_types):
         return False
     try:
-        decode_flag_function(val)
+        _split_flag_function(val)
     except ValueError:
         return False
     else:
         return True
 
 
-def format_flag_assigns(flags, truncate_floats=False, shorten_paths=False):
+def flag_assigns(flags, truncate_floats=False, shorten_paths=False):
     """Returns a list of formatted flags for a map of flags.
 
     Formatted flags are sorted by flag name and have the form

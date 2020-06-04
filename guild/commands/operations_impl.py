@@ -53,7 +53,7 @@ def _format_op(op, model):
         "name": op.name,
         "main": op.main,
         "flags": [
-            "%s:%s%s" % (flag.name, _format_flag_desc(flag), _format_flag_value(flag))
+            "%s:%s%s" % (flag.name, _format_flag_desc(flag), _format_flag_default(flag))
             for flag in op.flags
         ],
         "_model": model,
@@ -72,8 +72,8 @@ def _format_flag_desc(flag):
     return " %s" % flag.description if flag.description else ""
 
 
-def _format_flag_value(flag):
-    return " (default is %s)" % flag_util.encode_flag_val(flag)
+def _format_flag_default(flag):
+    return " (default is %s)" % flag_util.encode_flag_val(flag.default)
 
 
 def _filter_op(op, args):

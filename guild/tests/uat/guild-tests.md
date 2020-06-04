@@ -80,6 +80,7 @@ tests).
       publish-templates:           ok
       python-utils:                ok
       query-parser:                ok
+      quoted-flag-vals:            ok
       remotes:                     ok
       resource-flag-refs:          ok
       resource-flags:              ok
