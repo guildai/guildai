@@ -79,7 +79,7 @@ def _profile_main():
         sys.stderr.write("Writing guild.op_main profile stats to %s\n" % tmp)
         p.dump_stats(tmp)
         sys.stderr.write(
-            "Use 'python -m pstats %s' or 'snakeviz %s' " "to view stats\n" % (tmp, tmp)
+            "Use 'python -m pstats %s' or 'snakeviz %s' to view stats\n" % (tmp, tmp)
         )
 
 

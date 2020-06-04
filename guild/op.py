@@ -213,6 +213,10 @@ def _op_start_proc(op, run, quiet, extra_env):
         return proc
 
 
+def _remove_private_env(env, op):
+    return {name: val for name, val in env.items() if name not in op.private_env}
+
+
 def _proc_streams(quiet):
     if os.getenv("NO_RUN_OUTPUT") == "1":
         if quiet:
@@ -341,10 +345,6 @@ def _op_proc_env(op, run):
     env.update(_op_proc_op_env(op))
     env.update(_op_proc_run_env(run))
     return env
-
-
-def _remove_private_env(env, op):
-    return {name: val for name, val in env.items() if name not in op.private_env}
 
 
 def _op_proc_system_env():
