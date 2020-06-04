@@ -81,5 +81,5 @@ Start staged downstream op.
 
     >>> run("guild run --start %s --yes" % downstream.id)
     Resolving file dependency
-    Using output from run ... for file resource
+    Using run ... for file resource
     <exit 0>

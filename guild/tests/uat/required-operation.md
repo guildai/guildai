@@ -37,7 +37,7 @@ Run `train` again:
 
     >>> run("guild run train -y")
     Resolving prepared-data dependency
-    Using output from run ... for prepared-data resource
+    Using run ... for prepared-data resource
     <exit 0>
 
 Show runs:
@@ -90,7 +90,7 @@ Specify that `train` use the first data prep run:
 
     >>> run("guild run train prepared-data=%s -y" % first_data_prep_run)
     Resolving prepared-data dependency
-    Using output from run ... for prepared-data resource
+    Using run ... for prepared-data resource
     <exit 0>
 
 Info for the latest train run, including dependencies:
@@ -143,10 +143,10 @@ Run train using the two run IDs:
     ...     % (data_prep_1, data_prep_2))
     INFO: [guild] Running trial ...: train (prepared-data=...)
     INFO: [guild] Resolving prepared-data dependency
-    INFO: [guild] Using output from run ... for prepared-data resource
+    INFO: [guild] Using run ... for prepared-data resource
     INFO: [guild] Running trial ...: train (prepared-data=...)
     INFO: [guild] Resolving prepared-data dependency
-    INFO: [guild] Using output from run ... for prepared-data resource
+    INFO: [guild] Using run ... for prepared-data resource
     <exit 0>
 
 Verify train runs used the expected prepare runs:
@@ -166,7 +166,7 @@ the batch error.
     WARNING: cannot find a suitable run for required resource 'prepared-data'
     INFO: [guild] Running trial ...: train (prepared-data=...)
     INFO: [guild] Resolving prepared-data dependency
-    INFO: [guild] Using output from run ... for prepared-data resource
+    INFO: [guild] Using run ... for prepared-data resource
     INFO: [guild] Running trial ...: train (prepared-data=xxx_invalid)
     INFO: [guild] Resolving prepared-data dependency
     ERROR: [guild] trial ... exited with an error (see log for details)

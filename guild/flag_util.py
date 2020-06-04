@@ -26,7 +26,9 @@ from guild import util
 
 log = logging.getLogger("guild")
 
-FUNCTION_P = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.*)\]\s*$")
+ANONYMOUS_FUNCTION_P = re.compile(r"\[([^:]+:.+)\]")
+NAMED_FUNCTION_P = re.compile(r"([a-zA-Z0-9_\-\.]+)\[(.*)\]")
+
 LIST_CONCAT_P = re.compile(r"(\[.*\])\s*\*\s*([0-9]+)$")
 SCIENTIFIC_NOTATION_RUN_ID_P = re.compile(r"[0-9]+e[0-9]+")
 FUNCTION_ARG_DELIM = ":"
@@ -292,17 +294,30 @@ def _contains_non_numeric_chars(s):
 def decode_flag_function(s):
     if not isinstance(s, six.string_types):
         raise ValueError("requires string")
-    m = FUNCTION_P.match(s)
-    if not m:
-        raise ValueError("not a function")
-    name = m.group(1) or None
-    args_raw = m.group(2).strip()
-    if args_raw:
-        args_s = args_raw.split(FUNCTION_ARG_DELIM)
-    else:
-        args_s = []
-    args = [decode_flag_val(arg.strip(), nofix=True) for arg in args_s]
+    name, args_raw = _split_flag_function(s)
+    args_encoded = args_raw.split(FUNCTION_ARG_DELIM) if args_raw else []
+    args = [decode_flag_val(encoded.strip(), nofix=True) for encoded in args_encoded]
     return name, tuple(args)
+
+
+def _split_flag_function(s):
+    result = util.find_apply([_split_anonymous_function, _split_named_function], s)
+    if result is None:
+        raise ValueError("not a function")
+    return result
+
+
+def _split_anonymous_function(s):
+    m = ANONYMOUS_FUNCTION_P.match(s)
+    if not m:
+        return None
+    return None, m.group(1).strip()
+
+def _split_named_function(s):
+    m = NAMED_FUNCTION_P.match(s)
+    if not m:
+        return None
+    return m.group(1), m.group(2).strip()
 
 
 def is_flag_function(val):

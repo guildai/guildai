@@ -138,7 +138,7 @@ Required file op:
 
     >>> run("guild run file-op -y")
     Resolving file dependency
-    Using output from run ... for file resource
+    Using run ... for file resource
     <exit 0>
 
     >>> run("guild ls -n")
@@ -163,7 +163,7 @@ Required dir op:
 
     >>> run("guild run dir-op -y")
     Resolving dir dependency
-    Using output from run ... for dir resource
+    Using run ... for dir resource
     <exit 0>
 
     >>> run("guild ls -nL")
@@ -365,10 +365,10 @@ Make sure `all-ops` runs:
     ...
     INFO: [guild] running file-op: file-op
     Resolving file dependency
-    Using output from run ... for file resource
+    Using run ... for file resource
     INFO: [guild] running dir-op: dir-op
     Resolving dir dependency
-    Using output from run ... for dir resource
+    Using run ... for dir resource
     INFO: [guild] running config: config
     Resolving config:config.yml dependency
     INFO: [guild] running modules: modules
@@ -376,7 +376,7 @@ Make sure `all-ops` runs:
     Resolving module:sklearn dependency
     INFO: [guild] running downstream: downstream
     Resolving upstream dependency
-    Using output from run ... for upstream resource
+    Using run ... for upstream resource
     INFO: [guild] running customizable-file: customizable-file src=guild.yml
     Resolving src dependency
     Using guild.yml for src resource
@@ -397,13 +397,13 @@ named resources.
     Resolving url dependency
     Using cached file .../file.txt
     Resolving file-op dependency
-    Using output from run ... for file-op resource
+    Using run ... for file-op resource
     Resolving dir-op dependency
-    Using output from run ... for dir-op resource
+    Using run ... for dir-op resource
     Resolving config dependency
     Resolving modules dependency
     Resolving downstream dependency
-    Using output from run ... for downstream resource
+    Using run ... for downstream resource
     Resolving customizable-file dependency
     Resolving modified-config dependency
     Resolving json-config dependency

@@ -213,14 +213,10 @@ class OperationResolver(FileResolver):
     def _source_path(self):
         run_spec = str(self.resource.config) if self.resource.config else ""
         if run_spec and os.path.isdir(run_spec):
-            log.info(
-                "Using run %s for %s resource", run_spec, self.source.resdef.name
-            )
+            log.info("Using run %s for %s resource", run_spec, self.source.resdef.name)
             return run_spec
         run = self.resolve_op_run(run_spec)
-        log.info(
-            "Using run %s for %s resource", run.id, self.source.resdef.name
-        )
+        log.info("Using run %s for %s resource", run.id, self.source.resdef.name)
         return run.dir
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):

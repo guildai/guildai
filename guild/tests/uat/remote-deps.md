@@ -82,7 +82,7 @@ Run downstream again:
     Successfully installed gpkg.anonymous-...-0.0.0
     Starting downstream on guild-uat as ...
     Resolving upstream dependency
-    Using output from run ... for upstream resource
+    Using run ... for upstream resource
     Run ... stopped with a status of 'completed'
     <exit 0>
 

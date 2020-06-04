@@ -23,13 +23,20 @@ responsible for parsing functions.
     >>> from guild import flag_util
     >>> decode = flag_util.decode_flag_function
 
-Unnamed functions:
+Unnamed functions must have at least two arguments, each argument
+separated by a colon `:`.
 
     >>> decode("[]")
-    (None, ())
+    Traceback (most recent call last):
+    ValueError: not a function
 
     >>> decode("[1]")
-    (None, (1,))
+    Traceback (most recent call last):
+    ValueError: not a function
+
+    >>> decode("[1,2,3]")
+    Traceback (most recent call last):
+    ValueError: not a function
 
     >>> decode("[1:2]")
     (None, (1, 2))
@@ -86,16 +93,17 @@ Arguments may be of any type:.
 
 Float args:
 
-    >>> decode("f[1.0]")
-    ('f', (1.0,))
+    >>> decode("f[1.0:2.0]")
+    ('f', (1.0, 2.0))
 
-    >>> decode("f[1e3]")
-    ('f', (1000.0,))
+    >>> decode("f[1e3:1e2]")
+    ('f', (1000.0, 100.0))
 
 Functions may contain spaces:
 
     >>> decode("[a : b : c]")
     (None, ('a', 'b', 'c'))
+
 
 ## Using flag functions in runs
 

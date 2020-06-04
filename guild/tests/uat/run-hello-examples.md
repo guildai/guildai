@@ -70,7 +70,7 @@ When we run `hello-op`, we get the latest output from `hello-file`:
 
     >>> run("guild run hello-op -y")
     Resolving hello-file dependency
-    Using output from run ... for hello-file resource
+    Using run ... for hello-file resource
     Reading message from hello.txt
     Yo yo, what up Guild!
     <exit 0>
@@ -118,7 +118,7 @@ Let's use the first run for `hello-file`, rather than the latest.
 
     >>> run("guild run hello-op hello-file=`guild select -o hello-file 2` -y")
     Resolving hello-file dependency
-    Using output from run ... for hello-file resource
+    Using run ... for hello-file resource
     Reading message from hello.txt
     Hello, from a file!
     <exit 0>
