@@ -149,8 +149,6 @@ def _popen_args(
         args.extend(['--batch-label', batch_label])
     if batch_tag:
         args.extend(["--batch-tag", batch_tag])
-    args.extend(op_util.flag_assigns(flags))
-    args.extend(["@%s" % path for path in (batch_files or [])])
     if run_dir:
         args.extend(["--run-dir", run_dir])
     if optimize:
@@ -193,6 +191,8 @@ def _popen_args(
         args.extend(["--gpus", str(gpus)])
     if help_op:
         args.append("--help-op")
+    args.extend(op_util.flag_assigns(flags))
+    args.extend(["@%s" % path for path in (batch_files or [])])
     env = dict(os.environ)
     env["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     if extra_env:
