@@ -34,7 +34,7 @@ Let's create a project to test staged runs using queues.
     >>> project_dir = mkdtemp()
     >>> write(path(project_dir, "sleep.py"), """
     ... import time
-    ... seconds = 10
+    ... seconds = 15
     ... time.sleep(seconds)
     ... """)
 
@@ -65,7 +65,7 @@ Wait for the runs to start.
 Let's view our runs by status. First the staged runs:
 
     >>> run("guild runs --staged")
-    [1:...]  sleep.py (...)  ...  staged  seconds=10
+    [1:...]  sleep.py (...)  ...  staged  seconds=15
     <exit 0>
 
 We have one staged runs because we've started one more run than we
@@ -74,9 +74,9 @@ have queues.
 Now the running runs:
 
     >>> run("guild runs --running")
-    [1:...]  sleep.py (...)  ...  running  seconds=10
-    [2:...]  sleep.py (...)  ...  running  seconds=10
-    [3:...]  sleep.py (...)  ...  running  seconds=10
+    [1:...]  sleep.py (...)  ...  running  seconds=15
+    [2:...]  sleep.py (...)  ...  running  seconds=15
+    [3:...]  sleep.py (...)  ...  running  seconds=15
     [4:...]  queue  ...  running  poll-interval=1 run-once=no wait-for-running=no
     [5:...]  queue  ...  running  poll-interval=1 run-once=no wait-for-running=no
     [6:...]  queue  ...  running  poll-interval=1 run-once=no wait-for-running=no
@@ -84,7 +84,7 @@ Now the running runs:
 
 Wait the duration of the sleep operation.
 
-    >>> sleep(10)
+    >>> sleep(15)
 
 At least one run will have completed and we should no longer have any
 staged runs.
@@ -96,10 +96,10 @@ staged runs.
 Our list of runs:
 
     >>> run("guild runs")
-    [1:...]  sleep.py (...)  ...  running    seconds=10
-    [2:...]  sleep.py (...)  ...  completed  seconds=10
-    [3:...]  sleep.py (...)  ...  completed  seconds=10
-    [4:...]  sleep.py (...)  ...  completed  seconds=10
+    [1:...]  sleep.py (...)  ...  running    seconds=15
+    [2:...]  sleep.py (...)  ...  completed  seconds=15
+    [3:...]  sleep.py (...)  ...  completed  seconds=15
+    [4:...]  sleep.py (...)  ...  completed  seconds=15
     [5:...]  queue           ...  running  poll-interval=1 run-once=no wait-for-running=no
     [6:...]  queue           ...  running  poll-interval=1 run-once=no wait-for-running=no
     [7:...]  queue           ...  running  poll-interval=1 run-once=no wait-for-running=no
