@@ -54,13 +54,14 @@ Plugins under Python 2:
     tensorboard.plugins.mesh.mesh_plugin.MeshPlugin
     tensorboard.plugins.projector.projector_plugin.ProjectorPlugin
 
-Plugins under Python 3:
+Plugins under Python 3 (difference in underlying TB version):
 
     >>> for p in data["plugins"]:
     ...     print(p)  # doctest: +REPORT_UDIFF -PY2
     tensorboard.plugins.core.core_plugin.CorePluginLoader
     tensorboard.plugins.scalar.scalars_plugin.ScalarsPlugin
     tensorboard.plugins.custom_scalar.custom_scalars_plugin.CustomScalarsPlugin
+    tensorboard.default.ExperimentalDebuggerV2Plugin
     tensorboard.plugins.image.images_plugin.ImagesPlugin
     tensorboard.plugins.audio.audio_plugin.AudioPlugin
     tensorboard.plugins.debugger.debugger_plugin_loader.DebuggerPluginLoader
@@ -69,9 +70,8 @@ Plugins under Python 3:
     tensorboard.plugins.histogram.histograms_plugin.HistogramsPlugin
     tensorboard.plugins.text.text_plugin.TextPlugin
     tensorboard.plugins.pr_curve.pr_curves_plugin.PrCurvesPlugin
-    tensorboard.plugins.profile.profile_plugin_loader.ProfilePluginLoader
+    tensorboard.plugins.profile_redirect.profile_redirect_plugin.ProfileRedirectPluginLoader
     tensorboard.plugins.beholder.beholder_plugin_loader.BeholderPluginLoader
-    tensorboard.plugins.interactive_inference.interactive_inference_plugin_loader.InteractiveInferencePluginLoader
     tensorboard.plugins.hparams.hparams_plugin.HParamsPlugin
     tensorboard.plugins.mesh.mesh_plugin.MeshPlugin
     tensorboard.plugins.projector.projector_plugin.ProjectorPlugin
