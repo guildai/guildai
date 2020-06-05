@@ -56,7 +56,7 @@ def generate(op_cmd, flag_vals, resolve_params):
 
 
 def _gen_args(op_cmd, flag_vals, resolve_params):
-    encoded_resolve_params = _encode_params(resolve_params)
+    encoded_resolve_params = _encode_arg_params(resolve_params)
     args = []
     for arg in op_cmd.cmd_args:
         if arg == "__flag_args__":
@@ -68,8 +68,13 @@ def _gen_args(op_cmd, flag_vals, resolve_params):
     return args
 
 
-def _encode_params(params):
-    return {name: flag_util.encode_flag_val(val) for name, val in params.items()}
+def _encode_arg_params(params):
+    return {name: _encode_general_arg(val) for name, val in params.items()}
+
+
+def _encode_general_arg(val):
+    # Use same encoding used for env vals.
+    return _encode_env_val(val)
 
 
 def _flag_args(flag_vals, flag_dest, cmd_flags, cmd_args):
