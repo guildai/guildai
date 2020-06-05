@@ -193,8 +193,9 @@ Set path to read only.
     >>> import stat
     >>> os.chmod(env_path, stat.S_IREAD)
 
-Attempt to initialize the read only location.
+Attempt to initialize the read only location (skip on Windows as the
+above does not prevent writes to the directory).
 
-    >>> init.init_env(env_path)
+    >>> init.init_env(env_path)  # doctest: -WINDOWS
     Traceback (most recent call last):
     PermissionError: .../.guild

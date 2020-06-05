@@ -162,7 +162,7 @@ is a combination of the op env and additional path entries. This
 allows the operation to insert additional entries in front of the
 default entries.
 
-    >>> pprint(run.get("env"))
+    >>> pprint(run.get("env"))  # doctest: -WINDOWS
     {...'BAR': '2',
      ...
      'FLAGS_DEST': 'globals',
@@ -174,4 +174,21 @@ default entries.
      'FOO': '1',
      ...
      'PYTHONPATH': 'hello:.guild/sourcecode...',
+     ...}
+
+The Windows-specific test is the same with the exception of the path
+separator used in `PYTHONPATH`.
+
+    >>> pprint(run.get("env"))  # doctest: +WINDOWS_ONLY
+    {...'BAR': '2',
+     ...
+     'FLAGS_DEST': 'globals',
+     'FLAG_B1': '1',
+     'FLAG_B2': '0',
+     'FLAG_F': '1.1',
+     'FLAG_I': '1',
+     'FLAG_S': 'hello',
+     'FOO': '1',
+     ...
+     'PYTHONPATH': 'hello;.guild/sourcecode...',
      ...}

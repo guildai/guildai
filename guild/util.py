@@ -598,7 +598,8 @@ def which(cmd):
     except subprocess.CalledProcessError:
         return None
     else:
-        return out.strip().decode("utf-8")
+        assert out, cmd
+        return out.decode("utf-8").split(os.linesep)[0]
 
 
 def symlink(target, link):

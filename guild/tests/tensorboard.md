@@ -13,9 +13,11 @@ log directly to a tty rather than via the Python logging system.
     >>> import guild
     >>> import subprocess
 
+    >>> env = dict(os.environ)
+    >>> env["PYTHONPATH"] = guild.__pkgdir__
     >>> p = subprocess.Popen(
     ...     [sys.executable, "-m", "guild.tensorboard"],
-    ...     env={"PYTHONPATH": guild.__pkgdir__},
+    ...     env=env,
     ...     stdout=subprocess.PIPE,
     ...     stderr=subprocess.PIPE)
     >>> out, err = p.communicate()

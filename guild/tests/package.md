@@ -210,5 +210,5 @@ We use the `package-name-conflict` project to illustrate.
     >>> project.package()
     Traceback (most recent call last):
     SystemExit: (1, "guild: package name 'foo' in guild.yml conflicts with
-    Python package 'foo'\nProvide a unique package name in guild.yml and
-    try again.\n")
+    Python package 'foo'...Provide a unique package name in guild.yml and
+    try again...")

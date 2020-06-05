@@ -516,7 +516,7 @@ from.
     >>> zip_source_3.uri
     'file:foo.zip'
 
-    >>> zip_source_3.select
+    >>> zip_source_3.select  # doctest: -NORMALIZE_PATHS
     [SelectSpec(pattern='.+\\.txt', reduce=None)]
 
     >>> with LogCapture(strip_ansi_format=True) as log:
