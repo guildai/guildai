@@ -32,7 +32,17 @@ containing TensorBoard info.
     >>> data = json.loads(out.decode())
 
     >>> sorted(data)
-    ['plugins']
+    ['plugins', 'version']
+
+TensorBoard version under Python 2:
+
+    >>> data["version"]  # doctest: -PY3
+    '2.1.0'
+
+TensorBoard version under Python 3:
+
+    >>> data["version"]  # doctest: -PY2
+    '2.2.2'
 
 Plugins under Python 2:
 

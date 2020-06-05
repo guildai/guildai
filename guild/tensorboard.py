@@ -638,7 +638,12 @@ def serve_forever(
 
 
 def test_output(out):
-    data = {"plugins": ["%s.%s" % (p.__module__, p.__name__) for p in _plugins()]}
+    from tensorboard import version
+
+    data = {
+        "version": version.VERSION,
+        "plugins": ["%s.%s" % (p.__module__, p.__name__) for p in _plugins()],
+    }
     json.dump(data, out)
 
 
