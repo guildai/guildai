@@ -87,7 +87,8 @@ README.html: README.md
 	markdown_py README.md > README.html
 
 format-code:
-	black guild
+	@echo Formatting guild code
+	@black guild
 
 coverage-check:
 	@if [ -z "$(TESTS)" ]; then \

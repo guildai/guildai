@@ -50,6 +50,8 @@ INCLUDE_REF_P2 = re.compile(r"([^:#]+)(?:#(.+))?")
 INCLUDE_REF_P_DESC = "CONFIG[#ATTRS] or MODEL:OPERATION[#ATTRS]"
 PARAM_P = re.compile(r"({{.*?}})")
 
+DEFAULT_PKG_VERSION = "0.0.0"
+
 _cache = {}
 
 ###################################################################
@@ -1555,8 +1557,6 @@ def _resdef_name_part_for_source(s):
 ###################################################################
 # Package def
 ###################################################################
-
-DEFAULT_PKG_VERSION = "0.0.0"
 
 
 class PackageDef(object):
