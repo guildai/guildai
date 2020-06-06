@@ -127,7 +127,7 @@ def _print_info(check):
     _print_platform_info()
     _print_psutil_info(check)
     _print_tensorboard_info(check)
-    if check.args.tensorflow or check.args.verbose:
+    if check.args.tensorflow:
         _print_tensorflow_info(check)
     _print_cuda_info()
     _print_nvidia_tools_info()
