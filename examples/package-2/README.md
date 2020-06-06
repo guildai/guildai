@@ -4,12 +4,13 @@ This is a modified version of the [`package`](../package/README.md)
 example. It places operation modules in a Python `hello` package
 rather than as modules alongside the Guild file..
 
-- [guild.yml](guild.yml) - Project Guild file
-- [hello/__init__.py](hello/__init__.py) - Marker denoting the
+- [`guild.yml`](guild.yml) - Project Guild file
+- [`hello/__init__.py`](hello/__init__.py) - Marker denoting the
   directory as a Python package
-- [hello/say.py](hello/say.py) - Prints a greeting
-- [hello/cat.py](hello/cat.py) - Prints contents of a file
-- [hello.txt](hello.txt) - Sample file used by `hello-file` operation
+- [`hello/say.py`](hello/say.py) - Prints a greeting
+- [`hello/cat.py`](hello/cat.py) - Prints contents of a file
+- [`hello.txt`](hello.txt) - Sample file used by `hello-file`
+  operation
 
 The in Guild configuration difference between this example and
 [`package`](../package/guild.yml) is that `main` specs contain the
