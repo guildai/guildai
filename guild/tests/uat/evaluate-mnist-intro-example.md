@@ -3,7 +3,7 @@
 Once an `mnist-intro` model is trained, we can run the `evaluate`
 operation to test it against all of the test data.
 
-    >>> cd(example("multiple-models"))
+    >>> cd(example("models"))
 
     >>> run("guild run intro:evaluate -y --no-gpus")
     Masking available GPUs (CUDA_VISIBLE_DEVICES='')

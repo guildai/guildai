@@ -4,7 +4,7 @@ Guild lets the user specify a partial model name for operations, but
 if there are multiple matches for the specified term, Guild exits with
 an error message.
 
-    >>> cd(example("multiple-models"))
+    >>> cd(example("models"))
 
     >>> run("guild run -y mnist:train epochs=1")
     guild: there are multiple models that match 'mnist'

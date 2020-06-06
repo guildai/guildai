@@ -2,7 +2,7 @@
 
 After running `evaluate` on `mnist-intro` we get a second run.
 
-    >>> cd(example("multiple-models"))
+    >>> cd(example("models"))
 
     >>> run("guild runs --limit 2")
     [1:...]  mnist-intro:evaluate  ... ...  completed  train=...
