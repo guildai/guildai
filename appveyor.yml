@@ -25,10 +25,13 @@ build: off
 
 test_script:
   - "%PYTHON%\\python.exe setup.py bdist_wheel"
-  - "%PYTHON%\\python.exe guild\\scripts\\guild check -vT"
+  - "%PYTHON%\\python.exe guild\\scripts\\guild check --offline -vT"
 
 after_test:
   - "%PYTHON%\\python.exe -m twine upload --skip-existing dist\\*.whl"
 
 artifacts:
   - path: dist\*
+
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
