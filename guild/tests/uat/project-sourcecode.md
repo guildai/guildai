@@ -1,6 +1,6 @@
 # Project source code
 
-    >>> cd(example("project-sourcecode"))
+    >>> cd(example("sourcecode"))
 
     >>> quiet("guild runs rm -y")
 
@@ -513,7 +513,7 @@ Verify source code:
 
 ## Specifying alternative roots for sourcecode
 
-    >>> cd(example("project-sourcecode/subproject"))
+    >>> cd(example("sourcecode/subproject"))
 
 ### `parent-root`
 
