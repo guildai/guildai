@@ -29,13 +29,13 @@
   operations in parallel
 - [pipeline](pipeline/README.md) - Sample prepare/train pipeline
   illustrating operation dependencies
-- [project-sourcecode](project-sourcecode/README.md) - Configuring
-  project source code used for an operation
 - [required-operation](required-operation/README.md) - Use of
   dependencies to chain operations
 - [s3-resource](s3-resource/README.md) - Simple method of using S3
   resources in operations
 - [scalars](scalars/README.md) - Ways to log scalar values
+- [sourcecode](project-sourcecode/README.md) - Configuring project
+  source code used for an operation
 - [tensorboard](tensorboard/README.md) - TensorBoard integration
   examples
 - [tensorflow](tensorflow/README.md) - TensorFlow training script
