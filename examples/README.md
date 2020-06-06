@@ -25,6 +25,8 @@
 - [notebooks](notebooks/README.md) - Use of `guild.ipy` in a Notebook
 - [package](package/README.md) - Package version of
   [hello](hello/README.md) example
+- [package-2](package-2/README.md) - Alternative example to
+  [hello](package/README.md) example that uses a Python package layout
 - [parallel-runs](parallel-runs/README.md) - Examples of running
   operations in parallel
 - [pipeline](pipeline/README.md) - Sample prepare/train pipeline
