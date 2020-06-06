@@ -112,38 +112,24 @@ follows:
 - Use `GUILD_PYTHON_EXE` env var if available
 - Use `CONDA_PYTHON_EXE` env var if available
 - Use `bin/python` under `VIRTUAL_ENV` if exists
-- Use value returned by `which python` (emulates /usr/bin/env python)
 - Use `sys.interpreter`
 
-To test the complete logic, we need to replace `util.which` with a
-function that always returns None.
-
-    >>> from guild import util
-    >>> which_save = util.which
-    >>> util.which = lambda _: None
+NOTE: For a short time, Guild considered `which python` as an option
+prior to using `sys.executable`. This is an incorrect option as Guild
+may be run directly with a Python interpreter that is not on the
+system PATH or is otherwise different from `which python`.
 
     >>> with Env({}, replace=True):
     ...     exe = config.python_exe()
 
-Without any environment and with `util.which` returning None, the
-Python exe is the same as `sys.exectuable`.
+Without any environment the Python exe is the same as
+`sys.exectuable`.
 
     >>> exe == sys.executable, (exe, sys.executable)
     (True, ...)
 
-Next, we use a function for `guild.which` that returns a marker.
-
-    >>> marker = object()
-    >>> util.which = lambda _: marker
-
-    >>> with Env({}, replace=True):
-    ...     exe = config.python_exe()
-
-    >>> exe is marker, exe
-    (True, ...)
-
 If `VIRTUAL_ENV` is defined in the environment, `bin/python` in that
-directory is returned, provided it exists. Otherwise, `which python`
+directory is returned, provided it exists. Otherwise, `sys.executable`
 is returned.
 
     >>> venv_dir = mkdtemp()
@@ -152,9 +138,9 @@ is returned.
     ...     exe = config.python_exe()
 
 In this case, `bin/python` doesn't exist in the environment, so the
-exe is our marker.
+exe `sys.executable`.
 
-    >>> exe is marker, exe
+    >>> exe is sys.executable, (exe, sys.executable)
     (True, ...)
 
 Let's create `bin/python` in the env.
@@ -195,7 +181,3 @@ regardless of other environment variables.
 
     >>> exe == guild_python_exe, (exe, guild_python_exe)
     (True, ...)
-
-Restore `util.which`:
-
-    >>> util.which = which_save

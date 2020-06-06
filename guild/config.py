@@ -244,7 +244,6 @@ def python_exe():
             _guild_python_exe,
             _conda_python_exe,
             _virtualenv_python_exe,
-            _which_python,
             _sys_executable,
         ]
     )
@@ -266,12 +265,6 @@ def _virtualenv_python_exe():
     else:
         maybe_python_exe = os.path.join(env_path, "bin", "python")
         return maybe_python_exe if os.path.exists(maybe_python_exe) else None
-
-
-def _which_python():
-    from guild import util
-
-    return util.which("python")
 
 
 def _sys_executable():
