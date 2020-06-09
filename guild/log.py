@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import logging.config
+import os
 import sys
 
 __last_init_kw = None
@@ -80,7 +81,8 @@ class ConsoleLogHandler(logging.StreamHandler):
             return super(ConsoleLogHandler, self).format(record)
 
 
-def init_logging(level=logging.INFO, formats=None):
+def init_logging(level=None, formats=None):
+    level = _log_level_for_arg(level)
     _preempt_logging_mods()
     console_handler = {
         "class": "guild.log.ConsoleLogHandler",
@@ -95,6 +97,15 @@ def init_logging(level=logging.INFO, formats=None):
         }
     )
     globals()["__last_init_kw"] = dict(level=level, formats=formats)
+
+
+def _log_level_for_arg(arg):
+    if arg is not None:
+        return arg
+    try:
+        return int(os.environ["LOG_LEVEL"])
+    except (KeyError, TypeError):
+        return logging.INFO
 
 
 def _preempt_logging_mods():

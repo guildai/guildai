@@ -73,17 +73,18 @@ def create_package(
     env.update(util.safe_osenv())
     env.update(
         {
-            "PYTHONPATH": _python_path(),
-            "PACKAGE_FILE": package_file,
-            "DIST_DIR": dist_dir or "",
-            "UPLOAD_REPO": upload_repo or "",
-            "SIGN": "1" if sign else "",
-            "IDENTITY": identity or "",
-            "USER": user or "",
-            "PASSWORD": password or "",
-            "SKIP_EXISTING": skip_existing and "1" or "",
             "COMMENT": comment or "",
             "DEBUG": log.getEffectiveLevel() <= logging.DEBUG and "1" or "",
+            "DIST_DIR": dist_dir or "",
+            "IDENTITY": identity or "",
+            "LOG_LEVEL": str(log.getEffectiveLevel()),
+            "PACKAGE_FILE": package_file,
+            "PASSWORD": password or "",
+            "PYTHONPATH": _python_path(),
+            "SIGN": "1" if sign else "",
+            "SKIP_EXISTING": skip_existing and "1" or "",
+            "UPLOAD_REPO": upload_repo or "",
+            "USER": user or "",
         }
     )
     if clean:

@@ -26,9 +26,8 @@ import six
 import yaml
 
 import guild.help
-import guild.log
-
 from guild import guildfile
+from guild import log as loglib
 from guild import namespace
 from guild import pip_util
 from guild import util
@@ -54,7 +53,7 @@ class Pkg(object):
 
 
 def main():
-    guild.log.init_logging()
+    loglib.init_logging()
     pkgdef = _load_pkgdef()
     dist = _create_dist(pkgdef)
     _maybe_upload(dist)
