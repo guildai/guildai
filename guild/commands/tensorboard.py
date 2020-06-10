@@ -52,6 +52,12 @@ from . import server_support
         "used multiple times."
     ),
 )
+@click.option(
+    "--skip-images", is_flag=True, help="Don't include run images as TF summaries."
+)
+@click.option(
+    "--skip-hparams", is_flag=True, help="Don't generate HParam TF summaries."
+)
 @click.option("--tab", metavar="TAB", help="Open with an initially selected tab.")
 @runs_support.all_filters
 @click.option("--keep-logdir", is_flag=True, hidden=True)
