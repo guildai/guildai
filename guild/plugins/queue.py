@@ -47,7 +47,7 @@ queue_flags_data = yaml.safe_load(
 poll-interval:
   description: Minimum number of seconds between polls
   default: 10
-  type: float
+  type: int
 run-once:
   description: Run all staged runs and stop without
   default: no
