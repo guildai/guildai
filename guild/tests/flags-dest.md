@@ -52,11 +52,12 @@ And our run helper:
 
     >>> from guild import _api as gapi
 
-    >>> def run(op, **flags):
+    >>> def run(op, force_flags=False, **flags):
     ...   with Env({"NO_IMPORT_FLAGS_CACHE": "1",
     ...             "NO_IMPORT_FLAGS_PROGRESS": "1"}):
     ...       out = gapi.run_capture_output(
     ...               op, cwd=project, guild_home=workspace,
+    ...               force_flags=force_flags,
     ...               flags=flags)
     ...       print(out.strip())
 
@@ -139,3 +140,33 @@ should only read flags from the parser that calls `parse_args`.
 
     >>> run("multi_argparse.py")
     foo: 123
+
+## Additional global tests
+
+Guild only changes the initial value of a flag. The `globals2.py`
+script sets alternative values for flags based on initial
+values. Subsequent setting of flag values are not affected by Guild.
+
+    >>> run("globals2.py")
+    1 2
+
+    >>> run("globals2.py", i=2)
+    3 4
+
+    >>> run("globals2.py", i=3)
+    33 44
+
+Guild does not consider `j` to be a flag because its assignment is not
+a constant.
+
+    >>> run("globals2.py", j=1)
+    Traceback (most recent call last):
+    RunError: ...unsupported flag 'j'...
+
+    >>> run("globals2.py", j=1, force_flags=True)
+    1 1
+
+Subsequent mods to `j` apply as well.
+
+    >>> run("globals2.py", i=2, j=1, force_flags=True)
+    3 4

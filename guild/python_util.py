@@ -374,11 +374,10 @@ def exec_script(filename, globals=None, mod_name="__main__"):
     https://docs.python.org/2/library/threading.html#importing-in-threaded-code
 
     """
-    if not globals:
-        globals = {}
+    globals = globals or {}
     package_name, mod_name = split_mod_name(mod_name)
     _ensure_parent_mod_loaded(package_name)
-    node_filter = _node_filter(globals) if globals else None
+    node_filter = _node_filter_for_globals(globals) if globals else None
     src = open(filename, "r").read()
     code = _compile_script(src, filename, node_filter)
     script_globals = dict(globals)
@@ -402,16 +401,25 @@ def _ensure_parent_mod_loaded(parent_mod_name):
             assert False, parent_mod_name
 
 
-def _node_filter(globals):
-    names = globals.keys()
+def _node_filter_for_globals(globals):
+    """Filters ast nodes in support of setting globals for exec.
+
+    Removes initial assigns of any variables occuring in
+    `globals`. This is to allow globals to provide the initial
+    value. Subsequent assigns are not removed under the assumption
+    that are re-defining the initial variable value.
+    """
+    names = set(globals.keys())
+    removed = set()
 
     def f(node):
         if isinstance(node, ast.Assign):
-            return not any(
-                t.id in names for t in node.targets if isinstance(t, ast.Name)
-            )
-        elif isinstance(node, ast.FunctionDef):
-            return node.name not in names
+            for target in node.targets:
+                if not isinstance(target, ast.Name) or target.id in removed:
+                    return True
+                if target.id in names:
+                    removed.add(target.id)
+                    return False
         return True
 
     return f
