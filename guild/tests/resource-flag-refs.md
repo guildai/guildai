@@ -26,7 +26,7 @@ Flag that can't be resolved to a file:
     Resolving file dependency
     guild: run failed because a dependency was not met: could not resolve
     'file:baz-file.txt' in file resource: cannot find source file
-    baz-file.txt
+    'baz-file.txt'
     <exit 1>
 
 Op with a reference to a missing flag:

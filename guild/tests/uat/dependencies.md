@@ -66,14 +66,14 @@ Missing file dependency:
     Resolving file:missing.txt dependency
     guild: run failed because a dependency was not met: could not resolve
     'file:missing.txt' in file:missing.txt resource: cannot find source
-    file missing.txt
+    file 'missing.txt'
     <exit 1>
 
     >>> run("guild run missing-named-file -y")
     Resolving missing-file dependency
     guild: run failed because a dependency was not met: could not resolve
     'file:missing.txt' in missing-file resource: cannot find source file
-    missing.txt
+    'missing.txt'
     <exit 1>
 
     >>> run("guild run customizable-file src=missing.txt -y")
