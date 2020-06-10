@@ -58,7 +58,7 @@ def main():
 
 def _parse_args():
     p = argparse.ArgumentParser()
-    p.add_argument("--poll-interval", type=int, default=10)
+    p.add_argument("--poll-interval", type=float, default=10)
     p.add_argument("--run-once", action="store_true")
     p.add_argument("--wait-for-running", action="store_true")
     p.add_argument("--gpus")
