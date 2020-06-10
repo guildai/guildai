@@ -23,7 +23,7 @@ Run some staged operations.
 
     >>> quiet("guild run -y -r guild-uat --stage gpkg.hello/hello:default")
     >>> quiet("guild -C %s run -y -r guild-uat --stage hello msg=whoop"
-    ...       % example("package"))
+    ...       % example("hello-package"))
     >>> quiet("guild run -y -r guild-uat --stage gpkg.hello/hello:from-file")
 
 Wait to let runs finish.

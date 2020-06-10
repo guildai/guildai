@@ -2,19 +2,20 @@
 
     >>> run("guild runs info -r guild-uat")
     id: ...
-    operation: hello/hello:from-file
-    from: hello==0.0.0
+    operation: gpkg.hello/hello-op
+    from: gpkg.hello==0.1
     status: completed
     started: ...
     stopped: ...
     marked: no
-    label: h2 file=msg.txt
+    label: op=...
     sourcecode_digest: ...
+    vcs_commit:
     run_dir: ...
-    command: ... -um guild.op_main say -- --file msg.txt
+    command: ... -um guild.op_main hello.cat --
     exit_status: 0
     pid:
     flags:
-      file: msg.txt
+      op: ...
     scalars:
     <exit 0>

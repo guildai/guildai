@@ -2,7 +2,7 @@
 
 These tests run various hello operations remotely.
 
-    >>> cd(example("hello-package"))
+    >>> cd(example("hello-package-2"))
 
 ## `hello`
 
@@ -20,7 +20,7 @@ These tests run various hello operations remotely.
 
 ## `hello-file`
 
-    >>> run("guild run hello-file file=hello-2.txt -r guild-uat -y")
+    >>> run("guild run hello-file -r guild-uat -y")
     Building package
     ...
     Installing package and its dependencies
@@ -29,8 +29,8 @@ These tests run various hello operations remotely.
     Successfully installed gpkg.hello-0.1
     Starting hello-file on guild-uat as ...
     Resolving packaged-files dependency
-    Reading message from hello-2.txt
-    Hello, from a 2nd file!
+    Reading message from hello.txt
+    Hello, from a file!
     <BLANKLINE>
     Saving message to msg.out
     Run ... stopped with a status of 'completed'
@@ -50,7 +50,7 @@ These tests run various hello operations remotely.
     Resolving op dependency
     Using run ... for op resource
     Reading message from msg.out
-    Hello, from a 2nd file!
+    Hello, from a file!
     <BLANKLINE>
     Run ... stopped with a status of 'completed'
     <exit 0>

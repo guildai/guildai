@@ -7,7 +7,7 @@ Set a label:
     <exit 0>
 
     >>> run("guild runs -r guild-uat -n1")
-    [1:...]  hello/hello:from-file  ...  completed  remote-run-123
+    [1:...]  gpkg.hello/hello-op  ...  completed  remote-run-123
     <exit 0>
 
 Tag (prepend) a value to a label:
@@ -17,7 +17,7 @@ Tag (prepend) a value to a label:
     <exit 0>
 
     >>> run("guild runs -r guild-uat -n1")
-    [1:...]  hello/hello:from-file  ...  completed  foo remote-run-123
+    [1:...]  gpkg.hello/hello-op  ...  completed  foo remote-run-123
     <exit 0>
 
 Append a value to a label:
@@ -27,7 +27,7 @@ Append a value to a label:
     <exit 0>
 
     >>> run("guild runs -r guild-uat -n1")
-    [1:...]  hello/hello:from-file  ...  completed  foo remote-run-123 bar
+    [1:...]  gpkg.hello/hello-op  ...  completed  foo remote-run-123 bar
     <exit 0>
 
 Clear label for run 1:
@@ -37,7 +37,7 @@ Clear label for run 1:
     <exit 0>
 
     >>> run("guild runs -r guild-uat -n1")
-    [1:...]  hello/hello:from-file  ...  completed
+    [1:...]  gpkg.hello/hello-op  ...  completed
     <exit 0>
 
 Restore the original label using append:
@@ -47,5 +47,5 @@ Restore the original label using append:
     <exit 0>
 
     >>> run("guild runs -r guild-uat -n1")
-    [1:...]  hello/hello:from-file  ...  completed  remote-run-123
+    [1:...]  gpkg.hello/hello-op  ...  completed  remote-run-123
     <exit 0>
