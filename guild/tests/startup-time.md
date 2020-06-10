@@ -73,7 +73,7 @@ Expected output (Guidl help):
       push             Copy one or more runs to a remote location.
       remote           Manage remote status.
       remotes          Show available remotes.
-      run              Run a model operation.
+      run              Run an operation.
       runs             Show or manage runs.
       search           Search for a package.
       select           Select a run and shows its ID.
