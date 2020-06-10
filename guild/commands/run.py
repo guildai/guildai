@@ -275,7 +275,7 @@ def run_params(fn):
 @run_params
 @click_util.use_args
 def run(args):
-    """Run a model operation.
+    """Run an operation.
 
     By default Guild tries to run `OPERATION` for the default model
     defined in the current project.
