@@ -439,7 +439,7 @@ Non-existing files generate an error when resolved:
     >>> resolve(noexist_source)
     Traceback (most recent call last):
     OpDependencyError: could not resolve 'file:doesnt-exist' in test resource:
-    cannot find source file doesnt-exist
+    cannot find source file 'doesnt-exist'
 
 #### Renaming sources
 

@@ -123,7 +123,7 @@ class FileResolver(Resolver):
             abs_path = os.path.abspath(os.path.join(root, source_path))
             if os.path.exists(abs_path):
                 return abs_path
-        raise ResolutionError("cannot find source file %s" % source_path)
+        raise ResolutionError("cannot find source file '%s'" % source_path)
 
     def _resolve_source_files(self, source_path, unpack_dir):
         """Resolves source files for file resolver.

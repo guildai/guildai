@@ -298,7 +298,7 @@ Try to start upstream without required file:
     >>> run(cwd, opspec="upstream")
     Resolving file:src.txt dependency
     run failed because a dependency was not met: could not resolve
-    'file:src.txt' in file:src.txt resource: cannot find source file src.txt
+    'file:src.txt' in file:src.txt resource: cannot find source file 'src.txt'
     <exit 1>
 
 Provide required file `src.txt`.
@@ -449,7 +449,7 @@ resources are resolved during stage.
     >>> run(cwd, gh, opspec="upstream", stage=True)
     Resolving file:src.txt dependency
     run failed because a dependency was not met: could not resolve
-    'file:src.txt' in file:src.txt resource: cannot find source file src.txt
+    'file:src.txt' in file:src.txt resource: cannot find source file 'src.txt'
     <exit 1>
 
 Let's create the required `src.txt` file:
