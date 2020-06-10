@@ -58,7 +58,7 @@ The monitor needs a callback for listing runs. We use the project.
 
 Our monitor, configured to log only images:
 
-    >>> monitor = RunsMonitor(logdir, list_runs_cb, logspec=["images"])
+    >>> monitor = RunsMonitor(logdir, list_runs_cb, log_hparams=False)
 
 The monitor is designed to run a thread but we can run it preemptively
 by calling `run_once`.

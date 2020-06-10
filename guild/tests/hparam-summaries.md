@@ -31,7 +31,7 @@ The monitor needs a callback for listing runs. We'll use the project.
 
 And our monitor, configured to log only hparams:
 
-    >>> monitor = RunsMonitor(logdir, list_runs_cb, logspec=["hparams"])
+    >>> monitor = RunsMonitor(logdir, list_runs_cb, log_images=False)
 
 The monitor is designed to run a thread but we can run it preemptively
 by calling `run_once`.
