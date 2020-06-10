@@ -6,17 +6,24 @@ hello:
     - msg
 
 hello-file:
-  description: Shows a message from a file
+  description: Show a message from a file
   main: cat
-  flags-import:
-    - file
+  flags:
+    file:
+      default: hello.txt
   requires:
     - file: ${file}
       name: file
 
 hello-op:
-  description: Show a message from a hello-file operation
+  description:
+    Show a message from a hello-file operation
+
+    Relies on the output interface from `hello-file`, which is to
+    write the message to `msg.out`.
+
   main: cat
   requires:
     - operation: hello-file
-      rename: '.* hello.txt'
+      select: msg.out
+      name: op

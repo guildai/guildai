@@ -8,8 +8,8 @@ We first preview the runs:
     >>> run("guild pull guild-uat 1:2", timeout=5)
     Getting remote run info
     You are about to copy (pull) the following runs from guild-uat:
-      [...]  hello/hello:from-file  ...  completed  remote-run-123
-      [...]  hello/hello:from-flag  ...  completed  message='Howdy Guild!'
+      [...]  gpkg.hello/hello-op    ...  completed  remote-run-123
+      [...]  gpkg.hello/hello-file  ...  completed  file=hello.txt
     Continue? (Y/n)
     <exit -9>
 
@@ -28,8 +28,10 @@ Then pull:
 The latest runs:
 
     >>> run("guild runs -a")
-    [1:...]   hello/hello:from-file  ...  completed  remote-run-123
-    [2:...]   hello/hello:from-flag  ...  completed  message='Howdy Guild!'...
+    [1:...]  gpkg.hello/hello-op    ...  completed  remote-run-123
+    [2:...]  gpkg.hello/hello-file  ...  completed  file=hello.txt
+    [3:...]  op-2 (...)             ...  completed
+    [4:...]  op-1 (...)             ...  completed
     <exit 0>
 
 Sync the latest run:

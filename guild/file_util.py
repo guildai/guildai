@@ -410,3 +410,15 @@ def _file_size(path):
     except (OSError, IOError) as e:
         log.warning("could not read size of %s: %s", path, e)
         return 0
+
+
+def find(root, followlinks=False, includedirs=False):
+    all = []
+    relpath = lambda path, name: (os.path.relpath(os.path.join(path, name), root))
+    for path, dirs, files in os.walk(root, followlinks=followlinks):
+        for name in dirs:
+            if includedirs or os.path.islink(os.path.join(path, name)):
+                all.append(relpath(path, name))
+        for name in files:
+            all.append(relpath(path, name))
+    return sorted(all)

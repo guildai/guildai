@@ -11,6 +11,8 @@ Run the op locally:
     Using hello.txt for file resource
     Reading message from hello.txt
     Hello, from a file!
+    <BLANKLINE>
+    Saving message to msg.out
     <exit 0>
 
 Push the latest run to the remote:

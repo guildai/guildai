@@ -22,7 +22,7 @@ The `hello` uses operation-only format.
 
     >>> run("guild operations")
     hello       Say hello to my friends
-    hello-file  Shows a message from a file
+    hello-file  Show a message from a file
     hello-op    Show a message from a hello-file operation
     <exit 0>
 
@@ -52,6 +52,8 @@ default it will print the contents of a default file:
     Using hello.txt for file resource
     Reading message from hello.txt
     Hello, from a file!
+    <BLANKLINE>
+    Saving message to msg.out
     <exit 0>
 
 We can provide an alternative file.
@@ -62,6 +64,8 @@ We can provide an alternative file.
     Using .../alt-msg for file resource
     Reading message from .../alt-msg
     Yo yo, what up Guild!
+    <BLANKLINE>
+    Saving message to msg.out
     <exit 0>
 
 ### `hello-op`
@@ -69,9 +73,9 @@ We can provide an alternative file.
 When we run `hello-op`, we get the latest output from `hello-file`:
 
     >>> run("guild run hello-op -y")
-    Resolving hello-file dependency
-    Using run ... for hello-file resource
-    Reading message from hello.txt
+    Resolving op dependency
+    Using run ... for op resource
+    Reading message from msg.out
     Yo yo, what up Guild!
     <exit 0>
 
@@ -86,7 +90,7 @@ the `--deps` option of `guild runs info`:
     started: ...
     stopped: ...
     marked: no
-    label: hello-file=...
+    label: op=...
     sourcecode_digest: ...
     vcs_commit: ...
     run_dir: ...
@@ -94,32 +98,32 @@ the `--deps` option of `guild runs info`:
     exit_status: 0
     pid:
     flags:
-      hello-file: ...
+      op: ...
     scalars:
     dependencies:
-      hello-file:
-        operation:hello-file:
+      op:
+        op:
           config: ...
           paths:
-          - ../.../alt-msg
+          - ../.../msg.out
           uri: operation:hello-file
     <exit 0>
 
 Here's a preview of the command:
 
-    >>> run("guild run hello-op hello-file=foobar", timeout=5)
-    WARNING: cannot find a suitable run for required resource 'hello-file'
+    >>> run("guild run hello-op op=foobar", timeout=5)
+    WARNING: cannot find a suitable run for required resource 'op'
     You are about to run hello-op
-      hello-file: foobar
+      op: foobar
     Continue? (Y/n)
     <exit ...>
 
 Let's use the first run for `hello-file`, rather than the latest.
 
-    >>> run("guild run hello-op hello-file=`guild select -o hello-file 2` -y")
-    Resolving hello-file dependency
-    Using run ... for hello-file resource
-    Reading message from hello.txt
+    >>> run("guild run hello-op op=`guild select -o hello-file 2` -y")
+    Resolving op dependency
+    Using run ... for op resource
+    Reading message from msg.out
     Hello, from a file!
     <exit 0>
 

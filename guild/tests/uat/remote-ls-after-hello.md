@@ -2,8 +2,7 @@
 
     >>> run("guild ls --remote guild-uat")
     ???:
-      msg.txt
-      output
+      msg.out
     <exit 0>
 
     >>> run("guild ls --remote guild-uat --all",
@@ -34,18 +33,29 @@
       .guild/output
       .guild/output.index
       .guild/sourcecode/
+      .guild/sourcecode/README.md
+      .guild/sourcecode/data/
+      .guild/sourcecode/data/hello-2.txt
+      .guild/sourcecode/data/hello.txt
       .guild/sourcecode/guild.yml
-      .guild/sourcecode/msg.txt
-      .guild/sourcecode/say.py
-      msg.txt
-      output
+      .guild/sourcecode/hello/
+      .guild/sourcecode/hello/__init__.py
+      .guild/sourcecode/hello/cat.py
+      .guild/sourcecode/hello/say.py
+      msg.out
     <exit 0>
 
     >>> run("guild ls --remote guild-uat --sourcecode",
     ...     ignore=["__pycache__", "say.pyc"]) # doctest: +REPORT_UDIFF
     ???:
       .guild/sourcecode/
+      .guild/sourcecode/README.md
+      .guild/sourcecode/data/
+      .guild/sourcecode/data/hello-2.txt
+      .guild/sourcecode/data/hello.txt
       .guild/sourcecode/guild.yml
-      .guild/sourcecode/msg.txt
-      .guild/sourcecode/say.py
+      .guild/sourcecode/hello/
+      .guild/sourcecode/hello/__init__.py
+      .guild/sourcecode/hello/cat.py
+      .guild/sourcecode/hello/say.py
     <exit 0>

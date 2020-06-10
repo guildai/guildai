@@ -25,8 +25,9 @@ import setuptools
 import six
 import yaml
 
-import guild.help
+from guild import file_util
 from guild import guildfile
+from guild import help as helplib
 from guild import log as loglib
 from guild import namespace
 from guild import pip_util
@@ -178,7 +179,7 @@ def _pkg_description(pkgdef):
     """
     pkg_desc_lines = pkgdef.description.split("\n")
     summary = pkg_desc_lines[0]
-    help_desc = guild.help.package_description(pkgdef.guildfile)
+    help_desc = helplib.package_description(pkgdef.guildfile)
     return summary, help_desc
 
 
@@ -235,8 +236,24 @@ def _package_data(pkgdef):
 def _pkg_data_files(pkgdef):
     matches = []
     for pattern in pkgdef.data_files:
-        matches.extend(glob.glob(pattern))
+        files = _match_data_files_pattern(pattern)
+        if not files:
+            log.warning("Nothing matched data file pattern '%s'", pattern)
+        else:
+            log.debug("files matching '%s': %s", pattern, files)
+        matches.extend(files)
     return matches
+
+
+def _match_data_files_pattern(pattern):
+    if os.path.isdir(pattern):
+        return _all_files_for_dir(pattern)
+    else:
+        return glob.glob(pattern)
+
+
+def _all_files_for_dir(dir):
+    return [os.path.join(dir, path) for path in file_util.find(dir, followlinks=True)]
 
 
 def _default_pkg_files():

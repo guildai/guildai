@@ -4,9 +4,10 @@ Verify that a whole-run diff exits without error:
 
     >>> quiet("guild diff --remote guild-uat -c 'diff -ur'")
 
-Spot check various diffs:
+Spot check various diffs (limit to legacy ops 'hello:from' pattern
+match):
 
-    >>> run("guild diff --flags -r guild-uat -c 'diff -ur'")
+    >>> run("guild diff -o hello:from --flags -r guild-uat -c 'diff -ur'")
     --- ...
     +++ ...
     @@ -1 +1 @@
@@ -14,7 +15,7 @@ Spot check various diffs:
     +file: msg.txt
     <exit 0>
 
-    >>> run("guild diff -p output -r guild-uat -c 'diff -ur'")
+    >>> run("guild diff -o hello:from -p output -r guild-uat -c 'diff -ur'")
     --- .../output ...
     +++ .../output ...
     @@ -1 +1,2 @@
@@ -23,7 +24,7 @@ Spot check various diffs:
     +
     <exit 0>
 
-    >>> run("guild diff --output -r guild-uat -c 'diff -ur'")
+    >>> run("guild diff -o hello:from --output -r guild-uat -c 'diff -ur'")
     --- .../.guild/output ...
     +++ .../.guild/output ...
     @@ -1 +1,2 @@

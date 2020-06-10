@@ -1,0 +1,45 @@
+- package: gpkg.hello
+  description: Sample package
+  version: 0.1
+  data-files:
+    - '*.txt'
+
+- operations:
+    hello:
+      description: Say hello to my friends
+      main: say
+      default: yes
+      flags-import:
+        - msg
+
+    hello-file:
+      description:
+        Show a message from a file
+
+        In this case we limit the user to select from a list of files
+        that are packaged for the remote operation. Guild does not
+        resolve locally specified files.
+
+      main: cat
+      flags:
+        file:
+          default: hello.txt
+          choices: [hello.txt, hello-2.txt]
+      requires:
+        name: packaged-files
+        sources:
+          - file: hello.txt
+          - file: hello-2.txt
+
+    hello-op:
+      description:
+        Show a message from a hello-file operation
+
+        Relies on the output interface from `hello-file`, which is to
+        write the message to `msg.out`.
+
+      main: cat
+      requires:
+        - operation: hello-file
+          select: msg.out
+          name: op

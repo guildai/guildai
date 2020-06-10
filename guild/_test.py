@@ -55,6 +55,7 @@ import guild
 from guild import _api as gapi
 from guild import cli
 from guild import config as configlib
+from guild import file_util
 from guild import guildfile
 from guild import init
 from guild import op_util
@@ -342,7 +343,7 @@ def test_globals():
         "ensure_dir": util.ensure_dir,
         "exists": os.path.exists,
         "find": find,
-        "findl": findl,
+        "findl": file_util.find,
         "gapi": gapi,
         "guild": guild,
         "guildfile": guildfile,
@@ -395,24 +396,12 @@ def mktemp_guild_dir():
 
 
 def find(root, followlinks=False, includedirs=False):
-    paths = findl(root, followlinks, includedirs)
+    paths = file_util.find(root, followlinks, includedirs)
     if not paths:
         print("<empty>")
     else:
         for path in paths:
             print(path)
-
-
-def findl(root, followlinks=False, includedirs=False):
-    all = []
-    relpath = lambda path, name: (os.path.relpath(os.path.join(path, name), root))
-    for path, dirs, files in os.walk(root, followlinks=followlinks):
-        for name in dirs:
-            if includedirs or os.path.islink(os.path.join(path, name)):
-                all.append(relpath(path, name))
-        for name in files:
-            all.append(relpath(path, name))
-    return sorted(all)
 
 
 def cat(*parts):
@@ -712,7 +701,7 @@ class Project(object):
                 ignore_compiled_source and _is_compiled_source(path)
             )
 
-        return [path for path in findl(run.path) if filter(path)]
+        return [path for path in file_util.find(run.path) if filter(path)]
 
     @staticmethod
     def cat(run, path):
