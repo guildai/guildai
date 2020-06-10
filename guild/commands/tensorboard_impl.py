@@ -16,7 +16,9 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
+import os
 import re
+import time
 
 from guild import batch_util
 from guild import cli
@@ -27,6 +29,9 @@ from guild import util
 from . import runs_impl
 
 log = logging.getLogger("guild")
+
+
+DEFAULT_PREPARE_THRESHOLD = 5  # seconds
 
 
 def main(args):
@@ -40,11 +45,15 @@ def main(args):
         monitor = tensorboard.RunsMonitor(
             logdir,
             _list_runs_cb(args),
-            args.refresh_interval,
+            interval=args.refresh_interval,
+            log_images=not args.skip_images,
+            log_hparams=not args.skip_hparams,
             run_name_cb=_run_name_cb(args),
         )
+        t0 = time.time()
         cli.out("Preparing runs for TensorBoard")
         monitor.run_once(exit_on_error=True)
+        _maybe_log_prepare_time(t0)
         monitor.start()
         try:
             tensorboard.serve_forever(
@@ -68,6 +77,23 @@ def main(args):
                 print("TensorBoard logs saved in %s" % logdir)
     if util.PLATFORM != "Windows":
         cli.out()
+
+
+def _maybe_log_prepare_time(t0):
+    prepare_time = time.time() - t0
+    if prepare_time > _prepare_threshold():
+        log.warning(
+            "Guild took %0.2f seconds to prepare runs. To reduce startup time, "
+            "try running with '--skip-images' or '--skip-hparams' options "
+            "or reduce the number of runs with filters. Try 'guild tensorboard "
+            "--help' for filter options.", prepare_time)
+
+
+def _prepare_threshold():
+    try:
+        return float(os.environ["PREPARE_THRESHOLD"])
+    except (KeyError, ValueError):
+        return DEFAULT_PREPARE_THRESHOLD
 
 
 def _tensorboard_options(args):

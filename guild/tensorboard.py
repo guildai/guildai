@@ -61,16 +61,23 @@ class TensorboardError(Exception):
 
 
 class _RunsMonitorState(object):
-    def __init__(self, logdir, logspec):
+    def __init__(self, logdir, log_images, log_hparams):
         self.logdir = logdir
-        self.log_images = not logspec or "images" in logspec
-        self.log_hparams = not logspec or "hparams" in logspec
+        self.log_images = log_images
+        self.log_hparams = log_hparams
         self.hparam_experiment = None
         self.last_runs_digest = None
 
 
-def RunsMonitor(logdir, list_runs_cb, interval=None, logspec=None, run_name_cb=None):
-    state = _RunsMonitorState(logdir, logspec)
+def RunsMonitor(
+    logdir,
+    list_runs_cb,
+    interval=None,
+    log_images=True,
+    log_hparams=True,
+    run_name_cb=None,
+):
+    state = _RunsMonitorState(logdir, log_images, log_hparams)
     if state.log_hparams:
         list_runs_cb = _list_runs_f(list_runs_cb, state)
     return run_util.RunsMonitor(
