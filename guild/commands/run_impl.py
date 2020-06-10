@@ -1612,7 +1612,7 @@ def _save_trials(S):
         _save_trials_for_non_batch_error()
     path = _save_trials_path(S.args.save_trials)
     cli.out("Saving trials to %s" % util.format_dir(path))
-    _run_tmp_batch(S, {"SAVE_TRIALS": path})
+    _run_tmp_batch(S, {"SAVE_TRIALS": os.path.abspath(os.path.expanduser(path))})
 
 
 def _save_trials_path(save_trials_arg):
