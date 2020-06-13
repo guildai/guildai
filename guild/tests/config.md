@@ -109,10 +109,12 @@ to provide process isolation), the Python interpreter is provide by
 The logic used to select the appropriate Python interpreter is as
 follows:
 
-- Use `GUILD_PYTHON_EXE` env var if available
-- Use `CONDA_PYTHON_EXE` env var if available
-- Use `bin/python` under `VIRTUAL_ENV` if exists
-- Use `sys.interpreter`
+- Use `GUILD_PYTHON_EXE` env var if defined
+- Use `sys.executable` or `bin/python` under `CONDA_PREFIX` env var if
+  defined
+- Use `sys.executable` or `bin/python` under `VIRTUAL_ENV` env var if
+  defined
+- Use `sys.exectable``
 
 NOTE: For a short time, Guild considered `which python` as an option
 prior to using `sys.executable`. This is an incorrect option as Guild
@@ -157,12 +159,16 @@ This time, the Python exe is the venv exe.
     >>> exe == venv_python_exe, (exe, venv_python_exe)
     (True, ...)
 
-If `CONDA_PYTHON_EXE` is defined in the environment, it is always
-provided, even if the exe doesn't exist.
+If `CONDA_PREFIX` is defined in the environment, it is used to find
+Python. Let's create a `bin/python` under a location specified by
+`CONDA_PREFIX`.
 
-    >>> conda_python_exe = path(venv_dir, "conda-exe")
+    >>> conda_prefix = mkdtemp()
+    >>> mkdir(path(conda_prefix, "bin"))
+    >>> conda_python_exe = path(conda_prefix, "bin", "python")
+    >>> touch(conda_python_exe)
 
-    >>> with Env({"CONDA_PYTHON_EXE": conda_python_exe,
+    >>> with Env({"CONDA_PREFIX": conda_prefix,
     ...           "VIRTUAL_ENV": venv_dir}, replace=True):
     ...     exe = config.python_exe()
 
@@ -175,7 +181,7 @@ regardless of other environment variables.
     >>> guild_python_exe = path(venv_dir, "guild-exe")
 
     >>> with Env({"GUILD_PYTHON_EXE": guild_python_exe,
-    ...           "CONDA_PYTHON_EXE": conda_python_exe,
+    ...           "CONDA_PREFIX": conda_prefix,
     ...           "VIRTUAL_ENV": venv_dir}, replace=True):
     ...     exe = config.python_exe()
 
