@@ -249,7 +249,23 @@ def _guild_python_exe():
 
 
 def _conda_python_exe():
-    return os.getenv("CONDA_PYTHON_EXE")
+    conda_prefix = os.getenv("CONDA_PREFIX")
+    if not conda_prefix:
+        return None
+    return _find_apply([_this_conda_python_exe, _default_conda_python_exe], conda_prefix)
+
+
+def _this_conda_python_exe(conda_prefix):
+    if sys.executable.startswith(conda_prefix):
+        return sys.executable
+    return None
+
+
+def _default_conda_python_exe(conda_prefix):
+    python_exe = os.path.join(conda_prefix, "bin", "python")
+    if os.path.exists(python_exe):
+        return python_exe
+    return None
 
 
 def _virtualenv_python_exe():
