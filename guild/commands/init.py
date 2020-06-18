@@ -135,9 +135,9 @@ def init(args):
     while packages defined in `requirements.txt` use PyPI package
     names.
 
-    For information in requirements files, see:
+    For information on requirements files, see:
 
-    https://pip.readthedocs.io/en/1.1/requirements.html
+    https://my.guild.ai/terms/requirements-file
 
     You may explicitly specify requirements file using `-r` or
     `--requirement`. If `-r, --requirement` is specified, Guild will
