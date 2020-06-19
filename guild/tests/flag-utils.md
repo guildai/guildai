@@ -97,6 +97,14 @@ None:
     >>> encode_decode(None)
     ('null', None, True)
 
+Flag functions:
+
+    >>> encode_decode("[1:2]")
+    ("'[1:2]'", '[1:2]', True)
+
+    >>> encode_decode("foo[1:2]")
+    ('foo[1:2]', 'foo[1:2]', True)
+
 Lists:
 
     >>> encode_decode([])
@@ -252,6 +260,17 @@ Guild provides an exception to let the value pass through as a string:
 
     >>> decode("[1:2]")
     '[1:2]'
+
+This logic however is not applied when decoding lists that contain
+special values.
+
+    >>> decode("[[1:2]]")
+    [[62]]
+
+To specify a value like this, the item must be quoted.
+
+    >>> decode("['[1:2]']")
+    "['[1:2]']"
 
 ### Quoted lists
 

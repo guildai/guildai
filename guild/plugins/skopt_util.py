@@ -77,10 +77,10 @@ def _trials_for_dims(names, dims, initial_x, num_trials, random_seed):
     trials_xs = res.x_iters
     if trials_xs:
         _apply_initial_x(initial_x, trials_xs[0])
-    return [dict(zip(names, _native_python_xs(xs))) for xs in trials_xs]
+    return [dict(zip(names, native_python_xs(xs))) for xs in trials_xs]
 
 
-def _native_python_xs(xs):
+def native_python_xs(xs):
     def pyval(x):
         try:
             return x.item()
@@ -150,10 +150,10 @@ def _try_function_dim(val, flag_name):
     except ValueError:
         raise ValueError(val, flag_name)
     else:
-        return _function_dim(func_name, func_args, flag_name)
+        return function_dim(func_name, func_args, flag_name)
 
 
-def _function_dim(func_name, args, flag_name):
+def function_dim(func_name, args, flag_name):
     if func_name is None:
         func_name = "uniform"
     if func_name == "uniform":
@@ -372,7 +372,7 @@ def _suggest_x(suggest_x_cb, dims, x0, y0, is_random_start, random_state, sugges
 
 def _trial_flags_for_x(x, names, proto_flag_vals):
     flags = dict(proto_flag_vals)
-    flags.update(dict(zip(names, _native_python_xs(x))))
+    flags.update(dict(zip(names, native_python_xs(x))))
     return flags
 
 

@@ -1719,10 +1719,11 @@ def _preview_trials_count(user_op):
 
 def _op_trials(op):
     if op._batch_trials:
-        return batch_util.expand_flags_with_trials(op._op_flag_vals, op._batch_trials)
-
+        return batch_util.expand_flags_with_trials(
+            op._op_flag_vals, op._batch_trials, op._random_seed
+        )
     else:
-        return batch_util.expand_flags(op._op_flag_vals)
+        return batch_util.expand_flags(op._op_flag_vals, op._random_seed)
 
 
 def _is_likey_optimizer(op):
