@@ -2,7 +2,7 @@
 
 We can install the `Keras` package from PyPI using this command:
 
-    >>> quiet("guild install keras")
+    >>> quiet("guild install 'keras<2.4'")
 
 And the installed version:
 
