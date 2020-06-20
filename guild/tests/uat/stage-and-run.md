@@ -78,6 +78,7 @@ List files for latest run:
       .guild/attrs/sourcecode_digest
       .guild/attrs/started
       .guild/attrs/user
+      .guild/attrs/user_flags
       .guild/attrs/vcs_commit
       .guild/opref
       .guild/sourcecode/

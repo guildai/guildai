@@ -94,6 +94,7 @@ CORE_RUN_ATTRS = [
     "started",
     "stopped",
     "user",
+    "user_flags",
     "vcs_commit",
 ]
 

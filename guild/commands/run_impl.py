@@ -867,6 +867,7 @@ def _op_init_run_attrs(args, op):
     if op._batch_trials:
         attrs["trials"] = op._batch_trials
     attrs["flags"] = op._op_flag_vals
+    attrs["user_flags"] = op._user_flag_vals
     attrs["run_params"] = args.as_kw()
     attrs["random_seed"] = op._random_seed
     if op._max_trials:
@@ -1719,8 +1720,8 @@ def _preview_trials_count(user_op):
 
 def _op_trials(op):
     if op._batch_trials:
-        return batch_util.expand_flags_with_trials(
-            op._op_flag_vals, op._batch_trials, op._random_seed
+        return batch_util.expand_trial_flags(
+            op._batch_trials, op._op_flag_vals, op._user_flag_vals, op._random_seed
         )
     else:
         return batch_util.expand_flags(op._op_flag_vals, op._random_seed)

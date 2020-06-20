@@ -40,6 +40,7 @@ And the generated files:
     ./.guild/attrs/started
     ./.guild/attrs/stopped
     ./.guild/attrs/user
+    ./.guild/attrs/user_flags
     ./.guild/opref
     ./.guild/output
     ./.guild/output.index

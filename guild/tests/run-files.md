@@ -50,10 +50,12 @@ The files generated for our run:
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/attrs/user
+    .guild/attrs/user_flags
     .guild/opref
     .guild/output
     .guild/output.index
     .guild/sourcecode/add.py
+    .guild/sourcecode/batch-2.csv
     .guild/sourcecode/batch.csv
     .guild/sourcecode/batch.json
     .guild/sourcecode/batch.unknown
@@ -152,10 +154,12 @@ The latest run is the trial:
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/attrs/user
+    .guild/attrs/user_flags
     .guild/opref
     .guild/output
     .guild/output.index
     .guild/sourcecode/add.py
+    .guild/sourcecode/batch-2.csv
     .guild/sourcecode/batch.csv
     .guild/sourcecode/batch.json
     .guild/sourcecode/batch.unknown
@@ -200,6 +204,7 @@ Its files:
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/attrs/user
+    .guild/attrs/user_flags
     .guild/opref
     .guild/output
     .guild/output.index
@@ -217,8 +222,10 @@ Its files:
     .guild/proto/.guild/attrs/run_params
     .guild/proto/.guild/attrs/sourcecode_digest
     .guild/proto/.guild/attrs/user
+    .guild/proto/.guild/attrs/user_flags
     .guild/proto/.guild/opref
     .guild/proto/.guild/sourcecode/add.py
+    .guild/proto/.guild/sourcecode/batch-2.csv
     .guild/proto/.guild/sourcecode/batch.csv
     .guild/proto/.guild/sourcecode/batch.json
     .guild/proto/.guild/sourcecode/batch.unknown

@@ -28,6 +28,7 @@
       .guild/attrs/started
       .guild/attrs/stopped
       .guild/attrs/user
+      .guild/attrs/user_flags
       .guild/job-packages/...
       .guild/opref
       .guild/output

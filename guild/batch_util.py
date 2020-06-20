@@ -220,21 +220,24 @@ def batch_run():
 
 
 def expand_flags(flag_vals, random_seed=None):
-    flags_list = [
-        _expand_flag(name, val, random_seed) for name, val in sorted(flag_vals.items())
-    ]
-    expanded = [dict(flags) for flags in itertools.product(*flags_list)]
-    _apply_flag_functions(expanded)
+    expanded = _expand_flags_base(flag_vals)
+    _apply_flag_functions(expanded, random_seed)
     return expanded
 
 
-def _expand_flag(name, val, random_seed):
+def _expand_flags_base(flag_vals):
+    """Expands flag vals without applying flag functions."""
+    flags_list = [_expand_flag(name, val) for name, val in sorted(flag_vals.items())]
+    return [dict(flags) for flags in itertools.product(*flags_list)]
+
+
+def _expand_flag(name, val):
     if not isinstance(val, list):
         val = [val]
-    return [(name, _flag_function_or_val(x, random_seed, name)) for x in val]
+    return [(name, _flag_function_or_val(x, name)) for x in val]
 
 
-def _flag_function_or_val(val, random_seed, flag_name):
+def _flag_function_or_val(val, flag_name):
     if not isinstance(val, six.string_types):
         return val
     try:
@@ -242,20 +245,19 @@ def _flag_function_or_val(val, random_seed, flag_name):
     except ValueError:
         return val
     else:
-        return _FlagFunction(name, args, random_seed, flag_name, val)
+        return _FlagFunction(name, args, flag_name, val)
 
 
 class _FlagFunction(object):
-    def __init__(self, name, args, random_seed, flag_name, flag_value):
+    def __init__(self, name, args, flag_name, flag_value):
         from guild.plugins import skopt_util
 
         self.dim, self.initial = skopt_util.function_dim(name, args, "dummy")
-        self.random_state = random_seed
         self.flag_name = flag_name
         self.flag_value = flag_value
         self._applied_initial = False
 
-    def apply(self):
+    def apply(self, random_state):
         from guild.plugins import skopt_util
 
         if self.initial is not None and not self._applied_initial:
@@ -264,7 +266,7 @@ class _FlagFunction(object):
 
         try:
             res = skopt_util.skopt.dummy_minimize(
-                lambda *args: 0, [self.dim], n_calls=1, random_state=self.random_state
+                lambda *args: 0, [self.dim], n_calls=1, random_state=random_state
             )
         except Exception as e:
             if log.getEffectiveLevel() <= logging.DEBUG:
@@ -280,17 +282,19 @@ class _FlagFunction(object):
                 self.flag_name,
                 e,
             )
-            return None
+            return None, random_state
         else:
-            self.random_state = res.random_state
-            return skopt_util.native_python_xs(res.x_iters[0])[0]
+            val = skopt_util.native_python_xs(res.x_iters[0])[0]
+            return val, res.random_state
 
 
-def _apply_flag_functions(trials):
+def _apply_flag_functions(trials, random_seed):
+    random_state = random_seed
     for flag_vals in trials:
         for name, val in flag_vals.items():
             if isinstance(val, _FlagFunction):
-                flag_vals[name] = val.apply()
+                val, random_state = val.apply(random_state)
+                flag_vals[name] = val
 
 
 def expanded_batch_trials(batch_run, random_seed=None):
@@ -298,21 +302,25 @@ def expanded_batch_trials(batch_run, random_seed=None):
     flag_vals = proto_run.get("flags") or {}
     trials = proto_run.get("trials")
     if trials:
-        return expand_flags_with_trials(flag_vals, trials, random_seed)
-    return expand_flags(flag_vals, random_seed)
+        user_flag_vals = proto_run.get("user_flags") or {}
+        return expand_trial_flags(trials, flag_vals, user_flag_vals, random_seed)
+    else:
+        return expand_flags(flag_vals, random_seed)
 
 
-def expand_flags_with_trials(flag_vals, trials, random_seed=None):
+def expand_trial_flags(trials, flag_vals, user_flag_vals, random_seed=None):
     expanded = []
     for trial_flag_vals in trials:
-        merged_flags = _merged_trial_flags(trial_flag_vals, flag_vals)
-        expanded.extend(expand_flags(merged_flags, random_seed))
+        merged_flags = _merged_trial_flags(trial_flag_vals, flag_vals, user_flag_vals)
+        expanded.extend(_expand_flags_base(merged_flags))
+    _apply_flag_functions(expanded, random_seed)
     return expanded
 
 
-def _merged_trial_flags(trial_flag_vals, flag_vals):
+def _merged_trial_flags(trial_flag_vals, flag_vals, user_flag_vals):
     merged = dict(flag_vals)
     merged.update(trial_flag_vals)
+    merged.update(user_flag_vals)
     return merged
 
 

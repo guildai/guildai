@@ -199,27 +199,26 @@ Here's what our runs look like after the batch operation:
     say.py+
 
 In cases where we explicitly define flag values, those flag values are
-applied only if they are not defined in the batch file - the batch
-file takes precedence over flags specified for the operation.
+always used, even if they're defined in batch files.
 
-    >>> project.run("say.py", batch_files=["batch.csv"], flags={"loud": True})
-    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 1')
-    HELLO 1
-    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 2')
-    HELLO 2
-    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 3')
-    HELLO 3
 
-    >>> project.run("say.py", batch_files=["batch.csv"], flags={"loud": True},
+    >>> project.run("say.py", batch_files=["batch.csv"], flags={"loud": False})
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 1')
+    hello 1
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 2')
+    hello 2
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 3')
+    hello 3
+
+    >>> project.run("say.py", batch_files=["batch.csv"], flags={"loud": False},
     ...             print_trials=True)
     #  loud  msg
-    1  yes   hello 1
-    2  yes   hello 2
-    3  yes   hello 3
+    1  no   hello 1
+    2  no   hello 2
+    3  no   hello 3
 
 We can additionally specify multiple flag values that are used to
-generate additional trials, in cases where the batch file doesn't
-specify a flag value.
+generate additional trials.
 
 Here we'll use a list of `loud`, which is applied in cases where
 `loud` is not defined in the batch:
@@ -232,6 +231,8 @@ Here we'll use a list of `loud`, which is applied in cases where
     hello 1
     INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 2')
     HELLO 2
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 2')
+    hello 2
     INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 3')
     HELLO 3
     INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 3')
@@ -244,20 +245,23 @@ Here we'll use a list of `loud`, which is applied in cases where
     1  yes   hello 1
     2  no    hello 1
     3  yes   hello 2
-    4  yes   hello 3
-    5  no    hello 3
+    4  no    hello 2
+    5  yes   hello 3
+    6  no    hello 3
 
-In this case, we attempt to drive additional tests by providing a list
-value for `msg`. However, as the batch defines `msg` for each trial,
-the flag value is unused.
+In this case, we drive additional tests by providing a list value for
+`msg`.
 
     >>> project.run("say.py", batch_files=["batch.csv"],
     ...             flags={"msg": ["hello 4", "hello 5"]},
     ...     print_trials=True)
     #  loud  msg
-    1  no    hello 1
-    2  yes   hello 2
-    3  no    hello 3
+    1  no    hello 4
+    2  no    hello 5
+    3  yes   hello 4
+    4  yes   hello 5
+    5  no    hello 4
+    6  no    hello 5
 
 Here's `batch.yaml`:
 

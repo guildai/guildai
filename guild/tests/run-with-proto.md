@@ -74,6 +74,7 @@ Files that are the same:
      '.guild/attrs/random_seed',
      '.guild/attrs/sourcecode_digest',
      '.guild/attrs/user',
+     '.guild/attrs/user_flags',
      '.guild/opref',
      '.guild/output',
      '.guild/sourcecode/batch_fail.py',
