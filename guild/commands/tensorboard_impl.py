@@ -86,7 +86,9 @@ def _maybe_log_prepare_time(t0):
             "Guild took %0.2f seconds to prepare runs. To reduce startup time, "
             "try running with '--skip-images' or '--skip-hparams' options "
             "or reduce the number of runs with filters. Try 'guild tensorboard "
-            "--help' for filter options.", prepare_time)
+            "--help' for filter options.",
+            prepare_time,
+        )
 
 
 def _prepare_threshold():

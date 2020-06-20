@@ -252,7 +252,9 @@ def _conda_python_exe():
     conda_prefix = os.getenv("CONDA_PREFIX")
     if not conda_prefix:
         return None
-    return _find_apply([_this_conda_python_exe, _default_conda_python_exe], conda_prefix)
+    return _find_apply(
+        [_this_conda_python_exe, _default_conda_python_exe], conda_prefix
+    )
 
 
 def _this_conda_python_exe(conda_prefix):
