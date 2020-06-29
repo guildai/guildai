@@ -48,7 +48,7 @@ from . import runs_support
 @click_util.use_args
 @click_util.render_doc
 def open_(ctx, args):
-    """Open a run path.
+    """Open a run path or output.
 
     This command opens a path a single run.
 
