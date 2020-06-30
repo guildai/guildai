@@ -13,10 +13,13 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.optimizers import RMSprop
 
+_10sec = True
+
 batch_size = 128
 num_classes = 10
-#epochs = 20
-epochs = 1  # 10 second rule
+epochs = 20
+if _10sec:
+    epochs = 1
 
 # the data, split between train and test sets
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -27,6 +30,12 @@ x_train = x_train.astype('float32')
 x_test = x_test.astype('float32')
 x_train /= 255
 x_test /= 255
+if _10sec:
+    x_train = x_train[:100]
+    y_train = y_train[:100]
+    x_test = x_test[:20]
+    y_test = y_test[:20]
+
 print(x_train.shape[0], 'train samples')
 print(x_test.shape[0], 'test samples')
 
