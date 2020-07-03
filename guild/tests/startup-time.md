@@ -64,7 +64,7 @@ Expected output (Guidl help):
       ls               List run files.
       mark             Mark a run.
       models           Show available models.
-      open             Open a run path.
+      open             Open a run path or output.
       operations, ops  Show model operations.
       package          Create a package for distribution.
       packages         Show or manage packages.
