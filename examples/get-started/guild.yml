@@ -1,0 +1,3 @@
+train:
+  description: Train MLP based MNIST classifier
+  main: mnist_mlp_10sec

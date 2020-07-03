@@ -83,6 +83,10 @@ List files for latest run:
       .guild/opref
       .guild/sourcecode/
       .guild/sourcecode/README.md
+      .guild/sourcecode/guild.yml
+      .guild/sourcecode/mnist_mlp.py
+      .guild/sourcecode/mnist_mlp_10sec.py
+      .guild/sourcecode/requirements.txt
       .guild/sourcecode/train.py
     <exit 0>
 
