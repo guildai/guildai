@@ -459,7 +459,7 @@ def _iter_linkable_run_files(run, run_logdir):
     link parent dir.
     """
     top_level = True
-    for root, dirs, files in os.walk(run.dir, followlinks=True):
+    for root, dirs, files in os.walk(run.dir):
         _maybe_remove_guild_dir(top_level, dirs)
         top_level = False
         rel_root = os.path.relpath(root, run.dir)
@@ -486,7 +486,7 @@ def _ensure_run_file_link(src, link, link_dir):
 
 
 def _remove_orphaned_run_file_links(run_logdir):
-    for root, _dirs, files in os.walk(run_logdir, followlinks=True):
+    for root, _dirs, files in os.walk(run_logdir):
         for name in files:
             path = os.path.join(root, name)
             if os.path.islink(path) and not os.path.exists(path):
