@@ -455,7 +455,8 @@ def _coerce_output_scalars(data, guildfile):
     else:
         raise GuildfileError(
             guildfile,
-            "invalid output-scalars %r: expected a mapping, list, or string" % data,
+            "invalid output-scalars %r: expected a mapping, list, string, or false"
+            % data,
         )
 
 
