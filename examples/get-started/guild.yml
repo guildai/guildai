@@ -1,3 +1,11 @@
 train:
   description: Train MLP based MNIST classifier
   main: mnist_mlp_10sec
+  flags-dest: globals
+  flags-import: all
+
+train-args:
+  description: Version of train that uses command line args
+  main: mnist_mlp_args
+  flags-dest: args
+  flags-import: all
