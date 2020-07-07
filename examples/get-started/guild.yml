@@ -9,3 +9,22 @@ train-args:
   main: mnist_mlp_args
   flags-dest: args
   flags-import: all
+
+train-config:
+  description: Version of train that uses a config file
+  main: mnist_mlp_config
+  flags-dest: off
+  flags-import: off
+  flags:
+    batch_size: 128
+    epochs: 20
+    learning_rate: 0.001
+    dropout: 0.2
+    inner_layers: 1
+    layer_size: 512
+    activation:
+      default: relu
+      choices: [relu, tahn, sigmoid]
+    _10sec: no
+  requires:
+    - config: config.json

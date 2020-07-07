@@ -1,0 +1,15 @@
+{
+  "batch_size": 128,
+  "epochs": 20,
+  "learning_rate": 0.001,
+  "dropout": 0.2,
+  "inner_layers": 1,
+  "layer_size": 512,
+  "activation": "relu",
+  "_10sec": 0,
+  "train_count": 60000,
+  "test_count": 10000,
+  "reshape_size": 784,
+  "num_classes": 10,
+  "output_activation": "softmax"
+}

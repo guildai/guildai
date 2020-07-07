@@ -54,10 +54,10 @@ y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
 model = Sequential()
-model.add(Dense(512, activation=args.activation, input_shape=(784,)))
+model.add(Dense(args.layer_size, activation=args.activation, input_shape=(784,)))
 model.add(Dropout(args.dropout))
 for _ in range(args.inner_layers):
-    model.add(Dense(512, activation=args.activation))
+    model.add(Dense(args.layer_size, activation=args.activation))
     model.add(Dropout(args.dropout))
 model.add(Dense(num_classes, activation='softmax'))
 
