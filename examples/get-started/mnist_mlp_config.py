@@ -17,9 +17,7 @@ from keras.optimizers import RMSprop
 
 class Config(object):
     def __init__(self, filename):
-        data = json.load(open(filename))
-        for name, val in data.items():
-            setattr(self, name, val)
+        self.__dict__.update(json.load(open(filename)))
 
 config = Config("config.json")
 
