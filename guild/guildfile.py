@@ -1008,7 +1008,6 @@ class OpDef(object):
         self.env_secrets = data.get("env-secrets")
         self.plugins = _init_plugins(data.get("plugins"), self.guildfile)
         self.dependencies = _init_dependencies(data.get("requires"), self)
-        self.remote = data.get("remote") or False
         self.stoppable = data.get("stoppable") or False
         self.set_trace = data.get("set-trace") or False
         self.label = data.get("label")
