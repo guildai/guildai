@@ -264,6 +264,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [no-run-output](no-run-output.md)
 - [staged-dependency-error](staged-dependency-error.md)
 - [link-vs-copy-dep](link-vs-copy-dep.md)
+- [test-flags](test-flags.md)
 
 ## Error cases
 

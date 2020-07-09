@@ -1536,6 +1536,8 @@ def _test_flags(S):
         if val is None:
             cli.out(prefix)
         else:
+            if attr == "choices":
+                val = [flag_util.encode_flag_val(c.value) for c in val]
             cli.out("%s %s" % (prefix, flag_util.encode_flag_val(val)))
 
     out(opdef, "flags_dest")
