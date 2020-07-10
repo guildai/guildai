@@ -1,0 +1,10 @@
+train:
+  flags-import: all
+
+tpe:
+  flags-import:
+    - prior_weight
+    - EI_candidates
+    - gamma
+    - startup_jobs
+  default-max-trials: 10
