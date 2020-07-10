@@ -36,7 +36,7 @@ from guild import var
 log = logging.getLogger("guild")
 
 DEFAULT_MAX_TRIALS = 20
-
+DEFAULT_OBJECTIVE = "loss"
 
 class CurrentRunNotBatchError(Exception):
     pass
@@ -382,3 +382,10 @@ def handle_system_exit(e):
 
 def init_logging():
     op_util.init_logging()
+
+
+def objective_scalar(batch_run, default=None):
+    obj = batch_run.get("objective") or default or DEFAULT_OBJECTIVE
+    if obj[0] == "-":
+        return obj[1:], -1
+    return obj, 1

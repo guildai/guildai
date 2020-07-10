@@ -405,3 +405,8 @@ def iter_run_scalars(run):
     index.refresh([run], ["scalar"])
     for s in index.run_scalars(run):
         yield s
+
+
+def scalars(run, val="last_val", key=None):
+    key = key or (lambda s: s["tag"])
+    return {key(s): s[val] for s in iter_run_scalars(run)}
