@@ -1,5 +1,8 @@
 train:
   flags-import: all
+  optimizers:
+    tpe:
+      default: yes
 
 tpe:
   flags-import:
