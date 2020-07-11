@@ -41,7 +41,7 @@ def label_params(fn):
                 ("-rm", "-u", "--remove", "--untag"),
                 metavar="VAL",
                 multiple=True,
-                help="Remove VAL from existing label. Maybe used multiple times.",
+                help="Remove VAL from existing label. May be used multiple times.",
             ),
             click.Option(
                 ("-c", "--clear"), help="Clear the entire run label.", is_flag=True
