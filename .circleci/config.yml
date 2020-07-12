@@ -42,7 +42,7 @@ jobs:
 
           guild check --offline
 
-          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -106,7 +106,7 @@ jobs:
 
           guild check --offline
 
-          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -170,7 +170,7 @@ jobs:
 
           guild check --offline
 
-          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:

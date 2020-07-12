@@ -207,6 +207,7 @@ TENSORFLOW_UAT_SKIP = [
     "*mnist*",
     "*tensorflow*",
     "simple-example",
+    "test-flags",      # uses get-started example which requires Keras
 ]
 
 
