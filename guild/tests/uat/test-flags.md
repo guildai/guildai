@@ -1,6 +1,6 @@
 # Test Flags
 
-    >>> cd(example("get-started"))
+    >>> cd(example("get-started-legacy"))
 
     >>> run("guild run train --test-flags")  # doctest: +REPORT_UDIFF
     ### Script flags for train
