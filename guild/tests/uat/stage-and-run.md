@@ -2,7 +2,7 @@
 
 Stage runs for the train example.
 
-    >>> cd(example("get-started"))
+    >>> cd(example("get-started-legacy"))
 
 Delete runs in preparation for these tests.
 
@@ -38,7 +38,7 @@ Show latest staged run:
     >>> run("guild runs info --staged")
     id: ...
     operation: train.py
-    from: .../get-started
+    from: .../get-started-legacy
     status: staged
     started: ...
     stopped:
@@ -83,13 +83,6 @@ List files for latest run:
       .guild/opref
       .guild/sourcecode/
       .guild/sourcecode/README.md
-      .guild/sourcecode/config.json
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/mnist_mlp.py
-      .guild/sourcecode/mnist_mlp_10sec.py
-      .guild/sourcecode/mnist_mlp_args.py
-      .guild/sourcecode/mnist_mlp_config.py
-      .guild/sourcecode/requirements.txt
       .guild/sourcecode/train.py
     <exit 0>
 
