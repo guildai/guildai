@@ -59,6 +59,14 @@ from . import server_support
     "--skip-hparams", is_flag=True, help="Don't generate HParam TF summaries."
 )
 @click.option("--tab", metavar="TAB", help="Open with an initially selected tab.")
+@click.option(
+    "--export-scalars",
+    metavar="PATH",
+    help=(
+        "Export all scalaras for a run to a CSV file. Use '-' to write "
+        "to standard output."
+    ),
+)
 @runs_support.all_filters
 @click.option("--keep-logdir", is_flag=True, hidden=True)
 @click_util.use_args

@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import csv
 import logging
 import os
 import re
@@ -35,6 +36,19 @@ DEFAULT_PREPARE_THRESHOLD = 5  # seconds
 
 
 def main(args):
+    if args.export_scalars:
+        _export_scalars(args)
+    else:
+        _run_tensorboard(args)
+
+
+def _export_scalars(args):
+
+    for run in _list_runs_cb(args)():
+        print(run)
+
+
+def _run_tensorboard(args):
     from guild import tensorboard
 
     tensorboard.setup_logging()

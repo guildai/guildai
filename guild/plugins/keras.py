@@ -37,8 +37,6 @@ class KerasScriptModelProxy(PythonScriptModelProxy):
 
     output_scalars = KERAS_OUTPUT_SCALARS
 
-    objective = {"maximize": "val_acc"}
-
     plugins = ["summary"]
 
 
@@ -64,15 +62,17 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
         op_method = self._op_method(script)
         return imports_keras and op_method
 
-    @staticmethod
-    def _imports_keras(script):
+    def _imports_keras(self, script):
+        imports = script.imports
+        self.log.debug("%s imports: %s", script.src, imports)
         return any(
             (
                 name == "keras"
+                or name == "tensorflow"
                 or name.startswith("keras.")
-                or name.startswith("tensorflow.keras")
+                or name.startswith("tensorflow.")
             )
-            for name in script.imports
+            for name in imports
         )
 
     @staticmethod

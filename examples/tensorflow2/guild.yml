@@ -1,0 +1,8 @@
+train:
+  description: Train a simple neural network to classify MNIST digits
+  main: beginner_with_flags
+  flags-import: all
+  flags:
+    epochs: 2
+    dropout: 0.1
+    learning_rate: 0.002
