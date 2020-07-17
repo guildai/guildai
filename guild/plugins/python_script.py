@@ -126,6 +126,7 @@ class PythonScriptModelProxy(object):
         return python_util.script_module(self.script_path, config.cwd())
 
     def _flags_data(self):
+        _log_flags_info("### Script flags for %s", os.path.normpath(self.script_path))
         plugin = pluginlib.for_name("python_script")
         return plugin._flags_data_for_path(self.script_path, "", ".")
 
@@ -359,10 +360,27 @@ class PythonScriptPlugin(pluginlib.Plugin):
     def _global_assigns_flags_data(self, script):
         params = script.params
         return {
-            str(name): params[name]
+            str(name): self._global_assigns_flag_attrs(params[name])
             for name in params
             if self._is_global_assign_flag(name)
         }
+
+    def _global_assigns_flag_attrs(self, val):
+        return {
+            "default": val,
+            "type": self._global_assigns_flag_type(val),
+        }
+
+    @staticmethod
+    def _global_assigns_flag_type(val):
+        if isinstance(val, six.string_types):
+            return "string"
+        elif isinstance(val, bool):
+            return "boolean"
+        elif isinstance(val, (int, float)):
+            return "number"
+        else:
+            return None
 
     @staticmethod
     def _is_global_assign_flag(name):

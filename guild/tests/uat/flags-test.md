@@ -7,7 +7,9 @@
     reading flags for main spec 'op'
     op.py does not import argparse - assuming globals
     op.py flags imported for dest 'globals':
-      x: 1.0
+      x:
+        default: 1.0
+        type: number
     ### Script flags for summary
     reading flags for main spec 'summary'
     summary.py imports argparse - assuming args
@@ -24,7 +26,7 @@
     flags:
       x:
         default: 1.0
-        type:
+        type: number
         required: no
         arg-name:
         arg-skip:
@@ -43,7 +45,9 @@
     reading flags for main spec 'op'
     op.py does not import argparse - assuming globals
     op.py flags imported for dest 'globals':
-      x: 1.0
+      x:
+        default: 1.0
+        type: number
     ### Script flags for summary
     reading flags for main spec 'summary'
     summary.py imports argparse - assuming args

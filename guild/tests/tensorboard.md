@@ -144,11 +144,11 @@ Let's run three sample operations.
     >>> project.run("op", flags={"a": 2.0, "c": "hola"})
     m1: 1.123
 
-    >>> project.run("op", flags={"a": 3, "b": "two", "c": "bonjour"})
+    >>> project.run("op", flags={"a": 3, "b": "3.0", "c": "bonjour"})
     m1: 1.123
 
     >>> project.print_runs(flags=True)
-    op  a=3 b=two c=bonjour d=yes extra_metrics=0
+    op  a=3 b=3.0 c=bonjour d=yes extra_metrics=0
     op  a=2.0 b=2 c=hola d=yes extra_metrics=0
     op  a=1.0 b=2 c=hello d=yes extra_metrics=0
 
@@ -185,18 +185,18 @@ Let's run the monitor, capturing debug output.
 
 The monitor generates the following logs:
 
-    >> log.print_all()
+    >>> log.print_all()
     DEBUG: [guild] Refreshing runs
     DEBUG: [guild] hparam experiment:
-           hparams=['a', 'c', 'b', 'd', 'extra_metrics', 'sourcecode']
+           hparams=['a', 'b', 'c', 'd', 'extra_metrics', 'sourcecode']
            metrics=['m1', 'time']
     DEBUG: [guild] Creating link from '.../.guild/events.out.tfevents...' to '.../.guild/events.out.tfevents...'
     DEBUG: [guild] hparam experiment:
-           hparams=['a', 'c', 'b', 'd', 'extra_metrics', 'sourcecode']
+           hparams=['a', 'b', 'c', 'd', 'extra_metrics', 'sourcecode']
            metrics=['m1', 'time']
     DEBUG: [guild] Creating link from '.../.guild/events.out.tfevents...' to '.../.guild/events.out.tfevents...'
     DEBUG: [guild] hparam experiment:
-           hparams=['a', 'c', 'b', 'd', 'extra_metrics', 'sourcecode']
+           hparams=['a', 'b', 'c', 'd', 'extra_metrics', 'sourcecode']
            metrics=['m1', 'time']
     DEBUG: [guild] Creating link from '.../.guild/events.out.tfevents...' to '.../.guild/events.out.tfevents...'
 
@@ -226,7 +226,6 @@ For subsequent tests in this section we assert file count in logdir.
     >>> len(findl(logdir))
     9
 
-
 Now the fun begins! Each new run that arrives may or may not fall
 within the scheme inferred from the first set of runs. Runs that fall
 within the scheme are logged without warning. Runs that do not
@@ -235,11 +234,11 @@ generate one or more warnings.
 Let's generate a run that falls within the scheme, specifically:
 
 - `a` is a number
-- `b` can be anything (it was mixed to begin with)
+- `b` is a number
 - `c` is one of the three known string values
 - `d` is boolean
 
-    >>> project.run("op", flags={"a": 0, "b": False, "c": "hola", "d": False})
+    >>> project.run("op", flags={"a": 0, "b": 1, "c": "hola", "d": False})
     m1: 1.123
 
 With this new run, let's run the monitor.
@@ -262,7 +261,10 @@ Next we generate a run that falls outside the scheme.
 - `c` is not one of the three original values
 - `d` is not a boolean
 
-    >>> project.run("op", flags={"a": "0", "c": "bye", "d": 1})
+We need to use force-flags because the values violate our operation
+flag type constraints.
+
+    >>> project.run("op", flags={"a": "zero", "c": "bye", "d": "a_str"}, force_flags=True)
     m1: 1.123
 
 When we ask the monitor to process this run, it logs warnings about
@@ -274,7 +276,7 @@ each incompatibility.
     >>> log.print_all()
     DEBUG: [guild] Refreshing runs
     WARNING: Runs found with hyperparameter values that cannot be displayed in the
-             HPARAMS plugin: a='0', c=bye, d=1. Restart this command to view them.
+             HPARAMS plugin: a=zero, c=bye. Restart this command to view them.
     DEBUG: [guild] hparam experiment:
            hparams=['a', 'b', 'c', 'd', 'extra_metrics', 'sourcecode']
            metrics=['m1', 'time']
@@ -295,7 +297,7 @@ In this case, the monitor warns of new hyperparameters.
     WARNING: Runs found with new hyperparameters: e. These hyperparameters
              will NOT appear in the HPARAMS plugin. Restart this command to view them.
     WARNING: Runs found with hyperparameter values that cannot be displayed in the
-             HPARAMS plugin: a='0', c=bye. Restart this command to view them.
+             HPARAMS plugin: a=zero, c=bye. Restart this command to view them.
     DEBUG: [guild] hparam experiment:
            hparams=['a', 'b', 'c', 'd', 'extra_metrics', 'sourcecode']
            metrics=['m1', 'time']
@@ -322,7 +324,7 @@ original set. This too causes the monitor to log a warning.
     WARNING: Runs found with new hyperparameters: e. These hyperparameters
              will NOT appear in the HPARAMS plugin. Restart this command to view them.
     WARNING: Runs found with hyperparameter values that cannot be displayed in the
-             HPARAMS plugin: a='0', c=bye. Restart this command to view them.
+             HPARAMS plugin: a=zero, c=bye. Restart this command to view them.
     WARNING: Runs found with new metrics: m2, m3. These runs will NOT appear in the
              HPARAMS plugin. Restart this command to view them.
     DEBUG: [guild] hparam experiment:

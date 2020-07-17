@@ -1,0 +1,3 @@
+# Flag Types
+
+    >>> False

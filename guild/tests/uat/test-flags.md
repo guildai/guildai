@@ -6,9 +6,15 @@
     ### Script flags for train
     reading flags for main spec 'mnist_mlp_10sec'
     mnist_mlp_10sec.py flags imported for dest 'globals':
-      batch_size: 128
-      epochs: 20
-      num_classes: 10
+      batch_size:
+        default: 128
+        type: number
+      epochs:
+        default: 20
+        type: number
+      num_classes:
+        default: 10
+        type: number
     ### Script flags for train-args
     reading flags for main spec 'mnist_mlp_args'
     mnist_mlp_args.py flags imported for dest 'args':
@@ -40,7 +46,7 @@
     flags:
       batch_size:
         default: 128
-        type:
+        type: number
         required: no
         arg-name:
         arg-skip:
@@ -54,7 +60,7 @@
         null-label:
       epochs:
         default: 20
-        type:
+        type: number
         required: no
         arg-name:
         arg-skip:
@@ -68,7 +74,7 @@
         null-label:
       num_classes:
         default: 10
-        type:
+        type: number
         required: no
         arg-name:
         arg-skip:
@@ -86,9 +92,15 @@
     ### Script flags for train
     reading flags for main spec 'mnist_mlp_10sec'
     mnist_mlp_10sec.py flags imported for dest 'globals':
-      batch_size: 128
-      epochs: 20
-      num_classes: 10
+      batch_size:
+        default: 128
+        type: number
+      epochs:
+        default: 20
+        type: number
+      num_classes:
+        default: 10
+        type: number
     ### Script flags for train-args
     reading flags for main spec 'mnist_mlp_args'
     mnist_mlp_args.py flags imported for dest 'args':

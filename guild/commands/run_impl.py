@@ -109,7 +109,7 @@ class Operation(oplib.Operation):
 def _state_for_args(args):
     S = State(args)
     if S.args.help_op:
-        _op_init_opdef(S.args.opspec, S.user_op)
+        _op_init_opdef(S.args.opspec, S.user_op, S.args)
     else:
         _state_init_restart_or_proto_run(S)
         _state_init_user_op(S)
@@ -185,8 +185,8 @@ def _local_run_for_spec(spec):
 def _state_init_user_op(S):
     _user_op_init_run(S)
     _op_init_force_sourcecode(S.args.force_sourcecode, S.user_op)
+    _op_init_opdef(S.args.opspec, S.user_op, S.args)
     _op_init_user_flags(S.args.flags, S.user_op)
-    _op_init_opdef(S.args.opspec, S.user_op)
     _op_init_op_cmd(S.user_op)
     _op_init_op_flags(S.args, S.user_op)
     _op_init_config(S.args.label, S.args.tag, S.user_op)
@@ -219,7 +219,7 @@ def _op_init_force_sourcecode(force_sourcecode_arg, op):
 
 
 def _op_init_user_flags(flag_args, op):
-    op._user_flag_vals, batch_files = _split_flag_args(flag_args)
+    op._user_flag_vals, batch_files = _split_flag_args(flag_args, op._opdef)
     if batch_files:
         trials = _trials_for_batch_files(batch_files)
         if len(trials) == 1:
@@ -228,15 +228,15 @@ def _op_init_user_flags(flag_args, op):
             op._batch_trials = trials
 
 
-def _split_flag_args(flag_args):
+def _split_flag_args(flag_args, opdef):
     batch_files, rest_args = op_util.split_batch_files(flag_args)
-    assigns = _parse_assigns(rest_args)
+    assigns = _parse_assigns(rest_args, opdef)
     return assigns, batch_files
 
 
-def _parse_assigns(assign_args):
+def _parse_assigns(assign_args, opdef):
     try:
-        return op_util.parse_flag_assigns(assign_args)
+        return op_util.parse_flag_assigns(assign_args, opdef)
     except op_util.ArgValueError as e:
         _invalid_flag_arg_error(e.arg)
 
@@ -267,11 +267,11 @@ def _apply_single_trial_user_flags(trial, op):
 # =================================================================
 
 
-def _op_init_opdef(opspec, op):
+def _op_init_opdef(opspec, op, args):
     if opspec:
         op._opdef = _opdef_for_opspec(opspec)
     elif op._run:
-        if op._user_flag_vals or op._force_sourcecode:
+        if args.flags or args.force_sourcecode:
             # We need opdef for restart/run-with-proto when user specifies
             # flag values or when force-sourcecode is specified.
             op._opdef = _opdef_for_run(op._run)

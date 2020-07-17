@@ -325,6 +325,54 @@ To log convert warnings, we use a log capture:
 
     >>> logs = LogCapture(strip_ansi_format=True)
 
+### Explicit Types
+
+When a `flag_type` arg is used with `decode`, the function uses the
+type rather than apply any default behavior. The special type 'auto'
+may be specified, which is equivalent to the default behavior.
+
+    >>> decode("1", "string")
+    '1'
+
+    >>> decode("001", "string")
+    '001'
+
+    >>> decode("no", "string")
+    'no'
+
+    >>> decode("001", "auto")
+    1
+
+Strings that signal YAML-encoding are decoded using the standard rules.
+
+Quoted strings:
+
+    >>> decode("'1'", "string")
+    '1'
+
+    >>> decode("\"1\"", "string")
+    '1'
+
+Lists:
+
+    >>> decode("[1,2,3]", "string")
+    [1, 2, 3]
+
+    >>> decode("[001,002,003]", "string")
+    [1, 2, 3]
+
+    >>> decode("['001','002','003']", "string")
+    ['001', '002', '003']
+
+An unsupported type logs a warning.
+
+    >>> with LogCapture(strip_ansi_format=True) as logs:
+    ...     decode("1", "foo")
+    1
+
+    >>> logs.print_all()
+    WARNING: uknown flag type foo, assuming 'auto'
+
 #### `range` function
 
 `range` is used to define a sequence of values that fall within a

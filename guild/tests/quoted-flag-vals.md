@@ -19,7 +19,12 @@ using YAML. This allows `guild.op_main` to decode to the correct type
 without additional type information (e.g. as is the case with
 `argparse` parsers).
 
-Typed values:
+The script `globals.py` uses None values for its globals to ensure
+that type information isn't used to convert values provided in the
+tests below. Default flag values impart an implicit flag type. Setting
+values to None defines the flags without types.
+
+Here are some flag values that we initially assign:
 
     >>> flag_vals = {
     ...     "f1": 1,
@@ -58,6 +63,8 @@ Run the operation:
     'c' <str>
     True <bool>
 
+Here are some examples
+
 In this scenario, we provide the same values as strings.
 
     >>> flag_vals = {
@@ -84,16 +91,10 @@ When we run the operation, each value is a string.
 Here are some alternative quoted lists.
 
     >>> project.run("globals.py", {"f3": "['a','b','c']"})
-    1 <int>
-    1.1 <float>
     "['a','b','c']" <str>
-    True <bool>
 
     >>> project.run("globals.py", {"f3": "[a,b,c]"})
-    1 <int>
-    1.1 <float>
     '[a,b,c]' <str>
-    True <bool>
 
 Note that Guild does not support setting Python lists as global
 values. A list always triggers a batch.
@@ -102,16 +103,10 @@ Tuples generate a batch as if they were a list (YAML doesn't support
 encoding tuples and so tuples are implicitly treated as lists).
 
     >>> project.run("globals.py", {"f1": (2, 3)})
-    INFO: [guild] Running trial ...: globals.py (f1=2, f2=1.1, f3=hello, f4=yes)
+    INFO: [guild] Running trial ...: globals.py (f1=2)
     2 <int>
-    1.1 <float>
-    'hello' <str>
-    True <bool>
-    INFO: [guild] Running trial ...: globals.py (f1=3, f2=1.1, f3=hello, f4=yes)
+    INFO: [guild] Running trial ...: globals.py (f1=3)
     3 <int>
-    1.1 <float>
-    'hello' <str>
-    True <bool>
 
 Complex types can be passed through.
 
@@ -123,19 +118,16 @@ Complex types can be passed through.
 
     >>> project.run("globals.py", flag_vals, print_cmd=True)
     ??? -um guild.op_main globals
-          --f1 1
           --f2 '{a: 1.123, b: 2.234}'
           --f3 '!!set {1: null, 2: null, 3: null}'
           --f4 '{a: [1, 2, 3], b: 123, c: !!set {1: null, 2: null, 3: null}}'
 
     >>> project.run("globals.py", flag_vals) # doctest: -PY3
-    1 <int>
     {'a': 1.123, 'b': 2.234} <dict>
     set([1, 2, 3]) <set>
     {'a': [1, 2, 3], 'b': 123, 'c': set([1, 2, 3])} <dict>
 
     >>> project.run("globals.py", flag_vals) # doctest: -PY2
-    1 <int>
     {'a': 1.123, 'b': 2.234} <dict>
     {1, 2, 3} <set>
     {'a': [1, 2, 3], 'b': 123, 'c': {1, 2, 3}} <dict>
@@ -148,15 +140,13 @@ To pass through as string, they must be quoted.
     ...     "f4": '{"a": [1,2,3], "b": 123, "c": {1,2,3}}}'
     ... }
 
-    >>> project.run("globals.py", flag_vals, print_cmd=True)
+    >> project.run("globals.py", flag_vals, print_cmd=True)
     ??? -um guild.op_main globals
-            --f1 1
             --f2 "'{"a": 1.123, "b": 2.234}'"
             --f3 "'{1,2,3}'"
             --f4 "'{"a": [1,2,3], "b": 123, "c": {1,2,3}}}'"
 
     >>> project.run("globals.py", flag_vals)
-    1 <int>
     '{"a": 1.123, "b": 2.234}' <str>
     '{1,2,3}' <str>
     '{"a": [1,2,3], "b": 123, "c": {1,2,3}}}' <str>

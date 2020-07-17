@@ -1211,6 +1211,7 @@ def coerce_flag_value(val, flagdef):
         val is None
         or not flagdef
         or not flagdef.type
+        or flagdef.type == "auto"
         or flag_util.is_flag_function(val)
     ):
         return val
@@ -1410,16 +1411,22 @@ def flag_assign(name, val):
     return "%s=%s" % (name, flag_util.format_flag(val))
 
 
-def parse_flag_assigns(args):
-    return dict([parse_flag_arg(os.path.expanduser(arg)) for arg in args])
+def parse_flag_assigns(args, opdef=None):
+    flag_types = _flag_types_for_opdef(opdef) if opdef else None
+    return dict([parse_flag_arg(os.path.expanduser(arg), flag_types) for arg in args])
 
 
-def parse_flag_arg(arg):
+def _flag_types_for_opdef(opdef):
+    return {flagdef.name: flagdef.type for flagdef in opdef.flags}
+
+
+def parse_flag_arg(arg, flag_types=None):
     parts = arg.split("=", 1)
     if len(parts) == 1:
         raise ArgValueError(arg)
     else:
-        return parts[0], flag_util.decode_flag_val(parts[1])
+        flag_type = flag_types.get(parts[0]) if flag_types else None
+        return parts[0], flag_util.decode_flag_val(parts[1], flag_type)
 
 
 def args_to_flags(args):

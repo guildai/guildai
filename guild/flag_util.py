@@ -65,25 +65,17 @@ def _encode_dict(d):
     return "{%s}" % ", ".join(["%s: %s" % kv for kv in encoded_kv])
 
 
-def decode_flag_val(s, nofix=False):
-    decoded = _decode_flag_val(s, nofix)
+def decode_flag_val(s, flag_type=None, nofix=False):
+    decoded = _decode_flag_val(s, flag_type, nofix)
     if nofix:
         return decoded
     return _fix_surprising_number(decoded, s)
 
 
-def _decode_flag_val(s, nofix=False):
+def _decode_flag_val(s, flag_type=None, nofix=False):
     if s == "":
         return s
-    decoders = [
-        (int, ValueError),
-        (_flag_function_or_expanded_sequence, ValueError),
-        (_concatenated_list, ValueError),
-        (
-            util.decode_yaml if nofix else _decode_yaml_with_fix,
-            (ValueError, yaml.YAMLError),
-        ),
-    ]
+    decoders = _flag_decoders_for_type(flag_type, nofix)
     for f, e_type in decoders:
         try:
             return f(s)
@@ -92,6 +84,40 @@ def _decode_flag_val(s, nofix=False):
         except Exception as e:
             log.warning("error decoding %r: %s", s, e)
     return s
+
+
+def _flag_decoders_for_type(flag_type, nofix):
+    return _base_decoders_for_type(flag_type) + _default_flag_decoders(nofix)
+
+
+def _base_decoders_for_type(flag_type):
+    if flag_type in (None, "auto", "boolean", "number", "int", "float"):
+        return []
+    elif flag_type in ("string", "path", "existing-path"):
+        return [(_string_type, ValueError)]
+    else:
+        log.warning("uknown flag type %s, assuming 'auto'", flag_type)
+        return []
+
+
+def _string_type(s):
+    # Special handling for strings that look like they're formatted as
+    # YAML.
+    if s[:1] in ("[", "'", "\"", "{"):
+        raise ValueError()
+    return six.text_type(s)
+
+
+def _default_flag_decoders(nofix):
+    return [
+        (int, ValueError),
+        (_flag_function_or_expanded_sequence, ValueError),
+        (_concatenated_list, ValueError),
+        (
+            util.decode_yaml if nofix else _decode_yaml_with_fix,
+            (ValueError, yaml.YAMLError),
+        ),
+    ]
 
 
 def _flag_function_or_expanded_sequence(s):
