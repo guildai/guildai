@@ -112,11 +112,10 @@ def run(tests, skip=None):
 def _run_test(name):
     sys.stdout.write("  %s: " % name)
     sys.stdout.flush()
-    filename = _test_filename(name)
+    filename, globs = _filename_and_globals_for_test(name)
     if _skip_windows_test(filename):
         _log_skipped_windows_test(name)
         return True
-    globs = test_globals()
     try:
         failures, _tests = run_test_file(filename, globs)
     except IOError:
@@ -128,9 +127,21 @@ def _run_test(name):
         return failures == 0
 
 
+def _filename_and_globals_for_test(name_or_path):
+    if name_or_path[-3:] == ".md":
+        return os.path.abspath(name_or_path), _uat_test_globals()
+    else:
+        return _test_filename(name_or_path), test_globals()
+
+
+def _uat_test_globals():
+    from guild import uat
+
+    return uat.test_globals()
+
+
 def _test_filename(name):
-    # Path must be relative to module
-    return os.path.join("tests", name + ".md")
+    return _resolve_relative_test_filename(os.path.join("tests", name + ".md"))
 
 
 def _skip_windows_test(filename):
@@ -163,6 +174,7 @@ def _log_test_ok(name):
 
 
 def run_test_file(filename, globs):
+    filename = _resolve_relative_test_filename(filename)
     return run_test_file_with_config(
         filename,
         globs=globs,
@@ -179,6 +191,14 @@ def run_test_file(filename, globs):
             | PY3
         ),
     )
+
+
+def _resolve_relative_test_filename(filename):
+    if os.path.isabs(filename):
+        return filename
+    package = doctest._normalize_module(None, 3)
+    return doctest._module_relative_path(package, filename)
+
 
 
 def _report_first_flag():
@@ -304,7 +324,6 @@ def _load_testfile(filename):
     # Copied from Python 3.6 doctest._load_testfile to ensure utf-8
     # encoding on Python 2.
     package = doctest._normalize_module(None, 3)
-    filename = doctest._module_relative_path(package, filename)
     if getattr(package, '__loader__', None) is not None:
         if hasattr(package.__loader__, 'get_data'):
             file_contents = package.__loader__.get_data(filename)

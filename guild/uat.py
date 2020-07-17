@@ -35,7 +35,7 @@ from guild import pip_util
 from guild import util
 
 INDEX = "tests/uat/README.md"
-WORKSPACE = os.path.abspath(os.getenv("WORKSPACE") or "GUILD-UAT-WORKSPACE")
+WORKSPACE = os.path.abspath(os.getenv("WORKSPACE") or "")
 GUILD_HOME = os.path.join(WORKSPACE, ".guild")
 TEMP = tempfile.gettempdir()
 GUILD_PKG = os.path.abspath(guild.__pkgdir__)
@@ -76,7 +76,7 @@ def _mark_passed_tests():
 
 
 def _run_tests(tests):
-    globs = _test_globals()
+    globs = test_globals()
     to_skip = os.getenv("UAT_SKIP", "").split(",")
     for name in tests:
         print("Running %s:" % name)
@@ -96,7 +96,7 @@ def _run_tests(tests):
             sys.exit(1)
 
 
-def _test_globals():
+def test_globals():
     globs = guild._test.test_globals()
     globs.update(_global_vars())
     globs.update(
