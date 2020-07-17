@@ -20,8 +20,12 @@ import hashlib
 import logging
 import os
 import sys
+import warnings
 
-import setuptools
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", UserWarning)
+    import setuptools
+
 import six
 import yaml
 
