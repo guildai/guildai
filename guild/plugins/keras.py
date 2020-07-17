@@ -62,9 +62,9 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
         op_method = self._op_method(script)
         return imports_keras and op_method
 
-    def _imports_keras(self, script):
+    @staticmethod
+    def _imports_keras(script):
         imports = script.imports
-        self.log.debug("%s imports: %s", script.src, imports)
         return any(
             (
                 name == "keras"
