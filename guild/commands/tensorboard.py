@@ -63,7 +63,7 @@ from . import server_support
     "--export-scalars",
     metavar="PATH",
     help=(
-        "Export all scalaras for a run to a CSV file. Use '-' to write "
+        "Export all scalars for a run to a CSV file. Use '-' to write "
         "to standard output."
     ),
 )

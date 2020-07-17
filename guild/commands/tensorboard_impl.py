@@ -42,9 +42,18 @@ def main(args):
 
 
 def _export_scalars(args):
-
     for run in _list_runs_cb(args)():
         print(run)
+
+
+def _open_file(path):
+    if path == "-":
+        return util.StdIOContextManager(sys.stdout)
+    util.ensure_dir(os.path.dirname(path))
+    try:
+        return open(path, "w")
+    except (OSError, IOError) as e:
+        cli.error("error opening %s: %s" % (path, e))
 
 
 def _run_tensorboard(args):

@@ -2,7 +2,7 @@
 
 Use noisy example:
 
-    >>> cd(example("get-started-legacy"))
+    >>> cd(example("get-started"))
 
 Delete runs for tests.
 

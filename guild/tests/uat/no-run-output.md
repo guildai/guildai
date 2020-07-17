@@ -1,8 +1,8 @@
 # No run output
 
-Use the `get-started-legacy` example for these tests.
+Use the `get-started` example for these tests.
 
-    >>> cd(example("get-started-legacy"))
+    >>> cd(example("get-started"))
 
 The environment variable `NO_RUN_OUTPUT` tells Guild to not capture
 and save run output. Output is still displayed on stdout and stderr

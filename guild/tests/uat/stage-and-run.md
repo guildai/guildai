@@ -2,7 +2,7 @@
 
 Stage runs for the train example.
 
-    >>> cd(example("get-started-legacy"))
+    >>> cd(example("get-started"))
 
 Delete runs in preparation for these tests.
 
@@ -38,7 +38,7 @@ Show latest staged run:
     >>> run("guild runs info --staged")
     id: ...
     operation: train.py
-    from: .../get-started-legacy
+    from: .../get-started
     status: staged
     started: ...
     stopped:
