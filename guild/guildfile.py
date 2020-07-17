@@ -1068,14 +1068,13 @@ class OpDef(object):
         except KeyError:
             return default
 
-    # TODO: remove on op2 promote
-    def merge_flags(self, op):
-        """Merges flags defined in op into self
+    def merge_flags(self, opdef):
+        """Merges flags defined in opdef into self
 
-        Self values take precedence over op values.
+        Self values take precedence over opdef values.
         """
         merged = {}
-        for op_flag in op.flags:
+        for op_flag in opdef.flags:
             self_flag = self._mergeable_flagdef(op_flag.name)
             if self_flag is None:
                 merged[op_flag.name] = _new_merged_flag(op_flag, self)
