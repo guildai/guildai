@@ -17,5 +17,5 @@ scikit-optimize>=0.7.1
 setuptools>=40.6.3
 six>=1.10.0
 tabview>=1.4.3
-tensorboard>=1.15
+tensorboard>=1.15,<2.3
 virtualenv>=15.1.0
