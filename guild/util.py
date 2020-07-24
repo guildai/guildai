@@ -1003,10 +1003,10 @@ def find_python_interpreter(version_spec):
         raise ValueError(version_spec)
     python_interps = {ver: path for path, ver in python_interpreters()}
     matching = list(req.specifier.filter(sorted(python_interps)))
-    if matching:
-        matching_ver = matching[0]
-        return python_interps[matching_ver], matching_ver
-    return None
+    if not matching:
+        return None
+    matching_ver = matching[0]
+    return python_interps[matching_ver], matching_ver
 
 
 def is_executable_file(path):
