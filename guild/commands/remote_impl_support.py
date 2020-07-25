@@ -301,6 +301,7 @@ def _check_kw(args):
         "all_tests",
         "check_url",
         "no_info",
+        "notify",
         "remote",
         "skip",
         "tests",
