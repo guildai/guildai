@@ -100,3 +100,18 @@
     pr-curve:
       description: TensorBoard PR curve demo
       main: pr_curve --logdir .
+
+    all:
+      description: Run all operations using default flag values
+      steps:
+        - loss-scalar
+        - custom-scalar
+        - images
+        - graphs
+        - hparams
+        - hparams-grid-search
+        - hparams-optimize
+        - projector
+        - projector2
+        - audio
+        - pr-curve
