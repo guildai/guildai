@@ -85,6 +85,15 @@ def main(args):
 
 
 def _check(args):
+    try:
+        _check_impl(args)
+    except SystemExit as e:
+        _maybe_notify(args, e)
+        raise
+    else:
+        _maybe_notify(args)
+
+def _check_impl(args):
     if args.version:
         _check_version(args.version)
     if args.uat:
@@ -421,3 +430,24 @@ def _general_error_msg(args):
 
 def _warn(msg):
     return click.style(msg, fg="red", bold=True)
+
+
+def _maybe_notify(args, error=None):
+    from guild import main
+
+    if not args.notify:
+        return
+    notify_send = util.which("notify-send")
+    if not notify_send:
+        log.warning("cannot notify check result - notify-send not available")
+        return
+    summary = "guild check"
+    if error:
+        error_msg, code = main.system_exit_params(error)
+        body = "FAILED (%i): %s" % (code, error_msg or '')
+        urgency = "critical"
+    else:
+        body = "PASSED"
+        urgency = "normal"
+    cmd = ["notify-send", "-u", urgency, summary, body]
+    _ = subprocess.check_output(cmd)

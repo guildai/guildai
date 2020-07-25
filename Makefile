@@ -35,11 +35,11 @@ pip-clean:
 
 check:
 	@if [ -z "$(TESTS)" ]; then \
-	  opts="-n --tests"; \
+	  opts="-n --tests --notify"; \
 	else \
 	  opts="-n "; \
 	  if [ "$(TESTS)" = "all" ]; then \
-	    opts="$$opts --tests"; \
+	    opts="$$opts --tests --notify"; \
 	  else \
 	    for test in $(TESTS); do \
 	      opts="$$opts -t $$test"; \
@@ -67,7 +67,7 @@ UAT_PYTHON = python3
 
 uat:
 	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(guild-uat) -y
-	@. $(guild-uat)/bin/activate && WORKSPACE=$(guild-uat) EXAMPLES=examples $(guild) check --uat
+	@. $(guild-uat)/bin/activate && WORKSPACE=$(guild-uat) EXAMPLES=examples $(guild) check --uat --notify
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
 
 clean-uat:

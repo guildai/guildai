@@ -77,13 +77,18 @@ def _print_error_and_exit(msg, exit_status):
 
 
 def _handle_system_exit(e):
+    msg, code = system_exit_params(e)
+    _print_error_and_exit(msg, code)
+
+
+def system_exit_params(e):
     if isinstance(e.code, tuple) and len(e.code) == 2:
         msg, code = e.code
     elif isinstance(e.code, int):
         msg, code = None, e.code
     else:
         msg, code = e.message, exit_code.DEFAULT_ERROR
-    _print_error_and_exit(msg, code)
+    return msg, code
 
 
 def _profile_main():

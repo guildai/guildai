@@ -49,6 +49,9 @@ from . import remote_support
 @click.option("-v", "--verbose", help="Show more information.", is_flag=True)
 @click.option("--space", help="Show disk space usage for Guild files.", is_flag=True)
 @click.option("--version", metavar="REQUIRED", help="Check the installed version.")
+@click.option(
+    "--notify", is_flag=True, help="Send system notification when check is complete."
+)
 @remote_support.remote_option("Check remote environment.")
 @click.option(
     "--offline/--no-offline",
