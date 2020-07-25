@@ -508,6 +508,7 @@ def create_app(
         warnings.simplefilter("ignore", Warning)
         from tensorboard import program
         from tensorboard.backend import application
+
     try:
         TensorBoard = program.TensorBoard
     except AttributeError:

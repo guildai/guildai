@@ -15,15 +15,18 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import csv
 import logging
 import os
 import re
+import sys
 import time
 
 from guild import batch_util
 from guild import cli
 from guild import op_util
 from guild import run_util
+from guild import tfevent
 from guild import util
 
 from . import runs_impl
@@ -42,8 +45,14 @@ def main(args):
 
 
 def _export_scalars(args):
-    for run in _list_runs_cb(args)():
-        print(run)
+    with _open_file(args.export_scalars) as f:
+        out = csv.writer(f)
+        out.writerow(["run", "path", "tag", "value", "step"])
+        for run in _list_runs_cb(args)():
+            for path, _digest, reader in tfevent.scalar_readers(run.dir):
+                subpath = os.path.relpath(path, run.dir)
+                for tag, value, step in reader:
+                    out.writerow([run.id, subpath, tag, value, step])
 
 
 def _open_file(path):

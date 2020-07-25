@@ -265,6 +265,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [staged-dependency-error](staged-dependency-error.md)
 - [link-vs-copy-dep](link-vs-copy-dep.md)
 - [test-flags](test-flags.md)
+- [tensorboard-export-scalars](tensorboard-export-scalars.md)
 
 ## Error cases
 
