@@ -485,3 +485,9 @@ can execute the script.
 
     >>> test_package_version("0.7.1.dev1", ">=0.7.0")
     True
+
+This is unexpected but it's the actual behavior when you check for
+pre-releases:
+
+    >>> test_package_version("0.7.1.dev1", "<0.7.1")
+    False

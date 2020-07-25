@@ -33,7 +33,6 @@ from guild import cli
 from guild import config
 from guild import file_util
 from guild import plugin
-from guild import python_util
 from guild import uat
 from guild import util
 from guild import var
@@ -101,7 +100,7 @@ def _check(args):
 
 def _check_version(req):
     try:
-        match = python_util.test_package_version(guild.__version__, req)
+        match = guild.test_version(req)
     except ValueError:
         cli.error(
             "invalid requirement spec '%s'\n"

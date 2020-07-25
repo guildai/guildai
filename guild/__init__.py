@@ -78,4 +78,10 @@ def version():
         return __version__
 
 
+def test_version(req):
+    from guild import python_util
+
+    return python_util.test_package_version(__version__, req)
+
+
 _try_init_git_attrs()
