@@ -153,11 +153,8 @@ packages) are named with a starting '.' and a path leading to the
 model name. Paths in these names are always relative to the current
 working directory.
 
-    >>> intro.fullname[0]
-    '.'
-
     >>> intro.fullname
-    '.../tests/samples/projects/mnist-pkg/intro'
+    './samples/projects/mnist-pkg/intro'
 
 Models from installed packages are named with their Guild package
 names (i.e. after namespaces are applied) and do not start with a '.'.

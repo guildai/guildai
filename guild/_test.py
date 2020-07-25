@@ -38,14 +38,18 @@ import codecs
 import doctest
 import fnmatch
 import glob
+import errno
 import json
 import os
 import platform
 import pprint
 import re
 import shutil
+import signal
+import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 import six
@@ -112,12 +116,12 @@ def run(tests, skip=None):
 def _run_test(name):
     sys.stdout.write("  %s: " % name)
     sys.stdout.flush()
-    filename, globs = _filename_and_globals_for_test(name)
+    filename = _filename_for_test(name)
     if _skip_windows_test(filename):
         _log_skipped_windows_test(name)
         return True
     try:
-        failures, _tests = run_test_file(filename, globs)
+        failures, _tests = run_test_file(filename)
     except IOError:
         _log_test_not_found(name)
         return False
@@ -127,17 +131,11 @@ def _run_test(name):
         return failures == 0
 
 
-def _filename_and_globals_for_test(name_or_path):
+def _filename_for_test(name_or_path):
     if name_or_path[-3:] == ".md":
-        return os.path.abspath(name_or_path), _uat_test_globals()
+        return os.path.abspath(name_or_path)
     else:
-        return _test_filename(name_or_path), test_globals()
-
-
-def _uat_test_globals():
-    from guild import uat
-
-    return uat.test_globals()
+        return _test_filename(name_or_path)
 
 
 def _test_filename(name):
@@ -173,8 +171,9 @@ def _log_test_ok(name):
     sys.stdout.flush()
 
 
-def run_test_file(filename, globs):
+def run_test_file(filename, globs=None):
     filename = _resolve_relative_test_filename(filename)
+    globs = globs or test_globals()
     return run_test_file_with_config(
         filename,
         globs=globs,
@@ -198,7 +197,6 @@ def _resolve_relative_test_filename(filename):
         return filename
     package = doctest._normalize_module(None, 3)
     return doctest._module_relative_path(package, filename)
-
 
 
 def _report_first_flag():
@@ -293,6 +291,12 @@ class TestRunner(doctest.DocTestRunner, object):
 
 
 def run_test_file_with_config(filename, globs, optionflags):
+    test_dir = os.path.dirname(filename)
+    with util.Chdir(test_dir):
+        return _run_test_file_with_config(filename, globs, optionflags)
+
+
+def _run_test_file_with_config(filename, globs, optionflags):
     """Modified from doctest.py to use custom checker."""
     text, filename = _load_testfile(filename)
     name = os.path.basename(filename)
@@ -357,6 +361,8 @@ def test_globals():
         "compare_paths": util.compare_paths,
         "copyfile": copyfile,
         "copytree": util.copytree,
+        "cd": _chdir,
+        "cwd": os.getcwd,
         "dir": dir,
         "dirname": os.path.dirname,
         "ensure_dir": util.ensure_dir,
@@ -378,11 +384,13 @@ def test_globals():
         "os": os,
         "path": os.path.join,
         "pprint": pprint.pprint,
+        "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
         "re": re,
         "realpath": util.realpath,
         "relpath": os.path.relpath,
         "rm": os.remove,
         "rmdir": util.safe_rmtree,
+        "run": _run,
         "sample": sample,
         "samples_dir": samples_dir,
         "sha256": util.file_sha256,
@@ -438,7 +446,7 @@ def cat_json(*parts):
         json.dump(data, sys.stdout, sort_keys=True, indent=4, separators=(",", ": "))
 
 
-def dir(path, ignore=None):
+def dir(path=".", ignore=None):
     return sorted(
         [
             name
@@ -880,3 +888,73 @@ def _strip_class_module(class_name):
 
 def _normlf(s):
     return s.replace("\r", "")
+
+
+def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
+    cmd = "set -eu && %s" % cmd
+    p = subprocess.Popen(
+        [cmd],
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        preexec_fn=os.setsid,
+    )
+    with _kill_after(p, timeout):
+        exit_code = p.wait()
+        out = p.stdout.read()
+    if not quiet or exit_code != 0:
+        out = out.strip().decode("utf-8")
+        if ignore:
+            out = _strip_lines(out, ignore)
+        if cut:
+            out = _cut_cols(out, cut)
+        print(out)
+        print("<exit %i>" % exit_code)
+
+
+class _kill_after(object):
+    def __init__(self, p, timeout):
+        self._p = p
+        self._timer = threading.Timer(timeout, self._kill)
+
+    def _kill(self):
+        try:
+            os.killpg(os.getpgid(self._p.pid), signal.SIGKILL)
+        except OSError as e:
+            if e.errno != errno.ESRCH:  # no such process
+                raise
+
+    def __enter__(self):
+        self._timer.start()
+
+    def __exit__(self, _type, _val, _tb):
+        self._timer.cancel()
+
+
+def _strip_lines(out, patterns):
+    if isinstance(patterns, str):
+        patterns = [patterns]
+    stripped_lines = [
+        line
+        for line in out.split("\n")
+        if not any((re.search(p, line) for p in patterns))
+    ]
+    return "\n".join(stripped_lines)
+
+
+def _cut_cols(out, to_cut):
+    assert isinstance(to_cut, list) and to_cut, to_cut
+    cut_lines = [_cut_line(line, to_cut) for line in out.split("\n")]
+    return "\n".join([" ".join(cut_line) for cut_line in cut_lines])
+
+
+def _cut_line(line, to_cut):
+    cut_line = []
+    cols = line.split()
+    for i in to_cut:
+        cut_line.extend(cols[i : i + 1])
+    return cut_line
+
+
+def _chdir(s):
+    os.chdir(os.path.expandvars(s))

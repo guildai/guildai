@@ -7,7 +7,7 @@ definition. It can also be run using the `-C` option.
 For our tests we'll just run the command in the `mnist` package
 directory:
 
-    >>> cd("packages/gpkg/mnist")
+    >>> cd("$WORKSPACE/packages/gpkg/mnist")
     >>> run("guild package", ignore=[
     ...     'Normalizing', 'normalized_version,',
     ...     'FutureWarning', 'Refreshing'])

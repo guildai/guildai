@@ -54,3 +54,22 @@ Not unicode:
 
     >>> checker._strip_u("('cpu', 'hi')") # doctest: -STRIP_U
     "('cpu', 'hi')"
+
+## Current directory
+
+Guild ensures that the current directory is the test file parent
+directory.
+
+    >>> cwd()
+    '.../guild/tests'
+
+    >>> dir()
+    ['Makefile', ..., 'test.md', ...]
+
+Use `cd` to change directories. This change is reverted when the test
+file finishes.
+
+    >>> cd("samples")
+
+    >>> dir()
+    ['config', 'opref-runs', 'packages', 'projects', ...]

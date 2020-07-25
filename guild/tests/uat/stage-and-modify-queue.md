@@ -17,7 +17,7 @@ Create a project with a script that prints a message.
 
 Write v1 of a script:
 
-    >>> write(path(project, "say.py"), "print('Hello v1')")
+    >>> write("say.py", "print('Hello v1')")
 
 Queue an operation for v1:
 
@@ -28,7 +28,7 @@ Queue an operation for v1:
 
 Write v2 of a script:
 
-    >>> write(path(project, "say.py"), "print('Hello v2')")
+    >>> write("say.py", "print('Hello v2')")
 
 Queue an operation for v2:
 

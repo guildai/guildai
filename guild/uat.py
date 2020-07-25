@@ -16,33 +16,32 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import errno
 import fnmatch
 import os
-import pprint
 import re
-import signal
-import subprocess
 import sys
 import tempfile
-import threading
 
 import guild
-import guild._test
-import guild.var
 
+from guild import _test as testlib
 from guild import pip_util
 from guild import util
 
+
 INDEX = "tests/uat/README.md"
-WORKSPACE = os.path.abspath(os.getenv("WORKSPACE") or "")
-GUILD_HOME = os.path.join(WORKSPACE, ".guild")
+try:
+    _workspace_env = os.environ["WORKSPACE"]
+except KeyError:
+    WORKSPACE = None
+    GUILD_HOME = os.path.abspath(".")
+else:
+    WORKSPACE = os.path.abspath(_workspace_env)
+    GUILD_HOME = os.path.join(WORKSPACE, ".guild")
 TEMP = tempfile.gettempdir()
 GUILD_PKG = os.path.abspath(guild.__pkgdir__)
 REQUIREMENTS_PATH = os.path.join(GUILD_PKG, "requirements.txt")
 EXAMPLES = os.path.abspath(os.getenv("EXAMPLES") or os.path.join(GUILD_PKG, "examples"))
-
-_cwd = None
 
 
 def run():
@@ -76,40 +75,31 @@ def _mark_passed_tests():
 
 
 def _run_tests(tests):
-    globs = test_globals()
+    globs = _test_globals()
     to_skip = os.getenv("UAT_SKIP", "").split(",")
-    for name in tests:
-        print("Running %s:" % name)
-        if _skip_test(name, to_skip):
-            print("  skipped (user requested)")
-            continue
-        if _test_passed(name):
-            print("  skipped (already passed)")
-            continue
-        filename = os.path.join("tests", "uat", name + ".md")
-        _reset_cwd()
-        failed, attempted = guild._test.run_test_file(filename, globs)
-        if not failed:
-            print("  %i test(s) passed" % attempted)
-            _mark_test_passed(name)
-        else:
-            sys.exit(1)
+    with _UATEnv():
+        for name in tests:
+            print("Running %s:" % name)
+            if _skip_test(name, to_skip):
+                print("  skipped (user requested)")
+                continue
+            if _test_passed(name):
+                print("  skipped (already passed)")
+                continue
+            filename = os.path.join("tests", "uat", name + ".md")
+            failed, attempted = testlib.run_test_file(filename, globs)
+            if not failed:
+                print("  %i test(s) passed" % attempted)
+                _mark_test_passed(name)
+            else:
+                sys.exit(1)
 
 
-def test_globals():
-    globs = guild._test.test_globals()
+def _test_globals():
+    globs = testlib.test_globals()
     globs.update(_global_vars())
     globs.update(
-        {
-            "cd": _cd,
-            "cwd": _get_cwd,
-            "pprint": pprint.pprint,
-            "run": _run,
-            "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
-            "abspath": os.path.abspath,
-            "sample": _sample,
-            "example": _example_dir,
-        }
+        {"sample": _sample, "example": _example_dir,}
     )
     return globs
 
@@ -123,7 +113,22 @@ def _global_vars():
 
 
 def _sample(path):
-    return os.path.abspath(guild._test.sample(path))
+    return os.path.abspath(testlib.sample(path))
+
+
+def _UATEnv():
+    return testlib.Env(
+        {
+            "COLUMNS": "999",
+            "EXAMPLES": EXAMPLES,
+            "GUILD_HOME": os.path.join(WORKSPACE, ".guild"),
+            "GUILD_PKG": GUILD_PKG,
+            "GUILD_PKGDIR": guild.__pkgdir__,
+            "LANG": os.getenv("LANG", "en_US.UTF-8"),
+            "REQUIREMENTS_PATH": REQUIREMENTS_PATH,
+            "TEMP": TEMP,
+        }
+    )
 
 
 def _skip_test(name, skip_patterns):
@@ -147,117 +152,3 @@ def _test_passed_marker(name):
 
 def _mark_test_passed(name):
     open(_test_passed_marker(name), "w").close()
-
-
-def _reset_cwd():
-    globals()["_cwd"] = None
-
-
-def _cd(path):
-    if not os.path.isdir(os.path.join(WORKSPACE, path)):
-        raise ValueError("'%s' does not exist" % path)
-    globals()["_cwd"] = path
-
-
-def _get_cwd():
-    if _cwd:
-        return os.path.join(WORKSPACE, _cwd)
-    return WORKSPACE
-
-
-def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
-    cmd = "set -eu && %s" % cmd
-    cmd_env = {}
-    cmd_env.update(_global_vars())
-    cmd_env["GUILD_PKGDIR"] = guild.__pkgdir__
-    cmd_env["GUILD_HOME"] = os.path.join(WORKSPACE, ".guild")
-    cmd_env["PATH"] = os.environ["PATH"]
-    cmd_env["LD_LIBRARY_PATH"] = os.getenv("LD_LIBRARY_PATH", "")
-    if "VIRTUAL_ENV" in os.environ:
-        cmd_env["VIRTUAL_ENV"] = os.environ["VIRTUAL_ENV"]
-    cmd_env["COLUMNS"] = "999"
-    cmd_env["LANG"] = os.getenv("LANG", "en_US.UTF-8")
-    cmd_env["AWS_ACCESS_KEY_ID"] = os.getenv("AWS_ACCESS_KEY_ID", "")
-    cmd_env["AWS_SECRET_ACCESS_KEY"] = os.getenv("AWS_SECRET_ACCESS_KEY", "")
-    cmd_env["AWS_DEFAULT_REGION"] = os.getenv("AWS_DEFAULT_REGION", "")
-    if _cwd:
-        cmd_cwd = os.path.join(WORKSPACE, _cwd)
-    else:
-        cmd_cwd = WORKSPACE
-    _apply_ssh_env(cmd_env)
-    p = subprocess.Popen(
-        [cmd],
-        shell=True,
-        env=cmd_env,
-        cwd=cmd_cwd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        preexec_fn=os.setsid,
-    )
-    with _kill_after(p, timeout):
-        exit_code = p.wait()
-        out = p.stdout.read()
-    if not quiet or exit_code != 0:
-        out = out.strip().decode("utf-8")
-        if ignore:
-            out = _strip_lines(out, ignore)
-        if cut:
-            out = _cut_cols(out, cut)
-        print(out)
-        print("<exit %i>" % exit_code)
-
-
-def _apply_ssh_env(env):
-    ssh_env = (
-        "SSH_AUTH_SOCK",
-        "USER",
-    )
-    for name in ssh_env:
-        try:
-            env[name] = os.environ[name]
-        except KeyError:
-            pass
-
-
-class _kill_after(object):
-    def __init__(self, p, timeout):
-        self._p = p
-        self._timer = threading.Timer(timeout, self._kill)
-
-    def _kill(self):
-        try:
-            os.killpg(os.getpgid(self._p.pid), signal.SIGKILL)
-        except OSError as e:
-            if e.errno != errno.ESRCH:  # no such process
-                raise
-
-    def __enter__(self):
-        self._timer.start()
-
-    def __exit__(self, _type, _val, _tb):
-        self._timer.cancel()
-
-
-def _strip_lines(out, patterns):
-    if isinstance(patterns, str):
-        patterns = [patterns]
-    stripped_lines = [
-        line
-        for line in out.split("\n")
-        if not any((re.search(p, line) for p in patterns))
-    ]
-    return "\n".join(stripped_lines)
-
-
-def _cut_cols(out, to_cut):
-    assert isinstance(to_cut, list) and to_cut, to_cut
-    cut_lines = [_cut_line(line, to_cut) for line in out.split("\n")]
-    return "\n".join([" ".join(cut_line) for cut_line in cut_lines])
-
-
-def _cut_line(line, to_cut):
-    cut_line = []
-    cols = line.split()
-    for i in to_cut:
-        cut_line.extend(cols[i : i + 1])
-    return cut_line
