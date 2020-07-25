@@ -12,7 +12,7 @@ filelock>=3.0.12
 jinja2>=2.10
 numpy>=1.16
 pkginfo
-scikit-learn>=0.19.1
+scikit-learn>=0.19.1,<0.23.0
 scikit-optimize>=0.7.1
 setuptools>=40.6.3
 six>=1.10.0
