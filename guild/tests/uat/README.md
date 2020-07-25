@@ -266,6 +266,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [link-vs-copy-dep](link-vs-copy-dep.md)
 - [test-flags](test-flags.md)
 - [tensorboard-export-scalars](tensorboard-export-scalars.md)
+- [guild-patch](guild-patch.md)
 
 ## Error cases
 

@@ -28,6 +28,7 @@ def main(args):
     _init_logging(args)
     config.set_cwd(_cwd(args))
     config.set_guild_home(_guild_home(args))
+    _apply_guild_patch()
 
 
 def _init_logging(args):
@@ -58,3 +59,12 @@ def _validated_dir(path, abs=False, create=False, guild_nocopy=False):
     if guild_nocopy:
         util.ensure_file(os.path.join(path, ".guild-nocopy"))
     return path
+
+
+def _apply_guild_patch():
+    """Look in config cwd for guild_patch.py and load if exists."""
+    patch_path = os.path.join(config.cwd(), "guild_patch.py")
+    if os.path.exists(patch_path):
+        from guild import python_util
+
+        python_util.exec_script(patch_path)
