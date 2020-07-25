@@ -127,6 +127,7 @@ def _UATEnv():
             "LANG": os.getenv("LANG", "en_US.UTF-8"),
             "REQUIREMENTS_PATH": REQUIREMENTS_PATH,
             "TEMP": TEMP,
+            "WORKSPACE": WORKSPACE,
         }
     )
 
