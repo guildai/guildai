@@ -6,7 +6,7 @@ These are general dependency tests.
 
 ## File
 
-    >>> run("guild run file -y", ignore="Refreshing")
+    >>> run("guild run file -y")
     Resolving file:file.txt dependency
     <exit 0>
 

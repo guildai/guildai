@@ -42,9 +42,8 @@ Stage four runs - three will be started within one second (poll
 interval of each of the queues) and the fourth started when a queue is
 empty, 10 seconds later.
 
-   >>> for _ in range(4):
-   ...     run("guild -C '%s' run sleep.py --stage -y" % project_dir)
-    Refreshing flags...
+    >>> for _ in range(4):
+    ...     run("guild -C '%s' run sleep.py --stage -y" % project_dir)
     sleep.py staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>

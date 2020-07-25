@@ -4,7 +4,7 @@
 
 List operations:
 
-    >>> run("guild ops", ignore="Refreshing")
+    >>> run("guild ops")
     hello       Say hello to my friends
     hello-file  Show a message from a file
     hello-op    Show a message from a hello-file operation

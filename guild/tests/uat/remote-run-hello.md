@@ -6,7 +6,7 @@ These tests run various hello operations remotely.
 
 ## `hello`
 
-    >>> run("guild run hello -r guild-uat -y", ignore="Refreshing")
+    >>> run("guild run hello -r guild-uat -y")
     Building package
     ...
     Installing package and its dependencies

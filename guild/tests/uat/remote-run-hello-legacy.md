@@ -6,7 +6,7 @@ These tests run various hello operations remotely.
 
 ## default
 
-    >>> run("guild run default -r guild-uat -l h1 -y", ignore="Refreshing")
+    >>> run("guild run default -r guild-uat -l h1 -y")
     Building package
     ...
     Initializing remote run

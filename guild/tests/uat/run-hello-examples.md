@@ -15,7 +15,7 @@ Delete runs for these tests.
 
 The `hello` uses operation-only format.
 
-    >>> run("guild models", ignore="Refreshing flags")
+    >>> run("guild models")
     <exit 0>
 
 ## Operations

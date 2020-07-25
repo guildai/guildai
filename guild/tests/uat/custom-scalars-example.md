@@ -13,7 +13,7 @@ The sample project requires `tensorboardX`.
 
 Default scalars captured when running `train.py` as a script:
 
-    >>> run("guild run train.py -y", ignore="Refreshing")
+    >>> run("guild run train.py -y")
     step: 1
     loss: 2.345
     accuracy: 0.123

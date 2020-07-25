@@ -14,7 +14,7 @@
 
 Run in background - Guild chooses a pidfile.
 
-    >>> run("guild -C '%s' run sleep.py --background -y" % tmp, ignore="Refreshing")
+    >>> run("guild -C '%s' run sleep.py --background -y" % tmp)
     sleep.py started in background as ... (pidfile ...)
     <exit 0>
 
@@ -96,7 +96,7 @@ Run steps in the background::
 
 Wait for operation:
 
-    >>> run("guild watch", timeout=10, ignore="Refreshing")
+    >>> run("guild watch", timeout=10)
     Watching run ...
     INFO: [guild] running upstream: upstream
     INFO: [guild] running downstream: downstream

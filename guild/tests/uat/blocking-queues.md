@@ -24,7 +24,7 @@ Here's a project with a sample operation that waits for 5 seconds.
 
 To illustrate the default behavior, we stage two runs"
 
-    >>> run("guild run sleep.py --stage -y", ignore="Refreshing")
+    >>> run("guild run sleep.py --stage -y")
     sleep.py staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>
@@ -96,7 +96,7 @@ Delete the runs:
 
 Stage two runs:
 
-    >>> run("guild run sleep.py --stage -y", ignore="Refreshing")
+    >>> run("guild run sleep.py --stage -y")
     sleep.py staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>

@@ -8,7 +8,7 @@ This test runs the Guild AI `api`.
 
 Generate some runs:
 
-    >>> run("guild run op x=[1,2,3] -y", ignore="Refreshing")
+    >>> run("guild run op x=[1,2,3] -y")
     INFO: [guild] Running trial ...: op (x=1)
     loss: ...
     INFO: [guild] Running trial ...: op (x=2)

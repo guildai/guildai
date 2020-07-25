@@ -10,7 +10,7 @@ Use `dependencies` example.
 
 Warning when missing required op:
 
-    >>> run("guild run file-op", timeout=2, ignore="Refreshing")
+    >>> run("guild run file-op", timeout=2)
     WARNING: cannot find a suitable run for required resource 'file'
     You are about to run file-op
       file: unspecified

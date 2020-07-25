@@ -4,7 +4,7 @@
 
 ## Args
 
-    >>> run("guild run args-default -y", ignore="Refreshing")
+    >>> run("guild run args-default -y")
     Flags: 1 1.1 False hello
     <exit 0>
 

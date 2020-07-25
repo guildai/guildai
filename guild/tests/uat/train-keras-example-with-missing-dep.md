@@ -18,7 +18,7 @@ Let's confirm that Keras is not installed.
 Let's next attempt to train a Keras example.
 
     >>> cd(example("keras"))
-    >>> run("guild run -y mnist_mlp.py", timeout=10, ignore="Refreshing")
+    >>> run("guild run -y mnist_mlp.py", timeout=10)
     Traceback (most recent call last):
       File ".../.guild/sourcecode/mnist_mlp.py", line ..., in <module>
         import keras

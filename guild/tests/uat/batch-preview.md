@@ -12,7 +12,7 @@ Create a simply script to test.
     ... print(x + y)
     ... """)
 
-    >>> run("guild run test.py -y", ignore="Refreshing")
+    >>> run("guild run test.py -y")
     3
     <exit 0>
 

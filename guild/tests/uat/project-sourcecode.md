@@ -8,7 +8,7 @@
 
 Test source code:
 
-    >>> run("guild run default --test-sourcecode", ignore="Refreshing")
+    >>> run("guild run default --test-sourcecode")
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'

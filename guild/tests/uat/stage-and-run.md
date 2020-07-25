@@ -10,7 +10,7 @@ Delete runs in preparation for these tests.
 
 Stage runs:
 
-    >>> run("guild run train.py x=1 --stage -y", ignore="Refreshing")
+    >>> run("guild run train.py x=1 --stage -y")
     train.py staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>

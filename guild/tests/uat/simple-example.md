@@ -32,7 +32,7 @@ When we list the models defined for the project, we get an empty
 list. This is because we don't present anonymous models to the user -
 anonymous models merely make operations available.
 
-    >>> run("guild models", ignore="Refreshing flags")
+    >>> run("guild models")
     <BLANKLINE>
     <exit 0>
 

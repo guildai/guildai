@@ -7,7 +7,7 @@ actually training anything.
 
 Once installed we have a `hello` model:
 
-    >>> run("guild models hello", ignore="Refreshing")
+    >>> run("guild models hello")
     gpkg.hello/hello          A "hello world" sample model
     <exit 0>
 

@@ -13,7 +13,7 @@
     required-by: []
     <exit 0>
 
-    >>> run("guild models mnist", ignore="Refreshing")
+    >>> run("guild models mnist")
     gpkg.mnist/cnn      CNN classifier for MNIST
     gpkg.mnist/logreg   Multinomial logistic regression classifier for MNIST
     gpkg.mnist/samples  Sample MNIST images

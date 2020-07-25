@@ -8,7 +8,7 @@ Use required-operation project.
 
 Available operations:
 
-    >>> run("guild ops", ignore="Refreshing")
+    >>> run("guild ops")
     prepare-data  Prepare data for training
     train         Train a model on prepared data
     train2        Alternative train using different file layout
