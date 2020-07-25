@@ -38,6 +38,7 @@ log = logging.getLogger("guild")
 DEFAULT_MAX_TRIALS = 20
 DEFAULT_OBJECTIVE = "loss"
 
+
 class CurrentRunNotBatchError(Exception):
     pass
 
