@@ -775,7 +775,7 @@ def _run_info_args(run, env, deps, all_scalars, json, **filters):
     return args
 
 
-def _check_args(tensorflow, verbose, offline, space):
+def _check_args(tensorflow, verbose, offline, space, version):
     args = []
     if tensorflow:
         args.append("--tensorflow")
@@ -785,6 +785,8 @@ def _check_args(tensorflow, verbose, offline, space):
         args.append("--offline")
     if space:
         args.append("--space")
+    if version:
+        args.extend(["--version", version])
     return args
 
 

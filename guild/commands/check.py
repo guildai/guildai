@@ -48,6 +48,7 @@ from . import remote_support
 )
 @click.option("-v", "--verbose", help="Show more information.", is_flag=True)
 @click.option("--space", help="Show disk space usage for Guild files.", is_flag=True)
+@click.option("--version", metavar="REQUIRED", help="Check the installed version.")
 @remote_support.remote_option("Check remote environment.")
 @click.option(
     "--offline/--no-offline",
@@ -62,11 +63,20 @@ def check(args):
     """Check the Guild setup.
 
     This command performs a number of checks and prints information
-    about the Guild setup.
+    about the Guild installation.
 
-    You can also run the Guild test suite by specifying the `--tests`
-    option.
+    Run the Guild test suite by specifying the `--tests` option.
 
+    Run a test file using `--test FILE`. Test files must be valid
+    doctest files. See https://docs.python.org/library/doctest.html
+    for details.
+
+    To verify that the installed version of Guild matches a required
+    spec, use `--version`. REQUIRED can be any valid version
+    requirement. For example, to confirm that Guild is at least
+    version 0.7.0, use `--version '>=0.7.0'`. Note you must quote
+    arguments that contain less-than or greater-than symbols in POSIX
+    shells.
     """
     from . import check_impl
 

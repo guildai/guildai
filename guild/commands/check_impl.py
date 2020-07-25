@@ -33,6 +33,7 @@ from guild import cli
 from guild import config
 from guild import file_util
 from guild import plugin
+from guild import python_util
 from guild import uat
 from guild import util
 from guild import var
@@ -85,6 +86,8 @@ def main(args):
 
 
 def _check(args):
+    if args.version:
+        _check_version(args.version)
     if args.uat:
         _uat_and_exit()
     check = Check(args)
@@ -94,6 +97,22 @@ def _check(args):
         _run_tests(check)
     if check.has_error:
         _print_error_and_exit(args)
+
+
+def _check_version(req):
+    try:
+        match = python_util.test_package_version(guild.__version__, req)
+    except ValueError:
+        cli.error(
+            "invalid requirement spec '%s'\n"
+            "See https://bit.ly/guild-help-req-spec for more information." % req
+        )
+    else:
+        if not match:
+            cli.error(
+                "version mismatch: current version '%s' does not match '%s'"
+                % (guild.__version__, req)
+            )
 
 
 def _uat_and_exit():

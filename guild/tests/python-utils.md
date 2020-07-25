@@ -451,3 +451,37 @@ can execute the script.
     ...     exec_sample("pkg/hello2.py", mod_name="pkg.hello2")
     hi from pkg
     ('pkg', 'hello2')
+
+## Test Package Version
+
+    >>> from guild.python_util import test_package_version
+
+    >>> test_package_version("1", "1")
+    True
+
+    >>> test_package_version("1", "2")
+    False
+
+    >>> test_package_version("1", "<2")
+    True
+
+    >>> test_package_version("1.1", "<=1.2")
+    True
+
+    >>> test_package_version("0.7.0", ">=0.7.0")
+    True
+
+    >>> test_package_version("0.7.1", ">=0.7.0")
+    True
+
+    >>> test_package_version("0.7", ">=0.7.0")
+    True
+
+    >>> test_package_version("0.6", ">=0.7.0")
+    False
+
+    >>> test_package_version("0.66", ">=0.7.0")
+    True
+
+    >>> test_package_version("0.7.1.dev1", ">=0.7.0")
+    True

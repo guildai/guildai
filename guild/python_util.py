@@ -537,3 +537,29 @@ def _split_module(main_mod, gf_dir):
     if len(parts) == 1:
         parts = ".", parts[0]
     return os.path.join(gf_dir, parts[0]), parts[1]
+
+
+def test_package_version(version, req):
+    req = _parse_req(req)
+    matches = list(req.specifier.filter({version: ""}, prereleases=True))
+    return len(matches) > 0
+
+
+def _parse_req(req):
+    import pkg_resources
+
+    req = _apply_equals(req)
+    try:
+        return pkg_resources.Requirement.parse("notused%s" % req)
+    except Exception as e:
+        raise ValueError(e)
+
+
+def _apply_equals(req):
+    return ",".join([_apply_equals2(part) for part in req.split(",")])
+
+
+def _apply_equals2(s):
+    if re.match(r"^\d", s):
+        return "==%s" % s
+    return s

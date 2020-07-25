@@ -295,6 +295,7 @@ def _check_kw(args):
         "space",
         "tensorflow",
         "verbose",
+        "version",
     ]
     ignore = [
         "all_tests",
