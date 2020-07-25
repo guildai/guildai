@@ -712,25 +712,44 @@ def _iter_scalars(run, args):
     from guild import index as indexlib  # expensive
 
     for s in indexlib.iter_run_scalars(run):
-        key = _s_key(s)
-        val = _s_val(s)
-        step = _s_step(s)
-        if args.json:
-            yield key, (val, step)
+        key = run_util.run_scalar_key(s)
+        if args.all_scalars:
+            yield key, _scalar_vals(s, args)
         else:
-            yield key, "%f (step %i)" % (_s_val(s), _s_step(s))
+            yield key, _scalar_last_val(s, args)
 
 
-def _s_key(s):
-    return run_util.run_scalar_key(s)
+def _scalar_vals(s, args):
+    return {
+        "first": _scalar_val(s, "first_val", "first_step", args.json),
+        "last": _scalar_val(s, "last_val", "last_step", args.json),
+        "min": _scalar_val(s, "min_val", "min_step", args.json),
+        "max": _scalar_val(s, "max_val", "min_step", args.json),
+        "avg": _scalar_val(s, "avg_val", "count", args.json),
+        "total": _scalar_val(s, "total", "count", args.json),
+    }
 
 
-def _s_val(s):
-    return s["last_val"]
+def _scalar_last_val(s, args):
+    return _scalar_val(s, "last_val", "last_step", args.json)
 
 
-def _s_step(s):
-    return s["last_step"]
+def _scalar_val(s, val_key, step_key, format_json):
+    val = s[val_key]
+    step = s[step_key]
+    if format_json:
+        return val, step
+    else:
+        return _format_scalar_val(val, step)
+
+
+def _format_scalar_val(val, step):
+    if isinstance(val, float):
+        return "%f (step %i)" % (val, step)
+    # Defensive here - val should None but we don't assert because
+    # this is a summary op.
+    val = "nan" if val is None else val
+    return "%s (step %i)" % (val, step)
 
 
 def _res_sources_paths(sources):

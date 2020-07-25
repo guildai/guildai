@@ -30,7 +30,10 @@ from . import runs_support
 @click.option(
     "-s",
     "--all-scalars",
-    help="Show all scalars. By default only top-level scalars are shown.",
+    help=(
+        "Show all scalar values. By default only shows last values for "
+        "non-system scalars."
+    ),
     is_flag=True,
 )
 @click.option("--json", help="Format information as JSON.", is_flag=True)

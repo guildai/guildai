@@ -25,7 +25,7 @@ Train `mlp-mnist`:
 
 Run info:
 
-    >>> run("guild runs info --all-scalars")
+    >>> run("guild runs info")
     id: ...
     operation: mlp-mnist:train
     from: .../keras/guild.yml

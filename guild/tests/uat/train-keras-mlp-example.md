@@ -19,30 +19,29 @@ Here's the run info with all scalars:
 
     >>> run("guild runs info --all-scalars")
     id: ...
-    operation: mnist_mlp.py
-    from: .../keras
-    status: completed
-    started: ...
-    stopped: ...
-    marked: no
-    label: batch_size=128 epochs=1 num_classes=10
-    sourcecode_digest: 04c3dabfacaf4ee10d50b2cd8bc4d8f5
-    vcs_commit: git:...
-    run_dir: ...
-    command: ...
-    exit_status: 0
-    pid:
-    flags:
-      batch_size: 128
-      epochs: 1
-      num_classes: 10
     scalars:
-      accuracy: ... (step 1)
-      loss: ... (step 1)
-      test_accuracy: ... (step 1)
-      test_loss: ... (step 1)
-      val_accuracy: ... (step 1)
-      val_loss: ... (step 1)
+      accuracy:
+        avg: ... (step ...)
+        first: ... (step 1)
+        last: ... (step 1)
+        max: ... (step 1)
+        min: ... (step 1)
+        total: ... (step ...)
+      loss:
+        avg: ... (step ...)
+        first: ... (step 1)
+        last: ... (step 1)
+        max: ... (step 1)
+        min: ... (step 1)
+        total: ... (step ...)
+      test_accuracy:
+        ...
+      test_loss:
+        ...
+      val_accuracy:
+        ...
+      val_loss:
+        ...
     <exit 0>
 
 And files (empty list):
