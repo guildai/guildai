@@ -101,6 +101,10 @@
       description: TensorBoard PR curve demo
       main: pr_curve --logdir .
 
+    text:
+      description: Demonstrate text plugin
+      main: text --logdir .
+
     all:
       description: Run all operations using default flag values
       steps:

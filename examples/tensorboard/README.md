@@ -66,6 +66,7 @@ TensorBoard*](https://www.tensorflow.org/tensorboard/get_started).
   ([credit](https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/audio/audio_demo.py))
 - `pr-curve` - TensorBoard PR Curve demo
   ([credit](https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/pr_curve/pr_curve_demo.py))
+- `text` - Demo showing text summaries
 
 To run one of these operations, use:
 
