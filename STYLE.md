@@ -1,4 +1,4 @@
-# Guild AI Sytle Guide
+# Guild AI Style Guide
 
 Follow [PEP 8](https://www.python.org/dev/peps/pep-0008/) unless
 otherwise noted.
@@ -8,7 +8,8 @@ otherwise noted.
 The Guild codebase attempts to minimize class use in Python. In many
 cases, this is not practical and there are many uses of classes
 throughout. Nonetheless, if something can be accomplished using
-builtin Python types and functions
+builtin Python types and functions, we should use those instead of
+classes.
 
 Extendable interfaces should be implemented using classes. Even when
 duck-typing, a class should define the expected interface.
@@ -105,7 +106,7 @@ Cons:
    - Update state
    - Pass through a non-mutating call to a normal function
 2. Use `_class_function_name` convention for normal functions that are
-   tighly coupled to a class
+   tightly coupled to a class
 
 **Conventions - Pattern 2**
 
@@ -147,7 +148,7 @@ Pros:
 
 Cons:
 
-- Does not support extendible frameworks in a Pythonic way
+- Does not support extensible frameworks in a Pythonic way
 
 Regarding frameworks, if this pattern is used, we're talking this
 convention:
@@ -159,10 +160,10 @@ vs:
     OBJECT.function()
 
 While this is perfectly ordinary in many languages (C, Erlang, etc.)
-ist's *weird* in Python.
+it's *weird* in Python.
 
 That said, we could fall back on the proposal above for frameworks,
-where methods were pass-throughts to normal functions.
+where methods were pass-throughs to normal functions.
 
 **UPDATE:** This is a solid pattern that we've started using in op2. It's
 tempting to move init logic into a class constructor like this:
@@ -194,7 +195,7 @@ The run is then simple: classes are **strictly** structs in Python.
 There are some exceptions, which I think should be considered:
 
 1. Object init is simple enough to perform in `__init__`. What
-   consitutes "simple enough" is a judgment call.
+   constitutes "simple enough" is a judgment call.
 
 2. Property methods can be used to implement reading of dynamic
    state. These should be rare.
@@ -242,7 +243,7 @@ def run_foo(foo):
     print(foo.a)
 ```
 
-## Namming conventions
+## Naming conventions
 
 ### Factory functions - `for_xxx` and `yyy_for_xxx`
 
