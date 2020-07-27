@@ -408,7 +408,7 @@ class LogCapture(object):
         self,
         use_root_handler=False,
         echo_to_stdout=False,
-        strip_ansi_format=False,
+        strip_ansi_format=True,
         log_level=None,
     ):
         self._records = []

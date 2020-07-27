@@ -38,7 +38,7 @@ Let's initialize logging with the default settings:
 
 Debug is not logged by default:
 
-    >>> log_capture = LogCapture(use_root_handler=True, strip_ansi_format=True)
+    >>> log_capture = LogCapture(use_root_handler=True)
     >>> with log_capture:
     ...   log_sample_messages()
     >>> log_capture.print_all()
@@ -65,7 +65,7 @@ If a TTY is available, output is colored. Warning are displayed in
 yellow (color code 33) and errors in red (color code 31).
 
     >>> with guild.log._FakeTTY():
-    ...   with LogCapture(use_root_handler=True) as tty_logs:
+    ...   with LogCapture(use_root_handler=True, strip_ansi_format=False) as tty_logs:
     ...       log_sample_messages()
     ...   tty_logs.print_all() # doctest: -STRIP_ANSI_FMT
     DEBUG: [test] debug entry

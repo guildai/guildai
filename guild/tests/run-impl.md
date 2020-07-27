@@ -10,8 +10,7 @@ Helpers:
     ...         with SetGuildHome(guild_home):
     ...             with Env({"NO_RUN_OUTPUT": "1",
     ...                       "NO_WARN_RUNDIR": "1"}):
-    ...                 with LogCapture(echo_to_stdout=True,
-    ...                                 strip_ansi_format=True):
+    ...                 with LogCapture(echo_to_stdout=True):
     ...                     try:
     ...                         run_impl.run(**kw)
     ...                     except SystemExit as e:

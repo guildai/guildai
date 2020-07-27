@@ -270,7 +270,7 @@ flag type constraints.
 When we ask the monitor to process this run, it logs warnings about
 each incompatibility.
 
-    >>> with LogCapture(log_level=0, strip_ansi_format=True) as log:
+    >>> with LogCapture(log_level=0) as log:
     ...     monitor.run_once()
 
     >>> log.print_all()
@@ -289,7 +289,7 @@ Next we generate a run with flags that weren't in the original set.
 
 In this case, the monitor warns of new hyperparameters.
 
-    >>> with LogCapture(log_level=0, strip_ansi_format=True) as log:
+    >>> with LogCapture(log_level=0) as log:
     ...     monitor.run_once()
 
     >>> log.print_all()
@@ -316,7 +316,7 @@ original set. This too causes the monitor to log a warning.
     m2: 1.123
     m3: 1.123
 
-    >>> with LogCapture(log_level=0, strip_ansi_format=True) as log:
+    >>> with LogCapture(log_level=0) as log:
     ...     monitor.run_once()
 
     >>> log.print_all()

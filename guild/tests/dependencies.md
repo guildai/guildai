@@ -519,7 +519,7 @@ from.
     >>> zip_source_3.select  # doctest: -NORMALIZE_PATHS
     [SelectSpec(pattern='.+\\.txt', reduce=None)]
 
-    >>> with LogCapture(strip_ansi_format=True) as log:
+    >>> with LogCapture() as log:
     ...     resolve(zip_source_3)
     {'resolved': ['<unpack-dir>/foo/a.txt',
                   '<unpack-dir>/foo/bar/a.txt',
@@ -553,7 +553,7 @@ Default behavior is to warn if nothing is resolved:
     >>> nothing_selected_default.fail_if_empty
     False
 
-    >>> with LogCapture(strip_ansi_format=True) as log:
+    >>> with LogCapture() as log:
     ...     resolve(nothing_selected_default)
     {'resolved': [], 'staged': [], 'unpacked': []}
 

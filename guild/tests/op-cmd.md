@@ -174,7 +174,7 @@ Flags override command env.
 
 Flags cannot redefine command options.
 
-    >>> with LogCapture(echo_to_stdout=True, strip_ansi_format=True):
+    >>> with LogCapture(echo_to_stdout=True):
     ...     generate(["--a", "2", "__flag_args__"], {}, {}, {"a": 1})
     WARNING: ignoring flag 'a=1' because it's shadowed in the operation cmd as --a
     ['--a', '2']
@@ -182,7 +182,7 @@ Flags cannot redefine command options.
 
 This warning can be avoided by explicitly skipping the flag arg.
 
-    >>> with LogCapture(echo_to_stdout=True, strip_ansi_format=True):
+    >>> with LogCapture(echo_to_stdout=True):
     ...     generate(
     ...         ["--a", "2", "__flag_args__"], {},
     ...         {"a": CmdFlag(arg_skip=True)},

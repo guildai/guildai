@@ -363,7 +363,7 @@ warning message and coerces the value to a string.
 
     >>> with Env({"NO_IMPORT_FLAGS_CACHE": "1",
     ...           "NO_IMPORT_FLAGS_PROGRESS": "1"}):
-    ...     with LogCapture(strip_ansi_format=True) as logs:
+    ...     with LogCapture() as logs:
     ...         gf = guildfile.for_dir(project_dir, no_cache=True)
 
     >>> logs.print_all()

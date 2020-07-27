@@ -323,7 +323,7 @@ sequences. These include `range`, `linspace`, and `logspace`.
 
 To log convert warnings, we use a log capture:
 
-    >>> logs = LogCapture(strip_ansi_format=True)
+    >>> logs = LogCapture()
 
 ### Explicit Types
 
@@ -366,7 +366,7 @@ Lists:
 
 An unsupported type logs a warning.
 
-    >>> with LogCapture(strip_ansi_format=True) as logs:
+    >>> with LogCapture() as logs:
     ...     decode("1", "foo")
     1
 
@@ -495,7 +495,7 @@ An alternative base can be provided as a 4th argument.
 
 Additional arguments are ignored.
 
-    >>> with LogCapture(strip_ansi_format=True) as logs:
+    >>> with LogCapture() as logs:
     ...    decode("logspace[0:3:4:2:456:hello]")
     [1.0, 2.0, 4.0, 8.0]
 

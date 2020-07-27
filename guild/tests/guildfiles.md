@@ -709,7 +709,7 @@ The preferred spelling is to use `target-path`:
 
 If both attritubtes are specified, Guild logs a warning.
 
-    >>> with LogCapture(strip_ansi_format=True) as log:
+    >>> with LogCapture() as log:
     ...     _ = guildfile.for_string("""
     ... op:
     ...   requires:
@@ -722,7 +722,7 @@ If both attritubtes are specified, Guild logs a warning.
     WARNING: target-path and path both specified for source file:foo.txt
     - using target-path
 
-    >>> with LogCapture(strip_ansi_format=True) as log:
+    >>> with LogCapture() as log:
     ...     _ = guildfile.for_string("""
     ... - model: ''
     ...   resources:
@@ -737,7 +737,7 @@ If both attritubtes are specified, Guild logs a warning.
 
 ### Unrecognized Source Attrs
 
-    >>> with LogCapture(strip_ansi_format=True) as log:
+    >>> with LogCapture() as log:
     ...     _ = guildfile.for_string("""
     ... - model: ''
     ...   resources:

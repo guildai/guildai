@@ -650,7 +650,7 @@ The `%` symbol applies Python formatting to a value.
 An invalid formatting string returns the original value with a
 warning:
 
-    >>> with LogCapture(strip_ansi_format=True) as logs:
+    >>> with LogCapture() as logs:
     ...     run_label("${s|%z}", {"s": "hello"})
     'hello'
 
@@ -661,7 +661,7 @@ warning:
 However, an invalid type for the specified formatting string is
 silently ignored:
 
-    >>> with LogCapture(strip_ansi_format=True) as logs:
+    >>> with LogCapture() as logs:
     ...     run_label("${s|%.2f}", {"s": "hello"})
     'hello'
 
