@@ -10,7 +10,7 @@ Use the `error.py` script to simluate trial errors.
     >>> project.run("error.py", flags={"fail": [True, False]})
     INFO: [guild] Running trial ...: error.py (fail=yes)
     FAIL
-    ERROR: [guild] trial ... exited with an error (see log for details)
+    ERROR: [guild] Trial ... exited with an error (1) - see log for details
     INFO: [guild] Running trial ...: error.py (fail=no)
 
 Our runs:
@@ -33,8 +33,8 @@ first trial error occurs.
     >>> project.run("error.py", flags={"fail": [True, False]}, fail_on_trial_error=True)
     INFO: [guild] Running trial ...: error.py (fail=yes)
     FAIL
-    ERROR: [guild] trial ... exited with an error (see log for details)
-    ERROR: [guild] stopping batch because a trial failed (remaining staged trials
+    ERROR: [guild] Trial ... exited with an error (1) - see log for details
+    ERROR: [guild] Stopping batch because a trial failed (remaining staged trials
     may be started as needed)
     <exit 1>
 

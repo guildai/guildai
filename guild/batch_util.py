@@ -28,6 +28,7 @@ from guild import _api as gapi
 from guild import cli
 from guild import exit_code
 from guild import flag_util
+from guild import lock as locklib
 from guild import op_util
 from guild import run_util
 from guild import util
@@ -37,6 +38,8 @@ log = logging.getLogger("guild")
 
 DEFAULT_MAX_TRIALS = 20
 DEFAULT_OBJECTIVE = "loss"
+
+RUN_STATUS_LOCK_TIMEOUT = 30
 
 
 class CurrentRunNotBatchError(Exception):
@@ -99,12 +102,9 @@ def _save_trials(trials, path):
 
 def _run_trials(batch_run, trials):
     trial_runs = _init_trial_runs(batch_run, trials)
-    stage = batch_run.get("stage_trials")
+    run_status_lock = locklib.Lock(locklib.RUN_STATUS, timeout=RUN_STATUS_LOCK_TIMEOUT)
     for trial_run in trial_runs:
-        try:
-            _start_trial_run(trial_run, stage)
-        except SystemExit:
-            _handle_trial_run_error(batch_run, trial_run)
+        _try_run_staged_trial(trial_run, batch_run, run_status_lock)
 
 
 def _init_trial_runs(batch_run, trials):
@@ -115,6 +115,10 @@ def _init_trial_run(batch_run, trial_flag_vals, run_dir=None):
     run = op_util.init_run(run_dir)
     _link_to_trial(batch_run, run)
     proto_run = batch_run.batch_proto
+    assert proto_run, "proto_run not initialized for batch %s (%s)" % (
+        batch_run.id,
+        batch_run.dir,
+    )
     util.copytree(proto_run.dir, run.dir)
     run.write_attr("flags", trial_flag_vals)
     run.write_attr("label", _trial_label(proto_run, trial_flag_vals))
@@ -133,6 +137,25 @@ def _link_to_trial(batch_run, trial_run):
 def _trial_label(proto_run, trial_flag_vals):
     label_template = (proto_run.get("op") or {}).get("label_template")
     return op_util.run_label(label_template, trial_flag_vals)
+
+
+def _try_run_staged_trial(trial_run, batch_run, status_lock):
+    stage = batch_run.get("stage_trials")
+    with status_lock:
+        trial_status = trial_run.status
+        if trial_status != "staged":
+            log.warning(
+                "Skipping %s - status is '%s' but expected 'staged'",
+                trial_run.id,
+                trial_status,
+            )
+            return
+    # Race condition here. Correct implementation is to pass the
+    # lock through and release after trial_run status is changed.
+    try:
+        _start_trial_run(trial_run, stage)
+    except SystemExit as e:
+        _handle_trial_run_error(e, batch_run, trial_run)
 
 
 def _start_trial_run(run, stage=False):
@@ -178,16 +201,37 @@ def _trial_flags_desc(run):
     return op_util.flags_desc(flags)
 
 
-def _handle_trial_run_error(batch_run, trial_run):
-    log.error(
-        "trial %s exited with an error (see log for details)", _trial_name(trial_run)
-    )
-    if _fail_on_trial_error(batch_run):
+def _handle_trial_run_error(e, batch_run, trial_run):
+    is_error = _log_trial_run_error(e, trial_run)
+    if is_error and _fail_on_trial_error(batch_run):
         log.error(
-            "stopping batch because a trial failed (remaining staged trials "
+            "Stopping batch because a trial failed (remaining staged trials "
             "may be started as needed)"
         )
         raise SystemExit(exit_code.DEFAULT_ERROR)
+
+
+def _log_trial_run_error(e, trial_run):
+    from guild import main
+
+    msg, code = main.system_exit_params(e)
+    if code == 0:
+        if msg:
+            log.info(msg)
+        return False
+    log.error(
+        "Trial %s exited with an error%s",
+        _trial_name(trial_run),
+        _trial_run_error_desc(code, msg),
+    )
+    return True
+
+
+def _trial_run_error_desc(code, msg):
+    if msg:
+        return ": (%i) %s" % (code, msg)
+    else:
+        return " (%i) - see log for details" % code
 
 
 def _fail_on_trial_error(batch_run):

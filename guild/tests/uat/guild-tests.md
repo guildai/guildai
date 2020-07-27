@@ -15,6 +15,7 @@ tests).
       batch-fail-on-trial-error:   ok
       batch-grid-search:           ok
       batch-guildfile-optimizers:  ok
+      batch-handle-trial-status:   ok
       batch-implied-random:        ok
       batch-max-trials:            ok
       batch-needed:                ok
