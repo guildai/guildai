@@ -4,21 +4,23 @@
     >>> import os
     >>> import guild
 
-    >>> SKIP = ["tests", "external", "examples"]
+    >>> SKIP_DIRS = ["tests", "external", "examples"]
+    >>> SKIP_MODS = []
 
     >>> def iter_mods():
     ...     guild_root = os.path.dirname(guild.__file__)
     ...     for root, dirs, files in os.walk(guild_root, topdown=True):
-    ...         for name in SKIP:
+    ...         for name in SKIP_DIRS:
     ...             if name in dirs: dirs.remove(name)
     ...         for name in files:
-    ...             if name.endswith(".py"):
-    ...                 mod_path = os.path.join(root, name)
-    ...                 mod_relpath = os.path.relpath(mod_path, guild_root)
-    ...                 mod_name = (
-    ...                     "guild."
-    ...                     + mod_relpath.replace(os.path.sep, ".")[:-3])
-    ...                 yield importlib.import_module(mod_name)
+    ...             if not name.endswith(".py"): continue
+    ...             mod_path = os.path.join(root, name)
+    ...             mod_relpath = os.path.relpath(mod_path, guild_root)
+    ...             mod_name = (
+    ...                 "guild."
+    ...                 + mod_relpath.replace(os.path.sep, ".")[:-3])
+    ...             if mod_name in SKIP_MODS: continue
+    ...             yield importlib.import_module(mod_name)
 
     >>> for name in sorted([m.__name__ for m in iter_mods()]):
     ...   print(name) # doctest: +REPORT_UDIFF
