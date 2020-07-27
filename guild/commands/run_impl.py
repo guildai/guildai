@@ -1924,15 +1924,18 @@ def _stage_op(op, args):
         _op_dependency_error(e)
     else:
         if not args.quiet:
-            _print_staged_info(run, args)
+            _print_staged_info(run)
 
 
-def _print_staged_info(run, args):
-    if args.run_dir:
+def _print_staged_info(run):
+    if _staged_outside_guild_home(run):
         _print_staged_dir_instructions(run)
     else:
         _print_stage_pending_instructions(run)
 
+
+def _staged_outside_guild_home(run):
+    return not util.compare_paths(os.path.dirname(run.dir), var.runs_dir())
 
 def _print_staged_dir_instructions(run):
     cmd_args = run.get("cmd") or []

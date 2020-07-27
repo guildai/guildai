@@ -50,7 +50,7 @@ Stage `op`:
 
     >>> project.run("op", stage=True, flags={"a": 2})
     Resolving file:a.txt dependency
-    op staged in '...'
+    op staged as ...
     To start the operation, use ...
 
 Our runs:

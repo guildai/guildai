@@ -63,7 +63,7 @@ And stage a batch run that stages trials.
     ...     stage=True, stage_trials=True)
 
     >>> print(out)
-    say.py+ staged in '...'
+    say.py+ staged as ...
     To start the operation, use ...
 
 NOTE: The instruction to start the operation using the run directory

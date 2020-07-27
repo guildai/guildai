@@ -98,7 +98,7 @@ Cleanup:
 We can stage a batch, in which case it doesn't generate trials.
 
     >>> project.run("echo.py", flags={"x": [5.0], "y": [4,6]}, stage=True)
-    echo.py+ staged in '...'
+    echo.py+ staged as ...
     ...
 
     >>> project.print_runs()
