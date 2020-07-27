@@ -169,7 +169,9 @@ the batch error.
     INFO: [guild] Using run ... for prepared-data resource
     INFO: [guild] Running trial ...: train (prepared-data=xxx_invalid)
     INFO: [guild] Resolving prepared-data dependency
-    ERROR: [guild] trial ... exited with an error (see log for details)
-    ERROR: [guild] stopping batch because a trial failed (remaining staged trials
+    ERROR: [guild] Trial ... exited with an error: (1) run failed because a dependency
+    was not met: could not resolve 'operation:prepare-data' in prepared-data resource:
+    no suitable run for prepare-data
+    ERROR: [guild] Stopping batch because a trial failed (remaining staged trials
     may be started as needed)
     <exit 1>
