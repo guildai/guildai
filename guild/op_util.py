@@ -35,7 +35,6 @@ from guild import flag_util
 from guild import log as loglib
 from guild import op_cmd as op_cmd_lib
 from guild import op_dep
-from guild import plugin as pluginlib
 from guild import run as runlib
 from guild import util
 from guild import var
@@ -1107,6 +1106,8 @@ def _op_cmd_env(opdef, extra_env):
 
 
 def _op_plugins(opdef):
+    from guild import plugin as pluginlib  # expensive
+
     project_plugins = _project_plugins(opdef)
     op_plugins = []
     for name, plugin in pluginlib.iter_plugins():

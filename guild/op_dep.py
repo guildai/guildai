@@ -19,10 +19,8 @@ import os
 import re
 import logging
 
-from guild import namespace
 from guild import resolver as resolverlib
 from guild import resourcedef
-from guild import resource as reslib
 from guild import util
 
 log = logging.getLogger("guild")
@@ -151,6 +149,9 @@ def _package_resource(spec, depdef):
 
 
 def _find_package_resource(pkg_name, res_name):
+    from guild import namespace  # expensive
+    from guild import resource as reslib  # expensive
+
     try:
         resources = list(reslib.for_name(res_name))
     except LookupError:
