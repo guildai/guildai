@@ -17,6 +17,7 @@ from __future__ import division
 
 import csv
 import importlib
+import io
 import logging
 import os
 import re
@@ -276,8 +277,11 @@ class RunOutput(object):
         os_read = os.read
         os_write = os.write
         input_fileno = input_stream.fileno()
-        if not self._quiet:
-            stream_fileno = output_stream.fileno()
+        if not self._quiet and hasattr(output_stream, "fileno"):
+            try:
+                stream_fileno = output_stream.fileno()
+            except io.UnsupportedOperation:
+                stream_fileno = None
         else:
             stream_fileno = None
         output_fileno = self._output.fileno()
