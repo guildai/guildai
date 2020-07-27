@@ -24,17 +24,22 @@ import logging
 import os
 import sys
 import threading
+import warnings
 
 import six
 
-try:
-    import pandas as pd
-except ImportError:
-    raise RuntimeError(
-        "guild.ipy requires pandas - install it first before using "
-        "this module (see https://pandas.pydata.org/pandas-docs/stable/"
-        "install.html for help)"
-    )
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", Warning)
+    warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+    warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
+    try:
+        import pandas as pd
+    except ImportError:
+        raise RuntimeError(
+            "guild.ipy requires pandas - install it first before using "
+            "this module (see https://pandas.pydata.org/pandas-docs/stable/"
+            "install.html for help)"
+        )
 
 # ipy makes use of the full Guild API and so, like main_bootstrap,
 # requires the external modules.
