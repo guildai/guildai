@@ -2098,8 +2098,9 @@ def _coerce_flag_val_error(e):
 
 def _missing_required_flags_error(e):
     cli.out("Operation requires the following missing flags:\n", err=True)
+    line1 = lambda s: s.split("\n")[0]
     cli.table(
-        [{"name": flag.name, "desc": flag.description} for flag in e.missing],
+        [{"name": flag.name, "desc": line1(flag.description)} for flag in e.missing],
         ["name", "desc"],
         indent=2,
         err=True,

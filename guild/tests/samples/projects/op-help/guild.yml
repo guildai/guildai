@@ -8,7 +8,10 @@ op:
 
   flags:
     s:
-      description: a string
+      description:
+        a string
+
+        This is some more description.
       required: yes
 
     i:

@@ -36,6 +36,12 @@ Use `help_op` to print help for the operation rather than run it:
     <BLANKLINE>
       i   an int (default is 123)
       s   a string (required)
+    <BLANKLINE>
+          This is some more description...
+
+                                       ^ workaround a mysterious
+                                         issue with period at eol
+                                         in example
 
 Note that help is available even when a required flag is not
 specified.
