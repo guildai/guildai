@@ -34,7 +34,7 @@ Run info:
     stopped: ...
     marked: no
     label: batch_size=128 epochs=1
-    sourcecode_digest: 04c3dabfacaf4ee10d50b2cd8bc4d8f5
+    sourcecode_digest: 106c5dcffffab1f6cbe5e1b50dfac863
     vcs_commit: git:...
     run_dir: ...
     command: ...
@@ -56,4 +56,5 @@ Files:
 
     >>> run("guild ls")
     ???:
+      weights.01-0...hdf5
     <exit 0>

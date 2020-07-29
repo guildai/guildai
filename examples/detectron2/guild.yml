@@ -5,7 +5,7 @@ demo:
 
   flags:
     config:
-      default: coco-segmentation-rcnn-50-3x
+      default: coco-segmentation-rcnn-50-C4-1x
       description: Configuration used to detect images
       arg-skip: yes
       choices:

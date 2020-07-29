@@ -48,4 +48,5 @@ And files (empty list):
 
     >>> run("guild ls")
     ???:
+      weights.01-0...hdf5
     <exit 0>
