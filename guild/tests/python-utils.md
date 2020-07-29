@@ -104,17 +104,47 @@ Calls:
     >>> pprint(flag_imports.params)
     {'b': True, 'f': 1.0, 'i': 1, 'ii': 2, 's': 'hello'}
 
+## Errors on init
+
+A couple errors are generated when creating a script.
+
+Syntax error:
+
+    >>> script_path = path(mkdtemp(), "test.py")
+    >>> write(script_path, "+++")
+    >>> python_util.Script(script_path)
+    Traceback (most recent call last):
+    ...
+      File "<unknown>", line 1
+        +++
+          ^
+    SyntaxError: invalid syntax
+
+The other error is when the file can't be read:
+
+    >>> try:
+    ...     python_util.Script("missing")
+    ... except Exception as e:
+    ...     print(e)
+    ... else:
+    ...     assert False
+    [Errno 2] No such file or directory: 'missing'
+
 ## Sorting script objects
 
 Script objects returned by `python_util` can be sorted according to
 their path.
 
-    >>> [script.src for script in sorted([
-    ...   python_util.Script("c"),
-    ...   python_util.Script("a"),
-    ...   python_util.Script("d"),
-    ...   python_util.Script("b"),
-    ... ])]
+Create some scripts to sort.
+
+    >>> to_sort = []
+    >>> tmp = mkdtemp()
+    >>> for name in ["c", "d", "a", "b"]:
+    ...     script_path = path(tmp, name)
+    ...     touch(script_path)
+    ...     to_sort.append(python_util.Script(script_path))
+
+    >>> [basename(script.src) for script in sorted(to_sort)]
     ['a', 'b', 'c', 'd']
 
 ## Wrapping methods

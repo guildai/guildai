@@ -49,13 +49,17 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
         if not python_util.is_python_script(path):
             self.log.debug("%s is not a python script", path)
             return None
-        script = python_util.Script(path)
-        if not self.is_keras_script(script):
-            self.log.debug("%s is not a Keras script", path)
+        try:
+            script = python_util.Script(path)
+        except SyntaxError:
             return None
-        model = KerasScriptModelProxy(script.src, opspec)
-        self.log.debug("%s is a Keras script", path)
-        return model, model.op_name
+        else:
+            if not self.is_keras_script(script):
+                self.log.debug("%s is not a Keras script", path)
+                return None
+            model = KerasScriptModelProxy(script.src, opspec)
+            self.log.debug("%s is a Keras script", path)
+            return model, model.op_name
 
     def is_keras_script(self, script):
         imports_keras = self._imports_keras(script)
@@ -100,7 +104,11 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
             _path, mod_path = python_util.find_module(main_mod, model_paths)
         except ImportError:
             return
-        script = python_util.Script(mod_path)
-        if self.is_keras_script(script):
-            if opdef.output_scalars is None:
-                opdef.output_scalars = KERAS_OUTPUT_SCALARS
+        try:
+            script = python_util.Script(mod_path)
+        except SyntaxError:
+            return
+        else:
+            if self.is_keras_script(script):
+                if opdef.output_scalars is None:
+                    opdef.output_scalars = KERAS_OUTPUT_SCALARS

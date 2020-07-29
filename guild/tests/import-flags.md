@@ -398,3 +398,108 @@ warning message and coerces the value to a string.
 
     >>> flag_vals("parser-parents")
     {'a': 'A', 'b': 'B', 'c': 'C'}
+
+## Module errors
+
+The tests below show how Guild handles module errors when trying to
+import flags.
+
+### Missing module with `argparse`
+
+Use gapi to show error messages when importing flags.
+
+    >>> project_dir = sample("projects", "flags")
+
+Helper:
+
+    >>> def help_op(op, **kw):
+    ...     out = gapi.run_capture_output(
+    ...         op, help_op=True, cwd=project_dir, **kw)
+    ...     print(out)
+
+When Guild imports flags for a module that imports `argparse`, it runs
+the module with `--help`. In this case, any missing modules generate
+an error.
+
+For Python 2:
+
+    >>> help_op("import_error_args.py")  # doctest: -PY3
+    WARNING: cannot import flags from ./import_error_args.py: ImportError:
+    No module named xxx_not_a_valid_module (run with guild --debug for details)
+    Usage: guild run [OPTIONS] import_error_args.py [FLAG]...
+    <BLANKLINE>
+    Use 'guild run --help' for a list of options.
+
+For Python 3:
+
+    >>> help_op("import_error_args.py")  # doctest: -PY2
+    WARNING: cannot import flags from ./import_error_args.py: ModuleNotFoundError:
+    No module named 'xxx_not_a_valid_module' (run with guild --debug for details)
+    Usage: guild run [OPTIONS] import_error_args.py [FLAG]...
+    <BLANKLINE>
+    Use 'guild run --help' for a list of options.
+
+Guild hides the details to avoid generating noise when a required
+module isn't available. This is common when examining a project from
+outside an activated environment. While we want to show a warning, we
+don't want to flood the output with the applicable traceback.
+
+We can get the traceback by running with the debug option. We use
+`LOG_LEVEL=10` env var in this case.
+
+For Python 2:
+
+    >>> help_op("import_error_args.py", debug=True)  # doctest: -PY3
+    ???
+    WARNING: cannot import flags from ./import_error_args.py: ImportError:
+    No module named xxx_not_a_valid_module
+    ERROR: [import_flags_main] loading module from './import_error_args.py'
+    Traceback (most recent call last):
+      ...
+      File "./import_error_args.py", line 2, in <module>
+        import xxx_not_a_valid_module
+    ImportError: No module named xxx_not_a_valid_module
+    ...
+    Usage: guild run [OPTIONS] import_error_args.py [FLAG]...
+    <BLANKLINE>
+    Use 'guild run --help' for a list of options.
+
+For Python 3:
+
+    >>> help_op("import_error_args.py", debug=True)  # doctest: -PY2
+    ???
+    WARNING: cannot import flags from ./import_error_args.py: ModuleNotFoundError:
+    No module named 'xxx_not_a_valid_module'
+    ERROR: [import_flags_main] loading module from './import_error_args.py'
+    Traceback (most recent call last):
+      ...
+      File "./import_error_args.py", line 2, in <module>
+        import xxx_not_a_valid_module
+    ModuleNotFoundError: No module named 'xxx_not_a_valid_module'
+    ...
+    Usage: guild run [OPTIONS] import_error_args.py [FLAG]...
+    <BLANKLINE>
+    Use 'guild run --help' for a list of options.
+
+### Missing module with globals
+
+Guild does not execute a module if it doesn't import `argparse`. It
+looks at the module AST to find flag candidates. For this reason a
+missing module does not register as a warning.
+
+    >>> help_op("import_error_globals.py")
+    Usage: guild run [OPTIONS] import_error_globals.py [FLAG]...
+    <BLANKLINE>
+    Use 'guild run --help' for a list of options.
+
+### Synax error
+
+Guild cannot even inspect a module with a syntax error.
+
+    >>> help_op("syntax_error.py")
+    WARNING: cannot import flags from ./syntax_error.py: invalid syntax on line 1
+      foo bar
+            ^
+    Usage: guild run [OPTIONS] syntax_error.py [FLAG]...
+    <BLANKLINE>
+    Use 'guild run --help' for a list of options.

@@ -17,6 +17,7 @@ from __future__ import division
 
 import hashlib
 import json
+import logging
 import os
 import subprocess
 import sys
@@ -268,15 +269,28 @@ class PythonScriptPlugin(pluginlib.Plugin):
             and os.getenv("FLAGS_TEST") != "1"
         ):
             cli.note_once("Refreshing flags...")
-        script = python_util.Script(mod_path, mod_package, sys_path)
         try:
-            data = self._flags_data_for_script(script, flags_dest)
-        except DataLoadError:
+            script = python_util.Script(mod_path, mod_package, sys_path)
+        except SyntaxError as e:
+            self.log.warning(
+                "cannot import flags from %s: invalid syntax on line %i\n"
+                "  %s\n"
+                "  %s^",
+                mod_path,
+                e.lineno,
+                e.text.rstrip(),
+                " " * (e.offset - 1),
+            )
             return {}
         else:
-            self._apply_abs_paths(data, os.path.dirname(script.src))
-            self._cache_data(data, cached_data_path)
-            return data
+            try:
+                data = self._flags_data_for_script(script, flags_dest)
+            except DataLoadError:
+                return {}
+            else:
+                self._apply_abs_paths(data, os.path.dirname(script.src))
+                self._cache_data(data, cached_data_path)
+                return data
 
     @staticmethod
     def _cache_data(data, path):
@@ -345,11 +359,14 @@ class PythonScriptPlugin(pluginlib.Plugin):
             try:
                 out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, env=env)
             except subprocess.CalledProcessError as e:
+                error, details = _split_argparse_flags_error(e.output.decode().strip())
+                if details and self.log.getEffectiveLevel() > logging.DEBUG:
+                    error += " (run with guild --debug for details)"
                 self.log.warning(
-                    "cannot import flags from %s: %s",
-                    script.src,
-                    e.output.decode().strip(),
+                    "cannot import flags from %s: %s", script.src, error,
                 )
+                if details and self.log.getEffectiveLevel() <= logging.DEBUG:
+                    self.log.error(details)
                 raise DataLoadError()
             else:
                 out = out.decode()
@@ -502,3 +519,17 @@ def _load_data(path):
     if not out:
         return {}
     return yaml.safe_load(out)
+
+
+def _split_argparse_flags_error(e_str):
+    if "Traceback" in e_str:
+        lines = e_str.split("\n")
+        return lines[-1], _strip_debug_tag(e_str)
+    else:
+        return e_str, None
+
+
+def _strip_debug_tag(s):
+    if s.startswith("DEBUG: "):
+        return s[7:]
+    return s

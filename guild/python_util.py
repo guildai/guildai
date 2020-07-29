@@ -51,6 +51,7 @@ class Script(object):
         self._imports = []
         self._calls = []
         self._params = {}
+        self._parse()
 
     def __lt__(self, x):
         return self.__cmp__(x) < 0
@@ -60,29 +61,22 @@ class Script(object):
 
     @property
     def imports(self):
-        self._ensure_parsed()
         return self._imports
 
     @property
     def calls(self):
-        self._ensure_parsed()
         return self._calls
 
     @property
     def params(self):
-        self._ensure_parsed()
         return self._params
 
-    def _ensure_parsed(self):
-        if not self._parsed:
-            try:
-                parsed = ast.parse(open(self.src, "r").read())
-            except SyntaxError:
-                log.exception("parsing %s", self.src)
-            else:
-                for node in ast.walk(parsed):
-                    self._safe_apply_node(node)
-            self._parsed = True
+    def _parse(self):
+        assert not self._parsed
+        parsed = ast.parse(open(self.src, "r").read())
+        for node in ast.walk(parsed):
+            self._safe_apply_node(node)
+        self._parsed = True
 
     def _safe_apply_node(self, node):
         try:
