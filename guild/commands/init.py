@@ -137,7 +137,7 @@ def init(args):
 
     For information on requirements files, see:
 
-    https://my.guild.ai/terms/requirements-file
+    https://bit.ly/guild-help-req-files
 
     You may explicitly specify requirements file using `-r` or
     `--requirement`. If `-r, --requirement` is specified, Guild will
