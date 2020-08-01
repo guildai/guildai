@@ -66,7 +66,7 @@ class ScalarReader(object):
         for event in EventReader(self.dir):
             for val in event.summary.value:
                 scalar_info = _try_scalar_event(event, val)
-                if scalar_info:
+                if scalar_info is not None:
                     yield scalar_info
 
 
@@ -75,7 +75,7 @@ def _try_scalar_event(event, val):
         scalar_val = _try_tensor_scalar(val)
         if scalar_val is not None:
             return val.tag, scalar_val, event.step
-    if val.HasField("simple_value"):
+    elif val.HasField("simple_value"):
         return val.tag, val.simple_value, event.step
     return None
 

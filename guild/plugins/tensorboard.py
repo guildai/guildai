@@ -25,39 +25,13 @@ import warnings
 log = logging.getLogger("guild")
 
 
-def check():
-    from guild import cli
-
-    cli.out("version: %s" % version())
-    supported = current_version_supported()
-    cli.out("supported: %s" % _yesno(supported))
-    if not supported:
-        return
-
-
-def _yesno(b):
-    return "yes" if b else "no"
-
-
 def version():
     import tensorboard.version as version
 
     return version.VERSION
 
 
-def summary_enabled():
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", Warning)
-            # pylint: disable=no-name-in-module
-            import tensorboard.summary.writer as _
-    except ImportError:
-        return False
-    else:
-        return True
-
-
-def current_version_supported():
+def version_supported():
     major_version = int(version().split(".", 1)[0])
     return major_version >= 2
 
@@ -179,24 +153,21 @@ def base_plugins():
 
 
 def _base_tb_args(logdir, reload_interval, path_prefix):
-    return (
-        "",
-        "--logdir",
-        logdir,
-        "--reload_interval",
-        str(reload_interval),
-        "--path_prefix",
-        path_prefix,
-    )
+    args = ["", "--logdir", logdir]
+    if reload_interval:
+        args.extend(["--reload_interval", str(reload_interval)])
+    if path_prefix:
+        args.extend(["--path_prefix", path_prefix])
+    return args
 
 
 def _extra_tb_args(options):
     if not options:
-        return ()
+        return []
     args = []
     for name, val in sorted(options.items()):
         args.extend(["--%s" % name, str(val)])
-    return tuple(args)
+    return args
 
 
 def set_notf():

@@ -490,16 +490,3 @@ def test_output(f, config, cb=None):
             for m in matches:
                 _try_apply_match(m, key, vals)
             cb.pattern_matches(p.pattern, matches, vals)
-
-
-class Disabled(Exception):
-    pass
-
-
-def check_enabled():
-    from guild.plugins import tensorboard
-
-    if not tensorboard.summary_enabled():
-        raise Disabled(
-            "TensorBoard 1.14 or later is required to write TF event summaries"
-        )
