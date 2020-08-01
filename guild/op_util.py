@@ -290,6 +290,10 @@ class RunOutput(object):
         lock = self._output_lock
         line = []
         while True:
+            if stream_type == 0:
+                # Stop gap hack to encourage stderr to run before we
+                # do. Not pretty.
+                time.sleep(0.01)
             buf = os_read(input_fileno, RUN_OUTPUT_STREAM_BUFFER)
             if not buf:
                 break
