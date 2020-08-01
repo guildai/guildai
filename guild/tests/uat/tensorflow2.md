@@ -3,7 +3,8 @@
 These tests use `guild.tfevent`, which requires that we call
 `_ensure_tb_logging_patched` to supress TensorFlow logging noise.
 
-    >>> guild.tfevent._ensure_tb_logging_patched()
+    >>> from guild import tfevent
+    >>> tfevent._ensure_tb_logging_patched()
 
 Install TensorFlow 2:
 

@@ -17,12 +17,8 @@ from __future__ import division
 
 import io
 import logging
-import os
 import re
-import socket
 import sys
-import time
-import warnings
 
 import six
 
@@ -55,31 +51,17 @@ class EventFileWriter(object):
         filename_base=None,
         filename_suffix="",
     ):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", Warning)
-            # pylint: disable=no-name-in-module
-            from tensorboard.summary.writer import event_file_writer as writelib
+        from guild.plugins import tensorboard
+
         util.ensure_dir(logdir)
-        filename_base = filename_base or (
-            "%010d.%s.%s.%s"
-            % (
-                time.time(),
-                socket.gethostname(),
-                os.getpid(),
-                writelib._global_uid.get(),
-            )
+        self._writer = tensorboard.AsyncWriter(
+            logdir,
+            max_queue_size=max_queue_size,
+            flush_secs=flush_secs,
+            filename_base=filename_base,
+            filename_suffix=filename_suffix,
         )
-        filename = (
-            os.path.join(logdir, "events.out.tfevents.%s" % filename_base)
-            + filename_suffix
-        )
-        self._writer = writelib._AsyncWriter(
-            writelib.RecordWriter(open(filename, "wb")), max_queue_size, flush_secs
-        )
-        event = writelib.event_pb2.Event(
-            wall_time=time.time(), file_version="brain.Event:2"
-        )
-        self.add_event(event)
+        self.add_event(tensorboard.Event(file_version="brain.Event:2"))
         self.flush()
 
     def add_event(self, event):
@@ -118,11 +100,11 @@ class SummaryWriter(object):
         return self._writer
 
     def _add_summary(self, summary, step=None):
-        from tensorboard.compat.proto import event_pb2
+        from guild.plugins import tensorboard
 
         if step is not None:
             step = int(step)
-        event = event_pb2.Event(summary=summary, step=step)
+        event = tensorboard.Event(summary=summary, step=step)
         self._get_writer().add_event(event)
 
     def add_scalar(self, tag, val, step=None):
@@ -163,21 +145,21 @@ class SummaryWriter(object):
 
 
 def _ScalarSummary(tag, val):
-    from tensorboard.compat.proto.summary_pb2 import Summary
+    from guild.plugins import tensorboard
 
-    return Summary(value=[Summary.Value(tag=tag, simple_value=val)])
+    return tensorboard.Summary(tag, simple_value=val)
 
 
 def _ImageSummary(tag, height, width, colorspace, encoded_image):
-    from tensorboard.compat.proto.summary_pb2 import Summary
+    from guild.plugins import tensorboard
 
-    image = Summary.Image(
+    image = tensorboard.Image(
         height=height,
         width=width,
         colorspace=colorspace,
         encoded_image_string=encoded_image,
     )
-    return Summary(value=[Summary.Value(tag=tag, image=image)])
+    return tensorboard.Summary(tag, image=image)
 
 
 def _try_encode_png(image):
@@ -198,8 +180,9 @@ def _image_desc(img):
 
 
 def _HParamExperiment(hparams, metrics):
-    from tensorboard.plugins.hparams import summary_v2 as hp
+    from guild.plugins import tensorboard
 
+    hp = tensorboard.hparams_hp_proto()
     return hp.hparams_config_pb(
         hparams=[_HParam(key, vals) for key, vals in sorted(hparams.items())],
         metrics=[hp.Metric(tag) for tag in sorted(metrics)],
@@ -215,7 +198,9 @@ def _HParam(name, vals):
 
     Otherwise does not use a domain.
     """
-    from tensorboard.plugins.hparams import summary_v2 as hp
+    from guild.plugins import tensorboard
+
+    hp = tensorboard.hparams_hp_proto()
 
     type = hparam_type(vals)
     if type == HPARAM_TYPE_NUMBER:
@@ -264,8 +249,9 @@ def is_hparam_string(vals):
 
 
 def _HParamSessionStart(name, hparams):
-    from tensorboard.plugins.hparams import summary_v2 as hp
+    from guild.plugins import tensorboard
 
+    hp = tensorboard.hparams_hp_proto()
     try:
         # pylint: disable=unexpected-keyword-arg
         return hp.hparams_pb(hparams, trial_id=name)
@@ -274,8 +260,9 @@ def _HParamSessionStart(name, hparams):
 
 
 def _legacy_hparams_pb(hparams, trial_id):
-    from tensorboard.plugins.hparams import summary_v2 as hp
+    from guild.plugins import tensorboard
 
+    hp = tensorboard.hparams_hp_proto()
     hparams = hp._normalize_hparams(hparams)
     info = hp.plugin_data_pb2.SessionStartInfo(group_name=trial_id)
     for name in sorted(hparams):
@@ -297,8 +284,9 @@ def _legacy_hparams_pb(hparams, trial_id):
 
 
 def _HParamSessionEnd(status):
-    from tensorboard.plugins.hparams import summary_v2 as hp
+    from guild.plugins import tensorboard
 
+    hp = tensorboard.hparams_hp_proto()
     info = hp.plugin_data_pb2.SessionEndInfo(status=_Status(status))
     return hp._summary_pb(
         hp.metadata.SESSION_END_INFO_TAG,
@@ -307,16 +295,17 @@ def _HParamSessionEnd(status):
 
 
 def _Status(status):
-    from tensorboard.plugins.hparams import api_pb2
+    from guild.plugins import tensorboard
 
+    api = tensorboard.hparams_api_proto()
     if status in ("terminated", "completed"):
-        return api_pb2.Status.Value("STATUS_SUCCESS")
+        return api.Status.Value("STATUS_SUCCESS")
     elif status == "error":
-        return api_pb2.Status.Value("STATUS_FAILURE")
+        return api.Status.Value("STATUS_FAILURE")
     elif status == "running":
-        return api_pb2.Status.Value("STATUS_RUNNING")
+        return api.Status.Value("STATUS_RUNNING")
     else:
-        return api_pb2.Status.Value("STATUS_UNKNOWN")
+        return api.Status.Value("STATUS_UNKNOWN")
 
 
 class OutputScalars(object):
@@ -508,12 +497,9 @@ class Disabled(Exception):
 
 
 def check_enabled():
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", Warning)
-            # pylint: disable=no-name-in-module
-            import tensorboard.summary.writer as _
-    except ImportError:
+    from guild.plugins import tensorboard
+
+    if not tensorboard.summary_enabled():
         raise Disabled(
-            "TensorBoard 1.14 or later is required to write " "TF event summaries"
+            "TensorBoard 1.14 or later is required to write TF event summaries"
         )

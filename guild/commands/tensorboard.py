@@ -69,6 +69,7 @@ from . import server_support
 )
 @runs_support.all_filters
 @click.option("--keep-logdir", is_flag=True, hidden=True)
+@click.option("--check", is_flag=True, hidden=True)
 @click_util.use_args
 @click_util.render_doc
 def tensorboard(args):

@@ -21,7 +21,6 @@ import logging
 import os
 import re
 import sys
-import warnings
 
 from werkzeug import serving
 
@@ -499,44 +498,29 @@ def _remove_orphaned_run_file_links(run_logdir):
 
 def create_app(
     logdir,
-    reload_interval,
+    reload_interval=None,
     path_prefix="",
     tensorboard_options=None,
     disabled_plugins=None,
 ):
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", Warning)
-        from tensorboard import program
-        from tensorboard.backend import application
+    from guild.plugins import tensorboard
 
-    try:
-        TensorBoard = program.TensorBoard
-    except AttributeError:
-        raise TensorboardError("tensorboard>=1.10 required")
-    else:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", Warning)
-            plugins = _plugins(disabled_plugins)
-            tb = TensorBoard(plugins)
-        argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
-            tensorboard_options
-        )
-        log.debug("TensorBoard args: %r", argv)
-        tb.configure(argv)
-        return application.standard_tensorboard_wsgi(
-            tb.flags, tb.plugin_loaders, tb.assets_zip_provider
-        )
-
-
-def _plugins(disabled=None):
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", Warning)
-        from tensorboard import default
-
-    base_plugins = default.get_plugins() + default.get_dynamic_plugins()
-    plugins = _filter_disabled_plugins(disabled, base_plugins)
+    plugins = _tensorboard_plugins(disabled_plugins)
     log.debug("TensorBoard plugins: %s", plugins)
-    return plugins
+    return tensorboard.wsgi_app(
+        logdir,
+        plugins,
+        reload_interval=reload_interval,
+        path_prefix=path_prefix,
+        tensorboard_options=tensorboard_options,
+    )
+
+
+def _tensorboard_plugins(disabled=None):
+    from guild.plugins import tensorboard
+
+    base_plugins = tensorboard.base_plugins()
+    return _filter_disabled_plugins(disabled, base_plugins)
 
 
 def _filter_disabled_plugins(disabled, plugins):
@@ -559,36 +543,15 @@ def _plugin_name(plugin):
     return str(plugin)
 
 
-def _base_tb_args(logdir, reload_interval, path_prefix):
-    return (
-        "",
-        "--logdir",
-        logdir,
-        "--reload_interval",
-        str(reload_interval),
-        "--path_prefix",
-        path_prefix,
-    )
-
-
-def _extra_tb_args(options):
-    if not options:
-        return ()
-    args = []
-    for name, val in sorted(options.items()):
-        args.extend(["--%s" % name, str(val)])
-    return tuple(args)
-
-
 def setup_logging():
     _setup_tensorboard_logging()
     _setup_werkzeug_logging()
 
 
 def _setup_tensorboard_logging():
-    from tensorboard.util import tb_logging
+    from guild.plugins import tensorboard
 
-    tb_logging.get_logger().info = lambda *_args, **_kw: None
+    tensorboard.silence_info_logging()
 
 
 def _setup_werkzeug_logging():
@@ -607,12 +570,13 @@ def _silent_logger(log0):
 
 
 def run_simple_server(tb_app, host, port, ready_cb):
-    from tensorboard import version
+    from guild.plugins import tensorboard
 
     server, _ = make_simple_server(tb_app, host, port)
     url = util.local_server_url(host, port)
     sys.stderr.write(
-        "Running TensorBoard %s at %s (Type Ctrl+C to quit)\n" % (version.VERSION, url)
+        "Running TensorBoard %s at %s (Type Ctrl+C to quit)\n"
+        % (tensorboard.version(), url)
     )
     sys.stderr.flush()
     if ready_cb:
@@ -646,11 +610,12 @@ def serve_forever(
 
 
 def test_output(out):
-    from tensorboard import version
+    from guild.plugins import tensorboard
 
+    plugins = _tensorboard_plugins()
     data = {
-        "version": version.VERSION,
-        "plugins": ["%s.%s" % (p.__module__, p.__name__) for p in _plugins()],
+        "version": tensorboard.version(),
+        "plugins": ["%s.%s" % (p.__module__, p.__name__) for p in plugins],
     }
     json.dump(data, out)
 

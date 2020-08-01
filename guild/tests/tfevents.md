@@ -1,26 +1,9 @@
 # TF Events
 
-## Patching tb.compat
-
-TensorBoard is now independent of TensorFlow. However, TensorBoard
-prefers to use TensorFlow when it's available. Guild relies the on the
-TensorBoard API for reading TF events and we want to avoid the high
-price of loading the `tensorflow` module.
-
-The function `tfevents._ensure_tb_compat_patched` is responsible for
-patching the TensorBoard library to loading of `tensorflow`.
+Support for reading summaries from TF event files is provided by
+`guild.tfevent`.
 
     >>> from guild import tfevent
-
-    >>> tfevent._ensure_tb_compat_patched()
-
-We can confirm the patch is working by reading the version of
-`tensorboard.compat.tf`.
-
-    >>> from tensorboard import compat
-
-    >>> compat.tf.__version__
-    'stub'
 
 ## Basic event writing and reading
 

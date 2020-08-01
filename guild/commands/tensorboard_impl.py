@@ -38,10 +38,18 @@ DEFAULT_PREPARE_THRESHOLD = 5  # seconds
 
 
 def main(args):
-    if args.export_scalars:
+    if args.check:
+        _check()
+    elif args.export_scalars:
         _export_scalars(args)
     else:
         _run_tensorboard(args)
+
+
+def _check():
+    from guild.plugins import tensorboard
+
+    tensorboard.check()
 
 
 def _export_scalars(args):

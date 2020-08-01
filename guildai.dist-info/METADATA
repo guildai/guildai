@@ -42,7 +42,7 @@ Requires-Dist: scikit-optimize>=0.7.1
 Requires-Dist: setuptools>=40.6.3
 Requires-Dist: six>=1.10.0
 Requires-Dist: tabview>=1.4.3
-Requires-Dist: tensorboard>=1.15,<2.3
+Requires-Dist: tensorboard>=2.0.0,<2.3.0
 Requires-Dist: virtualenv>=15.1.0
 
 Guild AI is an [open source](https://raw.githubusercontent.com/guildai/guildai/master/LICENSE.txt)
