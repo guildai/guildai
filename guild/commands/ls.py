@@ -33,6 +33,15 @@ from . import runs_support
 @click.option(
     "-n", "--no-format", is_flag=True, help="Show files without additional formatting."
 )
+@click.option(
+    "-x", "--extended", is_flag=True, help="Use shell specific extended formatting."
+)
+@click.option(
+    "-h",
+    "--human-readable",
+    is_flag=True,
+    help="Show human readable sizes when -x is used.",
+)
 @runs_support.all_filters
 @remote_support.remote_option("List files for for remote run.")
 @click.pass_context

@@ -430,7 +430,9 @@ def list_files(args):
 def _ls_kw(args):
     names = _run_select_names() + [
         "all",
+        "extended",
         "follow_links",
+        "human_readable",
         "no_format",
         "path",
         "sourcecode",

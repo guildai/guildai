@@ -850,7 +850,17 @@ def _label_runs_args(runs, set, prepend, append, remove, clear, yes, **filters):
     return args
 
 
-def _ls_args(run, all, follow_links, no_format, path, sourcecode, **filters):
+def _ls_args(
+    run,
+    all,
+    extended,
+    follow_links,
+    human_readable,
+    no_format,
+    path,
+    sourcecode,
+    **filters
+):
     args = _runs_filter_args(**filters)
     if all:
         args.append("-a")
@@ -862,6 +872,10 @@ def _ls_args(run, all, follow_links, no_format, path, sourcecode, **filters):
         args.append("-p")
     if sourcecode:
         args.append("--sourcecode")
+    if extended:
+        args.append("-x")
+    if human_readable:
+        args.append("-h")
     if run:
         args.append(run)
     return args

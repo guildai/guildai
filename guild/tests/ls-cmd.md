@@ -24,6 +24,8 @@ We'll use an args proxy to simulate command arguments.
     ...       self.started = started
     ...       self.remote = False
     ...       self.digest = None
+    ...       self.extended = False
+    ...       self.human_readable = False
 
 To test list with a run containing symbolic links, we need to generate
 a sample run dynamically. We can't use a sample directory structure

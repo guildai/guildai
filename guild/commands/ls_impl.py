@@ -18,6 +18,7 @@ from __future__ import division
 import fnmatch
 import logging
 import os
+import subprocess
 
 from guild import cli
 from guild import util
@@ -47,9 +48,11 @@ def _main(args, ctx):
             "PATH must be relative\n" "Try 'guild ls --help' for more information."
         )
     run = runs_impl.one_run(args, ctx)
-    _print_header(run.path, args)
-    for val in sorted(_list(run.path, args)):
-        _print_file(val, args)
+    _print_header(run.dir, args)
+    if args.extended:
+        _ls_extended(run.dir, args)
+    else:
+        _ls_normal(run.dir, args)
 
 
 def _print_header(run_dir, args):
@@ -64,6 +67,23 @@ def _run_dir_header(run_dir, args):
         return util.format_dir(run_dir)
     else:
         return run_dir
+
+
+def _ls_extended(dir, args):
+    cmd = ["ls", "-l"]
+    if args.all:
+        cmd.append("-aR")
+    if args.human_readable:
+        cmd.append("-h")
+    if args.follow_links:
+        cmd.append("-L")
+    cmd.append(dir)
+    subprocess.call(cmd)
+
+
+def _ls_normal(dir, args):
+    for val in sorted(_list(dir, args)):
+        _print_file(val, args)
 
 
 def _list(run_dir, args):
