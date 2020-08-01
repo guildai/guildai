@@ -900,8 +900,9 @@ def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
         preexec_fn=os.setsid,
     )
     with _kill_after(p, timeout):
-        exit_code = p.wait()
-        out = p.stdout.read()
+        out, err = p.communicate()
+        assert err is None, err
+        exit_code = p.returncode
     if not quiet or exit_code != 0:
         out = out.strip().decode("utf-8")
         if ignore:
