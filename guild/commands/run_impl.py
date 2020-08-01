@@ -1937,6 +1937,7 @@ def _print_staged_info(run):
 def _staged_outside_guild_home(run):
     return not util.compare_paths(os.path.dirname(run.dir), var.runs_dir())
 
+
 def _print_staged_dir_instructions(run):
     cmd_args = run.get("cmd") or []
     cmd = " ".join([util.shlex_quote(arg) for arg in cmd_args])
