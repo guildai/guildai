@@ -21,6 +21,7 @@ import socket
 import time
 import warnings
 
+from guild import util
 
 log = logging.getLogger("guild")
 
@@ -128,10 +129,44 @@ def make_ndarray(tensor):
 def wsgi_app(
     logdir, plugins, reload_interval=None, path_prefix="", tensorboard_options=None
 ):
+    f = util.find_apply([_wsgi_app_v1_f, _wsgi_app_v2_f, _wsgi_app_unsupported_error])
+    return f(
+        logdir,
+        plugins,
+        reload_interval=reload_interval,
+        path_prefix=path_prefix,
+        tensorboard_options=tensorboard_options,
+    )
+
+
+def _wsgi_app_unsupported_error():
+    assert False, version()
+
+
+def _wsgi_app_v1_f():
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", Warning)
+        from tensorboard.backend import application
+    try:
+        standard_tensorboard_wsgi = application.standard_tensorboard_wsgi
+    except AttributeError:
+        return None
+    else:
+        return lambda *args, **kw: _wsgi_app_v1(standard_tensorboard_wsgi, *args, **kw)
+
+
+def _wsgi_app_v1(
+    standard_tensorboard_wsgi,
+    logdir,
+    plugins,
+    reload_interval=None,
+    path_prefix="",
+    tensorboard_options=None,
+):
+    """WSGI app for tensorboard<2.3.0."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
         from tensorboard import program
-        from tensorboard.backend import application
 
     tb = program.TensorBoard(plugins)
     argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
@@ -139,8 +174,52 @@ def wsgi_app(
     )
     log.debug("TensorBoard args: %r", argv)
     tb.configure(argv)
-    return application.standard_tensorboard_wsgi(
+    return standard_tensorboard_wsgi(
         tb.flags, tb.plugin_loaders, tb.assets_zip_provider
+    )
+
+
+def _wsgi_app_v2_f():
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", Warning)
+        from tensorboard.backend import application
+    try:
+        TensorBoardWSGIApp = application.TensorBoardWSGIApp
+    except AttributeError:
+        return None
+    else:
+        return lambda *args, **kw: _wsgi_app_v2(TensorBoardWSGIApp, *args, **kw)
+
+
+def _wsgi_app_v2(
+    TensorBoardWSGIApp,
+    logdir,
+    plugins,
+    reload_interval=None,
+    path_prefix="",
+    tensorboard_options=None,
+):
+    """WSGI app for tensorboard>=2.3.0."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", Warning)
+        from tensorboard.backend.event_processing import data_ingester
+        from tensorboard import program
+
+    tb = program.TensorBoard(plugins, program.get_default_assets_zip_provider())
+    argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
+        tensorboard_options
+    )
+    log.debug("TensorBoard args: %r", argv)
+    tb.configure(argv)
+
+    ingester = data_ingester.LocalDataIngester(tb.flags)
+    ingester.start()
+    return TensorBoardWSGIApp(
+        tb.flags,
+        tb.plugin_loaders,
+        ingester.data_provider,
+        tb.assets_zip_provider,
+        ingester.deprecated_multiplexer,
     )
 
 
@@ -149,7 +228,7 @@ def base_plugins():
         warnings.simplefilter("ignore", Warning)
         from tensorboard import default
 
-    return default.get_plugins() + default.get_dynamic_plugins()
+    return list(set(default.get_plugins() + default.get_dynamic_plugins()))
 
 
 def _base_tb_args(logdir, reload_interval, path_prefix):
