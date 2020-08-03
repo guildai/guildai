@@ -124,18 +124,30 @@ def _parse_int(val):
 
 
 def _parse_percent(val):
-    assert val.endswith(" %"), val
-    return float(val[0:-2]) / 100
+    if val.endswith(" %"):
+        return float(val[0:-2]) / 100
+    elif "N/A" in val:
+        return None
+    else:
+        assert False, repr(val)
 
 
 def _parse_bytes(val):
-    assert val.endswith(" MiB"), val
-    return int(val[0:-4]) * 1024 * 1024
+    if val.endswith(" MiB"):
+        return int(val[0:-4]) * 1024 * 1024
+    elif "N/A" in val:
+        return None
+    else:
+        assert False, repr(val)
 
 
 def _parse_watts(val):
-    assert val.endswith(" W"), val
-    return float(val[0:-2])
+    if val.endswith(" W"):
+        return float(val[0:-2])
+    elif "N/A" in val:
+        return None
+    else:
+        assert False, repr(val)
 
 
 def _gpu_val_key(index, name):
