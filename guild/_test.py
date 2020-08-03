@@ -898,6 +898,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         preexec_fn=os.setsid,
+        env=os.environ,
     )
     with _kill_after(p, timeout):
         out, err = p.communicate()
