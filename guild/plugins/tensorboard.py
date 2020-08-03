@@ -202,6 +202,7 @@ def _wsgi_app_v2(
     """WSGI app for tensorboard>=2.3.0."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
+        # pylint: disable=no-name-in-module
         from tensorboard.backend.event_processing import data_ingester
         from tensorboard import program
 
