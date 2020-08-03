@@ -42,14 +42,15 @@ from . import remote_impl_support
 
 log = logging.getLogger("guild")
 
+# (mod_name, required_flag)
 CHECK_MODS = [
-    "click",
-    "distutils",
-    "pip",
-    "setuptools",
-    "twine",
-    "yaml",
-    "werkzeug",
+    ("click", True),
+    ("distutils", True),
+    ("pip", True),
+    ("setuptools", True),
+    ("twine", False),
+    ("yaml", True),
+    ("werkzeug", True),
 ]
 
 
@@ -291,18 +292,19 @@ def _nvidia_smi_version():
 
 
 def _print_mods_info(check):
-    for mod in CHECK_MODS:
-        ver = _try_module_version(mod, check)
+    for mod, required in CHECK_MODS:
+        ver = _try_module_version(mod, check, required)
         _print_module_ver(mod, ver)
 
 
-def _try_module_version(name, check, version_attr="__version__"):
+def _try_module_version(name, check, required=True, version_attr="__version__"):
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", UserWarning)
             mod = __import__(name)
     except ImportError as e:
-        check.error()
+        if required:
+            check.error()
         return _warn("not installed (%s)" % e)
     else:
         try:
