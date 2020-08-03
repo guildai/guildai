@@ -22,6 +22,26 @@ from guild import click_util
 from . import remote_support
 
 
+def _ac_all_tests(ctx, args, incomplete):
+    return _ac_builtin_tests(ctx, args, incomplete) + _ac_test_files(
+        ctx, args, incomplete
+    )
+
+
+def _ac_builtin_tests(ctx, args, incomplete):
+    # pylint: disable=unused-argument
+    from guild import _test
+
+    return [t for t in _test.all_tests() if t.startswith(incomplete)]
+
+
+def _ac_test_files(ctx, args, incomplete):
+    # pylint: disable=unused-argument
+    from guild import file_util
+
+    return file_util.autocomplete_files(incomplete, "*.md")
+
+
 @click.command()
 @click.option("-tf", "--tensorflow", help="Check TensorFlow status.", is_flag=True)
 @click.option("-T", "--tests", "all_tests", help="Run Guild test suite.", is_flag=True)
@@ -32,6 +52,7 @@ from . import remote_support
     metavar="TEST",
     help="Run `TEST` (may be used multiple times).",
     multiple=True,
+    autocompletion=_ac_all_tests,
 )
 @click.option(
     "-n",
@@ -45,6 +66,7 @@ from . import remote_support
     metavar="TEST",
     help="Skip `TEST` when running Guild test suite. Ignored otherwise.",
     multiple=True,
+    autocompletion=_ac_builtin_tests,
 )
 @click.option("-v", "--verbose", help="Show more information.", is_flag=True)
 @click.option("--space", help="Show disk space usage for Guild files.", is_flag=True)

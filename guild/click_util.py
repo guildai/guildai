@@ -18,6 +18,7 @@ from __future__ import division
 import contextlib
 import functools
 import json
+import os
 import re
 
 import click
@@ -285,3 +286,49 @@ def _maybe_render_doc(s, vars):
     # pylint: disable=eval-used
     fn = eval(m.group(1).strip(), vars)
     return fn.__doc__
+
+
+def patch_click():
+    from click import _bashcomplete
+
+    _bashcomplete.is_incomplete_option = _patched_is_incomplete_option
+
+
+def _patched_is_incomplete_option(all_args, cmd_param):
+    """Patched version of is_complete_option.
+
+    Fixes issue testing a cmd param against the current list of
+    args. Upstream version does not consider combined short form args
+    and so a command like `guild check -nt <auto>` doesn't work. The
+    patched version considers that `t` above is the current param
+    option.
+    """
+    from click import _bashcomplete
+
+    if not isinstance(cmd_param, _bashcomplete.Option):
+        return False
+    if cmd_param.is_flag:
+        return False
+    last_option = None
+    for index, arg_str in enumerate(
+        reversed([arg for arg in all_args if arg != _bashcomplete.WORDBREAK])
+    ):
+        if index + 1 > cmd_param.nargs:
+            break
+        if _bashcomplete.start_of_option(arg_str):
+            last_option = arg_str
+
+    if not last_option:
+        return False
+    if last_option[:2] == "--":
+        return last_option in cmd_param.opts
+
+    assert last_option[:1] == "-", last_option
+    for i in range(len(last_option), 0, -1):
+        if "-%s" % last_option[i:] in cmd_param.opts:
+            return True
+    return False
+
+
+if os.getenv("SKIP_PATCH_CLICK") != "1":
+    patch_click()

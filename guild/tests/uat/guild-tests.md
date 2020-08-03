@@ -9,6 +9,7 @@ tests).
     internal tests:
       anonymous-models:            ok
       api:                         ok
+      autocomplete:                ok
       batch-basics:                ok
       batch-custom-optimizer:      ok
       batch-error-handling:        ok

@@ -27,6 +27,7 @@ from guild import util
 from .cat import cat
 from .check import check
 from .compare import compare
+from .completion import completion
 from .diff import diff
 from .download import download
 from .export import export
@@ -103,6 +104,7 @@ def main(args):
 main.add_command(cat)
 main.add_command(check)
 main.add_command(compare)
+main.add_command(completion)
 main.add_command(diff)
 main.add_command(download)
 main.add_command(export)

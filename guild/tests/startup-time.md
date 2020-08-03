@@ -53,6 +53,7 @@ Expected output (Guidl help):
       cat              Show contents of a run file.
       check            Check the Guild setup.
       compare          Compare run results.
+      completion       Generate command completion script.
       diff             Diff two runs.
       download         Download a file resource.
       export           Export one or more runs.
