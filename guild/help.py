@@ -18,12 +18,13 @@ import textwrap
 
 import click
 
+from guild import click_util
 from guild import flag_util
 
 log = logging.getLogger("guild")
 
 
-class ConsoleFormatter(click.HelpFormatter):
+class ConsoleFormatter(click_util.ClickBaseHelpFormatter):
 
     _in_section = False
 
@@ -51,7 +52,7 @@ class ConsoleFormatter(click.HelpFormatter):
             self.write_text(par)
 
 
-class RstFormatter(click.HelpFormatter):
+class RstFormatter(click_util.ClickBaseHelpFormatter):
 
     _in_section = False
     _heading_chars = "#=^-`"
@@ -114,7 +115,7 @@ class RstFormatter(click.HelpFormatter):
         return "**%s**" % s
 
 
-class MarkdownFormatter(click.HelpFormatter):
+class MarkdownFormatter(click_util.ClickBaseHelpFormatter):
     def __init__(self, heading_level=1):
         super(MarkdownFormatter, self).__init__()
         self._in_section = False
@@ -422,7 +423,7 @@ def _format_flag_desc(flag, max_flag_len):
 
 
 def _format_flag_choices(choices, max_flag_len):
-    out = click.HelpFormatter()
+    out = click_util.ClickBaseHelpFormatter()
     if _choices_have_description(choices):
         out.width = out.width - max_flag_len - 4
         _format_flag_choices_dl(choices, out)
@@ -478,7 +479,7 @@ def _write_references(refs, out):
 
 
 def print_model_help(modeldef):
-    out = click.HelpFormatter()
+    out = click_util.ClickBaseHelpFormatter()
     out.write_usage(
         "guild", "run [OPTIONS] {}:OPERATION [FLAG]...".format(modeldef.name)
     )
@@ -517,7 +518,7 @@ def _write_dl_section(name, dl, out):
 
 
 def print_op_help(opdef):
-    out = click.HelpFormatter()
+    out = click_util.ClickBaseHelpFormatter()
     out.write_usage("guild", "run [OPTIONS] {} [FLAG]...".format(opdef.fullname))
     if opdef.description:
         out.write_paragraph()

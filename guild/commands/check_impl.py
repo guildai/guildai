@@ -22,6 +22,7 @@ import platform
 import re
 import subprocess
 import sys
+import warnings
 
 import click
 import pkg_resources
@@ -42,6 +43,7 @@ from . import remote_impl_support
 log = logging.getLogger("guild")
 
 CHECK_MODS = [
+    "click",
     "distutils",
     "pip",
     "setuptools",
@@ -296,7 +298,9 @@ def _print_mods_info(check):
 
 def _try_module_version(name, check, version_attr="__version__"):
     try:
-        mod = __import__(name)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            mod = __import__(name)
     except ImportError as e:
         check.error()
         return _warn("not installed (%s)" % e)

@@ -58,7 +58,56 @@ class Group(click.Group):
         return super(Group, self).get_command(ctx, cmd_name)
 
 
-class HelpFormatter(click.formatting.HelpFormatter):
+class ClickBaseHelpFormatter(click.formatting.HelpFormatter):
+    """Patched version of click's HelpFormatter class.
+
+    Overrides write_dl to support preserve paragraphs.
+    """
+
+    # pylint: disable=arguments-differ
+    def write_dl(self, rows, col_max=30, col_spacing=2, preserve_paragraphs=False):
+        rows = list(rows)
+        widths = click.formatting.measure_table(rows)
+        if len(widths) != 2:
+            raise TypeError("Expected two columns for definition list")
+
+        first_col = min(widths[0], col_max) + col_spacing
+
+        for first, second in click.formatting.iter_rows(rows, len(widths)):
+            self.write("{:>{w}}{}".format("", first, w=self.current_indent))
+            if not second:
+                self.write("\n")
+                continue
+            if click.formatting.term_len(first) <= first_col - col_spacing:
+                self.write(" " * (first_col - click.formatting.term_len(first)))
+            else:
+                self.write("\n")
+                self.write(" " * (first_col + self.current_indent))
+
+            text_width = max(self.width - first_col - 2, 10)
+            wrapped_text = click.formatting.wrap_text(
+                second, text_width, preserve_paragraphs=preserve_paragraphs
+            )
+            lines = wrapped_text.splitlines()
+
+            if lines:
+                self.write("{}\n".format(lines[0]))
+
+                for line in lines[1:]:
+                    self.write(
+                        "{:>{w}}{}\n".format(
+                            "", line, w=first_col + self.current_indent
+                        )
+                    )
+
+                if len(lines) > 1:
+                    # separate long help from next option
+                    self.write("\n")
+            else:
+                self.write("\n")
+
+
+class HelpFormatter(ClickBaseHelpFormatter):
 
     _text_subs = [
         (re.compile("``"), "'"),
