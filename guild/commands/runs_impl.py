@@ -166,10 +166,8 @@ def _apply_ops_filter(args, filters):
 
 def _op_run_filter(op_refs):
     def f(run):
-        op = run_util.format_operation(run, nowarn=True)
-        pkg = run_util.format_pkg_name(run)
-        full_op = "%s/%s" % (pkg, op)
-        return any((ref in full_op for ref in op_refs))
+        opspec = run.opref.to_opspec()
+        return any((ref in opspec for ref in op_refs))
 
     return f
 

@@ -1,0 +1,14 @@
+a:
+  main: echo
+  flags:
+    msg: a
+
+b:
+  main: echo
+  flags:
+    msg: b
+
+c:
+  main: echo
+  flags:
+    msg: c

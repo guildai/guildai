@@ -22,21 +22,17 @@ from guild import click_util
 from . import remote_support
 
 
-def _ac_all_tests(ctx, args, incomplete):
-    return _ac_builtin_tests(ctx, args, incomplete) + _ac_test_files(
-        ctx, args, incomplete
-    )
+def _ac_all_tests(incomplete, **_kw):
+    return _ac_builtin_tests(incomplete) + _ac_test_files(incomplete)
 
 
-def _ac_builtin_tests(ctx, args, incomplete):
-    # pylint: disable=unused-argument
+def _ac_builtin_tests(incomplete, **_kw):
     from guild import _test
 
     return [t for t in _test.all_tests() if t.startswith(incomplete)]
 
 
-def _ac_test_files(ctx, args, incomplete):
-    # pylint: disable=unused-argument
+def _ac_test_files(incomplete, **_kw):
     from guild import file_util
 
     return file_util.autocomplete_files(incomplete, "*.md")

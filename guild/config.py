@@ -67,7 +67,8 @@ class SetGuildHome(object):
 
     def __enter__(self):
         self._save = guild_home()
-        set_guild_home(self.path)
+        if self.path:
+            set_guild_home(self.path)
 
     def __exit__(self, *_args):
         set_guild_home(self._save)
