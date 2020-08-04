@@ -435,7 +435,7 @@ def autocomplete_files(incomplete, file_pattern):
         full_path = os.path.join(parent, name)
         if os.path.isdir(full_path):
             dirs.append(full_path + os.path.sep)
-        elif fnmatch.fnmatch(name, file_pattern):
+        elif file_pattern == "*" or fnmatch.fnmatch(name, file_pattern):
             files.append(full_path)
     if len(dirs) == 1 and not files:
         return autocomplete_files(dirs[0], file_pattern)
