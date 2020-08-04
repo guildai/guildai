@@ -82,6 +82,7 @@ tests).
       publish-runs:                ok
       publish-templates:           ok
       python-utils:                ok
+      pythonpath:                  ok
       query-parser:                ok
       quoted-flag-vals:            ok
       remotes:                     ok

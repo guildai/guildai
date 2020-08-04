@@ -347,6 +347,7 @@ def test_globals():
         "ModelPath": ModelPath,
         "Project": Project,
         "Proxy": Proxy,
+        "RunError": gapi.RunError,
         "SetCwd": configlib.SetCwd,
         "SetGuildHome": configlib.SetGuildHome,
         "StderrCapture": StderrCapture,
@@ -422,13 +423,23 @@ def mktemp_guild_dir():
     return guild_dir
 
 
-def find(root, followlinks=False, includedirs=False):
+def find(root, followlinks=False, includedirs=False, ignore=None):
     paths = file_util.find(root, followlinks, includedirs)
+    if ignore:
+        paths = _filter_ignored(paths, ignore)
     if not paths:
         print("<empty>")
     else:
         for path in paths:
             print(path)
+
+
+def _filter_ignored(paths, ignore):
+    if isinstance(ignore, six.string_types):
+        ignore = [ignore]
+    return [
+        p for p in paths if not any((fnmatch.fnmatch(p, pattern) for pattern in ignore))
+    ]
 
 
 def cat(*parts):

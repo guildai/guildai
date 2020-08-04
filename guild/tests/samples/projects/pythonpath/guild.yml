@@ -1,0 +1,27 @@
+default:
+  main: sys_path_test
+
+sourcecode-dest:
+  main: sys_path_test
+  sourcecode:
+    dest: src
+
+pythonpath-env:
+  main: sys_path_test
+  flags:
+    path: null
+  env:
+    PYTHONPATH: ${path}
+
+sourcecode-disabled:
+  main: sys_path_test
+  sourcecode: no
+
+subdir:
+  main: src/sys_path_test2
+
+pkg:
+  main: pkg.sys_path_test3
+
+pkg-with-subdir:
+  main: src2/pkg2.sys_path_test4

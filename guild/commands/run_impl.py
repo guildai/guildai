@@ -635,7 +635,7 @@ def _op_init_config_for_opdef(opdef, label_arg, op):
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_arg or opdef.label
     op._output_scalars = opdef.output_scalars
-    op._sourcecode_root = _opdef_rel_sourcecode_dest(opdef)
+    op._sourcecode_root = _opdef_sourcecode_dest(opdef)
 
 
 def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
@@ -650,15 +650,29 @@ def _python_requires_for_opdef(opdef):
     return opdef.python_requires or opdef.modeldef.python_requires
 
 
-def _opdef_rel_sourcecode_dest(opdef):
-    return (
-        opdef.sourcecode.dest
-        or opdef.modeldef.sourcecode.dest
-        or _guild_sourcecode_path()
+def _opdef_sourcecode_dest(opdef):
+    return _opdef_explicit_sourcecode_dest(opdef) or _opdef_default_sourcecode_dest(
+        opdef
     )
 
 
-def _guild_sourcecode_path():
+def _opdef_explicit_sourcecode_dest(opdef):
+    return opdef.sourcecode.dest or opdef.modeldef.sourcecode.dest
+
+
+def _opdef_default_sourcecode_dest(opdef):
+    if _sourcecode_empty(opdef):
+        return None
+    return _default_sourcecode_path()
+
+
+def _sourcecode_empty(opdef):
+    return opdef.sourcecode.disabled or (
+        opdef.sourcecode.empty_def and opdef.modeldef.sourcecode.disabled
+    )
+
+
+def _default_sourcecode_path():
     return os.path.join(".guild", "sourcecode")
 
 
@@ -772,7 +786,9 @@ def _resolve_sourcecode_paths(s):
 
 
 def _op_sourcecode_paths(op):
-    return [op._sourcecode_root or _guild_sourcecode_path()]
+    if op._sourcecode_root is None:
+        return []
+    return [op._sourcecode_root]
 
 
 # =================================================================
@@ -984,12 +1000,12 @@ def _copy_opdef_sourcecode(opdef, op, run):
 
 
 def _sourcecode_dest(run, op):
-    return os.path.join(run.dir, op._sourcecode_root or _guild_sourcecode_path())
+    return os.path.join(run.dir, op._sourcecode_root or _default_sourcecode_path())
 
 
 def _write_run_sourcecode_digest(op, run):
-    assert op._sourcecode_root
-    op_util.write_sourcecode_digest(run, op._sourcecode_root)
+    if op._sourcecode_root:
+        op_util.write_sourcecode_digest(run, op._sourcecode_root)
 
 
 def _write_run_vcs_commit(opdef, run):

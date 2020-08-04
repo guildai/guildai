@@ -1447,6 +1447,7 @@ class FileSelectDef(object):
         )
 
     def _default_init(self, select_data, gf, root=None, digest=None, dest=None):
+        self.empty_def = select_data is None
         self.disabled = select_data is False
         if select_data in (None, False):
             select_data = []
