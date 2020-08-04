@@ -292,6 +292,8 @@ def patch_click():
     from click import _bashcomplete
 
     _bashcomplete.is_incomplete_option = _patched_is_incomplete_option
+    _bashcomplete.COMPLETION_SCRIPT_BASH = _patched_completion_script_bash()
+    _bashcomplete._completion_scripts["bash"] = _bashcomplete.COMPLETION_SCRIPT_BASH
 
 
 def _patched_is_incomplete_option(all_args, cmd_param):
@@ -328,6 +330,14 @@ def _patched_is_incomplete_option(all_args, cmd_param):
         if "-%s" % last_option[i:] in cmd_param.opts:
             return True
     return False
+
+
+def _patched_completion_script_bash():
+    from click import _bashcomplete
+
+    return _bashcomplete.COMPLETION_SCRIPT_BASH.replace(
+        "%(complete_func)setup", "%(complete_func)ssetup"
+    )
 
 
 if os.getenv("SKIP_PATCH_CLICK") != "1":

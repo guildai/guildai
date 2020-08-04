@@ -24,6 +24,7 @@ import sys
 from click import _bashcomplete
 
 from guild import cli
+from guild import click_util
 from guild import config
 from guild import util
 
@@ -35,6 +36,7 @@ SHELL_INIT_BACKUP_SUFFIX_PATTERN = ".guild-backup.{n}"
 
 
 def main(args):
+    click_util.patch_click()
     shell = args.shell or _current_shell()
     script = _bashcomplete.get_completion_script("guild", "_GUILD_COMPLETE", shell)
     if args.install:

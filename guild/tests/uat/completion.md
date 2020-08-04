@@ -14,7 +14,7 @@ Activation config:
         return 0
     }
     <BLANKLINE>
-    _guild_completionetup() {
+    _guild_completionsetup() {
         local COMPLETION_OPTIONS=""
         local BASH_VERSION_ARR=(${BASH_VERSION//./ })
         # Only BASH version 4.4 and later have the nosort option.
@@ -25,7 +25,7 @@ Activation config:
         complete $COMPLETION_OPTIONS -F _guild_completion guild
     }
     <BLANKLINE>
-    _guild_completionetup;
+    _guild_completionsetup;
     <exit 0>
 
 Init script mod:
@@ -47,7 +47,7 @@ Init script mod:
     >>> cat(path(tmp, "bash_completion"))
     _guild_completion() {
     ...
-    _guild_completionetup;
+    _guild_completionsetup;
 
     >>> cat(path(tmp, "bashrc"))
     [ -s .../bash_completion ] && . .../bash_completion  # Enable completion for guild
