@@ -15,8 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import re
-
 import click
 
 from guild import click_util
