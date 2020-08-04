@@ -4,3 +4,4 @@ test:
     FOO: 1
     BAR: '2'
     PYTHONPATH: hello
+    BAZ: ${i} ${f} ${s}

@@ -143,7 +143,7 @@ The `test` operation defined `env`.
     >>> gf = guildfile.for_dir(project.cwd)
 
     >>> pprint(gf.default_model.get_operation("test").env)
-    {'BAR': '2', 'FOO': 1, 'PYTHONPATH': 'hello'}
+    {'BAR': '2', 'BAZ': '${i} ${f} ${s}', 'FOO': 1, 'PYTHONPATH': 'hello'}
 
 This is applied to the run.
 
@@ -151,44 +151,28 @@ This is applied to the run.
 
     >>> print(out)
     globals: 1 1.1 hello True False
+    env BAR: 2
+    env BAZ: 1 1.1 hello
     env FLAG_B1: 1
     env FLAG_B2: 0
     env FLAG_F: 1.1
     env FLAG_I: 1
     env FLAG_S: hello
+    env FOO: 1
+    env PYTHONPATH: hello:...
 
-The environment contains the specified op env. Note that `PYTHONPATH`
-is a combination of the op env and additional path entries. This
-allows the operation to insert additional entries in front of the
-default entries.
+The environment is saved in the `env` run attribute.
 
-    >>> pprint(run.get("env"))  # doctest: -WINDOWS
-    {...'BAR': '2',
-     ...
-     'FLAGS_DEST': 'globals',
-     'FLAG_B1': '1',
-     'FLAG_B2': '0',
-     'FLAG_F': '1.1',
-     'FLAG_I': '1',
-     'FLAG_S': 'hello',
-     'FOO': '1',
-     ...
-     'PYTHONPATH': 'hello:.guild/sourcecode...',
-     ...}
-
-The Windows-specific test is the same with the exception of the path
-separator used in `PYTHONPATH`.
-
-    >>> pprint(run.get("env"))  # doctest: +WINDOWS_ONLY
-    {...'BAR': '2',
-     ...
-     'FLAGS_DEST': 'globals',
-     'FLAG_B1': '1',
-     'FLAG_B2': '0',
-     'FLAG_F': '1.1',
-     'FLAG_I': '1',
-     'FLAG_S': 'hello',
-     'FOO': '1',
-     ...
-     'PYTHONPATH': 'hello;.guild/sourcecode...',
-     ...}
+    >>> env = run.get("env")
+    >>> for name in sorted(env):
+    ...     if name.startswith("FLAG_") or name in ("FOO", "BAR", "BAZ", "PYTHONPATH"):
+    ...         print("%s: %s" % (name, env[name]))
+    BAR: 2
+    BAZ: 1 1.1 hello
+    FLAG_B1: 1
+    FLAG_B2: 0
+    FLAG_F: 1.1
+    FLAG_I: 1
+    FLAG_S: hello
+    FOO: 1
+    PYTHONPATH: hello:...

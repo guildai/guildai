@@ -142,6 +142,7 @@ def _encode_flag_arg_for_argparse(val):
 
 def _gen_env(op_cmd, flag_vals):
     env = _encoded_cmd_env(op_cmd)
+    _resolve_env_flag_refs(flag_vals, env)
     _apply_flag_env(flag_vals, op_cmd, env)
     return env
 
@@ -161,6 +162,11 @@ def _encode_env_val(val):
         return val
     else:
         return pprint.pformat(val)
+
+
+def _resolve_env_flag_refs(flag_vals, env):
+    for env_name, env_val in env.items():
+        env[env_name] = util.resolve_refs(env_val, flag_vals)
 
 
 def _apply_flag_env(flag_vals, op_cmd, env):
