@@ -132,14 +132,21 @@ def _run_test(name):
 
 
 def _filename_for_test(name_or_path):
-    if name_or_path[-3:] == ".md":
+    if os.path.sep in name_or_path or "." in name_or_path:
         return os.path.abspath(name_or_path)
     else:
-        return _test_filename(name_or_path)
+        return _named_test_filename(name_or_path)
 
 
-def _test_filename(name):
+def _named_test_filename(name):
     return _resolve_relative_test_filename(os.path.join("tests", name + ".md"))
+
+
+def _resolve_relative_test_filename(filename):
+    if os.path.isabs(filename):
+        return filename
+    package = doctest._normalize_module(None, 3)
+    return doctest._module_relative_path(package, filename)
 
 
 def _skip_windows_test(filename):
@@ -190,13 +197,6 @@ def run_test_file(filename, globs=None):
             | PY3
         ),
     )
-
-
-def _resolve_relative_test_filename(filename):
-    if os.path.isabs(filename):
-        return filename
-    package = doctest._normalize_module(None, 3)
-    return doctest._module_relative_path(package, filename)
 
 
 def _report_first_flag():
@@ -292,8 +292,23 @@ class TestRunner(doctest.DocTestRunner, object):
 
 def run_test_file_with_config(filename, globs, optionflags):
     test_dir = os.path.dirname(filename)
-    with util.Chdir(test_dir):
+    with _safe_chdir(test_dir):
         return _run_test_file_with_config(filename, globs, optionflags)
+
+
+def _safe_chdir(dir):
+    if not os.path.exists(dir):
+
+        class NoOp(object):
+            def __enter__(self):
+                pass
+
+            def __exit__(self, *_args):
+                pass
+
+        return NoOp()
+
+    return util.Chdir(dir)
 
 
 def _run_test_file_with_config(filename, globs, optionflags):
