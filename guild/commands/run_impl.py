@@ -250,7 +250,7 @@ def _trials_for_batch_files(batch_files):
 
 
 def _resolve_batch_file(path):
-    resolved = os.path.join(config.cwd(), path)
+    resolved = os.path.join(config.cwd(), os.path.expanduser(path))
     if not os.path.exists(resolved):
         _no_such_batch_file_error(resolved)
     return resolved
