@@ -422,21 +422,3 @@ def find(root, followlinks=False, includedirs=False):
         for name in files:
             all.append(relpath(path, name))
     return sorted(all)
-
-
-def autocomplete_files(incomplete, file_pattern):
-    parent, name_base = os.path.split(incomplete)
-    parent = parent
-    dirs = []
-    files = []
-    for name in os.listdir(parent or "."):
-        if not name.startswith(name_base):
-            continue
-        full_path = os.path.join(parent, name)
-        if os.path.isdir(full_path):
-            dirs.append(full_path + os.path.sep)
-        elif file_pattern == "*" or fnmatch.fnmatch(name, file_pattern):
-            files.append(full_path)
-    if len(dirs) == 1 and not files:
-        return autocomplete_files(dirs[0], file_pattern)
-    return sorted(dirs) + sorted(files)

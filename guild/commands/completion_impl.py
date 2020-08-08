@@ -21,10 +21,9 @@ import os
 import shutil
 import sys
 
-from click import _bashcomplete
+import guild
 
 from guild import cli
-from guild import click_util
 from guild import config
 from guild import util
 
@@ -36,9 +35,8 @@ SHELL_INIT_BACKUP_SUFFIX_PATTERN = ".guild-backup.{n}"
 
 
 def main(args):
-    click_util.patch_click()
     shell = args.shell or _current_shell()
-    script = _bashcomplete.get_completion_script("guild", "_GUILD_COMPLETE", shell)
+    script = _completion_script(shell)
     if args.install:
         _install_completion_script(shell, script, args)
     else:
@@ -57,6 +55,19 @@ def _current_shell():
     else:
         log.warning("unknown shell '%s', assuming %s", shell_env, DEFAULT_SHELL)
         return DEFAULT_SHELL
+
+
+def _completion_script(shell):
+    path = os.path.join(_completions_dir(), "%s-guild" % shell)
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        log.debug("completion script path for %s: %s", shell, path)
+    if not os.path.exists(path):
+        cli.error("unsupported shell: %s" % shell)
+    return open(path, "r").read()
+
+
+def _completions_dir():
+    return os.path.join(os.path.dirname(guild.__file__), "completions")
 
 
 def _install_completion_script(shell, script, args):
@@ -136,7 +147,7 @@ def _check_init_script(path, sentinel):
     for i, line in enumerate(lines):
         if sentinel in line:
             cli.out(
-                "Guild completion appears to be installed in %s on line %i:\n  %s"
+                "Guild completion is already installed in %s on line %i:\n  %s"
                 % (util.format_dir(path), i + 1, line.rstrip()),
                 err=True,
             )

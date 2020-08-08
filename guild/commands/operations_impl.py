@@ -26,14 +26,18 @@ from guild.commands import models_impl
 
 def main(args):
     cmd_impl_support.init_model_path()
-    dirs = models_impl.models_iter_dirs(args)
-    formatted = [_format_op(op, model) for op, model in _iter_ops(dirs)]
-    filtered = [op for op in formatted if _filter_op(op, args)]
+    filtered = filtered_ops(args)
     cli.table(
         sorted(filtered, key=_op_sort_key),
         cols=["fullname", "description"],
         detail=(["main", "flags", "details"] if args.verbose else []),
     )
+
+
+def filtered_ops(args):
+    dirs = models_impl.models_iter_dirs(args)
+    formatted = [_format_op(op, model) for op, model in _iter_ops(dirs)]
+    return [op for op in formatted if _filter_op(op, args)]
 
 
 def _iter_ops(dirs):

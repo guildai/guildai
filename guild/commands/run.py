@@ -20,11 +20,49 @@ import click
 from guild import click_util
 
 
+def _ac_opspec(incomplete, **_kw):
+    ops = _ac_operations(incomplete)
+    if not incomplete and ops:
+        return ops
+    return ops + click_util.completion_filenames(ext=["py"])
+
+
+def _ac_operations(incomplete, **_kw):
+    from guild import cmd_impl_support
+    from guild.commands import operations_impl
+
+    ops_args = click_util.Args(installed=False, all=False, filters=[])
+    cmd_impl_support.init_model_path()
+    ops = [op["fullname"] for op in operations_impl.filtered_ops(ops_args)]
+    return [op for op in ops if op.startswith(incomplete)]
+
+
+def _ac_flag(incomplete, ctx, **_kw):
+    return []  # TEMP
+    import os
+    from guild.commands import run_impl
+
+    run_args = click_util.Args(**ctx.params)
+    try:
+        opdef = run_impl.opdef_for_opspec(run_args.opspec)
+    except (Exception, SystemExit):
+        if os.getenv("_GUILD_COMPLETE_DEBUG") == "1":
+            raise
+        return []
+    else:
+        flags = sorted(["%s=" % f.name for f in opdef.flags])
+        return [
+            f for f in flags if f.startswith(incomplete)
+        ] + click_util.completion_nospace()
+
+
 def run_params(fn):
     click_util.append_params(
         fn,
         [
-            click.Argument(("flags",), metavar="[FLAG=VAL...]", nargs=-1),
+            click.Argument(
+                ("flags",), metavar="[FLAG=VAL...]", nargs=-1, autocompletion=_ac_flag
+            ),
             click.Option(
                 ("-l", "--label"), metavar="LABEL", help="Set a label for the run."
             ),
@@ -271,7 +309,9 @@ def run_params(fn):
 
 
 @click.command()
-@click.argument("opspec", metavar="[[MODEL:]OPERATION]", required=False)
+@click.argument(
+    "opspec", metavar="[[MODEL:]OPERATION]", required=False, autocompletion=_ac_opspec
+)
 @run_params
 @click_util.use_args
 def run(args):

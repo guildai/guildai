@@ -1,0 +1,2 @@
+#-*-shell-script-*-
+complete --no-files --command guild --arguments "(env _GUILD_COMPLETE=complete_fish COMP_WORDS=(commandline -cp) COMP_CWORD=(commandline -t) guild)";

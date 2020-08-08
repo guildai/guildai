@@ -269,7 +269,7 @@ def _apply_single_trial_user_flags(trial, op):
 
 def _op_init_opdef(opspec, op, args):
     if opspec:
-        op._opdef = _opdef_for_opspec(opspec)
+        op._opdef = opdef_for_opspec(opspec)
     elif op._run:
         if args.flags or args.force_sourcecode:
             # We need opdef for restart/run-with-proto when user specifies
@@ -283,13 +283,13 @@ def _opdef_for_run(run):
     if isinstance(run, remote.RunProxy):
         return _opdef_for_remote_run(run)
     opspec = run.opref.to_opspec()
-    return _opdef_for_opspec(opspec, run)
+    return opdef_for_opspec(opspec, run)
 
 
 def _opdef_for_remote_run(run):
     if _cwd_remote_run(run):
-        return _opdef_for_opspec(_cwd_opspec(run.opref))
-    return _opdef_for_opspec(run.opref.to_opspec(), run)
+        return opdef_for_opspec(_cwd_opspec(run.opref))
+    return opdef_for_opspec(run.opref.to_opspec(), run)
 
 
 def _cwd_remote_run(run):
@@ -305,7 +305,7 @@ def _cwd_opspec(opref):
     return "%s:%s" % (opref.model_name, opref.op_name)
 
 
-def _opdef_for_opspec(opspec, for_run=None):
+def opdef_for_opspec(opspec, for_run=None):
     try:
         return op_util.opdef_for_opspec(opspec)
     except op_util.InvalidOpSpec:
@@ -326,7 +326,7 @@ def _opdef_for_opspec(opspec, for_run=None):
 
 
 def _default_opdef():
-    return _opdef_for_opspec(None)
+    return opdef_for_opspec(None)
 
 
 # =================================================================
@@ -1134,13 +1134,13 @@ def _batch_op_init_for_named_optimizer(name, opdef, S):
 
 
 def _op_init_for_optimizer(optdef, op):
-    op._opdef = _opdef_for_opspec(optdef.opspec)
+    op._opdef = opdef_for_opspec(optdef.opspec)
     if optdef.flags:
         op._op_flag_vals.update(optdef.flags)
 
 
 def _op_init_for_optimizer_opspec(opspec, op):
-    op._opdef = _opdef_for_opspec(opspec)
+    op._opdef = opdef_for_opspec(opspec)
 
 
 def _batch_op_init_for_opdef_default_optimizer(opdef, S):
@@ -1166,7 +1166,7 @@ def _try_implied_batch_op_init(user_op, S):
     if batch_opspec:
         assert not S.batch_op
         S.batch_op = Operation()
-        S.batch_op._opdef = _opdef_for_opspec(batch_opspec)
+        S.batch_op._opdef = opdef_for_opspec(batch_opspec)
 
 
 def _batch_opspec_for_flags(flag_vals):

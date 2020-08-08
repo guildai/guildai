@@ -35,17 +35,17 @@ def _ac_runs_for_ctx(ctx):
 
 
 def _ac_operation(ctx, incomplete, **_kw):
+    from guild import run_util
+
     runs = _ac_runs_for_ctx(ctx)
-    ops = set([run.opref.to_opspec() for run in runs])
+    ops = set([run_util.format_operation(run, nowarn=True) for run in runs])
     return sorted([op for op in ops if op.startswith(incomplete)])
 
 
 def _ac_label(ctx, incomplete, **_kw):
     runs = _ac_runs_for_ctx(ctx)
     labels = set([run.get("label") or "" for run in runs])
-    return sorted(
-        [_quote_label(l) for l in labels if l and l.startswith(incomplete)]
-    )
+    return sorted([_quote_label(l) for l in labels if l and l.startswith(incomplete)])
 
 
 def _quote_label(l):

@@ -1,0 +1,27 @@
+#-*-shell-script-*-
+
+_guild_completion() {
+    # Re-assemble words split on = and :
+
+    # Use guild to generate comp reply - includes possible directives
+    # that are processed later.
+    local IFS=$'\n'
+    local reply=($(COMP_WORDS="${COMP_WORDS[*]}" \
+             COMP_CWORD=$COMP_CWORD \
+             _GUILD_COMPLETE=complete $1))
+
+    # Process directories.
+    COMPREPLY=()
+    local item
+    for item in "${reply[@]}"; do
+        if [ "${item:0:7}" = '!!file:' ]; then
+            COMPREPLY+=($(compgen -f -X '!'"${item:7}" -o plusdirs $2))
+            compopt -o filenames
+        elif [ "$item" = "!!nospace" ]; then
+            compopt -o nospace
+        else
+            COMPREPLY+=($item)
+        fi
+    done
+
+} && complete -o nosort -F _guild_completion guild
