@@ -52,11 +52,13 @@ _guild_completion() {
         if [ "${item:0:7}" = '!!file:' ]; then
             COMPREPLY+=($(compgen -f -X '!'"${item:7}" $2))
             compopt -o filenames -o plusdirs
-        elif [ "$item" = "!!nospace" ]; then
-            compopt -o nospace
         elif [ "${item:0:12}" = '!!batchfile:' ]; then
             COMPREPLY+=($(compgen -f -X '!'"${item:12}" -P @ ${2:1}))
             compopt -o filenames -o plusdirs
+        elif [ "$item" = "!!nospace" ]; then
+            compopt -o nospace
+        elif [ "$item" = "!!command" ]; then
+            COMPREPLY+=($(compgen -c $2))
         else
             COMPREPLY+=($item)
         fi

@@ -23,6 +23,10 @@ from . import remote_support
 from . import runs_support
 
 
+def _ac_cmd(**_kw):
+    return click_util.completion_command()
+
+
 def diff_params(fn):
     click_util.append_params(
         fn,
@@ -60,7 +64,10 @@ def diff_params(fn):
                 help="Diff run sourcecode to the specified directory.",
             ),
             click.Option(
-                ("-c", "--cmd"), metavar="CMD", help="Command used to diff runs."
+                ("-c", "--cmd"),
+                metavar="CMD",
+                help="Command used to diff runs.",
+                autocompletion=_ac_cmd,
             ),
             runs_support.all_filters,
             remote_support.remote_option("Diff remote runs."),

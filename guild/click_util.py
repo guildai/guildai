@@ -315,6 +315,13 @@ def completion_batchfiles(ext=None):
         return []
 
 
+def completion_command():
+    if os.getenv("_GUILD_COMPLETE") == "complete":
+        return ["!!command"]
+    else:
+        return []
+
+
 def patch_click():
     from click import _bashcomplete
 

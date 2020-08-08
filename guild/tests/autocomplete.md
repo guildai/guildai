@@ -233,3 +233,17 @@ completion is handled by the `!!batchfile` directive.
     >>> run_ac(run._ac_flag, ["echo"], "@")
     !!batchfile:*.@(csv|yaml|yml|json)
 
+## `diff`
+
+Auto completion for the `diff` command is handled by
+`guild.commands.runs_diff`.
+
+    >>> from guild.commands import runs_diff
+
+### Diff program
+
+The diff program is resolved using a `!!command` directive.
+
+    >>> with Env({"_GUILD_COMPLETE": "complete"}):
+    ...     print(runs_diff._ac_cmd())
+    ['!!command']
