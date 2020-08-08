@@ -23,6 +23,13 @@ from guild import cli
 from guild import click_util
 
 
+def _ac_remote(incomplete, **_kw):
+    from guild import config
+
+    remotes = config.user_config().get("remotes", {})
+    return sorted([r for r in remotes if r.startswith(incomplete)])
+
+
 def remote_arg(fn):
     """`REMOTE` is the name of a configured remote. Use ``guild remotes``
     to list available remotes.
@@ -31,7 +38,9 @@ def remote_arg(fn):
     --help``.
 
     """
-    click_util.append_params(fn, [click.Argument(("remote",))])
+    click_util.append_params(
+        fn, [click.Argument(("remote",), autocompletion=_ac_remote)]
+    )
     return fn
 
 
@@ -47,7 +56,15 @@ def remote_option(help):
 
     def wrapper(fn):
         click_util.append_params(
-            fn, [click.Option(("-r", "--remote"), metavar="REMOTE", help=help),]
+            fn,
+            [
+                click.Option(
+                    ("-r", "--remote"),
+                    metavar="REMOTE",
+                    help=help,
+                    autocompletion=_ac_remote,
+                )
+            ],
         )
         return fn
 
