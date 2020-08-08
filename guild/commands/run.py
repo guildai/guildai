@@ -38,6 +38,9 @@ def _ac_operations(incomplete, **_kw):
 
 
 def _ac_flag(incomplete, ctx, **_kw):
+    if incomplete[:1] == "@":
+        return _ac_batch_files()
+
     run_args = click_util.Args(**ctx.params)
     opdef = _ac_opdef(run_args.opspec)
     if not opdef:
@@ -50,6 +53,10 @@ def _ac_flag(incomplete, ctx, **_kw):
     unused_flags = sorted([f.name for f in opdef.flags if f.name not in used_flags])
     flags_ac = [f for f in unused_flags if f.startswith(incomplete)]
     return ["%s=" % f for f in flags_ac] + click_util.completion_nospace()
+
+
+def _ac_batch_files():
+    return click_util.completion_batchfiles(ext=["csv", "yaml", "yml", "json"])
 
 
 def _ac_opdef(opspec):

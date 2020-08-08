@@ -226,3 +226,10 @@ Choices are limited as well.
 
     >>> run_ac(run._ac_flag, ["echo"], "z=d")
     d
+
+If a flag starts with '@' it's considered a batch file. In this case
+completion is handled by the `!!batchfile` directive.
+
+    >>> run_ac(run._ac_flag, ["echo"], "@")
+    !!batchfile:*.@(csv|yaml|yml|json)
+

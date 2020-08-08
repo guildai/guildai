@@ -290,20 +290,27 @@ def _maybe_render_doc(s, vars):
 
 def completion_filenames(ext=None):
     if os.getenv("_GUILD_COMPLETE") == "complete":
-        return _compgen_filenames(ext)
+        return _compgen_filenames("file", ext)
     else:
         return []
 
 
-def _compgen_filenames(ext):
+def _compgen_filenames(type, ext):
     if not ext:
-        return ["!!file:*"]
-    return ["!!file:*.@(%s)" % "|".join(ext)]
+        return ["!!%s:*" % type]
+    return ["!!%s:*.@(%s)" % (type, "|".join(ext))]
 
 
 def completion_nospace():
     if os.getenv("_GUILD_COMPLETE") == "complete":
         return ["!!nospace"]
+    else:
+        return []
+
+
+def completion_batchfiles(ext=None):
+    if os.getenv("_GUILD_COMPLETE") == "complete":
+        return _compgen_filenames("batchfile", ext)
     else:
         return []
 
