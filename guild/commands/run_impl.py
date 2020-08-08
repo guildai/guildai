@@ -219,7 +219,7 @@ def _op_init_force_sourcecode(force_sourcecode_arg, op):
 
 
 def _op_init_user_flags(flag_args, op):
-    op._user_flag_vals, batch_files = _split_flag_args(flag_args, op._opdef)
+    op._user_flag_vals, batch_files = split_flag_args(flag_args, op._opdef)
     if batch_files:
         trials = _trials_for_batch_files(batch_files)
         if len(trials) == 1:
@@ -228,7 +228,7 @@ def _op_init_user_flags(flag_args, op):
             op._batch_trials = trials
 
 
-def _split_flag_args(flag_args, opdef):
+def split_flag_args(flag_args, opdef):
     batch_files, rest_args = op_util.split_batch_files(flag_args)
     assigns = _parse_assigns(rest_args, opdef)
     return assigns, batch_files

@@ -38,22 +38,51 @@ def _ac_operations(incomplete, **_kw):
 
 
 def _ac_flag(incomplete, ctx, **_kw):
-    return []  # TEMP
+    run_args = click_util.Args(**ctx.params)
+    opdef = _ac_opdef(run_args.opspec)
+    if not opdef:
+        return []
+
+    if "=" in incomplete:
+        return _ac_maybe_flag_choices(incomplete, opdef)
+
+    used_flags = _ac_used_flags(run_args.flags, opdef)
+    unused_flags = sorted([f.name for f in opdef.flags if f.name not in used_flags])
+    flags_ac = [f for f in unused_flags if f.startswith(incomplete)]
+    return ["%s=" % f for f in flags_ac] + click_util.completion_nospace()
+
+
+def _ac_opdef(opspec):
     import os
     from guild.commands import run_impl
 
-    run_args = click_util.Args(**ctx.params)
     try:
-        opdef = run_impl.opdef_for_opspec(run_args.opspec)
+        return run_impl.opdef_for_opspec(opspec)
     except (Exception, SystemExit):
         if os.getenv("_GUILD_COMPLETE_DEBUG") == "1":
             raise
-        return []
-    else:
-        flags = sorted(["%s=" % f.name for f in opdef.flags])
-        return [
-            f for f in flags if f.startswith(incomplete)
-        ] + click_util.completion_nospace()
+        return None
+
+
+def _ac_maybe_flag_choices(incomplete, opdef):
+    flag_name, flag_val_incomplete = incomplete.split("=", 1)
+    flagdef = opdef.get_flagdef(flag_name)
+    if flagdef and flagdef.choices:
+        return sorted(
+            [
+                c.value
+                for c in flagdef.choices
+                if c.value.startswith(flag_val_incomplete)
+            ]
+        )
+    return []
+
+
+def _ac_used_flags(flag_args, opdef):
+    from guild.commands import run_impl
+
+    flag_vals, _batch_files = run_impl.split_flag_args(flag_args, opdef)
+    return flag_vals
 
 
 def run_params(fn):

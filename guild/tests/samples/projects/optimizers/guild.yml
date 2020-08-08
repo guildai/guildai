@@ -1,6 +1,7 @@
 noisy:
   description: A noisy function
   main: noisy
+  default: yes
   flags-import: yes
   flags:
     noise:

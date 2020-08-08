@@ -133,3 +133,96 @@ Runs for ops:
     >>> cmd_ac(cat.cat, runs_support._ac_run, ["-o", "a", "-o", "c"], "")
     aaa
     ccc
+
+## `run`
+
+Autocomplete support for the run command is provided by `_ac_xxx`
+function in `guild.commands.run`.
+
+    >>> from guild.commands import run
+
+We use the `optimizers` project to illustrate.
+
+    >>> project = Project(sample("projects", "optimizers"))
+
+A helper to show completions:
+
+    >>> def run_ac(ac_f, args, incomplete):
+    ...     from guild.commands import main
+    ...     ctx = run.run.make_context("", args, resilient_parsing=True)
+    ...     with Env({"_GUILD_COMPLETE": "complete"}):
+    ...         with Chdir(project.cwd):
+    ...             for val in ac_f(ctx=ctx, incomplete=incomplete):
+    ...                 print(val)
+
+
+### Op spec
+
+Op spec completion is handled by `_ac_opspec`.
+
+An op spec can be either an available operation or a Python script.
+
+If we don't specify anything for opspec we get the list of defined
+operations.
+
+    >>> run_ac(run._ac_opspec, [], "")
+    echo
+    fail
+    noisy
+    noisy-flubber
+    opt-test-1
+    opt-test-2
+    opt-test-3
+    opt-test-4
+    poly
+    tune-echo
+    tune-echo-2
+
+If we specify something for opspec, we get matching ops and
+scripts. Scripts are represented by the `!!file` directive, which is
+used by the bash completion handlers to find matching files.
+
+    >>> run_ac(run._ac_opspec, [], "echo")
+    echo
+    !!file:*.@(py)
+
+### Flags
+
+Flag completion is handled by `_ac_flag`. All flag completions contain
+a `!!nospace` directive to allow the user to enter a value for flag
+after the equals sign.
+
+If a project has a default operation, flags are listed for it.
+
+    >>> run_ac(run._ac_flag, [], "")
+    noise=
+    x=
+    !!nospace
+
+Provide an explicit operation.
+
+    >>> run_ac(run._ac_flag, ["echo"], "")
+    x=
+    y=
+    z=
+    !!nospace
+
+Incomplete values limit the completions.
+
+    >>> run_ac(run._ac_flag, ["echo"], "x")
+    x=
+    !!nospace
+
+When choices are available, they are shown once the flag is
+identified.
+
+    >>> run_ac(run._ac_flag, ["echo"], "z=")
+    a
+    b
+    c
+    d
+
+Choices are limited as well.
+
+    >>> run_ac(run._ac_flag, ["echo"], "z=d")
+    d

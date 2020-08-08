@@ -1,14 +1,49 @@
 #-*-shell-script-*-
 
+# Extract from bash_completion
+declare -F __reassemble_comp_words_by_ref >/dev/null ||
+__reassemble_comp_words_by_ref() {
+    local exclude i j line ref
+    if [[ $1 ]]; then
+        exclude="[${1//[^$COMP_WORDBREAKS]/}]"
+    fi
+
+    printf -v "$3" %s "$COMP_CWORD"
+    if [[ -v exclude ]]; then
+        line=$COMP_LINE
+        for ((i = 0, j = 0; i < ${#COMP_WORDS[@]}; i++, j++)); do
+            while [[ $i -gt 0 && ${COMP_WORDS[i]} == +($exclude) ]]; do
+                [[ $line != [[:blank:]]* ]] && ((j >= 2)) && ((j--))
+                ref="$2[$j]"
+                printf -v "$ref" %s "${!ref-}${COMP_WORDS[i]}"
+                ((i == COMP_CWORD)) && printf -v "$3" %s "$j"
+                line=${line#*"${COMP_WORDS[i]}"}
+                [[ $line == [[:blank:]]* ]] && ((j++))
+                ((i < ${#COMP_WORDS[@]} - 1)) && ((i++)) || break 2
+            done
+            ref="$2[$j]"
+            printf -v "$ref" %s "${!ref-}${COMP_WORDS[i]}"
+            line=${line#*"${COMP_WORDS[i]}"}
+            ((i == COMP_CWORD)) && printf -v "$3" %s "$j"
+        done
+        ((i == COMP_CWORD)) && printf -v "$3" %s "$j"
+    else
+        for i in "${!COMP_WORDS[@]}"; do
+            printf -v "$2[i]" %s "${COMP_WORDS[i]}"
+        done
+    fi
+}
+
 _guild_completion() {
-    # Re-assemble words split on = and :
+    local cword words
+    __reassemble_comp_words_by_ref "=:" words cword
 
     # Use guild to generate comp reply - includes possible directives
     # that are processed later.
     local IFS=$'\n'
-    local reply=($(COMP_WORDS="${COMP_WORDS[*]}" \
-             COMP_CWORD=$COMP_CWORD \
-             _GUILD_COMPLETE=complete $1))
+    local reply=($(COMP_WORDS="${words[*]}" \
+                   COMP_CWORD=$cword \
+                   _GUILD_COMPLETE=complete $1))
 
     # Process directories.
     COMPREPLY=()
