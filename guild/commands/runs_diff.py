@@ -33,7 +33,12 @@ def diff_params(fn):
     click_util.append_params(
         fn,
         [
-            click.Argument(("runs",), metavar="[RUN1 [RUN2]]", nargs=-1),
+            click.Argument(
+                ("runs",),
+                metavar="[RUN1 [RUN2]]",
+                nargs=-1,
+                autocompletion=runs_support._ac_run,
+            ),
             click.Option(("-O", "--output"), is_flag=True, help="Diff run output."),
             click.Option(
                 ("-s", "--sourcecode"), is_flag=True, help="Diff run source code."
