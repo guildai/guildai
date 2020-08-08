@@ -23,7 +23,9 @@ from . import remote_support
 from . import runs_support
 
 
-def _ac_cmd(**_kw):
+def _ac_cmd(ctx, **_kw):
+    if ctx.params.get("remote"):
+        return []
     return click_util.completion_command()
 
 

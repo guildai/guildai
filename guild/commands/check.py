@@ -22,15 +22,19 @@ from guild import click_util
 from . import remote_support
 
 
-def _ac_all_tests(incomplete, **_kw):
+def _ac_all_tests(incomplete, ctx, **_kw):
+    if ctx.params.get("remote"):
+        return []
     return _ac_builtin_tests(incomplete) + click_util.completion_filenames(
         ext=["md", "txt"]
     )
 
 
-def _ac_builtin_tests(incomplete, **_kw):
+def _ac_builtin_tests(incomplete, ctx, **_kw):
     from guild import _test
 
+    if ctx.params.get("remote"):
+        return []
     return [t for t in _test.all_tests() if t.startswith(incomplete)]
 
 
