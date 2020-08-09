@@ -20,7 +20,7 @@ import click
 from guild import click_util
 
 
-def _ac_run(ctx, incomplete, **_kw):
+def ac_run(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
     runs = _ac_runs_for_ctx(ctx)
@@ -36,7 +36,7 @@ def _ac_runs_for_ctx(ctx):
         return runs_impl.filtered_runs(param_args, ctx=ctx)
 
 
-def _ac_operation(ctx, incomplete, **_kw):
+def ac_operation(ctx, incomplete, **_kw):
     from guild import run_util
 
     if ctx.params.get("remote"):
@@ -46,7 +46,7 @@ def _ac_operation(ctx, incomplete, **_kw):
     return sorted([op for op in ops if op.startswith(incomplete)])
 
 
-def _ac_label(ctx, incomplete, **_kw):
+def ac_label(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
     runs = _ac_runs_for_ctx(ctx)
@@ -58,7 +58,7 @@ def _quote_label(l):
     return "\"%s\"" % l
 
 
-def _ac_digest(ctx, incomplete, **_kw):
+def ac_digest(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
     runs = _ac_runs_for_ctx(ctx)
@@ -127,7 +127,7 @@ def runs_arg(fn):
         fn,
         [
             click.Argument(
-                ("runs",), metavar="[RUN...]", nargs=-1, autocompletion=_ac_run
+                ("runs",), metavar="[RUN...]", nargs=-1, autocompletion=ac_run
             )
         ],
     )
@@ -143,7 +143,7 @@ def run_arg(fn):
 
     """
     click_util.append_params(
-        fn, [click.Argument(("run",), required=False, autocompletion=_ac_run)]
+        fn, [click.Argument(("run",), required=False, autocompletion=ac_run)]
     )
     return fn
 
@@ -175,14 +175,14 @@ def op_and_label_filters(fn):
                 metavar="VAL",
                 help="Filter runs with operations matching `VAL`.",
                 multiple=True,
-                autocompletion=_ac_operation,
+                autocompletion=ac_operation,
             ),
             click.Option(
                 ("-l", "--label", "labels"),
                 metavar="VAL",
                 help="Filter runs with labels matching `VAL`.",
                 multiple=True,
-                autocompletion=_ac_label,
+                autocompletion=ac_label,
             ),
             click.Option(
                 ("-U", "--unlabeled",),
@@ -328,7 +328,7 @@ def sourcecode_digest_filters(fn):
                 ("-D", "--digest",),
                 metavar="VAL",
                 help=("Filter only runs with a matching source code digest."),
-                autocompletion=_ac_digest,
+                autocompletion=ac_digest,
             )
         ],
     )

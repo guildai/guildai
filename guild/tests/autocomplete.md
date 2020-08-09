@@ -80,60 +80,81 @@ A helper to show completions:
     ...     from guild.commands import main
     ...     ctx = cmd.make_context("", args, resilient_parsing=True)
     ...     ctx.parent = main.main.make_context("", ["-H", project.guild_home])
-    ...     for val in ac_f(ctx=ctx, incomplete=incomplete):
-    ...         print(val)
+    ...     with Env({"_GUILD_COMPLETE": "complete"}):
+    ...         for val in ac_f(ctx=ctx, incomplete=incomplete):
+    ...             print(val)
 
 We need a command to parse arguments. We use `cat`, which supports all
 of the run filters and accepts a RUN arg.
 
     >>> from guild.commands import cat
 
+### Run completion
+
 Runs for no args:
 
-    >>> cmd_ac(cat.cat, runs_support._ac_run, [], "")
+    >>> cmd_ac(cat.cat, runs_support.ac_run, [], "")
     aaa
     bbb
     ccc
 
+Runs for incomplete:
+
+    >>> cmd_ac(cat.cat, runs_support.ac_run, [], "a")
+    aaa
+
+    >>> cmd_ac(cat.cat, runs_support.ac_run, [], "bb")
+    bbb
+
+Runs for ops:
+
+    >>> cmd_ac(cat.cat, runs_support.ac_run, ["-o", "a"], "")
+    aaa
+
+    >>> cmd_ac(cat.cat, runs_support.ac_run, ["-o", "a", "-o", "c"], "")
+    aaa
+    ccc
+
+### Operation completion
+
 Ops for no args:
 
-    >>> cmd_ac(cat.cat, runs_support._ac_operation, [], "")
+    >>> cmd_ac(cat.cat, runs_support.ac_operation, [], "")
     a
     b
     c
 
+### Label completion
+
 Labels for no args:
 
-    >>> cmd_ac(cat.cat, runs_support._ac_label, [], "")
+    >>> cmd_ac(cat.cat, runs_support.ac_label, [], "")
     "msg=a"
     "msg=b"
     "msg=c"
 
 Labels for incomplete:
 
-    >>> cmd_ac(cat.cat, runs_support._ac_label, [], "a")
+    >>> cmd_ac(cat.cat, runs_support.ac_label, [], "a")
+
+### Digest completion
 
 Digests for no args:
 
-    >>> cmd_ac(cat.cat, runs_support._ac_digest, [], "")
+    >>> cmd_ac(cat.cat, runs_support.ac_digest, [], "")
     0fc1636e7d3653be41f89833776cdb8b
 
-Runs for incomplete:
+### Path completion
 
-    >>> cmd_ac(cat.cat, runs_support._ac_run, [], "a")
-    aaa
+Note that cat.cat only uses `ac_run_filepath` but we use it to verify
+support for `ac_run_dirpath` as a convenience. Both completion
+functions can be tested this way.
 
-    >>> cmd_ac(cat.cat, runs_support._ac_run, [], "bb")
-    bbb
+    >>> cmd_ac(cat.cat, runs_support.ac_run_filepath, [], "")
+    !!runfiles:.../runs/ccc
 
-Runs for ops:
-
-    >>> cmd_ac(cat.cat, runs_support._ac_run, ["-o", "a"], "")
-    aaa
-
-    >>> cmd_ac(cat.cat, runs_support._ac_run, ["-o", "a", "-o", "c"], "")
-    aaa
-    ccc
+    >>> cmd_ac(cat.cat, runs_support.ac_run_dirpath, [], "")
+    !!rundirs:.../runs/ccc
 
 ## `run`
 
@@ -250,7 +271,6 @@ The diff program is resolved using a `!!command` directive.
     ...     print(runs_diff._ac_cmd(ctx))
     ['!!command']
 
-## `ls`
 
 Autocomplete for `ls` is implemented by `guild.commands.ls`.
 
