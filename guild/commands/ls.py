@@ -23,35 +23,14 @@ from . import remote_support
 from . import runs_support
 
 
-def _ac_path(ctx, **_kw):
-    if ctx.params.get("remote"):
-        return []
-    args = click_util.Args(**ctx.params)
-    run = _one_run(ctx)
-    if not run:
-        return []
-    if args.sourcecode:
-        return click_util.completion_rundirs(run.guild_path("sourcecode"))
-    else:
-        return click_util.completion_rundirs(run.dir, all=args.all)
-
-
-def _one_run(ctx):
-    import os
-    from guild.commands import runs_impl
-
-    try:
-        return runs_impl.one_run(click_util.Args(**ctx.params), ctx)
-    except (Exception, SystemExit):
-        if os.getenv("_GUILD_COMPLETE_DEBUG") == "1":
-            raise
-        return None
-
-
 @click.command("ls")
 @runs_support.run_arg
 @click.option(
-    "-p", "--path", metavar="PATH", help="Path to list.", autocompletion=_ac_path
+    "-p",
+    "--path",
+    metavar="PATH",
+    help="Path to list.",
+    autocompletion=runs_support.ac_run_dirpath,
 )
 @click.option("-s", "--sourcecode", is_flag=True, help="List source code files.")
 @click.option("-a", "--all", is_flag=True, help="Show all files including Guild files.")

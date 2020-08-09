@@ -322,12 +322,19 @@ def completion_command():
         return []
 
 
-def completion_rundirs(run_dir, all=False):
+def completion_run_dirpath(run_dir, all=False):
     if os.getenv("_GUILD_COMPLETE") == "complete":
         if all:
             return ["!!allrundirs:%s" % run_dir]
         else:
             return ["!!rundirs:%s" % run_dir]
+    else:
+        return []
+
+
+def completion_run_filepath(run_dir):
+    if os.getenv("_GUILD_COMPLETE") == "complete":
+        return ["!!runfiles:%s" % run_dir]
     else:
         return []
 

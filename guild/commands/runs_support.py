@@ -66,6 +66,46 @@ def _ac_digest(ctx, incomplete, **_kw):
     return sorted([d for d in digests if d and d.startswith(incomplete)])
 
 
+def ac_run_dirpath(ctx, **_kw):
+    if ctx.params.get("remote"):
+        return []
+    args = click_util.Args(**ctx.params)
+    run = _one_run(ctx)
+    if not run:
+        return []
+    if getattr(args, "sourcecode", None):
+        return click_util.completion_run_dirpath(run.guild_path("sourcecode"))
+    else:
+        return click_util.completion_run_dirpath(
+            run.dir, all=getattr(args, "all", None)
+        )
+
+
+def _one_run(ctx):
+    import os
+    from . import runs_impl
+
+    try:
+        return runs_impl.one_run(click_util.Args(**ctx.params), ctx)
+    except (Exception, SystemExit):
+        if os.getenv("_GUILD_COMPLETE_DEBUG") == "1":
+            raise
+        return None
+
+
+def ac_run_filepath(ctx, **_kw):
+    if ctx.params.get("remote"):
+        return []
+    args = click_util.Args(**ctx.params)
+    run = _one_run(ctx)
+    if not run:
+        return []
+    if getattr(args, "sourcecode", None):
+        return click_util.completion_run_filepath(run.guild_path("sourcecode"))
+    else:
+        return click_util.completion_run_filepath(run.dir)
+
+
 def runs_arg(fn):
     """### Specify Runs
 

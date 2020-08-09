@@ -30,6 +30,7 @@ from . import runs_support
     "--path",
     metavar="PATH",
     help="Path of file to show. Require unless --output is used.",
+    autocompletion=runs_support.ac_run_filepath,
 )
 @click.option(
     "-s", "--sourcecode", is_flag=True, help="Apply PATH to source code files."
