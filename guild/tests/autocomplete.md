@@ -11,8 +11,9 @@ Autocomplete shows built-in tests and markdown files.
 A helper to show completions.
 
     >>> def ac_check_tests(incomplete, subdir=""):
+    ...     ctx = check.check.make_context("", [])
     ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         for val in check._ac_all_tests(incomplete):
+    ...         for val in check._ac_all_tests(incomplete, ctx):
     ...             print(val)
 
 Default list includes all built-in tests and a directive to include
@@ -244,6 +245,8 @@ Auto completion for the `diff` command is handled by
 
 The diff program is resolved using a `!!command` directive.
 
+    >>> ctx = runs_diff.diff_runs.make_context("", [])
     >>> with Env({"_GUILD_COMPLETE": "complete"}):
-    ...     print(runs_diff._ac_cmd())
+    ...     print(runs_diff._ac_cmd(ctx))
     ['!!command']
+
