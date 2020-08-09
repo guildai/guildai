@@ -339,6 +339,18 @@ def completion_run_filepath(run_dir):
         return []
 
 
+def completion_safe_apply(ctx, f, args):
+    from guild import config
+
+    with config.SetGuildHome(ctx.parent.params.get("guild_home")):
+        try:
+            return f(*args)
+        except (Exception, SystemExit):
+            if os.getenv("_GUILD_COMPLETE_DEBUG") == "1":
+                raise
+            return None
+
+
 def patch_click():
     from click import _bashcomplete
 
