@@ -70,6 +70,7 @@ def _run_dir_header(run_dir, args):
 
 
 def _ls_extended(dir, args):
+    path = _path_for_extended(dir, args)
     cmd = ["ls", "-l"]
     if args.all:
         cmd.append("-aR")
@@ -77,8 +78,17 @@ def _ls_extended(dir, args):
         cmd.append("-h")
     if args.follow_links:
         cmd.append("-L")
-    cmd.append(dir)
-    subprocess.call(cmd)
+    cmd.append(path)
+    try:
+        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        cli.error(e.output.strip())
+    else:
+        cli.out(out.strip())
+
+
+def _path_for_extended(dir, args):
+    return os.path.join(dir, _rel_path(args))
 
 
 def _ls_normal(dir, args):
@@ -87,7 +97,7 @@ def _ls_normal(dir, args):
 
 
 def _list(run_dir, args):
-    match_path_pattern = _match_path_pattern(args)
+    match_path_pattern = _rel_path(args)
     for root, dirs, files in os.walk(run_dir, followlinks=args.follow_links):
         _maybe_rm_guild_dir(dirs, args)
         for name in dirs + files:
@@ -105,7 +115,7 @@ def _list(run_dir, args):
                 yield rel_path + suffix
 
 
-def _match_path_pattern(args):
+def _rel_path(args):
     pattern = args.path
     if args.sourcecode:
         source_base = os.path.join(".guild", "sourcecode")

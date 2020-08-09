@@ -322,6 +322,16 @@ def completion_command():
         return []
 
 
+def completion_rundirs(run_dir, all=False):
+    if os.getenv("_GUILD_COMPLETE") == "complete":
+        if all:
+            return ["!!allrundirs:%s" % run_dir]
+        else:
+            return ["!!rundirs:%s" % run_dir]
+    else:
+        return []
+
+
 def patch_click():
     from click import _bashcomplete
 

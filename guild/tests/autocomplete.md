@@ -250,3 +250,26 @@ The diff program is resolved using a `!!command` directive.
     ...     print(runs_diff._ac_cmd(ctx))
     ['!!command']
 
+## `ls`
+
+Autocomplete for `ls` is implemented by `guild.commands.ls`.
+
+    >>> from guild.commands import ls
+
+We generate a run to test.
+
+    >>> project = Project(sample("projects", "autocomplete"))
+    >>> project.run("a")
+    a
+
+### Path
+
+Paths use the `!!rundirs` directive to provide completions for the
+applicable run directory.
+
+    >>> with SetGuildHome(project.guild_home):
+    ...     ctx = ls.ls.make_context("", [])
+    ...     with Env({"_GUILD_COMPLETE": "complete",
+    ...               "_GUILD_COMPLETE_DEBUG": "1"}):
+    ...         ls._ac_path(ctx=ctx)
+    ['!!rundirs:.../runs/...']

@@ -50,15 +50,21 @@ _guild_completion() {
     local item
     for item in "${reply[@]}"; do
         if [ "${item:0:7}" = '!!file:' ]; then
-            COMPREPLY+=($(compgen -f -X '!'"${item:7}" $2))
-            compopt -o filenames -o plusdirs
+            COMPREPLY+=($(compgen -f -X '!'"${item:7}" -o plusdirs -- $2))
+            compopt -o filenames
         elif [ "${item:0:12}" = '!!batchfile:' ]; then
-            COMPREPLY+=($(compgen -f -X '!'"${item:12}" -P @ ${2:1}))
-            compopt -o filenames -o plusdirs
+            COMPREPLY+=($(compgen -f -X '!'"${item:12}" -P @ -o plusdirs -- ${2:1}))
+            compopt -o filenames
+        elif [ "${item:0:10}" = '!!rundirs:' ]; then
+            COMPREPLY+=($(cd "${item:10}" && compgen -d -X .guild -- $2))
+            compopt -o nospace
+        elif [ "${item:0:13}" = '!!allrundirs:' ]; then
+            COMPREPLY+=($(cd "${item:13}" && compgen -d -- $2))
+            compopt -o nospace
         elif [ "$item" = "!!nospace" ]; then
             compopt -o nospace
         elif [ "$item" = "!!command" ]; then
-            COMPREPLY+=($(compgen -c $2))
+            COMPREPLY+=($(compgen -c -- $2))
         else
             COMPREPLY+=($item)
         fi
