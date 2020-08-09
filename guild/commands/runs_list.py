@@ -19,6 +19,7 @@ import click
 
 from guild import click_util
 
+from . import remote_support
 from . import runs_support
 
 
@@ -49,7 +50,7 @@ def runs_list_options(fn):
             runs_support.all_filters,
             click.Option(("--json",), help="Format runs as JSON.", is_flag=True),
             click.Option(("-v", "--verbose"), help="Show run details.", is_flag=True),
-            remote_support.remote_option("List runs on REMOTE rather than local runs.")
+            remote_support.remote_option("List runs on REMOTE rather than local runs."),
         ],
     )
     return fn
