@@ -34,6 +34,16 @@ __reassemble_comp_words_by_ref() {
     fi
 }
 
+__apply_alt_cwd() {
+    # Applies alt current working directory to COMPREPLY.
+    for i in "${!COMPREPLY[@]}"; do
+        if [[ -d $1/${COMPREPLY[i]} ]]; then
+            COMPREPLY[i]+=/
+            compopt -o nospace
+        fi
+    done
+}
+
 _guild_completion() {
     local cword words
     __reassemble_comp_words_by_ref "=:" words cword
@@ -47,7 +57,7 @@ _guild_completion() {
 
     # Process directories.
     COMPREPLY=()
-    local item
+    local item alt_cwd
     for item in "${reply[@]}"; do
         if [ "${item:0:7}" = '!!file:' ]; then
             COMPREPLY+=($(compgen -f -X '!'"${item:7}" -o plusdirs -- $2))
@@ -56,11 +66,17 @@ _guild_completion() {
             COMPREPLY+=($(compgen -f -X '!'"${item:12}" -P @ -o plusdirs -- ${2:1}))
             compopt -o filenames
         elif [ "${item:0:10}" = '!!rundirs:' ]; then
-            COMPREPLY+=($(cd "${item:10}" && compgen -d -X .guild -- $2))
-            compopt -o nospace
+            alt_cwd="${item:10}"
+            COMPREPLY+=($(cd "$alt_cwd" && compgen -d -X .guild -- $2))
+            __apply_alt_cwd "$alt_cwd"
         elif [ "${item:0:13}" = '!!allrundirs:' ]; then
-            COMPREPLY+=($(cd "${item:13}" && compgen -d -- $2))
-            compopt -o nospace
+            alt_cwd="${item:13}"
+            COMPREPLY+=($(cd "$alt_cwd" && compgen -d -- $2))
+            __apply_alt_cwd "$alt_cwd"
+        elif [ "${item:0:11}" = '!!runfiles:' ]; then
+            alt_cwd="${item:11}"
+            COMPREPLY+=($(cd "$alt_cwd" && compgen -f -X .guild -- $2))
+            __apply_alt_cwd "$alt_cwd"
         elif [ "$item" = "!!nospace" ]; then
             compopt -o nospace
         elif [ "$item" = "!!command" ]; then
