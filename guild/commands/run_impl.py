@@ -582,7 +582,7 @@ def _remote_runs_for_marked_or_latest(remote, oprefs, run_id_prefix, status):
     Uses `remote_impl_support.filtered_runs` to get remote runs
     matching the specified opdef list, run ID prefix, and status list.
     """
-    from guild.commands.runs_list import list_runs
+    from .runs_list import list_runs
 
     args = click_util.Args(**list_runs.make_context("", []).params)
     args.remote = remote

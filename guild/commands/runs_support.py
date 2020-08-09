@@ -29,7 +29,7 @@ def _ac_run(ctx, incomplete, **_kw):
 
 def _ac_runs_for_ctx(ctx):
     from guild import config
-    from guild.commands import runs_impl
+    from . import runs_impl
 
     param_args = click_util.Args(**ctx.params)
     with config.SetGuildHome(ctx.parent.params.get("guild_home")):

@@ -21,7 +21,7 @@ from guild import flag_util
 from guild import model
 from guild import util
 
-from guild.commands import models_impl
+from . import models_impl
 
 
 def main(args):

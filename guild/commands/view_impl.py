@@ -32,8 +32,8 @@ from guild import util
 from guild import var
 from guild import view
 
-from guild.commands import compare_impl
-from guild.commands import runs_impl
+from . import compare_impl
+from . import runs_impl
 
 log = logging.getLogger("guild")
 

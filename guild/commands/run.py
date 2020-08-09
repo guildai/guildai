@@ -29,7 +29,7 @@ def _ac_opspec(incomplete, **_kw):
 
 def _ac_operations(incomplete, **_kw):
     from guild import cmd_impl_support
-    from guild.commands import operations_impl
+    from . import operations_impl
 
     ops_args = click_util.Args(installed=False, all=False, filters=[])
     cmd_impl_support.init_model_path()
@@ -61,7 +61,7 @@ def _ac_batch_files():
 
 def _ac_opdef(opspec):
     import os
-    from guild.commands import run_impl
+    from . import run_impl
 
     try:
         return run_impl.opdef_for_opspec(opspec)
@@ -86,7 +86,7 @@ def _ac_maybe_flag_choices(incomplete, opdef):
 
 
 def _ac_used_flags(flag_args, opdef):
-    from guild.commands import run_impl
+    from . import run_impl
 
     flag_vals, _batch_files = run_impl.split_flag_args(flag_args, opdef)
     return flag_vals
