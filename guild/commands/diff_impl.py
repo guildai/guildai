@@ -58,8 +58,6 @@ def _main(args, ctx):
 
 
 def _validate_args(args):
-    if args.path and args.sourcecode:
-        cli.error("--path and --sourcecode cannot both be specified")
     if args.working and args.working_dir:
         cli.error("--working and --working-dir cannot both be specified")
 
@@ -103,7 +101,17 @@ def _diff_working(args, ctx):
     else:
         assert args.working
         working_dir = _find_run_working_dir(run)
-    _diff(run_sourcecode_dir, working_dir, args)
+    if not args.path:
+        _diff(
+            run_sourcecode_dir, working_dir, args,
+        )
+    else:
+        for path in args.path:
+            _diff(
+                os.path.join(run_sourcecode_dir, path),
+                os.path.join(working_dir, path),
+                args,
+            )
 
 
 def _find_run_working_dir(run):
@@ -193,8 +201,9 @@ def _diff_paths(args):
     if args.output:
         paths.append(os.path.join(".guild", "output"))
     if args.sourcecode:
-        paths.append(os.path.join(".guild", "sourcecode"))
-    paths.extend(args.path)
+        paths.append(os.path.join(".guild", "sourcecode", args.path))
+    else:
+        paths.extend(args.path)
     if not paths:
         paths.append("")
     return paths

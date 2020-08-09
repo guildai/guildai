@@ -65,7 +65,7 @@ complete.
 To illustate the various auto completion scenarions, we generate a
 number of runs.
 
-    >>> project = Project(sample("projects", "autocomplete"))
+    >>> project = ac_project = Project(sample("projects", "autocomplete"))
 
     >>> project.run("a", run_dir=path(project.guild_home, "runs", "aaa"))
     a
@@ -270,6 +270,83 @@ The diff program is resolved using a `!!command` directive.
     >>> with Env({"_GUILD_COMPLETE": "complete"}):
     ...     print(runs_diff._ac_cmd(ctx))
     ['!!command']
+
+### Path
+
+Paths used for `diff` depend on a number of other arguments:
+
+- Default or explicit runs
+- If --sourcecode is specified
+- If --working or --working-dir is specified
+
+We return to the autocomplete project and its associated runs.
+
+    >>> project = ac_project
+
+A helper to print path completions:
+
+    >>> def ac_diff_paths(args):
+    ...     from guild.commands import main
+    ...     ctx = runs_diff.diff_runs.make_context("", list(args))
+    ...     ctx.parent = main.main.make_context("", ["-H", project.guild_home])
+    ...     with Env({"_GUILD_COMPLETE": "complete"}):
+    ...         for path in runs_diff._ac_path(["diff"] + args, ctx):
+    ...             print(path)
+
+Paths are resolved using the `!!runfiles` directive. The base dir
+differs according to the current set of diff arguments.
+
+The default uses the second-to-last run as the base.
+
+    >>> ac_diff_paths([])
+    !!runfiles:...runs/bbb
+
+Specifying a single run to diff isn't a valid command so there are no
+completions.
+
+    >>> ac_diff_paths(["aaa"])
+
+When we specify two runs, as required, completions are provided for
+the first run.
+
+    >>> ac_diff_paths(["aaa", "bbb"])
+    !!runfiles:.../runs/aaa
+
+Working dir is always used as the base dir when specified.
+
+    >>> ac_diff_paths(["--working-dir", "xxx"])
+    !!runfiles:xxx
+
+    >>> ac_diff_paths(["--working-dir", "xxx", "aaa"])
+    !!runfiles:xxx
+
+    >>> ac_diff_paths(["--working-dir", "xxx", "aaa", "bbb"])
+    !!runfiles:xxx
+
+The `--working` option indicates the base is the project drectory.
+
+    >>> ac_diff_paths(["--working"])
+    !!runfiles:.../samples/projects/autocomplete/
+
+    >>> ac_diff_paths(["--working", "aaa"])
+    !!runfiles:.../samples/projects/autocomplete/
+
+Specifying two runs with `--working` is not valid so we get no
+completions.
+
+    >>> ac_diff_paths(["--working", "aaa", "bbb"])
+
+The `--sourcecode` option uses the selected run source code directory.
+
+    >>> ac_diff_paths(["--sourcecode"])
+    !!runfiles:.../runs/bbb/.guild/sourcecode
+
+Specifying a single run is not value.
+
+    >>> ac_diff_paths(["--sourcecode", "aaa"])
+
+    >>> ac_diff_paths(["--sourcecode", "aaa", "bbb"])
+    !!runfiles:.../runs/aaa/.guild/sourcecode
 
 ## `operations`
 
