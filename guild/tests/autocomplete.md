@@ -271,25 +271,49 @@ The diff program is resolved using a `!!command` directive.
     ...     print(runs_diff._ac_cmd(ctx))
     ['!!command']
 
+## `operations`
 
-Autocomplete for `ls` is implemented by `guild.commands.ls`.
+Completion for `operations` is provided by
+`guild.commands.operations`.
 
-    >>> from guild.commands import ls
+    >>> from guild.commands import operations
 
-We generate a run to test.
+`_ac_operation` resolves available operations, which are applied as
+filters.
 
-    >>> project = Project(sample("projects", "autocomplete"))
-    >>> project.run("a")
-    a
+We use the `optimizers` project to illustrate.
 
-### Path
+    >>> project = Project(sample("projects", "optimizers"))
 
-Paths use the `!!rundirs` directive to provide completions for the
-applicable run directory.
+Helper to print completions:
 
-    >>> with SetGuildHome(project.guild_home):
-    ...     ctx = ls.ls.make_context("", [])
-    ...     with Env({"_GUILD_COMPLETE": "complete",
-    ...               "_GUILD_COMPLETE_DEBUG": "1"}):
-    ...         ls._ac_path(ctx=ctx)
-    ['!!rundirs:.../runs/...']
+    >>> def ops_ac(incomplete):
+    ...     ctx = operations.operations.make_context("", [])
+    ...     with SetCwd(project.cwd):
+    ...         for op in operations._ac_operation(ctx, incomplete):
+    ...             print(op)
+
+Empty incomplete:
+
+    >>> ops_ac("")
+    echo
+    fail
+    noisy
+    noisy-flubber
+    opt-test-1
+    opt-test-2
+    opt-test-3
+    opt-test-4
+    poly
+    tune-echo
+    tune-echo-2
+
+Various incompletes:
+
+    >>> ops_ac("opt-")
+    opt-test-1
+    opt-test-2
+    opt-test-3
+    opt-test-4
+
+    >>> ops_ac("x")

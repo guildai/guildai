@@ -20,8 +20,25 @@ import click
 from guild import click_util
 
 
+def _ac_operation(ctx, incomplete, **_kw):
+    from guild import cmd_impl_support
+    from . import operations_impl
+
+    cmd_impl_support.init_model_path()
+    ops = operations_impl.filtered_ops(click_util.Args(**ctx.params))
+    return sorted(
+        [op["fullname"] for op in ops if op["fullname"].startswith(incomplete)]
+    )
+
+
 @click.command(name="operations, ops")
-@click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
+@click.argument(
+    "filters",
+    metavar="[FILTER]...",
+    required=False,
+    nargs=-1,
+    autocompletion=_ac_operation,
+)
 @click.option(
     "-a",
     "--all",
