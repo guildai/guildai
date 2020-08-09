@@ -83,14 +83,16 @@ def ac_run_dirpath(ctx, **_kw):
 
 def _one_run(ctx):
     import os
+    from guild import config
     from . import runs_impl
 
-    try:
-        return runs_impl.one_run(click_util.Args(**ctx.params), ctx)
-    except (Exception, SystemExit):
-        if os.getenv("_GUILD_COMPLETE_DEBUG") == "1":
-            raise
-        return None
+    with config.SetGuildHome(ctx.parent.params.get("guild_home")):
+        try:
+            return runs_impl.one_run(click_util.Args(**ctx.params), ctx)
+        except (Exception, SystemExit):
+            if os.getenv("_GUILD_COMPLETE_DEBUG") == "1":
+                raise
+            return None
 
 
 def ac_run_filepath(ctx, **_kw):
