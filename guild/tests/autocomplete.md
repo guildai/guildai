@@ -422,3 +422,14 @@ to resolve directory locations.
     ['!!dir']
 
 In this case it's not possible to support run completion.
+
+## `help`
+
+Help completion supports lookup of installed Guild packages and
+directories.
+
+    >>> from guild.commands import help
+
+    >>> with Env({"_GUILD_COMPLETE": "complete"}):
+    ...     help._ac_path_or_package("")
+    [...'!!dir']

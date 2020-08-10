@@ -30,11 +30,15 @@ log = logging.getLogger("guild")
 
 
 def list_packages(args):
-    installed = pip_util.get_installed()
-    packages = [pkg for pkg in installed if args.all or _is_gpkg(pkg)]
+    packages = _packages(args.all)
     formatted = [_format_pkg(pkg) for pkg in packages]
     filtered = [pkg for pkg in formatted if _filter_model(pkg, args)]
     cli.table(filtered, cols=["name", "version", "summary"], sort=["name"])
+
+
+def _packages(all):
+    installed = pip_util.get_installed()
+    return [pkg for pkg in installed if all or _is_gpkg(pkg)]
 
 
 def _is_gpkg(pkg):

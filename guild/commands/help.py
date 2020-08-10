@@ -20,8 +20,15 @@ import click
 from guild import click_util
 
 
+def _ac_path_or_package(incomplete, **_kw):
+    from . import packages_impl
+
+    packages = [pkg.project_name for pkg in packages_impl._packages(False)]
+    return sorted([pkg for pkg in packages if pkg.startswith(incomplete)]) + ["!!dir"]
+
+
 @click.command()
-@click.argument("path-or-package", required=False)
+@click.argument("path-or-package", required=False, autocompletion=_ac_path_or_package)
 @click.option(
     "--package-description", help="Show the package description.", is_flag=True
 )
