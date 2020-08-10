@@ -295,6 +295,13 @@ def completion_filenames(ext=None):
         return []
 
 
+def completion_dirs():
+    if os.getenv("_GUILD_COMPLETE") == "complete":
+        return ["!!dir"]
+    else:
+        return []
+
+
 def _compgen_filenames(type, ext):
     if not ext:
         return ["!!%s:*" % type]

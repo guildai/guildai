@@ -394,3 +394,31 @@ Various incompletes:
     opt-test-4
 
     >>> ops_ac("x")
+
+## `export`
+
+The `export` command changes the default behavior to support directory
+completion for the `runs` argument. This is because the `export`
+command requires a location argument as the last of many potential
+arguments. Preceding arguments are used for `runs`.
+
+It's far more common to use `guild export <export-dir>` than to
+include runs. The default click completion logic treats `<export-dir>`
+in this case as a run, which is a reasonable assumption since it
+doesn't know if it's the last argument that will be provided.
+
+To show the behavior, we examine the `runs` param for the applicable
+command function.
+
+    >>> from guild.commands import runs_export
+    >>> runs_export.export_runs.params[0].name
+    'runs'
+
+When executed, the auto completion function uses the `!!dir` directive
+to resolve directory locations.
+
+    >>> with Env({"_GUILD_COMPLETE": "complete"}):
+    ...     runs_export.export_runs.params[0].autocompletion()
+    ['!!dir']
+
+In this case it's not possible to support run completion.

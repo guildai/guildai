@@ -62,6 +62,9 @@ _guild_completion() {
         if [ "${item:0:7}" = '!!file:' ]; then
             COMPREPLY+=($(compgen -f -X '!'"${item:7}" -o plusdirs -- $2))
             compopt -o filenames
+        elif [ "${item:0:7}" = '!!dir' ]; then
+            COMPREPLY+=($(compgen -d -- $2))
+            compopt -o filenames
         elif [ "${item:0:12}" = '!!batchfile:' ]; then
             COMPREPLY+=($(compgen -f -X '!'"${item:12}" -P @ -o plusdirs -- ${2:1}))
             compopt -o filenames
