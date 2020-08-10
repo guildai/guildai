@@ -322,9 +322,12 @@ def completion_batchfiles(ext=None):
         return []
 
 
-def completion_command():
+def completion_command(filter=None):
     if os.getenv("_GUILD_COMPLETE") == "complete":
-        return ["!!command"]
+        if filter:
+            return ["!!command:%s" % filter]
+        else:
+            return ["!!command"]
     else:
         return []
 

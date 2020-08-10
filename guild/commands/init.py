@@ -20,8 +20,48 @@ import click
 from guild import click_util
 
 
+def _ac_python(**_kw):
+    return click_util.completion_command("python*[^-config]")
+
+
+def _ac_dir(**_kw):
+    return click_util.completion_dirs()
+
+
+def _ac_guild_version_or_path(incomplete, ctx, **_kw):
+    versions = [ver for ver in _guild_versions(ctx) if ver.startswith(incomplete)]
+    return versions + click_util.completion_filenames(ext=["whl"])
+
+
+def _guild_versions(ctx):
+    import json
+
+    # We want to import pip._vendor.requests but pip has an import
+    # cycle so we get to it via pip._internal.index.
+    from pip._internal.index import requests
+
+    def f():
+        resp = requests.get("https://pypi.org/pypi/guildai/json")
+        data = json.loads(resp.text)
+        return sorted(data.get("releases") or {})
+
+    return click_util.completion_safe_apply(ctx, f, []) or []
+
+
+def _ac_guild_home(**_kw):
+    return click_util.completion_dirs()
+
+
+def _ac_requirement(**_kw):
+    return click_util.completion_filenames(ext=["txt"])
+
+
+def _ac_path(**_kw):
+    return click_util.completion_dirs()
+
+
 @click.command()
-@click.argument("dir", default="venv")
+@click.argument("dir", default="venv", autocompletion=_ac_dir)
 @click.option(
     "-n",
     "--name",
@@ -33,6 +73,7 @@ from guild import click_util
     "--python",
     metavar="VERSION",
     help="Version of Python to use for the environment.",
+    autocompletion=_ac_python,
 )
 @click.option(
     "-g",
@@ -43,6 +84,7 @@ from guild import click_util
         "By default, the active version of Guild is installed. This "
         "value may alternatively be a path to a Guild wheel distribution."
     ),
+    autocompletion=_ac_guild_version_or_path,
 )
 @click.option(
     "-H",
@@ -61,6 +103,7 @@ from guild import click_util
         "Alternative Guild home location associated with the environment. "
         "By default, Guild home is '.guild' in the environment directory."
     ),
+    autocompletion=_ac_guild_home,
 )
 @click.option(
     "-r",
@@ -71,6 +114,7 @@ from guild import click_util
         "Install required package or packages defined in a file. May be "
         "used multiple times."
     ),
+    autocompletion=_ac_requirement,
 )
 @click.option(
     "-P",
@@ -78,6 +122,7 @@ from guild import click_util
     metavar="DIR",
     multiple=True,
     help="Include DIR as a Python path in the environment.",
+    autocompletion=_ac_path,
 )
 @click.option(
     "--no-reqs",

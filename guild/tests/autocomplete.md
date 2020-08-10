@@ -447,3 +447,54 @@ The archive location for import is a directory.
     >>> with Env({"_GUILD_COMPLETE": "complete"}):
     ...     runs_import.import_runs.params[0].autocompletion()
     ['!!dir']
+
+## `init`
+
+    >>> from guild.commands import init
+
+Helper to print completions.
+
+    >>> def ac_init(f, incomplete=""):
+    ...     from guild.commands import main
+    ...     ctx = init.init.make_context("", [])
+    ...     ctx.parent = main.main.make_context("", ["-H", project.guild_home])
+    ...     with Env({"_GUILD_COMPLETE": "complete"}):
+    ...         for val in f(ctx=ctx, incomplete=incomplete):
+    ...             print(val)
+
+
+Python versions:
+
+    >>> ac_init(init._ac_python)
+    !!command:python*[^-config]
+
+
+Target dir:
+
+    >>> ac_init(init._ac_dir)
+    !!dir
+
+
+Guild version or path:
+
+    >>> ac_init(init._ac_guild_version_or_path)
+    0.1.0
+    ...
+    0.7.0
+    ...
+    !!file:*.@(whl)
+
+Guild home:
+
+    >>> ac_init(init._ac_guild_home)
+    !!dir
+
+Requirements:
+
+    >>> ac_init(init._ac_requirement)
+    !!file:*.@(txt)
+
+Additional Python path:
+
+    >>> ac_init(init._ac_path)
+    !!dir
