@@ -25,7 +25,7 @@ from .packages_list import list_packages
 
 
 @click.group(invoke_without_command=True, cls=click_util.Group)
-@click.option("-a", "--all", help="Show all packages.", is_flag=True)
+@click.option("-a", "--all", help="Show all installed Python packages.", is_flag=True)
 @click.pass_context
 def packages(ctx, **kw):
     """Show or manage packages.
