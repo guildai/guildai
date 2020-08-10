@@ -20,6 +20,9 @@ import click
 from guild import click_util
 from . import runs_support
 
+def _ac_archive(**_kw):
+    return click_util.completion_dirs()
+
 
 def import_params(fn):
     click_util.append_params(
@@ -43,6 +46,8 @@ def import_params(fn):
             ),
         ],
     )
+    assert fn.__click_params__[-1].name == "runs", fn.__click_params__
+    fn.__click_params__[-1].autocompletion = _ac_archive
     return fn
 
 

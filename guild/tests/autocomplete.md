@@ -433,3 +433,17 @@ directories.
     >>> with Env({"_GUILD_COMPLETE": "complete"}):
     ...     help._ac_path_or_package("")
     [...'!!dir']
+
+## `import`
+
+`import` uses the same scheme as `export` (see above).
+
+    >>> from guild.commands import runs_import
+    >>> runs_import.import_runs.params[0].name
+    'runs'
+
+The archive location for import is a directory.
+
+    >>> with Env({"_GUILD_COMPLETE": "complete"}):
+    ...     runs_import.import_runs.params[0].autocompletion()
+    ['!!dir']
