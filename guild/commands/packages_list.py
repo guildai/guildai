@@ -22,7 +22,7 @@ from guild import click_util
 
 @click.command("list, ls")
 @click.argument("terms", metavar="[TERM]...", nargs=-1)
-@click.option("-a", "--all", help="Show all packages.", is_flag=True)
+@click.option("-a", "--all", help="Show all installed Python packages.", is_flag=True)
 @click_util.use_args
 def list_packages(args):
     """List installed packages.
