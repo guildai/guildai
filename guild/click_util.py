@@ -288,14 +288,14 @@ def _maybe_render_doc(s, vars):
     return fn.__doc__
 
 
-def completion_filenames(ext=None):
+def completion_filename(ext=None):
     if os.getenv("_GUILD_COMPLETE") == "complete":
         return _compgen_filenames("file", ext)
     else:
         return []
 
 
-def completion_dirs():
+def completion_dir():
     if os.getenv("_GUILD_COMPLETE") == "complete":
         return ["!!dir"]
     else:
@@ -315,7 +315,7 @@ def completion_nospace():
         return []
 
 
-def completion_batchfiles(ext=None):
+def completion_batchfile(ext=None):
     if os.getenv("_GUILD_COMPLETE") == "complete":
         return _compgen_filenames("batchfile", ext)
     else:

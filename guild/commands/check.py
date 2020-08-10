@@ -25,7 +25,7 @@ from . import remote_support
 def _ac_all_tests(incomplete, ctx, **_kw):
     if ctx.params.get("remote"):
         return []
-    return _ac_builtin_tests(incomplete, ctx) + click_util.completion_filenames(
+    return _ac_builtin_tests(incomplete, ctx) + click_util.completion_filename(
         ext=["md", "txt"]
     )
 

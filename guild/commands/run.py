@@ -24,7 +24,7 @@ def _ac_opspec(incomplete, **_kw):
     ops = _ac_operations(incomplete)
     if not incomplete and ops:
         return ops
-    return ops + click_util.completion_filenames(ext=["py"])
+    return ops + click_util.completion_filename(ext=["py"])
 
 
 def _ac_operations(incomplete, **_kw):
@@ -56,7 +56,7 @@ def _ac_flag(incomplete, ctx, **_kw):
 
 
 def _ac_batch_files():
-    return click_util.completion_batchfiles(ext=["csv", "yaml", "yml", "json"])
+    return click_util.completion_batchfile(ext=["csv", "yaml", "yml", "json"])
 
 
 def _ac_opdef(opspec):

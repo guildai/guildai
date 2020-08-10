@@ -21,7 +21,7 @@ from guild import click_util
 from . import runs_support
 
 def _ac_archive(**_kw):
-    return click_util.completion_dirs()
+    return click_util.completion_dir()
 
 
 def import_params(fn):

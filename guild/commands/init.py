@@ -25,12 +25,12 @@ def _ac_python(**_kw):
 
 
 def _ac_dir(**_kw):
-    return click_util.completion_dirs()
+    return click_util.completion_dir()
 
 
 def _ac_guild_version_or_path(incomplete, ctx, **_kw):
     versions = [ver for ver in _guild_versions(ctx) if ver.startswith(incomplete)]
-    return versions + click_util.completion_filenames(ext=["whl"])
+    return versions + click_util.completion_filename(ext=["whl"])
 
 
 def _guild_versions(ctx):
@@ -49,15 +49,15 @@ def _guild_versions(ctx):
 
 
 def _ac_guild_home(**_kw):
-    return click_util.completion_dirs()
+    return click_util.completion_dir()
 
 
 def _ac_requirement(**_kw):
-    return click_util.completion_filenames(ext=["txt"])
+    return click_util.completion_filename(ext=["txt"])
 
 
 def _ac_path(**_kw):
-    return click_util.completion_dirs()
+    return click_util.completion_dir()
 
 
 @click.command()

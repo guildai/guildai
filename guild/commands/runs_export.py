@@ -22,7 +22,7 @@ from . import runs_support
 
 
 def _ac_location(**_kw):
-    return click_util.completion_dirs()
+    return click_util.completion_dir()
 
 
 def export_params(fn):
