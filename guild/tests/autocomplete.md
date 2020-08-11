@@ -172,11 +172,11 @@ A helper to show completions:
     >>> def run_ac(ac_f, args, incomplete):
     ...     from guild.commands import main
     ...     ctx = run.run.make_context("", args, resilient_parsing=True)
+    ...     ctx.parent = main.main.make_context("", ["-H", project.guild_home])
     ...     with Env({"_GUILD_COMPLETE": "complete"}):
     ...         with Chdir(project.cwd):
     ...             for val in ac_f(ctx=ctx, incomplete=incomplete):
     ...                 print(val)
-
 
 ### Op spec
 

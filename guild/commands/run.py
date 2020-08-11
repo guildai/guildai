@@ -20,20 +20,26 @@ import click
 from guild import click_util
 
 
-def _ac_opspec(incomplete, **_kw):
-    ops = _ac_operations(incomplete)
+def _ac_opspec(incomplete, ctx, **_kw):
+    ops = _ac_operations(incomplete, ctx)
     if not incomplete and ops:
         return ops
     return ops + click_util.completion_filename(ext=["py"])
 
 
-def _ac_operations(incomplete, **_kw):
+def _ac_operations(incomplete, ctx, **_kw):
     from guild import cmd_impl_support
+    from guild import _test
     from . import operations_impl
 
     ops_args = click_util.Args(installed=False, all=False, filters=[])
-    cmd_impl_support.init_model_path()
-    ops = [op["fullname"] for op in operations_impl.filtered_ops(ops_args)]
+
+    def f():
+        with _test.StderrCapture():
+            cmd_impl_support.init_model_path()
+            return [op["fullname"] for op in operations_impl.filtered_ops(ops_args)]
+
+    ops = click_util.completion_safe_apply(ctx, f, [])
     return [op for op in ops if op.startswith(incomplete)]
 
 
