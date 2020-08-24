@@ -268,7 +268,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [tensorboard-export-scalars](tensorboard-export-scalars.md)
 - [tensorboard-versions](tensorboard-versions.md)
 - [guild-patch](guild-patch.md)
-- [completion](completion.md)
+- [completion-command](completion-command.md)
 
 ## Error cases
 
