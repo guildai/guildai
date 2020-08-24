@@ -24,10 +24,6 @@ def _ac_python(**_kw):
     return click_util.completion_command("python*[^-config]")
 
 
-def _ac_dir(**_kw):
-    return click_util.completion_dir()
-
-
 def _ac_guild_version_or_path(incomplete, ctx, **_kw):
     versions = [ver for ver in _guild_versions(ctx) if ver.startswith(incomplete)]
     return versions + click_util.completion_filename(ext=["whl"])
@@ -61,7 +57,7 @@ def _ac_path(**_kw):
 
 
 @click.command()
-@click.argument("dir", default="venv", autocompletion=_ac_dir)
+@click.argument("dir", default="venv", autocompletion=click_util.completion_dir)
 @click.option(
     "-n",
     "--name",

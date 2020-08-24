@@ -295,7 +295,7 @@ def completion_filename(ext=None):
         return []
 
 
-def completion_dir():
+def completion_dir(**_kw):
     if os.getenv("_GUILD_COMPLETE") == "complete":
         return ["!!dir"]
     else:
