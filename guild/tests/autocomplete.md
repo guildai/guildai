@@ -1,5 +1,17 @@
 # Auto complete
 
+Helper functions:
+
+    >>> def ac_f(cmd, param_name):
+    ...     for param in cmd.params:
+    ...         if param.name == param_name:
+    ...             assert param.autocompletion, (param, cmd)
+    ...             def f(**kw):
+    ...                 with Env({"_GUILD_COMPLETE": "complete"}):
+    ...                     return param.autocompletion(**kw)
+    ...             return f
+    ...     assert False, (param_name, cmd.params)
+
 ## `check`
 
     >>> from guild.commands import check
@@ -462,18 +474,15 @@ Helper to print completions.
     ...         for val in f(ctx=ctx, incomplete=incomplete):
     ...             print(val)
 
-
 Python versions:
 
-    >>> ac_init(init._ac_python)
-    !!command:python*[^-config]
-
+    >>> ac_f(init.init, "python")()
+    ['!!command:python*[^-config]']
 
 Target dir:
 
-    >>> ac_init(init._ac_dir)
-    !!dir
-
+    >>> ac_f(init.init, "dir")()
+    ['!!dir']
 
 Guild version or path:
 
