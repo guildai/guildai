@@ -153,7 +153,7 @@ class Build(object):
                     " --guild dist/*.whl {}".format(self.test_dir)
                 ),
                 "TERM=xterm-256color source guild-env {}".format(self.test_dir),
-                "guild check --offline",
+                "guild check -v --offline",
                 (
                     "WORKSPACE={workspace} "
                     "UAT_SKIP={uat_skip},remote-*,hiplot-* "
