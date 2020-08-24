@@ -20,6 +20,7 @@ import click
 from guild import click_util
 from . import runs_support
 
+
 def _ac_archive(**_kw):
     return click_util.completion_dir()
 

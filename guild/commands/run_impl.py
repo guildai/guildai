@@ -1706,7 +1706,7 @@ def _batch_qualifier_preview_part(S):
     batch_op = S.batch_op
     parts = []
     if batch_op.opref.op_name == "+":
-        parts.append(_preview_trials_count(S.user_op))
+        parts.append(_preview_trials_count(S))
     elif batch_op._max_trials:
         parts.append("max %i trials" % batch_op._max_trials)
     if _is_likey_optimizer(batch_op) and batch_op._objective:
@@ -1716,12 +1716,19 @@ def _batch_qualifier_preview_part(S):
     return " (%s)" % ", ".join(parts)
 
 
-def _preview_trials_count(user_op):
-    trials_count = len(_op_trials(user_op))
+def _preview_trials_count(S):
+    trials_count = _trials_count(S)
     if trials_count == 1:
         return "1 trial"
     else:
         return "%i trials" % trials_count
+
+
+def _trials_count(S):
+    if S.batch_op._max_trials is not None:
+        return S.batch_op._max_trials
+    else:
+        return len(_op_trials(S.user_op))
 
 
 def _op_trials(op):
