@@ -93,6 +93,7 @@ from . import runs_support
     "--tool",
     metavar="TOOL",
     help="Use TOOL to compare runs. See TOOLS for a list of supported tools",
+    type=click.Choice(["hiplot"]),
 )
 @click.option("--include-batch", is_flag=True, help="Include batch runs.")
 @click.option("--print-scalars", is_flag=True, help="Show available scalars and exit.")
