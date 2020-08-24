@@ -15,6 +15,11 @@ project `sys_path_test.py` script.
     ...     run, out = project.run_capture(op, **kw)
     ...     return run, json.loads(out)
 
+Helper functions to assert that a Python path is a run directory.
+
+    >>> def assert_run_dir(path, run):
+    ...     assert path == "" or path == run.dir, (path, run.dir)
+
 ## Run script directly
 
 Guild copies operation source code to the run directory and inserts
@@ -24,8 +29,11 @@ Python runtime.
 
     >>> run, sys_path = sys_path_for_op("sys_path_test.py")
 
-    >>> sys_path
-    ['', '.../.guild/sourcecode', ...]
+    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
+    (True, ...)
+
+    >>> sys_path[1]
+    '.../.guild/sourcecode'
 
 Confirm that the second path entry is the run directory source code
 path.
@@ -46,8 +54,11 @@ diretly (above).
 
     >>> run, sys_path = sys_path_for_op("default")
 
-    >>> sys_path
-    ['', '.../.guild/sourcecode', ...]
+    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
+    (True, ...)
+
+    >>> sys_path[1]
+    '.../.guild/sourcecode'
 
     >>> sys_path[1] == run.guild_path("sourcecode"), sys_path[1], run.dir
     (True, ...)
@@ -64,8 +75,11 @@ operation configures the target as `src`.
 
     >>> run, sys_path = sys_path_for_op("sourcecode-dest")
 
-    >>> sys_path
-    ['', '.../src', ...]
+    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
+    (True, ...)
+
+    >>> sys_path[1]
+    '.../src'
 
 In this case, the default location for run source code --
 `.guild/sourcecode` -- is not in the path.
@@ -95,8 +109,11 @@ We can use `PYTHONPATH` to include the project directory.
     ...     "sys_path_test.py",
     ...     extra_env={"PYTHONPATH": project.cwd})
 
-    >>> sys_path
-    ['', '.../.guild/sourcecode', ...]
+    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
+    (True, ...)
+
+    >>> sys_path[1]
+    '.../.guild/sourcecode'
 
 Note that the run source code location is still the first non-blank path.
 
@@ -118,8 +135,11 @@ are included *before* any other Python path locations. The
     ...     "pythonpath-env",
     ...     flags={"path": project.cwd})
 
-    >>> sys_path
-    ['', '.../samples/projects/pythonpath', '.../.guild/sourcecode', ...]
+    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
+    (True, ...)
+
+    >>> sys_path[1:3]
+    ['.../samples/projects/pythonpath', '.../.guild/sourcecode']
 
 Note in this case the project directory, which we specify by way of
 the `path` flag (this is used to set the `PYTHONPATH` env by the
@@ -153,8 +173,8 @@ provide the location of the `sys_path_test` module via the
     ...     "sourcecode-disabled",
     ...     extra_env={"PYTHONPATH": project.cwd})
 
-    >>> sys_path
-    ['', ...]
+    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
+    (True, ...)
 
 The run directory is not in the path.
 
@@ -175,8 +195,14 @@ is `src/sys_path_test2.py`.
 
     >>> run, sys_path = sys_path_for_op("subdir")
 
-    >>> sys_path
-    ['.../.guild/sourcecode/src', '', '.../.guild/sourcecode', ...]
+    >>> sys_path[0]
+    '.../.guild/sourcecode/src'
+
+    >>> sys_path[1] in ("", run.dir), (sys_path[0], run.dir)
+    (True, ...)
+
+    >>> sys_path[2]
+    '.../.guild/sourcecode'
 
 Note in this case Guild inserts the module subdirectory in the front
 of the list. The rest of the path is as it is normally.
@@ -200,8 +226,11 @@ illustrates.
 
     >>> run, sys_path = sys_path_for_op("pkg")
 
-    >>> sys_path
-    ['', '.../.guild/sourcecode', ...]
+    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
+    (True, ...)
+
+    >>> sys_path[1]
+    '.../.guild/sourcecode'
 
 Here's the source code structure for the run:
 
@@ -229,8 +258,14 @@ operation to illustrate.
 
     >>> run, sys_path = sys_path_for_op("pkg-with-subdir")
 
-    >>> sys_path
-    ['.../.guild/sourcecode/src2', '', '.../.guild/sourcecode', ...]
+    >>> sys_path[0]
+    '.../.guild/sourcecode/src2'
+
+    >>> sys_path[1] in ("", run.dir), (sys_path[0], run.dir)
+    (True, ...)
+
+    >>> sys_path[2]
+    '.../.guild/sourcecode'
 
 This example follows the `subdir` example above.
 

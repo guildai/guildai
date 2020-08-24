@@ -78,6 +78,7 @@ WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 PY2 = doctest.register_optionflag("PY2")
 PY3 = doctest.register_optionflag("PY3")
+ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
 
 
 def run_all(skip=None):
@@ -195,6 +196,7 @@ def run_test_file(filename, globs=None):
             | STRIP_ANSI_FMT
             | PY2
             | PY3
+            | ANNOTATIONS
         ),
     )
 
@@ -213,7 +215,7 @@ class Py23DocChecker(doctest.OutputChecker):
 
     def check_output(self, want, got, optionflags):
         got = self._got(got, optionflags)
-        want = self._want(want)
+        want = self._want(want, optionflags)
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
     def _got(self, got, optionflags):
@@ -257,12 +259,21 @@ class Py23DocChecker(doctest.OutputChecker):
             got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)
         return got
 
+    def _want(self, want, optionflags):
+        want = self._leading_wildcard_want(want)
+        if optionflags & ANNOTATIONS:
+            want = self._annotations_want(want)
+        return want
+
     @staticmethod
-    def _want(want):
+    def _leading_wildcard_want(want):
         # Treat leading '???' like '...' (work around for '...' as
         # code continuation token in doctest.
-        want = re.sub(r"^\?\?\?", "...", want)
-        return want
+        return re.sub(r"^\?\?\?", "...", want)
+
+    @staticmethod
+    def _annotations_want(want):
+        return want.replace(":<pathsep>", os.path.pathsep)
 
 
 class TestRunner(doctest.DocTestRunner, object):
@@ -442,11 +453,17 @@ def find(root, followlinks=False, includedirs=False, ignore=None):
     paths = file_util.find(root, followlinks, includedirs)
     if ignore:
         paths = _filter_ignored(paths, ignore)
+    _sort_normalized_paths(paths)
     if not paths:
         print("<empty>")
     else:
         for path in paths:
             print(path)
+
+
+def _sort_normalized_paths(paths):
+    key = lambda p: p.replace(os.path.sep, "/")
+    paths.sort(key=key)
 
 
 def _filter_ignored(paths, ignore):

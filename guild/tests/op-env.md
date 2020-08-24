@@ -159,7 +159,7 @@ This is applied to the run.
     env FLAG_I: 1
     env FLAG_S: hello
     env FOO: 1
-    env PYTHONPATH: hello:...
+    env PYTHONPATH: hello:<pathsep>...
 
 The environment is saved in the `env` run attribute.
 
@@ -175,4 +175,4 @@ The environment is saved in the `env` run attribute.
     FLAG_I: 1
     FLAG_S: hello
     FOO: 1
-    PYTHONPATH: hello:...
+    PYTHONPATH: hello:<pathsep>...
