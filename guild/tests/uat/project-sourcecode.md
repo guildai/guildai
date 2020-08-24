@@ -45,19 +45,18 @@ Run op:
 Verify source code files:
 
     >>> run("guild ls --sourcecode", ignore="pyc")
-    ???:
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/a.py
-      .guild/sourcecode/b.py
-      .guild/sourcecode/c.py
-      .guild/sourcecode/d.csv
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/subproject/
-      .guild/sourcecode/subproject/__init__.py
-      .guild/sourcecode/subproject/d.py
-      .guild/sourcecode/subproject/e.csv
-      .guild/sourcecode/subproject/guild.yml
+    ???/.guild/sourcecode:
+      README.md
+      a.py
+      b.py
+      c.py
+      d.csv
+      guild.yml
+      subproject/
+      subproject/__init__.py
+      subproject/d.py
+      subproject/e.csv
+      subproject/guild.yml
     <exit 0>
 
 ## `include-png`
@@ -102,20 +101,19 @@ Run op:
 Verify source code files:
 
     >>> run("guild ls --sourcecode", ignore="pyc")
-    ???:
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/a.py
-      .guild/sourcecode/b.py
-      .guild/sourcecode/c.py
-      .guild/sourcecode/d.csv
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/logo.png
-      .guild/sourcecode/subproject/
-      .guild/sourcecode/subproject/__init__.py
-      .guild/sourcecode/subproject/d.py
-      .guild/sourcecode/subproject/e.csv
-      .guild/sourcecode/subproject/guild.yml
+    ???/.guild/sourcecode:
+      README.md
+      a.py
+      b.py
+      c.py
+      d.csv
+      guild.yml
+      logo.png
+      subproject/
+      subproject/__init__.py
+      subproject/d.py
+      subproject/e.csv
+      subproject/guild.yml
     <exit 0>
 
 ## `exclude-paths`
@@ -161,16 +159,15 @@ Run op:
 Verify source code files:
 
     >>> run("guild ls --sourcecode", ignore="pyc")
-    ???:
-      .guild/sourcecode/
-      .guild/sourcecode/a.py
-      .guild/sourcecode/b.py
-      .guild/sourcecode/c.py
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/subproject/
-      .guild/sourcecode/subproject/__init__.py
-      .guild/sourcecode/subproject/d.py
-      .guild/sourcecode/subproject/guild.yml
+    ???/.guild/sourcecode:
+      a.py
+      b.py
+      c.py
+      guild.yml
+      subproject/
+      subproject/__init__.py
+      subproject/d.py
+      subproject/guild.yml
     <exit 0>
 
 ## `disable-sourcecode`
@@ -238,20 +235,19 @@ Run op:
 Verify source code files:
 
     >>> run("guild ls --sourcecode", ignore="pyc")
-    ???:
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/a.py
-      .guild/sourcecode/b.py
-      .guild/sourcecode/c.py
-      .guild/sourcecode/d.csv
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/logo.png
-      .guild/sourcecode/subproject/
-      .guild/sourcecode/subproject/__init__.py
-      .guild/sourcecode/subproject/d.py
-      .guild/sourcecode/subproject/e.csv
-      .guild/sourcecode/subproject/guild.yml
+    ???/.guild/sourcecode:
+      README.md
+      a.py
+      b.py
+      c.py
+      d.csv
+      guild.yml
+      logo.png
+      subproject/
+      subproject/__init__.py
+      subproject/d.py
+      subproject/e.csv
+      subproject/guild.yml
     <exit 0>
 
 ## `select-patterns`
@@ -298,16 +294,15 @@ Run op:
 Verify source code files:
 
     >>> run("guild ls --sourcecode", ignore="pyc")
-    ???:
-      .guild/sourcecode/
-      .guild/sourcecode/a.py
-      .guild/sourcecode/b.py
-      .guild/sourcecode/c.py
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/subproject/
-      .guild/sourcecode/subproject/__init__.py
-      .guild/sourcecode/subproject/d.py
-      .guild/sourcecode/subproject/guild.yml
+    ???/.guild/sourcecode:
+      a.py
+      b.py
+      c.py
+      guild.yml
+      subproject/
+      subproject/__init__.py
+      subproject/d.py
+      subproject/guild.yml
     <exit 0>
 
 The alternative version selects only the root guild.yml:
@@ -501,14 +496,13 @@ Run op:
 Verify source code:
 
     >>> run("guild ls --sourcecode", ignore="pyc")
-    ???:
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/a.py
-      .guild/sourcecode/b.py
-      .guild/sourcecode/c.py
-      .guild/sourcecode/d.csv
-      .guild/sourcecode/guild.yml
+    ???/.guild/sourcecode:
+      README.md
+      a.py
+      b.py
+      c.py
+      d.csv
+      guild.yml
     <exit 0>
 
 ## Specifying alternative roots for sourcecode
@@ -556,19 +550,18 @@ Run op:
 Verify source code files:
 
     >>> run("guild ls --sourcecode", ignore="pyc")
-    ???:
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/a.py
-      .guild/sourcecode/b.py
-      .guild/sourcecode/c.py
-      .guild/sourcecode/d.csv
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/subproject/
-      .guild/sourcecode/subproject/__init__.py
-      .guild/sourcecode/subproject/d.py
-      .guild/sourcecode/subproject/e.csv
-      .guild/sourcecode/subproject/guild.yml
+    ???/.guild/sourcecode:
+      README.md
+      a.py
+      b.py
+      c.py
+      d.csv
+      guild.yml
+      subproject/
+      subproject/__init__.py
+      subproject/d.py
+      subproject/e.csv
+      subproject/guild.yml
     <exit 0>
 
 ### `parent-root-excludes-subproject`
@@ -611,12 +604,11 @@ Run op:
 Verify source code files:
 
     >>> run("guild ls --sourcecode", ignore="pyc")
-    ???:
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/a.py
-      .guild/sourcecode/b.py
-      .guild/sourcecode/c.py
-      .guild/sourcecode/d.csv
-      .guild/sourcecode/guild.yml
+    ???/.guild/sourcecode:
+      README.md
+      a.py
+      b.py
+      c.py
+      d.csv
+      guild.yml
     <exit 0>

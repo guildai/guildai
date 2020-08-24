@@ -481,7 +481,7 @@ class SSHRemote(remotelib.Remote):
         self._guild_cmd("runs stop", _stop_runs_args(**opts))
 
     def list_files(self, **opts):
-        self._guild_cmd("ls", _ls_args(**opts), {"NO_PATH_HEADER": "1"})
+        self._guild_cmd("ls", _ls_args(**opts), {"NO_HEADER_PATH": "1"})
 
     def diff_runs(self, **opts):
         self._guild_cmd("runs diff", _diff_args(**opts))

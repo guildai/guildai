@@ -48,15 +48,14 @@
 
     >>> run("guild ls --remote guild-uat --sourcecode",
     ...     ignore=["__pycache__", "say.pyc"]) # doctest: +REPORT_UDIFF
-    ???:
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/data/
-      .guild/sourcecode/data/hello-2.txt
-      .guild/sourcecode/data/hello.txt
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/hello/
-      .guild/sourcecode/hello/__init__.py
-      .guild/sourcecode/hello/cat.py
-      .guild/sourcecode/hello/say.py
+    ???/.guild/sourcecode:
+      README.md
+      data/
+      data/hello-2.txt
+      data/hello.txt
+      guild.yml
+      hello/
+      hello/__init__.py
+      hello/cat.py
+      hello/say.py
     <exit 0>

@@ -163,10 +163,9 @@ Show all files, including Guild files:
 Show source code files:
 
     >>> ls(sourcecode=True)
-    ???/runs/run-1:
-      .guild/sourcecode/
-      .guild/sourcecode/a.py
-      .guild/sourcecode/guild.yml
+    ???/runs/run-1/.guild/sourcecode:
+      a.py
+      guild.yml
 
 Source code with fill path:
 
@@ -178,5 +177,5 @@ Source code with fill path:
 Source code with path:
 
     >>> ls(sourcecode=True, path="a.*")
-    ???/runs/run-1:
-      .guild/sourcecode/a.py
+    ???/runs/run-1/.guild/sourcecode:
+      a.py

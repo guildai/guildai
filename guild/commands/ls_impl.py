@@ -61,8 +61,10 @@ def _print_header(run_dir, args):
 
 
 def _run_dir_header(run_dir, args):
-    if os.getenv("NO_PATH_HEADER") == "1":
-        return os.path.basename(run_dir)
+    if os.getenv("NO_HEADER_PATH") == "1":
+        run_dir = os.path.basename(run_dir)
+    if args.sourcecode:
+        return os.path.join(run_dir, ".guild/sourcecode")
     elif not args.full_path:
         return util.format_dir(run_dir)
     else:
@@ -143,8 +145,19 @@ def _match_path(filename, pattern):
 
 def _print_file(path, args):
     if args.full_path:
-        cli.out(os.path.abspath(path))
-    elif args.no_format:
+        path = os.path.abspath(path)
+    elif args.sourcecode:
+        path = _sourcecode_rel_path(path)
+    if not path:
+        return
+    if args.no_format:
         cli.out(path)
     else:
         cli.out("  %s" % path)
+
+
+def _sourcecode_rel_path(path):
+    prefix = os.path.join(".guild", "sourcecode")
+    if path.startswith(prefix):
+        return path[len(prefix) + 1 :]
+    return path
