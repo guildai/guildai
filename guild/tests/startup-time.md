@@ -16,7 +16,10 @@ Imports used below:
 Guild script:
 
     >>> scripts_dir = path(tests_dir(), "..", "scripts")
-    >>> guild_script = path(scripts_dir, "guild")
+    >>> if PLATFORM == "Windows":
+    ...     guild_script = path(scripts_dir, "guild.cmd")
+    ... else:
+    ...     guild_script = path(scripts_dir, "guild")
 
 Oddly, for some versions of Python, the `guild` script is *not*
 installed under the `scripts` directory. This could be a misguided
