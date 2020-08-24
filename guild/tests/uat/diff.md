@@ -107,12 +107,19 @@ Diff latest using working:
     ???/.guild/sourcecode .../diff-project/src
     <exit 0>
 
+Run a second operation:
+
+    >>> project.run("run2")
+    hello 2
+
+Diff a source code path:
+
+    >>> run("guild diff --sourcecode --path run2.py --cmd echo")
+    ???/.guild/sourcecode/run2.py .../.guild/sourcecode/run2.py
+    <exit 0>
+
 Various errors:
 
     >>> run("guild diff --working --working-dir foo")
     guild: --working and --working-dir cannot both be specified
-    <exit 1>
-
-    >>> run("guild diff --sourcecode --path foo")
-    guild: --path and --sourcecode cannot both be specified
     <exit 1>

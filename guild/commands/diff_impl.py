@@ -201,7 +201,12 @@ def _diff_paths(args):
     if args.output:
         paths.append(os.path.join(".guild", "output"))
     if args.sourcecode:
-        paths.append(os.path.join(".guild", "sourcecode", args.path))
+        if args.path:
+            paths.extend(
+                [os.path.join(".guild", "sourcecode", path) for path in args.path]
+            )
+        else:
+            paths.append(os.path.join(".guild", "sourcecode"))
     else:
         paths.extend(args.path)
     if not paths:
