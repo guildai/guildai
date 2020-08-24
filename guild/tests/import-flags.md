@@ -430,9 +430,9 @@ For Python 2:
     <BLANKLINE>
     Use 'guild run --help' for a list of options.
 
-For Python 3:
+For Python 3 (not including 3.5):
 
-    >>> help_op("import_error_args.py")  # doctest: -PY2
+    >>> help_op("import_error_args.py")  # doctest: -PY2 -PY35
     WARNING: cannot import flags from ./import_error_args.py: ModuleNotFoundError:
     No module named 'xxx_not_a_valid_module' (run with guild --debug for details)
     Usage: guild run [OPTIONS] import_error_args.py [FLAG]...
@@ -464,9 +464,9 @@ For Python 2:
     <BLANKLINE>
     Use 'guild run --help' for a list of options.
 
-For Python 3:
+For Python 3 (not including 3.5):
 
-    >>> help_op("import_error_args.py", debug=True)  # doctest: -PY2
+    >>> help_op("import_error_args.py", debug=True)  # doctest: -PY2 -PY35
     ???
     WARNING: cannot import flags from ./import_error_args.py: ModuleNotFoundError:
     No module named 'xxx_not_a_valid_module'

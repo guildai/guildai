@@ -77,6 +77,7 @@ WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 PY2 = doctest.register_optionflag("PY2")
+PY35 = doctest.register_optionflag("PY35")
 PY3 = doctest.register_optionflag("PY3")
 ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
 
@@ -195,6 +196,7 @@ def run_test_file(filename, globs=None):
             | STRIP_L
             | STRIP_ANSI_FMT
             | PY2
+            | PY35
             | PY3
             | ANNOTATIONS
         ),
@@ -290,12 +292,19 @@ class TestRunner(doctest.DocTestRunner, object):
         SKIP = doctest.SKIP
         is_windows = PLATFORM == "Windows"
         py_major_ver = sys.version_info[0]
+        py_minor_ver = sys.version_info[1]
         for example in test.examples:
             if example.options.get(WINDOWS) is False and is_windows:
                 example.options[SKIP] = True
             if example.options.get(WINDOWS_ONLY) is True and not is_windows:
                 example.options[SKIP] = True
             if example.options.get(PY2) is False and py_major_ver == 2:
+                example.options[SKIP] = True
+            if (
+                example.options.get(PY35) is False
+                and py_major_ver == 3
+                and py_minor_ver == 5
+            ):
                 example.options[SKIP] = True
             if example.options.get(PY3) is False and py_major_ver == 3:
                 example.options[SKIP] = True
