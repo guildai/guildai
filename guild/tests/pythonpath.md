@@ -176,11 +176,6 @@ provide the location of the `sys_path_test` module via the
     >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
     (True, ...)
 
-The run directory is not in the path.
-
-    >>> any([run.dir in p for p in sys_path]), run.dir, sys_path
-    (False, ...)
-
 The project directory is.
 
     >>> project.cwd in sys_path, project.cwd, sys_path
