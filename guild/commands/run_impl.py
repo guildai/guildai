@@ -1725,10 +1725,10 @@ def _preview_trials_count(S):
 
 
 def _trials_count(S):
+    count = len(_op_trials(S.user_op))
     if S.batch_op._max_trials is not None:
-        return S.batch_op._max_trials
-    else:
-        return len(_op_trials(S.user_op))
+        count = min(count, S.batch_op._max_trials)
+    return count
 
 
 def _op_trials(op):

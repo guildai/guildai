@@ -25,6 +25,26 @@ Preview a normal batch.
     Continue? (Y/n)
     <exit -9>
 
+Specify max trials with a normal batch - max trials less than full
+trial count.
+
+    >>> run("guild run test.py x=[1,2] y=[2,3] --max-trials 3", timeout=2)
+    You are about to run test.py as a batch (3 trials)
+      x: [1, 2]
+      y: [2, 3]
+    Continue? (Y/n)
+    <exit -9>
+
+Specify max trials with a normal batch - max trials greater than full
+trial count.
+
+    >>> run("guild run test.py x=[1,2] y=[2,3] --max-trials 5", timeout=2)
+    You are about to run test.py as a batch (4 trials)
+      x: [1, 2]
+      y: [2, 3]
+    Continue? (Y/n)
+    <exit -9>
+
 Random batch:
 
     >>> run("guild run test.py x=[1:100] --max-trials 5", timeout=3)
