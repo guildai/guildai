@@ -367,6 +367,7 @@ def _load_testfile(filename):
 
 def test_globals():
     return {
+        "PLATFORM": PLATFORM,
         "Chdir": util.Chdir,
         "Env": Env,
         "LogCapture": util.LogCapture,

@@ -16,7 +16,10 @@ Imports used below:
 Guild script:
 
     >>> scripts_dir = path(tests_dir(), "..", "scripts")
-    >>> guild_script = path(scripts_dir, "guild")
+    >>> if PLATFORM == "Windows":
+    ...     guild_script = path(scripts_dir, "guild.cmd")
+    ... else:
+    ...     guild_script = path(scripts_dir, "guild")
 
 Oddly, for some versions of Python, the `guild` script is *not*
 installed under the `scripts` directory. This could be a misguided
@@ -31,12 +34,12 @@ In such cases, we rely on the generated console script.
 Run `guild` command with no arguments:
 
     >>> time0 = time.time()
-    >>> out = subprocess.check_output(guild_script, stderr=subprocess.STDOUT)  # doctest: -WINDOWS
+    >>> out = subprocess.check_output(guild_script, stderr=subprocess.STDOUT)
     >>> time1 = time.time()
 
 Expected output (Guidl help):
 
-    >>> print(out.decode())  # doctest: +REPORT_UDIFF -WINDOWS
+    >>> print(out.decode())
     Usage: guild [OPTIONS] COMMAND [ARGS]...
     <BLANKLINE>
       Guild AI command line interface.
