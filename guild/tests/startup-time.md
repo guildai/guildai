@@ -1,3 +1,7 @@
+skip-windows: yes
+
+Skipping on Windows to keep this test
+
 # Startup Time
 
 Guild should start within an acceptable amount of time. This test
@@ -16,10 +20,7 @@ Imports used below:
 Guild script:
 
     >>> scripts_dir = path(tests_dir(), "..", "scripts")
-    >>> if PLATFORM == "Windows":
-    ...     guild_script = path(scripts_dir, "guild.cmd")
-    ... else:
-    ...     guild_script = path(scripts_dir, "guild")
+    >>> guild_script = path(scripts_dir, "guild")
 
 Oddly, for some versions of Python, the `guild` script is *not*
 installed under the `scripts` directory. This could be a misguided
@@ -34,7 +35,10 @@ In such cases, we rely on the generated console script.
 Run `guild` command with no arguments:
 
     >>> time0 = time.time()
-    >>> out = subprocess.check_output(guild_script, stderr=subprocess.STDOUT)
+    >>> try:
+    ...     out = subprocess.check_output(guild_script, stderr=subprocess.STDOUT)
+    ... except subprocess.CalledProcessError as e:
+    ...     assert False, (e.returncode, e.output)
     >>> time1 = time.time()
 
 Expected output (Guidl help):
