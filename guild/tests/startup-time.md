@@ -1,7 +1,3 @@
-skip-windows: yes
-
-Skipping on Windows to keep this test
-
 # Startup Time
 
 Guild should start within an acceptable amount of time. This test
