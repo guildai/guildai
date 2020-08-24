@@ -11,6 +11,7 @@
 /guild/view/node_modules
 /.coverage
 /.pypi-creds
+/.idea
 /README.html
 published-results
 venv
