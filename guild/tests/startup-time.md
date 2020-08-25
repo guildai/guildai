@@ -13,36 +13,25 @@ Imports used below:
     >>> import time
     >>> import subprocess
 
-Guild script:
+Run `guild.main_bootstrap` module with no arguments to test startup time.
 
-    >>> scripts_dir = path(guild.__pkgdir__, "scripts")
-    >>> guild_script_name = "guild.cmd" if PLATFORM == "Windows" else "guild"
-    >>> guild_script = path(scripts_dir, guild_script_name)
-
-Oddly, for some versions of Python, the `guild` script is *not*
-installed under the `scripts` directory. This could be a misguided
-attempt to avoid conflicts when `console_scripts` are generated for
-installed packages. In such cases, we rely on the generated console
-script.
-
-    >>> if not os.path.exists(guild_script):
-    ...     guild_script = which("guild")
-
-Run `guild` command with no arguments:
-
+    >>> env = dict(os.environ)
+    >>> env["PYTHONPATH"] = os.path.pathsep.join(sys.path)
     >>> time0 = time.time()
     >>> try:
-    ...     out = subprocess.check_output(guild_script, stderr=subprocess.STDOUT)
+    ...     out = subprocess.check_output(
+    ...         [sys.executable, "-m", "guild.main_bootstrap"],
+    ...         env=env,
+    ...         stderr=subprocess.STDOUT)
     ... except subprocess.CalledProcessError as e:
     ...     print(e.output)
     ...     print("<exit %i>" % e.returncode)
-
     >>> time1 = time.time()
 
 Expected output (Guidl help):
 
     >>> print(out.decode())
-    Usage: guild [OPTIONS] COMMAND [ARGS]...
+    Usage: main_bootstrap.py [OPTIONS] COMMAND [ARGS]...
     <BLANKLINE>
       Guild AI command line interface.
     <BLANKLINE>

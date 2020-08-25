@@ -5,7 +5,7 @@ branches:
 
 environment:
   COLUMNS: 999
-  GUILD_START_THRESHOLD: 1.0
+  GUILD_START_THRESHOLD: 0.5
   matrix:
     - PYTHON: "C:\\Python35-x64"
     - PYTHON: "C:\\Python36-x64"
