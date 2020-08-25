@@ -24,7 +24,8 @@ build: off
 
 test_script:
   - "%PYTHON%\\python.exe setup.py bdist_wheel"
-  - "%PYTHON%\\python.exe guild\\scripts\\guild check --offline -vT"
+  - "%PYTHON%\\python.exe -m pip install dist\\*.whl"
+  - "%PYTHON%\\Scripts\\guild check --offline -vT"
 
 after_test:
   - "%PYTHON%\\python.exe -m twine upload --skip-existing dist\\*.whl"

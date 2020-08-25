@@ -15,18 +15,15 @@ Imports used below:
 
 Guild script:
 
-    >>> scripts_dir = path(tests_dir(), "..", "scripts")
-    >>> if PLATFORM == "Windows":
-    ...     guild_script = path(scripts_dir, "guild.cmd")
-    ... else:
-    ...     guild_script = path(scripts_dir, "guild")
+    >>> scripts_dir = path(guild.__pkgdir__, "scripts")
+    >>> guild_script_name = "guild.cmd" if PLATFORM == "Windows" else "guild"
+    >>> guild_script = path(scripts_dir, guild_script_name)
 
 Oddly, for some versions of Python, the `guild` script is *not*
 installed under the `scripts` directory. This could be a misguided
 attempt to avoid conflicts when `console_scripts` are generated for
-installed packages.
-
-In such cases, we rely on the generated console script.
+installed packages. In such cases, we rely on the generated console
+script.
 
     >>> if not os.path.exists(guild_script):
     ...     guild_script = which("guild")
@@ -37,7 +34,9 @@ Run `guild` command with no arguments:
     >>> try:
     ...     out = subprocess.check_output(guild_script, stderr=subprocess.STDOUT)
     ... except subprocess.CalledProcessError as e:
-    ...     assert False, (e.returncode, e.output)
+    ...     print(e.output)
+    ...     print("<exit %i>" % e.returncode)
+
     >>> time1 = time.time()
 
 Expected output (Guidl help):
