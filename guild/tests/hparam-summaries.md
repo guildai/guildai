@@ -115,6 +115,13 @@ The events:
     summary {
       value {
         tag: "x_metric"
-        simple_value: 1.123000...
+        simple_value: 1.123...
+      }
+    }
+    <BLANKLINE>
+    summary {
+      value {
+        tag: "time"
+        simple_value: ...
       }
     }

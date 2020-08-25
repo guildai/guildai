@@ -1489,7 +1489,15 @@ def realpath(path):
         return os.path.realpath(path)
     else:
         path_dir = os.path.dirname(path)
-        return os.path.abspath(os.path.join(path_dir, link))
+        return os.path.abspath(os.path.join(path_dir, _strip_windows_prefix(link)))
+
+
+def _strip_windows_prefix(path):
+    if PLATFORM != "Windows":
+        return path
+    if path.startswith("\\\\?\\"):
+        return path[4:]
+    return path
 
 
 def norm_path_sep(path):
