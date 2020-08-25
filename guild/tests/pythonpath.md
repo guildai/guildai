@@ -15,10 +15,15 @@ project `sys_path_test.py` script.
     ...     run, out = project.run_capture(op, **kw)
     ...     return run, json.loads(out)
 
-Helper functions to assert that a Python path is a run directory.
+Helper functions for path checks.
 
-    >>> def assert_run_dir(path, run):
-    ...     assert path == "" or path == run.dir, (path, run.dir)
+    >>> def path_equals(path, targets, context):
+    ...     from guild import util
+    ...     if isinstance(targets, str):
+    ...         targets = (targets,)
+    ...     if not any((path == target or util.compare_paths(path, target)
+    ...                 for target in targets)):
+    ...         assert False, context
 
 ## Run script directly
 
@@ -29,8 +34,7 @@ Python runtime.
 
     >>> run, sys_path = sys_path_for_op("sys_path_test.py")
 
-    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
-    (True, ...)
+    >>> path_equals(sys_path[0], ("", run.dir), (sys_path, run.dir))
 
     >>> sys_path[1]
     '.../.guild/sourcecode'
@@ -38,8 +42,7 @@ Python runtime.
 Confirm that the second path entry is the run directory source code
 path.
 
-    >>> sys_path[1] == run.guild_path("sourcecode"), sys_path[1], run.dir
-    (True, ...)
+    >>> path_equals(sys_path[1], run.guild_path("sourcecode"), (sys_path, run.dir))
 
 Confirm that the project directory is not in the path.
 
@@ -54,14 +57,12 @@ diretly (above).
 
     >>> run, sys_path = sys_path_for_op("default")
 
-    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
-    (True, ...)
+    >>> path_equals(sys_path[0], ("", run.dir), (sys_path, run.dir))
 
     >>> sys_path[1]
     '.../.guild/sourcecode'
 
-    >>> sys_path[1] == run.guild_path("sourcecode"), sys_path[1], run.dir
-    (True, ...)
+    >>> path_equals(sys_path[1], run.guild_path("sourcecode"), (sys_path, run.dir))
 
     >>> project.cwd not in sys_path, project.cwd, sys_path
     (True, ...)
@@ -75,8 +76,7 @@ operation configures the target as `src`.
 
     >>> run, sys_path = sys_path_for_op("sourcecode-dest")
 
-    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
-    (True, ...)
+    >>> path_equals(sys_path[0], ("", run.dir), (sys_path, run.dir))
 
     >>> sys_path[1]
     '.../src'
@@ -95,8 +95,7 @@ Neither is the project directory.
 Instead, the configured source code destination --- `src` -- is in the
 path at the top non-empty location:
 
-    >>> sys_path[1] == path(run.dir, "src"), sys_path[1], run.dir
-    (True, ...)
+    >>> path_equals(sys_path[1], path(run.dir, "src"), (sys_path, run.dir))
 
 ## Use of PYTHONPATH env
 
@@ -109,16 +108,14 @@ We can use `PYTHONPATH` to include the project directory.
     ...     "sys_path_test.py",
     ...     extra_env={"PYTHONPATH": project.cwd})
 
-    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
-    (True, ...)
+    >>> path_equals(sys_path[0], ("", run.dir), (sys_path[0], run.dir))
 
     >>> sys_path[1]
     '.../.guild/sourcecode'
 
 Note that the run source code location is still the first non-blank path.
 
-    >>> sys_path[1] == run.guild_path("sourcecode"), sys_path[1], run.dir
-    (True, ...)
+    >>> path_equals(sys_path[1], run.guild_path("sourcecode"), (sys_path, run.dir))
 
 In this case, however, the project directory *is* included in the path.
 
@@ -135,8 +132,7 @@ are included *before* any other Python path locations. The
     ...     "pythonpath-env",
     ...     flags={"path": project.cwd})
 
-    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
-    (True, ...)
+    >>> path_equals(sys_path[0], ("", run.dir), (sys_path, run.dir))
 
     >>> sys_path[1:3]
     ['.../samples/projects/pythonpath', '.../.guild/sourcecode']
@@ -145,8 +141,7 @@ Note in this case the project directory, which we specify by way of
 the `path` flag (this is used to set the `PYTHONPATH` env by the
 operation) is the first non-empty path entry.
 
-    >>> sys_path[1] == project.cwd, sys_path[1], project.cwd
-    (True, ...)
+    >>> path_equals(sys_path[1], project.cwd, (sys_path, project.cwd))
 
 ## Disabling source code
 
@@ -173,8 +168,7 @@ provide the location of the `sys_path_test` module via the
     ...     "sourcecode-disabled",
     ...     extra_env={"PYTHONPATH": project.cwd})
 
-    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
-    (True, ...)
+    >>> path_equals(sys_path[0], ("", run.dir), (sys_path, run.dir))
 
 The project directory is.
 
@@ -193,8 +187,7 @@ is `src/sys_path_test2.py`.
     >>> sys_path[0]
     '.../.guild/sourcecode/src'
 
-    >>> sys_path[1] in ("", run.dir), (sys_path[0], run.dir)
-    (True, ...)
+    >>> path_equals(sys_path[1], ("", run.dir), (sys_path, run.dir))
 
     >>> sys_path[2]
     '.../.guild/sourcecode'
@@ -202,11 +195,8 @@ is `src/sys_path_test2.py`.
 Note in this case Guild inserts the module subdirectory in the front
 of the list. The rest of the path is as it is normally.
 
-    >>> sys_path[0] == run.guild_path("sourcecode", "src"), run.dir, sys_path
-    (True, ...)
-
-    >>> sys_path[2] == run.guild_path("sourcecode"), run.dir, sys_path
-    (True, ...)
+    >>> path_equals(sys_path[0], run.guild_path("sourcecode", "src"), (sys_path, run.dir))
+    >>> path_equals(sys_path[2], run.guild_path("sourcecode"), (sys_path, run.dir))
 
 Note that `src` is a subdirectory in this case and not a Python
 package. See the next section for Guild's treament of packages
@@ -221,8 +211,7 @@ illustrates.
 
     >>> run, sys_path = sys_path_for_op("pkg")
 
-    >>> sys_path[0] in ("", run.dir), (sys_path[0], run.dir)
-    (True, ...)
+    >>> path_equals(sys_path[0], ("", run.dir), (sys_path, run.dir))
 
     >>> sys_path[1]
     '.../.guild/sourcecode'
@@ -256,8 +245,7 @@ operation to illustrate.
     >>> sys_path[0]
     '.../.guild/sourcecode/src2'
 
-    >>> sys_path[1] in ("", run.dir), (sys_path[0], run.dir)
-    (True, ...)
+    >>> path_equals(sys_path[1], ("", run.dir), (sys_path, run.dir))
 
     >>> sys_path[2]
     '.../.guild/sourcecode'
@@ -272,7 +260,6 @@ This example follows the `subdir` example above.
     src2/pkg2/__init__.py
     src2/pkg2/sys_path_test4.py
     sys_path_test.py
-
 
 In order to run the `pkg2.sys_path_test4` module, the `src2`
 subdirectory must be included in the Python system path. In this case,
