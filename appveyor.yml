@@ -7,9 +7,9 @@ environment:
   COLUMNS: 999
   GUILD_START_THRESHOLD: 0.5
   matrix:
-    - PYTHON: "C:\\Python35-x64"
-    - PYTHON: "C:\\Python36-x64"
-    - PYTHON: "C:\\Python37-x64"
+    #- PYTHON: "C:\\Python35-x64"
+    #- PYTHON: "C:\\Python36-x64"
+    #- PYTHON: "C:\\Python37-x64"
     - PYTHON: "C:\\Python38-x64"
 
 install:
