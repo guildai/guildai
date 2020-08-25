@@ -25,7 +25,6 @@ build: off
 test_script:
   - "%PYTHON%\\python.exe setup.py bdist_wheel"
   - 'PowerShell -Command "%PYTHON%\\python.exe -m pip install dist\\$(ls dist)"'
-  - "%PYTHON%\\python.exe -m pip install dist\\$(ls dist)"
   - "%PYTHON%\\Scripts\\guild check --offline -vT"
 
 after_test:
@@ -35,5 +34,5 @@ artifacts:
   - path: dist\*
 
 # Uncomment to enable post-mortem debugging over RDP:
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+##on_finish:
+##  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
