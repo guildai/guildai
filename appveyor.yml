@@ -24,7 +24,7 @@ build: off
 
 test_script:
   - "%PYTHON%\\python.exe setup.py bdist_wheel"
-  - "%PYTHON%\\python.exe -m pip install dist\\*.whl"
+  - "%PYTHON%\\python.exe -m pip install dist\\$(ls dist)"
   - "%PYTHON%\\Scripts\\guild check --offline -vT"
 
 after_test:
