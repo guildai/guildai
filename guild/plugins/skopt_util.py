@@ -27,6 +27,7 @@ with warnings.catch_warnings():
     import skopt
 
 from guild import batch_util
+from guild import exit_code
 from guild import flag_util
 from guild import op_util
 from guild import query as qparse
@@ -240,8 +241,13 @@ def _run_seq_trials(batch_run, suggest_x_cb):
             prev_trials,
             objective_scalar,
         )
-        batch_util.run_trial(batch_run, trial_flag_vals)
-        trials_count += 1
+        trial_run = batch_util.init_trial_run(batch_run, trial_flag_vals)
+        try:
+            batch_util.start_trial_run(trial_run)
+        except SystemExit as e:
+            _handle_seq_trial_error(e, batch_run, trial_run)
+        else:
+            trials_count += 1
 
 
 def _iter_seq_trials(
@@ -374,6 +380,13 @@ def _trial_flags_for_x(x, names, proto_flag_vals):
     flags = dict(proto_flag_vals)
     flags.update(dict(zip(names, native_python_xs(x))))
     return flags
+
+
+def _handle_seq_trial_error(e, batch_run, trial_run):
+    is_error = batch_util.log_trial_run_error(e, trial_run)
+    if is_error and batch_util.fail_on_trial_error(batch_run):
+        log.error("Stopping optimization run because a trial failed")
+        raise SystemExit(exit_code.DEFAULT_ERROR)
 
 
 ###################################################################

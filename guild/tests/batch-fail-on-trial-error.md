@@ -5,6 +5,8 @@ run exits with an error.
 
     >>> project = Project(sample("projects", "batch"))
 
+## Default batches
+
 Use the `error.py` script to simluate trial errors.
 
     >>> project.run("error.py", flags={"fail": [True, False]})
@@ -78,3 +80,34 @@ When we run steps, it fails after the first step.
     >>> project.print_runs(status=True, labels=True)
     error.py  e1  error
     steps         error
+
+## Skopt based batches
+
+Fail on error is supported by skopt based operation (sequential optimizers).
+
+We use the `batch` sample project to illustrate.
+
+    >>> project = Project(sample("projects", "batch"))
+
+The default behavior is to keep running when an error occurs.
+
+    >>> project.run("error.py", optimizer="forest", flags={"fail": [True]}, max_trials=2)
+    INFO: [guild] Random start for optimization (1 of 2)
+    INFO: [guild] Running trial ...: error.py (fail=yes)
+    FAIL
+    ERROR: [guild] Trial ... exited with an error (1) - see log for details
+    INFO: [guild] Random start for optimization (1 of 2)
+    INFO: [guild] Running trial ...: error.py (fail=yes)
+    FAIL
+    ERROR: [guild] Trial ... exited with an error (1) - see log for details
+
+The optimization run stops on the first error when we specify fail on trial error.
+
+    >>> project.run("error.py", optimizer="forest", flags={"fail": [True]}, max_trials=2,
+    ...             fail_on_trial_error=True)
+    INFO: [guild] Random start for optimization (1 of 2)
+    INFO: [guild] Running trial ...: error.py (fail=yes)
+    FAIL
+    ERROR: [guild] Trial ... exited with an error (1) - see log for details
+    ERROR: [guild] Stopping optimization run because a trial failed
+    <exit 1>

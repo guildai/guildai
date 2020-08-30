@@ -67,7 +67,7 @@ def _print_trials_cmd(batch_run, trials):
 
     for trial in trials:
         with util.TempDir() as tmp:
-            run = _init_trial_run(batch_run, trial, tmp.path)
+            run = init_trial_run(batch_run, trial, tmp.path)
             run_impl.run(restart=run.dir, print_cmd=True)
 
 
@@ -108,10 +108,10 @@ def _run_trials(batch_run, trials):
 
 
 def _init_trial_runs(batch_run, trials):
-    return [_init_trial_run(batch_run, trial) for trial in trials]
+    return [init_trial_run(batch_run, trial) for trial in trials]
 
 
-def _init_trial_run(batch_run, trial_flag_vals, run_dir=None):
+def init_trial_run(batch_run, trial_flag_vals, run_dir=None):
     run = op_util.init_run(run_dir)
     _link_to_trial(batch_run, run)
     proto_run = batch_run.batch_proto
@@ -153,12 +153,12 @@ def _try_run_staged_trial(trial_run, batch_run, status_lock):
     # Race condition here. Correct implementation is to pass the
     # lock through and release after trial_run status is changed.
     try:
-        _start_trial_run(trial_run, stage)
+        start_trial_run(trial_run, stage)
     except SystemExit as e:
         _handle_trial_run_error(e, batch_run, trial_run)
 
 
-def _start_trial_run(run, stage=False):
+def start_trial_run(run, stage=False):
     from guild.commands import run_impl
 
     _log_start_trial(run, stage)
@@ -202,8 +202,8 @@ def _trial_flags_desc(run):
 
 
 def _handle_trial_run_error(e, batch_run, trial_run):
-    is_error = _log_trial_run_error(e, trial_run)
-    if is_error and _fail_on_trial_error(batch_run):
+    is_error = log_trial_run_error(e, trial_run)
+    if is_error and fail_on_trial_error(batch_run):
         log.error(
             "Stopping batch because a trial failed (remaining staged trials "
             "may be started as needed)"
@@ -211,7 +211,7 @@ def _handle_trial_run_error(e, batch_run, trial_run):
         raise SystemExit(exit_code.DEFAULT_ERROR)
 
 
-def _log_trial_run_error(e, trial_run):
+def log_trial_run_error(e, trial_run):
     from guild import main
 
     msg, code = main.system_exit_params(e)
@@ -234,14 +234,14 @@ def _trial_run_error_desc(code, msg):
         return " (%i) - see log for details" % code
 
 
-def _fail_on_trial_error(batch_run):
+def fail_on_trial_error(batch_run):
     params = batch_run.get("run_params") or {}
     return params.get("fail_on_trial_error")
 
 
 def run_trial(batch_run, flag_vals):
-    run = _init_trial_run(batch_run, flag_vals)
-    _start_trial_run(run)
+    run = init_trial_run(batch_run, flag_vals)
+    start_trial_run(run)
     return run
 
 

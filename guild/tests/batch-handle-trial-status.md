@@ -43,7 +43,7 @@ Helper to init a trial run using `batch_util._init_trial_run`.
 
     >>> def init_trial_run(trial_flag_vals):
     ...     trial_run_id = runlib.mkid()
-    ...     return batch_util._init_trial_run(
+    ...     return batch_util.init_trial_run(
     ...         batch_run,
     ...         trial_flag_vals,
     ...         path(runs_dir, trial_run_id))
