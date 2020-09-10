@@ -302,6 +302,13 @@ def completion_dir(**_kw):
         return []
 
 
+def completion_opnames(names):
+    if os.getenv("_GUILD_COMPLETE") == "complete":
+        return ["!!no-colon-wordbreak"] + names
+    else:
+        return []
+
+
 def _compgen_filenames(type, ext):
     if not ext:
         return ["!!%s:*" % type]

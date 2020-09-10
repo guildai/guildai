@@ -200,6 +200,7 @@ If we don't specify anything for opspec we get the list of defined
 operations.
 
     >>> run_ac(run._ac_opspec, [], "")
+    !!no-colon-wordbreak
     echo
     fail
     noisy
@@ -212,11 +213,15 @@ operations.
     tune-echo
     tune-echo-2
 
+The list includes a directive to remove the colon from COMP_WORDBREAKS
+to support proper expansion for operations that contain colons.
+
 If we specify something for opspec, we get matching ops and
 scripts. Scripts are represented by the `!!file` directive, which is
 used by the bash completion handlers to find matching files.
 
     >>> run_ac(run._ac_opspec, [], "echo")
+    !!no-colon-wordbreak
     echo
     !!file:*.@(py)
 

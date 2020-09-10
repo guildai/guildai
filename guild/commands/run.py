@@ -40,7 +40,8 @@ def _ac_operations(incomplete, ctx, **_kw):
             return [op["fullname"] for op in operations_impl.filtered_ops(ops_args)]
 
     ops = click_util.completion_safe_apply(ctx, f, [])
-    return [op for op in ops if op.startswith(incomplete)]
+    names = [op for op in ops if op.startswith(incomplete)]
+    return click_util.completion_opnames(names)
 
 
 def _ac_flag(incomplete, ctx, **_kw):

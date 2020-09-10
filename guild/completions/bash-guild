@@ -55,7 +55,7 @@ _guild_completion() {
                    COMP_CWORD=$cword \
                    _GUILD_COMPLETE=complete $1))
 
-    # Process directories.
+    COMP_WORDBREAKS='"'"'"'><=;|&(: '  # Reset as can be modified below.
     COMPREPLY=()
     local item alt_cwd
     for item in "${reply[@]}"; do
@@ -86,6 +86,11 @@ _guild_completion() {
             COMPREPLY+=($(compgen -c -X '!'"${item:10}" -- $2))
         elif [ "$item" = "!!command" ]; then
             COMPREPLY+=($(compgen -c -- $2))
+        elif [ "$item" = "!!no-colon-wordbreak" ]; then
+            # Dangerous as this effects other completions. The damage
+            # is mitigated by resetting COMP_WORDBREAKS above but this
+            # is still not ideal.
+            COMP_WORDBREAKS='"'"'"'><=;|&( '
         else
             COMPREPLY+=($item)
         fi
