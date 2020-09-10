@@ -2,8 +2,6 @@
 
 These are miscellaneous checks for TensorBoard support.
 
-    >> from guild import tensorboard
-
 ## TensorBoard compatibility
 
 See `uat/tensorboard-versions.md` for TensorBoard version
@@ -251,3 +249,88 @@ original set. This too causes the monitor to log a warning.
            hparams=['a', 'b', 'c', 'd', 'extra_metrics', 'sourcecode']
            metrics=['m1', 'time']
     DEBUG: [guild] Creating link ...
+
+## Run names
+
+The name shown in TensorBoard for a run is determined by a run name
+callback function. If a callback is not provided, Guild generates a
+value using run attributes including the run label.
+
+Here's a monitor that uses the default name:
+
+    >>> monitor = RunsMonitor(logdir, project.list_runs, run_name_cb=None)
+
+Let's clear our runs.
+
+    >>> project.delete_runs()
+    ???
+
+Generate a run and show monitor processing.
+
+    >>> project.run("op")
+    m1: 1.123
+
+    >>> with LogCapture(log_level=0) as log:
+    ...     monitor.run_once()
+
+    >>> log.print_all()
+    ???
+    DEBUG: [guild] Creating link from '...' to '... op ... a=1.0 b=2 c=hello d=yes extra_metrics=0...'
+
+Note the use of the flag assignments, which is the run label.
+
+    >>> project.print_runs(labels=True)
+    op  a=1.0 b=2 c=hello d=yes extra_metrics=0
+
+Here's a custom run name callback function:
+
+    >>> def run_name(run):
+    ...     return "the run <%s>" % run.short_id
+
+    >>> monitor = RunsMonitor(logdir, project.list_runs, run_name_cb=run_name)
+
+Delete our runs again.
+
+    >>> project.delete_runs()
+    ???
+
+Generate a run and show monitor processing.
+
+    >>> project.run("op")
+    m1: 1.123
+
+    >>> with LogCapture(log_level=0) as log:
+    ...     monitor.run_once()
+
+    >>> log.print_all()
+    ???
+    DEBUG: [guild] Creating link from '...' to '...the run <...>...'
+
+Guild provides a safe-guard against invalid DOM characters used in the
+run name. This ensures that the run can be selected in TensorBoard UI
+(see issue #230).
+
+Here's a function that deliberately inserts a invalid DOM character
+(an ellipsis).
+
+    >>> def run_name(run):
+    ...     return u"the run <%s> \u2026" % run.short_id
+
+    >>> monitor = RunsMonitor(logdir, project.list_runs, run_name_cb=run_name)
+
+Delete our runs.
+
+    >>> project.delete_runs()
+    ???
+
+Generate a run and show monitor processing.
+
+    >>> project.run("op")
+    m1: 1.123
+
+    >>> with LogCapture(log_level=0) as log:
+    ...     monitor.run_once()
+
+    >>> log.print_all()
+    ???
+    DEBUG: [guild] Creating link from '...' to '...the run <...> ?...'

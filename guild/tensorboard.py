@@ -80,8 +80,35 @@ def RunsMonitor(
     if state.log_hparams:
         list_runs_cb = _list_runs_f(list_runs_cb, state)
     return run_util.RunsMonitor(
-        logdir, list_runs_cb, _refresh_run_cb(state), interval, run_name_cb
+        logdir,
+        list_runs_cb,
+        _refresh_run_cb(state),
+        interval,
+        _safe_run_name_cb(run_name_cb),
     )
+
+
+def _safe_run_name_cb(base_cb):
+    def f(run):
+        name = (base_cb or run_util.default_run_name)(run)
+        return _remove_invalid_dom_chars(name)
+
+    return f
+
+
+def _remove_invalid_dom_chars(s):
+    """Replaces invalid DOM chars with ?.
+
+    This is a conservative estimate of 'invalid' to avoid stripping
+    out unicode chars on systems that support them. We know the
+    ellipsis char causes problems and so the current implementation is
+    limited to that single unicode char. We can expand this as needed.
+
+    The upstream problem is with TensorBoard UI, which as of issue
+    #230 does handle so-called invalid DOM chars gracefully.
+    """
+    invalid = {u"\u2026"}
+    return "".join(x if x not in invalid else "?" for x in s)
 
 
 def _list_runs_f(list_runs_cb, state):

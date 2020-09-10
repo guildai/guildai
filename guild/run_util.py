@@ -61,7 +61,7 @@ class RunsMonitor(util.LoopingThread):
         self.logdir = logdir
         self.list_runs_cb = list_runs_cb
         self.refresh_run_cb = refresh_run_cb
-        self.run_name_cb = run_name_cb or _default_run_name
+        self.run_name_cb = run_name_cb or default_run_name
 
     def run_once(self, exit_on_error=False):
         log.debug("Refreshing runs")
@@ -111,7 +111,7 @@ def _windows_safe_len_path(p):
     return p
 
 
-def _default_run_name(run):
+def default_run_name(run):
     return run_name(run, run.get("label"))
 
 
