@@ -742,3 +742,21 @@ Examples:
 
     >>> decode_yaml("[1, b, yes, 1e2, 2010-05-15]")
     [1, 'b', True, 100.0, datetime.date(2010, 5, 15)]
+
+## File names
+
+When writing files the `safe_filename` function is used to ensure the
+file name is valid for a platform.
+
+    >>> from guild.util import safe_filename
+
+On Windows, the function replaces colons with underscores.
+
+    >>> safe_filename("hello:there")  # doctest: +WINDOWS_ONLY
+    'hello_there'
+
+On all platforms, the function replaces any possible path separator
+with underscore.
+
+    >>> safe_filename("hello/there\\friend")
+    'hello_there_friend'
