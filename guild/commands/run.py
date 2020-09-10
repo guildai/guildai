@@ -53,7 +53,10 @@ def _ac_flag(incomplete, ctx, **_kw):
         return []
 
     if "=" in incomplete:
-        return _ac_maybe_flag_choices(incomplete, opdef)
+        return (
+            _ac_maybe_flag_choices(incomplete, opdef)
+            or click_util.completion_filename()
+        )
 
     used_flags = _ac_used_flags(run_args.flags, opdef)
     unused_flags = sorted([f.name for f in opdef.flags if f.name not in used_flags])
