@@ -124,6 +124,7 @@ def run_params(fn):
             click.Option(
                 ("-d", "--run-dir",),
                 metavar="DIR",
+                autocompletion=click_util.completion_dir,
                 help=(
                     "Use alternative run directory DIR. Cannot be used with --stage."
                 ),
