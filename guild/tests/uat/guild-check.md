@@ -33,6 +33,22 @@ Show more check info with the `-v` (verbose) option:
     latest_guild_version:      unchecked (offline)
     <exit 0>
 
+TensorFlow info:
+
+    >>> run("guild check --offline --tensorflow")
+    guild_version:             ...
+    tensorflow_version:        not installed
+    ...
+    <exit 0>
+
+PyTorch info:
+
+    >>> run("guild check --offline --pytorch")
+    guild_version:             ...
+    pytorch_version:           not installed
+    ...
+    <exit 0>
+
 NOTE: twine version is not asserted because it's a test dep that isn't
 always available when this test is run.
 
