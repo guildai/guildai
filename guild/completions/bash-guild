@@ -96,4 +96,5 @@ _guild_completion() {
         fi
     done
 
-} && complete -o nosort -F _guild_completion guild
+} && complete -o nosort -F _guild_completion guild 2> /dev/null \
+  || complete -F _guild_completion guild
