@@ -243,6 +243,10 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [tensorflow1.md](tensorflow1.md)
 - [tensorflow2.md](tensorflow2.md)
 
+## PyTorch tests
+
+- [install-pytorch.md](install-pytorch.md)
+
 ## Other tests
 
 *Tests covering miscellaneous behavior.*

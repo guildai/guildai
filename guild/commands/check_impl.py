@@ -160,6 +160,8 @@ def _print_info(check):
     _print_tensorboard_info(check)
     if check.args.tensorflow:
         _print_tensorflow_info(check)
+    if check.args.pytorch:
+        _print_pytorch_info(check)
     _print_cuda_info()
     _print_nvidia_tools_info()
     if check.args.verbose:
@@ -245,6 +247,32 @@ def _print_tensorflow_info(check):
     exit_status = p.wait()
     if exit_status != 0:
         check.error()
+
+
+def _print_pytorch_info(check):
+    try:
+        import torch
+        import torch.version as _
+    except ImportError:
+        cli.out("pytorch_version:           %s" % _warn("not installed"))
+    else:
+        cli.out("pytorch_version:           %s" % torch.version.__version__)
+        cli.out("pytorch_cuda_version:      %s" % torch.version.cuda)
+        cli.out(
+            "pytorch_cuda_available:    %s" % "yes"
+            if torch.cuda.is_available()
+            else "no"
+        )
+        cli.out("pytorch_cuda_devices:      %s" % _pytorch_cuda_devices(torch))
+
+
+def _pytorch_cuda_devices(torch):
+    if torch.cuda.device_count == 0:
+        return "none"
+    return ", ".join(
+        "%s (%i)" % (torch.cuda.get_device_name(i), i)
+        for i in range(torch.cuda.device_count())
+    )
 
 
 def _print_cuda_info():
