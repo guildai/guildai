@@ -44,10 +44,10 @@ class Scheme(object):
 SCHEMES = [
     Scheme(
         "git",
-        commit_cmd=["git", "-C", "{repo}", "log", "-1", "."],
+        commit_cmd=["git", "log", "-1", "."],
         commit_pattern=re.compile(r"commit ([a-f0-9]+)"),
         commit_ok_errors=[128],
-        status_cmd=["git", "-C", "{repo}", "status", "-s"],
+        status_cmd=["git", "status", "-s"],
         status_pattern=re.compile(r"(.)"),
         status_ok_errors=[],
     )
