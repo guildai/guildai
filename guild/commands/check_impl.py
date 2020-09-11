@@ -280,9 +280,16 @@ def _print_cuda_info():
 
 
 def _cuda_version():
+    version = util.find_apply([_cuda_version_nvcc, _cuda_version_nvidia_smi])
+    if not version:
+        return "not installed"
+    return version
+
+
+def _cuda_version_nvcc():
     nvcc = util.which("nvcc")
     if not nvcc:
-        return "not installed"
+        return None
     try:
         out = subprocess.check_output([nvcc, "--version"])
     except subprocess.CalledProcessError as e:
@@ -290,6 +297,24 @@ def _cuda_version():
     else:
         out = out.decode("utf-8")
         m = re.search(r"V([0-9\.]+)", out, re.MULTILINE)
+        if m:
+            return m.group(1)
+        else:
+            log.debug("Unexpected output from nvcc: %s", out)
+            return "unknown (error)"
+
+
+def _cuda_version_nvidia_smi():
+    nvidia_smi = util.which("nvidia-smi")
+    if not nvidia_smi:
+        return None
+    try:
+        out = subprocess.check_output([nvidia_smi, "--query"])
+    except subprocess.CalledProcessError as e:
+        return _warn("ERROR: %s" % e.output.strip())
+    else:
+        out = out.decode("utf-8")
+        m = re.search(r"CUDA Version\s+: ([0-9\.]+)", out, re.MULTILINE)
         if m:
             return m.group(1)
         else:

@@ -10,7 +10,7 @@
     tensorflow_gpu_available:  no
     libcuda_version:           not loaded
     libcudnn_version:          not loaded
-    cuda_version:              not installed
+    cuda_version:              ...
     ...
     latest_guild_version:      unchecked (offline)
     <exit 0>
