@@ -499,10 +499,10 @@ Publish the runs:
     ...     template="t1",
     ...     index_template="index-t1",
     ...     dest=publish_dest)
-    Publishing [...] op3... using ...K
-    Publishing [...] op... using ...K
+    Publishing [...] op3... using ...
+    Publishing [...] op... using ...
     Refreshing runs index
-    Published runs using ...K
+    Published runs using ...
 
 And the custom index:
 
