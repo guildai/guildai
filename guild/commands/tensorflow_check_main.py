@@ -43,9 +43,14 @@ def _print_tensorflow_info(state):
     try:
         import tensorflow as tf
     except ImportError as e:
-        state.errors = True
         msg = _normalize_import_error_msg(e)
-        click.echo("tensorflow_version:        %s" % _warn("not installed (%s)" % msg))
+        if msg == "No module named 'tensorflow'":
+            click.echo("tensorflow_version:        %s" % _warn("not installed"))
+        else:
+            click.echo(
+                "tensorflow_version:        %s" % _warn("not installed (%s)" % msg)
+            )
+            state.errors = True
     else:
         click.echo("tensorflow_version:        %s" % _tf_version(tf, state))
         click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
