@@ -38,7 +38,16 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
-BASE_COLS = ",".join([".run", ".operation", ".started", ".time", ".status", ".label",])
+BASE_COLS = ",".join(
+    [
+        ".run",
+        ".operation",
+        ".started",
+        ".time",
+        ".status",
+        ".label",
+    ]
+)
 
 EXTRA_COLS = ".sourcecode"
 
@@ -66,7 +75,13 @@ def main(args, ctx):
 
 def _check_args(args, ctx):
     cmd_impl_support.check_incompatible_args(
-        [("table", "csv"), ("table", "tool"), ("csv", "tool"),], args, ctx
+        [
+            ("table", "csv"),
+            ("table", "tool"),
+            ("csv", "tool"),
+        ],
+        args,
+        ctx,
     )
 
 

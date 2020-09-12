@@ -66,8 +66,7 @@ class Namespace(object):
         raise NotImplementedError()
 
     def pip_info(self, _req):
-        """Returns PipInfo for a package or requirement spec.
-        """
+        """Returns PipInfo for a package or requirement spec."""
         raise NotImplementedError()
 
     def package_name(self, _project_name):
@@ -140,8 +139,7 @@ def apply_namespace(project_name):
 
 
 def split_name(name):
-    """Returns a tuple of namespace and split name.
-    """
+    """Returns a tuple of namespace and split name."""
     m = re.match(r"(.+?)\.(.+)", name)
     if m:
         try:

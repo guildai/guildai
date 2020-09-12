@@ -172,7 +172,11 @@ def _remote_run_for_spec(spec, args):
 
 def _local_run_for_spec(spec):
     return util.find_apply(
-        [run_util.run_for_run_dir, run_util.marked_or_latest_run_for_opspec, one_run,],
+        [
+            run_util.run_for_run_dir,
+            run_util.marked_or_latest_run_for_opspec,
+            one_run,
+        ],
         spec,
     )
 
@@ -1045,7 +1049,7 @@ def _copy_run_proto_sourcecode(proto_run, proto_op, dest_run):
         return
     dest = os.path.join(dest_run.dir, proto_op._sourcecode_root)
     log.debug(
-        "copying source code files for run %s from %s to %s", dest_run.id, src, dest,
+        "copying source code files for run %s from %s to %s", dest_run.id, src, dest
     )
     util.copytree(src, dest)
 
@@ -1147,7 +1151,10 @@ def _batch_op_init_for_opdef_default_optimizer(opdef, S):
     assert not S.batch_op
     S.batch_op = Operation()
     optdef = util.find_apply(
-        [lambda: opdef.default_optimizer, lambda: _default_optimizer(opdef),]
+        [
+            lambda: opdef.default_optimizer,
+            lambda: _default_optimizer(opdef),
+        ]
     )
     _op_init_for_optimizer(optdef, S.batch_op)
 
@@ -1688,7 +1695,10 @@ def _preview_batch_suffix(S):
     if not S.batch_op:
         return ""
     return "".join(
-        [_batch_desc_preview_part(S.batch_op), _batch_qualifier_preview_part(S),]
+        [
+            _batch_desc_preview_part(S.batch_op),
+            _batch_qualifier_preview_part(S),
+        ]
     )
 
 

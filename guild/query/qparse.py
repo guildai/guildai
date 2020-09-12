@@ -49,9 +49,9 @@ def p_col_list(p):
 
 def p_col(p):
     """col : scalar_col
-           | scalar_step_col
-           | attr_col
-           | flag_col
+    | scalar_step_col
+    | attr_col
+    | flag_col
     """
     p[0] = p[1]
 
@@ -65,8 +65,8 @@ def p_named_col(p):
 
 def p_col_name(p):
     """col_name : term
-                | scalar_qualifier
-                | STEP
+    | scalar_qualifier
+    | STEP
     """
     p[0] = p[1]
 
@@ -100,12 +100,12 @@ def p_scalar_key(p):
 
 def p_scalar_qualifier(p):
     """scalar_qualifier : MIN
-                        | MAX
-                        | FIRST
-                        | LAST
-                        | AVG
-                        | TOTAL
-                        | COUNT
+    | MAX
+    | FIRST
+    | LAST
+    | AVG
+    | TOTAL
+    | COUNT
     """
     p[0] = p[1]
 

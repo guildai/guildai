@@ -28,7 +28,7 @@ def delete_params(fn):
                 ("packages",), metavar="PACKAGE...", nargs=-1, required=True
             ),
             click.Option(
-                ("-y", "--yes",),
+                ("-y", "--yes"),
                 help="Do not prompt before uninstalling.",
                 is_flag=True,
             ),
@@ -41,8 +41,7 @@ def delete_params(fn):
 @delete_params
 @click_util.use_args
 def delete_packages(args):
-    """Uninstall one or more packages.
-    """
+    """Uninstall one or more packages."""
     from . import packages_impl
 
     packages_impl.uninstall_packages(args)

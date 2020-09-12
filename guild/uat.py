@@ -98,9 +98,7 @@ def _run_tests(tests):
 def _test_globals():
     globs = testlib.test_globals()
     globs.update(_global_vars())
-    globs.update(
-        {"sample": _sample, "example": _example_dir,}
-    )
+    globs.update({"sample": _sample, "example": _example_dir})
     return globs
 
 

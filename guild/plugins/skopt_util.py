@@ -267,7 +267,13 @@ def _iter_seq_trials(
         x0, y0 = _trials_xy_for_prev_trials(prev_trials, names, objective_negate)
         is_random_start = _is_random_start(x0, runs_count, random_starts)
         suggested_x, random_state = _suggest_x(
-            suggest_x_cb, dims, x0, y0, is_random_start, random_state, suggest_x_opts,
+            suggest_x_cb,
+            dims,
+            x0,
+            y0,
+            is_random_start,
+            random_state,
+            suggest_x_opts,
         )
         if runs_count == 0 and suggested_x:
             _apply_initial_x(initial_x, suggested_x)

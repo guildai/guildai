@@ -60,7 +60,10 @@ def gen_trials(
         prev_results_cb,
         _suggest_x,
         random_starts=opt_random_starts,
-        suggest_x_opts={"kappa": opt_kappa, "xi": opt_xi,},
+        suggest_x_opts={
+            "kappa": opt_kappa,
+            "xi": opt_xi,
+        },
         **kw
     )
 

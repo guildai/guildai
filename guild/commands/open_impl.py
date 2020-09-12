@@ -43,7 +43,13 @@ def _check_args(args, ctx):
             "PATH must be relative\n" "Try 'guild open --help' for more information."
         )
     cmd_impl_support.check_incompatible_args(
-        [("shell", "cmd"), ("shell_cmd", "shell"), ("shell_cmd", "cmd"),], args, ctx
+        [
+            ("shell", "cmd"),
+            ("shell_cmd", "shell"),
+            ("shell_cmd", "cmd"),
+        ],
+        args,
+        ctx,
     )
 
 

@@ -213,7 +213,9 @@ def view_runs(get_data_cb, get_detail_cb, actions):
     Viewer.actions = actions
     tabview.Viewer = Viewer
     tabview.view(
-        [[]], column_width="max", info="Guild run comparison",
+        [[]],
+        column_width="max",
+        info="Guild run comparison",
     )
 
 

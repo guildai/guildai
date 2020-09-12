@@ -128,8 +128,7 @@ def _encode_flag_arg_for_globals(val):
 
 
 def _encode_flag_arg_for_argparse(val):
-    """Returns an encoded flag val for use by Python argparse.
-    """
+    """Returns an encoded flag val for use by Python argparse."""
     if val is True:
         return "1"
     elif val is False or val is None:

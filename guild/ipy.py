@@ -350,7 +350,10 @@ def _op_f(op):
 
 def _remove_bound_method_self(op, op_flag_vals):
     im_self = util.find_apply(
-        [lambda: getattr(op, "__self__", None), lambda: getattr(op, "im_self", None),]
+        [
+            lambda: getattr(op, "__self__", None),
+            lambda: getattr(op, "im_self", None),
+        ]
     )
     if im_self:
         for key, val in op_flag_vals.items():

@@ -41,7 +41,7 @@ def _main():
     except click.exceptions.Abort:
         _handle_keyboard_interrupt()
     except click.exceptions.ClickException as e:
-        _handle_click_exception(e,)
+        _handle_click_exception(e)
     except SystemExit as e:
         _handle_system_exit(e)
 

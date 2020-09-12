@@ -291,7 +291,7 @@ def _venv_cmd_args(config):
 
 
 def _venv_cmd_base_args():
-    return util.find_apply([_virtualenv_cmd, _virtualenv_missing_error,])
+    return util.find_apply([_virtualenv_cmd, _virtualenv_missing_error])
 
 
 def _virtualenv_cmd():
@@ -521,7 +521,10 @@ def _suggest_python_interpreter(user_reqs):
     special `python<spec>` comment. E.g. `python>=3.5`.
     """
     python_requires = util.find_apply(
-        [_python_requires_for_pkg, lambda: _python_requires_for_reqs(user_reqs),]
+        [
+            _python_requires_for_pkg,
+            lambda: _python_requires_for_reqs(user_reqs),
+        ]
     )
     if not python_requires:
         return None

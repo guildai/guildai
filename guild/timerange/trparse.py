@@ -64,10 +64,10 @@ tokens = trlex.tokens
 
 def p_spec(p):
     """spec : unit_range
-            | operator_range
-            | last_unit
-            | explicit_range
-            | explicit_datetime
+    | operator_range
+    | last_unit
+    | explicit_range
+    | explicit_datetime
     """
     p[0] = p[1]
 
@@ -365,8 +365,8 @@ def p_last_n_unit(p):
 
 def p_delta_unit(p):
     """delta_unit : MINUTE
-                  | HOUR
-                  | DAY"""
+    | HOUR
+    | DAY"""
     p[0] = p[1].lower()[:1]
 
 
@@ -405,7 +405,7 @@ def _between(p1, p2, ref):
 
 def p_range_range(p):
     """range : unit_range
-              | operator_range"""
+    | operator_range"""
     p[0] = p[1]
 
 

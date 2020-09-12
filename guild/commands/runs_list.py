@@ -45,7 +45,7 @@ def runs_list_options(fn):
             ),
             click.Option(("-d", "--deleted"), help="Show deleted runs.", is_flag=True),
             click.Option(
-                ("-A", "--archive",), metavar="DIR", help="Show archived runs in DIR."
+                ("-A", "--archive"), metavar="DIR", help="Show archived runs in DIR."
             ),
             runs_support.all_filters,
             click.Option(("--json",), help="Format runs as JSON.", is_flag=True),

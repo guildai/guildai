@@ -123,7 +123,7 @@ def run_params(fn):
                 is_flag=True,
             ),
             click.Option(
-                ("-d", "--run-dir",),
+                ("-d", "--run-dir"),
                 metavar="DIR",
                 autocompletion=click_util.completion_dir,
                 help=(
@@ -171,17 +171,17 @@ def run_params(fn):
                 help="Disable GPUs for run. Cannot be used with --gpu.",
             ),
             click.Option(
-                ("-bl", "--batch-label",),
+                ("-bl", "--batch-label"),
                 metavar="LABEL",
                 help="Label to use for batch runs. Ignored for non-batch runs.",
             ),
             click.Option(
-                ("-bt", "--batch-tag",),
+                ("-bt", "--batch-tag"),
                 metavar="TAG",
                 help="Tag to use for batch runs. Ignored for non-batch runs.",
             ),
             click.Option(
-                ("-o", "--optimizer",),
+                ("-o", "--optimizer"),
                 metavar="ALGORITHM",
                 help=(
                     "Optimize the run using the specified algorithm. See "
@@ -189,12 +189,12 @@ def run_params(fn):
                 ),
             ),
             click.Option(
-                ("-O", "--optimize",),
+                ("-O", "--optimize"),
                 is_flag=True,
                 help="Optimize the run using the default optimizer.",
             ),
             click.Option(
-                ("-N", "--minimize",),
+                ("-N", "--minimize"),
                 metavar="COLUMN",
                 help=(
                     "Column to minimize when running with an optimizer. See "
@@ -203,7 +203,7 @@ def run_params(fn):
                 ),
             ),
             click.Option(
-                ("-X", "--maximize",),
+                ("-X", "--maximize"),
                 metavar="COLUMN",
                 help=(
                     "Column to maximize when running with an optimizer. See "
@@ -218,7 +218,7 @@ def run_params(fn):
                 help="Flag for OPTIMIZER. May be used multiple times.",
             ),
             click.Option(
-                ("-m", "--max-trials",),
+                ("-m", "--max-trials"),
                 metavar="N",
                 type=click.IntRange(1, None),
                 help=(
@@ -283,7 +283,7 @@ def run_params(fn):
                 ),
             ),
             click.Option(
-                ("-b", "--background",),
+                ("-b", "--background"),
                 is_flag=True,
                 help="Run operation in background.",
             ),
@@ -296,7 +296,7 @@ def run_params(fn):
                 ),
             ),
             click.Option(
-                ("-n", "--no-wait",),
+                ("-n", "--no-wait"),
                 help=(
                     "Don't wait for a remote operation to complete. Ignored "
                     "if run is local."
@@ -316,7 +316,7 @@ def run_params(fn):
                 help="Enter the Python debugger at the operation entry point.",
                 is_flag=True,
             ),
-            click.Option(("-q", "--quiet",), help="Do not show output.", is_flag=True),
+            click.Option(("-q", "--quiet"), help="Do not show output.", is_flag=True),
             click.Option(
                 ("--print-cmd",), help="Show operation command and exit.", is_flag=True
             ),

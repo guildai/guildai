@@ -43,13 +43,11 @@ class ViewData(object):
     """Interface for providing View related data."""
 
     def runs(self):
-        """Returns a list of unformatted runs.
-        """
+        """Returns a list of unformatted runs."""
         raise NotImplementedError()
 
     def runs_data(self):
-        """Returns a list of formatted runs data.
-        """
+        """Returns a list of formatted runs data."""
         raise NotImplementedError()
 
     def one_run(self, run_id_prefix):

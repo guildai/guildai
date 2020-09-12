@@ -30,7 +30,7 @@ def push_params(fn):
             runs_support.runs_arg,
             runs_support.all_filters,
             click.Option(
-                ("-n", "--delete",),
+                ("-n", "--delete"),
                 help="Delete remote files missing locally.",
                 is_flag=True,
             ),

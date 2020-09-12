@@ -22,8 +22,7 @@ from guild import click_util
 
 @click.group("shutdown-timer", cls=click_util.Group)
 def shutdown_timer():
-    """Manager shutdown timer.
-    """
+    """Manager shutdown timer."""
 
 
 @click.command()
@@ -53,8 +52,7 @@ def shutdown_timer():
 )
 @click_util.use_args
 def start(args):
-    """Start shutdown timer.
-    """
+    """Start shutdown timer."""
     from . import shutdown_timer_impl
 
     shutdown_timer_impl.start(args)
@@ -62,8 +60,7 @@ def start(args):
 
 @click.command()
 def stop():
-    """Stop shutdown timer.
-    """
+    """Stop shutdown timer."""
     from . import shutdown_timer_impl
 
     shutdown_timer_impl.stop()
@@ -71,8 +68,7 @@ def stop():
 
 @click.command()
 def status():
-    """Show shutdown timer status.
-    """
+    """Show shutdown timer status."""
     from . import shutdown_timer_impl
 
     shutdown_timer_impl.status()

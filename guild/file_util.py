@@ -97,8 +97,7 @@ class FileSelect(object):
 
 
 def reduce_file_select_results(results):
-    """Reduces a list of file select results to a single determining result.
-    """
+    """Reduces a list of file select results to a single determining result."""
     for (result, test), _rule in reversed(results):
         if result is not None:
             return result, test

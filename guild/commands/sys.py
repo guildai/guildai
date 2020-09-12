@@ -25,8 +25,7 @@ from .s3_sync import s3_sync
 
 @click.group(cls=click_util.Group)
 def sys():
-    """System utilities.
-    """
+    """System utilities."""
 
 
 sys.add_command(shutdown_timer)

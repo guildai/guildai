@@ -501,7 +501,13 @@ def _package_op_spec(spec):
 
 
 def _resolve_model(model_ref):
-    return util.find_apply([_resolve_cwd_model, _resolve_system_model,], model_ref)
+    return util.find_apply(
+        [
+            _resolve_cwd_model,
+            _resolve_system_model,
+        ],
+        model_ref,
+    )
 
 
 def _resolve_cwd_model(model_ref):
@@ -665,8 +671,7 @@ def set_run_staged(run):
 
 
 def run_label(label_template, flag_vals):
-    """Returns a run label for template and flag vals.
-    """
+    """Returns a run label for template and flag vals."""
     default_label = _default_run_label(flag_vals)
     if not label_template:
         return default_label
@@ -1558,7 +1563,7 @@ def _read_trials(path):
     ext = os.path.splitext(path)[1].lower()
     if ext in (".json", ".yml", ".yaml"):
         return _yaml_trials(path)
-    elif ext in ("", ".csv",):
+    elif ext in ("", ".csv"):
         return _csv_trials(path)
     else:
         raise BatchFileError(path, "unsupported extension")
@@ -1699,9 +1704,7 @@ def wait_for_proc(p, stop_after_min, poll_interval=None, kill_delay=None):
             return returncode
         time.sleep(poll_interval)
     elapsed = (time.time() - started) / 60
-    log.info(
-        "Stopping process early (pid %i) - %.1f minute(s) elapsed", p.pid, elapsed,
-    )
+    log.info("Stopping process early (pid %i) - %.1f minute(s) elapsed", p.pid, elapsed)
     return _terminate(p, poll_interval, kill_delay)
 
 

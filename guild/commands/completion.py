@@ -25,7 +25,7 @@ from guild import click_util
     "-s",
     "--shell",
     metavar="NAME",
-    type=click.Choice(["bash", "zsh", "fish"],),
+    type=click.Choice(["bash", "zsh", "fish"]),
     help=(
         "Shell to generate completion script for (choice of bash, zsh, fish). "
         "Default is current shell."

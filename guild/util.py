@@ -105,7 +105,14 @@ def try_read(path, default=None, apply=None):
 
 
 def pid_exists(pid, default=True):
-    return find_apply([_proc_pid_exists, _psutil_pid_exists, lambda _: default,], pid)
+    return find_apply(
+        [
+            _proc_pid_exists,
+            _psutil_pid_exists,
+            lambda _: default,
+        ],
+        pid,
+    )
 
 
 def _proc_pid_exists(pid):
@@ -626,7 +633,15 @@ def _windows_symlink(target, link):
         raise
 
 
-_text_ext = set([".csv", ".md", ".py", ".sh", ".txt",])
+_text_ext = set(
+    [
+        ".csv",
+        ".md",
+        ".py",
+        ".sh",
+        ".txt",
+    ]
+)
 
 _binary_ext = set(
     [
@@ -1522,7 +1537,7 @@ def editor(s):
 
 
 def _try_editor():
-    return find_apply([_try_editor_env, _try_editor_bin,])
+    return find_apply([_try_editor_env, _try_editor_bin])
 
 
 def _try_editor_env():

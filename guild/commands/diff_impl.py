@@ -103,7 +103,9 @@ def _diff_working(args, ctx):
         working_dir = _find_run_working_dir(run)
     if not args.path:
         _diff(
-            run_sourcecode_dir, working_dir, args,
+            run_sourcecode_dir,
+            working_dir,
+            args,
         )
     else:
         for path in args.path:
@@ -115,7 +117,7 @@ def _diff_working(args, ctx):
 
 
 def _find_run_working_dir(run):
-    working_dir = util.find_apply([_opdef_sourcecode_root, _script_source,], run)
+    working_dir = util.find_apply([_opdef_sourcecode_root, _script_source], run)
     if not working_dir:
         cli.error(
             "cannot find working source code directory for run {run_id}\n"
@@ -167,9 +169,9 @@ def _config_diff_cmd():
 
 def _default_diff_cmd():
     if util.PLATFORM == "Linux":
-        return _find_cmd(["meld", "xxdiff -r", "dirdiff", "colordiff",])
+        return _find_cmd(["meld", "xxdiff -r", "dirdiff", "colordiff"])
     elif util.PLATFORM == "Darwin":
-        return _find_cmd(["Kaleidoscope", "meld", "DiffMerge", "FileMerge",])
+        return _find_cmd(["Kaleidoscope", "meld", "DiffMerge", "FileMerge"])
     else:
         return DEFAULT_DIFF_CMD
 

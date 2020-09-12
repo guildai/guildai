@@ -22,7 +22,11 @@ from guild import config
 def main():
     remotes = config.user_config().get("remotes", {})
     data = [
-        {"name": name, "type": r.get("type", ""), "desc": r.get("description", ""),}
+        {
+            "name": name,
+            "type": r.get("type", ""),
+            "desc": r.get("description", ""),
+        }
         for name, r in sorted(remotes.items())
     ]
     cli.table(data, ["name", "type", "desc"])

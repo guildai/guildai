@@ -35,7 +35,7 @@ def label_params(fn):
                 help="Prepend VAL to existing label.",
             ),
             click.Option(
-                ("-a", "--append"), metavar="VAL", help="Append VAL to existing label.",
+                ("-a", "--append"), metavar="VAL", help="Append VAL to existing label."
             ),
             click.Option(
                 ("-rm", "-u", "--remove", "--untag"),

@@ -22,8 +22,7 @@ from guild import click_util
 
 @click.group("s3-sync", cls=click_util.Group)
 def s3_sync():
-    """Manage S3 sync service.
-    """
+    """Manage S3 sync service."""
 
 
 @click.command()
@@ -75,8 +74,7 @@ def start(args):
 
 @click.command()
 def stop():
-    """Stop S3 sync service.
-    """
+    """Stop S3 sync service."""
     from . import s3_sync_impl
 
     s3_sync_impl.stop()
@@ -84,8 +82,7 @@ def stop():
 
 @click.command()
 def status():
-    """Show S3 sync service status.
-    """
+    """Show S3 sync service status."""
     from . import s3_sync_impl
 
     s3_sync_impl.status()

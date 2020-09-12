@@ -346,7 +346,16 @@ def _list_runs_json(runs):
 
 def _listed_run_json_data(run):
     run_data = _run_data(
-        run, ("exit_status", "cmd", "marked", "label", "started", "status", "stopped",)
+        run,
+        (
+            "exit_status",
+            "cmd",
+            "marked",
+            "label",
+            "started",
+            "status",
+            "stopped",
+        ),
     )
     _apply_batch_proto(run, run_data)
     return run_data
@@ -832,7 +841,15 @@ def label(args, ctx):
 
 def _check_label_args(args, ctx):
     cmd_impl_support.check_required_args(
-        ["set", "append", "prepend", "remove", "clear",], args, ctx
+        [
+            "set",
+            "append",
+            "prepend",
+            "remove",
+            "clear",
+        ],
+        args,
+        ctx,
     )
     cmd_impl_support.check_incompatible_args(
         [
@@ -1197,7 +1214,7 @@ def select_run(args, ctx=None):
 
 
 def _check_select_args(args, ctx):
-    cmd_impl_support.check_incompatible_args([("min", "max"),], args, ctx)
+    cmd_impl_support.check_incompatible_args([("min", "max")], args, ctx)
 
 
 def _select_min_run(args, ctx, scalar, reverse=False):

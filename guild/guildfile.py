@@ -525,7 +525,7 @@ def _coerce_select_files_list(data, guildfile):
             all_strings = False
         else:
             raise GuildfileError(
-                guildfile, "invalid sourcecode %r: expected a string or mapping" % item,
+                guildfile, "invalid sourcecode %r: expected a string or mapping" % item
             )
     if all_strings:
         items.insert(0, {"exclude": "*"})

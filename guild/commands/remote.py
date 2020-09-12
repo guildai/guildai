@@ -26,8 +26,7 @@ from .remote_stop import remote_stop
 
 @click.group(cls=click_util.Group)
 def remote():
-    """Manage remote status.
-    """
+    """Manage remote status."""
 
 
 remote.add_command(remote_start)

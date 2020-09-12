@@ -181,15 +181,15 @@ def op_and_label_filters(fn):
                 autocompletion=ac_label,
             ),
             click.Option(
-                ("-U", "--unlabeled",),
+                ("-U", "--unlabeled"),
                 help="Filter only runs without labels.",
                 is_flag=True,
             ),
             click.Option(
-                ("-M", "--marked",), help="Filter only marked runs.", is_flag=True
+                ("-M", "--marked"), help="Filter only marked runs.", is_flag=True
             ),
             click.Option(
-                ("-N", "--unmarked",), help="Filter only unmarked runs.", is_flag=True
+                ("-N", "--unmarked"), help="Filter only unmarked runs.", is_flag=True
             ),
         ],
     )
@@ -298,7 +298,7 @@ def time_filters(fn):
         fn,
         [
             click.Option(
-                ("-S", "--started",),
+                ("-S", "--started"),
                 metavar="RANGE",
                 help=(
                     "Filter only runs started within RANGE. See above "
@@ -321,7 +321,7 @@ def sourcecode_digest_filters(fn):
         fn,
         [
             click.Option(
-                ("-D", "--digest",),
+                ("-D", "--digest"),
                 metavar="VAL",
                 help=("Filter only runs with a matching source code digest."),
                 autocompletion=ac_digest,

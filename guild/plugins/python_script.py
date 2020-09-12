@@ -322,13 +322,12 @@ class PythonScriptPlugin(pluginlib.Plugin):
     def _script_flags_dest(self, script):
         if self._imports_argparse(script):
             _log_flags_info(
-                "%s imports argparse - assuming args", (_script_desc, script),
+                "%s imports argparse - assuming args", (_script_desc, script)
             )
             return "args"
         else:
             _log_flags_info(
-                "%s does not import argparse - assuming globals",
-                (_script_desc, script),
+                "%s does not import argparse - assuming globals", (_script_desc, script)
             )
             return "globals"
 
@@ -362,9 +361,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 error, details = _split_argparse_flags_error(e.output.decode().strip())
                 if details and self.log.getEffectiveLevel() > logging.DEBUG:
                     error += " (run with guild --debug for details)"
-                self.log.warning(
-                    "cannot import flags from %s: %s", script.src, error,
-                )
+                self.log.warning("cannot import flags from %s: %s", script.src, error)
                 if details and self.log.getEffectiveLevel() <= logging.DEBUG:
                     self.log.error(details)
                 raise DataLoadError()

@@ -194,7 +194,7 @@ def _resolved_parent(spec, section, data, src):
 
 
 def _find_parent(spec, section, data):
-    return _find_apply([_section_item, _config_item,], spec, section, data)
+    return _find_apply([_section_item, _config_item], spec, section, data)
 
 
 def _section_item(spec, section, _data=None):
@@ -245,7 +245,12 @@ def user_config_home():
 
 def python_exe():
     return _find_apply(
-        [_guild_python_exe, _conda_python_exe, _virtualenv_python_exe, _sys_executable,]
+        [
+            _guild_python_exe,
+            _conda_python_exe,
+            _virtualenv_python_exe,
+            _sys_executable,
+        ]
     )
 
 

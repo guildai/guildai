@@ -146,8 +146,7 @@ class SummaryPlugin(Plugin):
         )
 
     def _handle_guild_scalar(self, add_scalar, _tag, _value, step=None):
-        """Handler for guild.summary.SummaryWriter.add_scalar.
-        """
+        """Handler for guild.summary.SummaryWriter.add_scalar."""
         vals = self._summary_values(step)
         if vals:
             self.log.debug("summary values via add_scalar: %s", vals)
@@ -194,8 +193,7 @@ class SummaryPlugin(Plugin):
                 scalar(tag, val, step)
 
     def _handle_scalar_ops_v2(self, scalar, _name, _tensor, family=None, step=None):
-        """Callback to apply summary values from summary_ops_v2.
-        """
+        """Callback to apply summary values from summary_ops_v2."""
         # pylint: disable=unused-argument
         vals = self._summary_values(step)
         if vals:

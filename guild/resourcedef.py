@@ -206,7 +206,7 @@ class ResourceSource(object):
         return self.uri
 
 
-SelectSpec = collections.namedtuple("SelectSpec", ["pattern", "reduce",])
+SelectSpec = collections.namedtuple("SelectSpec", ["pattern", "reduce"])
 
 
 def _init_resource_source_select(s, s_min, s_max):
@@ -260,7 +260,7 @@ def _init_rename(data):
     return [_init_rename_spec(item) for item in data]
 
 
-RenameSpec = collections.namedtuple("RenameSpec", ["pattern", "repl",])
+RenameSpec = collections.namedtuple("RenameSpec", ["pattern", "repl"])
 
 
 def _init_rename_spec(data):
