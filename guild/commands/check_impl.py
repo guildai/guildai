@@ -53,6 +53,8 @@ CHECK_MODS = [
     ("werkzeug", True),
 ]
 
+ATTR_COL_WIDTH = 26
+
 
 class Check(object):
     def __init__(self, args):
@@ -153,32 +155,51 @@ def _run_tests(check):
 
 
 def _print_info(check):
-    _print_guild_info()
+    _print_guild_info(check)
     _print_python_info(check)
-    _print_platform_info()
+    _print_platform_info(check)
     _print_psutil_info(check)
     _print_tensorboard_info(check)
     if check.args.tensorflow:
         _print_tensorflow_info(check)
     if check.args.pytorch:
         _print_pytorch_info(check)
-    _print_cuda_info()
-    _print_nvidia_tools_info()
+    _print_cuda_info(check)
+    _print_nvidia_tools_info(check)
     if check.args.verbose:
         _print_mods_info(check)
     _print_guild_latest_versions(check)
     if check.newer_version_available:
         _notify_newer_version()
     if check.args.space:
-        _print_space()
+        _print_disk_usage()
 
 
-def _print_guild_info():
-    cli.out("guild_version:             %s" % guild.version())
-    cli.out("guild_install_location:    %s" % _guild_install_location())
-    cli.out("guild_home:                %s" % config.guild_home())
-    cli.out("guild_resource_cache:      %s" % _guild_resource_cache())
-    cli.out("installed_plugins:         %s" % _format_plugins())
+def _print_guild_info(check):
+    _attr("guild_version", _safe_apply(check, guild.version))
+    _attr("guild_install_location", _safe_apply(check, _guild_install_location))
+    _attr("guild_home", _safe_apply(check, config.guild_home))
+    _attr("guild_resource_cache", _safe_apply(check, _guild_resource_cache))
+    _attr("installed_plugins", _safe_apply(check, _format_plugins))
+
+
+def _attr(name, val):
+    cli.out("%s:%s%s" % (name, (ATTR_COL_WIDTH - len(name)) * " ", val))
+
+
+def _safe_apply(check, f, *args, **kw):
+    """Always return a string for application f(*args, **kw).
+
+    If f(*args, **kw) fails, returns a higlighted error message and
+    sets error flag on check.
+    """
+    try:
+        return f(*args, **kw)
+    except Exception as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("safe call: %r %r %r", f, args, kw)
+        check.error()
+        return _warn("ERROR: %s" % e)
 
 
 def _guild_install_location():
@@ -194,10 +215,10 @@ def _format_plugins():
 
 
 def _print_python_info(check):
-    cli.out("python_version:            %s" % _python_version())
-    cli.out("python_exe:                %s" % sys.executable)
+    _attr("python_version", _safe_apply(check, _python_version))
+    _attr("python_exe", sys.executable)
     if check.args.verbose:
-        cli.out("python_path:           %s" % _python_path())
+        _attr("python_path", _safe_apply(check, _python_path))
 
 
 def _python_version():
@@ -208,8 +229,8 @@ def _python_path():
     return os.path.pathsep.join(sys.path)
 
 
-def _print_platform_info():
-    cli.out("platform:                  %s" % _platform())
+def _print_platform_info(check):
+    _attr("platform", _safe_apply(check, _platform))
 
 
 def _platform():
@@ -219,23 +240,27 @@ def _platform():
 
 def _print_psutil_info(check):
     ver = _try_module_version("psutil", check)
-    _print_module_ver("psutil", ver)
+    _attr("psutil_version", ver)
 
 
 def _print_tensorboard_info(check):
+    _attr("tensorboard_version", _safe_apply(check, _tensorboard_version, check))
+
+
+def _tensorboard_version(check):
     try:
         import tensorboard.version as version
-    except ImportError as e:
-        check.error()
-        cli.out("tensorboard_version:       %s" % _warn("not installed"))
-        if check.args.verbose:
-            cli.out("                           %s" % _warn(str(e)))
+    except ImportError:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("tensorboard version")
+        check.error()  # TB is required
+        return _warn("not installed")
     else:
-        cli.out("tensorboard_version:       %s" % version.VERSION)
+        return version.VERSION
 
 
 def _print_tensorflow_info(check):
-    # Run externally to avoid tf logging to our stderr
+    # Run externally to avoid tf logging to our stderr.
     cmd = [sys.executable, "-um", "guild.commands.tensorflow_check_main"]
     env = util.safe_osenv()
     env["PYTHONPATH"] = os.path.pathsep.join(sys.path)
@@ -250,20 +275,42 @@ def _print_tensorflow_info(check):
 
 
 def _print_pytorch_info(check):
+    torch = _try_import_torch()
+    if not torch:
+        _attr("pytorch_version", _warn("not installed"))
+        return
+    _attr("pytorch_version", _safe_apply(check, _torch_version, torch))
+    _attr("pytorch_cuda_version", _safe_apply(check, _torch_cuda_version, torch))
+    _attr("pytorch_cuda_available", _safe_apply(check, _torch_cuda_available, torch))
+    _attr("pytorch_cuda_devices", _safe_apply(check, _pytorch_cuda_devices, torch))
+
+
+def _try_import_torch():
+    # pylint: disable=import-error
     try:
         import torch
         import torch.version as _
-    except ImportError:
-        cli.out("pytorch_version:           %s" % _warn("not installed"))
+    except Exception:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("try import torch")
+        return None
     else:
-        cli.out("pytorch_version:           %s" % torch.version.__version__)
-        cli.out("pytorch_cuda_version:      %s" % torch.version.cuda)
-        cli.out(
-            "pytorch_cuda_available:    %s" % "yes"
-            if torch.cuda.is_available()
-            else "no"
-        )
-        cli.out("pytorch_cuda_devices:      %s" % _pytorch_cuda_devices(torch))
+        return torch
+
+
+def _torch_version(torch):
+    return torch.version.__version__
+
+
+def _torch_cuda_version(torch):
+    return torch.version.cuda
+
+
+def _torch_cuda_available(torch):
+    if torch.cuda.is_available():
+        return "yes"
+    else:
+        return "no"
 
 
 def _pytorch_cuda_devices(torch):
@@ -275,8 +322,8 @@ def _pytorch_cuda_devices(torch):
     )
 
 
-def _print_cuda_info():
-    cli.out("cuda_version:              %s" % _cuda_version())
+def _print_cuda_info(check):
+    _attr("cuda_version", _safe_apply(check, _cuda_version))
 
 
 def _cuda_version():
@@ -322,8 +369,8 @@ def _cuda_version_nvidia_smi():
             return "unknown (error)"
 
 
-def _print_nvidia_tools_info():
-    cli.out("nvidia_smi_version:        %s" % _nvidia_smi_version())
+def _print_nvidia_tools_info(check):
+    _attr("nvidia_smi_version", _safe_apply(check, _nvidia_smi_version))
 
 
 def _nvidia_smi_version():
@@ -347,7 +394,7 @@ def _nvidia_smi_version():
 def _print_mods_info(check):
     for mod, required in CHECK_MODS:
         ver = _try_module_version(mod, check, required)
-        _print_module_ver(mod, ver)
+        _attr("%s_version" % mod, ver)
 
 
 def _try_module_version(name, check, required=True, version_attr="__version__"):
@@ -375,19 +422,14 @@ def _format_version(ver):
         return str(ver)
 
 
-def _print_module_ver(mod, ver):
-    space = " " * (18 - len(mod))
-    cli.out("%s_version:%s%s" % (mod, space, ver))
-
-
 def _print_guild_latest_versions(check):
     if check.offline:
-        cli.out("latest_guild_version:      unchecked (offline)")
+        _attr("latest_guild_version", "unchecked (offline)")
     else:
         cur_ver = guild.__version__
         latest_ver = _latest_version(check)
         latest_ver_desc = latest_ver or "unknown (error)"
-        cli.out("latest_guild_version:      %s" % latest_ver_desc)
+        _attr("latest_guild_version", latest_ver_desc)
         if latest_ver:
             check.newer_version_available = _is_newer(latest_ver, cur_ver)
 
@@ -448,22 +490,34 @@ def _notify_newer_version():
     )
 
 
-def _print_space():
+def _print_disk_usage():
     cli.out("disk_space:")
-    _print_disk_usage("guild_home", config.guild_home())
-    _print_disk_usage("runs", var.runs_dir())
-    _print_disk_usage("deleted_runs", var.runs_dir(deleted=True))
-    _print_disk_usage("remote_state", var.remote_dir())
-    _print_disk_usage("cache", var.cache_dir())
+    paths = [
+        ("guild_home", config.guild_home()),
+        ("runs", var.runs_dir()),
+        ("deleted_runs", var.runs_dir(deleted=True)),
+        ("remote_state", var.remote_dir()),
+        ("cache", var.cache_dir()),
+    ]
+    formatted_disk_usage = [_formatted_disk_usage(path) for _name, path in paths]
+    max_disk_usage_width = max([len(s) for s in formatted_disk_usage])
+    for (name, path), disk_usage in zip(paths, formatted_disk_usage):
+        _attr(
+            "  %s" % name,
+            _format_disk_usage_and_path(disk_usage, path, max_disk_usage_width),
+        )
 
 
-def _print_disk_usage(name, path):
+def _formatted_disk_usage(path):
     if os.path.exists(path):
         size = file_util.disk_usage(path)
     else:
         size = 0
-    ws = " " * max(1, 24 - len(name))
-    cli.out("  %s:%s%s in %s" % (name, ws, util.format_bytes(size), path))
+    return util.format_bytes(size)
+
+
+def _format_disk_usage_and_path(usage, path, max_usage_width):
+    return "%s%s%s" % (usage, " " * (max_usage_width - len(usage) + 1), path)
 
 
 def _print_error_and_exit(args):
