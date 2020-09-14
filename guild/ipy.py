@@ -426,9 +426,8 @@ def _run(op, flag_vals, opts, extra_attrs=None):
     summary = _init_output_scalars(run, opts)
     try:
         with RunOutput(run, summary):
-            with util.Chdir(run.path):
-                _write_proc_lock(run)
-                result = op(**flag_vals)
+            _write_proc_lock(run)
+            result = op(**flag_vals)
     except KeyboardInterrupt as e:
         exit_status = exit_code.SIGTERM
         util.raise_from(RunTerminated(run, e), e)
