@@ -292,6 +292,7 @@ def check(args):
 def _check_kw(args):
     names = [
         "offline",
+        "pytorch",
         "space",
         "tensorflow",
         "verbose",
