@@ -22,9 +22,27 @@ from guild import click_util
 from . import runs_support
 
 
+def _ac_path(ctx, **_kw):
+    from . import runs_impl
+
+    open_args = click_util.Args(**ctx.params)
+    run = runs_impl.one_run(open_args, ctx)
+    if open_args.sourcecode:
+        dir_base = run.guild_path("sourcecode")
+    else:
+        dir_base = run.dir
+    return click_util.completion_run_filepath(dir_base)
+
+
 @click.command("open")
 @runs_support.run_arg
-@click.option("-p", "--path", metavar="PATH", help="Path to open under run directory.")
+@click.option(
+    "-p",
+    "--path",
+    metavar="PATH",
+    autocompletion=_ac_path,
+    help="Path to open under run directory.",
+)
 @click.option(
     "-s", "--sourcecode", is_flag=True, help="Open run source code directory."
 )

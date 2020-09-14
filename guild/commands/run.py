@@ -19,6 +19,8 @@ import click
 
 from guild import click_util
 
+from . import remote_support
+
 
 def _ac_opspec(incomplete, ctx, **_kw):
     ops = _ac_operations(incomplete, ctx)
@@ -246,9 +248,7 @@ def run_params(fn):
                 is_flag=True,
                 help=("For batch operations, stage trials without running them."),
             ),
-            click.Option(
-                ("-r", "--remote"), metavar="REMOTE", help="Run the operation remotely."
-            ),
+            remote_support.remote_option("Run the operation remotely."),
             click.Option(
                 ("-y", "--yes"),
                 help="Do not prompt before running operation.",
