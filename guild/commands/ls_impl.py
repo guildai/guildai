@@ -118,7 +118,7 @@ def _list(run_dir, args):
 
 
 def _rel_path(args):
-    pattern = args.path
+    pattern = args.path or ""
     if args.sourcecode:
         source_base = os.path.join(".guild", "sourcecode")
         if pattern:
