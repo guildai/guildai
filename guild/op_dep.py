@@ -19,6 +19,7 @@ import os
 import re
 import logging
 
+from guild import cli
 from guild import resolver as resolverlib
 from guild import resourcedef
 from guild import util
@@ -272,7 +273,7 @@ class ResourceProxy(object):
 def _source_resolution_error(source, dep, e):
     msg = "could not resolve '%s' in %s resource: %s" % (source, dep.resdef.name, e)
     if source.help:
-        msg += "\n%s" % source.help
+        msg += "\n%s" % cli.style(source.help, fg="yellow")
     raise OpDependencyError(msg)
 
 
