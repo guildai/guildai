@@ -21,6 +21,8 @@ import logging
 import os
 import sys
 
+import six
+
 from guild import batch_util
 from guild import cli
 from guild import cmd_impl_support
@@ -110,7 +112,7 @@ def _write_csv(args):
     with _open_file(args.csv) as out:
         writer = csv.writer(out, lineterminator="\n")
         for row in data:
-            writer.writerow(row)
+            writer.writerow([_safe_row_item(x) for x in row])
     if args.csv != "-":
         cli.out("Wrote %i row(s) to %s" % (len(data) - 1, args.csv), err=True)
 
@@ -123,6 +125,12 @@ def _open_file(path):
         return open(path, "w")
     except (OSError, IOError) as e:
         cli.error("error opening %s: %s" % (path, e))
+
+
+def _safe_row_item(x):
+    if isinstance(x, six.string_types):
+        return x.encode(errors="ignore")
+    return x
 
 
 def get_data(args, format_cells=True, skip_header_if_empty=False):
@@ -419,8 +427,10 @@ def _format_cells(rows, col_names, runs):
                 row[i] = "yes"
             elif val is False:
                 row[i] = "no"
+            elif isinstance(val, six.string_types):
+                row[i] = val.decode(errors="ignore")
             else:
-                row[i] = str(val)
+                return str(val)
 
 
 def _format_float(f):
