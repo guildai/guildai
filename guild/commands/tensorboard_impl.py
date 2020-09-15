@@ -173,7 +173,7 @@ def _run_label_template(flags_arg):
 
 
 def _split_flags(flags_arg):
-    return [arg.strip() for arg in re.split(r" ,", flags_arg) if arg]
+    return [arg.strip() for arg in re.split(r"[ ,]", flags_arg) if arg]
 
 
 def _list_runs_cb(args):

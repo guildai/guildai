@@ -334,3 +334,24 @@ Generate a run and show monitor processing.
     >>> log.print_all()
     ???
     DEBUG: [guild] Creating link from '...' to '...the run <...> ?...'
+
+## Misc Tests
+
+Run label template for --run-name-flags arg:
+
+    >>> from guild.commands import tensorboard_impl as impl
+
+    >>> impl._run_label_template("")
+    ''
+
+    >>> impl._run_label_template("foo")
+    'foo=${foo}'
+
+    >>> impl._run_label_template("foo,bar")
+    'foo=${foo} bar=${bar}'
+
+    >>> impl._run_label_template("foo bar")
+    'foo=${foo} bar=${bar}'
+
+    >>> impl._run_label_template("  foo, bar,  ")
+    'foo=${foo} bar=${bar}'
