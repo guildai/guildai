@@ -13,6 +13,7 @@ Create a Guild home for our tests:
 Define a simple function to run:
 
     >>> def hello(msg, n=3):
+    ...     touch("marker")
     ...     for i in range(n):
     ...         print("%s %i!" % (msg, i + 1))
 
@@ -51,6 +52,7 @@ Files:
     .guild/attrs/stopped
     .guild/opref
     .guild/output
+    marker
 
 Output:
 
@@ -883,3 +885,28 @@ And the run status after stopping:
     label:
     run_dir: ...
     flags:
+
+# Relative Guild Home
+
+Run `hello` above using a relative Guild home. This simulates the use
+of a relative Guild home used in any examples.
+
+    >>> guild_home_dir = mkdtemp()
+
+    >>> with Chdir(dirname(guild_home_dir)):
+    ...     with SetGuildHome(basename(guild_home_dir)):
+    ...         run, result = ipy.run(hello, msg="Hello")
+    ...     find(run.dir)
+    Hello 1!
+    Hello 2!
+    Hello 3!
+    .guild/attrs/exit_status
+    .guild/attrs/flags
+    .guild/attrs/id
+    .guild/attrs/initialized
+    .guild/attrs/label
+    .guild/attrs/started
+    .guild/attrs/stopped
+    .guild/opref
+    .guild/output
+    marker
