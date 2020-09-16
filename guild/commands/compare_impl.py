@@ -112,7 +112,7 @@ def _write_csv(args):
     with _open_file(args.csv) as out:
         writer = csv.writer(out, lineterminator="\n")
         for row in data:
-            writer.writerow([_safe_row_item(x) for x in row])
+            writer.writerow([_csv_row_item(x) for x in row])
     if args.csv != "-":
         cli.out("Wrote %i row(s) to %s" % (len(data) - 1, args.csv), err=True)
 
@@ -127,9 +127,9 @@ def _open_file(path):
         cli.error("error opening %s: %s" % (path, e))
 
 
-def _safe_row_item(x):
+def _csv_row_item(x):
     if isinstance(x, six.string_types):
-        return x.encode(errors="ignore")
+        return six.ensure_text(x)
     return x
 
 
@@ -423,14 +423,14 @@ def _format_cells(rows, col_names, runs):
                 row[i] = ""
             elif isinstance(val, float):
                 row[i] = _format_float(val)
+            elif isinstance(val, six.string_types):
+                row[i] = six.ensure_text(val)
             elif val is True:
                 row[i] = "yes"
             elif val is False:
                 row[i] = "no"
-            elif isinstance(val, six.string_types):
-                row[i] = val.decode(errors="ignore")
             else:
-                return str(val)
+                row[i] = str(val)
 
 
 def _format_float(f):
