@@ -275,7 +275,7 @@ def time_filters(fn):
     When using ``between DATETIME and DATETIME``, values for
     `DATETIME` may be specified in either order.
 
-    When specifying values like ``minutes`` and ``hours`` the training
+    When specifying values like ``minutes`` and ``hours`` the trailing
     ``s`` may be omitted to improve readability. You may also use
     ``min`` instead of ``minutes`` and ``hr`` instead of ``hours``.
 
