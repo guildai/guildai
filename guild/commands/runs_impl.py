@@ -698,6 +698,15 @@ def other_attr_names(run, include_private=False):
 
 
 def _scalar_info(run, args):
+    try:
+        return _scalar_info_impl(run, args)
+    except Exception as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("get scalars")
+        return cli.style("ERROR: %s" % e, fg="yellow")
+
+
+def _scalar_info_impl(run, args):
     return {
         key: val
         for key, val in _iter_scalars(run, args)
