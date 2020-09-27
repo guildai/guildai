@@ -46,7 +46,11 @@ log = logging.getLogger("guild")
 CHECK_MODS = [
     ("click", True),
     ("distutils", True),
+    ("numpy", True),
+    ("pandas", False),
     ("pip", True),
+    ("sklearn", True),
+    ("skopt", True),
     ("setuptools", True),
     ("twine", False),
     ("yaml", True),
@@ -401,6 +405,7 @@ def _try_module_version(name, check, required=True, version_attr="__version__"):
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", UserWarning)
+            warnings.simplefilter("ignore", RuntimeWarning)
             mod = __import__(name)
     except ImportError as e:
         if required:
