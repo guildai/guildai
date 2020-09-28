@@ -288,7 +288,7 @@ def _maybe_render_doc(s, vars):
     return fn.__doc__
 
 
-def completion_filename(ext=None):
+def completion_filename(ext=None, **_kw):
     if os.getenv("_GUILD_COMPLETE") == "complete":
         return _compgen_filenames("file", ext)
     else:
