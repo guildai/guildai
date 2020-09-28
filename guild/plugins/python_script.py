@@ -147,7 +147,8 @@ class ImportedFlagsOpProxy(object):
             try:
                 flag_data = guildfile.coerce_flag_data(name, flag_data, self.guildfile)
             except guildfile.GuildfileError as e:
-                log.warning("cannot import flags from %s: %s", main_mod, e)
+                if os.getenv("NO_WARN_FLAGS_IMPORT") != "1":
+                    log.warning("cannot import flags from %s: %s", main_mod, e)
             else:
                 flags.append(guildfile.FlagDef(name, flag_data, self))
         return flags
@@ -272,15 +273,16 @@ class PythonScriptPlugin(pluginlib.Plugin):
         try:
             script = python_util.Script(mod_path, mod_package, sys_path)
         except SyntaxError as e:
-            self.log.warning(
-                "cannot import flags from %s: invalid syntax on line %i\n"
-                "  %s\n"
-                "  %s^",
-                mod_path,
-                e.lineno,
-                e.text.rstrip(),
-                " " * (e.offset - 1),
-            )
+            if os.getenv("NO_WARN_FLAGS_IMPORT") != "1":
+                self.log.warning(
+                    "cannot import flags from %s: invalid syntax on line %i\n"
+                    "  %s\n"
+                    "  %s^",
+                    mod_path,
+                    e.lineno,
+                    e.text.rstrip(),
+                    " " * (e.offset - 1),
+                )
             return {}
         else:
             try:
@@ -361,7 +363,10 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 error, details = _split_argparse_flags_error(e.output.decode().strip())
                 if details and self.log.getEffectiveLevel() > logging.DEBUG:
                     error += " (run with guild --debug for details)"
-                self.log.warning("cannot import flags from %s: %s", script.src, error)
+                if os.getenv("NO_WARN_FLAGS_IMPORT") != "1":
+                    self.log.warning(
+                        "cannot import flags from %s: %s", script.src, error
+                    )
                 if details and self.log.getEffectiveLevel() <= logging.DEBUG:
                     self.log.error(details)
                 raise DataLoadError()
