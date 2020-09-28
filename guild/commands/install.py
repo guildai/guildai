@@ -21,7 +21,13 @@ from guild import click_util
 
 
 @click.command()
-@click.argument("packages", metavar="PACKAGE...", nargs=-1, required=True)
+@click.argument(
+    "packages",
+    metavar="PACKAGE...",
+    nargs=-1,
+    required=True,
+    autocompletion=click_util.completion_filename,
+)
 @click.option(
     "-U",
     "--upgrade",
