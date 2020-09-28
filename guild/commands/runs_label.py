@@ -89,7 +89,7 @@ def label_runs(ctx, args):
 
     {{ runs_support.runs_arg }}
 
-    If a `RUN` argument is not specified, ``0`` is assumed (the most
+    If a `RUN` argument is not specified, ``1`` is assumed (the most
     recent run).
 
     {{ runs_support.all_filters }}

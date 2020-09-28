@@ -60,11 +60,11 @@ def stop_runs(ctx, args):
     Only runs with status of 'running' are considered for this
     operation.
 
-    If a `RUN` is not specified, the latest selected run is stopped.
+    If `RUN` is not specified, the latest selected run is stopped.
 
     {{ runs_support.runs_arg }}
 
-    If a `RUN` argument is not specified, ``0`` is assumed (the most
+    If a `RUN` argument is not specified, ``1`` is assumed (the most
     recent run with status 'running').
 
     {{ runs_support.op_and_label_filters }}
