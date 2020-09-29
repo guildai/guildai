@@ -34,6 +34,7 @@ from .runs_purge import purge_runs
 from .runs_push import push_runs
 from .runs_restore import restore_runs
 from .runs_stop import stop_runs
+from .runs_tag import tag_runs
 
 
 @click.group(invoke_without_command=True, cls=click_util.Group)
@@ -74,3 +75,4 @@ runs.add_command(purge_runs)
 runs.add_command(push_runs)
 runs.add_command(restore_runs)
 runs.add_command(stop_runs)
+runs.add_command(tag_runs)

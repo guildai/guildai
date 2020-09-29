@@ -30,7 +30,7 @@ def label_params(fn):
             runs_support.runs_arg,
             click.Option(("-s", "--set"), metavar="VAL", help="Set VAL as label."),
             click.Option(
-                ("-p", "-t", "--prepend", "--tag"),
+                ("-p", "--prepend"),
                 metavar="VAL",
                 help="Prepend VAL to existing label.",
             ),
@@ -38,7 +38,7 @@ def label_params(fn):
                 ("-a", "--append"), metavar="VAL", help="Append VAL to existing label."
             ),
             click.Option(
-                ("-rm", "-u", "--remove", "--untag"),
+                ("-rm", "--remove"),
                 metavar="VAL",
                 multiple=True,
                 help="Remove VAL from existing label. May be used multiple times.",
