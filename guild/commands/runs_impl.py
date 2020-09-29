@@ -93,6 +93,7 @@ CORE_RUN_ATTRS = [
     "sourcecode_digest",
     "started",
     "stopped",
+    "tags",
     "user",
     "user_flags",
     "vcs_commit",
@@ -143,6 +144,7 @@ def _runs_filter(args, ctx):
     _apply_status_filter(args, filters)
     _apply_ops_filter(args, filters)
     _apply_labels_filter(args, filters)
+    _apply_tags_filter(args, filters)
     _apply_marked_filter(args, filters)
     _apply_started_filter(args, ctx, filters)
     _apply_sourcecode_digest_filter(args, filters)
@@ -192,6 +194,19 @@ def _labels_filter(labels):
 def _unlabeled_filter():
     def f(run):
         return not run.get("label", "").strip()
+
+    return f
+
+
+def _apply_tags_filter(args, filters):
+    if args.tags:
+        filters.append(_tags_filter(args.tags))
+
+
+def _tags_filter(tags):
+    def f(run):
+        run_tags = run.get("tags") or []
+        return any((t in run_tags for t in tags))
 
     return f
 
@@ -663,6 +678,7 @@ def _print_run_info(run, args):
 def _run_info_data(run, args):
     data = []
     _append_attr_data(run, args.private_attrs, data)
+    data.append(("tags", run.get("tags") or []))
     data.append(("flags", run.get("flags") or {}))
     proto = run.batch_proto
     if proto:
@@ -1265,3 +1281,77 @@ def _run_scalar_args_for_select(scalar_spec):
             log.warning("ignoring 'as %s' in scalar", col.named_as)
         prefix, tag = col.split_key()
         return prefix, tag, col.qualifier, col.step
+
+
+def tag(args, ctx):
+    _check_tag_args(args, ctx)
+    if args.remote:
+        remote_impl_support.tag_runs(args)
+    else:
+        _set_tags(args, ctx)
+
+
+def _check_tag_args(args, ctx):
+    cmd_impl_support.check_required_args(
+        [
+            ("tags", "--tag"),
+            ("deletes", "--delete"),
+            "delete_all",
+        ],
+        args,
+        ctx,
+    )
+
+
+def _set_tags(args, ctx):
+    preview = _set_tags_preview(args)
+    confirm = "Continue?"
+    no_runs = "No runs to modify."
+
+    def set_tags(selected):
+        for run in selected:
+            old_tags = run.get("tags")
+            if args.delete_all:
+                run.del_attr("tags")
+            run.write_attr("tags", _tags_for_run(old_tags, args))
+            if args.sync_labels:
+                run.write_attr("label", _synced_label_for_tags(run, old_tags, args))
+        cli.out("Modified tags for %i run(s)" % len(selected))
+
+    runs_op(args, ctx, False, preview, confirm, no_runs, set_tags, LATEST_RUN_ARG, True)
+
+
+def _set_tags_preview(args):
+    lines = ["You are about to modify tags for the following runs:"]
+    if args.sync_labels:
+        lines.append(
+            cli.style("Labels are updated to reflect the latest tags.", fg="yellow")
+        )
+    else:
+        lines.append(
+            cli.style(
+                (
+                    "Labels are not updated - use --sync-labels to "
+                    "apply changes run labels."
+                ),
+                fg="yellow",
+            )
+        )
+    return "\n".join(lines)
+
+
+def _tags_for_run(old_tags, args):
+    tags = set(old_tags or [])
+    tags.update(args.tags)
+    tags.difference_update(args.deletes)
+    return sorted(tags)
+
+
+def _synced_label_for_tags(run, old_tags, args):
+    to_delete = set(args.deletes)
+    if args.delete_all:
+        to_delete.update(old_tags)
+    label = _remove_label_parts(to_delete, run.get("label") or "")
+    if args.tags:
+        label = "%s %s" % (" ".join(args.tags), label)
+    return label

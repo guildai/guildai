@@ -102,6 +102,7 @@ class Operation(oplib.Operation):
         self._objective = None
         self._label_template = None
         self._label = None
+        self._tags = []
         self._output_scalars = None
         self._sourcecode_root = None
 
@@ -193,7 +194,7 @@ def _state_init_user_op(S):
     _op_init_user_flags(S.args.flags, S.user_op)
     _op_init_op_cmd(S.user_op)
     _op_init_op_flags(S.args, S.user_op)
-    _op_init_config(S.args.label, S.args.tag, S.user_op)
+    _op_init_config(S.args.label, S.args.tags, S.user_op)
     _op_init_core(S.args, S.user_op)
 
 
@@ -612,34 +613,50 @@ def _filter_by_run_id_prefix(runs, run_id_prefix):
 # =================================================================
 
 
-def _op_init_config(label_arg, tag_arg, op):
-    if tag_arg:
-        assert not label_arg, label_arg
-        label_arg = "%s ${default_label}" % tag_arg
+def _op_init_config(label_arg, tags_arg, op):
+    label_template = _label_template(label_arg, tags_arg)
     if op._run:
-        _op_init_config_for_run(op._run, label_arg, op)
+        _op_init_config_for_run(op._run, label_template, tags_arg, op)
     else:
         assert op._opdef
-        _op_init_config_for_opdef(op._opdef, label_arg, op)
+        _op_init_config_for_opdef(op._opdef, label_template, tags_arg, op)
 
 
-def _op_init_config_for_run(run, label_arg, op):
+def _label_template(label_arg, tags_arg):
+    if not label_arg:
+        if not tags_arg:
+            return None
+        return "%s ${default_label}" % _format_tags_for_label(tags_arg)
+    else:
+        if not tags_arg:
+            return label_arg
+        return "%s %s" % (_format_tags_for_label(tags_arg), label_arg)
+
+
+def _format_tags_for_label(tags):
+    return " ".join(tags)
+
+
+def _op_init_config_for_run(run, label_template, tags, op):
     config = run.get("op")
     if not config:
         _missing_op_config_for_restart_error(run)
     if not config.get("op-cmd"):
         _invalid_op_config_for_restart_error(run)
     _apply_op_config_data(config, op)
-    if label_arg:
-        op._label_template = label_arg
+    if label_template:
+        op._label_template = label_template
+    if tags:
+        op._tags = tags
 
 
-def _op_init_config_for_opdef(opdef, label_arg, op):
+def _op_init_config_for_opdef(opdef, label_template, tags, op):
     op._flag_null_labels = _flag_null_labels_for_opdef(opdef, op._resource_flagdefs)
     op._python_requires = _python_requires_for_opdef(opdef)
-    op._label_template = label_arg or opdef.label
+    op._label_template = label_template or opdef.label
     op._output_scalars = opdef.output_scalars
     op._sourcecode_root = _opdef_sourcecode_dest(opdef)
+    op._tags = list(tags) + opdef.tags
 
 
 def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
@@ -884,6 +901,8 @@ def _op_init_run_attrs(args, op):
     attrs = op.run_attrs
     if op._label:
         attrs["label"] = op._label
+    if op._tags:
+        attrs["tags"] = op._tags
     if op._batch_trials:
         attrs["trials"] = op._batch_trials
     attrs["flags"] = op._op_flag_vals
@@ -1083,7 +1102,7 @@ def _state_init_batch_op(S):
         _op_init_op_cmd(S.batch_op)
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)
-        _op_init_config(S.args.batch_label, S.args.batch_tag, S.batch_op)
+        _op_init_config(S.args.batch_label, S.args.batch_tags, S.batch_op)
         _op_init_batch_config(S.args, S.user_op, S.batch_op)
         _apply_batch_flag_encoder(S.batch_op, S.user_op)
         _op_init_core(S.args, S.batch_op)
@@ -1342,8 +1361,6 @@ def _check_incompatible_options(args):
         ("stage", "pidfile"),
         ("remote", "background"),
         ("remote", "pidfile"),
-        ("tag", "label"),
-        ("batch_tag", "batch_label"),
     ]
     for a, b in incompatible:
         if getattr(args, a) and getattr(args, b):

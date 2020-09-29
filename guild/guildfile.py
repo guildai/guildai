@@ -549,6 +549,8 @@ def _coerce_str_to_list(val, guildfile, name):
         return [val]
     elif isinstance(val, list):
         return val
+    elif val is None:
+        return []
     else:
         raise GuildfileError(
             guildfile, "invalid %s value %r: expected a string or list" % (name, val)
@@ -1011,6 +1013,7 @@ class OpDef(object):
         self.stoppable = data.get("stoppable") or False
         self.set_trace = data.get("set-trace") or False
         self.label = data.get("label")
+        self.tags = _coerce_str_to_list(data.get("tags"), self.guildfile, "tags")
         self.compare = data.get("compare")
         self.handle_keyboard_interrupt = data.get("handle-keyboard-interrupt") or False
         self.flag_encoder = data.get("flag-encoder")

@@ -23,17 +23,17 @@ from guild import click_util
 def ac_run(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
-    runs = _ac_runs_for_ctx(ctx)
+    runs = ac_runs_for_ctx(ctx)
     return sorted([run.id for run in runs if run.id.startswith(incomplete)])
 
 
-def _ac_runs_for_ctx(ctx):
+def ac_runs_for_ctx(ctx):
     from guild import config
     from . import runs_impl
 
     param_args = click_util.Args(**ctx.params)
     with config.SetGuildHome(ctx.parent.params.get("guild_home")):
-        return runs_impl.filtered_runs(param_args, ctx=ctx)
+        return runs_impl.runs_for_args(param_args, ctx=ctx)
 
 
 def ac_operation(ctx, incomplete, **_kw):
@@ -41,7 +41,7 @@ def ac_operation(ctx, incomplete, **_kw):
 
     if ctx.params.get("remote"):
         return []
-    runs = _ac_runs_for_ctx(ctx)
+    runs = ac_runs_for_ctx(ctx)
     ops = set([run_util.format_operation(run, nowarn=True) for run in runs])
     return sorted([op for op in ops if op.startswith(incomplete)])
 
@@ -49,9 +49,13 @@ def ac_operation(ctx, incomplete, **_kw):
 def ac_label(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
-    runs = _ac_runs_for_ctx(ctx)
+    runs = ac_runs_for_ctx(ctx)
     labels = set([run.get("label") or "" for run in runs])
     return sorted([_quote_label(l) for l in labels if l and l.startswith(incomplete)])
+
+
+def ac_tag(ctx, incomplete, **_kw):
+    return ["TODO"]
 
 
 def _quote_label(l):
@@ -61,7 +65,7 @@ def _quote_label(l):
 def ac_digest(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
-    runs = _ac_runs_for_ctx(ctx)
+    runs = ac_runs_for_ctx(ctx)
     digests = set([run.get("sourcecode_digest") or "" for run in runs])
     return sorted([d for d in digests if d and d.startswith(incomplete)])
 
@@ -151,16 +155,22 @@ def op_and_label_filters(fn):
     only included if any part of its full operation name, including
     the package and model name, matches the value.
 
-    Use `--label` to only include runs with labels matching a
+    Use `--label` to only include runs with labels containing a
     specified value.
 
-    `--operation` and `--label` may be used multiple times to expand
-    the runs that are included.
+    Use `--tag` to only include runs with a specified tag. Tags must
+    match completely and are case sensitive.
+
+    `--operation`, `--label`, and `--tag` may be used multiple times
+    to expand the runs that are included.
 
     Use `--unlabeled` to only include runs without labels. This option
     may not be used with `--label`.
 
     Use `--marked` to only include marked runs.
+
+    Use `--unmarked` to only include unmarked runs. This option may
+    not be used with `--marked`.
 
     """
     click_util.append_params(
@@ -179,6 +189,13 @@ def op_and_label_filters(fn):
                 help="Filter runs with labels matching `VAL`.",
                 multiple=True,
                 autocompletion=ac_label,
+            ),
+            click.Option(
+                ("-t", "--tag", "tags"),
+                metavar="TAG",
+                help="Filter runs with a specified tag.",
+                multiple=True,
+                autocompletion=ac_tag,
             ),
             click.Option(
                 ("-U", "--unlabeled"),
