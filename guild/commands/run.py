@@ -104,6 +104,18 @@ def _ac_used_flags(flag_args, opdef):
     return flag_vals
 
 
+def _ac_run(incomplete, ctx, **_kw):
+    from guild import config
+    from guild import var
+
+    with config.SetGuildHome(ctx.parent.params.get("guild_home")):
+        runs = var.runs(
+            sort=["-timestamp"],
+            filter=lambda r: r.id.startswith(incomplete),
+        )
+    return [run.id for run in runs]
+
+
 def run_params(fn):
     click_util.append_params(
         fn,
@@ -141,6 +153,7 @@ def run_params(fn):
                     "Start a staged run or restart an existing run. Cannot be "
                     "used with --proto or --run-dir."
                 ),
+                autocompletion=_ac_run,
             ),
             click.Option(
                 ("--proto",),
@@ -150,6 +163,7 @@ def run_params(fn):
                     "be added or redefined in this operation. Cannot "
                     "be used with --restart."
                 ),
+                autocompletion=_ac_run,
             ),
             click.Option(
                 ("--force-sourcecode",),
