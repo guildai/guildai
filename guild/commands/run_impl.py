@@ -1647,10 +1647,19 @@ def _save_trials(S):
 
 
 def _save_trials_path(save_trials_arg):
+    _check_trials_path(save_trials_arg)
     cwd = config.cwd()
     return (
         os.path.join(cwd, save_trials_arg) if cwd not in (".", "") else save_trials_arg
     )
+
+
+def _check_trials_path(path):
+    _, ext = os.path.splitext(path)
+    if ext.lower() not in (".csv", ".json", ""):
+        cli.error(
+            "Unsupported extension '%s' - use '.csv', '.json', or no extension" % ext
+        )
 
 
 ###################################################################

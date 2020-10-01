@@ -10,14 +10,17 @@ We'll use the `optimizers` project to illustrate.
 Let's create a directory to save our trials in.
 
     >>> save_dir = mkdtemp()
-    >>> dest_path = path(save_dir, "trials.csv")
 
-Let's run with a set of flags and the `save_trials` flag.
+## CSV Format
+
+    >>> csv_path = path(save_dir, "trials.csv")
+
+Run with a set of flags and the `save_trials` flag.
 
     >>> project.run(
     ...     "echo.py",
-    ...     flags={"x": [1.1, 2.2], "y": [1, 2], "z": ["b"]},
-    ...     save_trials=dest_path)
+    ...     flags={"x": [1.1], "y": [1], "z": ["b", "1", "a a"]},
+    ...     save_trials=csv_path)
     Saving trials to .../trials.csv
 
 The contents of our save directory:
@@ -27,21 +30,90 @@ The contents of our save directory:
 
 And the trials file:
 
-    >>> cat(dest_path)
+    >>> cat(csv_path)
     x,y,z
     1.1,1,b
-    1.1,2,b
-    2.2,1,b
-    2.2,2,b
+    1.1,1,'1'
+    1.1,1,a a
 
-We can use the trials file to run a batch.
+Use the trials file to run a batch.
 
-    >>> project.run("echo.py", batch_files=[dest_path])
+    >>> project.run("echo.py", batch_files=[csv_path])
     INFO: [guild] Running trial ...: echo.py (x=1.1, y=1, z=b)
     1.1 1 'b'
-    INFO: [guild] Running trial ...: echo.py (x=1.1, y=2, z=b)
-    1.1 2 'b'
-    INFO: [guild] Running trial ...: echo.py (x=2.2, y=1, z=b)
-    2.2 1 'b'
-    INFO: [guild] Running trial ...: echo.py (x=2.2, y=2, z=b)
-    2.2 2 'b'
+    INFO: [guild] Running trial ...: echo.py (x=1.1, y=1, z='1')
+    1.1 1 '1'
+    INFO: [guild] Running trial ...: echo.py (x=1.1, y=1, z='a a')
+    1.1 1 'a a'
+
+## JSON Format
+
+    >>> json_path = path(save_dir, "trials.json")
+
+Save trials.
+
+    >>> project.run(
+    ...     "echo.py",
+    ...     flags={"x": [1.1], "y": [1], "z": ["b", "1", "a a"]},
+    ...     save_trials=json_path)
+    Saving trials to .../trials.json
+
+The contents of our save directory:
+
+    >>> find(save_dir)
+    trials.csv
+    trials.json
+
+And the trials file:
+
+    >>> cat(json_path)
+    [{"y": 1, "x": 1.1, "z": "b"},
+     {"y": 1, "x": 1.1, "z": "1"},
+     {"y": 1, "x": 1.1, "z": "a a"}]
+
+Use the trials file to run a batch.
+
+    >>> project.run("echo.py", batch_files=[json_path])
+    INFO: [guild] Running trial ...: echo.py (x=1.1, y=1, z=b)
+    1.1 1 'b'
+    INFO: [guild] Running trial ...: echo.py (x=1.1, y=1, z='1')
+    1.1 1 '1'
+    INFO: [guild] Running trial ...: echo.py (x=1.1, y=1, z='a a')
+    1.1 1 'a a'
+
+## CSV Format - No Extension
+
+    >>> noext_path = path(save_dir, "trials")
+
+Save trials.
+
+    >>> project.run("echo.py", flags={"x": [1]}, save_trials=noext_path)
+    Saving trials to .../trials
+
+The contents of our save directory:
+
+    >>> find(save_dir)
+    trials
+    trials.csv
+    trials.json
+
+And the trials file:
+
+    >>> cat(noext_path)
+    x,y,z
+    1,2,a
+
+Use the trials file to run a batch.
+
+    >>> project.run("echo.py", batch_files=[noext_path])
+    1 2 'a'
+
+## Unsupported Format
+
+    >>> other_path = path(save_dir, "trials.xxx")
+
+Save trials.
+
+    >>> project.run("echo.py", flags={"x": [1]}, save_trials=other_path)
+    guild: Unsupported extension '.xxx' - use '.csv', '.json', or no extension
+    <exit 1>
