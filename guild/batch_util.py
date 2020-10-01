@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import csv
+import json
 import itertools
 import logging
 import os
@@ -73,18 +74,19 @@ def _print_trials_cmd(batch_run, trials):
 
 def _print_trials(trials):
     if trials:
-        data, cols = _trials_table_data(trials)
+        data, cols = _trials_table_data(trials, format=True)
         cli.table(data, cols)
 
 
-def _trials_table_data(trials):
+def _trials_table_data(trials, format=False):
     names = set()
     data = []
+    maybe_format = flag_util.encode_flag_val if format else lambda x: x
     for i, flags in enumerate(trials):
         row = {"_trial": i + 1}
         data.append(row)
         if flags:
-            row.update({name: flag_util.encode_flag_val(flags[name]) for name in flags})
+            row.update({name: maybe_format(flags[name]) for name in flags})
             names.update(flags)
     heading = {name: name for name in names}
     heading["_trial"] = "#"
@@ -92,12 +94,31 @@ def _trials_table_data(trials):
 
 
 def _save_trials(trials, path):
-    data, cols = _trials_table_data(trials)
-    cols.remove("_trial")  # Don't include trial number in CSV
+    _, ext = os.path.splitext(path)
+    if ext.lower() == ".json":
+        _save_trials_json(trials, path)
+    else:
+        assert ext.lower() in (".csv", ""), "unsupported extension in path '%s'" % path
+        _save_trials_csv(trials, path)
+
+
+def _save_trials_json(trials, path):
+    data, _ = _trials_table_data(trials, format=False)
+    with open(path, "w") as f:
+        json.dump(_strip_trial_nums(data[1:]), f)
+
+
+def _strip_trial_nums(data):
+    return [{name: row[name] for name in row if name != "_trial"} for row in data]
+
+
+def _save_trials_csv(trials, path):
+    data, cols = _trials_table_data(trials, format=True)
     with open(path, "w") as f:
         out = csv.writer(f, lineterminator="\n")
         for row in data:
-            out.writerow([row.get(name, "") for name in cols])
+            row_vals = [row.get(name, "") for name in cols if name != "_trial"]
+            out.writerow(row_vals)
 
 
 def _run_trials(batch_run, trials):
