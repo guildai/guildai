@@ -109,6 +109,7 @@ Info for the latest train run, including dependencies:
     command: ... -um guild.op_main train --
     exit_status: 0
     pid:
+    tags:
     flags:
       prepared-data: ...
     scalars:

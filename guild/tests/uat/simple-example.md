@@ -90,6 +90,7 @@ The `train` operation, defined in the Guild file, defines non-default columns:
     command: ... -um guild.op_main mnist -- --batch_size 100 --epochs 1
     exit_status: 0
     pid:
+    tags:
     flags:
       batch_size: 100
       epochs: 1
@@ -189,6 +190,7 @@ View using runs info:
              --rundir .
     exit_status: 0
     pid:
+    tags:
     flags:
       batch_size: 100
       datadir: data

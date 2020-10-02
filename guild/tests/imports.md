@@ -105,6 +105,7 @@
     guild.commands.runs_restore
     guild.commands.runs_stop
     guild.commands.runs_support
+    guild.commands.runs_tag
     guild.commands.s3_sync
     guild.commands.s3_sync_impl
     guild.commands.search
@@ -120,6 +121,7 @@
     guild.commands.sync
     guild.commands.sync_impl
     guild.commands.sys
+    guild.commands.tag
     guild.commands.tensorboard
     guild.commands.tensorboard_impl
     guild.commands.tensorflow

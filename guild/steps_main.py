@@ -39,7 +39,7 @@ log = None  # intialized in _init_logging
 
 STEP_USED_PARAMS = (
     "batch_label",
-    "batch_tag",
+    "batch_tags",
     "fail_on_trial_error",
     "flags",
     "force_flags",
@@ -57,7 +57,14 @@ STEP_USED_PARAMS = (
     "random_seed",
     "remote",
     "stop_after",
-    "tag",
+    "tags",
+)
+
+# List of batch params that a trial inherits if unset for trial.
+INHERITED_PARAMS = (
+    # (param_name, unset_val)
+    ("label", None),
+    ("tags", ()),
 )
 
 ###################################################################
@@ -69,7 +76,7 @@ class Step(object):
     def __init__(self, data, parent_flags, parent_opref, parent_run_params):
         data = _coerce_step_data(data)
         params = _run_params_for_step_data(data)
-        _apply_parent_run_params(parent_run_params, params)
+        _apply_batch_params_to_trial(parent_run_params, params)
         assert params["opspec"], params
         opspec_param = params["opspec"]
         self.op_spec = _apply_default_model(opspec_param, parent_opref)
@@ -79,12 +86,12 @@ class Step(object):
         self.isolate_runs = bool(data.get("isolate-runs", True))
         # Standard run params
         self.batch_label = params["batch_label"]
-        self.batch_tag = params["batch_tag"]
+        self.batch_tags = params["batch_tags"]
         self.fail_on_trial_error = params["fail_on_trial_error"]
         self.flags = _init_step_flags(flag_args, parent_flags, self)
         self.force_flags = params["force_flags"]
-        self.gpus = _resolve_param(params, "gpus", parent_flags)
-        self.label = _resolve_param(params, "label", parent_flags)
+        self.gpus = _resolve_refs(params["gpus"], parent_flags)
+        self.label = _resolve_refs(params["label"], parent_flags)
         self.max_trials = params["max_trials"]
         self.maximize = params["maximize"]
         self.minimize = params["minimize"]
@@ -96,7 +103,7 @@ class Step(object):
         self.random_seed = params["random_seed"]
         self.remote = params["remote"]
         self.stop_after = params["stop_after"]
-        self.tag = _resolve_param(params, "tag", parent_flags)
+        self.tags = [_resolve_refs(tag, parent_flags) for tag in params["tags"]]
 
     def __str__(self):
         return self.name or self.op_spec
@@ -140,7 +147,7 @@ def _run_params_for_step_data(data):
 
 
 def _apply_data_params(data, ctx, run_spec):
-    """Apply applicable data to params.
+    """Apply applicable data to ctx.params.
 
     Warns if params contains unused values.
     """
@@ -160,14 +167,14 @@ def _apply_data_params(data, ctx, run_spec):
                 log.warning("run parameter %s used in %r ignored", name, run_spec)
 
 
-def _apply_parent_run_params(parent_params, target_params):
-    """Applies parent run params to target params.
+def _apply_batch_params_to_trial(batch_params, trial_params):
+    """Applies batch params to trial params.
 
-    A parent param is applied if it isn't defined in target.
+    The list of parent params that are applied is defined by INHERITED_PARAMS.
     """
-    for name in parent_params:
-        if target_params.get(name) is None:
-            target_params[name] = parent_params[name]
+    for name, unset_val in INHERITED_PARAMS:
+        if name in batch_params and trial_params.get(name) == unset_val:
+            trial_params[name] = batch_params[name]
 
 
 def _init_step_flags(flag_args, parent_flag_vals, step):
@@ -234,10 +241,10 @@ def _remove_undefined_flags(flag_vals):
     return {name: val for name, val in flag_vals.items() if val is not None}
 
 
-def _resolve_param(params, name, flags):
-    resolved = util.resolve_refs(params[name], flags)
+def _resolve_refs(val, flags):
+    resolved = util.resolve_refs(val, flags)
     if resolved is None:
-        return resolved
+        return None
     return str(resolved)
 
 
@@ -379,8 +386,8 @@ def _step_options(step):
     opts = []
     if step.batch_label:
         opts.extend(["--batch-label", step.batch_label])
-    if step.batch_tag:
-        opts.extend(["--batch-tag", step.batch_tag])
+    for tag in step.batch_tags:
+        opts.extend(["--batch-tag", tag])
     if step.fail_on_trial_error:
         opts.append("--fail-on-trial-error")
     if step.force_flags:
@@ -411,8 +418,8 @@ def _step_options(step):
         opts.extend(["--remote", step.remote])
     if step.stop_after:
         opts.extend(["--stop-after", str(step.stop_after)])
-    if step.tag:
-        opts.extend(["--tag", step.tag])
+    for tag in step.tags:
+        opts.extend(["--tag", tag])
     return opts
 
 

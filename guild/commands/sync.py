@@ -29,9 +29,7 @@ from . import runs_support
     is_flag=True,
     help="Watch a remote run and synchronize in the background.",
 )
-@runs_support.op_and_label_filters
-@runs_support.time_filters
-@runs_support.sourcecode_digest_filters
+@runs_support.common_filters
 @click_util.use_args
 @click_util.render_doc
 def sync(args):
@@ -62,9 +60,7 @@ def sync(args):
     If a `RUN` argument is not specified, ``:`` is assumed (all runs
     are selected).
 
-    {{ runs_support.op_and_label_filters }}
-    {{ runs_support.time_filters }}
-
+    {{ runs_support.common_filters }}
     """
     from . import sync_impl
 

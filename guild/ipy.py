@@ -519,6 +519,7 @@ def runs(**kw):
 def _runs_cmd_args(
     operations=None,
     labels=None,
+    tags=None,
     running=False,
     completed=False,
     error=False,
@@ -534,6 +535,7 @@ def _runs_cmd_args(
     return click_util.Args(
         ops=operations,
         labels=labels,
+        tags=tags,
         running=running,
         completed=completed,
         error=error,

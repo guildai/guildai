@@ -49,6 +49,7 @@ Show latest staged run:
     command: ... -um guild.op_main train --noise 0.1 --x 3
     exit_status:
     pid:
+    tags:
     flags:
       noise: 0.1
       x: 3
@@ -71,7 +72,6 @@ List files for latest run:
       .guild/attrs/initialized
       .guild/attrs/label
       .guild/attrs/op
-      .guild/attrs/pip_freeze
       .guild/attrs/platform
       .guild/attrs/random_seed
       .guild/attrs/run_params

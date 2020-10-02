@@ -19,6 +19,8 @@ import os
 import subprocess
 import sys
 
+import six
+
 # Consider all Guild imports expensive and move to functions
 
 
@@ -84,7 +86,7 @@ def _popen_args(
     opspec=None,
     flags=None,
     label=None,
-    tag=None,
+    tags=None,
     run_dir=None,
     restart=None,
     start=None,
@@ -124,6 +126,7 @@ def _popen_args(
     cwd = cwd or "."
     flags = flags or {}
     opt_flags = opt_flags or {}
+    tags = tags or []
     args = [sys.executable, "-um", "guild.main_bootstrap"]
     if debug:
         args.append("--debug")
@@ -143,7 +146,7 @@ def _popen_args(
         args.append("--force-sourcecode")
     if label:
         args.extend(["--label", label])
-    if tag:
+    for tag in tags:
         args.extend(["--tag", tag])
     if batch_label:
         args.extend(['--batch-label', batch_label])
@@ -248,6 +251,7 @@ def _apply_runs_filters(kw, args):
 
     args.ops = kw.pop("ops", [])
     args.labels = kw.pop("labels", [])
+    args.tags = kw.pop("tags", [])
     args.unlabeled = kw.pop("unlabeled", False)
     args.marked = kw.pop("marked", False)
     args.unmarked = kw.pop("unmarked", False)
@@ -276,12 +280,96 @@ def runs_delete(runs=None, permanent=False, cwd=".", guild_home=None, **kw):
     from guild.commands import runs_impl
 
     args = click_util.Args(
-        runs=(runs or []), permanent=permanent, remote=False, yes=True
+        runs=_run_ids(runs), permanent=permanent, remote=False, yes=True
     )
     _apply_runs_filters(kw, args)
     _assert_empty_kw(kw, "runs_delete()")
     with Env(cwd, guild_home):
         runs_impl.delete_runs(args)
+
+
+def _run_ids(runs):
+    if not runs:
+        return []
+    return [_coerce_run_id(run) for run in runs]
+
+
+def _coerce_run_id(run):
+    if isinstance(run, six.string_types):
+        return run
+    else:
+        return run.id
+
+
+def runs_label(
+    runs=None,
+    set=None,
+    append=None,
+    prepend=None,
+    remove=None,
+    clear=False,
+    cwd=".",
+    guild_home=None,
+    **kw
+):
+    from guild import click_util
+    from guild.commands import runs_impl
+    from guild.commands import runs_label
+
+    args = click_util.Args(
+        runs=_run_ids(runs),
+        set=set,
+        append=append,
+        prepend=prepend,
+        remove=remove,
+        clear=clear,
+        remote=False,
+        yes=True,
+    )
+    _apply_runs_filters(kw, args)
+    _assert_empty_kw(kw, "runs_label()")
+    ctx = runs_label.label_runs.make_context("", [])
+    with Env(cwd, guild_home):
+        runs_impl.label(args, ctx)
+
+
+def runs_tag(
+    runs=None,
+    add=None,
+    remove=None,
+    clear=False,
+    sync_labels=False,
+    cwd=".",
+    guild_home=None,
+    **kw
+):
+    from guild import click_util
+    from guild.commands import runs_impl
+    from guild.commands import runs_tag
+
+    args = click_util.Args(
+        runs=_run_ids(runs),
+        add=_coerce_list(add),
+        delete=_coerce_list(remove),
+        clear=clear,
+        sync_labels=sync_labels,
+        remote=False,
+        yes=True,
+    )
+    _apply_runs_filters(kw, args)
+    _assert_empty_kw(kw, "runs_tag()")
+    ctx = runs_tag.tag_runs.make_context("", [])
+    with Env(cwd, guild_home):
+        runs_impl.tag(args, ctx)
+
+
+def _coerce_list(x):
+    if isinstance(x, list):
+        return x
+    elif x is None:
+        return []
+    else:
+        return [x]
 
 
 class NoCurrentRun(Exception):
@@ -307,7 +395,7 @@ def mark(runs, clear=False, cwd=".", guild_home=None, **kw):
     from guild import click_util
     from guild.commands import runs_impl
 
-    args = click_util.Args(runs=(runs or []), clear=clear, yes=True)
+    args = click_util.Args(runs=_run_ids(runs), clear=clear, yes=True)
     _apply_runs_filters(kw, args)
     _assert_empty_kw(kw, "mark()")
     with Env(cwd, guild_home):
@@ -333,7 +421,7 @@ def compare(
     from guild.commands import compare_impl
 
     args = click_util.Args(
-        runs=(runs or []),
+        runs=_run_ids(runs),
         extra_cols=extra_cols,
         all_scalars=all_scalars,
         cols=cols,
@@ -369,7 +457,7 @@ def publish(
     from guild.commands import publish_impl
 
     args = click_util.Args(
-        runs=(runs or []),
+        runs=_run_ids(runs),
         dest=dest,
         template=template,
         index_template=index_template,

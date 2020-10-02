@@ -197,7 +197,8 @@ def run_params(fn):
                 metavar="TAG",
                 help=(
                     "Associate TAG with batch. Ignored for non-batch runs. "
-                    "May be used multiple times."),
+                    "May be used multiple times."
+                ),
                 multiple=True,
             ),
             click.Option(
@@ -328,6 +329,7 @@ def run_params(fn):
                     "Saves generated trials to a CSV batch file. See BATCH FILES "
                     "for more information."
                 ),
+                autocompletion=click_util.completion_filename,
             ),
             click.Option(
                 ("--set-trace",),

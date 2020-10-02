@@ -67,9 +67,9 @@ The contents of our save directory:
 And the trials file:
 
     >>> cat(json_path)
-    [{"y": 1, "x": 1.1, "z": "b"},
-     {"y": 1, "x": 1.1, "z": "1"},
-     {"y": 1, "x": 1.1, "z": "a a"}]
+    [{"x": 1.1, "y": 1, "z": "b"},
+     {"x": 1.1, "y": 1, "z": "1"},
+     {"x": 1.1, "y": 1, "z": "a a"}]
 
 Use the trials file to run a batch.
 

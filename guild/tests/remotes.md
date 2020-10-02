@@ -57,6 +57,7 @@ Here are the commands that support the `remote` param:
     run
     runs
     stop
+    tag
     watch
 
 ## ssh configuration

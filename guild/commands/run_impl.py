@@ -623,14 +623,11 @@ def _op_init_config(label_arg, tags_arg, op):
 
 
 def _label_template(label_arg, tags_arg):
-    if not label_arg:
-        if not tags_arg:
-            return None
+    if label_arg:
+        return label_arg
+    if tags_arg:
         return "%s ${default_label}" % _format_tags_for_label(tags_arg)
-    else:
-        if not tags_arg:
-            return label_arg
-        return "%s %s" % (_format_tags_for_label(tags_arg), label_arg)
+    return None
 
 
 def _format_tags_for_label(tags):
@@ -931,11 +928,7 @@ def _apply_system_attrs(op, attrs):
 
 
 def _pip_freeze_required(op):
-    return op._opdef.pip_freeze is not False and _is_python_op(op)
-
-
-def _is_python_op(op):
-    return "python" in " ".join(op.cmd_args)
+    return op._opdef.pip_freeze
 
 
 def _pip_freeze():

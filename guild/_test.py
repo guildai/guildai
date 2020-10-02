@@ -808,7 +808,10 @@ class Project(object):
         gapi.package(cwd=self.cwd, guild_home=self.guild_home, **kw)
 
     def label(self, runs=None, **kw):
-        gapi.label(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
+        gapi.runs_label(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
+
+    def tag(self, runs=None, **kw):
+        gapi.runs_tag(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
 
     def select(self, run=None, **kw):
         return gapi.select(run, cwd=self.cwd, guild_home=self.guild_home, **kw)

@@ -28,9 +28,7 @@ def runs_stop_params(fn):
         fn,
         [
             runs_support.runs_arg,
-            runs_support.op_and_label_filters,
-            runs_support.time_filters,
-            runs_support.sourcecode_digest_filters,
+            runs_support.common_filters,
             remote_support.remote_option("Stop remote runs."),
             click.Option(
                 ("-y", "--yes"), help="Do not prompt before stopping.", is_flag=True
@@ -67,8 +65,7 @@ def stop_runs(ctx, args):
     If a `RUN` argument is not specified, ``0`` is assumed (the most
     recent run with status 'running').
 
-    {{ runs_support.op_and_label_filters }}
-    {{ runs_support.time_filters }}
+    {{ runs_support.common_filters }}
 
     ### Stop Remote Runs
 

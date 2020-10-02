@@ -17,6 +17,7 @@ Use `guild runs info` to show information about the latest run:
     command: ... -um guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5
     exit_status: 0
     pid:
+    tags:
     flags:
       batch-size: 100
       epochs: 1
@@ -233,5 +234,6 @@ JSON output, including private attrs:
         "started": "...",
         "status": "completed",
         "stopped": "...",
+        "tags": [],
         "vcs_commit": ""
     }

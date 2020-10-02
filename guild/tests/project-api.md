@@ -92,7 +92,7 @@ Providing an supported filter generates an error:
 
 Use a tag for a label.
 
-    >>> project.run_quiet("simple", tag="a_tag")
+    >>> project.run_quiet("simple", tags=["a_tag"])
 
     >>> runs = project.list_runs(labels=["a_tag"])
 
