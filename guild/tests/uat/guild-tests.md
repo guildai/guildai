@@ -37,6 +37,7 @@ tests).
       debug-sourcecode:            ok
       dependencies:                ok
       dependencies-2:              ok
+      deprecated-options:          ok
       disk-plugin:                 ok
       entry-points:                ok
       file-utils:                  ok
