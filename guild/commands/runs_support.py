@@ -15,9 +15,14 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
+import sys
+
 import click
 
 from guild import click_util
+
+log = logging.getLogger("guild")
 
 
 def ac_run(ctx, incomplete, **_kw):
@@ -253,58 +258,79 @@ def common_filters(fn):
         fn,
         [
             click.Option(
-                ("-fo", "-o", "--operation", "ops"),
+                ("-Fo", "-o", "--operation", "ops"),
                 metavar="VAL",
                 help="Filter runs with operations matching `VAL`.",
                 multiple=True,
                 autocompletion=ac_operation,
+                callback=_deprecated("-o", "-Fo"),
             ),
             click.Option(
-                ("-fl", "-l", "--label", "labels"),
+                ("-Fl", "-l", "--label", "labels"),
                 metavar="VAL",
                 help="Filter runs with labels matching `VAL`.",
                 multiple=True,
                 autocompletion=ac_label,
+                callback=_deprecated("-l", "-Fl"),
             ),
             click.Option(
-                ("-fu", "-U", "--unlabeled"),
+                ("-Fu", "-U", "--unlabeled"),
                 help="Filter only runs without labels.",
                 is_flag=True,
+                callback=_deprecated("-U", "-Fu"),
             ),
             click.Option(
-                ("-ft", "--tag", "tags"),
+                ("-Ft", "--tag", "tags"),
                 metavar="TAG",
                 help="Filter runs having TAG.",
                 multiple=True,
                 autocompletion=ac_tag,
             ),
             click.Option(
-                ("-fm", "-M", "--marked"),
+                ("-Fm", "-M", "--marked"),
                 help="Filter only marked runs.",
                 is_flag=True,
+                callback=_deprecated("-M", "-Fm"),
             ),
             click.Option(
-                ("-fn", "-N", "--unmarked"),
+                ("-Fn", "-N", "--unmarked"),
                 help="Filter only unmarked runs.",
                 is_flag=True,
+                callback=_deprecated("-N", "-Fn"),
             ),
             click.Option(
-                ("-fs", "-S", "--started"),
+                ("-Fs", "-S", "--started"),
                 metavar="RANGE",
                 help=(
                     "Filter only runs started within RANGE. See above "
                     "for valid time ranges."
                 ),
+                callback=_deprecated("-S", "-Fs"),
             ),
             click.Option(
-                ("-fd", "-D", "--digest"),
+                ("-Fd", "-D", "--digest"),
                 metavar="VAL",
                 help=("Filter only runs with a matching source code digest."),
                 autocompletion=ac_digest,
+                callback=_deprecated("-D", "-Fd"),
             ),
         ],
     )
     return fn
+
+
+def _deprecated(old_option, new_option):
+    def f(_ctx, _param, value):
+        if old_option in sys.argv:
+            log.warning(
+                "option '%s' is deprecated and will be removed in version "
+                "0.8 - use '%s' instead",
+                old_option,
+                new_option,
+            )
+        return value
+
+    return f
 
 
 def status_filters(fn):
@@ -325,34 +351,40 @@ def status_filters(fn):
         fn,
         [
             click.Option(
-                ("-sr", "-R", "--running"),
+                ("-Sr", "-R", "--running"),
                 help="Filter only runs that are still running.",
                 is_flag=True,
+                callback=_deprecated("-R", "-Sr"),
             ),
             click.Option(
-                ("-sc", "-C", "--completed"),
+                ("-Sc", "-C", "--completed"),
                 help="Filter only completed runs.",
                 is_flag=True,
+                callback=_deprecated("-C", "-Sc"),
             ),
             click.Option(
-                ("-se", "-E", "--error"),
+                ("-Se", "-E", "--error"),
                 help="Filter only runs that exited with an error.",
                 is_flag=True,
+                callback=_deprecated("-E", "-Se"),
             ),
             click.Option(
-                ("-st", "-T", "--terminated"),
+                ("-St", "-T", "--terminated"),
                 help="Filter only runs terminated by the user.",
                 is_flag=True,
+                callback=_deprecated("-T", "-St"),
             ),
             click.Option(
-                ("-sp", "-P", "--pending"),
+                ("-Sp", "-P", "--pending"),
                 help="Filter only pending runs.",
                 is_flag=True,
+                callback=_deprecated("-P", "-Sp"),
             ),
             click.Option(
-                ("-ss", "-G", "--staged"),
+                ("-Ss", "-G", "--staged"),
                 help="Filter only staged runs.",
                 is_flag=True,
+                callback=_deprecated("-G", "-Sg"),
             ),
         ],
     )

@@ -946,15 +946,18 @@ def _normlf(s):
     return s.replace("\r", "")
 
 
-def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
+def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None, guild_home=None):
     cmd = "set -eu && %s" % cmd
+    env = dict(os.environ)
+    if guild_home:
+        env["GUILD_HOME"] = guild_home
     p = subprocess.Popen(
         [cmd],
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         preexec_fn=os.setsid,
-        env=os.environ,
+        env=env,
     )
     with _kill_after(p, timeout):
         out, err = p.communicate()
