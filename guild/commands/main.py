@@ -26,6 +26,7 @@ from guild import util
 
 from .cat import cat
 from .check import check
+from .comment import comment
 from .compare import compare
 from .completion import completion
 from .diff import diff
@@ -106,6 +107,7 @@ def main(args):
 
 main.add_command(cat)
 main.add_command(check)
+main.add_command(comment)
 main.add_command(compare)
 main.add_command(completion)
 main.add_command(diff)
