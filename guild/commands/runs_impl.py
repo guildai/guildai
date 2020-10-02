@@ -1369,3 +1369,7 @@ def _tags_not_in_label(tags, label):
         return []
     label_parts = util.shlex_split(label)
     return [tag for tag in tags if tag not in label_parts]
+
+
+def comment(args, _ctx):
+    print("TODO", args)

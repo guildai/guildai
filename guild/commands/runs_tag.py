@@ -48,7 +48,7 @@ def tag_params(fn):
             click.Option(
                 ("-a", "--add"),
                 metavar="TAG",
-                help="Associate TAG with specified runs. May be used multiple times",
+                help="Associate TAG with specified runs. May be used multiple times.",
                 multiple=True,
             ),
             click.Option(
@@ -94,7 +94,7 @@ def tag_runs(ctx, args):
     related commands.
 
     Use this command to add and remove tags for one or more runs. To
-    remove all tags, use `--delete-all`.
+    remove all tags, use `--clear`.
 
     Note that modifying tags for a run does not modify the run label,
     which may contain tags from when the run was generated. To update
