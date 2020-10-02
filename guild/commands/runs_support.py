@@ -32,6 +32,8 @@ def ac_runs_for_ctx(ctx):
     from . import runs_impl
 
     param_args = click_util.Args(**ctx.params)
+    if not hasattr(param_args, "runs"):
+        param_args.runs = []
     with config.SetGuildHome(ctx.parent.params.get("guild_home")):
         return runs_impl.runs_for_args(param_args, ctx=ctx)
 
@@ -54,12 +56,24 @@ def ac_label(ctx, incomplete, **_kw):
     return sorted([_quote_label(l) for l in labels if l and l.startswith(incomplete)])
 
 
-def ac_tag(ctx, incomplete, **_kw):
-    return ["TODO"]
-
-
 def _quote_label(l):
     return "\"%s\"" % l
+
+
+def ac_tag(ctx, incomplete, **_kw):
+    if ctx.params.get("remote"):
+        return []
+    # Reset tags to avoid limiting results based on selected tags.
+    ctx.params["tags"] = []
+    runs = ac_runs_for_ctx(ctx)
+    return [tag for tag in _all_tags_sorted(runs) if tag.startswith(incomplete)]
+
+
+def _all_tags_sorted(runs):
+    tags = set()
+    for run in runs:
+        tags.update(run.get("tags") or [])
+    return sorted(tags)
 
 
 def ac_digest(ctx, incomplete, **_kw):
@@ -148,120 +162,40 @@ def run_arg(fn):
     return fn
 
 
-def op_and_label_filters(fn):
-    """### Filter by Operation or Label
+def common_filters(fn):
+    """### Filter by Operation
 
     Runs may be filtered by operation using `--operation`.  A run is
     only included if any part of its full operation name, including
     the package and model name, matches the value.
 
+    Use `--operation` multiple times to include more runs.
+
+    ### Filter by Label
+
     Use `--label` to only include runs with labels containing a
     specified value.
+
+    Use `--label` multiple times to include more runs.
+
+    Use `--unlabeled` to only include runs without labels. This option
+    may not be used with `--label`.
+
+    ### Filter by Tag
 
     Use `--tag` to only include runs with a specified tag. Tags must
     match completely and are case sensitive.
 
-    `--operation`, `--label`, and `--tag` may be used multiple times
-    to expand the runs that are included.
+    Use `--tag` multiple times to include more runs.
 
-    Use `--unlabeled` to only include runs without labels. This option
-    may not be used with `--label`.
+    ### Filter by Marked and Unmarked
 
     Use `--marked` to only include marked runs.
 
     Use `--unmarked` to only include unmarked runs. This option may
     not be used with `--marked`.
 
-    """
-    click_util.append_params(
-        fn,
-        [
-            click.Option(
-                ("-o", "--operation", "ops"),
-                metavar="VAL",
-                help="Filter runs with operations matching `VAL`.",
-                multiple=True,
-                autocompletion=ac_operation,
-            ),
-            click.Option(
-                ("-l", "--label", "labels"),
-                metavar="VAL",
-                help="Filter runs with labels matching `VAL`.",
-                multiple=True,
-                autocompletion=ac_label,
-            ),
-            click.Option(
-                ("-t", "--tag", "tags"),
-                metavar="TAG",
-                help="Filter runs with a specified tag.",
-                multiple=True,
-                autocompletion=ac_tag,
-            ),
-            click.Option(
-                ("-U", "--unlabeled"),
-                help="Filter only runs without labels.",
-                is_flag=True,
-            ),
-            click.Option(
-                ("-M", "--marked"), help="Filter only marked runs.", is_flag=True
-            ),
-            click.Option(
-                ("-N", "--unmarked"), help="Filter only unmarked runs.", is_flag=True
-            ),
-        ],
-    )
-    return fn
-
-
-def status_filters(fn):
-    """### Filter by Run Status
-
-    Runs may also be filtered by specifying one or more status
-    filters: `--running`, `--completed`, `--error`, and
-    `--terminated`. These may be used together to include runs that
-    match any of the filters. For example to only include runs that
-    were either terminated or exited with an error, use ``--terminated
-    --error``, or the short form ``-ET``.
-
-    Status filters are applied before `RUN` indexes are resolved. For
-    example, a run index of ``1`` is the latest run that matches the
-    status filters.
-
-    """
-    click_util.append_params(
-        fn,
-        [
-            click.Option(
-                ("-R", "--running"),
-                help="Filter only runs that are still running.",
-                is_flag=True,
-            ),
-            click.Option(
-                ("-C", "--completed"), help="Filter only completed runs.", is_flag=True
-            ),
-            click.Option(
-                ("-E", "--error"),
-                help="Filter only runs that exited with an error.",
-                is_flag=True,
-            ),
-            click.Option(
-                ("-T", "--terminated"),
-                help="Filter only runs terminated by the user.",
-                is_flag=True,
-            ),
-            click.Option(
-                ("-P", "--pending"), help="Filter only pending runs.", is_flag=True
-            ),
-            click.Option(
-                ("-G", "--staged"), help="Filter only staged runs.", is_flag=True
-            ),
-        ],
-    )
-    return fn
-
-
-def time_filters(fn):
-    """### Filter by Run Start Time
+    ### Filter by Run Start Time
 
     Use `--started` to limit runs to those that have started within a
     specified time range.
@@ -270,7 +204,7 @@ def time_filters(fn):
     spaces. For example, to filter runs started within the last hour,
     use the option:
 
-        --selected 'last hour'
+        --started 'last hour'
 
     You can specify a time range using several different forms:
 
@@ -310,39 +244,116 @@ def time_filters(fn):
       `last month`
       `3 weeks ago`
 
+    ### Filter by Source Code Digest
+
+    To show runs for a specific source code digest, use `-g` or
+    `--digest` with a complete or partial digest value.
     """
     click_util.append_params(
         fn,
         [
             click.Option(
-                ("-S", "--started"),
+                ("-fo", "-o", "--operation", "ops"),
+                metavar="VAL",
+                help="Filter runs with operations matching `VAL`.",
+                multiple=True,
+                autocompletion=ac_operation,
+            ),
+            click.Option(
+                ("-fl", "-l", "--label", "labels"),
+                metavar="VAL",
+                help="Filter runs with labels matching `VAL`.",
+                multiple=True,
+                autocompletion=ac_label,
+            ),
+            click.Option(
+                ("-fu", "-U", "--unlabeled"),
+                help="Filter only runs without labels.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-ft", "--tag", "tags"),
+                metavar="TAG",
+                help="Filter runs having TAG.",
+                multiple=True,
+                autocompletion=ac_tag,
+            ),
+            click.Option(
+                ("-fm", "-M", "--marked"),
+                help="Filter only marked runs.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-fn", "-N", "--unmarked"),
+                help="Filter only unmarked runs.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-fs", "-S", "--started"),
                 metavar="RANGE",
                 help=(
                     "Filter only runs started within RANGE. See above "
                     "for valid time ranges."
                 ),
-            )
+            ),
+            click.Option(
+                ("-fd", "-D", "--digest"),
+                metavar="VAL",
+                help=("Filter only runs with a matching source code digest."),
+                autocompletion=ac_digest,
+            ),
         ],
     )
     return fn
 
 
-def sourcecode_digest_filters(fn):
-    """### Filter by Source Code Digest
+def status_filters(fn):
+    """### Filter by Run Status
 
-    To show runs for a specific source code digest, use `-g` or
-    `--digest` with a complete or partial digest value.
+    Runs may also be filtered by specifying one or more status
+    filters: `--running`, `--completed`, `--error`, and
+    `--terminated`. These may be used together to include runs that
+    match any of the filters. For example to only include runs that
+    were either terminated or exited with an error, use ``--terminated
+    --error``, or the short form ``-ET``.
 
+    Status filters are applied before `RUN` indexes are resolved. For
+    example, a run index of ``1`` is the latest run that matches the
+    status filters.
     """
     click_util.append_params(
         fn,
         [
             click.Option(
-                ("-D", "--digest"),
-                metavar="VAL",
-                help=("Filter only runs with a matching source code digest."),
-                autocompletion=ac_digest,
-            )
+                ("-sr", "-R", "--running"),
+                help="Filter only runs that are still running.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-sc", "-C", "--completed"),
+                help="Filter only completed runs.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-se", "-E", "--error"),
+                help="Filter only runs that exited with an error.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-st", "-T", "--terminated"),
+                help="Filter only runs terminated by the user.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-sp", "-P", "--pending"),
+                help="Filter only pending runs.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-ss", "-G", "--staged"),
+                help="Filter only staged runs.",
+                is_flag=True,
+            ),
         ],
     )
     return fn
@@ -351,18 +362,14 @@ def sourcecode_digest_filters(fn):
 @click_util.render_doc
 def all_filters(fn):
     """
-    {{ op_and_label_filters }}
+    {{ common_filters }}
     {{ status_filters }}
-    {{ time_filters }}
-    {{ sourcecode_digest_filters }}
     """
     click_util.append_params(
         fn,
         [
-            op_and_label_filters,
+            common_filters,
             status_filters,
-            time_filters,
-            sourcecode_digest_filters,
         ],
     )
     return fn

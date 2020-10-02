@@ -15,6 +15,7 @@
     command: ... -um guild.op_main cat -- --file hello.txt
     exit_status: 0
     pid:
+    tags:
     flags:
       file: hello.txt
     scalars:

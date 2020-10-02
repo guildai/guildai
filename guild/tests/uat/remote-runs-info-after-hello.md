@@ -15,6 +15,7 @@
     command: ... -um guild.op_main hello.cat --
     exit_status: 0
     pid:
+    tags:
     flags:
       op: ...
     scalars:

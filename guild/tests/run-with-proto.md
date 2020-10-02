@@ -69,7 +69,6 @@ Files that are the same:
      '.guild/attrs/host',
      '.guild/attrs/label',
      '.guild/attrs/op',
-     '.guild/attrs/pip_freeze',
      '.guild/attrs/platform',
      '.guild/attrs/random_seed',
      '.guild/attrs/sourcecode_digest',

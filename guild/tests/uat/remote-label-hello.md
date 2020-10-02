@@ -12,7 +12,7 @@ Set a label:
 
 Tag (prepend) a value to a label:
 
-    >>> run("guild label --tag foo 1 -r guild-uat -y")
+    >>> run("guild label --prepend foo 1 -r guild-uat -y")
     Labeled 1 run(s)
     <exit 0>
 

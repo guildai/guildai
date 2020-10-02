@@ -76,6 +76,7 @@ Expected output (Guidl help):
       stop             Stop one or more runs.
       sync             Synchronize remote runs.
       sys              System utilities.
+      tag              Add or remove run tags.
       tensorboard      Visualize runs with TensorBoard.
       tensorflow       Collection of TensorFlow tools.
       uninstall        Uninstall one or more packages.

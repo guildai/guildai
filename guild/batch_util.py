@@ -105,7 +105,7 @@ def _save_trials(trials, path):
 def _save_trials_json(trials, path):
     data, _ = _trials_table_data(trials, format=False)
     with open(path, "w") as f:
-        json.dump(_strip_trial_nums(data[1:]), f)
+        json.dump(_strip_trial_nums(data[1:]), f, sort_keys=True)
 
 
 def _strip_trial_nums(data):

@@ -353,7 +353,7 @@ E.g.
 
 However, this is not yet supported.
 
-As a work-around, a user can specify `--force-flags` to force any
+As a workaround, a user can specify `--force-flags` to force any
 non-stepped flags to be passed through to step operations.
 
 We'll use the `m5` model to illustrate.
@@ -427,7 +427,7 @@ The runs:
 
 The same is true for `--tag`.
 
-    >>> project.run("m2:composite", tag="a tag")
+    >>> project.run("m2:composite", tags=["a tag"])
     INFO: [guild] running hello: m2:hello --tag a tag msg='hello m2, from composite'
     hello m2, from composite
     INFO: [guild] running m1:hello: m1:hello --tag a tag msg='hello m1, from composite'

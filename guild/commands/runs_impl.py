@@ -1303,9 +1303,9 @@ def tag(args, ctx):
 def _check_tag_args(args, ctx):
     cmd_impl_support.check_required_args(
         [
-            ("tags", "--tag"),
-            ("deletes", "--delete"),
-            "delete_all",
+            "add",
+            "delete",
+            "clear",
         ],
         args,
         ctx,
@@ -1320,8 +1320,6 @@ def _set_tags(args, ctx):
     def set_tags(selected):
         for run in selected:
             old_tags = run.get("tags")
-            if args.delete_all:
-                run.del_attr("tags")
             run.write_attr("tags", _tags_for_run(old_tags, args))
             if args.sync_labels:
                 run.write_attr("label", _synced_label_for_tags(run, old_tags, args))
@@ -1351,16 +1349,23 @@ def _set_tags_preview(args):
 
 def _tags_for_run(old_tags, args):
     tags = set(old_tags or [])
-    tags.update(args.tags)
-    tags.difference_update(args.deletes)
+    tags.difference_update(old_tags if args.clear else args.delete)
+    tags.update(args.add)
     return sorted(tags)
 
 
 def _synced_label_for_tags(run, old_tags, args):
-    to_delete = set(args.deletes)
-    if args.delete_all:
-        to_delete.update(old_tags)
-    label = _remove_label_parts(to_delete, run.get("label") or "")
-    if args.tags:
-        label = "%s %s" % (" ".join(args.tags), label)
-    return label
+    tags_to_delete = set(old_tags if args.clear else args.delete)
+    old_label = run.get("label") or ""
+    new_label = _remove_label_parts(tags_to_delete, old_label)
+    tags_to_prepend = _tags_not_in_label(args.add, old_label)
+    if tags_to_prepend:
+        new_label = "%s %s" % (" ".join(tags_to_prepend), new_label)
+    return new_label
+
+
+def _tags_not_in_label(tags, label):
+    if not tags:
+        return []
+    label_parts = util.shlex_split(label)
+    return [tag for tag in tags if tag not in label_parts]

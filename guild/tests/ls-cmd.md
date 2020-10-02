@@ -18,6 +18,7 @@ We'll use an args proxy to simulate command arguments.
     ...       self.all = all
     ...       self.ops = ()
     ...       self.labels = ()
+    ...       self.tags = ()
     ...       self.unlabeled = False
     ...       self.marked = marked
     ...       self.unmarked = unmarked

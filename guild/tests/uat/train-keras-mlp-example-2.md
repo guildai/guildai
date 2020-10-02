@@ -40,6 +40,7 @@ Run info:
     command: ...
     exit_status: 0
     pid:
+    tags:
     flags:
       batch_size: 128
       epochs: 1

@@ -92,17 +92,6 @@ Set the entire label:
     [1:...]  hello  ...  completed  hello goodbye
     <exit 0>
 
-Use --untag to remove part of the label (equivalent to --remove):
-
-    >>> run("guild label -u goodbye -y")
-    Labeled 1 run(s)
-    <exit 0>
-
-    >>> run("guild runs")
-    [1:...]  hello  ...  completed  hello
-    <exit 0>
-
-
 Clear the entire label:
 
     >>> run("guild label -c -y")

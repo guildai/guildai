@@ -59,6 +59,7 @@ tests).
       ipy:                         ok
       isolate-runs-from-project:   ok
       keras:                       ok
+      labels:                      ok
       locks:                       ok
       logging:                     ok
       ls-cmd:                      ok
@@ -112,6 +113,7 @@ tests).
       steps-run-isolation:         ok
       summary:                     ok
       tables:                      ok
+      tags:                        ok
       tensorboard:                 ok
       test:                        ok
       test-flags:                  ok

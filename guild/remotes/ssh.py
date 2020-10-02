@@ -465,6 +465,9 @@ class SSHRemote(remotelib.Remote):
     def label_runs(self, **opts):
         self._guild_cmd("runs label", _label_runs_args(**opts))
 
+    def tag_runs(self, **opts):
+        self._guild_cmd("runs tag", _tag_runs_args(**opts))
+
     def run_info(self, **opts):
         self._guild_cmd("runs info", _run_info_args(**opts))
 
@@ -555,6 +558,7 @@ def _runs_filter_args(
     ops,
     labels,
     unlabeled,
+    tags,
     running,
     completed,
     error,
@@ -573,6 +577,8 @@ def _runs_filter_args(
         args.append("--error")
     for label in labels:
         args.extend(["--label", label])
+    for tag in tags:
+        args.extend(["--tags", tag])
     for op in ops:
         args.extend(["--operation", op])
     if running:
@@ -637,7 +643,7 @@ def _build_package(src_dir, dist_dir):
 
 def _run_args(
     batch_label,
-    batch_tag,
+    batch_tags,
     fail_on_trial_error,
     force_flags,
     force_sourcecode,
@@ -662,14 +668,14 @@ def _run_args(
     stage_trials,
     start,
     stop_after,
-    tag,
+    tags,
     yes,
 ):
     args = []
     if batch_label:
         args.extend(["--batch-label", batch_label])
-    if batch_tag:
-        args.extend(["--batch-tag", batch_tag])
+    for tag in batch_tags:
+        args.extend(["--batch-tag", tag])
     if fail_on_trial_error:
         args.append("--fail-on-trial-error")
     if force_flags:
@@ -714,7 +720,7 @@ def _run_args(
         args.extend(["--start", start])
     if stop_after:
         args.extend(["--stop-after", str(stop_after)])
-    if tag:
+    for tag in tags:
         args.extend(["--tag", tag])
     if yes:
         args.append("--yes")
@@ -725,7 +731,7 @@ def _run_args(
 
 
 def _watch_run_args(
-    run, ops, pid, labels, unlabeled, marked, unmarked, started, digest
+    run, ops, pid, labels, unlabeled, tags, marked, unmarked, started, digest
 ):
     if pid:
         # Ignore other opts if pid is specified
@@ -737,6 +743,8 @@ def _watch_run_args(
         args.extend(["-l", label])
     if unlabeled:
         args.append("-u")
+    for tag in tags:
+        args.extend(["-ft", tag])
     if marked:
         args.append("--marked")
     if unmarked:
@@ -793,7 +801,7 @@ def _check_args(tensorflow, pytorch, verbose, offline, space, version):
 
 
 def _stop_runs_args(
-    runs, ops, labels, unlabeled, no_wait, marked, unmarked, started, yes
+    runs, ops, labels, unlabeled, tags, no_wait, marked, unmarked, started, yes
 ):
     args = []
     for op in ops:
@@ -802,6 +810,8 @@ def _stop_runs_args(
         args.extend(["-l", label])
     if unlabeled:
         args.append("-u")
+    for tag in tags:
+        args.extend(["-ft", tag])
     if no_wait:
         args.append("-n")
     if yes:
@@ -848,6 +858,22 @@ def _label_runs_args(runs, set, prepend, append, remove, clear, yes, **filters):
         args.append("-c")
     else:
         assert False, "expected one of: set, prepend, append, remove, or clear"
+    args.extend(runs)
+    return args
+
+
+def _tag_runs_args(runs, add, delete, clear, sync_labels, yes, **filters):
+    args = _runs_filter_args(**filters)
+    if yes:
+        args.append("-y")
+    for tag in add:
+        args.extend(["-a", tag])
+    for tag in delete:
+        args.extend(["-d", tag])
+    if clear:
+        args.append("-c")
+    if sync_labels:
+        args.append("-s")
     args.extend(runs)
     return args
 

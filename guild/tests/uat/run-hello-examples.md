@@ -97,6 +97,7 @@ the `--deps` option of `guild runs info`:
     command: ... -um guild.op_main cat --
     exit_status: 0
     pid:
+    tags:
     flags:
       op: ...
     scalars:

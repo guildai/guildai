@@ -46,25 +46,25 @@ def tag_params(fn):
         [
             runs_support.runs_arg,
             click.Option(
-                ("-t", "--tag", "tags"),
+                ("-a", "--add"),
                 metavar="TAG",
                 help="Associate TAG with specified runs. May be used multiple times",
                 multiple=True,
             ),
             click.Option(
-                ("-d", "--delete", "deletes"),
+                ("-d", "--delete"),
                 metavar="TAG",
                 help="Delete TAG from specified runs. May be used multiple times.",
                 multiple=True,
                 autocompletion=_ac_tag,
             ),
             click.Option(
-                ("--delete-all",),
-                help="Delete all tags from specified runs. May not be used with --tag",
+                ("-c", "--clear"),
+                help="Clear all tags associated with specified runs.",
                 is_flag=True,
             ),
             click.Option(
-                ("-l", "--sync-labels"),
+                ("-s", "--sync-labels"),
                 help=(
                     "Update run label by adding and deleting corresponding tag parts."
                 ),

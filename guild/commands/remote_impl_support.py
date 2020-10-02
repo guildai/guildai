@@ -80,6 +80,7 @@ def _runs_filter_names():
         "running",
         "staged",
         "started",
+        "tags",
         "terminated",
         "unlabeled",
         "unmarked",
@@ -160,7 +161,7 @@ def _handle_op_error(e, remote):
 def _run_kw(args):
     names = [
         "batch_label",
-        "batch_tag",
+        "batch_tags",
         "fail_on_trial_error",
         "flags",
         "force_flags",
@@ -183,7 +184,7 @@ def _run_kw(args):
         "restart",
         "stage",
         "stop_after",
-        "tag",
+        "tags",
     ]
     ignore = [
         "background",
@@ -233,6 +234,7 @@ def _watch_run_kw(args):
         "labels",
         "marked",
         "started",
+        "tags",
         "run",
         "unlabeled",
         "unmarked",
@@ -325,6 +327,7 @@ def _stop_runs_kw(args):
         "ops",
         "runs",
         "started",
+        "tags",
         "unlabeled",
         "unmarked",
         "yes",
@@ -370,6 +373,24 @@ def _label_runs_kw(args):
         "append",
         "remove",
         "clear",
+        "yes",
+    ]
+    ignore = ["remote"]
+    return _arg_kw(args, names, ignore)
+
+
+def tag_runs(args):
+    remote = remote_support.remote_for_args(args)
+    with op_handler(remote):
+        remote.tag_runs(**_tag_runs_kw(args))
+
+
+def _tag_runs_kw(args):
+    names = _runs_select_names() + [
+        "add",
+        "delete",
+        "clear",
+        "sync_labels",
         "yes",
     ]
     ignore = ["remote"]
