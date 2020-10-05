@@ -1,7 +1,7 @@
 Metadata-Version: 2.0
 Name: guildai
 Version: 1!0
-Summary: Toolkit to automate and optimize machine learning model development
+Summary: Experiment tracking, ML developer tools
 Home-page: https://guild.ai
 Author: Guild AI
 Author-email: packages@guild.ai
