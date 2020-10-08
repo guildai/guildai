@@ -15,10 +15,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import json
 import logging
 import os
 import re
 import socket
+import sys
 
 import guild
 import guild.run
@@ -318,7 +320,17 @@ class ViewDataImpl(view.ViewData):
 
 
 def main(args):
-    _start_view(args)
+    if args.test_runs_data:
+        _test_runs_data(args)
+    else:
+        _start_view(args)
+
+
+def _test_runs_data(args):
+    data = ViewDataImpl(args)
+    runs_data = data.runs_data()
+    view.fix_runs_data_for_json(runs_data)
+    json.dump(runs_data, sys.stdout)
 
 
 def _start_view(args):

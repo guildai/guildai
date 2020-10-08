@@ -15,7 +15,9 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import json
 import logging
+import math
 import os
 import socket
 import subprocess
@@ -344,7 +346,24 @@ def _view_app(data, tb_servers):
 
 def _handle_runs(req, data):
     runs_data = _runs_data(req, data)
+    fix_runs_data_for_json(runs_data)
     return serving_util.json_resp(runs_data)
+
+
+def fix_runs_data_for_json(data):
+    for run_data in data:
+        _fix_scalar_values_for_json(run_data["scalars"])
+
+
+def _fix_scalar_values_for_json(scalar_data):
+    for scalar in scalar_data:
+        for summary, val in scalar.items():
+            if _is_special_float_for_json(val):
+                scalar[summary] = str(json.dumps(val))
+
+
+def _is_special_float_for_json(val):
+    return isinstance(val, float) and (math.isnan(val) or math.isinf(val))
 
 
 def _runs_data(req, data):

@@ -38,6 +38,7 @@ markdown and text files.
     ...
     var
     vcs-utils
+    view
     !!file:*.@(md|txt)
 
 Providing a prefix limits the tests shown.
