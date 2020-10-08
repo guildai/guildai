@@ -738,21 +738,21 @@ def _watch_run_args(
         return ["--pid", pid]
     args = []
     for op in ops:
-        args.extend(["-o", op])
+        args.extend(["-Fo", op])
     for label in labels:
-        args.extend(["-l", label])
+        args.extend(["-Fl", label])
     if unlabeled:
-        args.append("-u")
+        args.append("-Fu")
     for tag in tags:
-        args.extend(["-ft", tag])
+        args.extend(["-Ft", tag])
     if marked:
-        args.append("--marked")
+        args.append("-Fm")
     if unmarked:
-        args.append("--unmarked")
+        args.append("-Fn")
     if started:
-        args.extend(["--started", started])
+        args.extend(["-Fs", started])
     if digest:
-        args.extend(["--digest", digest])
+        args.extend(["-Fd", digest])
     if run:
         args.append(run)
     return args
@@ -805,23 +805,23 @@ def _stop_runs_args(
 ):
     args = []
     for op in ops:
-        args.extend(["-o", op])
+        args.extend(["-Fo", op])
     for label in labels:
-        args.extend(["-l", label])
+        args.extend(["-Fl", label])
     if unlabeled:
-        args.append("-u")
+        args.append("-Fu")
     for tag in tags:
-        args.extend(["-ft", tag])
+        args.extend(["-Ft", tag])
     if no_wait:
         args.append("-n")
     if yes:
         args.append("-y")
     if marked:
-        args.append("--marked")
+        args.append("-Fm")
     if unmarked:
-        args.append("--unmarked")
+        args.append("-Fn")
     if started:
-        args.extend(["--selected", started])
+        args.extend(["-Fs", started])
     args.extend(runs)
     return args
 

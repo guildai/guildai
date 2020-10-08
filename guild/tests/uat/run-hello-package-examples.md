@@ -34,7 +34,7 @@ From file output:
 
 Here are our runs:
 
-    >>> run("guild runs -o hello")
+    >>> run("guild runs -Fo hello")
     [1:...]  gpkg.hello/hello:from-file-output  ... ...  completed  test-4
     [2:...]  gpkg.hello/hello:from-file         ... ...  completed  test-3
     [3:...]  gpkg.hello/hello:from-flag         ... ...  completed  test-2

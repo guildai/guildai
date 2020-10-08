@@ -53,7 +53,7 @@ List operations:
     A temp file!
     <exit 0>
 
-    >>> run("guild run hello-op op=`guild select -o hello-file 2` -y")
+    >>> run("guild run hello-op op=`guild select -Fo hello-file 2` -y")
     Resolving op dependency
     Using run ... for op resource
     Reading message from msg.out

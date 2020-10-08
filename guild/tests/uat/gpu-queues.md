@@ -61,7 +61,7 @@ Wait for the run to be started and run:
 
 Output from the queue:
 
-    >>> run("guild cat --output -o queue")
+    >>> run("guild cat --output -Fo queue")
     INFO: [queue] ... Waiting for staged runs
     INFO: [queue] ... Starting staged run ...
     Masking available GPUs (CUDA_VISIBLE_DEVICES='1')
@@ -160,7 +160,7 @@ Wait for the staged run to start:
 
 Check output from the latest queue:
 
-    >>> run("guild cat --output -l q2")
+    >>> run("guild cat --output -Fl q2")
     INFO: [queue] ... Starting staged run ...
     Masking available GPUs (CUDA_VISIBLE_DEVICES='2')
     Hello Guild!

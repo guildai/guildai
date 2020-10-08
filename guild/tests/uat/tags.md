@@ -32,23 +32,23 @@ Default run labels contain tags:
 
 Tags can be used as filters:
 
-    >>> run("guild runs -ft blue")
+    >>> run("guild runs -Ft blue")
     [1:...]  hello  ...  completed  blue msg='Hello Guild!'
     <exit 0>
 
-    >>> run("guild runs -ft green")
+    >>> run("guild runs -Ft green")
     <exit 0>
 
 When used multiple times, tags expand selected runs:
 
-    >>> run("guild runs -ft green -ft blue")
+    >>> run("guild runs -Ft green -Ft blue")
     [1:...]  hello  ...  completed  blue msg='Hello Guild!'
     <exit 0>
 
 Tag filters are available in all run related commands. Delete only
 runs tagged with 'blue':
 
-    >>> run("guild runs rm -ft blue -y")
+    >>> run("guild runs rm -Ft blue -y")
     Deleted 1 run(s)
     <exit 0>
 

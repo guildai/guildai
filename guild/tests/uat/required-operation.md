@@ -74,7 +74,7 @@ run if needed.
 
 And the data-prepare runs:
 
-    >>> run("guild runs -o prepare-data")
+    >>> run("guild runs -Fo prepare-data")
     [1:...]  prepare-data  ...  completed
     [2:...]  prepare-data  ...  completed
     <exit 0>

@@ -38,7 +38,7 @@ Filter by marked - should get no runs:
 
 Mark a run:
 
-    >>> run("guild mark -o op 1 -y")
+    >>> run("guild mark -Fo op 1 -y")
     Marked 1 run(s)
     <exit 0>
 

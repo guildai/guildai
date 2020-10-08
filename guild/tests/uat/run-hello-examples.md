@@ -121,7 +121,7 @@ Here's a preview of the command:
 
 Let's use the first run for `hello-file`, rather than the latest.
 
-    >>> run("guild run hello-op op=`guild select -o hello-file 2` -y")
+    >>> run("guild run hello-op op=`guild select -Fo hello-file 2` -y")
     Resolving op dependency
     Using run ... for op resource
     Reading message from msg.out

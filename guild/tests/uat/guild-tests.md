@@ -123,4 +123,5 @@ tests).
       utils:                       ok
       var:                         ok
       vcs-utils:                   ok
+      view:                        ok
     <exit 0>

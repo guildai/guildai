@@ -321,7 +321,7 @@ def common_filters(fn):
 
 def _deprecated(old_option, new_option):
     def f(_ctx, _param, value):
-        if old_option in sys.argv:
+        if old_option in _command_args():
             log.warning(
                 "option '%s' is deprecated and will be removed in version "
                 "0.8 - use '%s' instead",
@@ -331,6 +331,13 @@ def _deprecated(old_option, new_option):
         return value
 
     return f
+
+
+def _command_args():
+    for i, arg in enumerate(sys.argv[1:]):
+        if arg[:1] != "-":
+            return sys.argv[i + 1:]
+    return []
 
 
 def status_filters(fn):

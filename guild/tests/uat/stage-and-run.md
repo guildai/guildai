@@ -27,7 +27,7 @@ Stage runs:
 
 List staged runs:
 
-    >>> run("guild runs -o train")
+    >>> run("guild runs -Fo train")
     [1:...]  train.py  ...  staged  noise=0.1 x=3
     [2:...]  train.py  ...  staged  x is 2
     [3:...]  train.py  ...  staged  noise=0.1 x=1

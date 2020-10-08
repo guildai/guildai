@@ -41,7 +41,7 @@ Show runs:
 
 Stop the queue:
 
-    >>> run("guild stop -y -r guild-uat -o queue")
+    >>> run("guild stop -y -r guild-uat -Fo queue")
     Stopping ... (pid ...)
     <exit 0>
 
