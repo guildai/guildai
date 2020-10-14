@@ -1,4 +1,4 @@
-# Guild check
+ Guild check
 
 Check:
 
@@ -26,7 +26,7 @@ Show more check info with the `-v` (verbose) option:
     click_version:             7.1.2
     distutils_version:         ...
     numpy_version:             ...
-    pandas_version:            not installed (No module named 'pandas')
+    pandas_version:            not installed (No module named ...pandas...)
     pip_version:               18.0
     sklearn_version:           ...
     skopt_version:             ...

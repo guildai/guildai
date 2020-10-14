@@ -31,7 +31,7 @@ command.
     ... )
 
     >>> import json
-    >>> runs_data = json.loads(runs_data_output)
+    >>> runs_data = json.loads(runs_data_output.decode())
 
 Number of runs:
 
