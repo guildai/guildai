@@ -1,8 +1,8 @@
 # Install PyTorch
 
-    >>> quiet("pip install torch==1.6.0")
+    >>> quiet("pip install torch==1.6.0")  # doctest: -PY35
 
-    >>> run("guild check --offline --pytorch")
+    >>> run("guild check --offline --pytorch")  # doctest: -PY35
     guild_version:             ...
     pytorch_version:           1.6.0
     pytorch_cuda_version:      ...
