@@ -132,7 +132,11 @@ class Build(object):
 
     def build(self):
         return self._run(
-            "Build", [". %s/bin/activate" % self.build_dir, self._bdist_wheel_cmd(),]
+            "Build",
+            [
+                ". %s/bin/activate" % self.build_dir,
+                self._bdist_wheel_cmd(),
+            ],
         )
 
     def _bdist_wheel_cmd(self):
@@ -207,7 +211,7 @@ TENSORFLOW_UAT_SKIP = [
     "*mnist*",
     "*tensorflow*",
     "simple-example",
-    "test-flags",      # uses get-started example which requires Keras
+    "test-flags",  # uses get-started example which requires Keras
 ]
 
 
@@ -248,11 +252,7 @@ class MacBuild(Build):
         "10.15": "11.2.1",
     }
 
-    homebrew_commits = {
-        "3.6": ("python", "f2a764ef944b1080be64bd88dca9a1d80130c558"),
-        "3.7": ("python", "2efdfe5519df7654ece8d70786baa298e568eafd"),
-        "3.8": ("python@3.8", "a4ae4d46b34a94414188518335e5dd96e4ae4ea9"),
-    }
+    pyenv_versions = {"3.6": "3.6.11", "3.7": "3.7.9", "3.8": "3.8.6"}
 
     python_cmds = {
         "2.7": "python2",
@@ -298,15 +298,10 @@ class MacBuild(Build):
         if self.python == "2.7":
             # 2.7 is default on OSX
             return []
-        pkg, commit = self.homebrew_commits[self.python]
+        pyenv_ver = self.pyenv_versions[self.python]
         return [
-            "brew unlink python",
-            (
-                "brew install --ignore-dependencies "
-                "https://raw.githubusercontent.com/Homebrew/homebrew-core/%s/"
-                "Formula/%s.rb > /dev/null" % (commit, pkg)
-            ),
-            "brew link %s --overwrite --force" % pkg,
+            "brew install pyenv",
+            "pyenv install %s" % pyenv_ver,
         ]
 
 
@@ -333,18 +328,18 @@ class Config(object):
 
 
 builds = [
-    LinuxBuild(python="2.7"),
-    LinuxBuild(python="3.5"),
-    LinuxBuild(python="3.6"),
-    LinuxBuild(python="3.7"),
-    LinuxBuild(python="3.8"),
-    MacBuild("10.14", python="2.7"),
-    MacBuild("10.15", python="2.7"),
-    MacBuild("10.14", python="3.6"),
-    MacBuild("10.15", python="3.6"),
-    MacBuild("10.14", python="3.7"),
-    MacBuild("10.15", python="3.7"),
-    MacBuild("10.14", python="3.8"),
+    # LinuxBuild(python="2.7"),
+    # LinuxBuild(python="3.5"),
+    # LinuxBuild(python="3.6"),
+    # LinuxBuild(python="3.7"),
+    # LinuxBuild(python="3.8"),
+    # MacBuild("10.14", python="2.7"),
+    # MacBuild("10.15", python="2.7"),
+    # MacBuild("10.14", python="3.6"),
+    # MacBuild("10.15", python="3.6"),
+    # MacBuild("10.14", python="3.7"),
+    # MacBuild("10.15", python="3.7"),
+    # MacBuild("10.14", python="3.8"),
     MacBuild("10.15", python="3.8"),
 ]
 
