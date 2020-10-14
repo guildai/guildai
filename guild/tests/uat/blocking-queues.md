@@ -41,11 +41,15 @@ The staged runs:
     [2:...]  sleep.py  ...  staged  seconds=5
     <exit 0>
 
-Next, start two queues. We use tags to identify each queue.
+Next, start two queues. We use tags to identify each queue. We wait a
+second in between starting the queues to order the resulting runs (for
+deterministic tests).
 
     >>> run("guild run queue poll-interval=1 --tag q1 --background -y")
     queue:queue started in background as ... (pidfile ...)
     <exit 0>
+
+    >>> sleep(1)
 
     >>> run("guild run queue poll-interval=1 --tag q2 --background -y")
     queue:queue started in background as ... (pidfile ...)
