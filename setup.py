@@ -41,12 +41,8 @@ guild_dist_basename = "guildai.dist-info"
 
 if platform.system() == "Windows":
     npm_cmd = "npm.cmd"
-    platform_requires = [
-        "windows-curses",
-    ]
 else:
     npm_cmd = "npm"
-    platform_requires = []
 
 def guild_dist_info():
     metadata = PathMetadata(".", guild_dist_basename)
@@ -229,7 +225,7 @@ setup(
     name="guildai",
     version=guild.__version__,
     description=PKG_INFO.get("Summary"),
-    install_requires=PKG_INFO.get_all("Requires-Dist") + platform_requires,
+    install_requires=PKG_INFO.get_all("Requires-Dist"),
     long_description=PKG_INFO.get_payload(),
     long_description_content_type="text/markdown",
     url=PKG_INFO.get("Home-page"),
