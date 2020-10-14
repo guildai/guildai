@@ -351,7 +351,7 @@ data frame that has both flags and scalars.
     0  ...     op2()     ...   ...  completed  a=1.0 c=0.0  1.0  NaN  0.0     3  3.0  NaN  NaN
     1  ...     op1()     ...   ...  completed      a=1 b=2  1.0  2.0  NaN     0  3.0 -1.0  1.0
 
-    >>> compare.info()
+    >>> compare.info()  # doctest: -PY3
     <class 'pandas.core.frame.DataFrame'>
     RangeIndex: 2 entries, 0 to 1
     Data columns (total 13 columns):
@@ -370,6 +370,28 @@ data frame that has both flags and scalars.
     z            1 non-null float64
     dtypes: datetime64[ns](1), float64(6), int64(1), object(4), timedelta64[ns](1)
     memory usage: ...
+
+    >>> compare.info()  # doctest: -PY2
+    <class 'pandas.core.frame.DataFrame'>
+    RangeIndex: 2 entries, 0 to 1
+    Data columns (total 13 columns):
+     #   Column     Non-Null Count  Dtype
+    ---  ------     --------------  -----
+     0   run        2 non-null      object
+     1   operation  2 non-null      object
+     2   started    2 non-null      datetime64[ns]
+     3   time       2 non-null      timedelta64[ns]
+     4   status     2 non-null      object
+     5   label      2 non-null      object
+     6   a          2 non-null      float64
+     7   b          1 non-null      float64
+     8   c          1 non-null      float64
+     9   step       2 non-null      int64
+     10  x          2 non-null      float64
+     11  y          1 non-null      float64
+     12  z          1 non-null      float64
+    dtypes: datetime64[ns](1), float64(6), int64(1), object(4), timedelta64[ns](1)
+    memory usage: 336.0+ bytes
 
 ## Grid search
 
