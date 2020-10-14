@@ -19,7 +19,7 @@ import yaml
 
 class Build(object):
 
-    cache_scheme_version = 17
+    cache_scheme_version = 18
 
     name = None
     python = None
@@ -328,18 +328,18 @@ class Config(object):
 
 
 builds = [
-    # LinuxBuild(python="2.7"),
-    # LinuxBuild(python="3.5"),
-    # LinuxBuild(python="3.6"),
-    # LinuxBuild(python="3.7"),
-    # LinuxBuild(python="3.8"),
-    # MacBuild("10.14", python="2.7"),
-    # MacBuild("10.15", python="2.7"),
-    # MacBuild("10.14", python="3.6"),
-    # MacBuild("10.15", python="3.6"),
-    # MacBuild("10.14", python="3.7"),
-    # MacBuild("10.15", python="3.7"),
-    # MacBuild("10.14", python="3.8"),
+    LinuxBuild(python="2.7"),
+    LinuxBuild(python="3.5"),
+    LinuxBuild(python="3.6"),
+    LinuxBuild(python="3.7"),
+    LinuxBuild(python="3.8"),
+    MacBuild("10.14", python="2.7"),
+    MacBuild("10.15", python="2.7"),
+    MacBuild("10.14", python="3.6"),
+    MacBuild("10.15", python="3.6"),
+    MacBuild("10.14", python="3.7"),
+    MacBuild("10.15", python="3.7"),
+    MacBuild("10.14", python="3.8"),
     MacBuild("10.15", python="3.8"),
 ]
 
