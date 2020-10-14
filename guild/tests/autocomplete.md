@@ -225,6 +225,7 @@ used by the bash completion handlers to find matching files.
     !!no-colon-wordbreak
     echo
     !!file:*.@(py)
+    !!command
 
 ### Flags
 

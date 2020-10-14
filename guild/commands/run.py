@@ -26,7 +26,11 @@ def _ac_opspec(incomplete, ctx, **_kw):
     ops = _ac_operations(incomplete, ctx)
     if not incomplete and ops:
         return ops
-    return ops + click_util.completion_filename(ext=["py"])
+    return (
+        ops
+        + click_util.completion_filename(ext=["py"])
+        + click_util.completion_command()
+    )
 
 
 def _ac_operations(incomplete, ctx, **_kw):
