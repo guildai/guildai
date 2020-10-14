@@ -360,11 +360,11 @@ jobs:
 
           pyenv install 3.6.11
 
-          sudo -H pip3 install --upgrade pip | cat
+          sudo -H pip3.6 install --upgrade pip | cat
 
-          sudo -H pip3 install --upgrade virtualenv | cat
+          sudo -H pip3.6 install --upgrade virtualenv | cat
 
-          rm -rf build-env && python3 -m virtualenv build-env
+          rm -rf build-env && python3.6 -m virtualenv build-env
 
           . build-env/bin/activate
 
@@ -380,11 +380,11 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          python3 setup.py bdist_wheel'
+          python3.6 setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
-        command: sudo -H pip3 install --upgrade dist/*.whl | cat
+        command: sudo -H pip3.6 install --upgrade dist/*.whl | cat
         name: Install dist
         no_output_timeout: 1800
     - run:
@@ -403,7 +403,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          pip3 install --upgrade twine | cat
+          pip3.6 install --upgrade twine | cat
 
           twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
@@ -422,11 +422,11 @@ jobs:
 
           pyenv install 3.7.9
 
-          sudo -H pip3 install --upgrade pip | cat
+          sudo -H pip3.7 install --upgrade pip | cat
 
-          sudo -H pip3 install --upgrade virtualenv | cat
+          sudo -H pip3.7 install --upgrade virtualenv | cat
 
-          rm -rf build-env && python3 -m virtualenv build-env
+          rm -rf build-env && python3.7 -m virtualenv build-env
 
           . build-env/bin/activate
 
@@ -442,11 +442,11 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          python3 setup.py bdist_wheel'
+          python3.7 setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
-        command: sudo -H pip3 install --upgrade dist/*.whl | cat
+        command: sudo -H pip3.7 install --upgrade dist/*.whl | cat
         name: Install dist
         no_output_timeout: 1800
     - run:
@@ -465,7 +465,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          pip3 install --upgrade twine | cat
+          pip3.7 install --upgrade twine | cat
 
           twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
@@ -604,11 +604,11 @@ jobs:
 
           pyenv install 3.6.11
 
-          sudo -H pip3 install --upgrade pip | cat
+          sudo -H pip3.6 install --upgrade pip | cat
 
-          sudo -H pip3 install --upgrade virtualenv | cat
+          sudo -H pip3.6 install --upgrade virtualenv | cat
 
-          rm -rf build-env && python3 -m virtualenv build-env
+          rm -rf build-env && python3.6 -m virtualenv build-env
 
           . build-env/bin/activate
 
@@ -624,11 +624,11 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          python3 setup.py bdist_wheel'
+          python3.6 setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
-        command: sudo -H pip3 install --upgrade dist/*.whl | cat
+        command: sudo -H pip3.6 install --upgrade dist/*.whl | cat
         name: Install dist
         no_output_timeout: 1800
     - run:
@@ -647,7 +647,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          pip3 install --upgrade twine | cat
+          pip3.6 install --upgrade twine | cat
 
           twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
@@ -666,11 +666,11 @@ jobs:
 
           pyenv install 3.7.9
 
-          sudo -H pip3 install --upgrade pip | cat
+          sudo -H pip3.7 install --upgrade pip | cat
 
-          sudo -H pip3 install --upgrade virtualenv | cat
+          sudo -H pip3.7 install --upgrade virtualenv | cat
 
-          rm -rf build-env && python3 -m virtualenv build-env
+          rm -rf build-env && python3.7 -m virtualenv build-env
 
           . build-env/bin/activate
 
@@ -686,11 +686,11 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          python3 setup.py bdist_wheel'
+          python3.7 setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
-        command: sudo -H pip3 install --upgrade dist/*.whl | cat
+        command: sudo -H pip3.7 install --upgrade dist/*.whl | cat
         name: Install dist
         no_output_timeout: 1800
     - run:
@@ -709,7 +709,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          pip3 install --upgrade twine | cat
+          pip3.7 install --upgrade twine | cat
 
           twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
