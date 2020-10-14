@@ -577,7 +577,7 @@ def _run_attr(run, name, fmt):
     elif name in ("label",):
         return run.get(name, "")
     elif name == "time":
-        return util.format_duration(run.get("started"), run.get("stopped"))
+        return _run_time(run)
     else:
         return getattr(run, name)
 
@@ -586,6 +586,11 @@ def _datetime(ts):
     if ts is None:
         return None
     return datetime.datetime.fromtimestamp(int(ts / 1000000))
+
+
+def _run_time(run):
+    formatted_time = util.format_duration(run.get("started"), run.get("stopped"))
+    return pd.to_timedelta(formatted_time)
 
 
 def _print_run_info(item, output=False, scalars=False):
