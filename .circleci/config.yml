@@ -12,9 +12,9 @@ jobs:
 
           pyenv install 3.6.11
 
-          sudo -H ~/.pyenv/versions/3.6.11/bin/python -m pip install --upgrade pip | cat
+          ~/.pyenv/versions/3.6.11/bin/python -m pip install --upgrade pip | cat
 
-          sudo -H ~/.pyenv/versions/3.6.11/bin/python -m pip install --upgrade virtualenv | cat
+          ~/.pyenv/versions/3.6.11/bin/python -m pip install --upgrade virtualenv | cat
 
           rm -rf build-env && ~/.pyenv/versions/3.6.11/bin/python -m virtualenv build-env
 
@@ -29,35 +29,34 @@ jobs:
         key: macos_10.15-python_3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
+        - /usr/local
     - run:
         command: '. build-env/bin/activate
 
-          ~/.pyenv/versions/3.6.11/bin/python setup.py bdist_wheel'
+          build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
-        command: sudo -H ~/.pyenv/versions/3.6.11/bin/python -m pip install --upgrade dist/*.whl | cat
+        command: ~/.pyenv/versions/3.6.11/bin/python -m pip install --upgrade dist/*.whl | cat
         name: Install dist
         no_output_timeout: 1800
     - run:
-        command: 'guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
+        command: '~/.pyenv/versions/3.6.11/bin/guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
 
-          TERM=xterm-256color source guild-env test-env
+          TERM=xterm-256color source ~/.pyenv/versions/3.6.11/bin/guild-env test-env
 
-          guild check -v --offline
+          test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
         destination: dist
         path: dist
     - run:
-        command: '. build-env/bin/activate
+        command: '~/.pyenv/versions/3.6.11/bin/python -m pip install --upgrade twine | cat
 
-          ~/.pyenv/versions/3.6.11/bin/python -m pip install --upgrade twine | cat
-
-          twine upload --skip-existing dist/*.whl'
+          ~/.pyenv/versions/3.6.11/bin/python -m twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
         no_output_timeout: 1800
     working_directory: ~/repo
@@ -74,9 +73,9 @@ jobs:
 
           pyenv install 3.7.9
 
-          sudo -H ~/.pyenv/versions/3.7.9/bin/python -m pip install --upgrade pip | cat
+          ~/.pyenv/versions/3.7.9/bin/python -m pip install --upgrade pip | cat
 
-          sudo -H ~/.pyenv/versions/3.7.9/bin/python -m pip install --upgrade virtualenv | cat
+          ~/.pyenv/versions/3.7.9/bin/python -m pip install --upgrade virtualenv | cat
 
           rm -rf build-env && ~/.pyenv/versions/3.7.9/bin/python -m virtualenv build-env
 
@@ -91,35 +90,34 @@ jobs:
         key: macos_10.15-python_3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
+        - /usr/local
     - run:
         command: '. build-env/bin/activate
 
-          ~/.pyenv/versions/3.7.9/bin/python setup.py bdist_wheel'
+          build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
-        command: sudo -H ~/.pyenv/versions/3.7.9/bin/python -m pip install --upgrade dist/*.whl | cat
+        command: ~/.pyenv/versions/3.7.9/bin/python -m pip install --upgrade dist/*.whl | cat
         name: Install dist
         no_output_timeout: 1800
     - run:
-        command: 'guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
+        command: '~/.pyenv/versions/3.7.9/bin/guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
 
-          TERM=xterm-256color source guild-env test-env
+          TERM=xterm-256color source ~/.pyenv/versions/3.7.9/bin/guild-env test-env
 
-          guild check -v --offline
+          test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
         destination: dist
         path: dist
     - run:
-        command: '. build-env/bin/activate
+        command: '~/.pyenv/versions/3.7.9/bin/python -m pip install --upgrade twine | cat
 
-          ~/.pyenv/versions/3.7.9/bin/python -m pip install --upgrade twine | cat
-
-          twine upload --skip-existing dist/*.whl'
+          ~/.pyenv/versions/3.7.9/bin/python -m twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
         no_output_timeout: 1800
     working_directory: ~/repo
@@ -136,9 +134,9 @@ jobs:
 
           pyenv install 3.8.6
 
-          sudo -H ~/.pyenv/versions/3.8.6/bin/python -m pip install --upgrade pip | cat
+          ~/.pyenv/versions/3.8.6/bin/python -m pip install --upgrade pip | cat
 
-          sudo -H ~/.pyenv/versions/3.8.6/bin/python -m pip install --upgrade virtualenv | cat
+          ~/.pyenv/versions/3.8.6/bin/python -m pip install --upgrade virtualenv | cat
 
           rm -rf build-env && ~/.pyenv/versions/3.8.6/bin/python -m virtualenv build-env
 
@@ -153,35 +151,34 @@ jobs:
         key: macos_10.15-python_3.8-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
+        - /usr/local
     - run:
         command: '. build-env/bin/activate
 
-          ~/.pyenv/versions/3.8.6/bin/python setup.py bdist_wheel'
+          build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
-        command: sudo -H ~/.pyenv/versions/3.8.6/bin/python -m pip install --upgrade dist/*.whl | cat
+        command: ~/.pyenv/versions/3.8.6/bin/python -m pip install --upgrade dist/*.whl | cat
         name: Install dist
         no_output_timeout: 1800
     - run:
-        command: 'guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
+        command: '~/.pyenv/versions/3.8.6/bin/guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
 
-          TERM=xterm-256color source guild-env test-env
+          TERM=xterm-256color source ~/.pyenv/versions/3.8.6/bin/guild-env test-env
 
-          guild check -v --offline
+          test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
         destination: dist
         path: dist
     - run:
-        command: '. build-env/bin/activate
+        command: '~/.pyenv/versions/3.8.6/bin/python -m pip install --upgrade twine | cat
 
-          ~/.pyenv/versions/3.8.6/bin/python -m pip install --upgrade twine | cat
-
-          twine upload --skip-existing dist/*.whl'
+          ~/.pyenv/versions/3.8.6/bin/python -m twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
         no_output_timeout: 1800
     working_directory: ~/repo

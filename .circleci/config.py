@@ -27,10 +27,15 @@ class Build(object):
 
     python_cmd = "python"
     pip_cmd = "python -m pip"
+    pip_requires_su = True
 
     build_dir = "build-env"
     test_dir = "test-env"
     examples_dir = "examples"
+    extra_cache_paths = []
+
+    built_guild_cmd = "guild"
+    built_guild_env_cmd = "guild-env"
 
     uat_skips = {}
 
@@ -87,8 +92,8 @@ class Build(object):
             self._install_guild_view_reqs(),
         ]
 
-    def _pip_install(self, pkgs, sudo=False, venv=None):
-        sudo_part = "sudo -H " if sudo else ""
+    def _pip_install(self, pkgs, venv=None):
+        sudo_part = "sudo -H " if self.pip_requires_su else ""
         # pipe to cat effectively disables progress bar
         pkgs_part = " ".join([self._pkg_spec(pkg) for pkg in pkgs])
         pip_cmd = self.pip_cmd if not venv else "%s/bin/pip" % venv
@@ -103,10 +108,10 @@ class Build(object):
         return pkg
 
     def _upgrade_pip(self):
-        return self._pip_install(["pip"], sudo=True)
+        return self._pip_install(["pip"])
 
     def _ensure_virtual_env_cmd(self):
-        return self._pip_install(["virtualenv"], sudo=True)
+        return self._pip_install(["virtualenv"])
 
     def _init_env(self, path):
         return "rm -rf {path} && {venv_init}".format(
@@ -128,45 +133,57 @@ class Build(object):
         return "cd guild/view && npm install"
 
     def save_cache(self):
-        return {"save_cache": {"paths": [self.build_dir], "key": self._cache_key()}}
+        return {
+            "save_cache": {
+                "paths": [self.build_dir] + self.extra_cache_paths,
+                "key": self._cache_key(),
+            }
+        }
 
     def build(self):
         return self._run(
             "Build",
             [
                 ". %s/bin/activate" % self.build_dir,
-                self._bdist_wheel_cmd(),
+                "%s/bin/python setup.py bdist_wheel" % self.build_dir,
             ],
         )
 
-    def _bdist_wheel_cmd(self):
-        return "%s setup.py bdist_wheel" % self.python_cmd
-
     def install_dist(self):
-        return self._run("Install dist", [self._pip_install(["dist/*.whl"], sudo=True)])
+        return self._run("Install dist", [self._pip_install(["dist/*.whl"])])
 
     def test(self):
         return self._run(
             "Test",
             [
                 (
-                    "guild init -y"
+                    "{built_guild} init -y"
                     " --no-progress"
                     " --name guild-test"
                     " --no-reqs"
-                    " --guild dist/*.whl {}".format(self.test_dir)
+                    " --guild dist/*.whl {test_env}".format(
+                        built_guild=self.built_guild_cmd,
+                        test_env=self.test_dir,
+                    )
                 ),
-                "TERM=xterm-256color source guild-env {}".format(self.test_dir),
-                "guild check -v --offline",
+                "TERM=xterm-256color source {guild_env} {test_env}".format(
+                    guild_env=self.built_guild_env_cmd,
+                    test_env=self.test_dir,
+                ),
+                "{test_env}/bin/guild check -v --offline".format(
+                    test_env=self.test_dir
+                ),
                 (
                     "WORKSPACE={workspace} "
                     "UAT_SKIP={uat_skip},remote-*,hiplot-* "
                     "COLUMNS=999 "
                     "EXAMPLES={examples} "
-                    "guild check --uat".format(
+                    "{test_env}/bin/guild check --uat".format(
+                        system_guild=self.built_guild_cmd,
                         workspace=self.test_dir,
                         examples=self.examples_dir,
                         uat_skip=",".join(self.uat_skip),
+                        test_env=self.test_dir,
                     )
                 ),
             ],
@@ -180,9 +197,8 @@ class Build(object):
         return self._run(
             "Upload to PyPI",
             [
-                self._activate_env(self.build_dir),
                 self._pip_install(["twine"]),
-                "twine upload --skip-existing dist/*.whl",
+                "%s -m twine upload --skip-existing dist/*.whl" % self.python_cmd,
             ],
         )
 
@@ -266,11 +282,30 @@ class MacBuild(Build):
     }
 
     pip_cmds = {
-        "2.7": "python2 -m pip",
-        "3.6": "~/.pyenv/versions/3.6.11/bin/python -m pip",
-        "3.7": "~/.pyenv/versions/3.7.9/bin/python -m pip",
-        "3.8": "~/.pyenv/versions/3.8.6/bin/python -m pip",
+        # ver: (cmd, pip_requires_su)
+        "2.7": ("python2 -m pip", True),
+        "3.6": ("~/.pyenv/versions/3.6.11/bin/python -m pip", False),
+        "3.7": ("~/.pyenv/versions/3.7.9/bin/python -m pip", False),
+        "3.8": ("~/.pyenv/versions/3.8.6/bin/python -m pip", False),
     }
+
+    guild_cmds = {
+        "2.7": "guild",
+        "3.6": "~/.pyenv/versions/3.6.11/bin/guild",
+        "3.7": "~/.pyenv/versions/3.7.9/bin/guild",
+        "3.8": "~/.pyenv/versions/3.8.6/bin/guild",
+    }
+
+    guild_env_cmds = {
+        "2.7": "guild-env",
+        "3.6": "~/.pyenv/versions/3.6.11/bin/guild-env",
+        "3.7": "~/.pyenv/versions/3.7.9/bin/guild-env",
+        "3.8": "~/.pyenv/versions/3.8.6/bin/guild-env",
+    }
+
+    extra_cache_paths = [
+        "/usr/local",  # Cache Homebrew packages
+    ]
 
     ##uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
 
@@ -279,7 +314,13 @@ class MacBuild(Build):
         self.python = python
         self.name = "macos_%s-python_%s" % (os_version, python)
         self.python_cmd = self.python_cmds.get(self.python, self.python_cmd)
-        self.pip_cmd = self.pip_cmds.get(self.python, self.pip_cmd)
+        (self.pip_cmd, self.pip_requires_su) = self.pip_cmds.get(
+            self.python, (self.pip_cmd, self.pip_requires_su)
+        )
+        self.built_guild_cmd = self.guild_cmds.get(self.python, self.built_guild_cmd)
+        self.built_guild_env_cmd = self.guild_env_cmds.get(
+            self.python, self.built_guild_env_cmd
+        )
         self.uat_skip = self.uat_skips.get(python) or []
 
     def env_config(self):
@@ -295,7 +336,7 @@ class MacBuild(Build):
         # Workaround issue with Python 2.7 virtualenv 20.x, which
         # doesn't isolate environments from system packages.
         if self.python == "2.7":
-            return self._pip_install(["virtualenv==16.7.9"], sudo=True)
+            return self._pip_install(["virtualenv==16.7.9"])
         return super(MacBuild, self)._ensure_virtual_env_cmd()
 
     def _python_install_cmd(self):
