@@ -26,7 +26,7 @@ class Build(object):
     env = None
 
     python_cmd = "python"
-    pip_cmd = "pip"
+    pip_cmd = "python -m pip"
 
     build_dir = "build-env"
     test_dir = "test-env"
@@ -260,19 +260,19 @@ class MacBuild(Build):
 
     python_cmds = {
         "2.7": "python2",
-        "3.6": "python3.6",
-        "3.7": "python3.7",
-        "3.8": "python3.8",
+        "3.6": "~/.pyenv/versions/3.6.11/bin/python",
+        "3.7": "~/.pyenv/versions/3.7.9/bin/python",
+        "3.8": "~/.pyenv/versions/3.8.6/bin/python",
     }
 
     pip_cmds = {
-        "2.7": "pip2",
-        "3.6": "pip3.6",
-        "3.7": "pip3.7",
-        "3.8": "pip3.8",
+        "2.7": "python2 -m pip",
+        "3.6": "~/.pyenv/versions/3.6.11/bin/python -m pip",
+        "3.7": "~/.pyenv/versions/3.7.9/bin/python -m pip",
+        "3.8": "~/.pyenv/versions/3.8.6/bin/python -m pip",
     }
 
-    uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
+    ##uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
 
     def __init__(self, os_version, python):
         self.xcode_version = self.xcode_versions[os_version]
@@ -332,18 +332,18 @@ class Config(object):
 
 
 builds = [
-    LinuxBuild(python="2.7"),
-    LinuxBuild(python="3.5"),
-    LinuxBuild(python="3.6"),
-    LinuxBuild(python="3.7"),
-    LinuxBuild(python="3.8"),
-    MacBuild("10.14", python="2.7"),
-    MacBuild("10.15", python="2.7"),
-    MacBuild("10.14", python="3.6"),
+    # LinuxBuild(python="2.7"),
+    # LinuxBuild(python="3.5"),
+    # LinuxBuild(python="3.6"),
+    # LinuxBuild(python="3.7"),
+    # LinuxBuild(python="3.8"),
+    # MacBuild("10.14", python="2.7"),
+    # MacBuild("10.15", python="2.7"),
+    # MacBuild("10.14", python="3.6"),
     MacBuild("10.15", python="3.6"),
-    MacBuild("10.14", python="3.7"),
+    # MacBuild("10.14", python="3.7"),
     MacBuild("10.15", python="3.7"),
-    MacBuild("10.14", python="3.8"),
+    # MacBuild("10.14", python="3.8"),
     MacBuild("10.15", python="3.8"),
 ]
 
