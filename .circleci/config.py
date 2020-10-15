@@ -34,6 +34,8 @@ class Build(object):
     examples_dir = "examples"
     extra_cache_paths = []
 
+    guild_bdist_wheel_options = ""
+
     built_guild_cmd = "guild"
     built_guild_env_cmd = "guild-env"
 
@@ -145,7 +147,8 @@ class Build(object):
             "Build",
             [
                 ". %s/bin/activate" % self.build_dir,
-                "%s/bin/python setup.py bdist_wheel" % self.build_dir,
+                "%s/bin/python setup.py bdist_wheel %s"
+                % (self.build_dir, self.guild_bdist_wheel_options),
             ],
         )
 
@@ -245,6 +248,8 @@ class LinuxBuild(Build):
 
     uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
 
+    guild_bdist_wheel_options = "-p manylinux1_x86_64"
+
     def __init__(self, python):
         self.python = python
         self.name = "linux-python_%s" % python
@@ -252,9 +257,6 @@ class LinuxBuild(Build):
 
     def env_config(self):
         return [{"image": self.images[self.name]}]
-
-    def _bdist_wheel_cmd(self):
-        return "%s setup.py bdist_wheel -p manylinux1_x86_64" % self.python_cmd
 
 
 class MacBuild(Build):

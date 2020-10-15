@@ -1,6 +1,7 @@
 # pip freeze
 
-By default, Guild does not generate a `pip_freeze` run attribute.
+By default, Guild generates a `pip_freeze` run attribute for Python
+based ops.
 
 Sample project with two ops - one for the default behavior and another
 that disables pip freeze.
@@ -9,9 +10,9 @@ that disables pip freeze.
 
     >>> write(path(project_dir, "guild.yml"), """
     ... default: guild.pass
-    ... pip-freeze:
+    ... no-pip-freeze:
     ...   main: guild.pass
-    ...   pip-freeze: yes
+    ...   pip-freeze: no
     ... """)
 
 Verify the ops:
@@ -20,7 +21,7 @@ Verify the ops:
 
     >>> run("guild ops")
     default
-    pip-freeze
+    no-pip-freeze
     <exit 0>
 
 Run the default:
@@ -30,15 +31,15 @@ Run the default:
     <exit 0>
 
     >>> run("guild cat -p .guild/attrs/pip_freeze")
-    guild: .../.guild/attrs/pip_freeze does not exist
-    <exit 1>
+    - ...
+    <exit 0>
 
 And the op with disabled pip freeze:
 
-    >>> run("guild run pip-freeze -y")
+    >>> run("guild run no-pip-freeze -y")
     <BLANKLINE>
     <exit 0>
 
     >>> run("guild cat -p .guild/attrs/pip_freeze")
-    - ...
-    <exit 0>
+    guild: .../.guild/attrs/pip_freeze does not exist
+    <exit 1>
