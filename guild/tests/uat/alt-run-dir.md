@@ -11,7 +11,7 @@ Let's run a `hello` operation using a specific run directory.
 
     >>> tmp = mkdtemp()
 
-    >>> run("guild run hello:default --run-dir '%s' -y" % tmp)
+    >>> run("NO_PIP_FREEZE=1 guild run hello:default --run-dir '%s' -y" % tmp)
     Run directory is '...' (results will not be visible to Guild)
     Hello Guild!
     <exit 0>

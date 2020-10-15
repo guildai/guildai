@@ -1,125 +1,130 @@
-noisy:
-  description: A noisy function
-  main: noisy
-  default: yes
-  flags-import: yes
-  flags:
-    noise:
-      description: Level of noise added to loss
-    x:
-      description: Input to noisy function
-      default: 0.2
-      min: -2.0
-      max: 2.0
-  output-scalars:
-    loss: 'loss: (\S+)'
-  compare: [=x, loss]
-  objective: loss
-  optimizers:
-    gp:
+
+- operation-defaults:
+    pip-freeze: no
+
+  operations:
+    noisy:
+      description: A noisy function
+      main: noisy
       default: yes
-      kappa: 1.5
-      noise: 0.001
-    gp-2:
-      algorithm: gp
-      kappa: 1.8
-      noise: gaussian
-      xi: 0.1
+      flags-import: yes
+      flags:
+        noise:
+          description: Level of noise added to loss
+        x:
+          description: Input to noisy function
+          default: 0.2
+          min: -2.0
+          max: 2.0
+      output-scalars:
+        loss: 'loss: (\S+)'
+      compare: [=x, loss]
+      objective: loss
+      optimizers:
+        gp:
+          default: yes
+          kappa: 1.5
+          noise: 0.001
+        gp-2:
+          algorithm: gp
+          kappa: 1.8
+          noise: gaussian
+          xi: 0.1
 
-noisy-flubber:
-  description: Noisy with a funny objective (-loss)
-  main: noisy_flubber
-  flags:
-    x:
-      min: -2.2
-      max: 2.2
-      default: 0.5
-  objective:
-    maximize: flubber
-  optimizer: forest
+    noisy-flubber:
+      description: Noisy with a funny objective (-loss)
+      main: noisy_flubber
+      flags:
+        x:
+          min: -2.2
+          max: 2.2
+          default: 0.5
+      objective:
+        maximize: flubber
+      optimizer: forest
 
-echo:
-  main: echo
-  description: Prints x, y, z flags
-  flags-import: yes
-  flags:
-    x:
-      description: X value to print
-      default: 1.0
-      min: -2.0
-      max: 2.0
-      type: float
-    y:
-      description: Y value to print
-      default: 2
-    z:
-      default: a
-      choices: [a, b, c, d]
-  output-scalars:
-    loss: '^(.+?) '
-  compare: [=x, loss]
-  label: x=${x|%.2f} y=${y} z=${z}
-  optimizer:
-    algorithm: gp
-    noise: 0.1
+    echo:
+      main: echo
+      description: Prints x, y, z flags
+      flags-import: yes
+      flags:
+        x:
+          description: X value to print
+          default: 1.0
+          min: -2.0
+          max: 2.0
+          type: float
+        y:
+          description: Y value to print
+          default: 2
+        z:
+          default: a
+          choices: [a, b, c, d]
+      output-scalars:
+        loss: '^(.+?) '
+      compare: [=x, loss]
+      label: x=${x|%.2f} y=${y} z=${z}
+      optimizer:
+        algorithm: gp
+        noise: 0.1
 
-poly:
-  main: poly
-  optimizers:
-    gaussian: gp
-    trees: forest
-  flags-import: yes
-  flags:
-    x:
-      min: -6.0
-      max: 5.0
-  output-scalars:
-    loss: 'loss: (.+)'
+    poly:
+      main: poly
+      optimizers:
+        gaussian: gp
+        trees: forest
+      flags-import: yes
+      flags:
+        x:
+          min: -6.0
+          max: 5.0
+      output-scalars:
+        loss: 'loss: (.+)'
 
-tune-echo:
-  exec: ./tune-echo tune-echo ${flag_args}
-  flags-import: yes
-  flags:
-    alpha: 0.1
-    beta: 0.2
-  requires:
-    - file: tune-echo
+    tune-echo:
+      exec: ./tune-echo tune-echo ${flag_args}
+      flags-import: yes
+      flags:
+        alpha: 0.1
+        beta: 0.2
+      requires:
+        - file: tune-echo
 
-tune-echo-2:
-  exec: ./tune-echo tune-echo-2 ${flag_args}
-  flags-import: yes
-  flags:
-    beta: 0.4
-    gamma: 3
-  requires:
-    - file: tune-echo
+    tune-echo-2:
+      exec: ./tune-echo tune-echo-2 ${flag_args}
+      flags-import: yes
+      flags:
+        beta: 0.4
+        gamma: 3
+      requires:
+        - file: tune-echo
 
-opt-test-1:
-  exec: 'true'
-  optimizer: tune-echo
+    opt-test-1:
+      exec: 'true'
+      optimizer: tune-echo
 
-opt-test-2:
-  exec: 'true'
-  optimizer:
-    algorithm: tune-echo
-    beta: 0.3
+    opt-test-2:
+      exec: 'true'
+      optimizer:
+        algorithm: tune-echo
+        beta: 0.3
 
-opt-test-3:
-  exec: 'true'
-  optimizers:
-    o1: tune-echo
-    o2:
-      algorithm: tune-echo-2
-      default: yes
-      gamma: 4
-      beta: 0.6
+    opt-test-3:
+      exec: 'true'
+      optimizers:
+        o1: tune-echo
+        o2:
+          algorithm: tune-echo-2
+          default: yes
+          gamma: 4
+          beta: 0.6
 
-opt-test-4:
-  exec: 'true'
-  optimizers:
-    tune-echo: {}
-    alt-tune: tune-echo-2
+    opt-test-4:
+      exec: 'true'
+      optimizers:
+        tune-echo: {}
+        alt-tune: tune-echo-2
 
-fail:
-  main: fail
-  flags-import: [code]
+    fail:
+      main: fail
+      flags-import: [code]

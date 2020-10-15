@@ -928,7 +928,15 @@ def _apply_system_attrs(op, attrs):
 
 
 def _pip_freeze_required(op):
-    return op._opdef.pip_freeze
+    return (
+        op._opdef.pip_freeze is not False
+        and os.getenv("NO_PIP_FREEZE") != "1"
+        and _is_python_op(op)
+    )
+
+
+def _is_python_op(op):
+    return "python" in " ".join(op.cmd_args)
 
 
 def _pip_freeze():
