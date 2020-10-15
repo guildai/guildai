@@ -336,7 +336,7 @@ def _deprecated(old_option, new_option):
 def _command_args():
     for i, arg in enumerate(sys.argv[1:]):
         if arg[:1] != "-":
-            return sys.argv[i + 1:]
+            return sys.argv[i + 1 :]
     return []
 
 
