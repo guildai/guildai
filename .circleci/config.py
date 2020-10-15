@@ -19,7 +19,7 @@ import yaml
 
 class Build(object):
 
-    cache_scheme_version = 18
+    cache_scheme_version = 19
 
     name = None
     python = None
@@ -304,10 +304,10 @@ class MacBuild(Build):
     }
 
     extra_cache_paths = [
-        "/usr/local",  # Cache Homebrew packages
+        "/usr/local",  # Homebrew packages
     ]
 
-    ##uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
+    uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
 
     def __init__(self, os_version, python):
         self.xcode_version = self.xcode_versions[os_version]
@@ -373,18 +373,18 @@ class Config(object):
 
 
 builds = [
-    # LinuxBuild(python="2.7"),
-    # LinuxBuild(python="3.5"),
-    # LinuxBuild(python="3.6"),
-    # LinuxBuild(python="3.7"),
-    # LinuxBuild(python="3.8"),
-    # MacBuild("10.14", python="2.7"),
-    # MacBuild("10.15", python="2.7"),
-    # MacBuild("10.14", python="3.6"),
+    LinuxBuild(python="2.7"),
+    LinuxBuild(python="3.5"),
+    LinuxBuild(python="3.6"),
+    LinuxBuild(python="3.7"),
+    LinuxBuild(python="3.8"),
+    MacBuild("10.14", python="2.7"),
+    MacBuild("10.15", python="2.7"),
+    MacBuild("10.14", python="3.6"),
     MacBuild("10.15", python="3.6"),
-    # MacBuild("10.14", python="3.7"),
+    MacBuild("10.14", python="3.7"),
     MacBuild("10.15", python="3.7"),
-    # MacBuild("10.14", python="3.8"),
+    MacBuild("10.14", python="3.8"),
     MacBuild("10.15", python="3.8"),
 ]
 
