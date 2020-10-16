@@ -224,8 +224,7 @@ used by the bash completion handlers to find matching files.
     >>> run_ac(run._ac_opspec, [], "echo")
     !!no-colon-wordbreak
     echo
-    !!file:*.@(py)
-    !!command
+    !!file:*
 
 ### Flags
 
