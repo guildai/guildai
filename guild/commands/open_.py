@@ -22,6 +22,12 @@ from guild import click_util
 from . import runs_support
 
 
+def _ac_cmd(ctx, **_kw):
+    if ctx.params.get("remote"):
+        return []
+    return click_util.completion_command()
+
+
 def _ac_path(ctx, **_kw):
     from . import runs_impl
 
@@ -52,7 +58,13 @@ def _ac_path(ctx, **_kw):
     is_flag=True,
     help="Open run output. Cannot be used with other options.",
 )
-@click.option("-c", "--cmd", metavar="CMD", help="Command used to open run.")
+@click.option(
+    "-c",
+    "--cmd",
+    metavar="CMD",
+    help="Command used to open run.",
+    autocompletion=_ac_cmd,
+)
 @click.option(
     "--shell", is_flag=True, help="Open a new shell in run directory or PATH."
 )
