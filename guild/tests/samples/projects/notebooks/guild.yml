@@ -1,0 +1,9 @@
+add:
+  notebook: add.ipynb
+  flags:
+    x:
+      default: 10
+      nb-repl: print\((\d+) \+ \d+\)
+    y:
+      default: 20
+      nb-repl: print\(\d+ \+ (\d+)\)

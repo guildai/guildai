@@ -157,16 +157,52 @@ class ImportedFlagsOpProxy(object):
         return {f.name: f.default for f in self.flags}
 
 
+class NotebookModelProxy(object):
+
+    name = ""
+
+    def __init__(self, notebook_path, op_name):
+        self.notebook_path = notebook_path
+        if os.path.isabs(op_name) or op_name.startswith(".."):
+            self.op_name = os.path.basename(op_name)
+        else:
+            self.op_name = op_name
+        self.modeldef = self._init_modeldef()
+        script_base = notebook_path[: -len(self.op_name)]
+        self.reference = modellib.script_model_ref(self.name, script_base)
+
+    def _init_modeldef(self):
+        data = [
+            {
+                "model": self.name,
+                "operations": {
+                    self.op_name: {
+                        "main": "guild.plugins.nbexec %s" % self.notebook_path
+                    }
+                },
+            }
+        ]
+        gf = guildfile.Guildfile(data, dir=os.path.dirname(self.notebook_path))
+        return gf.models[self.name]
+
+
+def _is_notebook(path):
+    return path.endswith(".ipynb")
+
+
 class PythonScriptPlugin(pluginlib.Plugin):
 
     resolve_model_op_priority = 60
 
     def resolve_model_op(self, opspec):
         path = os.path.join(config.cwd(), opspec)
-        if not python_util.is_python_script(path):
-            return None
-        model = PythonScriptModelProxy(path, opspec)
-        return model, model.op_name
+        if python_util.is_python_script(path):
+            model = PythonScriptModelProxy(path, opspec)
+            return model, model.op_name
+        elif _is_notebook(path):
+            model = NotebookModelProxy(path, opspec)
+            return model, model.op_name
+        return None
 
     def guildfile_loaded(self, gf):
         local_cache = {}

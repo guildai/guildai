@@ -120,6 +120,7 @@ JSON output, including private attrs:
                 }
             ],
             "flag-null-labels": {},
+            "flags-extra": {},
             "label-template": null,
             "op-cmd": {
                 "cmd-args": [

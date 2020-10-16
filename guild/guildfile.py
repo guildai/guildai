@@ -998,11 +998,11 @@ class OpDef(object):
         self.flags_import = data.get("flags-import")
         self.flags_import_skip = data.get("flags-import-skip")
         self._modelref = None
-        ## TODO - remove _flag_vals support once op2 is promoted
+        # TODO - remove _flag_vals support once op2 is promoted
         self._flag_vals = _init_flag_values(self.flags)
         self.description = (data.get("description") or "").strip()
         self.exec_ = data.get("exec")
-        self.main = data.get("main")
+        self.main = _init_op_main(data)
         self.steps = _steps_data(data, self)
         self.python_requires = data.get("python-requires")
         self.python_path = data.get("python-path")
@@ -1215,6 +1215,19 @@ class FlagChoice(object):
 
     def __repr__(self):
         return "<guild.guildfile.FlagChoice %r>" % self.value
+
+
+def _init_op_main(data):
+    return data.get("main") or _maybe_nbexec_main(data)
+
+
+def _maybe_nbexec_main(data):
+    try:
+        notebook = data["notebook"]
+    except KeyError:
+        return None
+    else:
+        return "guild.plugins.nbexec %s" % notebook
 
 
 def _steps_data(data, opdef):

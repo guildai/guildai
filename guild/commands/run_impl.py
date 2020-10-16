@@ -105,6 +105,7 @@ class Operation(oplib.Operation):
         self._tags = []
         self._output_scalars = None
         self._sourcecode_root = None
+        self._flags_extra = None
 
 
 def _state_for_args(args):
@@ -127,6 +128,7 @@ def _op_config_data(op):
         "output-scalars": op._output_scalars,
         "deps": op_util.op_deps_as_data(op.deps),
         "sourcecode-root": op._sourcecode_root,
+        "flags-extra": op._flags_extra,
     }
 
 
@@ -137,6 +139,7 @@ def _apply_op_config_data(data, op):
     op._label_template = data.get("label-template")
     op._output_scalars = data.get("output-scalars")
     op._sourcecode_root = data.get("sourcecode-root")
+    op._flags_extra = data.get("flags-extra")
     op.deps = op_util.op_deps_for_data(data.get("deps"))
 
 
@@ -317,7 +320,7 @@ def opdef_for_opspec(opspec, for_run=None):
         _invalid_opspec_error(opspec)
     except op_util.CwdGuildfileError as e:
         _guildfile_error(e.path, str(e))
-    except op_util.NoSuchModel as e:
+    except op_util.NoSuchModel:
         if for_run:
             _missing_run_opdef_error(opspec, for_run)
         else:
@@ -653,6 +656,7 @@ def _op_init_config_for_opdef(opdef, label_template, tags, op):
     op._label_template = label_template or opdef.label
     op._output_scalars = opdef.output_scalars
     op._sourcecode_root = _opdef_sourcecode_dest(opdef)
+    op._flags_extra = _opdef_flags_extra(opdef)
     op._tags = list(tags) + opdef.tags
 
 
@@ -692,6 +696,10 @@ def _sourcecode_empty(opdef):
 
 def _default_sourcecode_path():
     return os.path.join(".guild", "sourcecode")
+
+
+def _opdef_flags_extra(opdef):
+    return {flag.name: flag.extra for flag in opdef.flags if flag.extra}
 
 
 # =================================================================

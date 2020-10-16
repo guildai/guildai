@@ -173,6 +173,7 @@
     guild.plugins.import_argparse_flags_main
     guild.plugins.keras
     guild.plugins.memory
+    guild.plugins.nbexec
     guild.plugins.perf
     guild.plugins.python_script
     guild.plugins.queue

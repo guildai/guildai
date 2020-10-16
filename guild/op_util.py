@@ -29,6 +29,7 @@ import time
 import six
 import yaml
 
+from guild import _api
 from guild import config
 from guild import guildfile
 from guild import file_util
@@ -1800,3 +1801,7 @@ def init_logging():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     loglib.init_logging(level, {"_": format})
+
+
+def current_run():
+    return _api.current_run()
