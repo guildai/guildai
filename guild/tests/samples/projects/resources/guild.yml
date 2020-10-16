@@ -134,6 +134,18 @@
           select: foo/bar
           name: archive-dir-copy
 
+    test6:
+      sources:
+        # source 0
+        - file: foo/bar/a.txt
+          preserve-path: yes
+          name: preserve-path
+        # source 1
+        - file: foo/bar/b.txt
+          preserve-path: yes
+          target-path: bam
+          name: preserve-path-with-target
+
   operations:
     test4:
       main: guild.pass

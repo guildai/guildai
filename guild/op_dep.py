@@ -71,7 +71,7 @@ def _init_dep(depdef, flag_vals):
 
 
 def _resdef_config(resdef, flag_vals):
-    for name in [resdef.fullname, resdef.name]:
+    for name in [resdef.fullname, (resdef.flag_name or resdef.name)]:
         try:
             return flag_vals[name]
         except KeyError:
@@ -229,7 +229,9 @@ def resolve_source(source, dep, resolve_context):
             _unknown_source_resolution_error(source, dep, e)
         else:
             for path in source_paths:
-                _apply_resolved_source(path, source, resolve_context.run.dir)
+                _resolve_source_for_path(
+                    path, location, source, resolve_context.run.dir
+                )
             return source_paths
     assert last_resolution_error
     _source_resolution_error(source, dep, last_resolution_error)
@@ -287,9 +289,11 @@ def _unknown_source_resolution_error(source, dep, e):
     )
 
 
-def _apply_resolved_source(source_path, source, target_dir):
+def _resolve_source_for_path(source_path, source_location, source, target_dir):
     target_type = _target_type_for_source(source)
-    target_path = _target_path_for_source(source_path, source, target_dir)
+    target_path = _target_path_for_source(
+        source_path, source_location, source, target_dir
+    )
     if target_type == "link":
         _link_to_source(source_path, target_path)
     elif target_type == "copy":
@@ -316,13 +320,13 @@ def _validate_target_type(val, desc):
     )
 
 
-def _target_path_for_source(source_path, source, target_dir):
+def _target_path_for_source(source_path, source_location, source, target_dir):
     """Returns target path for source.
 
-    If target path is defined for the source, it redefined any value
+    If target path is defined for the source, it redefines any value
     defined for the resource parent.
     """
-    target_path = _source_target_path_attr(source)
+    target_path = _source_target_path(source, source_path, source_location)
     if os.path.isabs(target_path):
         raise OpDependencyError(
             "invalid path '%s' in %s resource (path must be relative)"
@@ -334,8 +338,17 @@ def _target_path_for_source(source_path, source, target_dir):
     return os.path.join(target_dir, target_path, basename)
 
 
-def _source_target_path_attr(source):
-    return source.target_path or source.resdef.target_path or ""
+def _source_target_path(source, source_path, source_location):
+    target_path_attr = source.target_path or source.resdef.target_path
+    if source.preserve_path:
+        if target_path_attr:
+            log.warning(
+                "target-path '%s' specified with preserve-path - ignoring",
+                target_path_attr,
+            )
+        return os.path.relpath(os.path.dirname(source_path), source_location)
+    else:
+        return target_path_attr or source.resdef.target_path or ""
 
 
 def _link_to_source(source_path, link):

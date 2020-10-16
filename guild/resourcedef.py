@@ -61,6 +61,7 @@ class ResourceDef(object):
         self.target_path = _init_target_path(
             data.get("target-path"), data.get("path"), "resource %s" % self.fullname
         )
+        self.preserve_path = data.get("preserve-path")
         self.target_type = data.get("target-type")
         self.default_unpack = data.get("default-unpack", True)
         self.private = bool(data.get("private"))
@@ -160,6 +161,7 @@ class ResourceSource(object):
         target_path=None,
         target_type=None,
         path=None,
+        preserve_path=False,
         params=None,
         **kw
     ):
@@ -180,6 +182,7 @@ class ResourceSource(object):
         self.post_process = post_process
         self.target_path = _init_target_path(target_path, path, "source %s" % self.name)
         self.target_type = target_type
+        self.preserve_path = preserve_path
         self.params = params or {}
         self.help = help
         for key in sorted(kw):

@@ -209,7 +209,8 @@ Here are the model resources:
      <guild.guildfile.ResourceDef 'test2'>,
      <guild.guildfile.ResourceDef 'test3'>,
      <guild.guildfile.ResourceDef 'test4'>,
-     <guild.guildfile.ResourceDef 'test5'>]
+     <guild.guildfile.ResourceDef 'test5'>,
+     <guild.guildfile.ResourceDef 'test6'>]
 
 ### test resource
 
@@ -924,10 +925,9 @@ Let's resolve with a run that has flags.
       d: 444
     e: hello
 
-### test5 and test6 resources
+### test5 resources
 
-The `test5` and `test6` resources illustrates different `target-type`
-attributes.
+The `test5` resource illustrates different `target-type` attributes.
 
     >>> test5_resdef = res_model.get_resource("test5")
     >>> test5_resdef.sources
@@ -1117,6 +1117,68 @@ Each staged file is a copy:
 
     >>> iscopy(path(run.dir, "bar", "b.txt")), run.dir
     (True, ...)
+
+### test6 resources
+
+The `test6` resource illustrates the use of `preserve-path`, which
+
+    >>> test6_resdef = res_model.get_resource("test6")
+    >>> test6_resdef.sources
+    [<guild.resourcedef.ResourceSource 'preserve-path'>,
+     <guild.resourcedef.ResourceSource 'preserve-path-with-target'>]
+
+#### Default preserve-path
+
+The first source specifies `preserve-path`.
+
+    >>> preserve_path = test6_resdef.sources[0]
+    >>> preserve_path.preserve_path
+    True
+
+In this example, target-path is not specified.
+
+    >>> print(preserve_path.target_path)
+    None
+
+Let's specify a run to resolve for so we can check the type of files
+created.
+
+    >>> run = runlib.for_dir(mkdtemp())
+
+    >>> resolve(preserve_path, run)
+    {'resolved': ['<project-dir>/foo/bar/a.txt'],
+     'staged': ['foo/bar/a.txt'],
+     'unpacked': []}
+
+Note that the staged path includes the path from the project
+directory.
+
+#### Specifying preserve-path and target-path
+
+Guild ignores target-path and shows a warning message when
+preserve-path is specified.
+
+    >>> preserve_path_with_target = test6_resdef.sources[1]
+    >>> preserve_path_with_target.preserve_path
+    True
+
+In this case, target-path is specified.
+
+    >>> preserve_path_with_target.target_path
+    'bam'
+
+When we resolve this source, we get a warning message.
+
+    >>> run = runlib.for_dir(mkdtemp())
+
+    >>> with LogCapture() as logs:
+    ...     resolve(preserve_path_with_target, run)
+    {'resolved': ['<project-dir>/foo/bar/b.txt'],
+     'staged': ['foo/bar/b.txt'],
+     'unpacked': []}
+
+    >>> logs.print_all()
+    WARNING: target-path 'bam' specified with preserve-path - ignoring
 
 ## Alternative resource defs
 
