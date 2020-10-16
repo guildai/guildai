@@ -1722,7 +1722,7 @@ def _for_pkg_dist(dist, opref):
 def _maybe_apply_anonymous_model(data):
     assert isinstance(data, dict), data
     # Only apply anonymous model if data contains operations.
-    if not "operations" in data:
+    if "operations" not in data:
         return
     for name in MODEL_TYPES:
         if name in data:
