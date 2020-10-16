@@ -17,7 +17,10 @@ from __future__ import division
 
 import logging
 import os
+import re
 import subprocess
+
+import six
 
 from guild import cli
 from guild import click_util
@@ -150,7 +153,7 @@ def _diff_runs(args, ctx):
 
 
 def _diff(path1, path2, args):
-    cmd_base = util.shlex_split(_diff_cmd(args))
+    cmd_base = util.shlex_split(_diff_cmd(args, path1))
     cmd = cmd_base + [path1, path2]
     log.debug("diff cmd: %r", cmd)
     try:
@@ -159,15 +162,69 @@ def _diff(path1, path2, args):
         cli.error("error running '%s': %s" % (" ".join(cmd), e))
 
 
-def _diff_cmd(args):
-    return args.cmd or _config_diff_cmd() or _default_diff_cmd()
+def _diff_cmd(args, path1):
+    return args.cmd or _config_diff_cmd(path1) or _default_diff_cmd(path1)
 
 
-def _config_diff_cmd():
+def _config_diff_cmd(path1):
+    cmd_map = _coerce_config_diff_command(_diff_command_config())
+    if not cmd_map:
+        return None
+    if not path1:
+        return cmd_map.get("default")
+    return _config_diff_cmd_for_path(path1, cmd_map)
+
+
+def _diff_command_config():
     return config.user_config().get("diff", {}).get("command")
 
 
-def _default_diff_cmd():
+def _config_diff_cmd_for_path(path1, cmd_map):
+    _, path_ext = os.path.splitext(path1)
+    for pattern in cmd_map:
+        if pattern == "default":
+            continue
+        if _match_ext(path_ext, pattern):
+            return cmd_map[pattern]
+    return cmd_map.get("default")
+
+
+def _match_ext(ext, pattern):
+    return ext == pattern or _safe_re_match(ext, pattern)
+
+
+def _safe_re_match(ext, pattern):
+    try:
+        p = re.compile(pattern)
+    except ValueError:
+        return False
+    else:
+        return p.search(ext)
+
+
+def _coerce_config_diff_command(data):
+    if data is None or isinstance(data, dict):
+        return data
+    elif isinstance(data, six.string_types):
+        return {"default": data}
+    else:
+        log.warning("unsupported configuration for diff command: %r", data)
+        return None
+
+
+def _default_diff_cmd(path1):
+    return _default_diff_cmd_for_path(path1) or _default_diff_cmd_()
+
+
+def _default_diff_cmd_for_path(path1):
+    if not path1:
+        return None
+    _, ext = os.path.splitext(path1)
+    if ext == ".ipynb":
+        return _find_cmd(["nbdiff-web -M"])
+
+
+def _default_diff_cmd_():
     if util.PLATFORM == "Linux":
         return _find_cmd(["meld", "xxdiff -r", "dirdiff", "colordiff"])
     elif util.PLATFORM == "Darwin":
