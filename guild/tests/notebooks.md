@@ -62,31 +62,19 @@ flags.
     [NbConvertApp] Converting notebook .../add.ipynb to html
     [NbConvertApp] Writing ... bytes to .../add.html
 
-    >>> project.cat(project.list_runs()[0], "add.ipynb")
-    {
-     "cells": [
-      {
-       "cell_type": "code",
-       "execution_count": 1,
-       "metadata": ...
-       "outputs": [
-        {
-         "name": "stdout",
-         "output_type": "stream",
-         "text": [
-          "300\n"
-         ]
-        }
-       ],
-       "source": [
-        "print(100 + 200)"
-       ]
-      }
-     ],
-     "metadata": ...
-     "nbformat": 4,
-     "nbformat_minor": 4
-    }
+    >>> import json
+    >>> generated_ipynb = json.load(open(path(project.list_runs()[0].dir, "add.ipynb")))
+    >>> generated_ipynb["nbformat"]
+    4
+
+    >>> pprint(generated_ipynb["cells"])
+    [{'cell_type': 'code',
+      'execution_count': 1,
+      'metadata': ...
+      'outputs': [{'name': 'stdout',
+                   'output_type': 'stream',
+                   'text': ['300\n']}],
+      'source': ['print(100 + 200)']}]
 
 You can run the Notebook directly. In this case, there are no flags
 because we don't know anything about the notebook.
@@ -104,28 +92,24 @@ because we don't know anything about the notebook.
 
 The generated Notebook is the same as the original.
 
-    >>> project.cat(project.list_runs()[0], "add.ipynb")
-    {
-     "cells": [
-      {
-       "cell_type": "code",
-       "execution_count": 1,
-       "metadata": ...
-       "outputs": [
-        {
-         "name": "stdout",
-         "output_type": "stream",
-         "text": [
-          "3\n"
-         ]
-        }
-       ],
-       "source": [
-        "print(1 + 2)"
-       ]
-      }
-     ],
-     "metadata": ...
-     "nbformat": 4,
-     "nbformat_minor": 4
-    }
+    >>> generated_ipynb = json.load(open(path(project.list_runs()[0].dir, "add.ipynb")))
+    >>> generated_ipynb["nbformat"]
+    4
+
+    >>> pprint(generated_ipynb["cells"])
+    [{'cell_type': 'code',
+      'execution_count': 1,
+      'metadata': ...
+      'outputs': [{'name': 'stdout',
+                   'output_type': 'stream',
+                   'text': ['3\n']}],
+      'source': ['print(1 + 2)']}]
+
+## Errors
+
+    >>> project.run("invalid_language.ipynb")
+    [NbConvertApp] Converting notebook .../invalid_language.ipynb to notebook
+    Traceback (most recent call last):
+    ...
+    jupyter_client.kernelspec.NoSuchKernel: No such kernel named xxx
+    <exit 1>

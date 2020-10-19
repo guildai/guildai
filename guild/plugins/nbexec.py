@@ -78,7 +78,9 @@ def _nbexec(notebook, flags, run):
         "--inplace",
         working_notebook,
     ]
-    subprocess.call(cmd)
+    returncode = subprocess.call(cmd)
+    if returncode != 0:
+        sys.exit(returncode)
     return working_notebook
 
 
@@ -175,7 +177,9 @@ def _nbconvert_html(notebook):
         "html",
         notebook,
     ]
-    subprocess.call(cmd)
+    returncode = subprocess.call(cmd)
+    if returncode != 0:
+        sys.exit(returncode)
 
 
 if __name__ == "__main__":
