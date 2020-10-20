@@ -285,6 +285,15 @@ Print some of the more interesting columns:
     1  ...   y          0      -1.0
     2  ...   z          0       1.0
 
+The underlying scalar summaries can be read using `scalars_detail`.
+
+    >>> with guild_home:
+    ...     ipy.runs().scalars_detail()
+       run    path tag  val  step
+    0  ...  .guild   x  3.0     0
+    1  ...  .guild   y -1.0     0
+    2  ...  .guild   z  1.0     0
+
 ### Logging scalars as TFEvents
 
 This function uses Guild's `SummaryWriter` to write scalars.
@@ -337,6 +346,14 @@ And its scalars:
       'run': '...',
       'tag': 'x',
       'total': 6.0}]
+
+Scalars detail:
+
+    >>> runs.loc[runs["run"] == run.id].scalars_detail()
+       run path tag  val  step
+    0  ...    .   x  1.0     1
+    1  ...    .   x  2.0     2
+    2  ...    .   x  3.0     3
 
 ## Comparing runs
 

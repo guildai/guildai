@@ -185,6 +185,9 @@ class RunsSeries(pd.Series):
     def scalars(self):
         return _runs_scalars([self[0].value])
 
+    def scalars_detail(self):
+        return _runs_scalars_detail([self[0].value])
+
     def flags(self):
         return _runs_flags([self[0].value])
 
@@ -222,6 +225,9 @@ class RunsDataFrame(pd.DataFrame):
 
     def scalars(self):
         return _runs_scalars(self._runs())
+
+    def scalars_detail(self):
+        return _runs_scalars_detail(self._runs())
 
     def flags(self):
         return _runs_flags(self._runs())
@@ -629,6 +635,25 @@ def _runs_scalars(runs):
     for run in runs:
         for s in indexlib.iter_run_scalars(run):
             data.append(s)
+    return pd.DataFrame(data, columns=cols)
+
+
+def _runs_scalars_detail(runs):
+    from guild import tfevent
+
+    data = []
+    cols = [
+        "run",
+        "path",
+        "tag",
+        "val",
+        "step",
+    ]
+    for run in runs:
+        for path, _run_id, scalars in tfevent.scalar_readers(run.dir):
+            rel_path = os.path.relpath(path, run.dir)
+            for tag, val, step in scalars:
+                data.append([run, rel_path, tag, val, step])
     return pd.DataFrame(data, columns=cols)
 
 
