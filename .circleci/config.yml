@@ -6,7 +6,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python_2.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python_2.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H python -m pip install --upgrade pip | cat
 
@@ -22,7 +22,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: linux-python_2.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python_2.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -62,7 +62,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python_3.5-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python_3.5-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H python -m pip install --upgrade pip | cat
 
@@ -78,7 +78,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: linux-python_3.5-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python_3.5-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -118,7 +118,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python_3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python_3.6-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H python -m pip install --upgrade pip | cat
 
@@ -134,7 +134,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: linux-python_3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python_3.6-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -174,7 +174,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python_3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python_3.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H python -m pip install --upgrade pip | cat
 
@@ -190,7 +190,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: linux-python_3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python_3.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -230,7 +230,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python_3.8-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python_3.8-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H python -m pip install --upgrade pip | cat
 
@@ -246,7 +246,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: linux-python_3.8-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python_3.8-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -305,7 +305,7 @@ jobs:
         key: macos_10.14-python_2.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
-        - /usr/local
+        - /usr/local/Homebrew
     - run:
         command: '. build-env/bin/activate
 
@@ -366,7 +366,7 @@ jobs:
         key: macos_10.14-python_3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
-        - /usr/local
+        - /usr/local/Homebrew
     - run:
         command: '. build-env/bin/activate
 
@@ -427,7 +427,7 @@ jobs:
         key: macos_10.14-python_3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
-        - /usr/local
+        - /usr/local/Homebrew
     - run:
         command: '. build-env/bin/activate
 
@@ -488,7 +488,7 @@ jobs:
         key: macos_10.14-python_3.8-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
-        - /usr/local
+        - /usr/local/Homebrew
     - run:
         command: '. build-env/bin/activate
 
@@ -545,7 +545,7 @@ jobs:
         key: macos_10.15-python_2.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
-        - /usr/local
+        - /usr/local/Homebrew
     - run:
         command: '. build-env/bin/activate
 
@@ -606,7 +606,7 @@ jobs:
         key: macos_10.15-python_3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
-        - /usr/local
+        - /usr/local/Homebrew
     - run:
         command: '. build-env/bin/activate
 
@@ -667,7 +667,7 @@ jobs:
         key: macos_10.15-python_3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
-        - /usr/local
+        - /usr/local/Homebrew
     - run:
         command: '. build-env/bin/activate
 
@@ -728,7 +728,7 @@ jobs:
         key: macos_10.15-python_3.8-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
-        - /usr/local
+        - /usr/local/Homebrew
     - run:
         command: '. build-env/bin/activate
 

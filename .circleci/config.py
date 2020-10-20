@@ -19,7 +19,7 @@ import yaml
 
 class Build(object):
 
-    cache_scheme_version = 19
+    cache_scheme_version = 20
 
     name = None
     python = None
@@ -306,7 +306,7 @@ class MacBuild(Build):
     }
 
     extra_cache_paths = [
-        "/usr/local",  # Homebrew packages
+        "/usr/local/Homebrew",
     ]
 
     uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
