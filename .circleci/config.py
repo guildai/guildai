@@ -261,8 +261,6 @@ class LinuxBuild(Build):
 
 class MacBuild(Build):
 
-    cache_scheme_version = 19
-
     env = "macos"
 
     xcode_versions = {

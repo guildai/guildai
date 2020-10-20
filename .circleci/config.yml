@@ -286,7 +286,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos_10.14-python_2.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos_10.14-python_2.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H python2 -m pip install --upgrade pip | cat
 
@@ -302,7 +302,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: macos_10.14-python_2.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos_10.14-python_2.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
         - /usr/local/Homebrew
@@ -343,7 +343,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos_10.14-python_3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos_10.14-python_3.6-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'brew install pyenv
 
@@ -363,7 +363,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: macos_10.14-python_3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos_10.14-python_3.6-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
         - /usr/local/Homebrew
@@ -404,7 +404,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos_10.14-python_3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos_10.14-python_3.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'brew install pyenv
 
@@ -424,7 +424,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: macos_10.14-python_3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos_10.14-python_3.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
         - /usr/local/Homebrew
@@ -465,7 +465,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos_10.14-python_3.8-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos_10.14-python_3.8-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'brew install pyenv
 
@@ -485,7 +485,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: macos_10.14-python_3.8-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos_10.14-python_3.8-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
         - /usr/local/Homebrew
@@ -526,7 +526,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos_10.15-python_2.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos_10.15-python_2.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H python2 -m pip install --upgrade pip | cat
 
@@ -542,7 +542,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: macos_10.15-python_2.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos_10.15-python_2.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
         - /usr/local/Homebrew
@@ -583,7 +583,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos_10.15-python_3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos_10.15-python_3.6-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'brew install pyenv
 
@@ -603,7 +603,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: macos_10.15-python_3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos_10.15-python_3.6-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
         - /usr/local/Homebrew
@@ -644,7 +644,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos_10.15-python_3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos_10.15-python_3.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'brew install pyenv
 
@@ -664,7 +664,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: macos_10.15-python_3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos_10.15-python_3.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
         - /usr/local/Homebrew
@@ -705,7 +705,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos_10.15-python_3.8-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos_10.15-python_3.8-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'brew install pyenv
 
@@ -725,7 +725,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1800
     - save_cache:
-        key: macos_10.15-python_3.8-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos_10.15-python_3.8-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
         - /usr/local/Homebrew
