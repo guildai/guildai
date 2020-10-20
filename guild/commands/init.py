@@ -83,6 +83,12 @@ def _ac_path(**_kw):
     autocompletion=_ac_guild_version_or_path,
 )
 @click.option(
+    "-s",
+    "--system-site-packages",
+    is_flag=True,
+    help="Give environment access to system site packages.",
+)
+@click.option(
     "-H",
     "--no-isolate",
     is_flag=True,

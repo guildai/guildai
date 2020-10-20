@@ -51,6 +51,7 @@ class Config(object):
         self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
         self.venv_python = self._init_venv_python(args, self.user_reqs)
         self.paths = args.path
+        self.system_site_packages = args.system_site_packages
         self.isolate_resources = args.isolate_resources
         self.prompt_params = self._init_prompt_params()
         self.no_progress = args.no_progress
@@ -106,6 +107,9 @@ class Config(object):
             params.append(("Python interpreter", self.venv_python))
         else:
             params.append(("Python interpreter", "default"))
+        params.append(
+            ("Use system site packages", "yes" if self.system_site_packages else "no")
+        )
         if self.guild:
             params.append(("Guild", self.guild))
         else:
@@ -287,6 +291,8 @@ def _venv_cmd_args(config):
     args.extend(["--prompt", "({}) ".format(config.env_name)])
     if config.venv_python:
         args.extend(["--python", config.venv_python])
+    if config.system_site_packages:
+        args.append("--system-site-packages")
     return args
 
 
