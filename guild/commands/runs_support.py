@@ -333,8 +333,8 @@ def _deprecated(old_option, new_option, *rest):
     def f(ctx, param, value):
         if old_option in _command_args():
             log.warning(
-                "option '%s' is deprecated and will be removed in version "
-                "0.8 - use '%s' instead",
+                "option %s is deprecated and will be removed in version "
+                "0.8 - use %s instead",
                 old_option,
                 new_option,
             )
