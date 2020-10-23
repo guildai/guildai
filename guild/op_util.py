@@ -674,7 +674,7 @@ def set_run_staged(run):
 def run_label(label_template, flag_vals):
     """Returns a run label for template and flag vals."""
     default_label = _default_run_label(flag_vals)
-    if not label_template:
+    if label_template is None:
         return default_label
     return _render_label_template(label_template, flag_vals, default_label)
 

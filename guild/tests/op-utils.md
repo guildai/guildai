@@ -528,19 +528,24 @@ Missing template:
     >>> run_label(None, {"foo": "FOO"})
     'foo=FOO'
 
-    >>> run_label("", {"foo": "FOO", "bar": "BAR"})
+    >>> run_label(None, {"foo": "FOO", "bar": "BAR"})
     'bar=BAR foo=FOO'
+
+If label is an empty string, it is used rather than the default.
+
+    >>> run_label("", {"foo": "FOO", "bar": "BAR"})
+    ''
 
 Floats are truncated:
 
-    >>> run_label("", {"f": 1.123456789})
+    >>> run_label(None, {"f": 1.123456789})
     'f=1.12345'
 
 Long paths are shortened to use an ellipsis:
 
     >>> long_path = path(mkdtemp(), "abc/def/ghi/jkl/mno/pqr/stu/vwx/yz")
     >>> ensure_dir(long_path)
-    >>> run_label("", {"p": long_path})  # doctest: -WINDOWS
+    >>> run_label(None, {"p": long_path})  # doctest: -WINDOWS
     'p=.../\u2026/vwx/yz'
 
 Templates:
