@@ -17,10 +17,8 @@ Tags for a run appear for runs info:
     operation: hello
     ...
     label: blue msg='Hello Guild!'
-    ...
     tags:
       - blue
-    flags:
     ...
     <exit 0>
 
@@ -69,12 +67,10 @@ used to synchronize the run label with the new tags.
     operation: hello
     ...
     label: red yellow green msg='Hello Guild!'
-    ...
     tags:
       - green
       - red
       - yellow
-    flags:
     ...
     <exit 0>
 
@@ -95,7 +91,6 @@ Delete a tag:
     tags:
       - green
       - yellow
-    flags:
     ...
     <exit 0>
 
@@ -114,7 +109,6 @@ Clear all tags:
     operation: hello
     ...
     tags:
-    flags:
     ...
     <exit 0>
 
@@ -140,7 +134,6 @@ The tags however are still set.
     ...
     tags:
       - blue
-    flags:
     ...
     <exit 0>
 
@@ -162,7 +155,6 @@ Add a new tag to all runs:
     tags:
       - blue
       - example
-    flags:
     ...
     <exit 0>
 
@@ -172,7 +164,6 @@ Add a new tag to all runs:
     ...
     tags:
       - example
-    flags:
     ...
     <exit 0>
 
@@ -194,7 +185,6 @@ Repeat the addition of a tag. This is idempotent.
     tags:
       - blue
       - example
-    flags:
     ...
     <exit 0>
 
@@ -204,7 +194,6 @@ Repeat the addition of a tag. This is idempotent.
     ...
     tags:
       - example
-    flags:
     ...
     <exit 0>
 
@@ -227,7 +216,6 @@ The tags, however, are modified.
     ...
     tags:
       - blue
-    flags:
     ...
     <exit 0>
 
@@ -236,7 +224,6 @@ The tags, however, are modified.
     operation: hello
     ...
     tags:
-    flags:
     ...
     <exit 0>
 

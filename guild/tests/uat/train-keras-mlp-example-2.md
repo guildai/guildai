@@ -34,13 +34,13 @@ Run info:
     stopped: ...
     marked: no
     label: batch_size=128 epochs=1
+    tags:
     sourcecode_digest: 106c5dcffffab1f6cbe5e1b50dfac863
     vcs_commit: git:...
     run_dir: ...
     command: ...
     exit_status: 0
     pid:
-    tags:
     flags:
       batch_size: 128
       epochs: 1

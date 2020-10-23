@@ -11,7 +11,6 @@ Confirm current latest run.
     operation: gpkg.hello/hello-op
     ...
     tags:
-    flags:
     ...
     <exit 0>
 
@@ -30,11 +29,9 @@ Add two tags with label sync.
     operation: gpkg.hello/hello-op
     ...
     label: blue green remote-run-123
-    ...
     tags:
       - blue
       - green
-    flags:
     ...
     <exit 0>
 
@@ -49,10 +46,8 @@ Delete two tags, one non-existing.
     operation: gpkg.hello/hello-op
     ...
     label: green remote-run-123
-    ...
     tags:
       - green
-    flags:
     ...
     <exit 0>
 
@@ -67,10 +62,8 @@ Delete an existing tag, add a new tag.
     operation: gpkg.hello/hello-op
     ...
     label: orange remote-run-123
-    ...
     tags:
       - orange
-    flags:
     ...
     <exit 0>
 
@@ -85,10 +78,8 @@ Clear tags and add a new tag.
     operation: gpkg.hello/hello-op
     ...
     label: cyan remote-run-123
-    ...
     tags:
       - cyan
-    flags:
     ...
     <exit 0>
 
@@ -103,9 +94,7 @@ Clear all tags without label sync.
     operation: gpkg.hello/hello-op
     ...
     label: cyan remote-run-123
-    ...
     tags:
-    flags:
     ...
     <exit 0>
 

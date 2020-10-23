@@ -44,12 +44,12 @@ Show latest staged run:
     stopped:
     marked: no
     label: noise=0.1 x=3
+    tags:
     sourcecode_digest: ...
     run_dir: .../.guild/runs/...
     command: ... -um guild.op_main train --noise 0.1 --x 3
     exit_status:
     pid:
-    tags:
     flags:
       noise: 0.1
       x: 3

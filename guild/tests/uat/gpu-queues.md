@@ -30,6 +30,8 @@ Here's the run info for the queue:
     stopped:
     marked: no
     label: q1 gpus=1 poll-interval=1 run-once=no wait-for-running=no
+    tags:
+      - q1
     sourcecode_digest:
     vcs_commit:
     run_dir: ...
