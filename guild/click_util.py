@@ -214,7 +214,8 @@ def append_params(fn, params):
 
 def format_error_message(e):
     msg_parts = [_format_click_error_message(e)]
-    if e.ctx:
+    ctx = getattr(e, "ctx", None)
+    if ctx:
         msg_parts.append("\nTry '%s' for more information." % cmd_help(e.ctx))
     return "".join(msg_parts)
 
