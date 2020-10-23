@@ -103,6 +103,7 @@ class Operation(oplib.Operation):
         self._label_template = None
         self._label = None
         self._tags = []
+        self._comment = None
         self._output_scalars = None
         self._sourcecode_root = None
         self._flags_extra = None
@@ -197,7 +198,13 @@ def _state_init_user_op(S):
     _op_init_user_flags(S.args.flags, S.user_op)
     _op_init_op_cmd(S.user_op)
     _op_init_op_flags(S.args, S.user_op)
-    _op_init_config(S.args.label, S.args.tags, S.user_op)
+    _op_init_config(
+        S.args.label,
+        S.args.tags,
+        S.args.comment,
+        S.args.edit_comment,
+        S.user_op,
+    )
     _op_init_core(S.args, S.user_op)
 
 
@@ -508,7 +515,7 @@ def _edit_op_flags(op):
     encoded_flags = util.encode_yaml(op._op_flag_vals)
     while True:
         # Loop to let user re-edit on error.
-        edited = util.editor(encoded_flags)
+        edited = util.edit(encoded_flags)
         if edited is None or not edited.strip():
             break
         try:
@@ -594,11 +601,11 @@ def _remote_runs_for_marked_or_latest(remote, oprefs, run_id_prefix, status):
 
     args = click_util.Args(**list_runs.make_context("", []).params)
     args.remote = remote
-    args.ops = [op.to_opspec() for op in oprefs]
-    args.completed = "completed" in status
-    args.running = "running" in status
-    args.terminated = "terminated" in status
-    args.staged = "staged" in status
+    args.filter_ops = [op.to_opspec() for op in oprefs]
+    args.status_completed = "completed" in status
+    args.status_running = "running" in status
+    args.status_terminated = "terminated" in status
+    args.status_staged = "staged" in status
     log.debug("filtered runs params for remote list: %r", args.as_kw())
     return _filter_by_run_id_prefix(
         remote_impl_support.filtered_runs(args), run_id_prefix
@@ -616,17 +623,24 @@ def _filter_by_run_id_prefix(runs, run_id_prefix):
 # =================================================================
 
 
-def _op_init_config(label_arg, tags_arg, op):
+def _op_init_config(label_arg, tags_arg, comments_arg, edit_comment_arg, op):
     label_template = _label_template(label_arg, tags_arg)
     if op._run:
-        _op_init_config_for_run(op._run, label_template, tags_arg, op)
+        _op_init_config_for_run(op._run, label_template, tags_arg, comments_arg, op)
     else:
         assert op._opdef
-        _op_init_config_for_opdef(op._opdef, label_template, tags_arg, op)
+        _op_init_config_for_opdef(
+            op._opdef,
+            label_template,
+            tags_arg,
+            comments_arg,
+            edit_comment_arg,
+            op,
+        )
 
 
 def _label_template(label_arg, tags_arg):
-    if label_arg:
+    if label_arg is not None:
         return label_arg
     if tags_arg:
         return "%s ${default_label}" % _format_tags_for_label(tags_arg)
@@ -637,27 +651,30 @@ def _format_tags_for_label(tags):
     return " ".join(tags)
 
 
-def _op_init_config_for_run(run, label_template, tags, op):
+def _op_init_config_for_run(run, label_template, tags, comment, op):
     config = run.get("op")
     if not config:
         _missing_op_config_for_restart_error(run)
     if not config.get("op-cmd"):
         _invalid_op_config_for_restart_error(run)
     _apply_op_config_data(config, op)
-    if label_template:
+    if label_template is not None:
         op._label_template = label_template
     if tags:
         op._tags = tags
+    if comment:
+        op._comment = comment
 
 
-def _op_init_config_for_opdef(opdef, label_template, tags, op):
+def _op_init_config_for_opdef(opdef, label_template, tags, comment, edit_comment, op):
     op._flag_null_labels = _flag_null_labels_for_opdef(opdef, op._resource_flagdefs)
     op._python_requires = _python_requires_for_opdef(opdef)
-    op._label_template = label_template or opdef.label
+    op._label_template = label_template if label_template is not None else opdef.label
     op._output_scalars = opdef.output_scalars
     op._sourcecode_root = _opdef_sourcecode_dest(opdef)
     op._flags_extra = _opdef_flags_extra(opdef)
     op._tags = list(tags) + opdef.tags
+    op._comment = _init_op_comment(comment, edit_comment)
 
 
 def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
@@ -700,6 +717,12 @@ def _default_sourcecode_path():
 
 def _opdef_flags_extra(opdef):
     return {flag.name: flag.extra for flag in opdef.flags if flag.extra}
+
+
+def _init_op_comment(comment, edit_comment):
+    if edit_comment:
+        comment = util.edit(comment)
+    return comment
 
 
 # =================================================================
@@ -908,6 +931,8 @@ def _op_init_run_attrs(args, op):
         attrs["label"] = op._label
     if op._tags:
         attrs["tags"] = op._tags
+    if op._comment:
+        attrs["comments"] = _init_comments(op._comment)
     if op._batch_trials:
         attrs["trials"] = op._batch_trials
     attrs["flags"] = op._op_flag_vals
@@ -921,6 +946,21 @@ def _op_init_run_attrs(args, op):
     attrs["op"] = _op_config_data(op)
     _apply_system_attrs(op, attrs)
     attrs.update(op._op_cmd_run_attrs)
+
+
+def _init_comments(comment):
+    return [
+        {
+            "user": util.user(),
+            "host": util.hostname(),
+            "body": comment,
+            "time": comment_timestamp(),
+        }
+    ]
+
+
+def comment_timestamp():
+    return util.utcformat_timestamp(runlib.timestamp())
 
 
 def _apply_system_attrs(op, attrs):
@@ -1111,7 +1151,13 @@ def _state_init_batch_op(S):
         _op_init_op_cmd(S.batch_op)
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)
-        _op_init_config(S.args.batch_label, S.args.batch_tags, S.batch_op)
+        _op_init_config(
+            S.args.batch_label,
+            S.args.batch_tags,
+            S.args.batch_comment,
+            S.args.edit_batch_comment,
+            S.batch_op,
+        )
         _op_init_batch_config(S.args, S.user_op, S.batch_op)
         _apply_batch_flag_encoder(S.batch_op, S.user_op)
         _op_init_core(S.args, S.batch_op)
@@ -1370,6 +1416,8 @@ def _check_incompatible_options(args):
         ("stage", "pidfile"),
         ("remote", "background"),
         ("remote", "pidfile"),
+        ("remote", "edit_flags"),
+        ("remote", "edit_comment"),
     ]
     for a, b in incompatible:
         if getattr(args, a) and getattr(args, b):

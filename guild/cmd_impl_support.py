@@ -262,15 +262,13 @@ def _arg_parts(part):
         return part, "--" + part.replace("_", "-")
 
 
-def check_required_args(required, args, ctx):
+def check_required_args(required, args, ctx, msg_template=None):
+    msg_template = msg_template or "missing one of: %s"
     missing_args = []
     for val in required:
         arg_name, arg = _arg_parts(val)
         if getattr(args, arg_name, None):
             return
         missing_args.append(arg)
-    cli.error(
-        "missing one of: %s\n"
-        "Try `%s --help` for more information."
-        % (", ".join(missing_args), ctx.command_path)
-    )
+    msg = msg_template % ", ".join(missing_args)
+    cli.error("%s\nTry `%s --help` for more information." % (msg, ctx.command_path))

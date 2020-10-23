@@ -46,6 +46,7 @@ Expected output (Guidl help):
     Commands:
       cat              Show contents of a run file.
       check            Check the Guild setup.
+      comment          Add or remove run comments.
       compare          Compare run results.
       completion       Generate command completion script.
       diff             Diff two runs.

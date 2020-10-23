@@ -49,6 +49,7 @@ Here are the commands that support the `remote` param:
     ...             break
     cat
     check
+    comment
     diff
     label
     ls

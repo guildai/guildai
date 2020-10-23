@@ -25,9 +25,7 @@ import re
 import shutil
 import signal
 
-import click
-
-import guild.opref
+import six
 
 # IMPORTANT: Keep expensive imports out of this list. This module is
 # used by several commands and any latency here will be automatically
@@ -41,6 +39,7 @@ from guild import cmd_impl_support
 from guild import config
 from guild import flag_util
 from guild import op_util
+from guild import plugin as pluginlib
 from guild import remote_run_support
 from guild import run as runlib
 from guild import run_util
@@ -73,6 +72,7 @@ LATEST_RUN_ARG = ["1"]
 
 CORE_RUN_ATTRS = [
     "cmd",
+    "comments",
     "compare",
     "deps",
     "env",
@@ -107,12 +107,12 @@ LEGACY_RUN_ATTRS = [
 RUNS_PER_GROUP = 20
 
 FILTERABLE = [
-    "completed",
-    "error",
-    "pending",
-    "running",
-    "staged",
-    "terminated",
+    ("completed", "status_completed"),
+    ("error", "status_error"),
+    ("pending", "status_pending"),
+    ("running", "status_running"),
+    ("staged", "status_staged"),
+    ("terminated", "status_terminated"),
 ]
 
 STYLE_TABLE_WIDTH_ADJ = 8
@@ -145,6 +145,7 @@ def _runs_filter(args, ctx):
     _apply_ops_filter(args, filters)
     _apply_labels_filter(args, filters)
     _apply_tags_filter(args, filters)
+    _apply_comments_filter(args, filters)
     _apply_marked_filter(args, filters)
     _apply_started_filter(args, ctx, filters)
     _apply_sourcecode_digest_filter(args, filters)
@@ -154,16 +155,16 @@ def _runs_filter(args, ctx):
 def _apply_status_filter(args, filters):
     status_filters = [
         var.run_filter("attr", "status", status)
-        for status in FILTERABLE
-        if getattr(args, status, False)
+        for status, args_attr in FILTERABLE
+        if getattr(args, args_attr, False)
     ]
     if status_filters:
         filters.append(var.run_filter("any", status_filters))
 
 
 def _apply_ops_filter(args, filters):
-    if args.ops:
-        filters.append(_op_run_filter(args.ops))
+    if args.filter_ops:
+        filters.append(_op_run_filter(args.filter_ops))
 
 
 def _op_run_filter(op_refs):
@@ -175,20 +176,26 @@ def _op_run_filter(op_refs):
 
 
 def _apply_labels_filter(args, filters):
-    if args.labels and args.unlabeled:
+    if args.filter_labels and args.filter_unlabeled:
         cli.error("--label and --unlabeled cannot both be used")
-    if args.labels:
-        filters.append(_labels_filter(args.labels))
-    elif args.unlabeled:
+    if args.filter_labels:
+        filters.append(_labels_filter(args.filter_labels))
+    elif args.filter_unlabeled:
         filters.append(_unlabeled_filter())
 
 
-def _labels_filter(labels):
+def _labels_filter(filter_vals):
     def f(run):
-        run_label = str(run.get("label", ""))
-        return any((l in run_label for l in labels))
+        run_label = str(run.get("label", "")).strip()
+        return any((_match_label(s, run_label) for s in filter_vals))
 
     return f
+
+
+def _match_label(s, run_label):
+    if s == "-":
+        return not run_label
+    return s in run_label
 
 
 def _unlabeled_filter():
@@ -199,8 +206,8 @@ def _unlabeled_filter():
 
 
 def _apply_tags_filter(args, filters):
-    if args.tags:
-        filters.append(_tags_filter(args.tags))
+    if args.filter_tags:
+        filters.append(_tags_filter(args.filter_tags))
 
 
 def _tags_filter(tags):
@@ -211,12 +218,46 @@ def _tags_filter(tags):
     return f
 
 
+def _apply_comments_filter(args, filters):
+    if args.filter_comments:
+        filters.append(_comments_filter(args.filter_comments))
+
+
+def _comments_filter(filter_vals):
+    def f(run):
+        comment_text = _run_comments_text(run)
+        return any((_match_comments(s, comment_text) for s in filter_vals))
+
+    return f
+
+
+def _run_comments_text(run):
+    comments = run.get("comments") or []
+    return "\n".join([_run_comment_filter_text(comment) for comment in comments])
+
+
+def _run_comment_filter_text(comment):
+    return "\n".join(
+        [
+            (comment.get("user") or "").lower(),
+            (comment.get("host") or "").lower(),
+            (comment.get("body") or "").lower(),
+        ]
+    )
+
+
+def _match_comments(s, comment_text):
+    if s == "-":
+        return not comment_text
+    return s.lower() in comment_text
+
+
 def _apply_marked_filter(args, filters):
-    if args.marked and args.unmarked:
+    if args.filter_marked and args.filter_unmarked:
         cli.error("--marked and --unmarked cannot both be used")
-    if args.marked:
+    if args.filter_marked:
         filters.append(_marked_filter())
-    if args.unmarked:
+    if args.filter_unmarked:
         filters.append(_marked_filter(False))
 
 
@@ -229,8 +270,8 @@ def _marked_filter(test_for=True):
 
 
 def _apply_started_filter(args, ctx, filters):
-    if args.started:
-        start, end = _parse_timerange(args.started, ctx)
+    if args.filter_started:
+        start, end = _parse_timerange(args.filter_started, ctx)
         log.debug("time range filter: %s to %s", start, end)
         filters.append(_started_filter(start, end))
 
@@ -245,8 +286,8 @@ def _parse_timerange(spec, ctx):
 
 
 def _apply_sourcecode_digest_filter(args, filters):
-    if args.digest:
-        filters.append(_digest_filter(args.digest))
+    if args.filter_digest:
+        filters.append(_digest_filter(args.filter_digest))
 
 
 def _digest_filter(prefix):
@@ -337,21 +378,35 @@ def list_runs(args, ctx=None):
     if args.remote:
         remote_impl_support.list_runs(args)
     else:
+        _check_list_runs_args(args, ctx)
         _list_runs(args, ctx)
 
 
+def _check_list_runs_args(args, ctx):
+    cmd_impl_support.check_incompatible_args(
+        [
+            ("comments", "verbose"),
+            ("comments", "json"),
+            ("json", "verbose"),
+            ("archive", "deleted"),
+        ],
+        args,
+        ctx,
+    )
+
+
 def _list_runs(args, ctx):
-    if args.archive and args.deleted:
-        cli.error("--archive and --deleted may not both be used")
     if args.archive and not os.path.exists(args.archive):
         cli.error("%s does not exist" % args.archive)
     runs = filtered_runs(args, ctx=ctx)
-    if args.json:
+    if args.comments:
+        _list_runs_comments(_limit_runs(runs, args), comment_index_format=False)
+    elif args.json:
         if args.limit or args.more or args.all:
             cli.note("--json option always shows all runs")
         _list_runs_json(runs)
     else:
-        _list_formatted_runs(runs, args)
+        _list_runs_(_limit_runs(runs, args), args)
 
 
 def _list_runs_json(runs):
@@ -365,11 +420,13 @@ def _listed_run_json_data(run):
         (
             "exit_status",
             "cmd",
+            "comments",
             "marked",
             "label",
             "started",
             "status",
             "stopped",
+            "tags",
         ),
     )
     _apply_batch_proto(run, run_data)
@@ -401,7 +458,7 @@ def _apply_batch_proto(run, data):
         data["batch_proto"] = _listed_run_json_data(proto)
 
 
-def _list_formatted_runs(runs, args):
+def _list_runs_(runs, args):
     formatted = format_runs(_limit_runs(runs, args))
     cols = [
         "index",
@@ -472,7 +529,7 @@ def _run_op_dir(run):
 def _empty_style(s, apply_style):
     # Pad a string with an empty style for alignment in tables.
     if apply_style:
-        return s + click.style("", dim=True)
+        return s + cli.style("", dim=True)
     return s
 
 
@@ -486,7 +543,7 @@ def _styled_op_dir_suffix(op_dir, apply_style):
 
 def _dim_style(s, apply_style):
     if apply_style:
-        return click.style(s, dim=True)
+        return cli.style(s, dim=True)
     return s
 
 
@@ -544,7 +601,7 @@ def runs_op(
             op_callback(selected)
 
 
-def runs_op_selected(args, ctx, default_runs_arg, force_deleted):
+def runs_op_selected(args, ctx, default_runs_arg=None, force_deleted=False):
     default_runs_arg = default_runs_arg or ALL_RUNS_ARG
     runs_arg = _remove_duplicates(args.runs or default_runs_arg)
     filtered = filtered_runs(args, force_deleted, ctx)
@@ -684,6 +741,8 @@ def _run_info_data(run, args):
     if proto:
         data.append(("proto-flags", proto.get("flags") or {}))
     data.append(("scalars", _scalar_info(run, args)))
+    if args.comments:
+        data.append(("comments", run.get("comments") or []))
     if args.env:
         data.append(("environment", run.get("env") or {}))
     if args.deps:
@@ -715,14 +774,14 @@ def other_attr_names(run, include_private=False):
 
 def _scalar_info(run, args):
     try:
-        return _scalar_info_impl(run, args)
+        return _scalar_info_(run, args)
     except Exception as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("get scalars")
         return cli.style("ERROR: %s" % e, fg="yellow")
 
 
-def _scalar_info_impl(run, args):
+def _scalar_info_(run, args):
     return {
         key: val
         for key, val in _iter_scalars(run, args)
@@ -784,6 +843,22 @@ def _format_scalar_val(val, step):
     return "%s (step %i)" % (val, step)
 
 
+def _comments_info(run, args):
+    return [
+        _format_comment_info(comment, args) for comment in run.get("comments") or []
+    ]
+
+
+def _format_comment_info(comment, args):
+    if args.json:
+        return comment
+    return "%s %s\n%s" % (
+        _format_comment_user(comment),
+        comment.get("time") or "",
+        comment.get("body") or "",
+    )
+
+
 def _res_sources_paths(sources):
     paths = []
     for source_paths in sources.values():
@@ -821,7 +896,11 @@ def _print_run_info_ordered(data):
         if isinstance(val, list):
             cli.out("%s:" % name)
             for item in val:
-                cli.out("  - %s" % encode_val(item))
+                if isinstance(item, dict):
+                    cli.out("  -")
+                    cli.out(_indent(util.encode_yaml(item), 4))
+                else:
+                    cli.out("  - %s" % encode_val(item))
         elif isinstance(val, dict):
             cli.out("%s:" % name)
             for item_name, item_val in _sort_run_info_attr(name, val):
@@ -985,7 +1064,7 @@ def _stop_runs(args, ctx):
     preview = "WARNING: You are about to stop the following runs:"
     confirm = "Stop {count} run(s)?"
     no_runs_help = "Nothing to stop."
-    args.running = True
+    args.status_running = True
 
     def stop_f(selected):
         for run in selected:
@@ -1019,7 +1098,7 @@ def _stop_run(run, no_wait):
 
 def _try_stop_remote_run(run, remote_lock, no_wait):
     try:
-        plugin = guild.plugin.for_name(remote_lock.plugin_name)
+        plugin = pluginlib.for_name(remote_lock.plugin_name)
     except LookupError:
         log.warning(
             "error syncing run '%s': plugin '%s' not available",
@@ -1201,7 +1280,7 @@ def _clear_marked(args, ctx):
         cli.out("Unmarked %i run(s)" % len(selected))
 
     if not args.runs:
-        args.marked = True
+        args.filter_marked = True
     runs_op(args, ctx, False, preview, confirm, no_runs, clear, ALL_RUNS_ARG, True)
 
 
@@ -1216,7 +1295,7 @@ def _mark(args, ctx):
         cli.out("Marked %i run(s)" % len(selected))
 
     if not args.runs:
-        args.marked = True
+        args.filter_marked = True
     runs_op(args, ctx, False, preview, confirm, no_runs, mark, LATEST_RUN_ARG, True)
 
 
@@ -1371,5 +1450,316 @@ def _tags_not_in_label(tags, label):
     return [tag for tag in tags if tag not in label_parts]
 
 
-def comment(args, _ctx):
-    print("TODO", args)
+def comment(args, ctx):
+    if args.remote:
+        _check_comment_args_for_remote(args, ctx)
+        remote_impl_support.comment_runs(args)
+    else:
+        _check_comment_args(args, ctx)
+        _comment(args, ctx)
+
+
+def _check_comment_args_for_remote(args, ctx):
+    _check_comment_args(args, ctx)
+    cmd_impl_support.check_incompatible_args(
+        [
+            ("remote", "edit"),
+        ],
+        args,
+        ctx,
+    )
+    cmd_impl_support.check_required_args(
+        [
+            "list",
+            "add",
+            "delete",
+            "clear",
+        ],
+        args,
+        ctx,
+        msg_template="--remote option required on of: %s",
+    )
+
+
+def _check_comment_args(args, ctx):
+    cmd_impl_support.check_incompatible_args(
+        [
+            ("list", "add"),
+            ("list", "delete"),
+            ("list", "clear"),
+            ("add", "delete"),
+            ("add", "clear"),
+            ("edit", "delete"),
+            ("edit", "clear"),
+            ("delete", "clear"),
+        ],
+        args,
+        ctx,
+    )
+
+
+def _comment(args, ctx):
+    if args.list:
+        _list_comments(args, ctx)
+    elif args.delete:
+        _delete_comment(args.delete, args, ctx)
+    elif args.clear:
+        _clear_comments(args, ctx)
+    else:
+        _add_comment(args, ctx)
+
+
+def _list_comments(args, ctx):
+    _list_runs_comments(runs_op_selected(args, ctx, LATEST_RUN_ARG))
+
+
+def _list_runs_comments(runs, comment_index_format=True):
+    formatted_runs = format_runs(runs)
+    cols = [
+        _col1_for_comments_header(comment_index_format),
+        "op_desc",
+        "started",
+        "status_with_remote",
+        "label",
+    ]
+    cli.table(
+        formatted_runs,
+        cols,
+        detail=["_run"],
+        detail_cb=_run_comments_detail_cb(comment_index_format),
+        max_width_adj=STYLE_TABLE_WIDTH_ADJ,
+        fg=_fg_for_comments_header(comment_index_format),
+    )
+
+
+def _col1_for_comments_header(comment_index_format):
+    if comment_index_format:
+        return "short_id"
+    else:
+        return "index"
+
+
+def _fg_for_comments_header(comment_index_format):
+    if comment_index_format:
+        return "yellow"
+    else:
+        return None
+
+
+def _run_comments_detail_cb(comment_index_format):
+    def f(formatted_run):
+        run = formatted_run["_run"]
+        comments = run.get("comments")
+        if comments:
+            index = 1
+            for comment in comments:
+                _print_comment(index, comment, comment_index_format)
+                index += 1
+        else:
+            _print_no_comments(comment_index_format)
+
+    return f
+
+
+def _print_comment(index, comment, comment_index_format):
+    from guild import help
+
+    out = help.ConsoleFormatter()
+    out.write_text(_format_comment_header(index, comment, comment_index_format))
+    out.write_paragraph()
+    if comment_index_format:
+        out.indent()
+    else:
+        out.indent()
+        out.indent()
+    out.write_text(_format_comment_body(comment))
+    cli.out("".join(out.buffer))
+
+
+def _format_comment_header(index, comment, comment_index_format):
+    user = _format_comment_user(comment)
+    time = comment.get("time")
+    if comment_index_format:
+        return "[%i] %s %s" % (index, user, time)
+    else:
+        return "  %s %s" % (user, time)
+
+
+def _format_comment_user(comment):
+    user = comment.get("user") or ""
+    host = comment.get("host") or ""
+    if not host:
+        return user
+    return "%s@%s" % (user, host)
+
+
+def _format_comment_body(comment):
+    return comment.get("body") or ""
+
+
+def _print_no_comments(comment_index_format):
+    if comment_index_format:
+        cli.out("  <no comments>")
+
+
+def _delete_comment(comment_index, args, ctx):
+    preview = (
+        "You are about to delete comment %i from the following runs:" % comment_index
+    )
+    confirm = "Continue?"
+    no_runs = "No runs to modify."
+
+    def delete_comments(selected):
+        for run in selected:
+            new_comments = _delete_run_comment(run, comment_index)
+            run.write_attr("comments", new_comments)
+        cli.out("Deleted comment for %i run(s)" % len(selected))
+
+    runs_op(
+        args,
+        ctx,
+        False,
+        preview,
+        confirm,
+        no_runs,
+        delete_comments,
+        LATEST_RUN_ARG,
+        True,
+    )
+
+
+def _delete_run_comment(run, comment_index):
+    comments = run.get("comments")
+    try:
+        del comments[comment_index - 1]
+    except IndexError:
+        pass
+    return comments
+
+
+def _clear_comments(args, ctx):
+    preview = "You are about to delete ALL comments from the following runs:"
+    confirm = "Continue?"
+    no_runs = "No runs to modify."
+
+    def clear_comments(selected):
+        for run in selected:
+            run.del_attr("comments")
+        cli.out("Deleted all comments for %i run(s)" % len(selected))
+
+    runs_op(
+        args,
+        ctx,
+        False,
+        preview,
+        confirm,
+        no_runs,
+        clear_comments,
+        LATEST_RUN_ARG,
+    )
+
+
+def _add_comment(args, ctx):
+    runs = runs_op_selected(args, ctx, LATEST_RUN_ARG)
+    comment, edited = _comment_for_args(args, runs)
+    if not comment:
+        cli.out("Aborting due to an empty comment.", err=True)
+        cli.error()
+
+    def add_comment(selected):
+        for run in selected:
+            new_comments = _add_run_comment(run, comment, args.user)
+            run.write_attr("comments", new_comments)
+        cli.out("Added comment to %i run(s)" % len(selected))
+
+    if edited:
+        # Skip prompt below because the editor serves as a prompt.
+        add_comment(runs)
+        return
+
+    preview = "You are about to add a comment to the following runs:"
+    confirm = "Continue?"
+    no_runs = "No runs to modify."
+
+    runs_op(
+        args,
+        ctx,
+        False,
+        preview,
+        confirm,
+        no_runs,
+        add_comment,
+        LATEST_RUN_ARG,
+        True,
+        lambda *_args: runs,
+    )
+
+
+def _comment_for_args(args, runs):
+    comment = args.add
+    edited = False
+    if not comment or args.edit:
+        comment = _get_comment_with_editor(comment, runs)
+        edited = True
+    return comment.strip(), edited
+
+
+def _get_comment_with_editor(initial_comment, runs):
+    msg_lines = [
+        initial_comment or "",
+        "# Type a comment for the runs below. Lines starting with '#' are ",
+        "# ignored. An empty comment aborts the command.",
+        "#",
+        "# Runs:",
+    ]
+    formatted_runs = _format_runs_for_comment_msg(runs)
+    msg_lines.extend(["#  %s" % line for line in formatted_runs.split("\n")])
+    edited = util.edit("\n".join(msg_lines), extension=".GUILD_COMMENT")
+    return _strip_comment_lines(edited)
+
+
+def _format_runs_for_comment_msg(runs):
+    out = six.StringIO()
+    formatted = format_runs(runs)
+    cols = [
+        "short_index",
+        "op_desc",
+        "started",
+        "status_with_remote",
+        "label",
+    ]
+    cli.table(formatted, cols=cols, indent=2, file=out)
+    return out.getvalue().strip()
+
+
+def _strip_comment_lines(s):
+    return "\n".join([line for line in s.split("\n") if line.rstrip()[:1] != "#"])
+
+
+def _add_run_comment(run, comment, user):
+    from . import run_impl
+
+    comments = run.get("comments") or []
+    if user:
+        user, host = _split_comment_user(user)
+        if not host:
+            host = util.hostname()
+    else:
+        user = util.user()
+        host = util.hostname()
+    comments.append(
+        {
+            "body": comment,
+            "user": user,
+            "host": host,
+            "time": run_impl.comment_timestamp(),
+        }
+    )
+    return comments
+
+
+def _split_comment_user(user):
+    parts = user.split("@", 1)
+    if len(parts) == 2:
+        return parts
+    return parts[0], None

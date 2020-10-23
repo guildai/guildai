@@ -18,6 +18,7 @@ from __future__ import division
 import functools
 import logging
 import os
+import sys
 
 import click
 import six
@@ -82,13 +83,36 @@ def note_once(msg):
         _noted.add(msg)
 
 
-def table(data, cols, sort=None, detail=None, indent=0, err=False, max_width_adj=0):
+def table(
+    data,
+    cols,
+    sort=None,
+    detail=None,
+    detail_cb=None,
+    indent=0,
+    err=False,
+    max_width_adj=0,
+    file=None,
+    **style_kw
+):
     data = sorted(data, key=_table_row_sort_key(sort))
-    formatted = _format_data(data, cols + (detail or []))
+    formatted = _format_table_data(data, cols + (detail or []))
     col_info = _col_info(formatted, cols)
     max_width = MAX_WIDTH + max_width_adj
-    for item in formatted:
-        _item_out(item, cols, col_info, detail, indent, max_width, err)
+    for formatted_item, data_item in zip(formatted, data):
+        _table_item_out(
+            formatted_item,
+            data_item,
+            cols,
+            col_info,
+            detail,
+            detail_cb,
+            indent,
+            max_width,
+            err,
+            file,
+            style_kw,
+        )
 
 
 def _table_row_sort_key(sort):
@@ -117,57 +141,97 @@ def _val_cmp(x, y, sort):
         rev = 1
     x_val = x.get(sort)
     y_val = y.get(sort)
-    return rev * ((x_val > y_val) - (x_val < y_val))
+    x_val_coerced = _coerce_cmp_val(x_val, y_val)
+    y_val_coerced = _coerce_cmp_val(y_val, x_val_coerced)
+    return rev * ((x_val_coerced > y_val_coerced) - (x_val_coerced < y_val_coerced))
 
 
-def _format_data(data, cols):
-    formatted = []
-    for item0 in data:
-        item = {}
-        formatted.append(item)
-        for col in cols:
-            item[col] = _str_or_list(item0.get(col, ""))
-    return formatted
-
-
-def _str_or_list(x):
-    if isinstance(x, list):
+def _coerce_cmp_val(x, y):
+    if sys.version_info[0] == 2:
+        return x
+    elif x is None:
+        if y is None:
+            return ""
+        return type(y)()
+    elif type(x) == type(y):  # pylint: disable=unidiomatic-typecheck
+        return x
+    elif isinstance(x, (int, float)) and isinstance(y, (int, float)):
         return x
     elif isinstance(x, six.string_types):
         return x
     else:
-        return str(x)
+        if isinstance(y, six.string_types):
+            return ""
+        else:
+            return str(x)
+
+
+def _format_table_data(data, cols):
+    return [{col: _format_table_val(item.get(col)) for col in cols} for item in data]
+
+
+def _format_table_val(val):
+    if val is None:
+        return ""
+    elif isinstance(val, six.string_types):
+        return val
+    else:
+        return str(val)
 
 
 def _col_info(data, cols):
     info = {}
     for item in data:
         for col in cols:
-            coli = info.setdefault(col, {})
-            coli["width"] = max(coli.get("width", 0), len(item[col]))
+            col_info = info.setdefault(col, {})
+            col_info["width"] = max(col_info.get("width", 0), len(item[col]))
     return info
 
 
-def _item_out(item, cols, col_info, detail, indent, max_col_width, err):
+def _table_item_out(
+    formatted_item,
+    data_item,
+    cols,
+    col_info,
+    detail,
+    detail_cb,
+    indent,
+    max_col_width,
+    err,
+    file,
+    style_kw,
+):
     indent_padding = " " * indent
-    click.echo(indent_padding, nl=False, err=err)
+    click.echo(indent_padding, file=file, nl=False, err=err)
     line_pos = indent
     for i, col in enumerate(cols):
-        val = item[col]
+        val = formatted_item[col]
         last_col = i == len(cols) - 1
         val = _pad_col_val(val, col, col_info) if not last_col else val
         line_pos = line_pos + len(val)
         if line_pos > max_col_width:
-            click.echo(val[: -(line_pos - max_col_width)], nl=False, err=err)
+            click.echo(
+                style(val[: -(line_pos - max_col_width)], **style_kw),
+                file=file,
+                nl=False,
+                err=err,
+            )
             break
         else:
-            click.echo(val, nl=False, err=err)
-    click.echo(err=err)
+            click.echo(style(val, **style_kw), file=file, nl=False, err=err)
+    click.echo(file=file, err=err)
     terminal_width = click.get_terminal_size()[0]
-    for key in detail or []:
-        click.echo(indent_padding, nl=False, err=err)
-        formatted = _format_detail_val(item[key], indent, terminal_width)
-        click.echo("  %s:%s" % (key, formatted), err=err)
+    if detail_cb:
+        detail_cb(data_item)
+    else:
+        for key in detail or []:
+            click.echo(indent_padding, file=file, nl=False, err=err)
+            formatted = _format_detail_val(formatted_item[key], indent, terminal_width)
+            click.echo(
+                style("  %s:%s" % (key, formatted), **style_kw),
+                file=file,
+                err=err,
+            )
 
 
 def _format_detail_val(val, indent, terminal_width):

@@ -53,8 +53,9 @@ def list_runs(args):
 
 
 def _list_runs_kw(args):
-    names = _runs_filter_names() + [
+    names = _filter_and_status_names() + [
         "all",
+        "comments",
         "deleted",
         "more",
         "limit",
@@ -68,27 +69,37 @@ def _list_runs_kw(args):
     return _arg_kw(args, names, ignore)
 
 
-def _runs_filter_names():
+def _filter_and_status_names():
+    return _filter_names() + _status_names()
+
+
+def _filter_names():
     return [
-        "completed",
-        "digest",
-        "error",
-        "labels",
-        "marked",
-        "ops",
-        "pending",
-        "running",
-        "staged",
-        "started",
-        "tags",
-        "terminated",
-        "unlabeled",
-        "unmarked",
+        "filter_comments",
+        "filter_digest",
+        "filter_labels",
+        "filter_marked",
+        "filter_ops",
+        "filter_started",
+        "filter_tags",
+        "filter_unlabeled",
+        "filter_unmarked",
+    ]
+
+
+def _status_names():
+    return [
+        "status_completed",
+        "status_error",
+        "status_pending",
+        "status_running",
+        "status_staged",
+        "status_terminated",
     ]
 
 
 def _runs_select_names():
-    return _runs_filter_names() + ["runs"]
+    return _filter_and_status_names() + ["runs"]
 
 
 def _arg_kw(args, names, ignore):
@@ -160,8 +171,10 @@ def _handle_op_error(e, remote):
 
 def _run_kw(args):
     names = [
+        "batch_comment",
         "batch_label",
         "batch_tags",
+        "comment",
         "fail_on_trial_error",
         "flags",
         "force_flags",
@@ -189,6 +202,8 @@ def _run_kw(args):
     ignore = [
         "background",
         "debug_sourcecode",
+        "edit_batch_comment",
+        "edit_comment",
         "edit_flags",
         "help_model",
         "help_op",
@@ -227,18 +242,7 @@ def watch_run(args):
 
 
 def _watch_run_kw(args):
-    names = [
-        "digest",
-        "ops",
-        "pid",
-        "labels",
-        "marked",
-        "started",
-        "tags",
-        "run",
-        "unlabeled",
-        "unmarked",
-    ]
+    names = _filter_names() + ["run", "pid"]
     ignore = [
         "remote",
     ]
@@ -266,6 +270,7 @@ def run_info(args):
 def _run_info_kw(args):
     names = _run_select_names() + [
         "all_scalars",
+        "comments",
         "deps",
         "env",
         "json",
@@ -278,7 +283,7 @@ def _run_info_kw(args):
 
 
 def _run_select_names():
-    return _runs_filter_names() + ["run"]
+    return _filter_and_status_names() + ["run"]
 
 
 def check(args):
@@ -320,16 +325,9 @@ def stop_runs(args):
 
 
 def _stop_runs_kw(args):
-    names = [
-        "labels",
-        "marked",
+    names = _filter_names() + [
         "no_wait",
-        "ops",
         "runs",
-        "started",
-        "tags",
-        "unlabeled",
-        "unmarked",
         "yes",
     ]
     ignore = ["digest", "remote"]
@@ -397,6 +395,28 @@ def _tag_runs_kw(args):
     return _arg_kw(args, names, ignore)
 
 
+def comment_runs(args):
+    remote = remote_support.remote_for_args(args)
+    with op_handler(remote):
+        remote.comment_runs(**_comment_runs_kw(args))
+
+
+def _comment_runs_kw(args):
+    names = _runs_select_names() + [
+        "list",
+        "add",
+        "delete",
+        "clear",
+        "user",
+        "yes",
+    ]
+    ignore = [
+        "edit",
+        "remote",
+    ]
+    return _arg_kw(args, names, ignore)
+
+
 def _handle_remote_process_error(e):
     msg = e.output.decode().strip() if e.output else None
     cli.error(msg, exit_status=e.exit_status)
@@ -414,10 +434,11 @@ def filtered_runs(args):
 
 
 def _filtered_runs_kw(args):
-    names = _runs_filter_names()
+    names = _filter_and_status_names()
     ignore = [
         "all",
         "archive",
+        "comments",
         "delete",
         "deleted",
         "json",
@@ -473,7 +494,7 @@ def diff_runs(args):
 
 
 def _diff_kw(args):
-    names = _runs_filter_names() + [
+    names = _filter_and_status_names() + [
         "attrs",
         "cmd",
         "deps",

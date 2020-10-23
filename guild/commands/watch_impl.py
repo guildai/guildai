@@ -50,7 +50,7 @@ def main(args, ctx):
 
 
 def _check_non_pid_args(args):
-    if args.run or args.ops or args.labels or args.unlabeled:
+    if args.run or args.filter_ops or args.filter_labels or args.filter_unlabeled:
         cli.error("--pid may not be used with other options")
 
 
@@ -218,7 +218,7 @@ def _print_run_status(run):
 
 
 def _watch_default_running(args):
-    args.running = True
+    args.status_running = True
     runs = runs_impl.filtered_runs(args)
     if not runs:
         cli.error(

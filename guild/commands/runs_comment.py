@@ -24,11 +24,19 @@ from . import runs_support
 
 
 def _ac_comment_index(ctx, incomplete, **_kw):
+    from . import runs_impl
+
     if ctx.params.get("remote"):
         return []
 
-    # TODO
-    return [x for x in ["1", "2", "3"] if x.startswith(incomplete)]
+    args = click_util.Args(**ctx.params)
+    args.runs = ctx.args
+    runs = runs_impl.runs_op_selected(args, ctx, runs_impl.LATEST_RUN_ARG)
+    indexes = set()
+    for run in runs:
+        for i in range(len(run.get("comments") or [])):
+            indexes.add(str(i + 1))
+    return [i for i in sorted(indexes) if i.startswith(incomplete)]
 
 
 def comment_params(fn):
@@ -37,7 +45,7 @@ def comment_params(fn):
         [
             runs_support.runs_arg,
             click.Option(
-                ("--list",),  # TODO: add -l in 0.8
+                ("-l", "--list"),
                 help="List comments for specified runs.",
                 is_flag=True,
             ),
@@ -47,12 +55,21 @@ def comment_params(fn):
                 help="Add comment to specified runs.",
             ),
             click.Option(
+                ("-e", "--edit"),
+                help=(
+                    "Use an editor to type a comment. Enabled by default if "
+                    "COMMENT is not specified using --add."
+                ),
+                is_flag=True,
+            ),
+            click.Option(
                 ("-d", "--delete"),
                 metavar="INDEX",
                 help=(
                     "Delete comment at INDEX from specified runs. Use `--list` "
                     "to show available indexes."
                 ),
+                type=click.INT,
                 autocompletion=_ac_comment_index,
             ),
             click.Option(
@@ -63,17 +80,10 @@ def comment_params(fn):
             click.Option(
                 ("-u", "--user"),
                 metavar="USER",
-                help="User associated with new comments.",
-            ),
-            click.Option(
-                ("-h", "--host"),
-                metavar="HOST",
-                help="Host associated with new comments.",
-            ),
-            click.Option(
-                ("-s", "--sign"),
-                metavar="USER",
-                help="Sign the comment as USER.",
+                help=(
+                    "User associated with new comments. May include host "
+                    "as USER@HOST. By default the current user is used."
+                ),
             ),
             runs_support.all_filters,
             remote_support.remote_option("Apply comments to remote runs."),
@@ -84,6 +94,7 @@ def comment_params(fn):
             ),
         ],
     )
+    runs_support.acquire_deprecated_option(fn, "-l", "list")
     return fn
 
 
@@ -116,7 +127,10 @@ def comment_runs(ctx, args):
 
     ### Comment Remote Runs
 
-    To comment remote runs, use `--remote`.
+    To apply the comment command to remote runs, use `--remote`. When
+    using `--remote` you must explicitly provide comments when adding
+    using `-a, --add`. The `--edit` option is not supported with
+    `--remote`.
 
     {{ remote_support.remote_option }}
 

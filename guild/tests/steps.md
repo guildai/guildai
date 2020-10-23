@@ -317,9 +317,9 @@ When we compare the runs:
 
     >>> compare()  # doctest: -WINDOWS
     run  operation      started  time  status     label                          acc   loss
-    ...  m4:evaluate    ...      ...   completed  acc=0.5 prepare=... train=...  0.5   None
-    ...  m4:train       ...      ...   completed  loss=1.0 prepare=...           None  1.0
-    ...  m4:prepare     ...      ...   completed  None                           None  None
+    ...  m4:evaluate    ...      ...   completed  acc=0.5 prepare=... train=...  0.5
+    ...  m4:train       ...      ...   completed  loss=1.0 prepare=...                 1.0
+    ...  m4:prepare     ...      ...   completed
     ...  m4:end-to-end  ...      ...   completed  acc=0.5 loss=1.0               0.5   1.0
 
 Note that `end-to-end` reflects the `loss` and `acc` of its steps.

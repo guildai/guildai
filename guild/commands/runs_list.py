@@ -45,11 +45,14 @@ def runs_list_options(fn):
             ),
             click.Option(("-d", "--deleted"), help="Show deleted runs.", is_flag=True),
             click.Option(
-                ("-A", "--archive"), metavar="DIR", help="Show archived runs in DIR."
+                ("-A", "--archive"),
+                metavar="DIR",
+                help="Show archived runs in DIR.",
             ),
-            runs_support.all_filters,
-            click.Option(("--json",), help="Format runs as JSON.", is_flag=True),
+            click.Option(("-c", "--comments"), help="Show run comments.", is_flag=True),
             click.Option(("-v", "--verbose"), help="Show run details.", is_flag=True),
+            click.Option(("--json",), help="Format runs as JSON.", is_flag=True),
+            runs_support.all_filters,
             remote_support.remote_option("List runs on REMOTE rather than local runs."),
         ],
     )

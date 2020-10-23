@@ -8,7 +8,7 @@ We'll use an args proxy to simulate command arguments.
     ...   def __init__(self, run="1", path=None, full_path=False,
     ...                no_format=None, follow_links=False, all=False,
     ...                sourcecode=False, marked=False, unmarked=False,
-    ...                started=None):
+    ...                started=None, comments=None):
     ...       self.run = run
     ...       self.path = path
     ...       self.full_path = full_path
@@ -16,15 +16,16 @@ We'll use an args proxy to simulate command arguments.
     ...       self.no_format = no_format
     ...       self.follow_links = follow_links
     ...       self.all = all
-    ...       self.ops = ()
-    ...       self.labels = ()
-    ...       self.tags = ()
-    ...       self.unlabeled = False
-    ...       self.marked = marked
-    ...       self.unmarked = unmarked
-    ...       self.started = started
+    ...       self.filter_ops = ()
+    ...       self.filter_labels = ()
+    ...       self.filter_tags = ()
+    ...       self.filter_comments = comments or ()
+    ...       self.filter_unlabeled = False
+    ...       self.filter_marked = marked
+    ...       self.filter_unmarked = unmarked
+    ...       self.filter_started = started
     ...       self.remote = False
-    ...       self.digest = None
+    ...       self.filter_digest = None
     ...       self.extended = False
     ...       self.human_readable = False
 

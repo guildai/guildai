@@ -298,6 +298,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [remote-stop-last-hello](remote-stop-last-hello.md)
 - [remote-label-hello](remote-label-hello.md)
 - [remote-tag-hello](remote-tag-hello.md)
+- [remote-comment-hello](remote-comment-hello.md)
 - [remote-pull-hello](remote-pull-hello.md)
 - [remote-push-hello](remote-push-hello.md)
 - [remote-runs-info-after-push](remote-runs-info-after-push.md)

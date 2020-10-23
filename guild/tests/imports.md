@@ -39,6 +39,7 @@
     guild.commands.cat_impl
     guild.commands.check
     guild.commands.check_impl
+    guild.commands.comment
     guild.commands.compare
     guild.commands.compare_impl
     guild.commands.completion
@@ -89,6 +90,7 @@
     guild.commands.run
     guild.commands.run_impl
     guild.commands.runs
+    guild.commands.runs_comment
     guild.commands.runs_delete
     guild.commands.runs_diff
     guild.commands.runs_export

@@ -177,6 +177,9 @@ class Remote(object):
     def tag_runs(self, **opts):
         raise NotImplementedError()
 
+    def comment_runs(self, **opts):
+        raise NotImplementedError()
+
     def run_info(self, **opts):
         raise NotImplementedError()
 

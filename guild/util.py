@@ -1523,11 +1523,11 @@ def bind_method(obj, method_name, function):
     setattr(obj, method_name, function.__get__(obj, obj.__class__))
 
 
-def editor(s):
+def edit(s, extension=".txt"):
     import click
 
     try:
-        edited = click.edit(s, _try_editor())
+        edited = click.edit(s, _try_editor(), extension=extension)
     except click.UsageError as e:
         raise ValueError(e)
     else:

@@ -468,6 +468,9 @@ class SSHRemote(remotelib.Remote):
     def tag_runs(self, **opts):
         self._guild_cmd("runs tag", _tag_runs_args(**opts))
 
+    def comment_runs(self, **opts):
+        self._guild_cmd("runs comment", _comment_runs_args(**opts))
+
     def run_info(self, **opts):
         self._guild_cmd("runs info", _run_info_args(**opts))
 
@@ -534,71 +537,121 @@ def _noquote_arg(arg):
     return ""
 
 
-def _list_runs_filter_opts(deleted, all, more, limit, **filters):
+def _list_runs_filter_opts(deleted, all, more, limit, comments, **filters):
     opts = []
     if all:
         opts.append("--all")
-    opts.extend(_runs_filter_args(**filters))
+    opts.extend(_filter_and_status_args(**filters))
     if deleted:
         opts.append("--deleted")
     if more > 0:
         opts.append("-" + ("m" * more))
     if limit:
         opts.extend(["--limit", str(limit)])
+    if comments:
+        opts.append("--comments")
     return opts
 
 
 def _filtered_runs_filter_opts(**filters):
-    opts = _runs_filter_args(**filters)
+    opts = _filter_and_status_args(**filters)
     opts.append("--json")
     return opts
 
 
-def _runs_filter_args(
-    ops,
-    labels,
-    unlabeled,
-    tags,
-    running,
-    completed,
-    error,
-    terminated,
-    pending,
-    staged,
-    marked,
-    unmarked,
-    started,
-    digest,
+def _filter_and_status_args(
+    filter_comments,
+    filter_digest,
+    filter_labels,
+    filter_marked,
+    filter_ops,
+    filter_started,
+    filter_tags,
+    filter_unlabeled,
+    filter_unmarked,
+    status_completed,
+    status_error,
+    status_pending,
+    status_running,
+    status_staged,
+    status_terminated,
+):
+    filter_args = _filter_args(
+        filter_comments,
+        filter_digest,
+        filter_labels,
+        filter_marked,
+        filter_ops,
+        filter_started,
+        filter_tags,
+        filter_unlabeled,
+        filter_unmarked,
+    )
+    status_args = _status_args(
+        status_completed,
+        status_error,
+        status_pending,
+        status_running,
+        status_staged,
+        status_terminated,
+    )
+    return filter_args + status_args
+
+
+def _filter_args(
+    filter_comments,
+    filter_digest,
+    filter_labels,
+    filter_marked,
+    filter_ops,
+    filter_started,
+    filter_tags,
+    filter_unlabeled,
+    filter_unmarked,
 ):
     args = []
-    if completed:
-        args.append("--completed")
-    if error:
-        args.append("--error")
-    for label in labels:
-        args.extend(["--label", label])
-    for tag in tags:
-        args.extend(["--tags", tag])
-    for op in ops:
-        args.extend(["--operation", op])
-    if running:
-        args.append("--running")
-    if terminated:
-        args.append("--terminated")
-    if pending:
-        args.append("--pending")
-    if staged:
-        args.append("--staged")
-    if unlabeled:
-        args.append("--unlabled")
-    if marked:
+    for val in filter_comments:
+        args.extend(["--comment", val])
+    if filter_digest:
+        args.extend(["--digest", filter_digest])
+    for val in filter_labels:
+        args.extend(["--label", val])
+    if filter_marked:
         args.append("--marked")
-    if unmarked:
+    for val in filter_ops:
+        args.extend(["--operation", val])
+    if filter_started:
+        args.extend(["--started", filter_started])
+    for val in filter_tags:
+        args.extend(["--tag", val])
+    if filter_unlabeled:
+        args.append("--unlabled")
+    if filter_unmarked:
         args.append("--unmarked")
-    if started:
-        args.extend(["--started", started])
-    if digest:
-        args.extend(["--digest", digest])
+    return args
+
+
+def _status_args(
+    status_completed,
+    status_error,
+    status_pending,
+    status_running,
+    status_staged,
+    status_terminated,
+):
+    args = []
+    if status_completed:
+        args.append("--completed")
+    if status_error:
+        args.append("--error")
+    if status_pending:
+        args.append("--pending")
+    if status_running:
+        args.append("--running")
+    if status_staged:
+        args.append("--staged")
+    if status_terminated:
+        args.append("--terminated")
     return args
 
 
@@ -642,8 +695,10 @@ def _build_package(src_dir, dist_dir):
 
 
 def _run_args(
+    batch_comment,
     batch_label,
     batch_tags,
+    comment,
     fail_on_trial_error,
     force_flags,
     force_sourcecode,
@@ -672,10 +727,14 @@ def _run_args(
     yes,
 ):
     args = []
+    if batch_comment:
+        args.extend(["--batch-comment", batch_comment])
     if batch_label:
         args.extend(["--batch-label", batch_label])
     for tag in batch_tags:
         args.extend(["--batch-tag", tag])
+    if comment:
+        args.extend(["--comment", comment])
     if fail_on_trial_error:
         args.append("--fail-on-trial-error")
     if force_flags:
@@ -730,36 +789,18 @@ def _run_args(
     return args
 
 
-def _watch_run_args(
-    run, ops, pid, labels, unlabeled, tags, marked, unmarked, started, digest
-):
+def _watch_run_args(run, pid, **filters):
     if pid:
         # Ignore other opts if pid is specified
         return ["--pid", pid]
-    args = []
-    for op in ops:
-        args.extend(["-Fo", op])
-    for label in labels:
-        args.extend(["-Fl", label])
-    if unlabeled:
-        args.append("-Fu")
-    for tag in tags:
-        args.extend(["-Ft", tag])
-    if marked:
-        args.append("-Fm")
-    if unmarked:
-        args.append("-Fn")
-    if started:
-        args.extend(["-Fs", started])
-    if digest:
-        args.extend(["-Fd", digest])
+    args = _filter_args(**filters)
     if run:
         args.append(run)
     return args
 
 
 def _delete_runs_args(runs, permanent, yes, **filters):
-    args = _runs_filter_args(**filters)
+    args = _filter_and_status_args(**filters)
     if permanent:
         args.append("-p")
     if yes:
@@ -768,8 +809,8 @@ def _delete_runs_args(runs, permanent, yes, **filters):
     return args
 
 
-def _run_info_args(run, env, deps, all_scalars, json, **filters):
-    args = _runs_filter_args(**filters)
+def _run_info_args(run, env, deps, all_scalars, json, comments, **filters):
+    args = _filter_and_status_args(**filters)
     if env:
         args.append("--env")
     if deps:
@@ -778,6 +819,8 @@ def _run_info_args(run, env, deps, all_scalars, json, **filters):
         args.append("--all-scalars")
     if json:
         args.append("--json")
+    if comments:
+        args.append("--comments")
     if run:
         args.append(run)
     return args
@@ -800,34 +843,18 @@ def _check_args(tensorflow, pytorch, verbose, offline, space, version):
     return args
 
 
-def _stop_runs_args(
-    runs, ops, labels, unlabeled, tags, no_wait, marked, unmarked, started, yes
-):
-    args = []
-    for op in ops:
-        args.extend(["-Fo", op])
-    for label in labels:
-        args.extend(["-Fl", label])
-    if unlabeled:
-        args.append("-Fu")
-    for tag in tags:
-        args.extend(["-Ft", tag])
+def _stop_runs_args(runs, no_wait, yes, **filters):
+    args = _filter_args(**filters)
     if no_wait:
         args.append("-n")
     if yes:
         args.append("-y")
-    if marked:
-        args.append("-Fm")
-    if unmarked:
-        args.append("-Fn")
-    if started:
-        args.extend(["-Fs", started])
     args.extend(runs)
     return args
 
 
 def _restore_runs_args(runs, yes, **filters):
-    args = _runs_filter_args(**filters)
+    args = _filter_and_status_args(**filters)
     if yes:
         args.append("-y")
     args.extend(runs)
@@ -835,7 +862,7 @@ def _restore_runs_args(runs, yes, **filters):
 
 
 def _purge_runs_args(runs, yes, **filters):
-    args = _runs_filter_args(**filters)
+    args = _filter_and_status_args(**filters)
     if yes:
         args.append("-y")
     args.extend(runs)
@@ -843,7 +870,7 @@ def _purge_runs_args(runs, yes, **filters):
 
 
 def _label_runs_args(runs, set, prepend, append, remove, clear, yes, **filters):
-    args = _runs_filter_args(**filters)
+    args = _filter_and_status_args(**filters)
     if yes:
         args.append("-y")
     if set:
@@ -863,7 +890,7 @@ def _label_runs_args(runs, set, prepend, append, remove, clear, yes, **filters):
 
 
 def _tag_runs_args(runs, add, delete, clear, sync_labels, yes, **filters):
-    args = _runs_filter_args(**filters)
+    args = _filter_and_status_args(**filters)
     if yes:
         args.append("-y")
     for tag in add:
@@ -874,6 +901,24 @@ def _tag_runs_args(runs, add, delete, clear, sync_labels, yes, **filters):
         args.append("-c")
     if sync_labels:
         args.append("-s")
+    args.extend(runs)
+    return args
+
+
+def _comment_runs_args(runs, list, add, delete, clear, user, yes, **filters):
+    args = _filter_and_status_args(**filters)
+    if list:
+        args.append("--list")
+    if add:
+        args.extend(["--add", add])
+    if delete:
+        args.extend(["--delete", str(delete)])
+    if clear:
+        args.append("--clear")
+    if user:
+        args.extend(["--user", user])
+    if yes:
+        args.append("-y")
     args.extend(runs)
     return args
 
@@ -889,7 +934,7 @@ def _ls_args(
     sourcecode,
     **filters
 ):
-    args = _runs_filter_args(**filters)
+    args = _filter_and_status_args(**filters)
     if all:
         args.append("-a")
     if follow_links:
@@ -923,7 +968,7 @@ def _diff_args(
     working_dir,
     **filters
 ):
-    args = _runs_filter_args(**filters)
+    args = _filter_and_status_args(**filters)
     if output:
         args.append("--output")
     if sourcecode:
@@ -948,7 +993,7 @@ def _diff_args(
 
 
 def _cat_args(run, path, sourcecode, output, **filters):
-    args = _runs_filter_args(**filters)
+    args = _filter_and_status_args(**filters)
     if run:
         args.append(run)
     if path:

@@ -135,6 +135,16 @@ def run_params(fn):
                 multiple=True,
             ),
             click.Option(
+                ("-c", "--comment"),
+                metavar="COMMENT",
+                help="Comment associated with the run.",
+            ),
+            click.Option(
+                ("-ec", "--edit-comment"),
+                help="Use an editor to type a comment.",
+                is_flag=True,
+            ),
+            click.Option(
                 ("-e", "--edit-flags"),
                 help="Use an editor to review and modify flags.",
                 is_flag=True,
@@ -202,6 +212,16 @@ def run_params(fn):
                     "May be used multiple times."
                 ),
                 multiple=True,
+            ),
+            click.Option(
+                ("-bc", "--batch-comment"),
+                metavar="COMMENT",
+                help="Comment associated with batch.",
+            ),
+            click.Option(
+                ("-ebc", "--edit-batch-comment"),
+                help="Use an editor to type a batch comment.",
+                is_flag=True,
             ),
             click.Option(
                 ("-o", "--optimizer"),

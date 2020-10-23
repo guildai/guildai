@@ -87,6 +87,7 @@ def _popen_args(
     flags=None,
     label=None,
     tags=None,
+    comment=None,
     run_dir=None,
     restart=None,
     start=None,
@@ -95,7 +96,8 @@ def _popen_args(
     force_sourcecode=False,
     batch_files=None,
     batch_label=None,
-    batch_tag=None,
+    batch_tags=None,
+    batch_comment=None,
     extra_env=None,
     optimize=False,
     optimizer=None,
@@ -127,6 +129,7 @@ def _popen_args(
     flags = flags or {}
     opt_flags = opt_flags or {}
     tags = tags or []
+    batch_tags = batch_tags or []
     args = [sys.executable, "-um", "guild.main_bootstrap"]
     if debug:
         args.append("--debug")
@@ -148,10 +151,14 @@ def _popen_args(
         args.extend(["--label", label])
     for tag in tags:
         args.extend(["--tag", tag])
+    if comment:
+        args.extend(["--comment", comment])
     if batch_label:
         args.extend(['--batch-label', batch_label])
-    if batch_tag:
-        args.extend(["--batch-tag", batch_tag])
+    for tag in batch_tags:
+        args.extend(["--batch-tag", tag])
+    if batch_comment:
+        args.extend(["--batch-comment", batch_comment])
     if run_dir:
         args.extend(["--run-dir", run_dir])
     if optimize:
@@ -247,23 +254,21 @@ def runs_list(all=False, deleted=False, cwd=".", guild_home=None, limit=None, **
 
 
 def _apply_runs_filters(kw, args):
-    from guild.commands import runs_impl
-
-    args.ops = kw.pop("ops", [])
-    args.labels = kw.pop("labels", [])
-    args.tags = kw.pop("tags", [])
-    args.unlabeled = kw.pop("unlabeled", False)
-    args.marked = kw.pop("marked", False)
-    args.unmarked = kw.pop("unmarked", False)
-    args.started = kw.pop("started", None)
-    args.digest = kw.pop("digest", None)
-    for status_attr in runs_impl.FILTERABLE:
-        try:
-            status_val = kw.pop(status_attr)
-        except KeyError:
-            pass
-        else:
-            setattr(args, status_attr, status_val)
+    args.filter_ops = kw.pop("ops", [])
+    args.filter_labels = kw.pop("labels", [])
+    args.filter_tags = kw.pop("tags", [])
+    args.filter_comments = kw.pop("comments", [])
+    args.filter_unlabeled = kw.pop("unlabeled", False)
+    args.filter_marked = kw.pop("marked", False)
+    args.filter_unmarked = kw.pop("unmarked", False)
+    args.filter_started = kw.pop("started", None)
+    args.filter_digest = kw.pop("digest", None)
+    args.status_completed = kw.pop("completed", False)
+    args.status_error = kw.pop("error", False)
+    args.status_pending = kw.pop("pending", False)
+    args.status_running = kw.pop("running", False)
+    args.status_staged = kw.pop("staged", False)
+    args.status_terminated = kw.pop("terminated", False)
 
 
 def _assert_empty_kw(kw, f):

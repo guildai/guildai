@@ -526,6 +526,7 @@ def _runs_cmd_args(
     operations=None,
     labels=None,
     tags=None,
+    comments=None,
     running=False,
     completed=False,
     error=False,
@@ -538,21 +539,26 @@ def _runs_cmd_args(
     started=None,
     digest=None,
 ):
+    operations = operations or ()
+    labels = labels or ()
+    tags = tags or ()
+    comments = comments or ()
     return click_util.Args(
-        ops=operations,
-        labels=labels,
-        tags=tags,
-        running=running,
-        completed=completed,
-        error=error,
-        terminated=terminated,
-        pending=pending,
-        staged=staged,
-        unlabeled=unlabeled,
-        marked=marked,
-        unmarked=unmarked,
-        started=started,
-        digest=digest,
+        filter_ops=operations,
+        filter_labels=labels,
+        filter_tags=tags,
+        filter_comments=comments,
+        status_running=running,
+        status_completed=completed,
+        status_error=error,
+        status_terminated=terminated,
+        status_pending=pending,
+        status_staged=staged,
+        filter_unlabeled=unlabeled,
+        filter_marked=marked,
+        filter_unmarked=unmarked,
+        filter_started=started,
+        filter_digest=digest,
     )
 
 
