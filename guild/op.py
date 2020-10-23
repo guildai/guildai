@@ -31,8 +31,6 @@ from guild import util
 log = logging.getLogger("guild")
 
 OP_RUNFILE_PATHS = [
-    ["org_click"],
-    ["org_psutil"],
     ["guild", "external"],
 ]
 
