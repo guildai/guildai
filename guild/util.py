@@ -1523,7 +1523,7 @@ def bind_method(obj, method_name, function):
     setattr(obj, method_name, function.__get__(obj, obj.__class__))
 
 
-def edit(s, extension=".txt"):
+def edit(s, extension=".txt", strip_comment_lines=False):
     import click
 
     try:
@@ -1531,9 +1531,11 @@ def edit(s, extension=".txt"):
     except click.UsageError as e:
         raise ValueError(e)
     else:
-        if edited is not None:
-            return edited
-        return s
+        if edited is None:
+            edited = s
+        if strip_comment_lines:
+            edited = _strip_comment_lines(edited)
+        return edited
 
 
 def _try_editor():
@@ -1559,6 +1561,10 @@ def _try_editor_bin():
     if os.path.exists(editor_bin):
         return editor_bin
     return None
+
+
+def _strip_comment_lines(s):
+    return "\n".join([line for line in s.split("\n") if line.rstrip()[:1] != "#"])
 
 
 def test_windows_symlinks():

@@ -1771,8 +1771,11 @@ def _get_comment_with_editor(initial_comment, runs):
     ]
     formatted_runs = _format_runs_for_comment_msg(runs)
     msg_lines.extend(["#  %s" % line for line in formatted_runs.split("\n")])
-    edited = util.edit("\n".join(msg_lines), extension=".GUILD_COMMENT")
-    return _strip_comment_lines(edited)
+    return util.edit(
+        "\n".join(msg_lines),
+        extension=".GUILD_COMMENT",
+        strip_comment_lines=True,
+    )
 
 
 def _format_runs_for_comment_msg(runs):
@@ -1787,10 +1790,6 @@ def _format_runs_for_comment_msg(runs):
     ]
     cli.table(formatted, cols=cols, indent=2, file=out)
     return out.getvalue().strip()
-
-
-def _strip_comment_lines(s):
-    return "\n".join([line for line in s.split("\n") if line.rstrip()[:1] != "#"])
 
 
 def _add_run_comment(run, comment, user):
