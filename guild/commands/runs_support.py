@@ -286,7 +286,7 @@ def common_filters(fn):
             click.Option(
                 ("-Ft", "--tag", "filter_tags"),
                 metavar="TAG",
-                help="Filter runs having TAG.",
+                help="Filter runs with TAG.",
                 multiple=True,
                 autocompletion=ac_tag,
             ),
