@@ -625,7 +625,10 @@ def delete_runs(args, ctx=None):
 
 def _delete_runs(args, ctx):
     if args.permanent:
-        preview = "WARNING: You are about to permanently delete " "the following runs:"
+        preview = cli.style(
+            "WARNING: You are about to permanently delete " "the following runs:",
+            fg="yellow",
+        )
         confirm = "Permanently delete {count} run(s)?"
     else:
         preview = "You are about to delete the following runs:"
@@ -671,7 +674,9 @@ def purge_runs(args, ctx):
 
 
 def _purge_runs(args, ctx):
-    preview = "WARNING: You are about to permanently delete " "the following runs:"
+    preview = cli.style(
+        "WARNING: You are about to permanently delete the following runs:", fg="yellow"
+    )
     confirm = "Permanently delete {count} run(s)?"
     no_runs_help = "Nothing to purge."
 
@@ -1100,7 +1105,9 @@ def stop_runs(args, ctx):
 
 
 def _stop_runs(args, ctx):
-    preview = "WARNING: You are about to stop the following runs:"
+    preview = cli.style(
+        "WARNING: You are about to stop the following runs:", fg="yellow"
+    )
     confirm = "Stop {count} run(s)?"
     no_runs_help = "Nothing to stop."
     args.status_running = True
@@ -1685,7 +1692,10 @@ def _delete_run_comment(run, comment_index):
 
 
 def _clear_comments(args, ctx):
-    preview = "You are about to delete ALL comments from the following runs:"
+    preview = cli.style(
+        "WARNING: You are about to delete ALL comments from the following runs:",
+        fg="yellow",
+    )
     confirm = "Continue?"
     no_runs = "No runs to modify."
 
