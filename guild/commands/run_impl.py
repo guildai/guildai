@@ -623,7 +623,14 @@ def _filter_by_run_id_prefix(runs, run_id_prefix):
 # =================================================================
 
 
-def _op_init_config(label_arg, tags_arg, comments_arg, edit_comment_arg, op):
+def _op_init_config(
+    label_arg,
+    tags_arg,
+    comments_arg,
+    edit_comment_arg,
+    op,
+    is_batch=False,
+):
     label_template = _label_template(label_arg, tags_arg)
     if op._run:
         _op_init_config_for_run(op._run, label_template, tags_arg, comments_arg, op)
@@ -636,6 +643,7 @@ def _op_init_config(label_arg, tags_arg, comments_arg, edit_comment_arg, op):
             comments_arg,
             edit_comment_arg,
             op,
+            is_batch,
         )
 
 
@@ -666,7 +674,15 @@ def _op_init_config_for_run(run, label_template, tags, comment, op):
         op._comment = comment
 
 
-def _op_init_config_for_opdef(opdef, label_template, tags, comment, edit_comment, op):
+def _op_init_config_for_opdef(
+    opdef,
+    label_template,
+    tags,
+    comment,
+    edit_comment,
+    op,
+    is_batch,
+):
     op._flag_null_labels = _flag_null_labels_for_opdef(opdef, op._resource_flagdefs)
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_template if label_template is not None else opdef.label
@@ -674,7 +690,7 @@ def _op_init_config_for_opdef(opdef, label_template, tags, comment, edit_comment
     op._sourcecode_root = _opdef_sourcecode_dest(opdef)
     op._flags_extra = _opdef_flags_extra(opdef)
     op._tags = list(tags) + opdef.tags
-    op._comment = _init_op_comment(comment, edit_comment)
+    op._comment = _init_op_comment(comment, edit_comment, is_batch)
 
 
 def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
@@ -719,9 +735,23 @@ def _opdef_flags_extra(opdef):
     return {flag.name: flag.extra for flag in opdef.flags if flag.extra}
 
 
-def _init_op_comment(comment, edit_comment):
+def _init_op_comment(comment, edit_comment, is_batch):
+    run_type = "batch" if is_batch else "run"
     if edit_comment:
-        comment = util.edit(comment)
+        msg_lines = [
+            comment or "",
+            "# Type a comment for the %s. Lines starting with '#' are ignored."
+            % run_type,
+            "# An empty comment aborts the command.",
+        ]
+        comment = util.edit(
+            "\n".join(msg_lines),
+            extension=".GUILD_COMMENT",
+            strip_comment_lines=True,
+        )
+        if not comment:
+            cli.out("Aborting due to an empty comment.", err=True)
+            cli.error()
     return comment
 
 
@@ -1157,10 +1187,13 @@ def _state_init_batch_op(S):
             S.args.batch_comment,
             S.args.edit_batch_comment,
             S.batch_op,
+            is_batch=True,
         )
         _op_init_batch_config(S.args, S.user_op, S.batch_op)
         _apply_batch_flag_encoder(S.batch_op, S.user_op)
         _op_init_core(S.args, S.batch_op)
+    else:
+        _check_unused_batch_args(S.args)
 
 
 def _batch_op_init_run(S):
@@ -1368,6 +1401,11 @@ def _apply_batch_flag_encoder(batch_op, user_op):
             continue
         encoded_val = encode_flag_val(flag_val, flagdef)
         user_op._op_flag_vals[flag_name] = encoded_val
+
+
+def _check_unused_batch_args(args):
+    if args.batch_comment or args.edit_batch_comment:
+        log.warning("operation is not a batch - ignoring batch comment")
 
 
 ###################################################################

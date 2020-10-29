@@ -946,7 +946,15 @@ def _normlf(s):
     return s.replace("\r", "")
 
 
-def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None, guild_home=None):
+def _run(
+    cmd,
+    quiet=False,
+    ignore=None,
+    timeout=60,
+    cut=None,
+    guild_home=None,
+    cwd=None,
+):
     cmd = "set -eu && %s" % cmd
     env = dict(os.environ)
     if guild_home:
@@ -958,6 +966,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None, guild_home=None):
         stderr=subprocess.STDOUT,
         preexec_fn=os.setsid,
         env=env,
+        cwd=cwd,
     )
     with _kill_after(p, timeout):
         out, err = p.communicate()

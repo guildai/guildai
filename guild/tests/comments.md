@@ -195,3 +195,15 @@ Comments are saved in the `comments` run attr as YAML formatted plain text.
       time: ... UTC
       user: maude
     <exit 0>
+
+## Misc
+
+When a batch comment is provided for a non-batch operation, Guild
+shows a warning message.
+
+    >>> run("guild -H '%s' run --batch-comment xxx simple -y"
+    ...     % project.guild_home, cwd=project.cwd)
+    WARNING: operation is not a batch - ignoring batch comment
+    x: 1.0
+    y: 2.0
+    <exit 0>
