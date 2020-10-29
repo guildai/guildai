@@ -9,13 +9,13 @@
     stopped: ...
     marked: no
     label: file=hello.txt
-    tags:
     sourcecode_digest: ...
     vcs_commit: git:...
     run_dir: ...
     command: ... -um guild.op_main cat -- --file hello.txt
     exit_status: 0
     pid:
+    tags:
     flags:
       file: hello.txt
     scalars:

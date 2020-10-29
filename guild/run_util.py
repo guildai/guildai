@@ -155,7 +155,6 @@ def format_run(run, index=None):
         "status": status,
         "status_with_remote": _status_with_remote(status, run.remote),
         "stopped": util.format_timestamp(stopped),
-        "tags": run.get("tags") or [],
     }
 
 

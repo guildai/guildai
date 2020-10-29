@@ -59,7 +59,6 @@ RUN_DETAIL = [
     "stopped",
     "marked",
     "label",
-    "tags",
     "sourcecode_digest",
     "vcs_commit",
     "run_dir",
@@ -736,6 +735,7 @@ def _print_run_info(run, args):
 def _run_info_data(run, args):
     data = []
     _append_attr_data(run, args.private_attrs, data)
+    data.append(("tags", run.get("tags") or []))
     data.append(("flags", run.get("flags") or {}))
     proto = run.batch_proto
     if proto:

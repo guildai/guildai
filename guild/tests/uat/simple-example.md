@@ -84,13 +84,13 @@ The `train` operation, defined in the Guild file, defines non-default columns:
     stopped: ...
     marked: no
     label: batch_size=100 epochs=1
-    tags:
     sourcecode_digest: ...
     vcs_commit: ...
     run_dir: ...
     command: ... -um guild.op_main mnist -- --batch_size 100 --epochs 1
     exit_status: 0
     pid:
+    tags:
     flags:
       batch_size: 100
       epochs: 1
@@ -180,7 +180,6 @@ View using runs info:
     stopped: ...
     marked: no
     label: batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no
-    tags:
     sourcecode_digest: ...
     vcs_commit:...
     run_dir: ...
@@ -191,6 +190,7 @@ View using runs info:
              --rundir .
     exit_status: 0
     pid:
+    tags:
     flags:
       batch_size: 100
       datadir: data
