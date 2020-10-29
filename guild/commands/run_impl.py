@@ -990,7 +990,7 @@ def _init_comments(comment):
 
 
 def comment_timestamp():
-    return util.utcformat_timestamp(runlib.timestamp())
+    return runlib.timestamp()
 
 
 def _apply_system_attrs(op, attrs):

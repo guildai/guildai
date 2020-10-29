@@ -742,7 +742,7 @@ def _run_info_data(run, args):
         data.append(("proto-flags", proto.get("flags") or {}))
     data.append(("scalars", _scalar_info(run, args)))
     if args.comments:
-        data.append(("comments", run.get("comments") or []))
+        data.append(("comments", _format_comments_for_run_info(run)))
     if args.env:
         data.append(("environment", run.get("env") or {}))
     if args.deps:
@@ -750,6 +750,23 @@ def _run_info_data(run, args):
     if args.private_attrs and args.json:
         _maybe_append_proto_data(run, data)
     return data
+
+
+def _format_comments_for_run_info(run):
+    return [
+        _format_comment_for_run_info(comment) for comment in (run.get("comments") or [])
+    ]
+
+
+def _format_comment_for_run_info(comment):
+    if not isinstance(comment, dict):
+        return repr(comment)
+    return {
+        "user": comment.get("user") or "",
+        "host": comment.get("host") or "",
+        "time": util.format_timestamp(comment.get("time")),
+        "body": (comment.get("body") or "").strip(),
+    }
 
 
 def _append_attr_data(run, include_private, data):
@@ -854,7 +871,7 @@ def _format_comment_info(comment, args):
         return comment
     return "%s %s\n%s" % (
         _format_comment_user(comment),
-        comment.get("time") or "",
+        util.format_timestamp(comment.get("time")),
         comment.get("body") or "",
     )
 
@@ -890,32 +907,44 @@ def _tuple_lists_to_dict(data):
 
 
 def _print_run_info_ordered(data):
-    # Use consistent formatting across flags and run info output.
-    encode_val = flag_util.encode_flag_val
     for name, val in data:
         if isinstance(val, list):
-            cli.out("%s:" % name)
-            for item in val:
-                if isinstance(item, dict):
-                    cli.out("  -")
-                    cli.out(_indent(util.encode_yaml(item), 4))
-                else:
-                    cli.out("  - %s" % encode_val(item))
+            _print_run_info_list(name, val)
         elif isinstance(val, dict):
-            cli.out("%s:" % name)
-            for item_name, item_val in _sort_run_info_attr(name, val):
-                if isinstance(item_val, list):
-                    cli.out("  %s:" % item_name)
-                    for item_item in item_val:
-                        cli.out("    - %s" % encode_val(item_item))
-                elif isinstance(item_val, dict):
-                    cli.out("  %s:" % item_name)
-                    # Use full YAML formatting for config blocks.
-                    cli.out(_indent(util.encode_yaml(item_val), 4))
-                else:
-                    cli.out("  %s: %s" % (item_name, encode_val(item_val)))
+            _print_run_info_dict(name, val)
         else:
             cli.out("%s: %s" % (name, val))
+
+
+def _print_run_info_list(name, val):
+    cli.out("%s:" % name)
+    for item in val:
+        if isinstance(item, dict):
+            cli.out("  -")
+            for item_name, item_val in sorted(item.items()):
+                encoded = _fix_quoted_string(flag_util.encode_flag_val(item_val))
+                if "\n" in encoded:
+                    cli.out(_indent("%s: |" % item_name, 4))
+                    cli.out(_indent(_unindent(encoded), 6))
+                else:
+                    cli.out(_indent("%s: %s" % (item_name, encoded), 4))
+        else:
+            cli.out("  - %s" % flag_util.encode_flag_val(item))
+
+
+def _print_run_info_dict(name, val):
+    cli.out("%s:" % name)
+    for item_name, item_val in _sort_run_info_attr(name, val):
+        if isinstance(item_val, list):
+            cli.out("  %s:" % item_name)
+            for item_item in item_val:
+                cli.out("    - %s" % flag_util.encode_flag_val(item_item))
+        elif isinstance(item_val, dict):
+            cli.out("  %s:" % item_name)
+            # Use full YAML formatting for config blocks.
+            cli.out(_indent(util.encode_yaml(item_val), 4))
+        else:
+            cli.out("  %s: %s" % (item_name, flag_util.encode_flag_val(item_val)))
 
 
 def _sort_run_info_attr(name, val):
@@ -933,6 +962,16 @@ def _sort_run_info_scalars(val):
 def _indent(s, spaces):
     prefix = " " * spaces
     return "\n".join(["%s%s" % (prefix, line) for line in s.split("\n")])
+
+
+def _fix_quoted_string(s):
+    if s.startswith("'") and s.endswith("'"):
+        return s[1:-1]
+    return s
+
+
+def _unindent(s):
+    return "\n".join([line.strip() for line in s.split("\n")])
 
 
 def label(args, ctx):
@@ -1578,7 +1617,7 @@ def _print_comment(index, comment, comment_index_format):
 
 def _format_comment_header(index, comment, comment_index_format):
     user = _format_comment_user(comment)
-    time = comment.get("time")
+    time = _format_comment_time(comment)
     if comment_index_format:
         return "[%i] %s %s" % (index, user, time)
     else:
@@ -1591,6 +1630,14 @@ def _format_comment_user(comment):
     if not host:
         return user
     return "%s@%s" % (user, host)
+
+
+def _format_comment_time(comment):
+    time_attr = comment.get("time")
+    try:
+        return util.format_timestamp(time_attr)
+    except (ValueError, TypeError):
+        return str(time_attr)
 
 
 def _format_comment_body(comment):

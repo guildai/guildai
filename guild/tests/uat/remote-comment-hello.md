@@ -21,7 +21,7 @@ Add a comment.
 
     >>> run("guild comment --list -r guild-uat")
     ???  gpkg.hello/hello-op  ...  completed  remote-run-123
-    [1] ... ... UTC
+    [1] ... ...-...-... ...:...:...
     <BLANKLINE>
       A nice comment.
     <exit 0>
@@ -34,7 +34,7 @@ Add a comment.
       -
         body: A nice comment.
         host: ...
-        time: ... UTC
+        time: ...
         user: ...
     <exit 0>
 
@@ -46,11 +46,11 @@ Add another comment.
 
     >>> run("guild comment --list -r guild-uat")
     ???  gpkg.hello/hello-op  ...  completed  remote-run-123
-    [1] ... UTC
+    [1] ...
     <BLANKLINE>
       A nice comment.
     <BLANKLINE>
-    [2] ... UTC
+    [2] ...
     <BLANKLINE>
       A second comment.
     <exit 0>
@@ -63,12 +63,12 @@ Add another comment.
       -
         body: A nice comment.
         host: ...
-        time: ... UTC
+        time: ...
         user: ...
       -
         body: A second comment.
         host: ...
-        time: ... UTC
+        time: ...
         user: ...
     <exit 0>
 
@@ -93,7 +93,7 @@ Delete the first comment.
 
     >>> run("guild comment --list -r guild-uat")
     ???  gpkg.hello/hello-op  ...  completed  remote-run-123
-    [1] ... UTC
+    [1] ...
     <BLANKLINE>
       A second comment.
     <exit 0>
@@ -106,7 +106,7 @@ Delete the first comment.
       -
         body: A second comment.
         host: ...
-        time: ... UTC
+        time: ...
         user: ...
     <exit 0>
 

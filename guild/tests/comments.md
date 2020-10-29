@@ -17,8 +17,13 @@ The comment is included in the run `comments` attribute.
     >>> pprint(simple_run.get("comments"))
     [{'body': 'This is a simple op.',
       'host': '...',
-      'time': '...-...-... ...:...:... UTC',
+      'time': ...,
       'user': '...'}]
+
+Time is recorded as an epochs timestamp.
+
+    >>> type(simple_run.get("comments")[0]["time"]).__name__
+    'int'
 
 ## Comments in runs list
 
@@ -27,7 +32,7 @@ list.
 
     >>> run("guild -H '%s' runs -c" % project.guild_home)
     [1:...]  simple (samples/projects/simple)  ...  completed  x=1.0
-      ...@... ...-...-... ...:...:... UTC
+      ...@... ...-...-... ...:...:...
     <BLANKLINE>
         This is a simple op.
     <exit 0>
@@ -45,7 +50,7 @@ into output.
       -
         body: This is a simple op.
         host: ...
-        time: ...-...-... ...:...:... UTC
+        time: ...-...-... ...:...:...
         user: ...
     <exit 0>
 
@@ -171,11 +176,11 @@ A user can include a host in the form `USER@HOST`.
 
     >>> run("guild -H '%s' runs --comments -n1" % project.guild_home)
     [1:...]  simple (samples/projects/simple)   ...  completed  x=3.0
-      harold@... ... UTC
+      harold@... ...-...-... ...:...:...
     <BLANKLINE>
         comment with user
     <BLANKLINE>
-      maude@place ... UTC
+      maude@place ...-...-... ...:...:...
     <BLANKLINE>
         comment with user
     <BLANKLINE>
@@ -188,11 +193,11 @@ Comments are saved in the `comments` run attr as YAML formatted plain text.
     >>> run("guild -H '%s' cat -p .guild/attrs/comments" % project.guild_home)
     - body: comment with user
       host: ...
-      time: ... UTC
+      time: ...
       user: harold
     - body: comment with user
       host: place
-      time: ... UTC
+      time: ...
       user: maude
     <exit 0>
 
