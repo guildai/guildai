@@ -6,7 +6,7 @@ Use the `view` sample project.
 
 Generate a run.
 
-    >>> project.run("op.py")
+    >>> project.run("op.py", comment="sample run for view", tags=["blue", "green"])
 
     >>> project.print_runs()
     op.py
@@ -44,6 +44,7 @@ Available run data:
 
     >>> pprint(sorted(run_data.keys()))
     ['command',
+     'comments',
      'deps',
      'env',
      'exitStatus',
@@ -61,6 +62,7 @@ Available run data:
      'started',
      'status',
      'stopped',
+     'tags',
      'time']
 
 Scalars:
@@ -108,3 +110,16 @@ Scalars:
       'run': '...',
       'tag': 'z',
       'total': None}]
+
+Comments:
+
+    >>> pprint(run_data["comments"])
+    [{'body': 'sample run for view',
+      'host': '...',
+      'time': ...,
+      'user': '...'}]
+
+Tags:
+
+    >>> pprint(run_data["tags"])
+    'blue, green'

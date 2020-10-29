@@ -75,6 +75,33 @@
             </v-layout>
             <v-layout row>
               <v-flex xs3 class="pa-0">
+                <v-subheader>Tags</v-subheader>
+              </v-flex>
+              <v-flex xs9 class="py-0">
+                <div class="field-val">{{ run.tags }}</div>
+              </v-flex>
+            </v-layout>
+            <v-layout row fill-height>
+              <v-flex xs3 class="pa-0">
+                <v-subheader>Comments</v-subheader>
+              </v-flex>
+              <v-flex xs9 class="py-2">
+                <div>
+                  <v-layout column>
+                    <v-flex>
+                      <template v-for="comment in run.comments">
+                        <div class="run-comment">
+                          <div class="run-comment-header">{{ comment.user }}@{{ comment.host }} {{ comment.time }}</div>
+                          <div class="run-comment-body">{{ comment.body }}</div>
+                        </div>
+                      </template>
+                    </v-flex>
+                  </v-layout>
+                </div>
+              </v-flex>
+            </v-layout>
+            <v-layout row>
+              <v-flex xs3 class="pa-0">
                 <v-subheader>Dependencies</v-subheader>
               </v-flex>
               <v-flex xs9 class="py-0">
@@ -284,6 +311,20 @@ table.table tbody td {
 .run-command {
   font-family: monospace;
   font-size: 90%;
+}
+
+.run-comment {
+  border-top: 1px solid #ccc;
+  margin-top: 10px;
+  padding-top: 16px;
+}
+
+.run-comment-header {
+  color: #666;
+}
+
+.run-comment-body {
+  white-space: pre-wrap;
 }
 
 .expansion-panel__container {

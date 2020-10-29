@@ -116,6 +116,8 @@ class ViewDataImpl(view.ViewData):
             "stopped": formatted["stopped"],
             "time": self._run_duration(run),
             "label": formatted["label"],
+            "tags": self._format_tags(run.get("tags") or []),
+            "comments": run.get("comments") or [],
             "status": run.status,
             "exitStatus": formatted["exit_status"] or None,
             "command": formatted["command"],
@@ -136,6 +138,10 @@ class ViewDataImpl(view.ViewData):
         if stopped:
             return util.format_duration(started, stopped)
         return ""
+
+    @staticmethod
+    def _format_tags(tags):
+        return ", ".join(tags)
 
     @staticmethod
     def _other_attrs(run):
