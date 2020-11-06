@@ -18,11 +18,6 @@ from __future__ import division
 import logging
 import warnings
 
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=Warning)
-    import numpy.core.umath_tests  # pylint: disable=unused-import
-    import skopt
-
 from guild import batch_util
 
 from . import skopt_util
@@ -37,7 +32,7 @@ def main():
 
 
 def _suggest_x(dims, x0, y0, random_start, random_state, opts):
-    res = skopt.gp_minimize(
+    res = skopt_util.patched_gp_minimize(
         lambda *args: 0,
         dims,
         n_calls=1,

@@ -583,18 +583,18 @@ This operation logs progress, so we capture logs.
     ...                 _max_trials=3,
     ...                 _random_seed=1,
     ...                 _opt_xi=0.02)
-    Running op1 (a=10, b=4):
-    x: 14
-    y: 6
-    z: -6
-    Running op1 (a=-10, b=-5):
-    x: -15
-    y: -5
-    z: 5
-    Running op1 (a=-9, b=-5):
-    x: -14
+    Running op1 (a=-2, b=2):
+    x: 0
     y: -4
     z: 4
+    Running op1 (a=10, b=-5):
+    x: 5
+    y: 15
+    z: -15
+    Running op1 (a=10, b=5):
+    x: 15
+    y: 5
+    z: -5
 
     >>> logs.print_all()
     Random start for optimization (missing previous trials)
@@ -609,9 +609,9 @@ We can see the generated runs in Guild home:
     >>> with guild_home:
     ...     ipy.runs()
        run operation  started     status       label
-    0  ...     op1()      ...  completed   a=-9 b=-5
-    1  ...     op1()      ...  completed  a=-10 b=-5
-    2  ...     op1()      ...  completed    a=10 b=4
+    0  ...     op1()      ...  completed    a=10 b=5
+    1  ...     op1()      ...  completed   a=10 b=-5
+    2  ...     op1()      ...  completed    a=-2 b=2
 
 ### Other Optimizers
 

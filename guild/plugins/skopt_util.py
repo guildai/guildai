@@ -504,3 +504,86 @@ def _save_trials_not_supported_error():
 def _handle_general_error(e):
     log.error(e)
     raise SystemExit(1)
+
+
+###################################################################
+# Patched functions
+###################################################################
+
+
+def patched_gp_minimize(
+    func,
+    dimensions,
+    base_estimator=None,
+    n_calls=100,
+    n_random_starts=None,
+    acq_func="gp_hedge",
+    acq_optimizer="auto",
+    x0=None,
+    y0=None,
+    random_state=None,
+    verbose=False,
+    callback=None,
+    n_points=10000,
+    n_restarts_optimizer=5,
+    xi=0.01,
+    kappa=1.96,
+    noise="gaussian",
+    n_jobs=1,
+    model_queue_size=None,
+):
+    """Patched version of skopt.gp_minimize.
+
+    If `base_estimator` is not specified, provides a default estimator
+    for GP that is non-normalizing for values of y. This works around
+    these issues:
+
+     - https://github.com/guildai/guildai/issues/218
+     - https://github.com/scikit-optimize/scikit-optimize/issues/947
+     - https://github.com/scikit-learn/scikit-learn/pull/18388
+     - https://github.com/scikit-learn/scikit-learn/issues/18318
+
+    """
+    if base_estimator is None:
+        base_estimator = _patched_gp_base_estimator(dimensions, random_state, noise)
+    return skopt.gp_minimize(
+        func,
+        dimensions,
+        base_estimator=base_estimator,
+        n_calls=n_calls,
+        n_random_starts=n_random_starts,
+        acq_func=acq_func,
+        acq_optimizer=acq_optimizer,
+        x0=x0,
+        y0=y0,
+        random_state=random_state,
+        verbose=verbose,
+        callback=callback,
+        n_points=n_points,
+        n_restarts_optimizer=n_restarts_optimizer,
+        xi=xi,
+        kappa=kappa,
+        noise=noise,
+        n_jobs=n_jobs,
+        model_queue_size=model_queue_size,
+    )
+
+
+def _patched_gp_base_estimator(dimensions, random_state, noise):
+    """Returns a GP non-y-normalizing GP estimator."""
+    import numpy as np
+    from sklearn.utils import check_random_state
+    from skopt.utils import normalize_dimensions
+
+    space = normalize_dimensions(dimensions)
+    rng = check_random_state(random_state)
+
+    estimator = skopt.utils.cook_estimator(
+        "GP",
+        space=space,
+        random_state=rng.randint(0, np.iinfo(np.int32).max),
+        noise=noise,
+    )
+    # The point of this function - setting normalize_y to False.
+    estimator.normalize_y = False
+    return estimator

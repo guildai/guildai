@@ -9,10 +9,13 @@ warnings from `numpy.core.umath_tests`:
 
 ## Bayesian optimization
 
-Support for Bayesian optimization is provided by `gp_minimize`
-function:
+Support for Bayesian optimization is provided by `skopt.gp_minimize`
+function. However, we use
+`guild.plugins.skopt_util.patched_gp_minimize` as a drop-in
+replacement to work around an issue with skopt and sklearn. See
+docstring for that function for details.
 
-    >>> from skopt import gp_minimize
+    >>> from guild.plugins.skopt_util import patched_gp_minimize as gp_minimize
 
 Here's a case where we provide a list of x0 and corresponding
 y0. These are flag values and resulting objective values respectively.
