@@ -15,4 +15,4 @@ And the installed version:
 We need to make sure h5py is installed for Keras checkpoints to be
 created.
 
-    >>> quiet("pip install h5py<3 --upgrade --force")
+    >>> quiet("pip install 'h5py<3' --upgrade --force")
