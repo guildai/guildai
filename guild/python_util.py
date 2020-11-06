@@ -232,7 +232,11 @@ class MethodWrapper(object):
         return wrapper
 
     def _bind(self, wrapped_self):
-        return lambda *args, **kw: self._func(wrapped_self, *args, **kw)
+        def f(*args, **kw):
+            self._func(wrapped_self, *args, **kw)
+
+        f.__self__ = wrapped_self
+        return f
 
     def add_cb(self, cb):
         self._cbs.append(cb)
@@ -247,6 +251,10 @@ class MethodWrapper(object):
 
     def unwrap(self):
         setattr(self._cls, self._name, self._func)
+
+
+def wrapped_self(method_wrapper):
+    return method_wrapper.__self__
 
 
 def listen_method(cls, method_name, cb):

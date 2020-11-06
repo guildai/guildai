@@ -233,6 +233,30 @@ Finally, we can remove all listeners on a method:
     >>> hello.say("Hello, without listeners!")
     Hello, without listeners!
 
+A method wrapper can access `self` associated with a method using
+`python_util.wrapped_self`.
+
+Here's a class that uses an instance attribute to define a message.
+
+    >>> class Hello2(object):
+    ...     msg = "Hello 2!"
+    ...
+    ...     def say(self):
+    ...         print(self.msg)
+
+    >>> Hello2().say()
+    Hello 2!
+
+And a wrapper that modifies the bound `self` for a wrapped function:
+
+    >>> def wrap_say2(say):
+    ...     self = python_util.wrapped_self(say)
+    ...     self.msg = "Hello Two!"
+    >>> python_util.listen_method(Hello2, "say", wrap_say2)
+
+    >>> Hello2().say()
+    Hello Two!
+
 In our final example, we'll replace a method that increments a value
 with a new function.
 
