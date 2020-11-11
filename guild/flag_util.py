@@ -113,10 +113,7 @@ def _default_flag_decoders(nofix):
         (int, ValueError),
         (_flag_function_or_expanded_sequence, ValueError),
         (_concatenated_list, ValueError),
-        (
-            util.decode_yaml if nofix else _decode_yaml_with_fix,
-            (ValueError, yaml.YAMLError),
-        ),
+        (_yaml_flag_decoder(nofix), (ValueError, yaml.YAMLError)),
     ]
 
 
@@ -263,6 +260,13 @@ def _concatenated_list(s):
     if isinstance(maybe_list, list):
         return maybe_list * int(m.group(2))
     return s
+
+
+def _yaml_flag_decoder(nofix):
+    if nofix:
+        return util.decode_yaml
+    else:
+        return _decode_yaml_with_fix
 
 
 def _decode_yaml_with_fix(s):
