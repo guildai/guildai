@@ -33,5 +33,5 @@ Missed attrs:
 
     >>> missing = set(public_attrs) - set(SKIPPED) - set(FLAG_TEST_ATTRS)
 
-    >>> len(missing)
-    0
+    >>> len(missing), missing
+    (0, ...)
