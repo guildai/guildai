@@ -1,3 +1,2 @@
 notebook
-guildai>=0.7.0rc7
 pandas
