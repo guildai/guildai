@@ -91,10 +91,23 @@ def _flag_decoders_for_type(flag_type, nofix):
 
 
 def _base_decoders_for_type(flag_type):
-    if flag_type in (None, "auto", "boolean", "number", "int", "float"):
+    """Return a list of base decoders for a flag type.
+
+    With an explicit flag type, we can provide decoders applicable for
+    the type without having to test decoding.
+    """
+    if flag_type in (None, "auto"):
         return []
     elif flag_type in ("string", "path", "existing-path"):
         return [(_string_type, ValueError)]
+    elif flag_type == "int":
+        return [(int, ValueError)]
+    elif flag_type == "float":
+        return [(float, ValueError)]
+    elif flag_type == "number":
+        return _number_decoders(True)
+    elif flag_type == "boolean":
+        return [(_decode_boolean, (ValueError, yaml.YAMLError))]
     else:
         log.warning("uknown flag type %s, assuming 'auto'", flag_type)
         return []
@@ -108,13 +121,27 @@ def _string_type(s):
     return six.text_type(s)
 
 
+def _decode_boolean(s):
+    val = util.decode_yaml(s)
+    if isinstance(val, (bool, int, float)):
+        return bool(val)
+    return val
+
+
 def _default_flag_decoders(nofix):
-    return [
-        (int, ValueError),
+    return _number_decoders(nofix) + [
         (_flag_function_or_expanded_sequence, ValueError),
         (_concatenated_list, ValueError),
         (_yaml_flag_decoder(nofix), (ValueError, yaml.YAMLError)),
     ]
+
+
+def _number_decoders(nofix=False):
+    if nofix:
+        # Order matters - try int first as float succeeds with ints.
+        return [(int, ValueError), (float, ValueError)]
+    else:
+        return [(int, ValueError)]
 
 
 def _flag_function_or_expanded_sequence(s):

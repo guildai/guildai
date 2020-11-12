@@ -1424,7 +1424,9 @@ def flag_assign(name, val):
 
 def parse_flag_assigns(args, opdef=None):
     flag_types = _flag_types_for_opdef(opdef) if opdef else None
-    return dict([parse_flag_arg(os.path.expanduser(arg), flag_types) for arg in args])
+    expanded_args = [os.path.expanduser(arg) for arg in args]
+    parsed_flags = [parse_flag_arg(arg, flag_types) for arg in expanded_args]
+    return dict(parsed_flags)
 
 
 def _flag_types_for_opdef(opdef):
@@ -1435,9 +1437,9 @@ def parse_flag_arg(arg, flag_types=None):
     parts = arg.split("=", 1)
     if len(parts) == 1:
         raise ArgValueError(arg)
-    else:
-        flag_type = flag_types.get(parts[0]) if flag_types else None
-        return parts[0], flag_util.decode_flag_val(parts[1], flag_type)
+    name, val = parts
+    flag_type = flag_types.get(name) if flag_types else None
+    return name, flag_util.decode_flag_val(val, flag_type)
 
 
 def args_to_flags(args):
@@ -1725,7 +1727,7 @@ def _terminate(p, poll_interval, kill_delay):
 
 
 ###################################################################
-# Utils
+# Other utils
 ###################################################################
 
 

@@ -150,7 +150,7 @@ Capture result to pprint the decoded value:
     >>> match
     True
 
-### Formatting flags
+## Formatting flags
 
 Flags can be formatted using the `flag_assigns` function.
 
@@ -191,7 +191,7 @@ Here's a function to print the formatted flags:
     s4="a b 'c d e'"
     s5='12e321'
 
-### Truncating floats
+## Truncating floats
 
 Long floats can be truncated when formatting by specifying
 `truncate_flags=True`.
@@ -316,20 +316,10 @@ Other examples:
     >>> decode("[1,2] * 2")
     [1, 2, 1, 2]
 
-### Sequences
-
-Guild provides a number of flag functions that are expanded to
-sequences. These include `range`, `linspace`, and `logspace`.
-
-To log convert warnings, we use a log capture:
-
-    >>> logs = LogCapture()
-
 ### Explicit Types
 
 When a `flag_type` arg is used with `decode`, the function uses the
-type rather than apply any default behavior. The special type 'auto'
-may be specified, which is equivalent to the default behavior.
+type rather than apply any default behavior.
 
     >>> decode("1", "string")
     '1'
@@ -340,8 +330,14 @@ may be specified, which is equivalent to the default behavior.
     >>> decode("no", "string")
     'no'
 
+The special type 'auto' may be specified, which is equivalent to the
+default behavior.
+
     >>> decode("001", "auto")
     1
+
+    >>> decode("1.1", "auto")
+    1.1
 
 Strings that signal YAML-encoding are decoded using the standard rules.
 
@@ -352,6 +348,87 @@ Quoted strings:
 
     >>> decode("\"1\"", "string")
     '1'
+
+The special values 'path' and 'exiting-path' are treated as string.
+
+    >>> decode("001", "path")
+    '001'
+
+    >>> decode("1.123", "existing-path")
+    '1.123'
+
+Numbers:
+
+    >>> decode("001", "int")
+    1
+
+    >>> decode("1.1", "float")
+    1.1
+
+    >>> decode("1", "float")
+    1.0
+
+    >>> decode("1.1", "number")
+    1.1
+
+    >>> decode("1", "number")
+    1
+
+If a value can't be converted to the target type, default YAML
+decoding is used.
+
+    >>> decode("1.1", "int")
+    1.1
+
+    >>> decode("foo", "int")
+    'foo'
+
+    >>> decode("foo", "float")
+    'foo'
+
+    >>> decode("foo", "number")
+    'foo'
+
+Booleans:
+
+    >>> decode("yes", "boolean")
+    True
+
+    >>> decode("no", "boolean")
+    False
+
+    >>> decode("true", "boolean")
+    True
+
+    >>> decode("false", "boolean")
+    False
+
+    >>> decode("True", "boolean")
+    True
+
+    >>> decode("False", "boolean")
+    False
+
+    >>> decode("1", "boolean")
+    True
+
+    >>> decode("0", "boolean")
+    False
+
+    >>> decode("1.1", "boolean")
+    True
+
+    >>> decode("0.0", "boolean")
+    False
+
+Non-boolean, non-numeric values are not convered to boolean:
+
+    >>> decode("foo", "boolean")
+    'foo'
+
+    >>> decode("[]", "boolean")
+    []
+
 
 Lists:
 
@@ -372,6 +449,15 @@ An unsupported type logs a warning.
 
     >>> logs.print_all()
     WARNING: uknown flag type foo, assuming 'auto'
+
+### Sequences
+
+Guild provides a number of flag functions that are expanded to
+sequences. These include `range`, `linspace`, and `logspace`.
+
+To log convert warnings, we use a log capture:
+
+    >>> logs = LogCapture()
 
 #### `range` function
 
@@ -430,7 +516,6 @@ Not enough args:
 
     >>> logs.print_all()
     WARNING: error decoding 'range[]': function requires at least 1 arg(s)
-
 
 #### `linspace` function
 
@@ -614,3 +699,99 @@ Guild's `decode` is equivalent to YAML's:
     '1e' '1e'
     'e1' 'e1'
     10.0 10.0
+
+## Decoders
+
+The tests below show how Guild decodes values based on flag type. When
+a flag type is known, Guild can provide a decoder tailored for the
+expected type that is run before other decoders.
+
+The private function `_flag_decoders_for_type` performs this duty.
+
+    >>> from guild.flag_util import _flag_decoders_for_type
+
+Helper function:
+
+    >>> def decoders(flag_type, nofix=False):
+    ...    for f, _exc_types in _flag_decoders_for_type(flag_type, nofix):
+    ...        print(f.__name__)
+
+`nofix` is a flag that disables Guild's "fixes" for various decoding
+exceptions (see above).
+
+When a type is not known and and when `nofix` is True - i.e. we're
+disabling Guild "fixes" as described above - `int` and `float` are
+checked first as an optimization as these are common value types. We
+also use the standard non-fix `decode_yaml` as our final, fallback
+decoder.
+
+    >>> decoders(None, True)
+    int
+    float
+    _flag_function_or_expanded_sequence
+    _concatenated_list
+    decode_yaml
+
+When `nofix` is False (the default above) we cannot attempt `float`
+conversions because float values are amoung the fixes that Guild
+applies. We also use `_decode_yaml_with_fix` as the final, fallback
+decoder, which applies any of the fixes described above.
+
+    >>> decoders(None, False)
+    int
+    _flag_function_or_expanded_sequence
+    _concatenated_list
+    _decode_yaml_with_fix
+
+`None` is equivalent to the string 'auto'.
+
+    >>> decoders("auto", True)
+    int
+    float
+    _flag_function_or_expanded_sequence
+    _concatenated_list
+    decode_yaml
+
+    >>> decoders("auto", False)
+    int
+    _flag_function_or_expanded_sequence
+    _concatenated_list
+    _decode_yaml_with_fix
+
+If the flag type is a known string type, a string decoder is used for
+cases where the flag value is not potentially a more complex YAML
+object.
+
+    >>> decoders("string")
+    _string_type
+    ...
+
+    >>> decoders("path")
+    _string_type
+    ...
+
+    >>> decoders("existing-path")
+    _string_type
+    ...
+
+Number types are similar:
+
+    >>> decoders("int")
+    int
+    ...
+
+    >>> decoders("float")
+    float
+    ...
+
+    >>> decoders("number")
+    int
+    float
+    ...
+
+Finally, booleans use YAML decoding to support values like "yes",
+"no", etc.
+
+    >>> decoders("boolean")
+    _decode_boolean
+    ...
