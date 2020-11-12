@@ -1,5 +1,0 @@
-echo-flag-args:
-  exec: echo ${flag_args}
-
-echo-py-args:
-  main: echo
