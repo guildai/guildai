@@ -107,7 +107,7 @@ def _base_decoders_for_type(flag_type):
     elif flag_type == "number":
         return _number_decoders(True)
     elif flag_type == "boolean":
-        return [(_decode_boolean, (ValueError, yaml.YAMLError))]
+        return [(_boolean_type, (ValueError, yaml.YAMLError))]
     else:
         log.warning("uknown flag type %s, assuming 'auto'", flag_type)
         return []
@@ -121,7 +121,7 @@ def _string_type(s):
     return six.text_type(s)
 
 
-def _decode_boolean(s):
+def _boolean_type(s):
     val = util.decode_yaml(s)
     if isinstance(val, (bool, int, float)):
         return bool(val)

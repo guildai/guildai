@@ -321,14 +321,16 @@ Other examples:
 When a `flag_type` arg is used with `decode`, the function uses the
 type rather than apply any default behavior.
 
-    >>> decode("1", "string")
-    '1'
+#### Default behavior
 
-    >>> decode("001", "string")
-    '001'
+    >>> decode("001", None)
+    1
 
-    >>> decode("no", "string")
-    'no'
+    >>> decode("1.1", None)
+    1.1
+
+    >>> decode("yes", None)
+    True
 
 The special type 'auto' may be specified, which is equivalent to the
 default behavior.
@@ -338,6 +340,20 @@ default behavior.
 
     >>> decode("1.1", "auto")
     1.1
+
+    >>> decode("yes", "auto")
+    True
+
+#### Strings
+
+    >>> decode("1", "string")
+    '1'
+
+    >>> decode("001", "string")
+    '001'
+
+    >>> decode("no", "string")
+    'no'
 
 Strings that signal YAML-encoding are decoded using the standard rules.
 
@@ -357,7 +373,7 @@ The special values 'path' and 'exiting-path' are treated as string.
     >>> decode("1.123", "existing-path")
     '1.123'
 
-Numbers:
+#### Numbers
 
     >>> decode("001", "int")
     1
@@ -389,7 +405,7 @@ decoding is used.
     >>> decode("foo", "number")
     'foo'
 
-Booleans:
+#### Booleans
 
     >>> decode("yes", "boolean")
     True
@@ -429,16 +445,25 @@ Non-boolean, non-numeric values are not convered to boolean:
     >>> decode("[]", "boolean")
     []
 
+#### Lists (Python)
 
-Lists:
+Standard Python lists are decoded using YAML grammar.
 
-    >>> decode("[1,2,3]", "string")
+    >>> decode("[1,2,3]", None)
     [1, 2, 3]
+
+    >>> decode("['001','002','003']", None)
+    ['001', '002', '003']
+
+    >>> decode("[123, 1.123, 'a b', no]", None)
+    [123, 1.123, 'a b', False]
+
+Flag type is ignored for Python lists:
 
     >>> decode("[001,002,003]", "string")
     [1, 2, 3]
 
-    >>> decode("['001','002','003']", "string")
+    >>> decode("['001','002','003']", "int")
     ['001', '002', '003']
 
 An unsupported type logs a warning.
@@ -793,5 +818,5 @@ Finally, booleans use YAML decoding to support values like "yes",
 "no", etc.
 
     >>> decoders("boolean")
-    _decode_boolean
+    _boolean_type
     ...
