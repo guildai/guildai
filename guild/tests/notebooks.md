@@ -56,11 +56,8 @@ The 'add' operation adds two numbers, `x` and `y`, which can be set as
 flags.
 
     >>> project.run("add", flags={"x": 100, "y": 200})
-    [NbConvertApp] Converting notebook .../add.ipynb to notebook
-    [NbConvertApp] Executing notebook with kernel: ...
-    [NbConvertApp] Writing ... bytes to .../add.ipynb
-    [NbConvertApp] Converting notebook .../add.ipynb to html
-    [NbConvertApp] Writing ... bytes to .../add.html
+    [NbConvertApp] Converting notebook .../add.ipynb to notebook...
+    [NbConvertApp] Converting notebook .../add.ipynb to html...
 
     >>> import json
     >>> generated_ipynb = json.load(open(path(project.list_runs()[0].dir, "add.ipynb")))
@@ -80,11 +77,8 @@ You can run the Notebook directly. In this case, there are no flags
 because we don't know anything about the notebook.
 
     >>> project.run("add.ipynb")
-    [NbConvertApp] Converting notebook .../add.ipynb to notebook
-    [NbConvertApp] Executing notebook with kernel: ...
-    [NbConvertApp] Writing ... bytes to .../add.ipynb
-    [NbConvertApp] Converting notebook .../add.ipynb to html
-    [NbConvertApp] Writing ... bytes to .../add.html
+    [NbConvertApp] Converting notebook .../add.ipynb to notebook...
+    [NbConvertApp] Converting notebook .../add.ipynb to html...
 
     >>> project.print_runs(flags=True, labels=True)
     add.ipynb

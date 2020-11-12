@@ -1,3 +1,4 @@
 jupyter
+jupyter_contrib_nbextensions
 pandas
 twine
