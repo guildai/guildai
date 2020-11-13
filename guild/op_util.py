@@ -1163,6 +1163,7 @@ def _flag_cmd_for_flagdef(flagdef):
         arg_name=flagdef.arg_name,
         arg_skip=_flagdef_arg_skip(flagdef),
         arg_switch=flagdef.arg_switch,
+        arg_split=flagdef.arg_split,
         env_name=flagdef.env_name,
     )
 
@@ -1458,24 +1459,42 @@ def args_to_flags(args):
     name = None
     for arg in flag_args:
         if arg[:2] == "--":
+            _maybe_switch(flags, name)
             name = arg[2:]
-            flags[name] = True
         elif arg[:1] == "-":
-            val = util.decode_yaml(arg)
-            if isinstance(val, (int, float)):
-                flags[name] = val
+            maybe_num = util.decode_yaml(arg)
+            if isinstance(maybe_num, (int, float)):
+                _set_or_append_flag(flags, name, maybe_num)
             elif len(arg) == 2:
+                _maybe_switch(flags, name)
                 name = arg[1]
-                flags[name] = True
             elif len(arg) > 2:
-                name = None
-                flags[arg[1]] = arg[2:]
+                _maybe_switch(flags, name)
+                name = arg[1]
+                _set_or_append_flag(flags, name, arg[2:])
         elif name is not None:
-            flags[name] = util.decode_yaml(arg)
-            name = None
+            _set_or_append_flag(flags, name, util.decode_yaml(arg))
         else:
             other_args.append(arg)
+    _maybe_switch(flags, name)
     return flags, other_args
+
+
+def _maybe_switch(flags, name):
+    if name is not None and name not in flags:
+        flags[name] = True
+
+
+def _set_or_append_flag(flags, name, val):
+    try:
+        existing = flags[name]
+    except KeyError:
+        flags[name] = val
+    else:
+        if isinstance(existing, list):
+            existing.append(val)
+        else:
+            flags[name] = [existing, val]
 
 
 def split_args_for_flags(args):

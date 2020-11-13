@@ -41,7 +41,9 @@ And its operations:
      <guild.guildfile.OpDef 'args2'>,
      <guild.guildfile.OpDef 'args3'>,
      <guild.guildfile.OpDef 'globals'>,
-     <guild.guildfile.OpDef 'params'>]
+     <guild.guildfile.OpDef 'params'>,
+     <guild.guildfile.OpDef 'split-args'>,
+     <guild.guildfile.OpDef 'split-globals'>]
 
 We'll illustrate the various interfaces by running operations in a
 temporary workspace.
@@ -52,12 +54,16 @@ And our run helper:
 
     >>> from guild import _api as gapi
 
-    >>> def run(op, force_flags=False, **flags):
+    >>> def run(op=None, force_flags=False, print_cmd=False, stage=False,
+    ...         start=None, **flags):
     ...   with Env({"NO_IMPORT_FLAGS_CACHE": "1",
     ...             "NO_IMPORT_FLAGS_PROGRESS": "1"}):
     ...       out = gapi.run_capture_output(
     ...               op, cwd=project, guild_home=workspace,
     ...               force_flags=force_flags,
+    ...               print_cmd=print_cmd,
+    ...               stage=stage,
+    ...               start=start,
     ...               flags=flags)
     ...       print(out.strip())
 
@@ -170,3 +176,99 @@ Subsequent mods to `j` apply as well.
 
     >>> run("globals2.py", i=2, j=1, force_flags=True)
     3 4
+
+## Splitting flag args
+
+The `arg-split` flag attribute is used to split a flag assignment into
+a list of values. This list is applied either as a series of arguments
+to the long form option in the case of `args` dest or as a Python list
+in the case of `globals` dest.
+
+### Splitting for args
+
+The `split-args` operation illustrates the case where dest is `args`.
+
+In the default case, no args are provided.
+
+    >>> run("split-args")
+    None
+    None
+
+The `x` flag is split using the default shlex parser.
+
+    >>> run("split-args", x="1 2 'hello there'")
+    ['1', '2', 'hello there']
+    None
+
+The `y` flag is split using the `,` char.
+
+    >>> run("split-args", y="1,2,3")
+    None
+    [1, 2, 3]
+
+Here's the underlying command:
+
+    >>> run("split-args", x="1 2 'hello there'", y="1,2,3", print_cmd=True)
+    ??? -um guild.op_main args3 -- --x 1 2 'hello there' --y 1 2 3
+
+Next we confirm that we can stage an operation with a flag arg split
+and start it. This verifies that we correctly save the flag info with
+the staged run.
+
+    >>> run("split-args", x="1 2 'hello there'", y="1,2", stage=True)
+    split-args staged as ...
+    To start the operation, use 'guild run --start ...'
+
+    >>> latest_run_id = gapi.runs_list(cwd=project, guild_home=workspace)[0].id
+
+Start the run:
+
+    >>> run(start=latest_run_id)
+    ['1', '2', 'hello there']
+    [1, 2]
+
+### Splitting for globals
+
+The `split-globals` operation shows how split flag values are applied
+to globals.
+
+In the default case, .
+
+    >>> run("split-globals")
+    []
+    []
+
+Here's the underlying command:
+
+    >>> run("split-globals", print_cmd=True)
+    ??? -um guild.op_main globals3 --
+
+The `x` flag is split using the default shlex parser.
+
+    >>> run("split-globals", x="1 2 'hello there'")
+    [1, 2, 'hello there']
+    []
+
+The `y` flag is split using the `:` char.
+
+    >>> run("split-globals", y="1:2:three")
+    []
+    [1, 2, 'three']
+
+Here's the underlying command:
+
+    >>> run("split-globals", x="1 2 'hello there'", y="1:2:three", print_cmd=True)
+    ??? -um guild.op_main globals3 -- --x 1 2 'hello there' --y 1 2 three
+
+Stage and start a run to verify that we save arg split information
+correctly in the case of globals dest.
+
+    >>> run("split-globals", x="1 2 'hello there' yes", y="1:2:three:no", stage=True)
+    split-globals staged as ...
+    To start the operation, use 'guild run --start ...'
+
+    >>> latest_run_id = gapi.runs_list(cwd=project, guild_home=workspace)[0].id
+
+    >>> run(start=latest_run_id)
+    [1, 2, 'hello there', True]
+    [1, 2, 'three', False]

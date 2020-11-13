@@ -58,6 +58,7 @@ FLAG_TEST_ATTRS = [
     "arg_name",
     "arg_skip",
     "arg_switch",
+    "arg_split",
     "env_name",
     "choices",
     "allow_other",

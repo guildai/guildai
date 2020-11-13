@@ -45,3 +45,19 @@ args3:
   flags:
     i: 2
     f: 2.2
+
+split-args:
+  main: args3
+  flags:
+    x:
+      arg-split: yes  # equivalent to 'shlex'
+    y:
+      arg-split: ','
+
+split-globals:
+  main: globals3
+  flags:
+    x:
+      arg-split: 'shlex'  # equivalent to yes
+    y:
+      arg-split: ':'

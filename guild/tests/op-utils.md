@@ -22,18 +22,27 @@ converted to flags.
     >>> pprint(a2f(["--foo", "123", "--bar", "hello"]))
     ({'bar': 'hello', 'foo': 123}, [])
 
+When an option includes multiple arguments, the arguments are stored
+as a list of flag values.
+
+    >>> pprint(a2f(["--foo", "123", "456", "--bar", "hello", "there"]))
+    ({'bar': ['hello', 'there'], 'foo': [123, 456]}, [])
+
 If we include an arg that cannot be converted to a flag:
 
-    >>> pprint(a2f(["other1", "--foo", "123", "--bar", "hello", "other2"]))
-    ({'bar': 'hello', 'foo': 123}, ['other1', 'other2'])
+    >>> pprint(a2f(["other1", "--foo", "123", "--bar", "hello", "there"]))
+    ({'bar': ['hello', 'there'], 'foo': 123}, ['other1'])
 
 Options without values are treated as True:
 
     >>> a2f(["--foo"])
     ({'foo': True}, [])
 
-    >>> pprint(a2f(["--foo", "--bar", "1.123"]))
-    ({'bar': 1.123, 'foo': True}, [])
+    >>> pprint(a2f(["--foo", "--bar", "-1.123"]))
+    ({'bar': -1.123, 'foo': True}, [])
+
+    >>> pprint(a2f(["--foo", "--bar", "no", "--baz"]))
+    ({'bar': False, 'baz': True, 'foo': True}, [])
 
 Short form arguments are supported:
 
@@ -42,6 +51,12 @@ Short form arguments are supported:
 
     >>> a2f(["-abar"])
     ({'a': 'bar'}, [])
+
+    >>> a2f(["-abar", "baz"])
+    ({'a': ['bar', 'baz']}, [])
+
+    >>> a2f(["-abar", "-b"])
+    ({'a': 'bar', 'b': True}, [])
 
 If a negative number is specified as an option value, it is treated as
 a number and not as a short form option:
@@ -91,9 +106,6 @@ Handling various "other arg" cases:
 
     >>> a2f(["foo", "bar"])
     ({}, ['foo', 'bar'])
-
-    >>> a2f(["--foo", "123", "456"])
-    ({'foo': 123}, ['456'])
 
     >>> a2f(["foo", "--bar", "123"])
     ({'bar': 123}, ['foo'])

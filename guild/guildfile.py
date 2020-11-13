@@ -1171,6 +1171,7 @@ class FlagDef(object):
         self.arg_name = _data.pop("arg-name", None)
         self.arg_skip = _data.pop("arg-skip", None)
         self.arg_switch = _data.pop("arg-switch", None)
+        self.arg_split = _data.pop("arg-split", None)
         self.choices = _init_flag_choices(_data.pop("choices", None), self)
         self.allow_other = _data.pop("allow-other", False)
         self.env_name = _data.pop("env-name", None)

@@ -39,10 +39,18 @@ class OpCmd(object):
 
 
 class CmdFlag(object):
-    def __init__(self, arg_name=None, arg_skip=False, arg_switch=None, env_name=None):
+    def __init__(
+        self,
+        arg_name=None,
+        arg_skip=False,
+        arg_switch=None,
+        arg_split=None,
+        env_name=None,
+    ):
         self.arg_name = arg_name
         self.arg_skip = arg_skip
         self.arg_switch = arg_switch
+        self.arg_split = arg_split
         self.env_name = env_name
 
 
@@ -99,15 +107,40 @@ def _args_for_flag(name, val, cmd_flag, flag_dest, cmd_args):
             arg_name,
         )
         return []
-    if cmd_flag.arg_switch is not None:
+    elif cmd_flag.arg_switch is not None:
         if cmd_flag.arg_switch == val:
             return ["--%s" % arg_name]
         else:
             return []
     elif val is not None:
-        return ["--%s" % arg_name, _encode_flag_arg(val, flag_dest)]
+        if cmd_flag.arg_split is not None:
+            encoded = _encode_split_args(val, cmd_flag.arg_split, flag_dest)
+            if encoded:
+                return ["--%s" % arg_name] + encoded
+            else:
+                return []
+        else:
+            return ["--%s" % arg_name, _encode_flag_arg(val, flag_dest)]
     else:
         return []
+
+
+def _encode_split_args(val, split, dest):
+    encoded = _encode_flag_val_for_split(val, dest)
+    if split is True or split == "shlex":
+        return util.shlex_split(encoded)
+    else:
+        return _string_split(encoded, split)
+
+
+def _encode_flag_val_for_split(val, dest):
+    if isinstance(val, six.string_types):
+        return val
+    return _encode_flag_arg(val, dest)
+
+
+def _string_split(encoded, sep):
+    return [part for part in encoded.split(str(sep)) if part]
 
 
 def _encode_flag_arg(val, dest):
@@ -219,6 +252,7 @@ def _cmd_flag_for_data(data):
         arg_name=data.get("arg-name"),
         arg_skip=data.get("arg-skip"),
         arg_switch=data.get("arg-switch"),
+        arg_split=data.get("arg-split"),
         env_name=data.get("env-name"),
     )
 
@@ -254,6 +288,8 @@ def _cmd_flag_as_data(cmd_flag):
         data["arg-skip"] = cmd_flag.arg_skip
     if cmd_flag.arg_switch:
         data["arg-switch"] = cmd_flag.arg_switch
+    if cmd_flag.arg_split is not None:
+        data["arg-split"] = cmd_flag.arg_split
     if cmd_flag.env_name:
         data["env-name"] = cmd_flag.env_name
     return data

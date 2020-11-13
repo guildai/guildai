@@ -31,6 +31,7 @@
         arg-name:
         arg-skip:
         arg-switch:
+        arg-split:
         env-name:
         choices: []
         allow-other: no
@@ -69,6 +70,7 @@
         arg-name:
         arg-skip:
         arg-switch:
+        arg-split:
         env-name:
         choices: []
         allow-other: no
@@ -83,6 +85,7 @@
         arg-name:
         arg-skip:
         arg-switch: yes
+        arg-split:
         env-name:
         choices: []
         allow-other: no
