@@ -1229,7 +1229,15 @@ def coerce_flag_value(val, flagdef):
         return val
     if isinstance(val, list):
         return [coerce_flag_value(x, flagdef) for x in val]
-    elif flagdef.type == "string":
+    elif flagdef.arg_split:
+        return _coerce_flag_val_split_parts(val, flagdef)
+    else:
+        return _coerce_typed_flag_value(val, flagdef)
+
+
+def _coerce_typed_flag_value(val, flagdef):
+    assert flagdef.type is not None
+    if flagdef.type == "string":
         return _try_coerce_flag_val(val, str, flagdef)
     elif flagdef.type == "int":
         if isinstance(val, float):
@@ -1247,9 +1255,25 @@ def coerce_flag_value(val, flagdef):
         return _resolve_rel_path(val)
     else:
         log.warning(
-            "unknown flag type '%s' for %s - cannot coerce", flagdef.type, flagdef.name
+            "unknown flag type '%s' for %s - cannot coerce",
+            flagdef.type,
+            flagdef.name,
         )
         return val
+
+
+def _coerce_flag_val_split_parts(val, flagdef):
+    assert flagdef.type is not None
+    encoded = _ensure_encoded_flag_val(val)
+    parts = flag_util.split_encoded_flag_val(encoded, flagdef.arg_split)
+    coerced = [_coerce_typed_flag_value(part, flagdef) for part in parts]
+    return flag_util.join_splittable_flag_vals(coerced, flagdef.arg_split)
+
+
+def _ensure_encoded_flag_val(val):
+    if isinstance(val, six.string_types):
+        return val
+    return flag_util.encode_flag_val(val)
 
 
 def _try_coerce_flag_val(val, funs, flagdef):
@@ -1318,16 +1342,33 @@ def _check_flag_vals(vals, flagdefs):
         _check_flag_val(val, flag)
 
 
-def _check_flag_val(val, flag):
+def _check_flag_val(val, flagdef):
     if isinstance(val, list):
         for x in val:
-            _check_flag_val(x, flag)
-    elif flag_util.is_flag_function(val):
-        pass
+            _check_flag_val(x, flagdef)
+    elif flagdef.arg_split and val is not None:
+        _check_splittable_flag_val(val, flagdef)
     else:
-        _check_flag_choice(val, flag)
-        _check_flag_type(val, flag)
-        _check_flag_range(val, flag)
+        _check_flag_val_(val, flagdef)
+
+
+def _check_splittable_flag_val(val, flagdef):
+    assert flagdef.arg_split is not None
+    assert isinstance(val, six.string_types), (val, flagdef)
+    split_val = [
+        flag_util.decode_flag_val(part)
+        for part in flag_util.split_encoded_flag_val(val, flagdef.arg_split)
+    ]
+    for x in split_val:
+        _check_flag_val_(x, flagdef)
+
+
+def _check_flag_val_(val, flagdef):
+    if flag_util.is_flag_function(val):
+        return
+    _check_flag_choice(val, flagdef)
+    _check_flag_type(val, flagdef)
+    _check_flag_range(val, flagdef)
 
 
 def _check_flag_choice(val, flag):

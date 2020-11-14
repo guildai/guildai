@@ -7,12 +7,15 @@
     reading flags for main spec 'mnist_mlp_10sec'
     mnist_mlp_10sec.py flags imported for dest 'globals':
       batch_size:
+        arg-split: null
         default: 128
         type: number
       epochs:
+        arg-split: null
         default: 20
         type: number
       num_classes:
+        arg-split: null
         default: 10
         type: number
     ### Script flags for train-args
@@ -96,12 +99,15 @@
     reading flags for main spec 'mnist_mlp_10sec'
     mnist_mlp_10sec.py flags imported for dest 'globals':
       batch_size:
+        arg-split: null
         default: 128
         type: number
       epochs:
+        arg-split: null
         default: 20
         type: number
       num_classes:
+        arg-split: null
         default: 10
         type: number
     ### Script flags for train-args

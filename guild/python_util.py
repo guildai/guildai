@@ -152,6 +152,8 @@ def _try_param_val(val):
             return False
         elif val.id == "None":
             return None
+    elif isinstance(val, ast.List):
+        return [_try_param_val(item) for item in val.elts]
     raise TypeError(val)
 
 

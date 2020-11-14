@@ -127,10 +127,8 @@ def _args_for_flag(name, val, cmd_flag, flag_dest, cmd_args):
 
 def _encode_split_args(val, split, dest):
     encoded = _encode_flag_val_for_split(val, dest)
-    if split is True or split == "shlex":
-        return util.shlex_split(encoded)
-    else:
-        return _string_split(encoded, split)
+    parts = flag_util.split_encoded_flag_val(encoded, split)
+    return _split_args_for_dest(parts, dest)
 
 
 def _encode_flag_val_for_split(val, dest):
@@ -139,8 +137,17 @@ def _encode_flag_val_for_split(val, dest):
     return _encode_flag_arg(val, dest)
 
 
-def _string_split(encoded, sep):
-    return [part for part in encoded.split(str(sep)) if part]
+def _split_args_for_dest(parts, dest):
+    if dest == "globals":
+        return [_encode_yaml_list_for_globals_arg(parts)]
+    return parts
+
+
+def _encode_yaml_list_for_globals_arg(parts):
+    return util.encode_yaml(
+        [util.decode_yaml(part) for part in parts],
+        default_flow_style=True,
+    )
 
 
 def _encode_flag_arg(val, dest):

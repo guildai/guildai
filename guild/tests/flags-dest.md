@@ -43,7 +43,8 @@ And its operations:
      <guild.guildfile.OpDef 'globals'>,
      <guild.guildfile.OpDef 'params'>,
      <guild.guildfile.OpDef 'split-args'>,
-     <guild.guildfile.OpDef 'split-globals'>]
+     <guild.guildfile.OpDef 'split-globals'>,
+     <guild.guildfile.OpDef 'split-typed'>]
 
 We'll illustrate the various interfaces by running operations in a
 temporary workspace.
@@ -227,6 +228,21 @@ Start the run:
     ['1', '2', 'hello there']
     [1, 2]
 
+Guild detects the use of `nargs='+'` in the argparse argument and
+automatically sets `arg-split` to True so that this works when running
+the script directly. As the default behavior requires shlex syntax,
+our example above doesn't work with `args3.py`.
+
+    >>> run("args3.py", x="1 2 foo", y="2,1")
+    Traceback (most recent call last):
+    RunError: ...args3.py: error: argument --y: invalid int value: '2,1'...
+
+When we use the expected syntax:
+
+    >>> run("args3.py", x="1 2 foo", y="2 1")
+    ['1', '2', 'foo']
+    [2, 1]
+
 ### Splitting for globals
 
 The `split-globals` operation shows how split flag values are applied
@@ -241,7 +257,7 @@ In the default case, .
 Here's the underlying command:
 
     >>> run("split-globals", print_cmd=True)
-    ??? -um guild.op_main globals3 --
+    ??? -um guild.op_main globals3 -- --x '[]' --y '[]'
 
 The `x` flag is split using the default shlex parser.
 
@@ -258,7 +274,7 @@ The `y` flag is split using the `:` char.
 Here's the underlying command:
 
     >>> run("split-globals", x="1 2 'hello there'", y="1:2:three", print_cmd=True)
-    ??? -um guild.op_main globals3 -- --x 1 2 'hello there' --y 1 2 three
+    ??? -um guild.op_main globals3 -- --x '[1, 2, hello there]' --y '[1, 2, three]'
 
 Stage and start a run to verify that we save arg split information
 correctly in the case of globals dest.
@@ -272,3 +288,33 @@ correctly in the case of globals dest.
     >>> run(start=latest_run_id)
     [1, 2, 'hello there', True]
     [1, 2, 'three', False]
+
+Specify a single value for each flag. This shows that we convey a list
+containing the value rather than the value itself.
+
+    >>> run("split-globals", x="hello", y="1")
+    ['hello']
+    [1]
+
+Running the script directly:
+
+    >>> run("globals3.py", x="1 2.2", y="foo bar yes 3")
+    [1, 2.2]
+    ['foo', 'bar', True, 3]
+
+    >>> run("globals3.py", x="hello", y="1")
+    ['hello']
+    [1]
+
+### Splitting and flag type
+
+Guild applies flag type to each part of a split flag value.
+
+    >>> run("split-typed", paths=". subdir", ints="1 2 3")
+    ['.../guild/tests/samples/projects/flags-dest',
+     '.../guild/tests/samples/projects/flags-dest/subdir']
+    [1, 2, 3]
+
+### Arg splitting and batches
+
+    >> run("split-args", x=["a b", "c 'd e'"], y=["1 2"])

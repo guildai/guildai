@@ -8,6 +8,7 @@
     op.py does not import argparse - assuming globals
     op.py flags imported for dest 'globals':
       x:
+        arg-split: null
         default: 1.0
         type: number
     ### Script flags for summary
@@ -47,6 +48,7 @@
     op.py does not import argparse - assuming globals
     op.py flags imported for dest 'globals':
       x:
+        arg-split: null
         default: 1.0
         type: number
     ### Script flags for summary

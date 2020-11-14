@@ -422,9 +422,16 @@ class PythonScriptPlugin(pluginlib.Plugin):
 
     def _global_assigns_flag_attrs(self, val):
         return {
-            "default": val,
+            "default": self._global_assigns_flag_val(val),
             "type": self._global_assigns_flag_type(val),
+            "arg-split": self._global_assigns_arg_split(val),
         }
+
+    @staticmethod
+    def _global_assigns_flag_val(val):
+        if isinstance(val, list):
+            return _encode_splittable_list(val)
+        return val
 
     @staticmethod
     def _global_assigns_flag_type(val):
@@ -436,6 +443,12 @@ class PythonScriptPlugin(pluginlib.Plugin):
             return "number"
         else:
             return None
+
+    @staticmethod
+    def _global_assigns_arg_split(val):
+        if isinstance(val, list):
+            return True
+        return None
 
     @staticmethod
     def _is_global_assign_flag(name):
@@ -495,6 +508,10 @@ class PythonScriptPlugin(pluginlib.Plugin):
         for _name, plugin in pluginlib.iter_plugins():
             if isinstance(plugin, PythonScriptOpdefSupport):
                 plugin.python_script_opdef_loaded(opdef)
+
+
+def _encode_splittable_list(l):
+    return " ".join([util.shlex_quote(yaml.encode_val(x)) for x in l])
 
 
 def _flags_import_disabled(opdef):

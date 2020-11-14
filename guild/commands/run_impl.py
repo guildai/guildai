@@ -391,7 +391,13 @@ def _apply_run_flags(run, flag_vals):
 
 
 def _apply_op_flags_vals_for_opdef(
-    opdef, user_flag_vals, force_flags, op_cmd, args, resource_flagdefs, op_flag_vals
+    opdef,
+    user_flag_vals,
+    force_flags,
+    op_cmd,
+    args,
+    resource_flagdefs,
+    op_flag_vals,
 ):
     """Applies opdef and user-provided flags to `op_flag_vals`.
 

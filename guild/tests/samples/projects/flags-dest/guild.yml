@@ -61,3 +61,15 @@ split-globals:
       arg-split: 'shlex'  # equivalent to yes
     y:
       arg-split: ':'
+
+split-typed:
+  main: globals3
+  flags:
+    paths:
+      type: existing-path
+      arg-name: x
+      arg-split: yes
+    ints:
+      type: int
+      arg-name: y
+      arg-split: yes

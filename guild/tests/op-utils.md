@@ -371,7 +371,10 @@ To illustrate, we'll use a helper function:
 
     >>> def coerce(val, **kw):
     ...     from guild.guildfile import FlagDef
-    ...     flagdef = FlagDef("test", kw, None)
+    ...     flag_data = {
+    ...         name.replace("_", "-"): val for name, val in kw.items()
+    ...     }
+    ...     flagdef = FlagDef("test", flag_data, None)
     ...     return op_util.coerce_flag_value(val, flagdef)
 
 Floats:
@@ -445,6 +448,30 @@ Lists of values:
     >>> coerce([1, 1.0, "invalid"], type="number")
     Traceback (most recent call last):
     ValueError: invalid value for type 'number'
+
+### Splittable flags
+
+Flags that are split using `arg-split` are a special case. These flags
+are conveyed as a string value that is split into a list of parts when
+used for an operation. The flag value itself is retained as a string
+but its values are coerced using the flag type.
+
+    >>> coerce("1 2 3", type="float", arg_split=" ")
+    '1.0 2.0 3.0'
+
+Confirm that `path` types are coerced to an absolute path.
+
+    >>> paths = coerce("foo bar", type="path", arg_split=" ")
+
+    >>> split_paths = paths.split(" ")
+    >>> split_paths
+    ['.../guild/tests/foo', '.../guild/tests/bar']
+
+    >>> os.path.isabs(split_paths[0]), split_paths
+    (True, ...)
+
+    >>> os.path.isabs(split_paths[1]), split_paths
+    (True, ...)
 
 ## Parsing op specs
 

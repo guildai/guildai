@@ -457,3 +457,22 @@ def _maybe_truncate_dec_part(part, trunc_len):
     if len(part) <= trunc_len:  # lte to include leading '.'
         return part
     return part[: trunc_len + 1]
+
+
+def split_encoded_flag_val(encoded, split_spec):
+    if split_spec is True or split_spec == "shlex":
+        return util.shlex_split(encoded)
+    else:
+        return _string_split(encoded, split_spec)
+
+
+def _string_split(encoded, sep):
+    return [part for part in encoded.split(str(sep)) if part]
+
+
+def join_splittable_flag_vals(vals, split_spec):
+    encoded_vals = [encode_flag_val(val) for val in vals]
+    if split_spec is True or split_spec == "shlex":
+        return " ".join([util.shlex_quote(x) for x in encoded_vals])
+    else:
+        return split_spec.join(encoded_vals)

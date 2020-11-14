@@ -118,6 +118,8 @@ def _maybe_apply_flag(action, flags):
         attrs["arg-switch"] = True
     elif isinstance(action, argparse._StoreFalseAction):
         attrs["arg-switch"] = False
+    if _multi_arg(action):
+        attrs["arg-split"] = True
     log.debug("added flag %r: %r", flag_name, attrs)
 
 
@@ -138,6 +140,12 @@ def _ensure_json_encodable(x, flag_name):
         return str(x)
     else:
         return x
+
+
+def _multi_arg(action):
+    return action.nargs == "+" or (
+        isinstance(action.nargs, (int, float)) and action.nargs > 1
+    )
 
 
 def _exec_module(mod_path, package):
