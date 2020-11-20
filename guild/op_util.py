@@ -1354,10 +1354,10 @@ def _check_flag_val(val, flagdef):
 
 def _check_splittable_flag_val(val, flagdef):
     assert flagdef.arg_split is not None
-    assert isinstance(val, six.string_types), (val, flagdef)
+    encoded = _ensure_encoded_flag_val(val)
     split_val = [
         flag_util.decode_flag_val(part)
-        for part in flag_util.split_encoded_flag_val(val, flagdef.arg_split)
+        for part in flag_util.split_encoded_flag_val(encoded, flagdef.arg_split)
     ]
     for x in split_val:
         _check_flag_val_(x, flagdef)

@@ -80,16 +80,16 @@ Boolean and None values are handled differently for "args" and
     {'FLAG_C': '1'}
 
     >>> generate(["__flag_args__"], {}, {}, {"c": True}, "globals")
-    ['--c', 'yes']
+    ['--c', 'true']
     {'FLAG_C': '1'}
 
     >>> generate(["__flag_args__"], {}, {}, {"c": False}, "args")
     ['--c', '']
-    {'FLAG_C': '0'}
+    {'FLAG_C': ''}
 
     >>> generate(["__flag_args__"], {}, {}, {"c": False}, "globals")
-    ['--c', 'no']
-    {'FLAG_C': '0'}
+    ['--c', 'false']
+    {'FLAG_C': ''}
 
     >>> generate(["__flag_args__"], {}, {}, {"c": None}, "args")
     []
@@ -162,7 +162,7 @@ Params in non-flag template:
     ...     [], {"A": True, "B": False, "C": None}, {},
     ...     {"D": True, "E": False, "F": None}, "args")
     []
-    {'A': '1', 'B': '0', 'C': '', 'FLAG_D': '1', 'FLAG_E': '0', 'FLAG_F': ''}
+    {'A': '1', 'B': '', 'C': '', 'FLAG_D': '1', 'FLAG_E': '', 'FLAG_F': ''}
 
 Flags override command env.
 

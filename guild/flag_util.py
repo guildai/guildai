@@ -54,8 +54,15 @@ def encode_flag_val(val):
 
 
 def _encode_list(val_list):
-    joined = ", ".join([encode_flag_val(val) for val in val_list])
+    joined = ", ".join([_encode_list_item(val) for val in val_list])
     return "[%s]" % joined
+
+
+def _encode_list_item(val):
+    encoded = encode_flag_val(val)
+    if isinstance(val, six.string_types) and "," in encoded:
+        return repr(encoded)
+    return encoded
 
 
 def _encode_dict(d):
@@ -392,14 +399,14 @@ def flag_assign(name, val, truncate_floats=False, shorten_paths=False):
 
 
 def format_flag(val, truncate_floats=False, shorten_paths=False):
-    fmt_val = encode_flag_val(val)
+    encoded = encode_flag_val(val)
     if truncate_floats and isinstance(val, float):
         trunc_len = _trunc_len(truncate_floats)
-        fmt_val = _truncate_formatted_float(fmt_val, trunc_len)
+        encoded = _truncate_formatted_float(encoded, trunc_len)
     if shorten_paths and _is_path(val):
         path_len = _path_len(shorten_paths)
-        fmt_val = util.shorten_path(val, path_len)
-    return _quote_encoded(fmt_val, val)
+        encoded = util.shorten_path(val, path_len)
+    return _quote_encoded(encoded, val)
 
 
 def _trunc_len(truncate_floats):
@@ -437,8 +444,8 @@ def _quote_encoded(encoded, val):
 def _needs_quote(encoded, val):
     return (
         isinstance(val, six.string_types)
-        and " " in encoded
         and encoded[0] not in ("'", "\"")
+        and " " in encoded
     )
 
 
@@ -472,7 +479,9 @@ def _string_split(encoded, sep):
 
 def join_splittable_flag_vals(vals, split_spec):
     encoded_vals = [encode_flag_val(val) for val in vals]
-    if split_spec is True or split_spec == "shlex":
+    if split_spec in (None, True, "shlex"):
         return " ".join([util.shlex_quote(x) for x in encoded_vals])
-    else:
+    elif isinstance(split_spec, six.string_types):
         return split_spec.join(encoded_vals)
+    else:
+        raise ValueError("split_spec must be None, True, or a string: %r" % split_spec)

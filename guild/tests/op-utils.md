@@ -239,9 +239,9 @@ Helper function to print assignments:
     ...         print("ERROR parsing assignments")
     ...         print("Original flags:")
     ...         pprint(flags)
-    ...         print("Assigns:")
+    ...         print("Assigns (encoded flags):")
     ...         pprint(assigns)
-    ...         print("Parsed assigns:")
+    ...         print("Parsed assigns (decoded flags):")
     ...         pprint(parsed)
     ...         return
     ...     if not assigns:

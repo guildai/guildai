@@ -193,6 +193,7 @@ def _local_run_for_spec(spec):
 
 
 def _state_init_user_op(S):
+    """Initialize state for user op."""
     _user_op_init_run(S)
     _op_init_force_sourcecode(S.args.force_sourcecode, S.user_op)
     _op_init_opdef(S.args.opspec, S.user_op, S.args)
@@ -1180,6 +1181,16 @@ def _copy_run_proto_attrs(proto_run, dest_run):
 
 
 def _state_init_batch_op(S):
+    """Initialize state for batch op.
+
+    A batch is initialized for an operation if batch-triggering flag
+    values are specified or if an optimizer is specified. Once
+    triggered, a batch op is initialized similarly to a user op
+    (e.g. see `_state_init_user_op`).
+
+    If a batch is initialized by this function, `S.batch_op` will be
+    non-None.
+    """
     _batch_op_init_run(S)
     _batch_op_init_opdef(S)
     _check_opt_flags_for_missing_batch_opdef(S)

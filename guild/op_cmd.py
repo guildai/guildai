@@ -82,7 +82,7 @@ def _encode_arg_params(params):
 
 def _encode_general_arg(val):
     # Use same encoding used for env vals.
-    return _encode_env_val(val)
+    return _encode_env_val(val, arg_split=None)
 
 
 def _flag_args(flag_vals, flag_dest, cmd_flags, cmd_args):
@@ -113,28 +113,32 @@ def _args_for_flag(name, val, cmd_flag, flag_dest, cmd_args):
         else:
             return []
     elif val is not None:
-        if cmd_flag.arg_split is not None:
-            encoded = _encode_split_args(val, cmd_flag.arg_split, flag_dest)
-            if encoded:
-                return ["--%s" % arg_name] + encoded
-            else:
-                return []
+        if _splittable(val, cmd_flag):
+            encoded = _encode_split_args(val, flag_dest, cmd_flag.arg_split)
+            return ["--%s" % arg_name] + encoded if encoded else []
         else:
-            return ["--%s" % arg_name, _encode_flag_arg(val, flag_dest)]
+            return [
+                "--%s" % arg_name,
+                _encode_flag_arg(val, flag_dest, cmd_flag.arg_split),
+            ]
     else:
         return []
 
 
-def _encode_split_args(val, split, dest):
-    encoded = _encode_flag_val_for_split(val, dest)
-    parts = flag_util.split_encoded_flag_val(encoded, split)
+def _splittable(val, cmd_flag):
+    return not isinstance(val, list) and cmd_flag.arg_split is not None
+
+
+def _encode_split_args(val, dest, arg_split):
+    encoded = _encode_flag_val_for_split(val, dest, arg_split)
+    parts = flag_util.split_encoded_flag_val(encoded, arg_split)
     return _split_args_for_dest(parts, dest)
 
 
-def _encode_flag_val_for_split(val, dest):
+def _encode_flag_val_for_split(val, dest, arg_split):
     if isinstance(val, six.string_types):
         return val
-    return _encode_flag_arg(val, dest)
+    return _encode_flag_arg(val, dest, arg_split)
 
 
 def _split_args_for_dest(parts, dest):
@@ -150,11 +154,11 @@ def _encode_yaml_list_for_globals_arg(parts):
     )
 
 
-def _encode_flag_arg(val, dest):
+def _encode_flag_arg(val, dest, arg_split):
     if dest == "globals" or dest.startswith("global:"):
         return _encode_flag_arg_for_globals(val)
     else:
-        return _encode_flag_arg_for_argparse(val)
+        return _encode_flag_arg_for_argparse(val, arg_split)
 
 
 def _encode_flag_arg_for_globals(val):
@@ -164,17 +168,30 @@ def _encode_flag_arg_for_globals(val):
     using standard YAML encoding. Decoding must be handled using
     standard YAML decoding.
     """
-    return flag_util.format_flag(val)
+    return util.encode_yaml(val, default_flow_style=True)
 
 
-def _encode_flag_arg_for_argparse(val):
-    """Returns an encoded flag val for use by Python argparse."""
+def _encode_flag_arg_for_argparse(val, arg_split):
+    """Returns an encoded flag val for use by Python argparse.
+
+    argparse generally uses type functions (e.g. int, float, etc.) to
+    decode string args. We use `pprint.pformat` to encode here with
+    exceptions for boolean values. Boolean values decode any non-empty
+    string as True so we encode here accordingly using the arbitrarily
+    chose non-empty string '1' to represent True along with the empty
+    string '' to represent False.
+
+    `arg_split` is used to encode lists of values to a single string
+    argument.
+    """
     if val is True:
         return "1"
     elif val is False or val is None:
         return ""
     elif isinstance(val, six.string_types):
         return val
+    elif isinstance(val, list):
+        return flag_util.join_splittable_flag_vals(val, arg_split)
     else:
         return pprint.pformat(val)
 
@@ -190,17 +207,14 @@ def _encoded_cmd_env(op_cmd):
     return {name: _encode_env_val(val) for name, val in op_cmd.cmd_env.items()}
 
 
-def _encode_env_val(val):
-    if val is True:
-        return "1"
-    elif val is False:
-        return "0"
-    elif val is None:
-        return ""
-    elif isinstance(val, six.string_types):
-        return val
-    else:
-        return pprint.pformat(val)
+def _encode_env_val(val, arg_split=None):
+    """Returns an encoded flag val for use as env values.
+
+    Uses the same encoding scheme as _encode_flag_arg_for_argparse
+    under the assumption that the same logic is used to decode env
+    values as as command arguments.
+    """
+    return _encode_flag_arg_for_argparse(val, arg_split)
 
 
 def _resolve_env_flag_refs(flag_vals, env):

@@ -41,6 +41,9 @@ Strings:
     >>> encode_decode("2018_06_26")
     ("'2018_06_26'", '2018_06_26', True)
 
+    >>> encode_decode("1,2")
+    ('1,2', '1,2', True)
+
 Numbers:
 
     >>> encode_decode(1)
@@ -115,6 +118,10 @@ Lists:
      ['', 'a', 1, 1.0, 0.3333333333333333, True, False, None],
      True)
 
+    >>> encode_decode(["a b", "1,2"])
+    ("[a b, '1,2']", ['a b', '1,2'], True)
+
+
 Dicts:
 
     >>> encode_decode({})
@@ -177,6 +184,7 @@ Here's a function to print the formatted flags:
     ...     "f4": 1.234e+3,
     ...     "f5": -1.234e-3,
     ...     "f6": 1/6,
+    ...     "l": [1, "a", "1,2", "b c", True],
     ... }) # doctest: +REPORT_UDIFF
     f1=1.1
     f2=0.1
@@ -185,6 +193,7 @@ Here's a function to print the formatted flags:
     f5=-0.001234
     f6=0.16666666666666666
     i=101
+    l=[1, a, '1,2', b c, yes]
     s1=''
     s2=a
     s3='a b'

@@ -317,4 +317,10 @@ Guild applies flag type to each part of a split flag value.
 
 ### Arg splitting and batches
 
-    >> run("split-args", x=["a b", "c 'd e'"], y=["1 2"])
+    >>> run("split-args", x=["a b", "c 'd e'"], y=["1,2"])
+    INFO: [guild] Running trial ...: split-args (x='a b', y=1,2)
+    ['a', 'b']
+    [1, 2]
+    INFO: [guild] Running trial ...: split-args (x="c 'd e'", y=1,2)
+    ['c', 'd e']
+    [1, 2]

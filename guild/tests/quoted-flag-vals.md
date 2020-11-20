@@ -40,9 +40,9 @@ Here is a preview of the commands that will be run:
 
     >>> project.run("globals.py", flag_vals, print_cmd=True)
     ??? -um guild.batch_main
-    ... -um guild.op_main globals --f1 1 --f2 1.1 --f3 a --f4 yes
-    ... -um guild.op_main globals --f1 1 --f2 1.1 --f3 b --f4 yes
-    ... -um guild.op_main globals --f1 1 --f2 1.1 --f3 c --f4 yes
+    ... -um guild.op_main globals --f1 1 --f2 1.1 --f3 a --f4 true
+    ... -um guild.op_main globals --f1 1 --f2 1.1 --f3 b --f4 true
+    ... -um guild.op_main globals --f1 1 --f2 1.1 --f3 c --f4 true
 
 Run the operation:
 

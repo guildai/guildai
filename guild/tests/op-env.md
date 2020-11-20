@@ -154,7 +154,7 @@ This is applied to the run.
     env BAR: 2
     env BAZ: 1 1.1 hello
     env FLAG_B1: 1
-    env FLAG_B2: 0
+    env FLAG_B2:
     env FLAG_F: 1.1
     env FLAG_I: 1
     env FLAG_S: hello
@@ -170,7 +170,7 @@ The environment is saved in the `env` run attribute.
     BAR: 2
     BAZ: 1 1.1 hello
     FLAG_B1: 1
-    FLAG_B2: 0
+    FLAG_B2:
     FLAG_F: 1.1
     FLAG_I: 1
     FLAG_S: hello

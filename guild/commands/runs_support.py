@@ -107,9 +107,18 @@ def ac_run_dirpath(ctx, **_kw):
 def _one_run(ctx):
     from . import runs_impl
 
+    kw = dict(ctx.params)
+    _apply_run_or_runs_args(ctx, kw)
     return click_util.completion_safe_apply(
-        ctx, runs_impl.one_run, [click_util.Args(**ctx.params), ctx]
+        ctx, runs_impl.one_run, [click_util.Args(**kw), ctx]
     )
+
+
+def _apply_run_or_runs_args(ctx, kw):
+    if "run" in ctx.params:
+        kw["run"] = ctx.args[0] if ctx.args else None
+    elif "runs" in ctx.params:
+        kw["runs"] = ctx.args
 
 
 def ac_run_filepath(ctx, **_kw):
