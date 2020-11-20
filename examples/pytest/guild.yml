@@ -1,0 +1,20 @@
+prepare-data:
+  main: cli prepare-data
+  flags:
+    random-state:
+      type: int
+      default: 0
+
+transform:
+  main: cli transform
+  flags:
+    random-state:
+      type: int
+      default: 0
+  requires:
+    - name: data
+      operation: prepare-data
+      select: data.pkl
+
+_check:
+  main: pytest .guild/sourcecode/demo.py
