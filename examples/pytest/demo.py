@@ -8,6 +8,7 @@ from sklearn import preprocessing
 
 default_random_state = 0
 
+
 def prepare_data(random_state=default_random_state):
     X, y = load_iris(return_X_y=True)
     return train_test_split(X, y, random_state=random_state)
@@ -22,14 +23,13 @@ def test_prepare_data():
     assert len(y_train) == 112
     assert len(y_test) == 38
 
+
 def transform(train, test, random_state=default_random_state):
     qt = preprocessing.QuantileTransformer(random_state=random_state)
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
-        return (
-            qt.fit_transform(train),
-            qt.fit_transform(test)
-        )
+        return (qt.fit_transform(train), qt.fit_transform(test))
+
 
 def test_transform():
     import numpy as np

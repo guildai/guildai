@@ -2,9 +2,11 @@ import pickle
 import click
 import demo
 
+
 @click.group()
 def cli():
     pass
+
 
 @cli.command()
 @click.option("--data-path", default="data.pkl")
@@ -14,6 +16,7 @@ def prepare_data(data_path, random_state):
     data = demo.prepare_data(random_state)
     click.echo("Saving prepared data to %s" % data_path, err=True)
     pickle.dump(data, open(data_path, "wb"))
+
 
 @cli.command()
 @click.option("--data-path", default="data.pkl")
@@ -26,6 +29,7 @@ def transform(data_path, transformed_path, random_state):
     transformed = demo.transform(train, test, random_state)
     click.echo("Saving transformed data to %s" % transformed_path)
     pickle.dump(transformed, open(transformed_path, "wb"))
+
 
 if __name__ == "__main__":
     cli()
