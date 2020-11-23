@@ -354,8 +354,22 @@ def run_params(fn):
                 autocompletion=click_util.completion_filename,
             ),
             click.Option(
-                ("--set-trace",),
-                help="Enter the Python debugger at the operation entry point.",
+                ("--break", "break_"),
+                metavar="LOCATION",
+                help=(
+                    "Set a breakpoint at the specified location for Python based "
+                    "operations. Set `LOCATION` to `1` to break at line 1 of the "
+                    "main module. See Breakpoints above for `LOCATION` format. Use "
+                    "multiple times for more than one breakpoint."
+                ),
+                multiple=True,
+            ),
+            click.Option(
+                ("--break-on-error",),
+                help=(
+                    "Enter the Python debugger at the point an error occurs "
+                    "for Python based operations."
+                ),
                 is_flag=True,
             ),
             click.Option(("-q", "--quiet"), help="Do not show output.", is_flag=True),
@@ -579,6 +593,22 @@ def run(args):
     of the copied soure code for the run. For example, when debugging
     project files, use this option to ensure that modules are loaded
     from the project location rather than the run directory.
+
+    ### Breakpoints
+
+    Use `--break` to set breakpoints for Python based operations.
+    `LOCATION` may be specified as `[FILENAME:]LINE` or as
+    `MODULE.FUNCTION`.
+
+    If `FILENAME` is not specified, the main module is assumed. Use
+    the value ``1`` to break at the start of the main module (line 1).
+
+    Relative file names are resolved relative to the their location in
+    the Python system path. You can omit the `.py` extension.
+
+    If a line number does not correspond to a valid breakpoint, Guild
+    attempts to set a breakpoint on the next valid breakpoint line in
+    the applicable module.
 
     """
     from . import run_impl

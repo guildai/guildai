@@ -805,6 +805,7 @@ def _op_init_cmd(args, op):
         op._op_cmd, op._op_flag_vals, op._python_requires
     )
     _apply_gpu_arg_env(args, op.cmd_env)
+    _apply_break_args_env(args, op.cmd_env)
 
 
 def _generate_op_cmd(op_cmd, flag_vals, python_requires):
@@ -843,6 +844,17 @@ def _apply_gpu_arg_env(args, env):
     elif args.gpus is not None:
         log.info("Masking available GPUs (CUDA_VISIBLE_DEVICES='%s')", args.gpus)
         env["CUDA_VISIBLE_DEVICES"] = args.gpus
+
+
+def _apply_break_args_env(args, env):
+    if args.break_on_error:
+        env["BREAK_ON_ERROR"] = "1"
+    if args.break_:
+        env["PDB_BREAKS"] = _encode_pdb_breaks(args.break_)
+
+
+def _encode_pdb_breaks(breaks):
+    return " ".join([util.shlex_quote(b) for b in breaks])
 
 
 def _op_init_private_env(op):

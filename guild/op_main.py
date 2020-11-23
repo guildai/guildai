@@ -297,12 +297,14 @@ def _exec_module(module_info, args, globals=None):
         log.debug("loading module from '%s'", module_info.mod_path)
         python_util.exec_script(module_info.mod_path, globals, mod_name=mod_name)
 
-    _gen_exec(exec_script)
+    _gen_exec(exec_script, module_info)
 
 
-def _gen_exec(exec_cb):
-    if os.getenv("SET_TRACE") == "1":
+def _gen_exec(exec_cb, module_info):
+    pdb_commands = _pdb_commands(module_info)
+    if pdb_commands:
         debugger = Debugger()
+        debugger.rcLines.extend(pdb_commands)
         debugger.runcall(exec_cb)
     else:
         # Use a closure to handle anything post load_module, which
@@ -314,6 +316,66 @@ def _gen_exec(exec_cb):
             if not handle_interrupt:
                 raise
             handle_interrupt()
+
+
+def _pdb_commands(module_info):
+    try:
+        encoded_breaks = os.environ["PDB_BREAKS"]
+    except KeyError:
+        return []
+    else:
+        unresolved_breaks = util.shlex_split(encoded_breaks)
+        commands = [
+            _pdb_break_cmd(_resolve_break(b, module_info)) for b in unresolved_breaks
+        ]
+        commands.append(_pdb_continue_cmd())
+        return commands
+
+
+def _pdb_break_cmd(location):
+    # Include \n as Python 2.7 assumes line ending
+    return "break %s\n" % location
+
+
+def _pdb_continue_cmd():
+    # Include \n as Python 2.7 assumes line ending
+    return "continue\n"
+
+
+def _resolve_break(b, module_info):
+    import re
+
+    if re.match(r"[0-9]+", b):
+        return _module_break(module_info.mod_path, int(b))
+    elif re.match(r".+?:[0-9]$", b):
+        path, line = b.rsplit(":", 2)
+        return _module_break(path, int(line), module_info.mod_path)
+    else:
+        return b
+
+
+def _module_break(path, want_line, main_mod=None):
+    from guild import python_util
+
+    if not os.path.isabs(path):
+        path = _resolve_path_for_break(path, main_mod)
+
+    try:
+        next_line = python_util.next_breakable_line(path, want_line)
+    except TypeError:
+        if want_line > 1:
+            # Try first available breakpoint
+            return _module_break(path, 1)
+        else:
+            return "%s:%i" % (path, want_line)
+    else:
+        return "%s:%i" % (path, next_line)
+
+
+def _resolve_path_for_break(path, main_mod):
+    debugger = pdb.Pdb()
+    debugger.mainpyfile = main_mod or ''
+    return debugger.lookupmodule(path)
 
 
 def _set_argv_for_module_with_args(module_info, args):
@@ -364,6 +426,8 @@ if __name__ == "__main__":
         sys.stderr.write(exc_lines[0])
         for line in filtered_exc_lines:
             sys.stderr.write(line)
-        if isinstance(e, SystemExit):
-            sys.exit(e.code)
-        sys.exit(1)
+        if os.getenv("BREAK_ON_ERROR") == "1":
+            sys.stderr.write("Entering post mortem debug session\n")
+            pdb.post_mortem()
+        exit_code = e.code if isinstance(e, SystemExit) else 1
+        sys.exit(exit_code)

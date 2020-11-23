@@ -567,3 +567,64 @@ def _apply_equals2(s):
     if re.match(r"^\d", s):
         return "==%s" % s
     return s
+
+
+def first_breakable_line(src):
+    return next_breakable_line(src, 1)
+
+
+def next_breakable_line(src, line=1):
+    """Returns the next breaking line in a Python module.
+
+    Pdb breakpoints require non-expression lines to take
+    effect. I.e. they require something to execute. A non-breakable
+    line is ignored.
+
+    This function returns the next breakable line starting with
+    `line`. If `line` is breakable, it is returned.
+
+    If `src` is not a valid Python module or the module doesn't
+    contain a breakable line, the function raises TypeError.
+    """
+    parsed = ast.parse(open(src, "r").read())
+    for lineno in _iter_breakable_lines(parsed):
+        if lineno >= line:
+            return lineno
+    raise TypeError("no breakable lines at or after %i in %s" % (line, src))
+
+
+def _iter_breakable_lines(top):
+    for node in ast.walk(top):
+        if node is top:
+            continue
+        line = getattr(node, "lineno", None)
+        if line is None:
+            continue
+        if _is_node_breakable(node):
+            yield line
+        for line in _iter_breakable_lines(node):
+            yield line
+
+
+NON_BREAKABLE_NODE_TYPES = set(
+    [
+        ast.Expr,
+        ast.Str,
+        ast.Num,
+        ast.List,
+        ast.Dict,
+        ast.Tuple,
+        ast.Set,
+        ast.Name,
+    ]
+)
+
+try:
+    NON_BREAKABLE_NODE_TYPES.add(ast.Constant)
+except AttributeError:
+    pass
+
+
+def _is_node_breakable(node):
+    # pylint: disable=unidiomatic-typecheck
+    return type(node) not in NON_BREAKABLE_NODE_TYPES

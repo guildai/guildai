@@ -40,6 +40,8 @@ log = None  # intialized in _init_logging
 STEP_USED_PARAMS = (
     "batch_label",
     "batch_tags",
+    "break_",
+    "break_on_error",
     "fail_on_trial_error",
     "flags",
     "force_flags",
