@@ -1,0 +1,10 @@
+gen-schema:
+  description: |
+    Generate a schema from Chicago Data that can be used to test other
+    data sets for anomalies/bias.
+  flags-import: no
+  env:
+    CUDA_VISIBLE_DEVICES: ''
+  requires:
+    - url: https://storage.googleapis.com/artifacts.tfx-oss-public.appspot.com/datasets/chicago_data.zip
+      sha256: 76204d037eba7edacadaea3ff5b5e3164ffbb0b575a4facca6d5fa9f478e29a8

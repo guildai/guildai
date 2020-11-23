@@ -1,0 +1,2 @@
+# python==3.8
+tensorflow_data_validation[visualization]
