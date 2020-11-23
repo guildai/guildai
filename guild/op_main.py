@@ -41,8 +41,8 @@ __argv0 = sys.argv
 class Debugger(pdb.Pdb):
     def __init__(self):
         pdb.Pdb.__init__(self)
-        # Setting skip to True violates the Pdb interface, which is to
-        # provide a list of globs, but we don't have such a list and
+        # Setting skip to True violates the Pdb interface, which
+        # expected a list of globs, but we don't have such a list and
         # really just need a truthy value to trigger a call to
         # is_skipped_module, which implements the actual skip logic.
         self.skip = True

@@ -386,7 +386,11 @@ def exec_script(filename, globals=None, mod_name="__main__"):
     code = _compile_script(src, filename, node_filter)
     script_globals = dict(globals)
     script_globals.update(
-        {"__package__": package_name, "__name__": mod_name, "__file__": filename}
+        {
+            "__package__": package_name,
+            "__name__": mod_name,
+            "__file__": filename,
+        }
     )
     exec(code, script_globals)
     return script_globals
