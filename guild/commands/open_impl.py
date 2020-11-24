@@ -136,6 +136,13 @@ def _shell_f(shell_cmd):
             "To exit the shell, type 'exit' and press Enter." % path
         )
         with util.Chdir(path):
-            pty.spawn([shell_cmd])
+            with _fix_shell_columns():
+                pty.spawn([shell_cmd])
 
     return f
+
+
+def _fix_shell_columns():
+    # pty seems to use COLUMNS=80 by default so we define here
+    # to work around wrapping wrapping issues.
+    return util.Env({"COLUMNS": str(cli.MAX_WIDTH)})

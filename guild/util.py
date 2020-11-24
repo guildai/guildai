@@ -1471,6 +1471,68 @@ class SysArgv(object):
         self._save = None
 
 
+class Env(object):
+    def __init__(self, vals, replace=False):
+        self._vals = vals
+        self._replace = replace
+        self._revert_ops = []
+        self._save_env = None
+
+    def __enter__(self):
+        if self._replace:
+            self._replace_env()
+        else:
+            self._merge_env()
+
+    def _replace_env(self):
+        self._save_env = dict(os.environ)
+        os.environ.clear()
+        os.environ.update(self._vals)
+
+    def _merge_env(self):
+        env = os.environ
+        for name, val in self._vals.items():
+            try:
+                cur = env.pop(name)
+            except KeyError:
+                self._revert_ops.append(self._del_env_fun(name, env))
+            else:
+                self._revert_ops.append(self._set_env_fun(name, cur, env))
+            env[name] = val
+
+    @staticmethod
+    def _del_env_fun(name, env):
+        def f():
+            try:
+                del env[name]
+            except KeyError:
+                pass
+
+        return f
+
+    @staticmethod
+    def _set_env_fun(name, val, env):
+        def f():
+            env[name] = val
+
+        return f
+
+    def __exit__(self, *exc):
+        if self._replace:
+            self._restore_env()
+        else:
+            self._unmerge_env()
+
+    def _restore_env(self):
+        assert self._save_env is not None
+        os.environ.clear()
+        os.environ.update(self._save_env)
+
+    def _unmerge_env(self):
+        for op in self._revert_ops:
+            op()
+
+
 class StdinReader(object):
     def __init__(self, stop_on_blank_line=False):
         self.stop_on_blank_line = stop_on_blank_line
