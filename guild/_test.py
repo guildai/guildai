@@ -428,6 +428,7 @@ def test_globals():
         "rm": os.remove,
         "rmdir": util.safe_rmtree,
         "run": _run,
+        "run_capture": _run_capture,
         "sample": sample,
         "samples_dir": samples_dir,
         "sha256": util.file_sha256,
@@ -946,6 +947,10 @@ def _normlf(s):
     return s.replace("\r", "")
 
 
+def _run_capture(*args, **kw):
+    return _run(*args, _capture=True, **kw)
+
+
 def _run(
     cmd,
     quiet=False,
@@ -954,6 +959,7 @@ def _run(
     cut=None,
     guild_home=None,
     cwd=None,
+    _capture=False,
 ):
     cmd = "set -eu && %s" % cmd
     env = dict(os.environ)
@@ -972,12 +978,14 @@ def _run(
         out, err = p.communicate()
         assert err is None, err
         exit_code = p.returncode
-    if not quiet or exit_code != 0:
+    if _capture or not quiet or exit_code != 0:
         out = out.strip().decode("utf-8")
         if ignore:
             out = _strip_lines(out, ignore)
         if cut:
             out = _cut_cols(out, cut)
+        if _capture:
+            return out, exit_code
         print(out)
         print("<exit %i>" % exit_code)
 

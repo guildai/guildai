@@ -8,6 +8,8 @@ known loss.
 
     >>> project = Project(sample("projects", "optimizers"))
 
+## Select API Function
+
 Helper to test results:
 
     >>> def check(selected, runs, pos):
@@ -49,7 +51,7 @@ Get the runs for reference:
     >>> len(runs)
     4
 
-    >>> [run.opref.op_name for run in runs]
+    >>> [_run.opref.op_name for _run in runs]
     ['echo2.py', 'echo2.py', 'echo2.py', '+']
 
 By default, Guild selects the latest run:
@@ -101,3 +103,31 @@ Invalid scalar spec:
     >>> project.select(min="foo bar")
     Traceback (most recent call last):
     ValueError: ("invalid scalar 'foo bar': unexpected token 'bar', line 1, pos 11", 1)
+
+## Select Command
+
+Full run ID (32 chars) are shown by default.
+
+    >>> out, code = run_capture("guild select 1", guild_home=project.guild_home)
+    >>> code, out
+    (0, ...)
+    >>> len(out.split("\n")[0])
+    32
+
+Use -s/--short-id to show only the short run ID.
+
+    >>> out, code = run_capture("guild select 2 -s", guild_home=project.guild_home)
+    >>> code, out
+    (0, ...)
+    >>> len(out.split("\n")[0])
+    8
+
+Use -a/--attr to show a run attribute.
+
+    >>> run("guild select 3 -a run_dir", guild_home=project.guild_home)
+    ???/runs/...
+    <exit 0>
+
+    >>> run("guild select 3 --attr label", guild_home=project.guild_home)
+    b=yes f=1.0 i=3 s=hello
+    <exit 0>

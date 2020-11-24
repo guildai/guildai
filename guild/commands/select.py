@@ -27,18 +27,17 @@ from . import runs_support
 @click.option(
     "-min",
     "--min",
-    "min",
     metavar="SCALAR",
     help="Select the run with the lowest value for SCALAR.",
 )
 @click.option(
-    "-min",
+    "-max",
     "--max",
-    "max",
     metavar="SCALAR",
     help="Select the run with the highest value for SCALAR.",
 )
-@click.option("-S", "--short", help="Use short ID.", is_flag=True)
+@click.option("-s", "--short-id", help="Use short ID.", is_flag=True)
+@click.option("-a", "--attr", help="Show specified run attribute rather than run ID.")
 @runs_support.all_filters
 @click.pass_context
 @click_util.use_args

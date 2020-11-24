@@ -1347,10 +1347,7 @@ def _mark(args, ctx):
 
 def select(args, ctx):
     run = select_run(args, ctx)
-    if args.short:
-        print(run.short_id)
-    else:
-        print(run.id)
+    _print_select_info(run, args)
 
 
 def select_run(args, ctx=None):
@@ -1415,6 +1412,27 @@ def _run_scalar_args_for_select(scalar_spec):
             log.warning("ignoring 'as %s' in scalar", col.named_as)
         prefix, tag = col.split_key()
         return prefix, tag, col.qualifier, col.step
+
+
+def _print_select_info(run, args):
+    if args.attr:
+        _print_run_attr(run, args.attr)
+    elif args.short_id:
+        print(run.short_id)
+    else:
+        print(run.id)
+
+
+def _print_run_attr(run, attr_name):
+    if attr_name == "run_dir":
+        print(run.dir)
+    else:
+        try:
+            val = run[attr_name]
+        except KeyError:
+            cli.error("no such run attribute '%s'" % attr_name)
+        else:
+            print(util.encode_yaml(val))
 
 
 def tag(args, ctx):
