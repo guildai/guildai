@@ -19,6 +19,10 @@ Files used in these tests:
 | [downstream.py](downstream.py)   | Implementation of downstream operation can overwrite an upstream model                      |
 | [downstream2.py](downstream2.py) | Implementation of downstream operation that formally differentiates input and output models |
 
+To run the tests in this document, change to this directory and run:
+
+    guild check -nt TEST.md
+
 ## Setup
 
 The runs generated below are written to a temporary directory.
