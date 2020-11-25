@@ -1,0 +1,48 @@
+upstream:
+  description: Generates a sample 'model' for downstream ops
+
+downstream-link:
+  description: Shows accidental overwrite of upstream via linked dependency
+  main: downstream
+  requires:
+    - operation: upstream
+      select: models
+
+downstream-copy:
+  description: Shows use of 'copy' to avoid accidental overwrite of upstream
+  main: downstream
+  requires:
+    - operation: upstream
+      select: models
+      target-type: copy
+
+downstream-separation-with-files:
+  description: Use separate files for input and output
+  main: downstream2 checkpoint-in.txt checkpoint-out.txt
+  requires:
+    - operation: upstream
+      select: models/checkpoint.txt
+      rename: checkpoint checkpoint-in
+
+downstream-separation-with-dirs:
+  description: Use separate directories for input and output
+  main: downstream2 inputs/checkpoint.txt outputs/checkpoint.txt
+  requires:
+    - operation: upstream
+      select: models
+      rename: models inputs
+
+downstream-separation-with-dirs-2:
+  description: >
+    Alternative implementation of downstream-separation-with-dirs
+
+    This approach avoids linking or copying upstream directories,
+    which both have drawbacks. Linking exposes the upstream run to
+    corruption and copying can be expensive.
+
+  main: downstream2 inputs/checkpoint.txt outputs/checkpoint.txt
+  requires:
+    - operation: upstream
+      select: models/checkpoint.txt
+      target-path: inputs
+      target-type: link # could be copy as well
