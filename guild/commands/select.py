@@ -22,6 +22,39 @@ from guild import click_util
 from . import runs_support
 
 
+# List of formatted run attrs supported by select with attr.
+_RUN_UTIL_FORMAT_ATTRS = [
+    "command",
+    "duration",
+    "exit_status",
+    "from",
+    "id",
+    "index",
+    "label",
+    "marked",
+    "model",
+    "op_name",
+    "operation",
+    "pid",
+    "pkg_name",
+    "run_dir",
+    "short_id",
+    "sourcecode_digest",
+    "started",
+    "status",
+    "stopped",
+    "vcs_commit",
+]
+
+
+def _ac_attr(incomplete, ctx, **_kw):
+    attrs = set(_RUN_UTIL_FORMAT_ATTRS)
+    runs = runs_support.ac_runs_for_ctx(ctx)
+    if runs:
+        attrs.update(runs[0].attr_names())
+    return sorted([name for name in attrs if name.startswith(incomplete)])
+
+
 @click.command()
 @runs_support.run_arg
 @click.option(
@@ -37,7 +70,12 @@ from . import runs_support
     help="Select the run with the highest value for SCALAR.",
 )
 @click.option("-s", "--short-id", help="Use short ID.", is_flag=True)
-@click.option("-a", "--attr", help="Show specified run attribute rather than run ID.")
+@click.option(
+    "-a",
+    "--attr",
+    help="Show specified run attribute rather than run ID.",
+    autocompletion=_ac_attr,
+)
 @runs_support.all_filters
 @click.pass_context
 @click_util.use_args

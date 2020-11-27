@@ -22,9 +22,11 @@ Helper to test results:
     ...         project.print_runs(runs, ids=True)
 
 Generate three runs using the `range` flag function. Values for `f`
-are used to calculate `loss.
+are used to calculate `loss. We specify USER env to test attribute
+selection below.
 
-    >>> project.run("echo2.py", flags={"f": "range[1.0:3.0]"})
+    >>> with Env({"USER": "test"}):
+    ...     project.run("echo2.py", flags={"f": "range[1.0:3.0]"})
     INFO: [guild] Running trial ...: echo2.py (b=yes, f=1.0, i=3, s=hello)
     i: 3
     f: 1.000000
@@ -119,15 +121,29 @@ Use -s/--short-id to show only the short run ID.
     >>> out, code = run_capture("guild select 2 -s", guild_home=project.guild_home)
     >>> code, out
     (0, ...)
-    >>> len(out.split("\n")[0])
-    8
+    >>> len(out.split("\n")[0]), out
+    (8, ...)
 
 Use -a/--attr to show a run attribute.
 
-    >>> run("guild select 3 -a run_dir", guild_home=project.guild_home)
+    >>> run("guild select 3 --attr run_dir", guild_home=project.guild_home)
     ???/runs/...
+    <exit 0>
+
+    >>> run("guild select 3 --attr status", guild_home=project.guild_home)
+    completed
     <exit 0>
 
     >>> run("guild select 3 --attr label", guild_home=project.guild_home)
     b=yes f=1.0 i=3 s=hello
     <exit 0>
+
+    >>> run("guild select 3 --attr user", guild_home=project.guild_home)
+    test
+    <exit 0>
+
+An invalid attr generates an error.
+
+    >>> run("guild select 3 --attr wombat", guild_home=project.guild_home)
+    guild: no such run attribute 'wombat'
+    <exit 1>

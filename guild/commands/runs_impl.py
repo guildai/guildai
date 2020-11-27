@@ -1346,8 +1346,13 @@ def _mark(args, ctx):
 
 
 def select(args, ctx):
+    _check_select_args(args, ctx)
     run = select_run(args, ctx)
     _print_select_info(run, args)
+
+
+def _check_select_args(args, ctx):
+    cmd_impl_support.check_incompatible_args([("short_id", "attr")], args, ctx)
 
 
 def select_run(args, ctx=None):
@@ -1360,7 +1365,7 @@ def select_run(args, ctx=None):
         return one_run(args, ctx)
 
 
-def _check_select_args(args, ctx):
+def _check_select_run_args(args, ctx):
     cmd_impl_support.check_incompatible_args([("min", "max")], args, ctx)
 
 
@@ -1424,15 +1429,36 @@ def _print_select_info(run, args):
 
 
 def _print_run_attr(run, attr_name):
-    if attr_name == "run_dir":
-        print(run.dir)
+    util.try_apply(
+        [
+            lambda: _try_print_formatted_run_attr(run, attr_name),
+            lambda: _try_print_raw_run_attr(run, attr_name),
+            lambda: _no_such_run_attr_error(attr_name),
+        ]
+    )
+
+
+def _try_print_formatted_run_attr(run, attr_name):
+    formatted = run_util.format_run(run)
+    try:
+        val = formatted[attr_name]
+    except KeyError:
+        raise util.TryFailed()
     else:
-        try:
-            val = run[attr_name]
-        except KeyError:
-            cli.error("no such run attribute '%s'" % attr_name)
-        else:
-            print(util.encode_yaml(val))
+        print(val)
+
+
+def _try_print_raw_run_attr(run, attr_name):
+    try:
+        val = run[attr_name]
+    except KeyError:
+        raise util.TryFailed()
+    else:
+        print(util.encode_yaml(val))
+
+
+def _no_such_run_attr_error(attr_name):
+    cli.error("no such run attribute '%s'" % attr_name)
 
 
 def tag(args, ctx):
