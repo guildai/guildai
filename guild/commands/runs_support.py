@@ -36,11 +36,17 @@ def ac_runs_for_ctx(ctx):
     from guild import config
     from . import runs_impl
 
-    param_args = click_util.Args(**ctx.params)
-    if not hasattr(param_args, "runs"):
-        param_args.runs = []
+    kw = dict(ctx.params)
+    _apply_run_or_runs_args(ctx, kw)
+    param_args = click_util.Args(**kw)
+    _ensure_runs_arg(param_args)
     with config.SetGuildHome(ctx.parent.params.get("guild_home")):
         return runs_impl.runs_for_args(param_args, ctx=ctx)
+
+
+def _ensure_runs_arg(args):
+    if not hasattr(args, "runs"):
+        args.runs = [args.run] if hasattr(args, "run") and args.run else []
 
 
 def ac_operation(ctx, incomplete, **_kw):
