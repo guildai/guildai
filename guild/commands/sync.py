@@ -29,6 +29,14 @@ from . import runs_support
     is_flag=True,
     help="Watch a remote run and synchronize in the background.",
 )
+@click.option(
+    "-n",
+    "--interval",
+    type=click.INT,
+    metavar="SECONDS",
+    default=60,
+    help="Seconds to wait in between sync when `--watch` is used (default is 60)",
+)
 @runs_support.common_filters
 @click_util.use_args
 @click_util.render_doc

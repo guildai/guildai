@@ -31,6 +31,7 @@ def require_env(name):
 
 
 def set_remote_lock(remote_run, remote_name, runs_dir=None):
+    assert isinstance(remote_run, remotelib.RunProxy), remote_run
     runs_dir = runs_dir or var.runs_dir()
     local_run_dir = os.path.join(runs_dir, remote_run.id)
     lock_file = os.path.join(local_run_dir, ".guild", "LOCK")

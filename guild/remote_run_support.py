@@ -17,8 +17,8 @@ from __future__ import division
 
 
 class RemoteLock(object):
-    def __init__(self, plugin_name, config):
-        self.plugin_name = plugin_name
+    def __init__(self, remote_name, config):
+        self.remote_name = remote_name
         self.config = config
 
 
@@ -26,8 +26,8 @@ def lock_for_run(run):
     raw = _raw_lock_for_run(run)
     if not raw:
         return None
-    plugin_name, config = _parse_lock(raw)
-    return RemoteLock(plugin_name, config)
+    remote_name, config = _parse_lock(raw)
+    return RemoteLock(remote_name, config)
 
 
 def _raw_lock_for_run(run):
@@ -42,6 +42,6 @@ def _raw_lock_for_run(run):
 def _parse_lock(raw):
     parts = raw.split(":", 1)
     if len(parts) == 1:
-        return parts[0], ""
+        return parts[0], None
     else:
         return parts[0], parts[1]
