@@ -28,6 +28,7 @@ tests).
       batch-skopt:                 ok
       batch-skopt2:                ok
       batch-stage-trials:          ok
+      breakpoints:                 ok
       comments:                    ok
       compare:                     ok
       config:                      ok
