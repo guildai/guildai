@@ -115,7 +115,7 @@ def _sample(path):
 
 
 def _UATEnv():
-    return testlib.Env(
+    return util.Env(
         {
             "COLUMNS": "999",
             "EXAMPLES": EXAMPLES,
