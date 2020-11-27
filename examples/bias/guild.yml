@@ -1,3 +1,27 @@
+prepare-data-chicago:
+  description: Prepare City of Chicago data for other operations.
+  main: guild.pass
+  requires:
+    - name: Chicago Data
+      url: https://storage.googleapis.com/artifacts.tfx-oss-public.appspot.com/datasets/chicago_data.zip
+      sha256: 76204d037eba7edacadaea3ff5b5e3164ffbb0b575a4facca6d5fa9f478e29a8
+      select:
+        - data/train
+        - data/eval
+        - data/serving
+
+
+tfdv-stats:
+  description: Generate TensorFlow Data Validation stats for a dataset.
+  main: tfdv_stats data
+  env:
+    CUDA_VISIBLE_DEVICES: ''
+  requires:
+    - name: data
+      operation: prepare-data.*
+      target-path: data
+
+
 gen-schema:
   description: |
     Generate a schema from Chicago Data that can be used to test other
