@@ -201,6 +201,8 @@ def _run_kw(args):
     ]
     ignore = [
         "background",
+        "break_",
+        "break_on_error",
         "debug_sourcecode",
         "edit_batch_comment",
         "edit_comment",

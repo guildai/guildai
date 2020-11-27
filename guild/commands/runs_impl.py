@@ -1351,7 +1351,7 @@ def select(args, ctx):
 
 
 def select_run(args, ctx=None):
-    _check_select_args(args, ctx)
+    _check_select_run_args(args, ctx)
     if args.min:
         return _select_min_run(args, ctx, args.min)
     elif args.max:

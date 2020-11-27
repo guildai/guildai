@@ -1486,6 +1486,8 @@ def _check_incompatible_options(args):
         ("remote", "pidfile"),
         ("remote", "edit_flags"),
         ("remote", "edit_comment"),
+        ("remote", "break_"),
+        ("remote", "break_on_error"),
     ]
     for a, b in incompatible:
         if getattr(args, a) and getattr(args, b):
