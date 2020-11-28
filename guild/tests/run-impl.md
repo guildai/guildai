@@ -595,3 +595,22 @@ Restart the downstream run with an upstream flag.
 
     >>> runs[3].get("flags")
     {'a': 3}
+
+## Run in Background (Windows)
+
+Guild doesn't support running in background on Windows.
+
+    >>> cwd = mkdtemp()
+    >>> touch(path(cwd, "pass.py"))
+
+With `--background` flag:
+
+    >>> _ = run_gh(cwd, opspec="pass.py", background=True)  # doctest: +WINDOWS_ONLY
+    Run in background is not supported on Windows.
+    <exit 1>
+    
+With `--pidfile` option:
+
+    >>> _ = run_gh(cwd, opspec="pass.py", pidfile="not-used")  # doctest: +WINDOWS_ONLY
+    Run in background is not supported on Windows.
+    <exit 1>

@@ -629,8 +629,7 @@ def _windows_symlink(target, link):
     try:
         subprocess.check_output(args, shell=True, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
-        log.error(e.output)
-        raise
+        raise OSError(e.returncode, e.output.decode(errors="ignore").strip())
 
 
 _text_ext = set(

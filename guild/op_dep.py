@@ -360,7 +360,10 @@ def _link_to_source(source_path, link):
     util.ensure_dir(os.path.dirname(link))
     log.debug("resolving source %s as link %s", source_path, link)
     source_rel_path = _source_rel_path(source_path, link)
-    util.symlink(source_rel_path, link)
+    try:
+        util.symlink(source_rel_path, link)
+    except OSError as e:
+        _handle_source_link_error(e)
 
 
 def _source_rel_path(source, link):
@@ -369,6 +372,10 @@ def _source_rel_path(source, link):
     link_dir = os.path.dirname(real_link)
     source_rel_dir = os.path.relpath(source_dir, link_dir)
     return os.path.join(source_rel_dir, source_name)
+
+
+def _handle_source_link_error(e):
+    raise OpDependencyError("unable to link to dependency source: %s" % e)
 
 
 def _rename_source(name, rename):

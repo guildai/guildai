@@ -1167,7 +1167,10 @@ def _copy_run_proto_sourcecode(proto_run, proto_op, dest_run):
         return
     dest = os.path.join(dest_run.dir, proto_op._sourcecode_root)
     log.debug(
-        "copying source code files for run %s from %s to %s", dest_run.id, src, dest
+        "copying source code files for run %s from %s to %s",
+        dest_run.id,
+        src,
+        dest,
     )
     util.copytree(src, dest)
 
@@ -1471,6 +1474,7 @@ def _maybe_shift_opspec(args):
 def _validate_args(args):
     _check_incompatible_options(args)
     _check_incompatible_with_restart(args)
+    _check_platform_compatibility(args)
 
 
 def _check_incompatible_options(args):
@@ -1513,6 +1517,15 @@ def _check_incompatible_with_restart(args):
         if getattr(args, name):
             restart_option = "restart" if args.restart else "start"
             _incompatible_with_restart_error(desc, restart_option)
+
+
+def _check_platform_compatibility(args):
+    if (
+        (args.background or args.pidfile)
+        and util.PLATFORM == "Windows"
+        and os.getenv("FORCE_RUN_IN_BACKGROUND") != "1"
+    ):
+        _background_on_windows_error()
 
 
 ###################################################################
@@ -2183,6 +2196,10 @@ def _incompatible_with_restart_error(option, restart_option):
         "%s cannot be used with --%s\n"
         "Try 'guild run --help' for more information." % (option, restart_option)
     )
+
+
+def _background_on_windows_error():
+    cli.error("Run in background is not supported on Windows.")
 
 
 def _invalid_opspec_error(opspec):
