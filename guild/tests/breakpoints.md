@@ -45,7 +45,7 @@ The correct behavior is supported in Python 3:
     > .../.guild/sourcecode/breakable_lines.py(5)<module>()
     -> def foo():
     (Pdb)
-    <exit -9>
+    <exit ...>
 
 Break accepts file names with line numbers.
 

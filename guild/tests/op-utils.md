@@ -46,25 +46,25 @@ Options without values are treated as True:
 
 Short form arguments are supported:
 
-    >>> a2f(["-a", "bar"])
+    >>> pprint(a2f(["-a", "bar"]))
     ({'a': 'bar'}, [])
 
-    >>> a2f(["-abar"])
+    >>> pprint(a2f(["-abar"]))
     ({'a': 'bar'}, [])
 
-    >>> a2f(["-abar", "baz"])
+    >>> pprint(a2f(["-abar", "baz"]))
     ({'a': ['bar', 'baz']}, [])
 
-    >>> a2f(["-abar", "-b"])
+    >>> pprint(a2f(["-abar", "-b"]))
     ({'a': 'bar', 'b': True}, [])
 
 If a negative number is specified as an option value, it is treated as
 a number and not as a short form option:
 
-    >>> a2f(["--x", "-1"])
+    >>> pprint(a2f(["--x", "-1"]))
     ({'x': -1}, [])
 
-    >>> a2f(["--x", "-1.123"])
+    >>> pprint(a2f(["--x", "-1.123"]))
     ({'x': -1.123}, [])
 
     >>> pprint(a2f(["--w", "--x", "-1.123", "--y", "-zab"]))
@@ -72,54 +72,54 @@ a number and not as a short form option:
 
 Converting various types:
 
-    >>> a2f(["--lr", "0.0001"])
+    >>> pprint(a2f(["--lr", "0.0001"]))
     ({'lr': 0.0001}, [])
 
-    >>> a2f(["--lr", "1e-06"])
+    >>> pprint(a2f(["--lr", "1e-06"]))
     ({'lr': 1e-06}, [])
 
-    >>> a2f(["--lr", "1.e-06"])
+    >>> pprint(a2f(["--lr", "1.e-06"]))
     ({'lr': 1e-06}, [])
 
-    >>> a2f(["--lr", "1.123e-06"])
+    >>> pprint(a2f(["--lr", "1.123e-06"]))
     ({'lr': 1.123e-06}, [])
 
-    >>> a2f(["--switch"])
+    >>> pprint(a2f(["--switch"]))
     ({'switch': True}, [])
 
-    >>> a2f(["--switch", "yes"])
+    >>> pprint(a2f(["--switch", "yes"]))
     ({'switch': True}, [])
 
-    >>> a2f(["--switch", "no"])
+    >>> pprint(a2f(["--switch", "no"]))
     ({'switch': False}, [])
 
     >>> pprint(a2f(["--name", "Bob", "-e", "123", "-f", "--list", "[4,5,6]"]))
     ({'e': 123, 'f': True, 'list': [4, 5, 6], 'name': 'Bob'}, [])
 
-    >>> a2f(["foo", "123"])
+    >>> pprint(a2f(["foo", "123"]))
     ({}, ['foo', '123'])
 
 Handling various "other arg" cases:
 
-    >>> a2f(["foo"])
+    >>> pprint(a2f(["foo"]))
     ({}, ['foo'])
 
-    >>> a2f(["foo", "bar"])
+    >>> pprint(a2f(["foo", "bar"]))
     ({}, ['foo', 'bar'])
 
-    >>> a2f(["foo", "--bar", "123"])
+    >>> pprint(a2f(["foo", "--bar", "123"]))
     ({'bar': 123}, ['foo'])
 
 A special marker `--` can be used to explicitly specify "other
 args". All args preceding the last `--` are always treated as other:
 
-    >>> a2f(["--foo", "123", "--"])
+    >>> pprint(a2f(["--foo", "123", "--"]))
     ({}, ['--foo', '123'])
 
-    >>> a2f(["--foo", "123", "--", "--bar", "456"])
+    >>> pprint(a2f(["--foo", "123", "--", "--bar", "456"]))
     ({'bar': 456}, ['--foo', '123'])
 
-    >>> a2f(["--foo", "123", "--", "--bar", "456", "--"])
+    >>> pprint(a2f(["--foo", "123", "--", "--bar", "456", "--"]))
     ({}, ['--foo', '123', '--', '--bar', '456'])
 
 ## Parsing flags
