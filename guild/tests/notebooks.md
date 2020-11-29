@@ -1,3 +1,5 @@
+skip-windows: yes
+
 # Notebooks support
 
 ## nbexec

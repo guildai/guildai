@@ -875,7 +875,7 @@ def apply_env(target, source, names):
 
 def safe_filename(s):
     if PLATFORM == "Windows":
-        return s.replace(":", "_")
+        s = re.sub(r"[:<>?]", "_", s)
     return re.sub(r"[/\\]+", "_", s)
 
 

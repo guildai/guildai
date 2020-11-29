@@ -77,8 +77,9 @@ WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 PY2 = doctest.register_optionflag("PY2")
-PY35 = doctest.register_optionflag("PY35")
 PY3 = doctest.register_optionflag("PY3")
+PY35 = doctest.register_optionflag("PY35")
+PY37 = doctest.register_optionflag("PY37")
 ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
 
 
@@ -196,8 +197,9 @@ def run_test_file(filename, globs=None):
             | STRIP_L
             | STRIP_ANSI_FMT
             | PY2
-            | PY35
             | PY3
+            | PY35
+            | PY37
             | ANNOTATIONS
         ),
     )
@@ -300,13 +302,19 @@ class TestRunner(doctest.DocTestRunner, object):
                 example.options[SKIP] = True
             if example.options.get(PY2) is False and py_major_ver == 2:
                 example.options[SKIP] = True
+            if example.options.get(PY3) is False and py_major_ver == 3:
+                example.options[SKIP] = True
             if (
                 example.options.get(PY35) is False
                 and py_major_ver == 3
                 and py_minor_ver == 5
             ):
                 example.options[SKIP] = True
-            if example.options.get(PY3) is False and py_major_ver == 3:
+            if (
+                example.options.get(PY37) is False
+                and py_major_ver == 3
+                and py_minor_ver == 7
+            ):
                 example.options[SKIP] = True
 
 
@@ -899,19 +907,11 @@ def _run(
     cwd=None,
     _capture=False,
 ):
-    cmd = "set -eu && %s" % cmd
+    cmd = _run_shell_cmd(cmd)
     env = dict(os.environ)
     if guild_home:
         env["GUILD_HOME"] = guild_home
-    p = subprocess.Popen(
-        [cmd],
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        preexec_fn=os.setsid,
-        env=env,
-        cwd=cwd,
-    )
+    p = _popen(cmd, env, cwd)
     with _kill_after(p, timeout):
         out, err = p.communicate()
         assert err is None, err
@@ -928,12 +928,80 @@ def _run(
         print("<exit %i>" % exit_code)
 
 
+def _run_shell_cmd(cmd):
+    if util.PLATFORM == "Windows":
+        return _run_shell_win_cmd(cmd)
+    else:
+        return _run_shell_posix_cmd(cmd)
+
+
+def _run_shell_win_cmd(cmd):
+    cmd_norm_paths = cmd.replace(os.path.sep, "/")
+    parts = util.shlex_split(cmd_norm_paths)
+    _apply_guild_cmd_for_win(parts)
+    return parts
+
+
+def _apply_guild_cmd_for_win(parts):
+    if parts and parts[0] == "guild":
+        parts[0] = "guild.cmd"
+
+
+def _run_shell_posix_cmd(cmd):
+        return "set -eu && %s" % cmd
+
+
+def _popen(cmd, env, cwd):
+    if util.PLATFORM == "Windows":
+        return _popen_win(cmd, env, cwd)
+    else:
+        return _popen_posix(cmd, env, cwd)
+
+
+def _popen_win(cmd, env, cwd):
+    return subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+        env=env,
+        cwd=cwd,
+    )
+
+
+def _popen_posix(cmd, env, cwd):
+    return subprocess.Popen(
+        cmd,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        preexec_fn=os.setsid,
+        env=env,
+        cwd=cwd,
+    )
+
+
+
 class _kill_after(object):
     def __init__(self, p, timeout):
         self._p = p
         self._timer = threading.Timer(timeout, self._kill)
 
     def _kill(self):
+        if util.PLATFORM == "Windows":
+            self._kill_win()
+        else:
+            self._kill_posix()
+
+    def _kill_win(self):
+        try:
+            self._p.send_signal(signal.CTRL_BREAK_EVENT)
+            self._p.kill()
+        except OSError as e:
+            if e.errno != errno.ESRCH:  # no such process
+                raise
+
+    def _kill_posix(self):
         try:
             os.killpg(os.getpgid(self._p.pid), signal.SIGKILL)
         except OSError as e:

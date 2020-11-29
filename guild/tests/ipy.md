@@ -388,7 +388,7 @@ data frame that has both flags and scalars.
     dtypes: datetime64[ns](1), float64(6), int64(1), object(4), timedelta64[ns](1)
     memory usage: ...
 
-    >>> compare.info()  # doctest: -PY2 -PY35
+    >>> compare.info()  # doctest: -PY2 -PY35 -PY37
     <class 'pandas.core.frame.DataFrame'>
     RangeIndex: 2 entries, 0 to 1
     Data columns (total 13 columns):
@@ -408,7 +408,7 @@ data frame that has both flags and scalars.
      11  y          1 non-null      float64
      12  z          1 non-null      float64
     dtypes: datetime64[ns](1), float64(6), int64(1), object(4), timedelta64[ns](1)
-    memory usage: 336.0+ bytes
+    memory usage: ...
 
 ## Grid search
 

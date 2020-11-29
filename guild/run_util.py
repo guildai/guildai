@@ -95,8 +95,9 @@ class RunsMonitor(util.LoopingThread):
         ]
 
     def _ensure_run(self, name):
-        path = os.path.join(self.logdir, name)
-        util.ensure_dir(_windows_safe_len_path(path))
+        safe_name = util.safe_filename(name)
+        path = os.path.join(self.logdir, safe_name)
+        _ensure_dir(path)
         return path
 
     def _delete_run(self, name):
@@ -104,7 +105,11 @@ class RunsMonitor(util.LoopingThread):
         util.safe_rmtree(path)
 
 
-def _windows_safe_len_path(p):
+def _ensure_dir(path):
+    util.ensure_dir(_safe_len_path(path))
+
+
+def _safe_len_path(p):
     if util.PLATFORM == "Windows":
         # See http://bit.ly/windows-long-file-names
         return "\\\\?\\" + p

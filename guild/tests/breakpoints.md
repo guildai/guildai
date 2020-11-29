@@ -32,7 +32,7 @@ Here's the behavior on Python 2:
     > .../guild/op_main.py(...)exec_script()
     -> mod_name = _module_name_for_info(module_info)
     (Pdb)
-    <exit -9>
+    <exit ...>
 
 Note that the correct breakpoints are set. However, the code breaks
 initially within `guild.op_main`.
@@ -60,7 +60,7 @@ Break accepts file names with line numbers.
     > .../.guild/sourcecode/breakable_lines.py(41)bar()
     -> print("hello bar from for")
     (Pdb)
-    <exit -9>
+    <exit ...>
 
 It also accepts function names. Function names must be preceded by
 their containing module.
@@ -76,7 +76,7 @@ their containing module.
     > .../.guild/sourcecode/breakable_lines.py(40)bar()
     -> for i in range(2):
     (Pdb)
-    <exit -9>
+    <exit ...>
 
 ## Break on Error
 
@@ -91,4 +91,4 @@ Use `--break-on-error` to start a post mortem session on script error.
     > .../.guild/sourcecode/error.py(1)<module>()
     -> 1 / 0
     (Pdb)
-    <exit -9>
+    <exit ...>

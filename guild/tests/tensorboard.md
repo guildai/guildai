@@ -302,9 +302,13 @@ Generate a run and show monitor processing.
     >>> with LogCapture(log_level=0) as log:
     ...     monitor.run_once()
 
-    >>> log.print_all()
+    >>> log.print_all()  # doctest: -WINDOWS
     ???
     DEBUG: [guild] Creating link from '...' to '...the run <...>...'
+
+    >>> log.print_all()  # doctest: +WINDOWS_ONLY
+    ???
+    DEBUG: [guild] Creating link from '...' to '...the run _..._...'
 
 Guild provides a safe-guard against invalid DOM characters used in the
 run name. This ensures that the run can be selected in TensorBoard UI
@@ -331,9 +335,13 @@ Generate a run and show monitor processing.
     >>> with LogCapture(log_level=0) as log:
     ...     monitor.run_once()
 
-    >>> log.print_all()
+    >>> log.print_all()  # doctest: -WINDOWS
     ???
     DEBUG: [guild] Creating link from '...' to '...the run <...> ?...'
+
+    >>> log.print_all()  # doctest: +WINDOWS_ONLY
+    ???
+    DEBUG: [guild] Creating link from '...' to '...the run _..._ _...'
 
 ## Misc Tests
 

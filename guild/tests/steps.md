@@ -332,10 +332,10 @@ Here's the same result on Windows. Note the last line - acc and loss are both No
 
     >>> compare()  # doctest: +WINDOWS_ONLY
     run  operation      started  time  status     label                          acc   loss
-    ...  m4:evaluate    ...      ...   completed  acc=0.5 prepare=... train=...  0.5   None
-    ...  m4:train       ...      ...   completed  loss=1.0 prepare=...           None  1.0
-    ...  m4:prepare     ...      ...   completed  None                           None  None
-    ...  m4:end-to-end  ...      ...   completed  acc=0.5 loss=1.0               None   None
+    ...  m4:evaluate    ...      ...   completed  acc=0.5 prepare=... train=...  0.5
+    ...  m4:train       ...      ...   completed  loss=1.0 prepare=...                 1.0
+    ...  m4:prepare     ...      ...   completed
+    ...  m4:end-to-end  ...      ...   completed  acc=0.5 loss=1.0
 
 ## Steps and --force-flags
 
