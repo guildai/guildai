@@ -959,12 +959,14 @@ def _guild_exe_for_win():
 
 def _sys_arg_guild_exe_for_win():
     arg0 = sys.argv[0]
-    if os.path.basename(arg0) in ("guild", "guild.cmd", "guild.exe"):
+    arg0_basename = os.path.basename(arg0)
+    if arg0_basename in ("guild.cmd", "guild.exe"):
+        return arg0
+    if arg0_basename == "guild":
         arg0_dir = os.path.dirname(arg0)
         return util.find_apply([
-            lambda: _test_exe_path(arg0),
-            lambda: _test_exe_path(os.path.join(arg0_dir, "guild.cmd")),
             lambda: _test_exe_path(os.path.join(arg0_dir, "guild.exe")),
+            lambda: _test_exe_path(os.path.join(arg0_dir, "guild.cmd")),
         ])
     return None
 
