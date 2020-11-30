@@ -944,11 +944,46 @@ def _run_shell_win_cmd(cmd):
 
 def _apply_guild_cmd_for_win(parts):
     if parts and parts[0] == "guild":
-        parts[0] = "guild.cmd"
+        parts[0] = _guild_exe_for_win()
+
+
+def _guild_exe_for_win():
+    return util.find_apply(
+        [
+            _sys_arg_guild_exe_for_win,
+            _which_guild_exe_for_win,
+            _guild_exe_for_win_error,
+        ]
+    )
+
+
+def _sys_arg_guild_exe_for_win():
+    arg0 = sys.argv[0]
+    if os.path.basename(arg0) in ("guild", "guild.cmd", "guild.exe"):
+        arg0_dir = os.path.dirname(arg0)
+        return util.find_apply([
+            lambda: util.which(arg0),
+            lambda: util.which(os.path.join(arg0_dir, "guild.cmd")),
+            lambda: util.which(os.path.join(arg0_dir, "guild.exe")),
+        ])
+    return None
+
+
+def _which_guild_exe_for_win():
+    return util.find_apply(
+        [
+            lambda: util.which("guild.cmd"),
+            lambda: util.which("guild.exe"),
+        ]
+    )
+
+
+def _guild_exe_for_win_error():
+    raise RuntimeError("cannot find guild exe for Windows")
 
 
 def _run_shell_posix_cmd(cmd):
-        return "set -eu && %s" % cmd
+    return "set -eu && %s" % cmd
 
 
 def _popen(cmd, env, cwd):
@@ -979,7 +1014,6 @@ def _popen_posix(cmd, env, cwd):
         env=env,
         cwd=cwd,
     )
-
 
 
 class _kill_after(object):
