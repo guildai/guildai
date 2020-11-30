@@ -962,10 +962,16 @@ def _sys_arg_guild_exe_for_win():
     if os.path.basename(arg0) in ("guild", "guild.cmd", "guild.exe"):
         arg0_dir = os.path.dirname(arg0)
         return util.find_apply([
-            lambda: util.which(arg0),
-            lambda: util.which(os.path.join(arg0_dir, "guild.cmd")),
-            lambda: util.which(os.path.join(arg0_dir, "guild.exe")),
+            lambda: _test_exe_path(arg0),
+            lambda: _test_exe_path(os.path.join(arg0_dir, "guild.cmd")),
+            lambda: _test_exe_path(os.path.join(arg0_dir, "guild.exe")),
         ])
+    return None
+
+
+def _test_exe_path(path):
+    if os.path.isfile(path):
+        return path
     return None
 
 
