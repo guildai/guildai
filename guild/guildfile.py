@@ -987,6 +987,11 @@ class OpDef(object):
                 modeldef.guildfile,
                 "invalid operation def %r: expected a mapping" % data,
             )
+        if not isinstance(name, six.string_types):
+            raise GuildfileError(
+                modeldef.guildfile,
+                "invalid operation name %r: expected a string" % name,
+            )
         _apply_op_default_config(modeldef, data)
         self.name = name
         self._data = data

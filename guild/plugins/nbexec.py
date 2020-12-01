@@ -43,8 +43,12 @@ def main():
             "unexpected args: %s",
             " ".join([util.shlex_quote(arg) for arg in other_args]),
         )
-    executed_notebook = _nbexec(args.notebook, flags, run)
-    _nbconvert_html(executed_notebook)
+    working_notebook = _init_working_notebook(args.notebook, flags, run)
+    if os.getenv("NBINIT_ONLY") == "1":
+        log.info("NBINIT_ONLY set, skipping Notebook execute")
+        return
+    _nbexec(working_notebook, flags, run)
+    _nbconvert_html(working_notebook)
 
 
 def _init_logging():
@@ -59,6 +63,11 @@ def _parse_args():
 
 
 def _check_env():
+    _check_nbconvert()
+    _check_nbextensions()
+
+
+def _check_nbconvert():
     nbconvert = util.which("jupyter-nbconvert")
     if not nbconvert:
         log.error(
@@ -68,23 +77,19 @@ def _check_env():
         sys.exit(1)
 
 
-def _nbexec(notebook, flags, run):
-    working_notebook = _init_notebook(notebook, flags, run)
-    cmd = [
-        "jupyter-nbconvert",
-        "--to",
-        "notebook",
-        "--execute",
-        "--inplace",
-        working_notebook,
-    ]
-    returncode = subprocess.call(cmd)
-    if returncode != 0:
-        sys.exit(returncode)
-    return working_notebook
+def _check_nbextensions():
+    try:
+        import jupyter_contrib_nbextensions as _
+    except ImportError:
+        log.error(
+            "jupyter_contrib_nbextensions is required to run Notebooks - "
+            "install it by running 'pip install jupyter_contrib_nbextensions' "
+            "and try again"
+        )
+        sys.exit(1)
 
 
-def _init_notebook(notebook, flags, run):
+def _init_working_notebook(notebook, flags, run):
     src = _find_notebook(notebook)
     dest = os.path.join(run.dir, os.path.basename(src))
     shutil.copyfile(src, dest)
@@ -99,7 +104,8 @@ def _find_notebook(notebook):
             return maybe_notebook
     log.error(
         "cannot find notebook '%s' - make sure it's copied as source code\n"
-        "Use 'guild run OP --test-sourcecode to debug source code configuration issues"
+        "Use 'guild run <operation> --test-sourcecode to troubleshoot source code "
+        "configuration issues"
     )
     sys.exit(1)
 
@@ -120,26 +126,43 @@ def _apply_flags_to_cell_source(cell, flags, flags_extra):
         pass
     else:
         cell["source"] = [
-            _replace_flag_refs(line, non_null_flags, flags_extra) for line in source
+            _update_source_line(line, non_null_flags, flags_extra) for line in source
         ]
 
 
+def _update_source_line(line, flags, flags_extra):
+    line = _replace_flag_refs(line, flags, flags_extra)
+    return line
+
 def _replace_flag_refs(s, flags, flags_extra):
+    for flag_name, flag_val, config in _iter_flag_replace_config(flags, flags_extra):
+        for replace_pattern in config:
+            s_mod = _replace_flag_ref(replace_pattern, flag_val, s)
+            _debug_log_repl(s, s_mod, replace_pattern, flag_name, flag_val)
+            s = s_mod
+    return s
+
+
+def _iter_flag_replace_config(flags, flags_extra):
     for flag_name, extra in flags_extra.items():
         try:
-            repl_config = extra["nb-repl"]
+            repl_config = extra["nb-replace"]
             flag_val = flags[flag_name]
         except KeyError:
             pass
         else:
             assert flag_val is not None, flag_name
-            if isinstance(repl_config, six.string_types):
-                repl_config = [repl_config]
-            for repl in repl_config:
-                s_mod = _replace_flag_ref(repl, flag_val, s)
-                _debug_log_repl(s, s_mod, repl, flag_name, flag_val)
-                s = s_mod
-    return s
+            yield flag_name, flag_val, _coerce_repl_config_to_list(repl_config)
+
+
+def _coerce_repl_config_to_list(config):
+    if isinstance(config, six.string_types):
+        return [config]
+    elif isinstance(config, list):
+        return config
+    else:
+        log.warning("unsupported nb-replace %r, ignoring", config)
+        return []
 
 
 def _replace_flag_ref(pattern, val, s):
@@ -150,24 +173,64 @@ def _replace_flag_ref(pattern, val, s):
     else:
         if not m:
             return s
-        formatted_val = repr(val)
-        parts = []
-        cur = 0
-        for slice_start, slice_end in m.regs[1:]:
-            parts.append(s[cur:slice_start])
-            parts.append(formatted_val)
-            cur = slice_end
-        parts.append(s[cur:])
-        return "".join(parts)
+        return _apply_flag_to_repl_match(val, m, s)
+
+
+def _apply_flag_to_repl_match(val, m, s):
+    formatted_val = repr(val)
+    parts = []
+    cur = 0
+    for slice_start, slice_end in _pattern_slices(m):
+        parts.append(s[cur:slice_start])
+        parts.append(formatted_val)
+        cur = slice_end
+    parts.append(s[cur:])
+    return "".join(parts)
+
+
+def _pattern_slices(m):
+    if len(m.regs) == 1:
+        # No replacement groups so assume entire match is replaced
+        return m.regs
+    else:
+        # Only use explicit replacement groups
+        return m.regs[1:]
 
 
 def _debug_log_repl(s0, s1, repl, flag_name, flag_val):
     if log.getEffectiveLevel() > logging.DEBUG:
         return
     if s0 != s1:
-        log.debug("nb-repl: %r -> %r (%s=%r via %r", s0, s1, flag_name, flag_val, repl)
+        log.debug(
+            "nb-replace: %r -> %r (%s=%r via %r)",
+            s0,
+            s1,
+            flag_name,
+            flag_val,
+            repl,
+        )
     else:
-        log.debug("nb-repl: %r unchanged (%s=%r via %r", s0, flag_name, flag_val, repl)
+        log.debug(
+            "nb-replace: %r unchanged (%s=%r via %r)",
+            s0,
+            flag_name,
+            flag_val,
+            repl,
+        )
+
+
+def _nbexec(notebook, flags, run):
+    cmd = [
+        "jupyter-nbconvert",
+        "--to",
+        "notebook",
+        "--execute",
+        "--inplace",
+        notebook,
+    ]
+    returncode = subprocess.call(cmd)
+    if returncode != 0:
+        sys.exit(returncode)
 
 
 def _nbconvert_html(notebook):

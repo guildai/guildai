@@ -177,7 +177,8 @@ class NotebookModelProxy(object):
                 "model": self.name,
                 "operations": {
                     self.op_name: {
-                        "main": "guild.plugins.nbexec %s" % self.notebook_path
+                        "main": "guild.plugins.nbexec %s" % self.notebook_path,
+                        "flags-import": False,
                     }
                 },
             }

@@ -18,35 +18,43 @@ values should be inserted.
 
 The `_replace_flag_ref` implements the replacement logic.
 
+    >>> _replace_flag_ref = nbexec._replace_flag_ref
+
 Here's a case where a variable assignment is updated with a new value.
 
-    >>> nbexec._replace_flag_ref("foo = (36)", 12, "foo = 36")
+    >>> _replace_flag_ref("foo = (36)", 12, "foo = 36")
     'foo = 12'
 
 If the pattern doesn't match, the cell is left unchanged.
 
-    >>> nbexec._replace_flag_ref("foo = (36)", 12, "foo = 42")
+    >>> _replace_flag_ref("foo = (36)", 12, "foo = 42")
     'foo = 42'
 
 Regular expressions can be used inside and outside the capture groups
 as needed.
 
-    >>> nbexec._replace_flag_ref("foo = (.*) # update me", 12, "foo = 42 # update me")
+    >>> _replace_flag_ref("foo = (.*) # update me", 12, "foo = 42 # update me")
     'foo = 12 # update me'
 
 A non-capturing group can be used to match but not replace.
 
-    >>> nbexec._replace_flag_ref("(?:foo|bar) = (.*) # update me", 12, "foo = 42 # update me")
+    >>> _replace_flag_ref("(?:foo|bar) = (.*) # update me", 12, "foo = 42 # update me")
     'foo = 12 # update me'
 
 Multiple groups can be used to include the flag value multiple times.
 
-    >>> print(nbexec._replace_flag_ref("a1=(\".*\"), a2=(\".*\")", "hi", """
+    >>> print(_replace_flag_ref("a1=(\".*\"), a2=(\".*\")", "hi", """
     ... def f(a1="a1", a2="a2"):
     ...     print(a1, a2)
     ... """))
     def f(a1='hi', a2='hi'):
         print(a1, a2)
+
+If a pattern doesn't define a capture group, the entire string is
+replaced when matched.
+
+    >>> _replace_flag_ref("1234", 4567, "The value is 1234")
+    'The value is 4567'
 
 ## Running Notebooks
 

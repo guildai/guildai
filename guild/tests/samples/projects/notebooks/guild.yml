@@ -3,7 +3,7 @@ add:
   flags:
     x:
       default: 10
-      nb-repl: print\((\d+) \+ \d+\)
+      nb-replace: print\((\d+) \+ \d+\)
     y:
       default: 20
-      nb-repl: print\(\d+ \+ (\d+)\)
+      nb-replace: print\(\d+ \+ (\d+)\)
