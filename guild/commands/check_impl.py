@@ -215,7 +215,8 @@ def _guild_resource_cache():
 
 
 def _format_plugins():
-    return ", ".join([name for name, _ in sorted(plugin.iter_plugins())])
+    names = set([name for name, _ in plugin.iter_plugins()])
+    return ", ".join(sorted(names))
 
 
 def _print_python_info(check):
