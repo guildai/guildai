@@ -20,12 +20,28 @@ import click
 from guild import click_util
 
 
+def _ac_package(incomplete, **_kw):
+    from . import packages_impl
+
+    return sorted(
+        [
+            pkg.project_name
+            for pkg in packages_impl.packages()
+            if pkg.project_name.startswith(incomplete)
+        ]
+    )
+
+
 def delete_params(fn):
     click_util.append_params(
         fn,
         [
             click.Argument(
-                ("packages",), metavar="PACKAGE...", nargs=-1, required=True
+                ("packages",),
+                metavar="PACKAGE...",
+                nargs=-1,
+                required=True,
+                autocompletion=_ac_package,
             ),
             click.Option(
                 ("-y", "--yes"),
