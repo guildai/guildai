@@ -30,8 +30,8 @@ log = logging.getLogger("guild")
 
 
 def list_packages(args):
-    packages = packages(args.all)
-    formatted = [_format_pkg(pkg) for pkg in packages]
+    pkgs = packages(args.all)
+    formatted = [_format_pkg(pkg) for pkg in pkgs]
     filtered = [pkg for pkg in formatted if _filter_model(pkg, args)]
     cli.table(filtered, cols=["name", "version", "summary"], sort=["name"])
 
