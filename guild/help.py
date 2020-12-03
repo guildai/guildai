@@ -20,6 +20,7 @@ import click
 
 from guild import click_util
 from guild import flag_util
+from guild import util
 
 log = logging.getLogger("guild")
 
@@ -176,12 +177,15 @@ class MarkdownFormatter(click_util.ClickBaseHelpFormatter):
         return "**%s**" % s
 
 
-def guildfile_console_help(guildfile, model_desc=None):
+def guildfile_console_help(guildfile, model_desc=None, strip_ansi_format=False):
     out = ConsoleFormatter()
     out.start_section("OVERVIEW")
     _write_console_help_overview(guildfile, model_desc, out)
     _gen_write_help(guildfile, out, fmt_section_title=str.upper)
-    return "".join(out.buffer)
+    s = "".join(out.buffer)
+    if strip_ansi_format:
+        s = util.strip_ansi_format(s)
+    return s
 
 
 def guildfile_markdown_help(guildfile, title=None, base_heading_level=2):
