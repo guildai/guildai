@@ -23,7 +23,7 @@ from guild import click_util
 def _ac_path_or_package(incomplete, **_kw):
     from . import packages_impl
 
-    packages = [pkg.project_name for pkg in packages_impl._packages(False)]
+    packages = [pkg.project_name for pkg in packages_impl.packages(False)]
     return sorted([pkg for pkg in packages if pkg.startswith(incomplete)]) + ["!!dir"]
 
 
