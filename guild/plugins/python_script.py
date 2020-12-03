@@ -136,10 +136,10 @@ class PythonScriptModelProxy(object):
         return None
 
 
-class ImportedFlagsOpProxy(object):
-    def __init__(self, flags_data, real_op, log):
-        self.guildfile = real_op.guildfile
-        self.flags = self._init_flags(flags_data, real_op.main, log)
+class ImportedFlagsOpDefProxy(object):
+    def __init__(self, flags_data, real_opdef, log):
+        self.guildfile = real_opdef.guildfile
+        self.flags = self._init_flags(flags_data, real_opdef.main, log)
 
     def _init_flags(self, flags_data, main_mod, log):
         flags = []
@@ -157,40 +157,6 @@ class ImportedFlagsOpProxy(object):
         return {f.name: f.default for f in self.flags}
 
 
-class NotebookModelProxy(object):
-
-    name = ""
-
-    def __init__(self, notebook_path, op_name):
-        self.notebook_path = notebook_path
-        if os.path.isabs(op_name) or op_name.startswith(".."):
-            self.op_name = os.path.basename(op_name)
-        else:
-            self.op_name = op_name
-        self.modeldef = self._init_modeldef()
-        script_base = notebook_path[: -len(self.op_name)]
-        self.reference = modellib.script_model_ref(self.name, script_base)
-
-    def _init_modeldef(self):
-        data = [
-            {
-                "model": self.name,
-                "operations": {
-                    self.op_name: {
-                        "main": "guild.plugins.nbexec %s" % self.notebook_path,
-                        "flags-import": False,
-                    }
-                },
-            }
-        ]
-        gf = guildfile.Guildfile(data, dir=os.path.dirname(self.notebook_path))
-        return gf.models[self.name]
-
-
-def _is_notebook(path):
-    return path.endswith(".ipynb")
-
-
 class PythonScriptPlugin(pluginlib.Plugin):
 
     resolve_model_op_priority = 60
@@ -200,9 +166,6 @@ class PythonScriptPlugin(pluginlib.Plugin):
         if python_util.is_python_script(path):
             model = PythonScriptModelProxy(path, opspec)
             return model, model.op_name
-        elif _is_notebook(path):
-            model = NotebookModelProxy(path, opspec)
-            return model, model.op_name
         return None
 
     def guildfile_loaded(self, gf):
@@ -210,7 +173,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         for m in gf.models.values():
             for opdef in m.operations:
                 self._maybe_apply_main(opdef)
-                if opdef.main:
+                if opdef.main and not _is_other_guild_plugin(opdef.main):
                     self._apply_script_flags(opdef, local_cache)
                     self._notify_plugins_opdef_loaded(opdef)
 
@@ -238,7 +201,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 and not name in to_skip
             )
         }
-        opdef.merge_flags(ImportedFlagsOpProxy(import_data, opdef, self.log))
+        opdef.merge_flags(ImportedFlagsOpDefProxy(import_data, opdef, self.log))
 
     def _flags_data(self, opdef, model_paths, local_cache):
         main_mod = op_util.split_cmd(opdef.main)[0]
@@ -509,6 +472,11 @@ class PythonScriptPlugin(pluginlib.Plugin):
         for _name, plugin in pluginlib.iter_plugins():
             if isinstance(plugin, PythonScriptOpdefSupport):
                 plugin.python_script_opdef_loaded(opdef)
+
+
+
+def _is_other_guild_plugin(main_spec):
+    return main_spec.rstrip().startswith("guild.plugins.")
 
 
 def _encode_splittable_list(l):

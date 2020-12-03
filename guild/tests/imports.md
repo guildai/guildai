@@ -173,6 +173,7 @@
     guild.plugins.gpu
     guild.plugins.hiplot
     guild.plugins.import_argparse_flags_main
+    guild.plugins.ipynb
     guild.plugins.keras
     guild.plugins.memory
     guild.plugins.nbexec

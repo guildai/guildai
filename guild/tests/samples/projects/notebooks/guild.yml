@@ -7,3 +7,15 @@ add:
     y:
       default: 20
       nb-replace: print\(\d+ \+ (\d+)\)
+
+flags:
+  notebook: flags.ipynb
+  flags-import: all
+  flags-import-skip:
+    - b
+  flags:
+    x: 11
+    y: 22
+
+params:
+  notebook: params.ipynb

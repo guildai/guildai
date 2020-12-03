@@ -128,7 +128,7 @@ class Script(object):
 
     def _try_apply_param(self, node):
         try:
-            val = _try_param_val(node.value)
+            val = ast_param_val(node.value)
         except TypeError:
             pass
         else:
@@ -138,7 +138,7 @@ class Script(object):
                 self._params[target.id] = val
 
 
-def _try_param_val(val):
+def ast_param_val(val):
     if isinstance(val, ast.Num):
         return val.n
     elif isinstance(val, ast.Str):
@@ -153,7 +153,7 @@ def _try_param_val(val):
         elif val.id == "None":
             return None
     elif isinstance(val, ast.List):
-        return [_try_param_val(item) for item in val.elts]
+        return [ast_param_val(item) for item in val.elts]
     raise TypeError(val)
 
 
@@ -178,7 +178,7 @@ class Call(object):
         for kw in self.node.keywords:
             if kw.arg == name:
                 try:
-                    _try_param_val(kw.value)
+                    ast_param_val(kw.value)
                 except TypeError:
                     return None
         return None

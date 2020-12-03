@@ -30,6 +30,7 @@ their own distributions in the same way.
      EntryPoint.parse('disk = guild.plugins.disk:DiskPlugin'),
      EntryPoint.parse('exec_script = guild.plugins.exec_script:ExecScriptPlugin'),
      EntryPoint.parse('gpu = guild.plugins.gpu:GPUPlugin'),
+     EntryPoint.parse('ipynb = guild.plugins.ipynb:NotebookPlugin'),
      EntryPoint.parse('keras = guild.plugins.keras:KerasPlugin'),
      EntryPoint.parse('memory = guild.plugins.memory:MemoryPlugin'),
      EntryPoint.parse('perf = guild.plugins.perf:PerfPlugin'),

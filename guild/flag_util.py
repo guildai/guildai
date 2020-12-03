@@ -485,3 +485,59 @@ def join_splittable_flag_vals(vals, split_spec):
         return split_spec.join(encoded_vals)
     else:
         raise ValueError("split_spec must be None, True, or a string: %r" % split_spec)
+
+
+class _ImportedFlagsOpDefProxy(object):
+    def __init__(self, flags_data, real_opdef):
+        self.guildfile = real_opdef.guildfile
+        self.flags = self._init_flags(flags_data, real_opdef.main)
+
+    def _init_flags(self, flags_data, main_mod):
+        from guild import guildfile
+
+        flags = []
+        for name, flag_data in flags_data.items():
+            try:
+                flag_data = guildfile.coerce_flag_data(name, flag_data, self.guildfile)
+            except guildfile.GuildfileError as e:
+                if os.getenv("NO_WARN_FLAGS_IMPORT") != "1":
+                    log.warning("cannot import flags from %s: %s", main_mod, e)
+            else:
+                flags.append(guildfile.FlagDef(name, flag_data, self))
+        return flags
+
+    def flag_values(self):
+        return {f.name: f.default for f in self.flags}
+
+
+def apply_flags_data_to_op(flags_data, opdef):
+    import_all_marker = object()
+    to_import = _flags_to_import(opdef, import_all_marker)
+    to_skip = _flags_to_skip(opdef)
+    import_data = {
+        name: flags_data[name]
+        for name in flags_data
+        if (
+            (to_import is import_all_marker or name in to_import)
+            and not name in to_skip
+        )
+    }
+    opdef.merge_flags(_ImportedFlagsOpDefProxy(import_data, opdef))
+
+
+def _flags_to_import(opdef, all_marker):
+    if opdef.flags_import in (True, "all"):
+        return all_marker
+    if opdef.flags_import is None:
+        # If flags-import is not configured, import all defined flags.
+        return set([flag.name for flag in opdef.flags])
+    elif isinstance(opdef.flags_import, list):
+        return set(opdef.flags_import)
+    else:
+        return set([opdef.flags_import])
+
+
+def _flags_to_skip(opdef):
+    if opdef.flags_import_skip:
+        return set(opdef.flags_import_skip)
+    return set()
