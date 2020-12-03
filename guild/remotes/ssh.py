@@ -106,7 +106,12 @@ class SSHRemote(remotelib.Remote):
         src = run.path + "/"
         dest_path = "{}/runs/{}/".format(self.guild_home, run.id)
         dest = ssh_util.format_rsync_host_path(self.host, dest_path, self.user)
-        cmd = ["rsync"] + self._push_rsync_opts(delete) + [src, dest]
+        cmd = (
+            ["rsync"]
+            + self._rsync_path_mkdir_opts(dest_path)
+            + self._push_rsync_opts(delete)
+            + [src, dest]
+        )
         cmd.extend(
             ssh_util.rsync_ssh_opts(
                 remote_util.config_path(self.private_key),
@@ -118,6 +123,11 @@ class SSHRemote(remotelib.Remote):
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
+
+    @staticmethod
+    def _rsync_path_mkdir_opts(dest):
+        dest_dir = os.path.dirname(dest)
+        return ["--rsync-path", "mkdir -p %s && rsync" % dest_dir]
 
     @staticmethod
     def _push_rsync_opts(delete):
