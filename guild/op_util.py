@@ -1857,10 +1857,10 @@ def delete_proc_lock(run):
         pass
 
 
-def init_logging():
+def init_logging(default_level=logging.WARN):
     if os.getenv("LOG_INIT_SKIP") == "1":
         return
-    level = int(os.getenv("LOG_LEVEL", logging.WARN))
+    level = int(os.getenv("LOG_LEVEL", default_level))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     loglib.init_logging(level, {"_": format})
 
