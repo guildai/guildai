@@ -747,5 +747,9 @@ def _sort_scalar_cols(scalar_cols, flag_cols):
     return cols
 
 
+def guild_home():
+    return config.guild_home()
+
+
 def set_guild_home(path):
     config.set_guild_home(path)
