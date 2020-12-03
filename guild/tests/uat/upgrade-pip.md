@@ -7,5 +7,5 @@ Make sure we're running the latest pip.
 Confirm we're on the expected version.
 
     >>> run("pip --version")
-    pip 20.2.4 from .../site-packages/pip (python ...)
+    pip 20.3.1 from .../site-packages/pip (python ...)
     <exit 0>
