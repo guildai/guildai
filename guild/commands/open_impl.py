@@ -143,6 +143,12 @@ def _shell_f(shell_cmd):
 
 
 def _fix_shell_columns():
-    # pty seems to use COLUMNS=80 by default so we define here
-    # to work around wrapping wrapping issues.
-    return util.Env({"COLUMNS": str(cli.MAX_WIDTH)})
+    # pty seems to use COLUMNS=80 and LINES=24 by default so we define
+    # here to work around wrapping wrapping issues.
+    cols, lines = click.get_terminal_size()
+    return util.Env(
+        {
+            "COLUMNS": str(cols),
+            "LINES": str(lines),
+        }
+    )
