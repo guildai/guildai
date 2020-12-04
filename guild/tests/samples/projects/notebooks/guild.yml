@@ -19,3 +19,12 @@ flags:
 
 params:
   notebook: params.ipynb
+
+extended:
+  notebook: extended.ipy
+  nb-cells:
+    - after: -1
+      source: >
+        # Summarize results
+        print("x: %s" % x)
+        print("y: %s" % y)

@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 import argparse
-import ast
 import io
 import json
 import logging
@@ -57,7 +56,7 @@ def main():
     if args.no_exec or os.getenv("NB_NO_EXEC") == "1":
         log.info("Skipping execute (NB_NO_EXEC specified)")
         return
-    _nbexec(run_notebook, flags, run)
+    _nbexec(run_notebook)
     _nbconvert_html(run_notebook)
 
 
@@ -150,22 +149,83 @@ def _apply_flags_to_notebook(state):
 
 
 def _apply_flags_to_cell_source(cell, state):
-    non_null_flags = {name: val for name, val in state.flags.items() if val is not None}
     try:
-        source = cell["source"]
+        source_lines = cell["source"]
     except KeyError:
         pass
     else:
-        cell["source"] = _replace_assigns_for_source_lines(source, state)
+        repl_source_lines = _apply_flags_to_source_lines(source_lines, state)
+        cell["source"] = repl_source_lines
 
 
-def _replace_assigns_for_source_lines(source_lines, state):
+def _apply_flags_to_source_lines(source_lines, state):
     source = "".join(source_lines).rstrip()
-    repl_source = _replace_assigns_for_source(source, state)
-    return [line + "\n" for line in repl_source.split("\n")]
+    source = _replace_flag_pattern_vals(source, state)
+    source = _replace_flag_assign_vals(source, state)
+    return [line + "\n" for line in source.split("\n")]
 
 
-def _replace_assigns_for_source(source, state):
+def _replace_flag_pattern_vals(source, state):
+    for val, config in _iter_flag_replace_config(state.flags, state.flags_extra):
+        for pattern in config:
+            source = _replace_flag_ref(pattern, val, source)
+    return source
+
+
+def _iter_flag_replace_config(flags, flags_extra):
+    for name, extra in sorted(flags_extra.items()):
+        try:
+            config = extra["nb-replace"]
+            val = flags[name]
+        except KeyError:
+            pass
+        else:
+            yield val, _coerce_repl_config_to_list(config)
+
+
+def _coerce_repl_config_to_list(config):
+    if isinstance(config, six.string_types):
+        return [config]
+    elif isinstance(config, list):
+        return config
+    else:
+        log.warning("unsupported nb-replace %r, ignoring", config)
+        return []
+
+
+def _replace_flag_ref(pattern, val, s):
+    try:
+        m = re.search(pattern, s, re.MULTILINE)
+    except ValueError:
+        return s
+    else:
+        if not m:
+            return s
+        return _apply_flag_to_repl_match(val, m, s)
+
+
+def _apply_flag_to_repl_match(val, m, s):
+    formatted_val = repr(val)
+    parts = []
+    cur = 0
+    for slice_start, slice_end in _pattern_slices(m):
+        parts.append(s[cur:slice_start])
+        parts.append(formatted_val)
+        cur = slice_end
+    parts.append(s[cur:])
+    return "".join(parts)
+
+
+def _pattern_slices(m):
+    if len(m.regs) == 1:
+        # No replacement groups so assume entire match is replaced.
+        return m.regs
+    else:
+        # Only use explicit replacement groups.
+        return m.regs[1:]
+
+
+def _replace_flag_assign_vals(source, state):
     assigns = _assigns_lookup_for_source(source, state.flags)
     source_tokens = _tokenize_source(source)
     repl_tokens = _replace_assigns_for_tokens(source_tokens, assigns)
@@ -287,100 +347,7 @@ def _token_pos_offset(t):
     return t[3][1] - t[2][1]
 
 
-""" OLD
-def _update_source_line(line, flags, flags_extra):
-    line = _replace_flag_refs(line, flags, flags_extra)
-    return line
-
-
-def _replace_flag_refs(s, flags, flags_extra):
-    for flag_name, flag_val, config in _iter_flag_replace_config(flags, flags_extra):
-        for replace_pattern in config:
-            s_mod = _replace_flag_ref(replace_pattern, flag_val, s)
-            _debug_log_repl(s, s_mod, replace_pattern, flag_name, flag_val)
-            s = s_mod
-    return s
-
-
-def _iter_flag_replace_config(flags, flags_extra):
-    for flag_name, extra in flags_extra.items():
-        try:
-            repl_config = extra["nb-replace"]
-            flag_val = flags[flag_name]
-        except KeyError:
-            pass
-        else:
-            assert flag_val is not None, flag_name
-            yield flag_name, flag_val, _coerce_repl_config_to_list(repl_config)
-
-
-def _coerce_repl_config_to_list(config):
-    if isinstance(config, six.string_types):
-        return [config]
-    elif isinstance(config, list):
-        return config
-    else:
-        log.warning("unsupported nb-replace %r, ignoring", config)
-        return []
-
-
-def _replace_flag_ref(pattern, val, s):
-    try:
-        m = re.search(pattern, s, re.MULTILINE)
-    except ValueError:
-        return s
-    else:
-        if not m:
-            return s
-        return _apply_flag_to_repl_match(val, m, s)
-
-
-def _apply_flag_to_repl_match(val, m, s):
-    formatted_val = repr(val)
-    parts = []
-    cur = 0
-    for slice_start, slice_end in _pattern_slices(m):
-        parts.append(s[cur:slice_start])
-        parts.append(formatted_val)
-        cur = slice_end
-    parts.append(s[cur:])
-    return "".join(parts)
-
-
-def _pattern_slices(m):
-    if len(m.regs) == 1:
-        # No replacement groups so assume entire match is replaced
-        return m.regs
-    else:
-        # Only use explicit replacement groups
-        return m.regs[1:]
-
-
-def _debug_log_repl(s0, s1, repl, flag_name, flag_val):
-    if log.getEffectiveLevel() > logging.DEBUG:
-        return
-    if s0 != s1:
-        log.debug(
-            "nb-replace: %r -> %r (%s=%r via %r)",
-            s0,
-            s1,
-            flag_name,
-            flag_val,
-            repl,
-        )
-    else:
-        log.debug(
-            "nb-replace: %r unchanged (%s=%r via %r)",
-            s0,
-            flag_name,
-            flag_val,
-            repl,
-        )
-
-"""
-
-
-def _nbexec(notebook, flags, run):
+def _nbexec(notebook):
     cmd = [
         "jupyter-nbconvert",
         "--to",

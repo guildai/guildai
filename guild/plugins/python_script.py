@@ -474,7 +474,6 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 plugin.python_script_opdef_loaded(opdef)
 
 
-
 def _is_other_guild_plugin(main_spec):
     return main_spec.rstrip().startswith("guild.plugins.")
 

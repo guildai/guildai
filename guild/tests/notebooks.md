@@ -1,21 +1,21 @@
-# Notebooks Support
+# Notebook Support
 
 ## Import Notebook Flags
 
 Notebook support is implemented by the `ipynb` plugin.
 
-    >> from guild.plugins import ipynb
+    >>> from guild.plugins import ipynb
 
 ### Global Assigns
 
 Top-level assigns are treated as flags, just as they are in Python
 modules.
 
-    >> flags_ipynb = sample("projects", "notebooks", "flags.ipynb")
+    >>> flags_ipynb = sample("projects", "notebooks", "flags.ipynb")
 
-    >> with LogCapture() as logs:
+    >>> with LogCapture() as logs:
     ...     flags_data = ipynb._flags_data_for_notebook(flags_ipynb)
-    >> pprint(flags_data)
+    >>> pprint(flags_data)
     {'a': {'default': 1.1, 'type': 'number'},
      'b': {'default': 2.2, 'type': 'number'},
      'f': {'default': True, 'type': 'boolean'},
@@ -26,16 +26,16 @@ modules.
 Verify that we didn't get any warnings while processing the notebook
 source.
 
-    >> logs.print_all()
+    >>> logs.print_all()
 
 The `flags` operation in the associated Guild file runs `flags.ipynb`
 as a notebook. The operation is configured to import all flags but
 `b`, which is skipped.
 
-    >> gf = guildfile.for_dir(sample("projects", "notebooks"))
+    >>> gf = guildfile.for_dir(sample("projects", "notebooks"))
 
-    >> from guild import help
-    >> print(help.guildfile_console_help(gf, strip_ansi_format=True))
+    >>> from guild import help
+    >>> print(help.guildfile_console_help(gf, strip_ansi_format=True))
     ???
     BASE OPERATIONS
     ...
@@ -50,16 +50,20 @@ as a notebook. The operation is configured to import all flags but
     <BLANKLINE>
     ...
 
-## nbexec
+## Apply Flag Values to Source
 
-The `nbexec` module handles Notebook execution.
+Guild supports two methods of value assigment:
 
-    >>> from guild.plugins import nbexec
+- Replace single value assignments with a new flag value
+- Replace matching regular expressions with flag values
 
-### Apply Flag Values to Source
+### Replace Value Assignments
 
-The function `_replace_assigns_for_source_lines` implements support
-for replacing Notebook cell source with flag values.
+The function `guild.plugins.nbexec._replace_flag_assign_vals`
+implements support for replacing Notebook cell source with flag
+values.
+
+    >>> from guild.plugins.nbexec import _replace_flag_assign_vals
 
 The function requires cell source lines and a "apply flags" state
 object.
@@ -68,14 +72,14 @@ Here's a helper function to use the function to convert a block of
 code and flags to code containing flag assignments.
 
     >>> class _ApplyFlagsStateProxy(object):
-    ...     def __init__(self, flags):
+    ...     def __init__(self, flags, flags_extra):
     ...         self.flags = flags
+    ...         self.flags_extra = flags_extra
 
     >>> def apply_flags(src, **flags):
-    ...     state = _ApplyFlagsStateProxy(flags)
-    ...     lines_in = [line + "\n" for line in src.strip().split("\n")]
-    ...     lines_out = nbexec._replace_assigns_for_source_lines(lines_in, state)
-    ...     print("".join(lines_out))
+    ...     state = _ApplyFlagsStateProxy(flags, {})
+    ...     out = _replace_flag_assign_vals(src, state)
+    ...     print(out)
 
 Simple example:
 
@@ -154,6 +158,8 @@ Flags replace assignments that span multiple lines.
     a = 1
     b = 666
 
+Using parens to define values that span lines:
+
     >>> apply_flags("""x = (
     ...
     ...        1
@@ -164,11 +170,15 @@ Flags replace assignments that span multiple lines.
            12345
         )
 
+Using line continuations:
+
     >>> apply_flags("""x = \
     ... \
     ... 1
     ... """, x=True)
     x = True
+
+An example containing multiple line-spanning assignments:
 
     >>> apply_flags("""x = y = '''Line 1
     ... Line 2
@@ -177,7 +187,8 @@ Flags replace assignments that span multiple lines.
     ... ''' # a conmment
     ... for i in range(x):
     ...     print(i)
-    ... z = '''
+    ... z = \
+    ... '''
     ... 1.1234
     ... '''
     ... # Another comment
@@ -195,116 +206,103 @@ logs a warning.
     ...     apply_flags("'unterminated string")
     'unterminated string
 
-    >> logs.print_all()
+    >>> logs.print_all()
     WARNING: error parsing Python source "'unterminated string": EOL
     while scanning string literal (<unknown>, line 1)
 
-### nb-replace
+### Replace Regular Expression Matches
 
-Flag values can be updated in Notebook cells using `nb-repl` flag
-attributes.
+Flag values can be set in Notebook cells using `nb-replace` flag
+attributes. `nb-replace` is a pattern that uses capture groups to
+indicate where flag values should be inserted.
 
-`nb-repl` is a pattern that uses capture groups to indicate where flag
-values should be inserted.
+The `guild.plugins.nbexec._replace_flag_pattern_vals` function
+implements the replacement logic.
 
-The `_replace_flag_ref` implements the replacement logic.
+    >>> from guild.plugins.nbexec import _replace_flag_pattern_vals
 
-    >> _replace_flag_ref = nbexec._replace_flag_ref
+Helper function to apply replacement patterns.
 
-Here's a case where a variable assignment is updated with a new value.
+    >>> def apply_patterns(src, **flags_and_repl):
+    ...     flags = {
+    ...         name: val
+    ...         for name, val in flags_and_repl.items()
+    ...         if not name.endswith("_repl")
+    ...     }
+    ...     flags_extra = {
+    ...         name[:-5]: {"nb-replace": val}
+    ...         for name, val in flags_and_repl.items()
+    ...         if name.endswith("_repl")
+    ...     }
+    ...     state = _ApplyFlagsStateProxy(flags, flags_extra)
+    ...     out = _replace_flag_pattern_vals(src, state)
+    ...     print(out)
 
-    >> _replace_flag_ref("foo = (36)", 12, "foo = 36")
-    'foo = 12'
+In the simplest case, the pattern matches the full flag assignment and
+captures the value.
 
-If the pattern doesn't match, the cell is left unchanged.
+    >>> apply_patterns("x = 1", x=2, x_repl="x = (1)")
+    x = 2
 
-    >> _replace_flag_ref("foo = (36)", 12, "foo = 42")
-    'foo = 42'
+This can be generalized.
+
+    >>> apply_patterns("x = 1", x=2, x_repl="x = (.+)")
+    x = 2
+
+If the pattern doesn't match, nothing is applied.
+
+    >>> apply_patterns("x = 1", x=2, x_repl="x = (0)")
+    x = 1
 
 Regular expressions can be used inside and outside the capture groups
 as needed.
 
-    >> _replace_flag_ref("foo = (.*) # update me", 12, "foo = 42 # update me")
-    'foo = 12 # update me'
+    >>> apply_patterns("x = 22 # update me", x=33, x_repl="x\s*=\s*(.*) # update .*")
+    x = 33 # update me
+
+This pattern works on different variations of the source.
+
+    >>> apply_patterns("x=22 # update me", x=33, x_repl="x\s*=\s*(.*) # update .*")
+    x=33 # update me
+
+    >>> apply_patterns("x = 11 # update here", x=33, x_repl="x\s*=\s*(.*) # update .*")
+    x = 33 # update here
 
 A non-capturing group can be used to match but not replace.
 
-    >> _replace_flag_ref("(?:foo|bar) = (.*) # update me", 12, "foo = 42 # update me")
-    'foo = 12 # update me'
+    >>> apply_patterns("x = 44", x=55, x_repl="(?:x|y) = (.*)")
+    x = 55
 
 Multiple groups can be used to include the flag value multiple times.
 
-    >> print(_replace_flag_ref("a1=(\".*\"), a2=(\".*\")", "hi", """
+    >>> apply_patterns("""
     ... def f(a1="a1", a2="a2"):
     ...     print(a1, a2)
-    ... """))
+    ... """, x="hi", x_repl="a1=(\".*\"), a2=(\".*\")")
     def f(a1='hi', a2='hi'):
         print(a1, a2)
 
 If a pattern doesn't define a capture group, the entire string is
 replaced when matched.
 
-    >> _replace_flag_ref("1234", 4567, "The value is 1234")
-    'The value is 4567'
+    >>> apply_patterns("The value is 1234", x=4567, x_repl="1234")
+    The value is 4567
 
-## Running Notebooks
+Here we use several flag values with patterns.
 
-We use the sample 'notebooks' project.
+    >>> apply_patterns("""
+    ... x = 1  # flag:x
+    ... y = 2  # flag:y
+    ... print(x, y)  # x=1, y=2
+    ... """,
+    ... x=1.1234, x_repl=["x = (.+) # flag:x", "x=(1)"],
+    ... y=2.2345, y_repl=["y = (.+) # flag:y", "y=(2)"])
+    x = 1.1234 # flag:x
+    y = 2.2345 # flag:y
+    print(x, y)  # x=1.1234, y=2.2345
 
-    >> project = Project(sample("projects", "notebooks"))
+A pattern is only applied to the first match. Subsequent matches are
+not replaced.
 
-The 'add' operation adds two numbers, `x` and `y`, which can be set as
-flags.
-
-    >> project.run("add", flags={"x": 100, "y": 200})
-    [NbConvertApp] Converting notebook .../add.ipynb to notebook...
-    [NbConvertApp] Converting notebook .../add.ipynb to html...
-
-    >> import json
-    >> generated_ipynb = json.load(open(path(project.list_runs()[0].dir, "add.ipynb")))
-    >> generated_ipynb["nbformat"]
-    4
-
-    >> pprint(generated_ipynb["cells"])
-    [{'cell_type': 'code',
-      'execution_count': 1,
-      'metadata': ...
-      'outputs': [{'name': 'stdout',
-                   'output_type': 'stream',
-                   'text': ['300\n']}],
-      'source': ['print(100 + 200)']}]
-
-You can run the Notebook directly. In this case, there are no flags
-because we don't know anything about the notebook.
-
-    >> project.run("add.ipynb")
-    [NbConvertApp] Converting notebook .../add.ipynb to notebook...
-    [NbConvertApp] Converting notebook .../add.ipynb to html...
-
-    >> project.print_runs(flags=True, labels=True)
-    add.ipynb
-    add        x=100 y=200  x=100 y=200
-
-The generated Notebook is the same as the original.
-
-    >> generated_ipynb = json.load(open(path(project.list_runs()[0].dir, "add.ipynb")))
-    >> generated_ipynb["nbformat"]
-    4
-
-    >> pprint(generated_ipynb["cells"])
-    [{'cell_type': 'code',
-      'execution_count': 1,
-      'metadata': ...
-      'outputs': [{'name': 'stdout',
-                   'output_type': 'stream',
-                   'text': ['3\n']}],
-      'source': ['print(1 + 2)']}]
-
-## Errors
-
-    >> project.run("invalid_language.ipynb")
-    [NbConvertApp] Converting notebook .../invalid_language.ipynb to notebook
-    Traceback (most recent call last):
-    ...
-    jupyter_client.kernelspec.NoSuchKernel: No such kernel named xxx
-    <exit 1>
+    >>> apply_patterns("x = 1, x = 2", x=3, x_repl="x = (\d+)")
+    x = 3, x = 2

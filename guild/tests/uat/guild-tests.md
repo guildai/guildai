@@ -72,6 +72,7 @@ tests).
       models:                      ok
       namespaces:                  ok
       needed:                      ok
+      notebook-exec:               ok
       notebooks:                   ok
       op-cmd:                      ok
       op-desc:                     ok

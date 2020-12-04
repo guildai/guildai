@@ -421,6 +421,7 @@ def test_globals():
         "isfile": os.path.isfile,
         "islink": os.path.islink,
         "join_path": os.path.join,
+        "json": json,
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,
         "mktemp_guild_dir": mktemp_guild_dir,
