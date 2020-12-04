@@ -292,7 +292,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [remote-runs-after-hello](remote-runs-after-hello.md)
 - [remote-ls-after-hello](remote-ls-after-hello.md)
 - [remote-runs-info-after-hello](remote-runs-info-after-hello.md)
-- [remote-cat-after-hello](remote-diff-after-hello.md)
+- [remote-cat-after-hello](remote-cat-after-hello.md)
 - [remote-diff-after-hello](remote-diff-after-hello.md)
 - [remote-watch-last-hello](remote-watch-last-hello.md)
 - [remote-stop-last-hello](remote-stop-last-hello.md)
