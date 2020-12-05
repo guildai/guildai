@@ -160,6 +160,7 @@ def _apply_flags_to_cell_source(cell, state):
 
 def _apply_flags_to_source_lines(source_lines, state):
     source = "".join(source_lines).rstrip()
+    source = ipynb._ipython_to_python(source)
     source = _replace_flag_pattern_vals(source, state)
     source = _replace_flag_assign_vals(source, state)
     return [line + "\n" for line in source.split("\n")]

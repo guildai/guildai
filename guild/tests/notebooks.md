@@ -306,3 +306,55 @@ not replaced.
 
     >>> apply_patterns("x = 1, x = 2", x=3, x_repl="x = (\d+)")
     x = 3, x = 2
+
+## IPython Magics
+
+Guild converts all magics to valid Python code when processing cell
+lines. The `nbexec` module's `_apply_flags_to_source_lines` function
+handles this.
+
+    >>> from guild.plugins.nbexec import _apply_flags_to_source_lines
+
+Note that the lower level function `_replace_flag_assign_vals` does
+not.
+
+    >>> with LogCapture() as logs:
+    ...     _replace_flag_assign_vals("%cd\n%pwd", _ApplyFlagsStateProxy({}, {}))
+    '%cd\n%pwd'
+
+    >>> logs.print_all()
+    WARNING: error parsing Python source '%cd\n%pwd': invalid syntax (<unknown>, line 1)
+
+Using `_apply_flags_to_source_lines`:
+
+    >>> _apply_flags_to_source_lines(["%cd ~\n", "%pwd\n"], _ApplyFlagsStateProxy({}, {}))
+    ["get_ipython().magic('cd ~')\n",
+     "get_ipython().magic('pwd')\n",
+     '\n']
+
+This works with flag assignments as well.
+
+A helper function:
+
+    >>> def apply_flags_to_lines(source, **flags):
+    ...     lines = [line + "\n" for line in source.split("\n")]
+    ...     state = _ApplyFlagsStateProxy(flags, {})
+    ...     repl_lines = _apply_flags_to_source_lines(lines, state)
+    ...     print("".join(repl_lines))
+
+    >>> apply_flags_to_lines("""
+    ... %autoreload
+    ... # A comment
+    ... count = 1
+    ... msg = "hi"
+    ... !ls
+    ... for _ in range(count):
+    ...     print(msg)
+    ... """, count=2, msg="hello")
+    get_ipython().magic('autoreload')
+    # A comment
+    count = 2
+    msg = 'hello'
+    get_ipython().system('ls')
+    for _ in range(count):
+        print(msg)

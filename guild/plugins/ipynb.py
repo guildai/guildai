@@ -30,6 +30,7 @@ from guild import plugin as pluginlib
 from guild import python_util
 from guild import util
 
+
 log = logging.getLogger("guild")
 
 
@@ -126,8 +127,33 @@ def _iter_notebook_assigns(notebook_path):
     if not nb_data:
         return
     for src in _iter_notebook_source(nb_data):
-        for _assign_node, target_node, _val_node, val in _iter_source_val_assigns(src):
-            yield target_node.id, val
+        try:
+            src = _ipython_to_python(src)
+        except MissingIPython:
+            break
+        else:
+            for _assign_node, target_node, _val_node, val in _iter_source_val_assigns(
+                src
+            ):
+                yield target_node.id, val
+
+
+class MissingIPython(Exception):
+    pass
+
+
+def _ipython_to_python(source):
+    try:
+        from IPython.core.inputsplitter import IPythonInputSplitter
+    except ImportError:
+        log.warning(
+            "IPython is required to process Notebook source code - "
+            "install it by running 'pip install ipython'"
+        )
+        raise MissingIPython()
+    else:
+        isp = IPythonInputSplitter(line_input_checker=False)
+        return isp.transform_cell(source)
 
 
 def _load_notebook(path):
