@@ -1,0 +1,13 @@
+upstream:
+  flags-import: yes
+
+downstream:
+  flags-import: yes
+  requires:
+    - operation: upstream
+      select:
+        - file.txt
+        - .guild/attrs/flags
+      rename:
+        - file.txt upstream-file.txt
+        - flags upstream-flags.yml
