@@ -304,6 +304,11 @@ def run_params(fn):
                 is_flag=True,
             ),
             click.Option(
+                ("--force-deps",),
+                help=("Continue even when a required resource is not resolved."),
+                is_flag=True,
+            ),
+            click.Option(
                 ("--stop-after",),
                 metavar="N",
                 type=click_util.NUMBER,

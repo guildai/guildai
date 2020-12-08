@@ -2106,7 +2106,7 @@ def _init_batch_run(S, run_dir=None):
 
 def _stage_op(op, args):
     try:
-        run = oplib.stage(op)
+        run = oplib.stage(op, continue_on_deps_error=args.force_deps)
     except op_dep.OpDependencyError as e:
         _op_dependency_error(e)
     else:
@@ -2154,6 +2154,7 @@ def _run_op(op, args, extra_env=None):
             pidfile=_op_pidfile(args),
             stop_after=args.stop_after,
             extra_env=extra_env,
+            continue_on_deps_error=args.force_deps,
         )
     except op_dep.OpDependencyError as e:
         _op_dependency_error(e)

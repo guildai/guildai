@@ -119,11 +119,11 @@ def _op_init_run_attrs(op, run):
 ###################################################################
 
 
-def stage(op):
+def stage(op, continue_on_deps_error=False):
     run = init_run(op)
     try:
         _stage_run_proc_env(op, run)
-        _resolve_deps(op, run, for_stage=True)
+        _resolve_deps(op, run, for_stage=True, continue_on_error=continue_on_deps_error)
         op_util.set_run_staged(run)
     finally:
         op_util.clear_run_pending(run)
@@ -145,11 +145,18 @@ def _stage_run_proc_env(op, run):
 ###################################################################
 
 
-def run(op, quiet=False, pidfile=None, stop_after=None, extra_env=None):
+def run(
+    op,
+    quiet=False,
+    pidfile=None,
+    stop_after=None,
+    extra_env=None,
+    continue_on_deps_error=False,
+):
     run = init_run(op)
     op_util.clear_run_marker(run, "STAGED")
     try:
-        _resolve_deps(op, run)
+        _resolve_deps(op, run, continue_on_error=continue_on_deps_error)
     finally:
         op_util.clear_run_pending(run)
     op_util.set_run_started(run)
@@ -424,14 +431,19 @@ def _env_paths():
 # =================================================================
 
 
-def _resolve_deps(op, run, for_stage=False):
+def _resolve_deps(op, run, for_stage=False, continue_on_error=False):
     resolve_context = op_dep.ResolveContext(run)
     deps_attr = run.get("deps") or {}
     for dep in op.deps or []:
         resolved_sources = deps_attr.setdefault(dep.resdef.name, {})
-        _apply_resolve_dep_sources(
-            dep, resolve_context, run, for_stage, resolved_sources
-        )
+        try:
+            _apply_resolve_dep_sources(
+                dep, resolve_context, run, for_stage, resolved_sources
+            )
+        except op_dep.OpDependencyError as e:
+            if not continue_on_error:
+                raise
+            log.warning("a dependency was not met: %s", e)
     run.write_attr("deps", deps_attr)
 
 

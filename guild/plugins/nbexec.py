@@ -51,13 +51,15 @@ def main():
     args, rest_args = _parse_args()
     run = _init_run(args)
     _check_env()
-    flags = _init_flags(run, rest_args)
-    run_notebook = _init_run_notebook(args.notebook, flags, run)
-    if args.no_exec or os.getenv("NB_NO_EXEC") == "1":
-        log.info("Skipping execute (NB_NO_EXEC specified)")
-        return
-    _nbexec(run_notebook)
-    _nbconvert_html(run_notebook)
+    flags, other_args = op_util.args_to_flags(rest_args)
+    if other_args:
+        log.warning(
+            "unexpected args: %s",
+            " ".join([util.shlex_quote(arg) for arg in other_args]),
+        )
+    executed_notebook = _nbexec(args.notebook, flags, run)
+    _print_output(executed_notebook)
+    _nbconvert_html(executed_notebook)
 
 
 def _init_logging():
@@ -116,6 +118,23 @@ def _check_nbextensions():
             "and try again"
         )
         sys.exit(1)
+
+
+def _nbexec(notebook, flags, run):
+    working_notebook = _init_notebook(notebook, flags, run)
+    working_notebook_relpath = os.path.relpath(working_notebook)
+    cmd = [
+        "jupyter-nbconvert",
+        "--to",
+        "notebook",
+        "--execute",
+        "--inplace",
+        working_notebook_relpath,
+    ]
+    returncode = subprocess.call(cmd)
+    if returncode != 0:
+        sys.exit(returncode)
+    return working_notebook
 
 
 def _init_run_notebook(notebook, flags, run):
@@ -362,12 +381,38 @@ def _nbexec(notebook):
         sys.exit(returncode)
 
 
+def _print_output(notebook):
+    for stream, out in _iter_notebook_output(notebook):
+        stream.write(out)
+
+
+def _iter_notebook_output(notebook):
+    nb_data = json.load(open(notebook))
+    for cell in nb_data.get("cells", []):
+        if cell.get("cell_type") != "code":
+            continue
+        cell_execution_count = cell.get("execution_count", "?")
+        for output in cell.get("outputs", []):
+            output_type = output.get("output_type")
+            if output_type == "stream":
+                stream = sys.stderr if output.get("name") == "stderr" else sys.stdout
+                for part in output.get("text", []):
+                    yield stream, part
+            elif output_type == "execute_result":
+                yield sys.stdout, "Out[%s]: " % cell_execution_count
+                data = output.get("data", {})
+                for part in data.get("text/plain", []):
+                    yield sys.stdout, part
+                yield sys.stdout, "\n"
+
+
 def _nbconvert_html(notebook):
+    notebook_relpath = os.path.relpath(notebook)
     cmd = [
         "jupyter-nbconvert",
         "--to",
         "html",
-        notebook,
+        notebook_relpath,
     ]
     returncode = subprocess.call(cmd)
     if returncode != 0:

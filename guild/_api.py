@@ -110,6 +110,7 @@ def _popen_args(
     needed=False,
     stage_trials=False,
     force_flags=False,
+    force_deps=False,
     stop_after=None,
     fail_on_trial_error=False,
     print_cmd=False,
@@ -189,6 +190,8 @@ def _popen_args(
         args.append("--stage-trials")
     if force_flags:
         args.append("--force-flags")
+    if force_deps:
+        args.append("--force-deps")
     if stop_after is not None:
         args.extend(["--stop-after", str(stop_after)])
     if fail_on_trial_error:

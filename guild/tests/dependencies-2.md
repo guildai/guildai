@@ -210,10 +210,63 @@ executables.
 
     >>> project = Project(sample("projects", "inline-resources"))
 
-Note we skip running the operations on Windows because they use POSIX
-executables.
+### Force run on dependency error
 
-    >>> project.run("test-all") # doctest: -WINDOWS
+When a dependency cannot be met, Guild stops the run with an error
+message.
+
+The `print-msg-2` operation requires `print-msg`, which we don't have.
+
+    >>> project.list_runs()
+    []
+
+`print-msg-2` fails with an error message.
+
+    >>> project.run("print-msg-2")
+    WARNING: cannot find a suitable run for required resource 'print-msg'
+    Resolving print-msg dependency
+    guild: run failed because a dependency was not met: could not resolve
+    'operation:print-msg' in print-msg resource: no suitable run for print-msg
+    <exit 1>
+
+We can force a run even in such cases using `force_deps`.
+
+    >>> project.run("print-msg-2", force_deps=True)
+    WARNING: cannot find a suitable run for required resource 'print-msg'
+    Resolving print-msg dependency
+    WARNING: a dependency was not met: could not resolve 'operation:print-msg'
+    in print-msg resource: no suitable run for print-msg
+    cat: no such file 'msg.txt'
+    <exit 1>
+
+The same behavior applies to staging runs. We use `missing-file-dep`
+to test this, which relies on a file that doesn't exist.
+
+    >>> project.run("missing-file-dep", stage=True)
+    Resolving file:missing.txt dependency
+    guild: run failed because a dependency was not met: could not resolve
+    'file:missing.txt' in file:missing.txt resource: cannot find source file 'missing.txt'
+    <exit 1>
+
+Using `force_deps` we can bypass the check and stage the run anyway.
+
+    >>> project.run("missing-file-dep", stage=True, force_deps=True)
+    Resolving file:missing.txt dependency
+    WARNING: a dependency was not met: could not resolve 'file:missing.txt' in
+    file:missing.txt resource: cannot find source file 'missing.txt'
+    Resolving file:msg.txt dependency
+    missing-file-dep staged as ...
+    To start the operation, use 'guild run --start ...'
+
+Dependencies that can be resolved are resolved. `missing-file-dep`
+also requires `msg.txt`, which does exist and can be resooved.
+
+    >>> dir(project.list_runs()[0].dir)
+    ['.guild', 'msg.txt']
+
+### test-all
+
+    >>> project.run("test-all")
     INFO: [guild] running print-msg: print-msg
     Resolving file:msg.txt dependency
     hola

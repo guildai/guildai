@@ -1,15 +1,15 @@
 print-msg:
-  exec: cat msg.txt
+  main: cat msg.txt
   requires:
     - file: msg.txt
 
 print-msg-2:
-  exec: cat msg.txt
+  main: cat msg.txt
   requires:
     operation: print-msg
 
 print-msg-3:
-  exec: cat msg-1.txt msg-2.txt
+  main: cat msg-1.txt msg-2.txt
   requires:
     - file: msg.txt
       rename: msg.txt msg-1.txt
@@ -17,12 +17,18 @@ print-msg-3:
       sha256: 3000dfe470d85e4b32dc78f083da866f24d6183c48d83b42b36da98e64701ade
 
 print-msg-4:
-  exec: cat messages/msg.txt messages/msg-2.txt
+  main: cat messages/msg.txt messages/msg-2.txt
   requires:
     target-path: messages
     sources:
       - msg.txt
       - msg-2.txt
+
+missing-file-dep:
+  main: guild.pass
+  requires:
+    - file: missing.txt
+    - file: msg.txt
 
 test-all:
   steps:
