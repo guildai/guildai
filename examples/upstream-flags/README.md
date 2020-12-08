@@ -11,9 +11,8 @@ upstream flag values with a downstream run.
 The gist:
 
 - Make upstream flags, which is located in upstream runs under
-  `.guild/attrs/flags` available to downstream run via operation
+  `.guild/attrs/flags`, available to downstream run via operation
   dependency.
-
 - Dynamically modify the downstream runs to include upstream flags,
   which are loaded from the resolved flags YAML file.
 
@@ -27,6 +26,10 @@ Next run downstream.
 
 ```
 $ guild run downstream -y
+Resolving upstream dependency
+Using run <upstream run ID> for upstream resource
+upstream:   1 + 2 = 3
+downstream: 3 + 4 = 7
 ```
 
 List the resolved files for downstream.
