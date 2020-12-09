@@ -161,22 +161,24 @@ def _run_tests(check):
 def _print_info(check):
     _print_guild_info(check)
     _print_python_info(check)
-    _print_platform_info(check)
-    _print_psutil_info(check)
-    _print_tensorboard_info(check)
-    if check.args.tensorflow:
-        _print_tensorflow_info(check)
-    if check.args.pytorch:
-        _print_pytorch_info(check)
-    _print_cuda_info(check)
-    _print_nvidia_tools_info(check)
-    if check.args.verbose:
-        _print_mods_info(check)
+    if not check.args.env:
+        _print_platform_info(check)
+        _print_psutil_info(check)
+        _print_tensorboard_info(check)
+        if check.args.tensorflow:
+            _print_tensorflow_info(check)
+        if check.args.pytorch:
+            _print_pytorch_info(check)
+        _print_cuda_info(check)
+        _print_nvidia_tools_info(check)
+        if check.args.verbose:
+            _print_mods_info(check)
     _print_guild_latest_versions(check)
     if check.newer_version_available:
         _notify_newer_version()
-    if check.args.space:
-        _print_disk_usage()
+    if not check.args.env:
+        if check.args.space:
+            _print_disk_usage()
 
 
 def _print_guild_info(check):
@@ -184,7 +186,8 @@ def _print_guild_info(check):
     _attr("guild_install_location", _safe_apply(check, _guild_install_location))
     _attr("guild_home", _safe_apply(check, config.guild_home))
     _attr("guild_resource_cache", _safe_apply(check, _guild_resource_cache))
-    _attr("installed_plugins", _safe_apply(check, _format_plugins))
+    if not check.args.env:
+        _attr("installed_plugins", _safe_apply(check, _format_plugins))
 
 
 def _attr(name, val):

@@ -39,6 +39,7 @@ def _ac_builtin_tests(incomplete, ctx, **_kw):
 
 
 @click.command()
+@click.option("--env", help="Limit check to environment info.", is_flag=True)
 @click.option("-tf", "--tensorflow", help="Check TensorFlow status.", is_flag=True)
 @click.option("-pt", "--pytorch", help="Check PyTorch status.", is_flag=True)
 @click.option("-T", "--tests", "all_tests", help="Run Guild test suite.", is_flag=True)
