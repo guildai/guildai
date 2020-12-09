@@ -299,7 +299,7 @@ def run_params(fn):
                 ("-f", "--force-flags"),
                 help=(
                     "Accept all flag assignments, even for undefined or "
-                    "invalid flags."
+                    "invalid values."
                 ),
                 is_flag=True,
             ),
