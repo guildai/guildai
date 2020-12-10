@@ -710,6 +710,7 @@ def _run_args(
     batch_tags,
     comment,
     fail_on_trial_error,
+    force_deps,
     force_flags,
     force_sourcecode,
     gpus,
@@ -747,6 +748,8 @@ def _run_args(
         args.extend(["--comment", comment])
     if fail_on_trial_error:
         args.append("--fail-on-trial-error")
+    if force_deps:
+        args.append("--force-deps")
     if force_flags:
         args.append("--force-flags")
     if force_sourcecode:
