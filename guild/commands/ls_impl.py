@@ -18,9 +18,9 @@ from __future__ import division
 import fnmatch
 import logging
 import os
-import subprocess
 
 from guild import cli
+from guild import run_util
 from guild import util
 
 from . import remote_impl_support
@@ -48,89 +48,55 @@ def _main(args, ctx):
             "PATH must be relative\n" "Try 'guild ls --help' for more information."
         )
     run = runs_impl.one_run(args, ctx)
-    _print_header(run.dir, args)
-    if args.extended:
-        _ls_extended(run.dir, args)
-    else:
-        _ls_normal(run.dir, args)
+    base_dir = _base_dir(run, args)
+    _print_header(base_dir, args)
+    _print_file_listing(base_dir, args)
 
 
-def _print_header(run_dir, args):
-    if not args.full_path and not args.no_format:
-        cli.out("%s:" % _run_dir_header(run_dir, args))
-
-
-def _run_dir_header(run_dir, args):
-    if os.getenv("NO_HEADER_PATH") == "1":
-        run_dir = os.path.basename(run_dir)
+def _base_dir(run, args):
     if args.sourcecode:
-        return os.path.join(run_dir, ".guild/sourcecode")
-    elif not args.full_path:
-        return util.format_dir(run_dir)
+        return run_util.sourcecode_dir(run)
     else:
-        return run_dir
+        return run.dir
 
 
-def _ls_extended(dir, args):
-    path = _path_for_extended(dir, args)
-    cmd = ["ls", "-l"]
-    if args.all:
-        cmd.append("-aR")
-    if args.human_readable:
-        cmd.append("-h")
-    if args.follow_links:
-        cmd.append("-L")
-    cmd.append(path)
-    try:
-        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        cli.error(e.output.strip())
+def _print_header(dir, args):
+    if not args.full_path and not args.no_format:
+        cli.out("%s:" % _header(dir, args))
+
+
+def _header(dir, args):
+    if os.getenv("NO_HEADER_PATH") == "1":
+        dir = os.path.basename(dir)
+    if args.full_path:
+        return dir
     else:
-        cli.out(out.strip())
+        return util.format_dir(dir)
 
 
-def _path_for_extended(dir, args):
-    return os.path.join(dir, _rel_path(args))
-
-
-def _ls_normal(dir, args):
+def _print_file_listing(dir, args):
     for val in sorted(_list(dir, args)):
-        _print_file(val, args)
+        _print_path(val, args)
 
 
-def _list(run_dir, args):
-    match_path_pattern = _rel_path(args)
-    for root, dirs, files in os.walk(run_dir, followlinks=args.follow_links):
-        _maybe_rm_guild_dir(dirs, args)
+def _list(dir, args):
+    for root, dirs, files in os.walk(dir, followlinks=args.follow_links):
+        if root == dir:
+            _maybe_rm_guild_dir(dirs, args)
         for name in dirs + files:
             full_path = os.path.join(root, name)
-            rel_path = os.path.relpath(full_path, run_dir)
-            if not _match_path(rel_path, match_path_pattern):
+            rel_path = os.path.relpath(full_path, dir)
+            if not _match_path(rel_path, args.path):
                 continue
-            if os.path.isdir(full_path):
-                suffix = os.path.sep
-            else:
-                suffix = ""
-            if args.full_path:
-                yield full_path + suffix
-            else:
-                yield rel_path + suffix
-
-
-def _rel_path(args):
-    pattern = args.path or ""
-    if args.sourcecode:
-        source_base = os.path.join(".guild", "sourcecode")
-        if pattern:
-            pattern = os.path.join(source_base, pattern)
-        else:
-            pattern = source_base
-    return pattern
+            yield _list_path(full_path, rel_path, args)
 
 
 def _maybe_rm_guild_dir(dirs, args):
-    if args.all or args.sourcecode:
-        return
+    if not args.all:
+        _rm_guild_dir(dirs)
+
+
+def _rm_guild_dir(dirs):
     try:
         dirs.remove(".guild")
     except ValueError:
@@ -138,19 +104,32 @@ def _maybe_rm_guild_dir(dirs, args):
 
 
 def _match_path(filename, pattern):
-    if not pattern:
-        return True
-    return filename.startswith(pattern) or fnmatch.fnmatch(filename, pattern)
+    return (
+        not pattern
+        or filename.startswith(pattern)
+        or fnmatch.fnmatch(filename, pattern)
+    )
 
 
-def _print_file(path, args):
+def _list_path(full_path, rel_path, args):
+    path = full_path if args.full_path else rel_path
+    return _ensure_trailing_slash_for_dir(path, full_path)
+
+
+def _ensure_trailing_slash_for_dir(path, full_path):
+    if os.path.isdir(full_path) and full_path[:-1] != os.path.sep:
+        return path + os.path.sep
+    return path
+
+
+def _print_path(path, args):
     if args.full_path:
         path = os.path.abspath(path)
     elif args.sourcecode:
         path = _sourcecode_rel_path(path)
     if not path:
         return
-    if args.no_format:
+    if args.no_format or args.full_path:
         cli.out(path)
     else:
         cli.out("  %s" % path)

@@ -373,13 +373,26 @@ Run op:
     a
     <exit 0>
 
-Nothing is copied to the source code location:
+Because `copy-to-alt-dir` specifies `src` as the alternative source
+code dest, Guild lists this location when we use `--sourcecode` with
+`ls`.
 
-    >>> run("guild ls --sourcecode")
-    ???:
+    >>> run("guild ls --sourcecode", ignore="pyc")
+    ???/src:
+      README.md
+      a.py
+      b.py
+      c.py
+      d.csv
+      guild.yml
+      subproject/
+      subproject/__init__.py
+      subproject/d.py
+      subproject/e.csv
+      subproject/guild.yml
     <exit 0>
 
-Instead, source code files are normal run files copied to alt dest:
+This is the same list of files as the default, but under `src`.
 
     >>> run("guild ls", ignore="pyc")
     ???:
@@ -439,11 +452,7 @@ Run op:
 
 Verify source code files:
 
-    >>> run("guild ls --sourcecode")
-    ???:
-    <exit 0>
-
-    >>> run("guild ls", ignore="pyc")
+    >>> run("guild ls --sourcecode", ignore="pyc")
     ???:
       README.md
       a.py

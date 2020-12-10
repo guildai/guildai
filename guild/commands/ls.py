@@ -40,9 +40,6 @@ from . import runs_support
     "-n", "--no-format", is_flag=True, help="Show files without additional formatting."
 )
 @click.option(
-    "-x", "--extended", is_flag=True, help="Use shell specific extended formatting."
-)
-@click.option(
     "-h",
     "--human-readable",
     is_flag=True,

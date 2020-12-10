@@ -463,3 +463,11 @@ def marked_or_latest_run_for_opspec(opspec):
         return None
     else:
         return resolver.marked_or_latest_run([opref])
+
+
+def sourcecode_dir(run):
+    op_data = run.get("op", {})
+    sourcecode_root = op_data.get("sourcecode-root")
+    if sourcecode_root:
+        return os.path.normpath(os.path.join(run.dir, sourcecode_root))
+    return run.guild_path("sourcecode")

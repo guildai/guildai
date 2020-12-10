@@ -936,7 +936,6 @@ def _comment_runs_args(runs, list, add, delete, clear, user, yes, **filters):
 def _ls_args(
     run,
     all,
-    extended,
     follow_links,
     human_readable,
     no_format,
@@ -955,8 +954,6 @@ def _ls_args(
         args.append("-p")
     if sourcecode:
         args.append("--sourcecode")
-    if extended:
-        args.append("-x")
     if human_readable:
         args.append("-h")
     if run:

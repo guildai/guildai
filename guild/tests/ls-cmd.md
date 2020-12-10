@@ -1,74 +1,26 @@
 # ls command
 
-The ls command is used to list run files.
+The `ls` command is used to list run files. We use the `ls` project to
+generate runs we can test the `ls` command with.
 
-We'll use an args proxy to simulate command arguments.
+    >>> project = Project(sample("projects", "ls"))
 
-    >>> class Args(object):
-    ...   def __init__(self, run="1", path=None, full_path=False,
-    ...                no_format=None, follow_links=False, all=False,
-    ...                sourcecode=False, marked=False, unmarked=False,
-    ...                started=None, comments=None):
-    ...       self.run = run
-    ...       self.path = path
-    ...       self.full_path = full_path
-    ...       self.sourcecode = sourcecode
-    ...       self.no_format = no_format
-    ...       self.follow_links = follow_links
-    ...       self.all = all
-    ...       self.filter_ops = ()
-    ...       self.filter_labels = ()
-    ...       self.filter_tags = ()
-    ...       self.filter_comments = comments or ()
-    ...       self.filter_unlabeled = False
-    ...       self.filter_marked = marked
-    ...       self.filter_unmarked = unmarked
-    ...       self.filter_started = started
-    ...       self.remote = False
-    ...       self.filter_digest = None
-    ...       self.extended = False
-    ...       self.human_readable = False
+Generate a run.
 
-To test list with a run containing symbolic links, we need to generate
-a sample run dynamically. We can't use a sample directory structure
-with links because the links will not be preserved when the directory
-is packaged with setuptools.
+    >>> project.run("make_fs.py", run_id="aaaa")
 
-Let's create a sample run structure:
+    >>> project.list_runs()
+    [<guild.run.Run 'aaaa'>]
 
-    >>> from guild import run as runlib
-    >>> guild_home = mkdtemp()
-    >>> runs_home = join_path(guild_home, "runs")
-    >>> mkdir(runs_home)
-    >>> run = runlib.Run("run-1", join_path(runs_home, "run-1"))
-    >>> run.init_skel()
-    >>> run.write_encoded_opref("guildfile:. abc123 foo bar")
-    >>> touch(join_path(run.path, "a"))
-    >>> touch(join_path(run.path, "b"))
-    >>> mkdir(join_path(run.path, "c"))
-    >>> touch(join_path(run.path, "c", "d.txt"))
-    >>> touch(join_path(run.path, "c", "e.txt"))
-    >>> touch(join_path(run.path, "c", "f.bin"))
-    >>> symlink("c", join_path(run.path, "l"))
-    >>> touch(join_path(run.path, ".guild", "attrs", "exit_status"))
-    >>> touch(join_path(run.path, ".guild", "some-guild-file"))
-    >>> mkdir(join_path(run.path, ".guild", "sourcecode"))
-    >>> touch(join_path(run.path, ".guild", "sourcecode", "a.py"))
-    >>> touch(join_path(run.path, ".guild", "sourcecode", "guild.yml"))
+Helper function to run Guild commands for project runs.
 
-Here's a function that tests the ls command using sample runs.
+    >>> def guild_run(cmd):
+    ...     run("guild -H %s %s" % (project.guild_home, cmd))
 
-    >>> from guild import config
-    >>> from guild.commands import ls_impl
+By default ls prints all non-Guild files without following links.
 
-    >>> def ls(**kw):
-    ...     with config.SetGuildHome(guild_home):
-    ...         ls_impl.main(Args(**kw), None)
-
-By default ls prints all non-Guild files without following links:
-
-    >>> ls()
-    ???/runs/run-1:
+    >>> guild_run("ls")
+    ???/runs/aaaa:
       a
       b
       c/
@@ -76,32 +28,25 @@ By default ls prints all non-Guild files without following links:
       c/e.txt
       c/f.bin
       l/
+    <exit 0>
 
-We can list various paths:
+The directory header can be dropped with `-n, --no-format`.
 
-    >>> ls(path="a")
-    ???/runs/run-1:
-      a
+    >>> guild_run("ls -n")
+    a
+    b
+    c/
+    c/d.txt
+    c/e.txt
+    c/f.bin
+    l/
+    <exit 0>
 
-    >>> ls(path="c")
-    ???/runs/run-1:
-      c/
-      c/d.txt
-      c/e.txt
-      c/f.bin
+By default, Guild does not follow links in lists. Use `-L,
+--follow-links` to follow links.
 
-    >>> ls(path="*.txt")
-    ???/runs/run-1:
-      c/d.txt
-      c/e.txt
-
-    >>> ls(path="no-match")
-    ???/runs/run-1:
-
-Follow links:
-
-    >>> ls(follow_links=True)
-    ???/runs/run-1:
+    >>> guild_run("ls --follow-links")
+    ???/runs/aaaa:
       a
       b
       c/
@@ -112,48 +57,52 @@ Follow links:
       l/d.txt
       l/e.txt
       l/f.bin
+    <exit 0>
 
-    >>> ls(follow_links=True, path="*.bin")
-    ???/runs/run-1:
-      c/f.bin
-      l/f.bin
+Show the full path for a list with `--full-path`.
 
-Show without formatting:
+    >>> guild_run("ls --full-path")
+    ???/runs/aaaa/a
+    .../runs/aaaa/b
+    .../runs/aaaa/c
+    .../runs/aaaa/c/d.txt
+    .../runs/aaaa/c/e.txt
+    .../runs/aaaa/c/f.bin
+    .../runs/aaaa/l
+    <exit 0>
 
-    >>> ls(no_format=True)
-    a
-    b
-    c/
-    c/d.txt
-    c/e.txt
-    c/f.bin
-    l/
+List all files with `--all`.
 
-Show full path:
-
-    >>> ls(full_path=True)
-    /.../runs/run-1/a
-    /.../runs/run-1/b
-    /.../runs/run-1/c
-    /.../runs/run-1/c/d.txt
-    /.../runs/run-1/c/e.txt
-    /.../runs/run-1/c/f.bin
-    /.../runs/run-1/l
-
-Show all files, including Guild files:
-
-    >>> ls(all=True)
-    ???/runs/run-1:
+    >>> guild_run("ls --all")
+    ???/runs/aaaa:
       .guild/
       .guild/attrs/
+      .guild/attrs/cmd
+      .guild/attrs/deps
+      .guild/attrs/env
       .guild/attrs/exit_status
+      .guild/attrs/flags
+      .guild/attrs/host
       .guild/attrs/id
       .guild/attrs/initialized
+      .guild/attrs/op
+      .guild/attrs/pip_freeze
+      .guild/attrs/platform
+      .guild/attrs/random_seed
+      .guild/attrs/run_params
+      .guild/attrs/sourcecode_digest
+      .guild/attrs/started
+      .guild/attrs/stopped
+      .guild/attrs/user
+      .guild/attrs/user_flags
       .guild/opref
+      .guild/output
+      .guild/output.index
       .guild/some-guild-file
       .guild/sourcecode/
-      .guild/sourcecode/a.py
+      .guild/sourcecode/README.md
       .guild/sourcecode/guild.yml
+      .guild/sourcecode/make_fs.py
       a
       b
       c/
@@ -161,23 +110,170 @@ Show all files, including Guild files:
       c/e.txt
       c/f.bin
       l/
+    <exit 0>
 
-Show source code files:
+Follow links applies to `--all`.
 
-    >>> ls(sourcecode=True)
-    ???/runs/run-1/.guild/sourcecode:
-      a.py
+    >>> guild_run("ls --all -L")
+    ???/runs/aaaa:
+      .guild/
+      .guild/attrs/
+      .guild/attrs/cmd
+      .guild/attrs/deps
+      .guild/attrs/env
+      .guild/attrs/exit_status
+      .guild/attrs/flags
+      .guild/attrs/host
+      .guild/attrs/id
+      .guild/attrs/initialized
+      .guild/attrs/op
+      .guild/attrs/pip_freeze
+      .guild/attrs/platform
+      .guild/attrs/random_seed
+      .guild/attrs/run_params
+      .guild/attrs/sourcecode_digest
+      .guild/attrs/started
+      .guild/attrs/stopped
+      .guild/attrs/user
+      .guild/attrs/user_flags
+      .guild/opref
+      .guild/output
+      .guild/output.index
+      .guild/some-guild-file
+      .guild/sourcecode/
+      .guild/sourcecode/README.md
+      .guild/sourcecode/guild.yml
+      .guild/sourcecode/make_fs.py
+      a
+      b
+      c/
+      c/d.txt
+      c/e.txt
+      c/f.bin
+      l/
+      l/d.txt
+      l/e.txt
+      l/f.bin
+    <exit 0>
+
+And to `--full-path` options.
+
+    >>> guild_run("ls -Lf")
+    ???/runs/aaaa/a
+    .../runs/aaaa/b
+    .../runs/aaaa/c
+    .../runs/aaaa/c/d.txt
+    .../runs/aaaa/c/e.txt
+    .../runs/aaaa/c/f.bin
+    .../runs/aaaa/l
+    .../runs/aaaa/l/d.txt
+    .../runs/aaaa/l/e.txt
+    .../runs/aaaa/l/f.bin
+    <exit 0>
+
+List source code with `--sourcecode`.
+
+    >>> guild_run("ls --sourcecode")
+    ???/runs/aaaa/.guild/sourcecode:
+      README.md
       guild.yml
+      make_fs.py
+    <exit 0>
 
-Source code with fill path:
+Source code with full path.
 
-    >>> ls(sourcecode=True, full_path=True)
-    /.../runs/run-1/.guild/sourcecode
-    /.../runs/run-1/.guild/sourcecode/a.py
-    /.../runs/run-1/.guild/sourcecode/guild.yml
+    >>> guild_run("ls --sourcecode --full-path")
+    ???/runs/aaaa/.guild/sourcecode/README.md
+    .../runs/aaaa/.guild/sourcecode/guild.yml
+    .../runs/aaaa/.guild/sourcecode/make_fs.py
+    <exit 0>
 
-Source code with path:
+Results can be filtered using a `--path` option.
 
-    >>> ls(sourcecode=True, path="a.*")
-    ???/runs/run-1/.guild/sourcecode:
-      a.py
+    >>> guild_run("ls -p a")
+    ???/runs/aaaa:
+      a
+    <exit 0>
+
+    >>> guild_run("ls -p c --full-path")
+    ???/runs/aaaa/c
+    .../runs/aaaa/c/d.txt
+    .../runs/aaaa/c/e.txt
+    .../runs/aaaa/c/f.bin
+    <exit 0>
+
+    >>> guild_run("ls -p no-match")
+    ???/runs/aaaa:
+    <exit 0>
+
+Paths can use wildcard patterns.
+
+    >>> guild_run("ls -p '*.txt'")
+    ???/runs/aaaa:
+      c/d.txt
+      c/e.txt
+    <exit 0>
+
+Patterns apply through to following links.
+
+    >>> guild_run("ls -p '*.bin' -L")
+    ???/runs/aaaa:
+      c/f.bin
+      l/f.bin
+    <exit 0>
+
+Paths are applied to the source code location.
+
+    >>> guild_run("ls --sourcecode -p README")
+    ???/runs/aaaa/.guild/sourcecode:
+      README.md
+    <exit 0>
+
+    >>> guild_run("ls --sourcecode -p README -f")
+    ???/runs/aaaa/.guild/sourcecode/README.md
+    <exit 0>
+
+## Alt Source Code Dest
+
+The `alt-sourcecode` operation installs source code in the run
+directory root rather than under `.guild/sourcecode`.
+
+    >>> project.run("alt-sourcecode", run_id="bbbb")
+
+The `ls` command knows to look there for source code.
+
+    >>> guild_run("ls --sourcecode")
+    ???/runs/bbbb:
+      README.md
+      guild.yml
+      make_fs.py
+    <exit 0>
+
+The source code shows up in normal listings as it's no longer under
+the private `.guild` directory.
+
+    >>> guild_run("ls")
+    ???/runs/bbbb:
+      README.md
+      guild.yml
+      make_fs.py
+    <exit 0>
+
+`alt-sourcecode-2` installs source code in a `src` subdirectory.
+
+    >>> project.run("alt-sourcecode-2", run_id="cccc")
+
+    >>> guild_run("ls --sourcecode")
+    ???/runs/cccc/src:
+      README.md
+      guild.yml
+      make_fs.py
+    <exit 0>
+
+    >>> guild_run("ls")
+    ???/runs/cccc:
+      src/
+      src/README.md
+      src/guild.yml
+      src/make_fs.py
+    <exit 0>

@@ -48,7 +48,7 @@
 
     >>> run("guild ls --remote guild-uat --sourcecode",
     ...     ignore=["__pycache__", "say.pyc"]) # doctest: +REPORT_UDIFF
-    ???/.guild/sourcecode:
+    ~/sourcecode:
       README.md
       data/
       data/hello-2.txt
