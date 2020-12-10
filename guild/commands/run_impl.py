@@ -903,6 +903,8 @@ def _op_init_run_dir(args, op):
 
 
 def _op_run_dir_for_args(args):
+    if args.run_id:
+        return os.path.join(var.runs_dir(), args.run_id)
     if not args.run_dir:
         return None
     run_dir = os.path.abspath(args.run_dir)

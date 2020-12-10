@@ -123,6 +123,7 @@ def _popen_args(
     test_sourcecode=False,
     gpus=None,
     help_op=False,
+    run_id=None,
 ):
     from guild import op_util
 
@@ -204,6 +205,8 @@ def _popen_args(
         args.extend(["--gpus", str(gpus)])
     if help_op:
         args.append("--help-op")
+    if run_id:
+        args.extend(["--run-id", run_id])
     args.extend(op_util.flag_assigns(flags))
     args.extend(["@%s" % path for path in (batch_files or [])])
     env = dict(os.environ)

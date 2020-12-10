@@ -215,6 +215,7 @@ def _run_kw(args):
         "print_trials",
         "quiet",
         "remote",
+        "run_id",
         "run_dir",
         "save_trials",
         "set_trace",

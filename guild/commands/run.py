@@ -411,6 +411,7 @@ def run_params(fn):
             click.Option(
                 ("--test-flags",), help="Test flag configuration.", is_flag=True
             ),
+            click.Option(("--run-id",), hidden=True),
         ],
     )
     return fn
