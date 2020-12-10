@@ -1,2 +1,5 @@
+jupyter_contrib_nbextensions
+matplotlib
+nbdime
 notebook
 pandas

@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import argparse
+import base64
 import io
 import json
 import logging
@@ -57,9 +58,14 @@ def main():
             "unexpected args: %s",
             " ".join([util.shlex_quote(arg) for arg in other_args]),
         )
-    executed_notebook = _nbexec(args.notebook, flags, run)
-    _print_output(executed_notebook)
-    _nbconvert_html(executed_notebook)
+    run_notebook = _init_run_notebook(args.notebook, flags, run)
+    if args.no_exec or os.getenv("NB_NO_EXEC") == "1":
+        log.info("NB_NO_EXEC specified, skipping execute")
+        return
+    _nbexec(run_notebook)
+    _print_output(run_notebook)
+    _save_images(run_notebook)
+    _nbconvert_html(run_notebook)
 
 
 def _init_logging():
@@ -120,21 +126,24 @@ def _check_nbextensions():
         sys.exit(1)
 
 
-def _nbexec(notebook, flags, run):
-    working_notebook = _init_notebook(notebook, flags, run)
-    working_notebook_relpath = os.path.relpath(working_notebook)
+def _nbexec(notebook):
+    notebook_relpath = os.path.relpath(notebook)
     cmd = [
         "jupyter-nbconvert",
+        "-y",
+        "--log-level",
+        "WARN",
         "--to",
         "notebook",
         "--execute",
         "--inplace",
-        working_notebook_relpath,
+        notebook_relpath,
     ]
+    log.debug("jupyter-nbconvert cmd: %s", cmd)
+    log.info("Executing %s", notebook_relpath)
     returncode = subprocess.call(cmd)
     if returncode != 0:
         sys.exit(returncode)
-    return working_notebook
 
 
 def _init_run_notebook(notebook, flags, run):
@@ -163,26 +172,24 @@ def _find_notebook(notebook):
 def _apply_flags_to_notebook(state):
     nb_data = json.load(open(state.notebook_path))
     for cell in nb_data.get("cells", []):
-        _apply_flags_to_cell_source(cell, state)
+        if cell.get("cell_type") != "code":
+            continue
+        _apply_flags_to_code_source(cell, state)
     json.dump(nb_data, open(state.notebook_path, "w"))
 
 
-def _apply_flags_to_cell_source(cell, state):
-    try:
-        source_lines = cell["source"]
-    except KeyError:
-        pass
-    else:
-        repl_source_lines = _apply_flags_to_source_lines(source_lines, state)
-        cell["source"] = repl_source_lines
+def _apply_flags_to_code_source(cell, state):
+    source_lines = cell["source"]
+    repl_source_lines = _apply_flags_to_source_lines(source_lines, state)
+    cell["source"] = repl_source_lines
 
 
 def _apply_flags_to_source_lines(source_lines, state):
-    source = "".join(source_lines).rstrip()
+    source = "".join(source_lines)
     source = ipynb._ipython_to_python(source)
     source = _replace_flag_pattern_vals(source, state)
     source = _replace_flag_assign_vals(source, state)
-    return [line + "\n" for line in source.split("\n")]
+    return io.StringIO(source).readlines()
 
 
 def _replace_flag_pattern_vals(source, state):
@@ -367,20 +374,6 @@ def _token_pos_offset(t):
     return t[3][1] - t[2][1]
 
 
-def _nbexec(notebook):
-    cmd = [
-        "jupyter-nbconvert",
-        "--to",
-        "notebook",
-        "--execute",
-        "--inplace",
-        notebook,
-    ]
-    returncode = subprocess.call(cmd)
-    if returncode != 0:
-        sys.exit(returncode)
-
-
 def _print_output(notebook):
     for stream, out in _iter_notebook_output(notebook):
         stream.write(out)
@@ -406,14 +399,64 @@ def _iter_notebook_output(notebook):
                 yield sys.stdout, "\n"
 
 
+def _save_images(notebook):
+    if os.getenv("NB_NO_IMAGES") == "1":
+        return
+    logged = False
+    for filename, img_bytes in _iter_notebook_images(notebook):
+        if not logged:
+            log.info("Saving images")
+            logged = True
+        with open(filename, "wb") as f:
+            f.write(img_bytes)
+
+
+def _iter_notebook_images(notebook):
+    nb_data = json.load(open(notebook))
+    notebook_base = os.path.splitext(notebook)[0]
+    for cell in nb_data.get("cells", []):
+        if cell.get("cell_type") != "code":
+            continue
+        cell_execution_count = cell.get("execution_count", "?")
+        output_pos = 0
+        for output in cell["outputs"]:
+            if output.get("output_type") != "display_data":
+                continue
+            data = output.get("data", {})
+            encoded = data.get("image/png")
+            if not encoded:
+                continue
+            try:
+                img_bytes = base64.b64decode(encoded)
+            except Exception as e:
+                log.warning(
+                    "error decoding image at pos %i in In[%s]: %s",
+                    output_pos,
+                    cell_execution_count,
+                    e,
+                )
+            else:
+                filename = "%s_%s_%i.png" % (
+                    notebook_base,
+                    cell_execution_count,
+                    output_pos,
+                )
+                yield filename, img_bytes
+
+
 def _nbconvert_html(notebook):
     notebook_relpath = os.path.relpath(notebook)
     cmd = [
         "jupyter-nbconvert",
+        "-y",
+        "--log-level",
+        "WARN",
         "--to",
         "html",
         notebook_relpath,
     ]
+    log.debug("jupyter-nbconvert cmd: %s", cmd)
+    log.info("Saving HTML")
     returncode = subprocess.call(cmd)
     if returncode != 0:
         sys.exit(returncode)

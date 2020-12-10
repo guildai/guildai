@@ -1,0 +1,40 @@
+prediction-intervals:
+  description: Prediction intervals for gradient boosting regression
+  notebook: plot_gradient_boosting_quantile.ipynb
+  flags-import: all
+  flags:
+    alpha:
+      description:
+    estimators:
+      description: Number of boosting stages to perform.
+      nb-replace: n_estimators=(\d+)
+    loss-function:
+      description: Loss function to be optimized.
+      nb-replace: loss=([^,]+)
+      choices:
+        - value: ls
+          description: least squares regression
+        - value: lad
+          description: least absolute deviation
+        - value: huber
+          description: combines ls and lad
+        - value: quantile
+          description: allows quantile regression
+    max-tree-depth:
+      description: Maximum depth of the individual regression estimators.
+      nb-replace: max_depth=([\d+])
+    learning-rate:
+      description: Amount used to shrink contribution of each tree.
+      nb-replace: learning_rate=([\d.e-]+)
+    min-samples-leaf:
+      description: Minimum number of samples required to be at a leaf node.
+      nb-replace: min_samples_leaf=([\d+])
+    min-samples-split:
+      description: Minimum number of samples required to split an internal node.
+      nb-replace: min_samples_split=([\d]+)
+    test-split:
+      description: Percent of data used to test.
+      nb-replace: test_size=([\d.e-]+)
+
+  output-scalars:
+    accuracy: 'Out\[3\]: (\value)'

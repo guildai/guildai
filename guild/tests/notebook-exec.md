@@ -19,13 +19,13 @@ Helper functions:
     ...         for output in cell["outputs"]:
     ...             if output["output_type"] == "stream":
     ...                 for line in output["text"]:
-    ...                     print(line.rstrip())
+    ...                     sys.stdout.write(line)
 
 ## Replace Assignments
 
 The `flags.ipynb` uses a number of variable assignments.
 
-    >>> nb_source(path(project.cwd, "flags.ipynb"))
+    >>> nb_source(path(project.cwd, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     x = 1
     y = 2
     z = x + y
@@ -59,11 +59,14 @@ When we run this notebook, the defaults are used.
 
     >>> project.run("flags.ipynb")
     INFO: [guild] Initializing flags.ipynb for run
-    [NbConvertApp] Converting notebook .../flags.ipynb to notebook...
-    [NbConvertApp] Converting notebook .../flags.ipynb to html...
+    INFO: [guild] Executing flags.ipynb
+    z: 3
+    c: 1.100000
+    hello
+    INFO: [guild] Saving HTML
 
     >>> run = project.list_runs()[0]
-    >>> nb_source(path(run.dir, "flags.ipynb"))
+    >>> nb_source(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     x = 1
     y = 2
     z = x + y
@@ -77,7 +80,7 @@ When we run this notebook, the defaults are used.
     if f:
         print(s)
 
-    >>> nb_output(path(run.dir, "flags.ipynb"))
+    >>> nb_output(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     z: 3
     c: 1.100000
     hello
@@ -96,7 +99,7 @@ Run with different flag values.
     ... })
 
     >>> run = project.list_runs()[0]
-    >>> nb_source(path(run.dir, "flags.ipynb"))
+    >>> nb_source(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     x = 1.123
     y = 2
     z = x + y
@@ -122,18 +125,18 @@ Run with different flag values.
 The `add.ipynb` notebook requires the use of replacement patterns to
 set flag values.
 
-    >> nb_source(path(project.cwd, "add.ipynb"))
+    >> nb_source(path(project.cwd, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(1 + 2)
 
 While we can run the Notebook directly, we cannot affect the behavior.
 
     >> project.run("add.ipynb")
     INFO: [guild] Initializing add.ipynb for run
-    [NbConvertApp] Converting notebook .../add.ipynb to notebook...
-    [NbConvertApp] Converting notebook .../add.ipynb to html...
+    [NbConvertApp] Converting notebook add.ipynb to notebook...
+    [NbConvertApp] Converting notebook add.ipynb to html...
 
     >> run = project.list_runs()[0]
-    >> nb_source(path(run.dir, "add.ipynb"))
+    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(1 + 2)
 
     >> nb_output(path(run.dir, "add.ipynb"))
@@ -147,13 +150,13 @@ Run the operation with default values.
 
     >> project.run("add")
     INFO: [guild] Initializing add.ipynb for run
-    [NbConvertApp] Converting notebook .../add.ipynb to notebook...
-    [NbConvertApp] Converting notebook .../add.ipynb to html...
+    [NbConvertApp] Converting notebook add.ipynb to notebook...
+    [NbConvertApp] Converting notebook add.ipynb to html...
 
 The run Notebook reflexts the default flag values.
 
     >> run = project.list_runs()[0]
-    >> nb_source(path(run.dir, "add.ipynb"))
+    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(10 + 20)
 
     >> nb_output(path(run.dir, "add.ipynb"))
@@ -164,7 +167,7 @@ We can specify different values for `x` and `y`.
     >> project.run_quiet("add", flags={"x": 10, "y": -3})
 
     >> run = project.list_runs()[0]
-    >> nb_source(path(run.dir, "add.ipynb"))
+    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(10 + -3)
 
     >> nb_output(path(run.dir, "add.ipynb"))
@@ -190,7 +193,7 @@ float values for `x` and `y`.
     >> project.run_quiet("add", flags={"x": 1.1, "y": 2.2})
 
     >> run = project.list_runs()[0]
-    >> nb_source(path(run.dir, "add.ipynb"))
+    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(1.1 + 2)
 
     >> nb_output(path(run.dir, "add.ipynb"))
@@ -206,7 +209,7 @@ substitutions where possibly applicable.
 
     >> project.run("invalid_language.ipynb")
     INFO: [guild] Initializing invalid_language.ipynb for run
-    [NbConvertApp] Converting notebook .../invalid_language.ipynb to notebook
+    [NbConvertApp] Converting notebook invalid_language.ipynb to notebook
     Traceback (most recent call last):
     ...
     jupyter_client.kernelspec.NoSuchKernel: No such kernel named xxx

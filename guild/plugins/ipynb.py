@@ -19,6 +19,7 @@ import ast
 import json
 import logging
 import os
+import re
 
 import six
 
@@ -65,7 +66,7 @@ def _apply_notebook_flags(opdef, cache):
     notebook_path = _nbexec_notebook_path(opdef)
     if not notebook_path or not os.path.exists(notebook_path):
         return
-    flags_data = _flags_data_for_notebook(notebook_path, cache)
+    flags_data = _flags_data_for_notebook(notebook_path, opdef, cache)
     flag_util.apply_flags_data_to_op(flags_data, opdef)
 
 
@@ -108,18 +109,79 @@ def _init_modeldef(notebook_path, model_name, op_name):
     return gf.models[model_name]
 
 
-def _flags_data_for_notebook(notebook_path, cache=None):
+def _flags_data_for_notebook(notebook_path, opdef=None, cache=None):
     cache = cache or {}
     try:
         return cache[notebook_path]
     except KeyError:
-        data = dict(_iter_notebook_flag_data(notebook_path))
+        data = dict(_iter_notebook_flag_data(notebook_path, opdef))
         return cache.setdefault(notebook_path, data)
 
 
-def _iter_notebook_flag_data(notebook_path):
+def _iter_notebook_flag_data(notebook_path, opdef=None):
+    """Iterator that returns name, flag_data for notebooks flags.
+
+    Notebook flag data is derrived from inspecting the notebook for
+    global assigns and by applying replacement patterns optionally
+    provided by operation flag defs.
+
+    If opdef is provided and a flag provides a replacement patter, it
+    takes precedence over values from global assigns.
+    """
+    seen = set()
+    if opdef:
+        for name, val in _iter_notebook_flag_replacements(notebook_path, opdef):
+            yield name, _flag_data_for_val(val)
+            seen.add(name)
     for name, val in _iter_notebook_assigns(notebook_path):
-        yield name, _flag_data_for_val(val)
+        if not name in seen:
+            yield name, _flag_data_for_val(val)
+
+
+def _iter_notebook_flag_replacements(notebook_path, opdef):
+    nb_data = _load_notebook(notebook_path)
+    if not nb_data:
+        return
+    for src in _iter_notebook_source(nb_data):
+        for name, val in _iter_replacements_for_source(src, opdef):
+            yield name, val
+
+
+def _iter_replacements_for_source(src, opdef):
+    for flagdef in opdef.flags:
+        nb_replace = flagdef.extra.get("nb-replace")
+        if not nb_replace:
+            continue
+        try:
+            m = re.search(nb_replace, src, re.MULTILINE)
+        except ValueError:
+            pass
+        else:
+            if m and m.regs:
+                val_str = _replacement_capture(m, src)
+                try:
+                    val = eval(val_str)
+                except Exception as e:
+                    if log.getEffectiveLevel() < logging.DEBUG:
+                        log.exception("evaluating captured string %r", val_str)
+                    else:
+                        log.warning("cannot decode captured string %r: %s", val_str, e)
+                else:
+                    yield flagdef.name, val
+
+
+def _replacement_capture(m, s):
+    start_slice, end_slice = _replacement_capture_slice(m)
+    return s[start_slice:end_slice]
+
+
+def _replacement_capture_slice(m):
+    if len(m.regs) == 1:
+        # If no capture groups, assume entire capture.
+        return m.regs[0]
+    else:
+        # Use the first capture group.
+        return m.regs[1]
 
 
 def _iter_notebook_assigns(notebook_path):
@@ -153,7 +215,14 @@ def _ipython_to_python(source):
         raise MissingIPython()
     else:
         isp = IPythonInputSplitter(line_input_checker=False)
-        return isp.transform_cell(source)
+        python_source = isp.transform_cell(source)
+        return _fix_ipython_to_python_lf(python_source, source)
+
+
+def _fix_ipython_to_python_lf(ipython_s, python_s):
+    if python_s[-1:] != "\n" and ipython_s[-1:] == "\n":
+        return ipython_s[:-1]
+    return ipython_s
 
 
 def _load_notebook(path):

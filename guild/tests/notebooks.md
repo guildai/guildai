@@ -327,10 +327,17 @@ not.
 
 Using `_apply_flags_to_source_lines`:
 
-    >>> _apply_flags_to_source_lines(["%cd ~\n", "%pwd\n"], _ApplyFlagsStateProxy({}, {}))
-    ["get_ipython().magic('cd ~')\n",
-     "get_ipython().magic('pwd')\n",
-     '\n']
+    >>> _apply_flags_to_source_lines(
+    ...     ["%cd ~\n", "%pwd"],
+    ...     _ApplyFlagsStateProxy({}, {}))  # doctest: -PY2
+    ["get_ipython().run_line_magic('cd', '~')\n", "get_ipython().run_line_magic('pwd', '')"]
+
+Python 2:
+
+    >>> _apply_flags_to_source_lines(
+    ...     ["%cd ~\n", "%pwd"],
+    ...     _ApplyFlagsStateProxy({}, {}))  # doctest: -PY3
+    ["get_ipython().magic('cd ~')\n", "get_ipython().magic('pwd')"]
 
 This works with flag assignments as well.
 
@@ -340,7 +347,9 @@ A helper function:
     ...     lines = [line + "\n" for line in source.split("\n")]
     ...     state = _ApplyFlagsStateProxy(flags, {})
     ...     repl_lines = _apply_flags_to_source_lines(lines, state)
-    ...     print("".join(repl_lines))
+    ...     sys.stdout.write("".join(repl_lines))
+
+Mixed code including magics:
 
     >>> apply_flags_to_lines("""
     ... %autoreload
@@ -350,7 +359,28 @@ A helper function:
     ... !ls
     ... for _ in range(count):
     ...     print(msg)
-    ... """, count=2, msg="hello")
+    ... """, count=2, msg="hello")  # doctest: -NORMALIZE_WHITESPACE -PY2
+    <BLANKLINE>
+    get_ipython().run_line_magic('autoreload', '')
+    # A comment
+    count = 2
+    msg = 'hello'
+    get_ipython().system('ls')
+    for _ in range(count):
+        print(msg)
+
+Python 2:
+
+    >>> apply_flags_to_lines("""
+    ... %autoreload
+    ... # A comment
+    ... count = 1
+    ... msg = "hi"
+    ... !ls
+    ... for _ in range(count):
+    ...     print(msg)
+    ... """, count=2, msg="hello")  # doctest: -NORMALIZE_WHITESPACE -PY3
+    <BLANKLINE>
     get_ipython().magic('autoreload')
     # A comment
     count = 2
@@ -358,3 +388,4 @@ A helper function:
     get_ipython().system('ls')
     for _ in range(count):
         print(msg)
+    <BLANKLINE>
