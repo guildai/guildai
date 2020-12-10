@@ -839,7 +839,7 @@ def _run_info_args(run, env, deps, all_scalars, json, comments, **filters):
     return args
 
 
-def _check_args(tensorflow, pytorch, verbose, offline, space, version):
+def _check_args(tensorflow, pytorch, verbose, offline, space, version, env):
     args = []
     if tensorflow:
         args.append("--tensorflow")
@@ -853,6 +853,8 @@ def _check_args(tensorflow, pytorch, verbose, offline, space, version):
         args.append("--space")
     if version:
         args.extend(["--version", version])
+    if env:
+        args.append("--env")
     return args
 
 

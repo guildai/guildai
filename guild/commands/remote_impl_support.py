@@ -302,6 +302,7 @@ def check(args):
 
 def _check_kw(args):
     names = [
+        "env",
         "offline",
         "pytorch",
         "space",
