@@ -44,6 +44,12 @@ class Run(object):
         self.path = path
         self._guild_dir = os.path.join(self.path, ".guild")
         self._opref = None
+        self._props = util.PropertyCache(
+            [
+                ("timestamp", None, self._get_timestamp, 1.0),
+                ("pid", None, self._get_pid, 1.0),
+            ]
+        )
 
     @property
     def short_id(self):
@@ -86,6 +92,9 @@ class Run(object):
 
     @property
     def pid(self):
+        return self._props.get("pid")
+
+    def _get_pid(self):
         lockfile = self.guild_path("LOCK")
         try:
             raw = open(lockfile, "r").read(10)
@@ -118,8 +127,15 @@ class Run(object):
 
     @property
     def timestamp(self):
+        return self._props.get("timestamp")
+
+    def _get_timestamp(self):
         return util.find_apply(
-            [lambda: self.get("started"), lambda: self.get("initialized"), lambda: None]
+            [
+                lambda: self.get("started"),
+                lambda: self.get("initialized"),
+                lambda: None,
+            ]
         )
 
     @property

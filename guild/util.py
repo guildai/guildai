@@ -1649,6 +1649,30 @@ def raise_from(raise_exc, from_exc):
         exec("raise raise_exc_type, raise_exc, tb")
 
 
+class PropertyCache(object):
+    def __init__(self, properties):
+        self._vals = {
+            name: default for name, default, _callback, _timeout in properties
+        }
+        self._expirations = {
+            name: 0 for name, _default, _callback, _timeout in properties
+        }
+        self._timeouts = {
+            name: timeout for name, _default, _callback, timeout in properties
+        }
+        self._callbacks = {
+            name: callback for name, _default, callback, _timeout in properties
+        }
+
+    def get(self, name, *args, **kw):
+        if time.time() < self._expirations[name]:
+            return self._vals[name]
+        val = self._callbacks[name](*args, **kw)
+        self._vals[name] = val
+        self._expirations[name] = time.time() + self._timeouts[name]
+        return val
+
+
 def patch_yaml_resolver():
     """Patch yaml parsing to support Guild specific resolution rules.
 
