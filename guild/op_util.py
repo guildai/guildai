@@ -60,6 +60,8 @@ RESTART_NEEDED_STATUS = ("pending",)
 DEFAULT_PROC_POLL_INTERVAL = 5
 DEFAULT_PROC_KILL_DELAY = 30
 
+NoCurrentRun = _api.NoCurrentRun
+
 try:
     bytes('')
 except TypeError:

@@ -177,6 +177,7 @@ def _run_kw(args):
         "comment",
         "fail_on_trial_error",
         "flags",
+        "force_deps",
         "force_flags",
         "force_sourcecode",
         "gpus",
