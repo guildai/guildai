@@ -972,10 +972,10 @@ def _diff_args(
     flags,
     attrs,
     deps,
-    path,
+    paths,
     cmd,
     working,
-    working_dir,
+    dir,
     **filters
 ):
     args = _filter_and_status_args(**filters)
@@ -991,13 +991,13 @@ def _diff_args(
         args.append("--attrs")
     if deps:
         args.append("--deps")
-    if path:
-        args.extend(["--path"] + list(path))
+    for path in paths:
+        args.extend(["--path", path])
     args.extend(["--cmd", cmd or DEFAULT_DIFF_CMD])
     if working:
         args.append("--working")
-    if working_dir:
-        args.extend(["--working-dir", working_dir])
+    if dir:
+        args.extend(["--dir", dir])
     args.extend(runs)
     return args
 

@@ -39,6 +39,10 @@ def _ac_path(args, ctx, **_kw):
     return click_util.completion_run_filepath(dir_base)
 
 
+def _ac_dir(**_kw):
+    return click_util.completion_dir()
+
+
 def _ctx_for_partial_path_args(args, ctx):
     """Return a context for partial path args.
 
@@ -64,14 +68,14 @@ def _diff_dir_base(ctx):
     from . import diff_impl
 
     args = _diff_args_for_ctx(ctx)
-    if args.working_dir:
-        return args.working_dir
+    if args.dir:
+        return args.dir
     run = _run_to_diff(args, ctx)
     if not run:
         return []
     if args.working:
         return click_util.completion_safe_apply(
-            ctx, diff_impl._find_run_working_dir, [run]
+            ctx, diff_impl._working_dir_for_run, [run]
         )
     if args.sourcecode:
         return run.guild_path("sourcecode")
@@ -119,12 +123,12 @@ def diff_params(fn):
                     "attribute options are ignored."
                 ),
             ),
-            click.Option(("-d", "--deps"), is_flag=True, help="Diff run dependencies."),
+            click.Option(("-D", "--deps"), is_flag=True, help="Diff run dependencies."),
             click.Option(
-                ("-p", "--path"),
+                ("-p", "--path", "paths"),
                 metavar="PATH",
                 multiple=True,
-                help="Diff specified path; may be used more than once.",
+                help="Diff specified path. May be used more than once.",
                 autocompletion=_ac_path,
             ),
             click.Option(
@@ -133,9 +137,10 @@ def diff_params(fn):
                 help="Diff run sourcecode to the associated working directory.",
             ),
             click.Option(
-                ("-W", "--working-dir"),
+                ("-d", "--dir"),
                 metavar="PATH",
-                help="Diff run sourcecode to the specified directory.",
+                help="Diff run to the specified directory.",
+                autocompletion=_ac_dir,
             ),
             click.Option(
                 ("-c", "--cmd"),

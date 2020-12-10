@@ -502,14 +502,14 @@ def _diff_kw(args):
         "attrs",
         "cmd",
         "deps",
+        "dir",
         "env",
         "flags",
         "output",
-        "path",
+        "paths",
         "runs",
         "sourcecode",
         "working",
-        "working_dir",
     ]
     ignore = [
         "remote",

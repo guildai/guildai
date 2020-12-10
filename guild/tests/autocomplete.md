@@ -295,7 +295,7 @@ Paths used for `diff` depend on a number of other arguments:
 
 - Default or explicit runs
 - If --sourcecode is specified
-- If --working or --working-dir is specified
+- If --working or --dir is specified
 
 We return to the autocomplete project and its associated runs.
 
@@ -330,15 +330,15 @@ the first run.
     >>> ac_diff_paths(["aaa", "bbb"])
     !!runfiles:.../runs/aaa
 
-Working dir is always used as the base dir when specified.
+Dir is always used as the base dir when specified.
 
-    >>> ac_diff_paths(["--working-dir", "xxx"])
+    >>> ac_diff_paths(["--dir", "xxx"])
     !!runfiles:xxx
 
-    >>> ac_diff_paths(["--working-dir", "xxx", "aaa"])
+    >>> ac_diff_paths(["--dir", "xxx", "aaa"])
     !!runfiles:xxx
 
-    >>> ac_diff_paths(["--working-dir", "xxx", "aaa", "bbb"])
+    >>> ac_diff_paths(["--dir", "xxx", "aaa", "bbb"])
     !!runfiles:xxx
 
 The `--working` option indicates the base is the project drectory.
