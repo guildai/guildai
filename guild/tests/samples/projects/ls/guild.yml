@@ -1,0 +1,9 @@
+alt-sourcecode:
+  main: guild.pass
+  sourcecode:
+    dest: .
+
+alt-sourcecode-2:
+  main: guild.pass
+  sourcecode:
+    dest: src
