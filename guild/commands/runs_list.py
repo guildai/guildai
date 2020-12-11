@@ -48,6 +48,7 @@ def runs_list_options(fn):
                 ("-A", "--archive"),
                 metavar="DIR",
                 help="Show archived runs in DIR.",
+                autocompletion=click_util.completion_dir,
             ),
             click.Option(("-c", "--comments"), help="Show run comments.", is_flag=True),
             click.Option(("-v", "--verbose"), help="Show run details.", is_flag=True),
