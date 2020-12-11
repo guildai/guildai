@@ -16,7 +16,7 @@ Generate sample runs for S3 tests.
 
 Assert locally available runs:
 
-    >> run("guild runs")
+    >>> run("guild runs")
     [1:...]  hello:hello  ...  completed  run-2
     [2:...]  hello:hello  ...  completed  run-1
     <exit 0>

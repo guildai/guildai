@@ -125,21 +125,22 @@ Run with different flag values.
 The `add.ipynb` notebook requires the use of replacement patterns to
 set flag values.
 
-    >> nb_source(path(project.cwd, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >>> nb_source(path(project.cwd, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(1 + 2)
 
 While we can run the Notebook directly, we cannot affect the behavior.
 
-    >> project.run("add.ipynb")
+    >>> project.run("add.ipynb")
     INFO: [guild] Initializing add.ipynb for run
-    [NbConvertApp] Converting notebook add.ipynb to notebook...
-    [NbConvertApp] Converting notebook add.ipynb to html...
+    INFO: [guild] Executing add.ipynb
+    3
+    INFO: [guild] Saving HTML
 
-    >> run = project.list_runs()[0]
-    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >>> run = project.list_runs()[0]
+    >>> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(1 + 2)
 
-    >> nb_output(path(run.dir, "add.ipynb"))
+    >>> nb_output(path(run.dir, "add.ipynb"))
     3
 
 To modify this notebook for a run, we need to define an operation with
@@ -148,29 +149,30 @@ the values `1` and `2` as flags `x` and `y` respectively.
 
 Run the operation with default values.
 
-    >> project.run("add")
+    >>> project.run("add")
     INFO: [guild] Initializing add.ipynb for run
-    [NbConvertApp] Converting notebook add.ipynb to notebook...
-    [NbConvertApp] Converting notebook add.ipynb to html...
+    INFO: [guild] Executing add.ipynb
+    30
+    INFO: [guild] Saving HTML
 
 The run Notebook reflexts the default flag values.
 
-    >> run = project.list_runs()[0]
-    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >>> run = project.list_runs()[0]
+    >>> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(10 + 20)
 
-    >> nb_output(path(run.dir, "add.ipynb"))
+    >>> nb_output(path(run.dir, "add.ipynb"))
     30
 
 We can specify different values for `x` and `y`.
 
-    >> project.run_quiet("add", flags={"x": 10, "y": -3})
+    >>> project.run_quiet("add", flags={"x": 10, "y": -3})
 
-    >> run = project.list_runs()[0]
-    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >>> run = project.list_runs()[0]
+    >>> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(10 + -3)
 
-    >> nb_output(path(run.dir, "add.ipynb"))
+    >>> nb_output(path(run.dir, "add.ipynb"))
     7
 
 Flag values are applied in lexical order. As flag values change the
@@ -178,25 +180,25 @@ Notebook source as they are applied, subsequent patterns may end up
 not matching as expected. Consider the patterns for `x` and `y` in the
 `add` operation.
 
-    >> gf = guildfile.for_dir(project.cwd)
-    >> add_op = gf.default_model.get_operation("add")
+    >>> gf = guildfile.for_dir(project.cwd)
+    >>> add_op = gf.default_model.get_operation("add")
 
-    >> add_op.get_flagdef("x").extra["nb-replace"]
+    >>> add_op.get_flagdef("x").extra["nb-replace"]
     'print\\((\\d+) \\+ \\d+\\)'
 
-    >> add_op.get_flagdef("y").extra["nb-replace"]
+    >>> add_op.get_flagdef("y").extra["nb-replace"]
     'print\\(\\d+ \\+ (\\d+)\\)'
 
 Note that the patterns match only integer values. Let's run `add` with
 float values for `x` and `y`.
 
-    >> project.run_quiet("add", flags={"x": 1.1, "y": 2.2})
+    >>> project.run_quiet("add", flags={"x": 1.1, "y": 2.2})
 
-    >> run = project.list_runs()[0]
-    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >>> run = project.list_runs()[0]
+    >>> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(1.1 + 2)
 
-    >> nb_output(path(run.dir, "add.ipynb"))
+    >>> nb_output(path(run.dir, "add.ipynb"))
     3.1
 
 The value for `y` is not changed in this case. This is because the
@@ -207,9 +209,9 @@ substitutions where possibly applicable.
 
 ## Errors
 
-    >> project.run("invalid_language.ipynb")
+    >>> project.run("invalid_language.ipynb")
     INFO: [guild] Initializing invalid_language.ipynb for run
-    [NbConvertApp] Converting notebook invalid_language.ipynb to notebook
+    INFO: [guild] Executing invalid_language.ipynb
     Traceback (most recent call last):
     ...
     jupyter_client.kernelspec.NoSuchKernel: No such kernel named xxx

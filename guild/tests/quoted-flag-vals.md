@@ -140,7 +140,7 @@ To pass through as string, they must be quoted.
     ...     "f4": '{"a": [1,2,3], "b": 123, "c": {1,2,3}}}'
     ... }
 
-    >> project.run("globals.py", flag_vals, print_cmd=True)
+    >>> project.run("globals.py", flag_vals, print_cmd=True)
     ??? -um guild.op_main globals
             --f2 "'{"a": 1.123, "b": 2.234}'"
             --f3 "'{1,2,3}'"
