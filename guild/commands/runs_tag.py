@@ -29,7 +29,7 @@ def _ac_tag(ctx, incomplete, **_kw):
 
     tags = set()
     ctx.params["runs"] = ctx.args or ["1"]
-    for run in runs_support.ac_runs_for_ctx(ctx):
+    for run in runs_support.runs_for_ctx(ctx):
         tags.update(_safe_list(run.get("tags")))
     return [t for t in sorted(tags) if t.startswith(incomplete)]
 

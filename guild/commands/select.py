@@ -49,7 +49,7 @@ _RUN_UTIL_FORMAT_ATTRS = [
 
 def _ac_attr(incomplete, ctx, **_kw):
     attrs = set(_RUN_UTIL_FORMAT_ATTRS)
-    runs = runs_support.ac_runs_for_ctx(ctx)
+    runs = runs_support.runs_for_ctx(ctx)
     if runs:
         attrs.update(runs[0].attr_names())
     return sorted([name for name in attrs if name.startswith(incomplete)])

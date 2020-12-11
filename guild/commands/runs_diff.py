@@ -30,49 +30,37 @@ def _ac_cmd(ctx, **_kw):
 
 
 def _ac_path(args, ctx, **_kw):
-    ctx = _ctx_for_partial_path_args(args, ctx)
+    ctx = runs_support.fix_ac_ctx_for_args(ctx, args)
     if ctx.params.get("remote"):
         return []
+    if _has_non_path_options(ctx.params):
+        return []
+    if not ctx.params["runs"]:
+        ctx.params["runs"] = ("1",)
     dir_base = _diff_dir_base(ctx)
     if not dir_base:
         return []
     return click_util.completion_run_filepath(dir_base)
 
 
-def _ac_dir(**_kw):
-    return click_util.completion_dir()
-
-
-def _ctx_for_partial_path_args(args, ctx):
-    """Return a context for partial path args.
-
-    Click's "resilient parsing" mode for creating a context from args
-    appears to not handle the runs args for path completions. To
-    workaround we provide a missing path arg.
-    """
-    args_proxy = []
-    found_diff = False
-    for val in args:
-        if not found_diff:
-            found_diff = val == "diff"
-            continue
-        args_proxy.append(val)
-        if val in ("-p", "--path"):
-            args_proxy.append("dummy")
-    new_ctx = diff_runs.make_context("", args_proxy, resilient_parsing=True)
-    new_ctx.parent = ctx.parent
-    return new_ctx
+def _has_non_path_options(params):
+    return (
+        params.get("env")
+        or params.get("flags")
+        or params.get("attrs")
+        or params.get("deps")
+    )
 
 
 def _diff_dir_base(ctx):
     from . import diff_impl
 
-    args = _diff_args_for_ctx(ctx)
+    args = click_util.Args(**ctx.params)
     if args.dir:
         return args.dir
-    run = _run_to_diff(args, ctx)
+    run = _run_to_diff(ctx)
     if not run:
-        return []
+        return None
     if args.working:
         return click_util.completion_safe_apply(
             ctx, diff_impl._working_dir_for_run, [run]
@@ -82,21 +70,13 @@ def _diff_dir_base(ctx):
     return run.dir
 
 
-def _diff_args_for_ctx(ctx):
-    args = click_util.Args(**ctx.params)
-    args.runs = args.runs or ()
-    return args
+def _run_to_diff(ctx):
+    runs = runs_support.runs_for_ctx(ctx)
+    return runs[0] if runs else None
 
 
-def _run_to_diff(args, ctx):
-    from . import diff_impl
-    from . import runs_impl
-
-    def f():
-        diff_impl._apply_default_runs(args)
-        return runs_impl.one_run(diff_impl.OneRunArgs(args, args.runs[0]), ctx)
-
-    return click_util.completion_safe_apply(ctx, f, [])
+def _ac_dir(**_kw):
+    return click_util.completion_dir()
 
 
 def diff_params(fn):

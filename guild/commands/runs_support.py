@@ -25,28 +25,66 @@ from guild import click_util
 log = logging.getLogger("guild")
 
 
+def fix_ac_ctx_for_args(ctx, args):
+    """Fixes ctx to ensure ctx.params reflects provided args."""
+    cmd_args = _cmd_args(args, ctx)
+    fixed_args = _fix_args_for_resilient_parsing(cmd_args)
+    fixed_ctx = ctx.command.make_context("", fixed_args, resilient_parsing=True)
+    fixed_ctx.parent = ctx.parent
+    return fixed_ctx
+
+
+def _cmd_args(args, ctx):
+    cmd_path = ctx.command_path.split(" ")
+    assert cmd_path and cmd_path[0] == "guild", cmd_path
+    assert args[: len(cmd_path) - 1] == cmd_path[1:], (args, cmd_path)
+    return args[len(cmd_path) - 1 :]
+
+
+def _fix_args_for_resilient_parsing(args):
+    """Fixes args for use by Click's resilient parsing.
+
+    If the last argument is missing a value, the Click command does
+    not properly parse arguments. In this case we append a dummy
+    argument that serves as a placeholder for the parser. As resilient
+    parsing is assumed, the dummy option is not validated.
+    """
+    if args and args[-1][0] == "-":
+        return args + ["dummy"]
+    return args
+
+
 def ac_run(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
-    runs = ac_runs_for_ctx(ctx)
+    runs = runs_for_ctx(ctx)
     return sorted([run.id for run in runs if run.id.startswith(incomplete)])
 
 
-def ac_runs_for_ctx(ctx):
+def runs_for_ctx(ctx):
     from guild import config
     from . import runs_impl
 
-    kw = dict(ctx.params)
-    _apply_run_or_runs_args(ctx, kw)
-    param_args = click_util.Args(**kw)
-    _ensure_runs_arg(param_args)
+    args = _runs_args_for_ctx(ctx)
     with config.SetGuildHome(ctx.parent.params.get("guild_home")):
-        return runs_impl.runs_for_args(param_args, ctx=ctx)
+        try:
+            return runs_impl.runs_for_args(args, ctx=ctx)
+        except SystemExit:
+            # Raised when cannot find runs for args.
+            return []
 
 
-def _ensure_runs_arg(args):
+def _runs_args_for_ctx(ctx):
+    args = click_util.Args(**ctx.params)
     if not hasattr(args, "runs"):
-        args.runs = [args.run] if hasattr(args, "run") and args.run else []
+        assert hasattr(args, "run"), "missing runs or run param in %s" % ctx.params
+        args.runs = (args.run,) if args.run else ()
+    return args
+
+
+def run_for_ctx(ctx):
+    runs = runs_for_ctx(ctx)
+    return runs[0] if runs else None
 
 
 def ac_operation(ctx, incomplete, **_kw):
@@ -54,7 +92,7 @@ def ac_operation(ctx, incomplete, **_kw):
 
     if ctx.params.get("remote"):
         return []
-    runs = ac_runs_for_ctx(ctx)
+    runs = runs_for_ctx(ctx)
     ops = set([run_util.format_operation(run, nowarn=True) for run in runs])
     return sorted([op for op in ops if op.startswith(incomplete)])
 
@@ -62,7 +100,7 @@ def ac_operation(ctx, incomplete, **_kw):
 def ac_label(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
-    runs = ac_runs_for_ctx(ctx)
+    runs = runs_for_ctx(ctx)
     labels = set([run.get("label") or "" for run in runs])
     return sorted([_quote_label(l) for l in labels if l and l.startswith(incomplete)])
 
@@ -76,7 +114,7 @@ def ac_tag(ctx, incomplete, **_kw):
         return []
     # Reset tags to avoid limiting results based on selected tags.
     ctx.params["tags"] = []
-    runs = ac_runs_for_ctx(ctx)
+    runs = runs_for_ctx(ctx)
     return [tag for tag in _all_tags_sorted(runs) if tag.startswith(incomplete)]
 
 
@@ -90,54 +128,9 @@ def _all_tags_sorted(runs):
 def ac_digest(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
-    runs = ac_runs_for_ctx(ctx)
+    runs = runs_for_ctx(ctx)
     digests = set([run.get("sourcecode_digest") or "" for run in runs])
     return sorted([d for d in digests if d and d.startswith(incomplete)])
-
-
-def ac_run_dirpath(ctx, **_kw):
-    if ctx.params.get("remote"):
-        return []
-    args = click_util.Args(**ctx.params)
-    run = _one_run(ctx)
-    if not run:
-        return []
-    if getattr(args, "sourcecode", None):
-        return click_util.completion_run_dirpath(run.guild_path("sourcecode"))
-    else:
-        return click_util.completion_run_dirpath(
-            run.dir, all=getattr(args, "all", None)
-        )
-
-
-def _one_run(ctx):
-    from . import runs_impl
-
-    kw = dict(ctx.params)
-    _apply_run_or_runs_args(ctx, kw)
-    return click_util.completion_safe_apply(
-        ctx, runs_impl.one_run, [click_util.Args(**kw), ctx]
-    )
-
-
-def _apply_run_or_runs_args(ctx, kw):
-    if "run" in ctx.params:
-        kw["run"] = ctx.args[0] if ctx.args else None
-    elif "runs" in ctx.params:
-        kw["runs"] = ctx.args
-
-
-def ac_run_filepath(ctx, **_kw):
-    if ctx.params.get("remote"):
-        return []
-    args = click_util.Args(**ctx.params)
-    run = _one_run(ctx)
-    if not run:
-        return []
-    if getattr(args, "sourcecode", None):
-        return click_util.completion_run_filepath(run.guild_path("sourcecode"))
-    else:
-        return click_util.completion_run_filepath(run.dir)
 
 
 def runs_arg(fn):
@@ -177,7 +170,15 @@ def run_arg(fn):
 
     """
     click_util.append_params(
-        fn, [click.Argument(("run",), required=False, autocompletion=ac_run)]
+        fn,
+        [
+            click.Argument(
+                ("run",),
+                metavar="[RUN]",
+                required=False,
+                autocompletion=ac_run,
+            )
+        ],
     )
     return fn
 

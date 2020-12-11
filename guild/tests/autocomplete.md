@@ -57,23 +57,7 @@ Providing a prefix limits the tests shown.
     runs-2
     !!file:*.@(md|txt)
 
-## Runs Support
-
-Auto completion support for run-specific commands is provided by
-`guild.commands.runs_support`.
-
-    >>> from guild.commands import runs_support
-
-With the exception of `-S, --started`, each filter that accepts a
-value supports auto completion. These include:
-
- - `-o, --operation`
- - `-l, --label`
- - `-d, --digest`
-
-In addition, the `RUN` arguments support autocompletion of applicable
-run IDs. Filters are applied to limit the available run IDs in auto
-complete.
+## Runs Init
 
 To illustate the various auto completion scenarions, we generate a
 number of runs.
@@ -89,87 +73,248 @@ number of runs.
 
 A helper to show completions:
 
-    >>> def cmd_ac(cmd, ac_f, args, incomplete):
+    >>> def cmd_ac(cmd, param_name, args, incomplete=""):
     ...     from guild.commands import main
-    ...     ctx = cmd.make_context("", args, resilient_parsing=True)
-    ...     ctx.parent = main.main.make_context("", ["-H", project.guild_home])
+    ...     ac_f = None
+    ...     param_opt = None
+    ...     for param in cmd.params:
+    ...         if param.name == param_name:
+    ...             assert param.autocompletion, param.name
+    ...             ac_f = param.autocompletion
+    ...             param_opt = param.opts[0]
+    ...             break
+    ...     assert ac_f, param_name
+    ...     assert param_opt, param_name
+    ...     ctx = cmd.make_context(cmd.name, list(args), resilient_parsing=True)
+    ...     ctx.parent = main.main.make_context("guild", ["-H", project.guild_home])
+    ...     ac_args = [cmd.name] + args
+    ...     if param_opt[0] == "-":
+    ...         ac_args.append(param_opt)  # simulate the actual partial args for ac
+    ...     empty = True
     ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         for val in ac_f(ctx=ctx, incomplete=incomplete):
+    ...         for val in ac_f(args=ac_args, ctx=ctx, incomplete=incomplete):
     ...             print(val)
+    ...             empty = False
+    ...     if empty:
+    ...         print("<empty>")
 
-We need a command to parse arguments. We use `cat`, which supports all
-of the run filters and accepts a RUN arg.
+
+## Completions for `cat`
 
     >>> from guild.commands import cat
 
-### Run completion
+### `cat` run arg
 
-Runs for no args:
+Run completion for no args:
 
-    >>> cmd_ac(cat.cat, runs_support.ac_run, [], "")
+    >>> cmd_ac(cat.cat, "run", [])
     aaa
     bbb
     ccc
 
-Runs for incomplete:
+Run completion with incomplete"
 
-    >>> cmd_ac(cat.cat, runs_support.ac_run, [], "a")
+    >>> cmd_ac(cat.cat, "run", [], "a")
     aaa
 
-    >>> cmd_ac(cat.cat, runs_support.ac_run, [], "bb")
-    bbb
+Run completion with run arg:
 
-Runs for ops:
-
-    >>> cmd_ac(cat.cat, runs_support.ac_run, ["-o", "a"], "")
+    >>> cmd_ac(cat.cat, "run", ["a"])
     aaa
 
-    >>> cmd_ac(cat.cat, runs_support.ac_run, ["-o", "a", "-o", "c"], "")
+Run completion with op filter:
+
+    >>> cmd_ac(cat.cat, "run", ["-Fo", "a"])
     aaa
-    ccc
 
-### Operation completion
+Run completion with no possible matching runs:
 
-Ops for no args:
+    >>> cmd_ac(cat.cat, "run", ["aaabbbccc"])
+    <empty>
 
-    >>> cmd_ac(cat.cat, runs_support.ac_operation, [], "")
-    a
-    b
-    c
+### `cat` path
 
-### Label completion
+Path completions for no args:
+
+    >>> cmd_ac(cat.cat, "path", [])
+    !!runfiles:.../runs/ccc
+
+Path completions for a run arg:
+
+    >>> cmd_ac(cat.cat, "path", ["bbb"])
+    !!runfiles:.../runs/bbb
+
+Path completions using an operation filter:
+
+    >>> cmd_ac(cat.cat, "path", ["-Fo", "a"])
+    !!runfiles:.../runs/aaa
+
+Path completion with `--sourcecode` option:
+
+    >>> cmd_ac(cat.cat, "path", ["-Fo", "b", "--sourcecode"])
+    !!runfiles:.../runs/bbb/.guild/sourcecode
+
+
+### `cat` label
 
 Labels for no args:
 
-    >>> cmd_ac(cat.cat, runs_support.ac_label, [], "")
+    >>> cmd_ac(cat.cat, "filter_labels", [])
     "msg=a"
     "msg=b"
     "msg=c"
 
 Labels for incomplete:
 
-    >>> cmd_ac(cat.cat, runs_support.ac_label, [], "a")
+    >>> cmd_ac(cat.cat, "filter_labels", [], "msg=")
+    "msg=a"
+    "msg=b"
+    "msg=c"
 
-### Digest completion
+    >>> cmd_ac(cat.cat, "filter_labels", [], "msg=c")
+    "msg=c"
+
+Labels for operation filter:
+
+    >>> cmd_ac(cat.cat, "filter_labels", ["-Fo", "a", "-Fo", "b"])
+    "msg=a"
+    "msg=b"
+
+### `cat` digest
 
 Digests for no args:
 
-    >>> cmd_ac(cat.cat, runs_support.ac_digest, [], "")
+    >>> cmd_ac(cat.cat, "filter_digest", [])
     0fc1636e7d3653be41f89833776cdb8b
 
-### Path completion
+## Completions for `ls`
 
-Note that cat.cat only uses `ac_run_filepath` but we use it to verify
-support for `ac_run_dirpath` as a convenience. Both completion
-functions can be tested this way.
+    >>> from guild.commands import ls
 
-    >>> cmd_ac(cat.cat, runs_support.ac_run_filepath, [], "")
+### `ls` run arg
+
+Runs completion for no args:
+
+    >>> cmd_ac(ls.ls, "run", [])
+    aaa
+    bbb
+    ccc
+
+Run completion for run arg:
+
+    >>> cmd_ac(ls.ls, "run", ["cc"])
+    ccc
+
+Run completion for incomplete:
+
+    >>> cmd_ac(ls.ls, "run", [], "a")
+    aaa
+
+Run completion for no matching runs:
+
+    >>> cmd_ac(ls.ls, "run", [], "z")
+    <empty>
+
+### `ls` path
+
+Path completion for no args:
+
+    >>> cmd_ac(ls.ls, "path", [])
     !!runfiles:.../runs/ccc
 
-    >>> cmd_ac(cat.cat, runs_support.ac_run_dirpath, [], "")
-    !!rundirs:.../runs/ccc
+Path completion for valid run arg:
 
-## `run`
+    >>> cmd_ac(ls.ls, "path", ["2"])
+    !!runfiles:.../runs/bbb
+
+Path completion for `--sourcecode` option.
+
+    >>> cmd_ac(ls.ls, "path", ["--sourcecode"])
+    !!runfiles:.../runs/ccc/.guild/sourcecode
+
+## Completions for `diff`
+
+    >>> from guild.commands import diff
+
+### `runs` arg
+
+    >>> cmd_ac(diff.diff, "runs", [])
+    aaa
+    bbb
+    ccc
+
+### `paths` args
+
+No args - completes paths for latest run:
+
+    >>> cmd_ac(diff.diff, "paths", [])
+    !!runfiles:.../runs/ccc
+
+A run is specified:
+
+    >>> cmd_ac(diff.diff, "paths", ["2"])
+    !!runfiles:.../runs/bbb
+
+The first run is used for completions when two runs are specified.
+
+    >>> cmd_ac(diff.diff, "paths", ["aaa", "bbb"])
+    !!runfiles:.../runs/aaa
+
+Source code paths:
+
+    >>> cmd_ac(diff.diff, "paths", ["--sourcecode"])
+    !!runfiles:.../runs/ccc/.guild/sourcecode
+
+    >>> cmd_ac(diff.diff, "paths", ["b", "--sourcecode"])
+    !!runfiles:.../bbb/.guild/sourcecode
+
+    >>> cmd_ac(diff.diff, "paths", ["--sourcecode", "b"])
+    !!runfiles:.../bbb/.guild/sourcecode
+
+    >>> cmd_ac(diff.diff, "paths", ["aaa", "bbb", "--sourcecode"])
+    !!runfiles:.../runs/aaa/.guild/sourcecode
+
+Path completion with `--working` refers to project path:
+
+    >>> cmd_ac(diff.diff, "paths", ["--working"])
+    !!runfiles:.../samples/projects/autocomplete/
+
+    >>> cmd_ac(diff.diff, "paths", ["--working", "-Fo", "a"])
+    !!runfiles:.../samples/projects/autocomplete/
+
+    >>> cmd_ac(diff.diff, "paths", ["--working", "aaa", "bbb"])
+    !!runfiles:.../samples/projects/autocomplete/
+
+Completions with `--dir` refer to the specified dir:
+
+    >>> cmd_ac(diff.diff, "paths", ["--dir", "foo"])
+    !!runfiles:foo
+
+Various other options that don't work with path:
+
+    >>> cmd_ac(diff.diff, "paths", ["--env", "a"])
+    <empty>
+
+    >>> cmd_ac(diff.diff, "paths", ["--flags", "c"])
+    <empty>
+
+    >>> cmd_ac(diff.diff, "paths", ["--attrs"])
+    <empty>
+
+    >>> cmd_ac(diff.diff, "paths", ["--deps"])
+    <empty>
+
+### `dir` arg
+
+    >>> cmd_ac(diff.diff, "dir", [])
+    !!dir
+
+### `cmd` arg
+
+    >>> cmd_ac(diff.diff, "cmd", [])
+    !!command
+
+## Completions for `run`
 
 Autocomplete support for the run command is provided by `_ac_xxx`
 function in `guild.commands.run`.
@@ -182,25 +327,18 @@ We use the `optimizers` project to illustrate.
 
 A helper to show completions:
 
-    >>> def run_ac(ac_f, args, incomplete):
-    ...     from guild.commands import main
-    ...     ctx = run.run.make_context("", args, resilient_parsing=True)
-    ...     ctx.parent = main.main.make_context("", ["-H", project.guild_home])
-    ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         with Chdir(project.cwd):
-    ...             for val in ac_f(ctx=ctx, incomplete=incomplete):
-    ...                 print(val)
+    >>> def run_ac(param_name, args, incomplete=""):
+    ...     with Chdir(project.cwd):
+    ...         cmd_ac(run.run, param_name, args, incomplete)
 
 ### Op spec
-
-Op spec completion is handled by `_ac_opspec`.
 
 An op spec can be either an available operation or a Python script.
 
 If we don't specify anything for opspec we get the list of defined
 operations.
 
-    >>> run_ac(run._ac_opspec, [], "")
+    >>> run_ac("opspec", [])
     !!no-colon-wordbreak
     echo
     fail
@@ -221,42 +359,41 @@ If we specify something for opspec, we get matching ops and
 scripts. Scripts are represented by the `!!file` directive, which is
 used by the bash completion handlers to find matching files.
 
-    >>> run_ac(run._ac_opspec, [], "echo")
+    >>> run_ac("opspec", [], "echo")
     !!no-colon-wordbreak
     echo
     !!file:*
 
 ### Flags
 
-Flag completion is handled by `_ac_flag`. All flag completions contain
-a `!!nospace` directive to allow the user to enter a value for flag
-after the equals sign.
+All flag completions contain a `!!nospace` directive to allow the user
+to enter a value for flag after the equals sign.
 
 If a project has a default operation, flags are listed for it.
 
-    >>> run_ac(run._ac_flag, [], "")
+    >>> run_ac("flags", [])
     noise=
+    x=
+    !!nospace
+
+With incomplete:
+
+    >>> run_ac("flags", [], "x")
     x=
     !!nospace
 
 Provide an explicit operation.
 
-    >>> run_ac(run._ac_flag, ["echo"], "")
+    >>> run_ac("flags", ["echo"])
     x=
     y=
     z=
     !!nospace
 
-Incomplete values limit the completions.
-
-    >>> run_ac(run._ac_flag, ["echo"], "x")
-    x=
-    !!nospace
-
 When choices are available, they are shown once the flag is
 identified.
 
-    >>> run_ac(run._ac_flag, ["echo"], "z=")
+    >>> run_ac("flags", ["echo"], "z=")
     a
     b
     c
@@ -264,133 +401,24 @@ identified.
 
 Choices are limited as well.
 
-    >>> run_ac(run._ac_flag, ["echo"], "z=d")
+    >>> run_ac("flags", ["echo"], "z=d")
     d
 
 If a flag starts with '@' it's considered a batch file. In this case
 completion is handled by the `!!batchfile` directive.
 
-    >>> run_ac(run._ac_flag, ["echo"], "@")
+    >>> run_ac("flags", ["echo"], "@")
     !!batchfile:*.@(csv|yaml|yml|json)
 
-## `diff`
-
-Auto completion for the `diff` command is handled by
-`guild.commands.runs_diff`.
-
-    >>> from guild.commands import runs_diff
-
-### Diff program
-
-The diff program is resolved using a `!!command` directive.
-
-    >>> ctx = runs_diff.diff_runs.make_context("", [])
-    >>> with Env({"_GUILD_COMPLETE": "complete"}):
-    ...     print(runs_diff._ac_cmd(ctx))
-    ['!!command']
-
-### Path
-
-Paths used for `diff` depend on a number of other arguments:
-
-- Default or explicit runs
-- If --sourcecode is specified
-- If --working or --dir is specified
-
-We return to the autocomplete project and its associated runs.
-
-    >>> project = ac_project
-
-A helper to print path completions:
-
-    >>> def ac_diff_paths(args):
-    ...     from guild.commands import main
-    ...     ctx = runs_diff.diff_runs.make_context("", list(args))
-    ...     ctx.parent = main.main.make_context("", ["-H", project.guild_home])
-    ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         for path in runs_diff._ac_path(["diff"] + args, ctx):
-    ...             print(path)
-
-Paths are resolved using the `!!runfiles` directive. The base dir
-differs according to the current set of diff arguments.
-
-The default uses the second-to-last run as the base.
-
-    >>> ac_diff_paths([])
-    !!runfiles:...runs/bbb
-
-Specifying a single run to diff isn't a valid command so there are no
-completions.
-
-    >>> ac_diff_paths(["aaa"])
-
-When we specify two runs, as required, completions are provided for
-the first run.
-
-    >>> ac_diff_paths(["aaa", "bbb"])
-    !!runfiles:.../runs/aaa
-
-Dir is always used as the base dir when specified.
-
-    >>> ac_diff_paths(["--dir", "xxx"])
-    !!runfiles:xxx
-
-    >>> ac_diff_paths(["--dir", "xxx", "aaa"])
-    !!runfiles:xxx
-
-    >>> ac_diff_paths(["--dir", "xxx", "aaa", "bbb"])
-    !!runfiles:xxx
-
-The `--working` option indicates the base is the project drectory.
-
-    >>> ac_diff_paths(["--working"])
-    !!runfiles:.../samples/projects/autocomplete/
-
-    >>> ac_diff_paths(["--working", "aaa"])
-    !!runfiles:.../samples/projects/autocomplete/
-
-Specifying two runs with `--working` is not valid so we get no
-completions.
-
-    >>> ac_diff_paths(["--working", "aaa", "bbb"])
-
-The `--sourcecode` option uses the selected run source code directory.
-
-    >>> ac_diff_paths(["--sourcecode"])
-    !!runfiles:.../runs/bbb/.guild/sourcecode
-
-Specifying a single run is not value.
-
-    >>> ac_diff_paths(["--sourcecode", "aaa"])
-
-    >>> ac_diff_paths(["--sourcecode", "aaa", "bbb"])
-    !!runfiles:.../runs/aaa/.guild/sourcecode
-
-## `operations`
-
-Completion for `operations` is provided by
-`guild.commands.operations`.
+## Completions `operations`
 
     >>> from guild.commands import operations
 
-`_ac_operation` resolves available operations, which are applied as
-filters.
+### Filter arg
 
-We use the `optimizers` project to illustrate.
+Default:
 
-    >>> project = Project(sample("projects", "optimizers"))
-
-Helper to print completions:
-
-    >>> def ops_ac(incomplete):
-    ...     ctx = operations.operations.make_context("", [])
-    ...     with SetCwd(project.cwd):
-    ...         for op in operations._ac_operation(ctx, incomplete):
-    ...             print(op)
-
-Empty incomplete:
-
-    >>> ops_ac("")
+    >>> cmd_ac(operations.operations, "filters", [])
     echo
     fail
     noisy
@@ -403,15 +431,24 @@ Empty incomplete:
     tune-echo
     tune-echo-2
 
-Various incompletes:
+Filters limit ops:
 
-    >>> ops_ac("opt-")
+    >>> cmd_ac(operations.operations, "filters", ["opt-"])
     opt-test-1
     opt-test-2
     opt-test-3
     opt-test-4
 
-    >>> ops_ac("x")
+As do incomplets:
+
+    >>> cmd_ac(operations.operations, "filters", [], "opt-")
+    opt-test-1
+    opt-test-2
+    opt-test-3
+    opt-test-4
+
+    >>> cmd_ac(operations.operations, "filters", [], "x")
+    <empty>
 
 ## `export`
 
