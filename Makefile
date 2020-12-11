@@ -114,3 +114,6 @@ coverage:
 	make coverage-check
 	make coverage-annotate
 	make coverage-report
+
+disabled-tests:
+	@find guild/tests -name '*.md' | xargs grep -HE '^ *>> ' || true
