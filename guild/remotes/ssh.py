@@ -338,7 +338,7 @@ class SSHRemote(remotelib.Remote):
             pidfile=_noquote(pidfile),
             quiet=True,
             yes=True,
-            **opts,
+            **opts
         )
         env = {
             "PYTHONPATH": python_path,
@@ -939,14 +939,7 @@ def _comment_runs_args(runs, list, add, delete, clear, user, yes, **filters):
 
 
 def _ls_args(
-    run,
-    all,
-    follow_links,
-    human_readable,
-    no_format,
-    path,
-    sourcecode,
-    **filters,
+    run, all, follow_links, human_readable, no_format, path, sourcecode, **filters
 ):
     args = _filter_and_status_args(**filters)
     if all:
@@ -978,7 +971,7 @@ def _diff_args(
     cmd,
     working,
     dir,
-    **filters,
+    **filters
 ):
     args = _filter_and_status_args(**filters)
     if output:
