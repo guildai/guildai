@@ -338,7 +338,7 @@ class SSHRemote(remotelib.Remote):
             pidfile=_noquote(pidfile),
             quiet=True,
             yes=True,
-            **opts
+            **opts,
         )
         env = {
             "PYTHONPATH": python_path,
@@ -946,7 +946,7 @@ def _ls_args(
     no_format,
     path,
     sourcecode,
-    **filters
+    **filters,
 ):
     args = _filter_and_status_args(**filters)
     if all:
@@ -978,7 +978,7 @@ def _diff_args(
     cmd,
     working,
     dir,
-    **filters
+    **filters,
 ):
     args = _filter_and_status_args(**filters)
     if output:
