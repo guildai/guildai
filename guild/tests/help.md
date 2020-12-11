@@ -204,8 +204,8 @@ We strip ansi formatting for test output.
     >>> print(util.strip_ansi_format(console_help))  # doctest: +REPORT_UDIFF -NORMALIZE_WHITESPACE
     OVERVIEW
     <BLANKLINE>
-        You are viewing help for operations defined in './samples/projects
-        /mnist-pkg'.
+        You are viewing help for operations defined in...
+        .../mnist-pkg'.
     <BLANKLINE>
         To run an operation use 'guild run OPERATION' where OPERATION is one
         of options listed below. If an operation is associated with a model,
