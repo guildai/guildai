@@ -92,8 +92,12 @@ def _list(dir, args):
 
 
 def _maybe_rm_guild_dir(dirs, args):
-    if not args.all:
+    if not args.all and not _wants_guild_files(args.path):
         _rm_guild_dir(dirs)
+
+
+def _wants_guild_files(path):
+    return path and path.startswith(".guild")
 
 
 def _rm_guild_dir(dirs):

@@ -73,7 +73,7 @@ Show the full path for a list with `--full-path`.
 
 List all files with `--all`.
 
-    >>> guild_run("ls --all")
+    >>> guild_run("ls --all")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
       .guild/
       .guild/attrs/
@@ -95,6 +95,7 @@ List all files with `--all`.
       .guild/attrs/stopped
       .guild/attrs/user
       .guild/attrs/user_flags
+      .guild/attrs/vcs_commit
       .guild/opref
       .guild/output
       .guild/output.index
@@ -112,9 +113,35 @@ List all files with `--all`.
       l/
     <exit 0>
 
+If `--path` wants Guild files, `--all` is implied.
+
+    >>> guild_run("ls --path .guild/att")  # doctest: +REPORT_UDIFF
+    ???/runs/aaaa:
+      .guild/attrs/
+      .guild/attrs/cmd
+      .guild/attrs/deps
+      .guild/attrs/env
+      .guild/attrs/exit_status
+      .guild/attrs/flags
+      .guild/attrs/host
+      .guild/attrs/id
+      .guild/attrs/initialized
+      .guild/attrs/op
+      .guild/attrs/pip_freeze
+      .guild/attrs/platform
+      .guild/attrs/random_seed
+      .guild/attrs/run_params
+      .guild/attrs/sourcecode_digest
+      .guild/attrs/started
+      .guild/attrs/stopped
+      .guild/attrs/user
+      .guild/attrs/user_flags
+      .guild/attrs/vcs_commit
+    <exit 0>
+
 Follow links applies to `--all`.
 
-    >>> guild_run("ls --all -L")
+    >>> guild_run("ls --all -L")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
       .guild/
       .guild/attrs/
@@ -136,6 +163,7 @@ Follow links applies to `--all`.
       .guild/attrs/stopped
       .guild/attrs/user
       .guild/attrs/user_flags
+      .guild/attrs/vcs_commit
       .guild/opref
       .guild/output
       .guild/output.index
