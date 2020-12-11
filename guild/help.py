@@ -421,7 +421,7 @@ def _format_flag_desc(flag, max_flag_len):
     if flag.choices:
         lines.append(_format_flag_choices(flag.choices, max_flag_len))
     if len(lines) > 1:
-        return "\n\n".join(lines) + "\n\b\n"
+        return "\n\n".join(lines)
     else:
         return lines[0]
 

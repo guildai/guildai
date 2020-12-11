@@ -12,6 +12,11 @@
     clones:
       description: Number of clones to deploy to
       null-label: calculated
+      choices:
+        - calculate
+        - 1
+        - 2
+        - 5
 
 - config: default-eval-flags
   flags:
