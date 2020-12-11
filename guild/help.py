@@ -462,15 +462,33 @@ def _format_flag_choices_dl(choices, out):
 
 
 def _format_flag_choices_value_list(choices, out):
+    out.write_dl([("Choices:", _format_choice_list(choices))])
+
+
+def _format_choice_list(choices):
     vals = [c.alias or c.value for c in choices]
     fmt_vals = flag_util.encode_flag_val(vals)
-    out.write_dl([("Choices:", _strip_list_brackets(fmt_vals))])
+    return _strip_list_brackets(fmt_vals)
 
 
 def _strip_list_brackets(fmt_vals):
     if fmt_vals[:1] == "[" and fmt_vals[-1:] == "]":
         return fmt_vals[1:-1]
     return fmt_vals
+
+
+def flag_edit_help(flagdef):
+    lines = []
+    if flagdef.description:
+        lines.append(flagdef.description.split("\n", 1)[0])
+    if flagdef.choices:
+        lines.append("Choices: %s" % _format_choice_list(flagdef.choices))
+    return "\n".join(lines)
+
+
+def _format_flag_choices_for_edit(choices):
+    choices_help = _format_flag_choices(choices, 0)
+    return choices_help.replace("\b", "").strip()
 
 
 def _write_references(refs, out):

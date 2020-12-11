@@ -520,10 +520,10 @@ def _apply_dep_run_id_to_list(run_id, l):
 
 
 def _edit_op_flags(op):
-    encoded_flags = util.encode_yaml(op._op_flag_vals)
+    encoded_flags = _encode_flags_with_help(op._op_flag_vals, op._opdef)
     while True:
         # Loop to let user re-edit on error.
-        edited = util.edit(encoded_flags)
+        edited = util.edit(encoded_flags, extension=".yml")
         if edited is None or not edited.strip():
             break
         try:
@@ -535,6 +535,28 @@ def _edit_op_flags(op):
         else:
             op._op_flag_vals = flag_vals
             break
+
+
+def _encode_flags_with_help(vals, opdef):
+    if not opdef:
+        return util.encode_yaml(vals)
+    lines = []
+    prev_help = None
+    for name, val in sorted(vals.items()):
+        flag_help = _format_flag_help(opdef.get_flagdef(name))
+        if prev_help or flag_help and lines:
+            lines.append("")
+        lines.append("%s: %s" % (util.encode_yaml(name), util.encode_yaml(val)))
+        if flag_help:
+            lines.extend(["  # %s" % line for line in flag_help.split("\n")])
+        prev_help = flag_help
+    return "\n".join(lines)
+
+
+def _format_flag_help(flagdef):
+    if not flagdef:
+        return None
+    return helplib.flag_edit_help(flagdef)
 
 
 # =================================================================
