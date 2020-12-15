@@ -1,4 +1,10 @@
-# S3 push/pull
+# S3 remote
+
+We use `guild-uat-s3` remote for these tests.
+
+    >>> run("guild remote status guild-uat-s3")
+    guild-uat-s3 (S3 bucket ...) is available
+    <exit 0>
 
 Generate sample runs for S3 tests.
 
