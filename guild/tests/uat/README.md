@@ -308,3 +308,4 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [remote-ssh-stage-and-queue](remote-queue-and-stage.md)
 - [remote-deps](remote-deps.md)
 - [remote-s3](remote-s3.md)
+- [remote-azure-blob](remote-azure-blob.md)

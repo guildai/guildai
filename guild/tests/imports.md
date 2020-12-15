@@ -199,6 +199,7 @@
     guild.remote_run_support
     guild.remote_util
     guild.remotes.__init__
+    guild.remotes.azure_blob
     guild.remotes.ec2
     guild.remotes.s3
     guild.remotes.ssh
