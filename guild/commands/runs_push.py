@@ -39,7 +39,13 @@ def push_params(fn):
             ),
         ],
     )
+    _set_remote_ac_local_runs(fn)
     return fn
+
+
+def _set_remote_ac_local_runs(fn):
+    assert fn.__click_params__[-2].name == "runs", fn.__click_params__
+    fn.__click_params__[-2].autocompletion = runs_support.ac_local_run
 
 
 @click.command("push")

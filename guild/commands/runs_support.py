@@ -61,6 +61,11 @@ def ac_run(ctx, incomplete, **_kw):
     return sorted([run.id for run in runs if run.id.startswith(incomplete)])
 
 
+def ac_local_run(ctx, incomplete, **_kw):
+    runs = runs_for_ctx(ctx)
+    return sorted([run.id for run in runs if run.id.startswith(incomplete)])
+
+
 def runs_for_ctx(ctx):
     from guild import config
     from . import runs_impl
