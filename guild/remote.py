@@ -15,9 +15,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import guild.config
+from guild import config as configlib
+from guild import entry_point_util
 
 from guild import opref
+
+_remote_types = entry_point_util.EntryPointResources("guild.remotetypes", "remotetype")
 
 
 class NoSuchRemote(ValueError):
@@ -200,7 +203,7 @@ class Remote(object):
 
 
 def for_name(name):
-    user_config = guild.config.user_config()
+    user_config = configlib.user_config()
     remotes = user_config.get("remotes", {})
     try:
         remote = remotes[name]
@@ -213,25 +216,9 @@ def for_name(name):
 
 
 def _for_type(remote_type, name, config):
-    # Hard-code for now. If this goes anywhere we can make it an
-    # entry-point or use the plugin framework.
-    if remote_type == "ssh":
-        from guild.remotes import ssh
-
-        cls = ssh.SSHRemote
-    elif remote_type == "ec2":
-        from guild.remotes import ec2
-
-        cls = ec2.EC2Remote
-    elif remote_type == "s3":
-        from guild.remotes import s3
-
-        cls = s3.S3Remote
-    elif remote_type == "mock-ssh":
-        from guild.remotes import ssh
-
-        cls = ssh.MockSSHRemote
-    else:
+    try:
+        T = _remote_types.one_for_name(remote_type)
+    except LookupError:
         raise UnsupportedRemoteType(remote_type)
-    remote = cls(name, config)
-    return remote
+    else:
+        return T(name, config)

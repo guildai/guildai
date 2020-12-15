@@ -33,6 +33,14 @@ from . import ssh_util
 log = logging.getLogger("guild.remotes.ec2")
 
 
+class EC2RemoteType(object):
+    def __init__(self, _ep):
+        pass
+
+    def __call__(self, name, config):
+        return EC2Remote(name, config)
+
+
 class EC2Remote(ssh_remote.SSHRemote):
     def __init__(self, name, config):
         self.name = name

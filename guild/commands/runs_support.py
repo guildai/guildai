@@ -159,7 +159,10 @@ def runs_arg(fn):
         fn,
         [
             click.Argument(
-                ("runs",), metavar="[RUN...]", nargs=-1, autocompletion=ac_run
+                ("runs",),
+                metavar="[RUN...]",
+                nargs=-1,
+                autocompletion=ac_run,
             )
         ],
     )

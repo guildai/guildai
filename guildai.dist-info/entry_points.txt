@@ -24,3 +24,9 @@ guildfile = guild.model:GuildfileNamespace
 [guild.python.flags]
 
 click = guild.plugins.click_flags:ClickFlags
+
+[guild.remotetypes]
+
+ssh = guild.remotes.ssh:SSHRemoteType
+ec2 = guild.remotes.ec2:EC2RemoteType
+s3 = guild.remotes.s3:S3RemoteType

@@ -40,6 +40,14 @@ log = logging.getLogger("guild.remotes.ssh")
 DEFAULT_DIFF_CMD = "diff -ru"
 
 
+class SSHRemoteType(object):
+    def __init__(self, _ep):
+        pass
+
+    def __call__(self, name, config):
+        return SSHRemote(name, config)
+
+
 class SSHRemote(remotelib.Remote):
     def __init__(self, name, config):
         self.name = name

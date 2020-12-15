@@ -37,6 +37,14 @@ RUNS_PATH = ["runs"]
 DELETED_RUNS_PATH = ["trash", "runs"]
 
 
+class S3RemoteType(object):
+    def __init__(self, _ep):
+        pass
+
+    def __call__(self, name, config):
+        return S3Remote(name, config)
+
+
 class S3Remote(remotelib.Remote):
     def __init__(self, name, config):
         self.name = name
