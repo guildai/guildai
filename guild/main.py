@@ -27,13 +27,6 @@ from guild.commands import main as main_cmd
 
 
 def main():
-    if os.getenv("PROFILE"):
-        _profile_main()
-    else:
-        _main()
-
-
-def _main():
     _configure_help_formatter()
     try:
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
@@ -89,22 +82,3 @@ def system_exit_params(e):
     else:
         msg, code = e.message, exit_code.DEFAULT_ERROR
     return msg, code
-
-
-def _profile_main():
-    import cProfile
-    import tempfile
-
-    p = cProfile.Profile()
-    sys.stderr.write("Profiling command\n")
-    p.enable()
-    try:
-        _main()
-    finally:
-        p.disable()
-        _, tmp = tempfile.mkstemp(prefix="guild-profile-")
-        sys.stderr.write("Writing guild profile stats to %s\n" % tmp)
-        p.dump_stats(tmp)
-        sys.stderr.write(
-            "Use 'python -m pstats %s' or 'snakeviz %s' " "to view stats\n" % (tmp, tmp)
-        )
