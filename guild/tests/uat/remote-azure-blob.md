@@ -57,6 +57,30 @@ List remote runs:
     [2:...]  hello  ...  completed  run-1
     <exit 0>
 
+Show remote run info.
+
+    >>> run("guild runs info -r guild-uat-azure-blob")
+    [2mSynchronizing runs with guild-uat-azure-blob[0m
+    id: ...
+    operation: hello
+    from: .../examples/hello/guild.yml
+    status: completed
+    started: ...
+    stopped: ...
+    marked: no
+    label: run-2
+    sourcecode_digest: ...
+    vcs_commit:...
+    run_dir: ...
+    command: ...
+    exit_status: 0
+    pid:
+    tags:
+    flags:
+      msg: hello run-2
+    scalars:
+    <exit 0>
+
 Prompt to delete remote runs:
 
     >>> run("guild runs rm -r guild-uat-azure-blob", timeout=10)
