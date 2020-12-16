@@ -6,7 +6,7 @@ arguments.
 
 Our test limit:
 
-    >>> START_THRESHOLD = float(os.getenv("GUILD_START_THRESHOLD") or 0.2)
+    >>> START_THRESHOLD = float(os.getenv("GUILD_START_THRESHOLD") or 0.15)
 
 Imports used below:
 
@@ -87,7 +87,7 @@ Expected output (Guidl help):
 Our run time for the `guild` command:
 
     >>> run_time = time1 - time0
-    >>> run_time <= START_THRESHOLD, run_time
+    >>> run_time <= START_THRESHOLD, (run_time, START_THRESHOLD)
     (True, ...)
 
 If this test fails, look at the following:
