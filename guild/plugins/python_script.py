@@ -480,7 +480,7 @@ def _is_other_guild_plugin(main_spec):
 
 
 def _encode_splittable_list(l):
-    return " ".join([util.shlex_quote(yaml.encode_val(x)) for x in l])
+    return " ".join([util.shlex_quote(yaml_util.encode_yaml(x)) for x in l])
 
 
 def _flags_import_disabled(opdef):
