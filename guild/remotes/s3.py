@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import hashlib
 import itertools
 import logging
 import os
@@ -26,6 +25,7 @@ import uuid
 from guild import click_util
 from guild import log as loglib
 from guild import remote as remotelib
+from guild import remote_util
 from guild import util
 from guild import var
 
@@ -37,12 +37,33 @@ RUNS_PATH = ["runs"]
 DELETED_RUNS_PATH = ["trash", "runs"]
 
 
-class S3RemoteType(object):
+class S3RemoteType(remotelib.RemoteType):
     def __init__(self, _ep):
         pass
 
-    def __call__(self, name, config):
+    def remote_for_config(self, name, config):
         return S3Remote(name, config)
+
+    def remote_for_spec(self, spec):
+        bucket, root = _parse_spec(spec)
+        assert root.startswith("/")
+        name = "s3:%s%s" % (bucket, root)
+        config = remotelib.RemoteConfig(
+            {
+                "bucket": bucket,
+                "root": root,
+            }
+        )
+        return S3Remote(name, config)
+
+
+def _parse_spec(spec):
+    parts = spec.split("/", 1)
+    if len(parts) == 1:
+        return parts[0], "/"
+    else:
+        assert len(parts) == 2, parts
+        return parts[0], "/" + parts[1]
 
 
 class S3Remote(remotelib.Remote):
@@ -57,9 +78,7 @@ class S3Remote(remotelib.Remote):
         self._deleted_runs_dir = os.path.join(lsd, *DELETED_RUNS_PATH)
 
     def _local_sync_dir(self):
-        base_dir = var.remote_dir(self.name)
-        uri_hash = hashlib.md5(self._s3_uri().encode()).hexdigest()
-        return os.path.join(base_dir, "meta", uri_hash)
+        return remote_util.local_meta_dir(self.name, self._s3_uri())
 
     def _s3_uri(self, *subpath):
         joined_path = _join_path(self.root, *subpath)
@@ -103,7 +122,7 @@ class S3Remote(remotelib.Remote):
             "meta-id",
             "--delete",
         ]
-        self._s3_cmd("sync", sync_args, to_stderr=True)
+        self._s3_cmd("sync", sync_args, quiet=True)
 
     def _meta_current(self):
         local_id = self._local_meta_id()
@@ -154,14 +173,14 @@ class S3Remote(remotelib.Remote):
             env.update(self.env)
         return env
 
-    def _s3_cmd(self, name, args, to_stderr=False):
+    def _s3_cmd(self, name, args, quiet=False):
         cmd = [_aws_cmd()]
         if self.region:
             cmd.extend(["--region", self.region])
         cmd.extend(["s3", name] + args)
         log.debug("aws cmd: %r", cmd)
         try:
-            _subprocess_call(cmd, to_stderr, self._cmd_env())
+            remote_util.subprocess_call(cmd, env=self._cmd_env(), quiet=quiet)
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.for_called_process_error(e)
 
@@ -491,22 +510,6 @@ def _aws_cmd():
 def _join_path(root, *parts):
     path = [part for part in itertools.chain([root], parts) if part not in ("/", "")]
     return "/".join(path)
-
-
-def _subprocess_call(cmd, to_stderr, env):
-    if to_stderr:
-        _subprocess_call_to_stderr(cmd, env)
-    else:
-        subprocess.check_call(cmd, env=env)
-
-
-def _subprocess_call_to_stderr(cmd, env):
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-    while True:
-        line = p.stdout.readline()
-        if not line:
-            break
-        sys.stderr.write(line.decode())
 
 
 def _list(d):

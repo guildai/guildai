@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import hashlib
 import itertools
 import logging
 import os
@@ -26,6 +25,7 @@ import uuid
 from guild import click_util
 from guild import log as loglib
 from guild import remote as remotelib
+from guild import remote_util
 from guild import util
 from guild import var
 
@@ -37,12 +37,15 @@ RUNS_PATH = ["runs"]
 DELETED_RUNS_PATH = ["trash", "runs"]
 
 
-class AzureBlobStorageRemoteType(object):
+class AzureBlobStorageRemoteType(remotelib.RemoteType):
     def __init__(self, _ep):
         pass
 
-    def __call__(self, name, config):
+    def remote_for_config(self, name, config):
         return AzureBlobStorageRemote(name, config)
+
+    def remote_for_spec(self, spec):
+        raise NotImplementedError()
 
 
 class AzureBlobStorageRemote(remotelib.Remote):
@@ -56,9 +59,7 @@ class AzureBlobStorageRemote(remotelib.Remote):
         self._deleted_runs_dir = os.path.join(lsd, *DELETED_RUNS_PATH)
 
     def _local_sync_dir(self):
-        base_dir = var.remote_dir(self.name)
-        uri_hash = hashlib.md5(self.container.encode()).hexdigest()
-        return os.path.join(base_dir, "meta", uri_hash)
+        return remote_util.local_meta_dir(self.name, self._container_path())
 
     def list_runs(self, verbose=False, **filters):
         self._sync_runs_meta()
@@ -148,7 +149,7 @@ class AzureBlobStorageRemote(remotelib.Remote):
         cmd = [_azcopy_cmd(), cmd_name] + args
         log.debug("azcopy: %r", cmd)
         try:
-            _subprocess_call(cmd, quiet, self._cmd_env())
+            remote_util.subprocess_call(cmd, env=self._cmd_env(), quiet=quiet)
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.for_called_process_error(e)
 
@@ -486,24 +487,6 @@ def _azcopy_cmd():
 def _join_path(root, *parts):
     path = [part for part in itertools.chain([root], parts) if part not in ("/", "")]
     return "/".join(path)
-
-
-def _subprocess_call(cmd, quiet, env):
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-    buffer = []
-    while True:
-        line = p.stdout.readline()
-        if not line:
-            break
-        if quiet:
-            buffer.append(line.decode())
-        else:
-            sys.stderr.write(line.decode())
-    returncode = p.wait()
-    if returncode != 0:
-        for line in buffer:
-            sys.stderr.write(line)
-        raise SystemExit("error running azcopy - see above for details", returncode)
 
 
 def _list(d):

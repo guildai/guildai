@@ -33,12 +33,15 @@ from . import ssh_util
 log = logging.getLogger("guild.remotes.ec2")
 
 
-class EC2RemoteType(object):
+class EC2RemoteType(remotelib.RemoteType):
     def __init__(self, _ep):
         pass
 
-    def __call__(self, name, config):
+    def remote_for_config(self, name, config):
         return EC2Remote(name, config)
+
+    def remote_for_spec(self, spec):
+        raise NotImplementedError()
 
 
 class EC2Remote(ssh_remote.SSHRemote):

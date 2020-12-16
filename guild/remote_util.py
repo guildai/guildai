@@ -15,10 +15,14 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import hashlib
 import os
+import re
+import sys
 
 from guild import config
 from guild import remote as remotelib
+from guild import subprocess
 from guild import util
 from guild import var
 
@@ -58,3 +62,35 @@ def config_path(path):
     expanded = os.path.expanduser(os.path.expandvars(path))
     config_dir = os.path.dirname(config.user_config_path())
     return os.path.abspath(os.path.join(config_dir, expanded))
+
+
+def subprocess_call(cmd, env=None, quiet=False):
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+    buffer = []
+    while True:
+        line = p.stdout.readline()
+        if not line:
+            break
+        if quiet:
+            buffer.append(line.decode())
+        else:
+            sys.stderr.write(line.decode())
+    returncode = p.wait()
+    if returncode != 0:
+        for line in buffer:
+            sys.stderr.write(line)
+        raise SystemExit(
+            "error running %s - see above for details" % cmd[0], returncode
+        )
+
+
+def local_meta_dir(remote_name, key):
+    base_dir = var.remote_dir(_safe_filename(remote_name))
+    key_hash = hashlib.md5(key.encode()).hexdigest()
+    return os.path.join(base_dir, "meta", key_hash)
+
+
+def _safe_filename(s):
+    if not s:
+        return s
+    return re.sub(r"\W+", "-", s).strip("-") or "-"

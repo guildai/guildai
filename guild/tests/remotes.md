@@ -215,7 +215,35 @@ with `guild-home` is not specified.
     >>> ssh.guild_home
     'foo'
 
+## Remotes from Specs
+
+### S3
+
+    >>> remote = guild.remote.for_spec("s3:foo/bar")
+    >>> remote
+    <guild.remotes.s3.S3Remote object at ...>
+
+    >>> remote.name
+    's3:foo/bar'
+
+    >>> remote.bucket
+    'foo'
+
+    >>> remote.root
+    '/bar'
+
+    >>> print(remote.region)
+    None
+
+    >>> remote.env
+    {}
+
+    >>> remote.local_sync_dir
+    '.../remotes/s3-foo-bar/meta/1ce28f3340b3334b1b181b3a874486c6'
+
 ## Misc
+
+### Quoting ssh args
 
     >>> from guild.remotes.ssh import _quote_arg as quote
     >>> from guild.remotes.ssh import _noquote as noquote
@@ -255,3 +283,43 @@ with `guild-home` is not specified.
 
     >>> bool(noquote("a b"))
     True
+
+### Local meta dirs
+
+    >>> from guild.remote_util import local_meta_dir
+
+    >>> def _meta_dir(remote_name, key):
+    ...     with Env({"GUILD_CONFIG": "/HOME/guild.yml"}):
+    ...         return local_meta_dir(remote_name, key)
+
+    >>> _meta_dir("foo", "bar")
+    '/HOME/remotes/foo/meta/37b51d194a7513e45b56f6524f2d51f2'
+
+    >>> _meta_dir("foo", "bar2")
+    '/HOME/remotes/foo/meta/224e2539f52203eb33728acd228b4432'
+
+    >>> _meta_dir("s3:guild-uat/default", "guild-uat/default")
+    '/HOME/remotes/s3-guild-uat-default/meta/6b5ef651b8a674a8c47a7ee4436792c0'
+
+
+### Safe filenames for remote names
+
+    >>> from guild.remote_util import _safe_filename
+
+    >>> _safe_filename("")
+    ''
+
+    >>> _safe_filename("a")
+    'a'
+
+    >>> _safe_filename("a-b")
+    'a-b'
+
+    >>> _safe_filename("a/b")
+    'a-b'
+
+    >>> _safe_filename("//a///b//")
+    'a-b'
+
+    >>> _safe_filename(":/^%$#@!")
+    '-'

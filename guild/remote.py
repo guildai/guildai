@@ -15,9 +15,10 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import re
+
 from guild import config as configlib
 from guild import entry_point_util
-
 from guild import opref
 
 _remote_types = entry_point_util.EntryPointResources("guild.remotetypes", "remotetype")
@@ -48,6 +49,14 @@ class Down(Exception):
 
 
 class OperationError(Exception):
+    pass
+
+
+class InvalidRemoteSpec(ValueError):
+    pass
+
+
+class RemoteForSpecNotImplemented(Exception):
     pass
 
 
@@ -122,6 +131,14 @@ class RunProxy(object):
 
     def guild_path(self, _path):
         raise TypeError("guild_path not supported by %s" % self)
+
+
+class RemoteType(object):
+    def remote_for_config(self, name, config):
+        raise NotImplementedError()
+
+    def remote_for_spec(self, spec):
+        raise NotImplementedError()
 
 
 class Remote(object):
@@ -212,13 +229,25 @@ def for_name(name):
     else:
         remote_config = RemoteConfig(remote)
         remote_type = remote_config["type"]
-        return _for_type(remote_type, name, remote_config)
+        try:
+            T = _remote_types.one_for_name(remote_type)
+        except LookupError:
+            raise UnsupportedRemoteType(remote_type)
+        else:
+            return T.remote_for_config(name, remote_config)
 
 
-def _for_type(remote_type, name, config):
+def for_spec(spec):
+    m = re.match(r"([\w-]+):(.*)", spec)
+    if not m:
+        raise InvalidRemoteSpec(spec)
+    remote_type, remote_spec = m.groups()
     try:
         T = _remote_types.one_for_name(remote_type)
     except LookupError:
         raise UnsupportedRemoteType(remote_type)
     else:
-        return T(name, config)
+        try:
+            return T.remote_for_spec(remote_spec)
+        except NotImplementedError:
+            raise RemoteForSpecNotImplemented(remote_type, remote_spec)
