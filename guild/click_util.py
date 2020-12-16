@@ -25,6 +25,8 @@ import click
 
 import guild
 
+CMD_SPLIT_P = re.compile(r", ?")
+
 
 def NUMBER(s):
     try:
@@ -52,7 +54,7 @@ class Args(object):
 class Group(click.Group):
     def get_command(self, ctx, cmd_name):
         for cmd in self.commands.values():
-            names = re.split(", ?", cmd.name)
+            names = CMD_SPLIT_P.split(cmd.name)
             if cmd_name in names:
                 cmd_name = cmd.name
                 break
