@@ -40,6 +40,7 @@ from guild import run_util
 from guild import summary
 from guild import util
 from guild import var
+from guild import yaml_util
 
 from . import remote_impl_support
 
@@ -527,7 +528,7 @@ def _edit_op_flags(op):
         if edited is None or not edited.strip():
             break
         try:
-            flag_vals = util.decode_yaml(edited)
+            flag_vals = yaml_util.decode_yaml(edited)
         except ValueError as e:
             cli.out("Error reading flags: %s" % e, err=True)
             if not cli.confirm("Would you like to re-edit these flags?", default=True):
@@ -539,14 +540,14 @@ def _edit_op_flags(op):
 
 def _encode_flags_with_help(vals, opdef):
     if not opdef:
-        return util.encode_yaml(vals)
+        return yaml_util.encode_yaml(vals)
     lines = []
     prev_help = None
     for name, val in sorted(vals.items()):
         flag_help = _format_flag_help(opdef.get_flagdef(name))
         if prev_help or flag_help and lines:
             lines.append("")
-        lines.append("%s: %s" % (util.encode_yaml(name), util.encode_yaml(val)))
+        lines.append("%s: %s" % (yaml_util.encode_yaml(name), util.encode_yaml(val)))
         if flag_help:
             lines.extend(["  # %s" % line for line in flag_help.split("\n")])
         prev_help = flag_help

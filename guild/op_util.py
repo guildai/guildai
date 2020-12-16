@@ -41,6 +41,7 @@ from guild import run as runlib
 from guild import util
 from guild import var
 from guild import vcs_util
+from guild import yaml_util
 
 log = logging.getLogger("guild")
 
@@ -1495,7 +1496,7 @@ def args_to_flags(args):
     If args contains `--` then all args before the last occuring `--`
     are included in `other_args`.
 
-    Uses `util.decode_yaml()` to decode flag arg values.
+    Uses `yaml_util.decode_yaml()` to decode flag arg values.
     """
     flags = {}
     flag_args, other_args = split_args_for_flags(args)
@@ -1505,7 +1506,7 @@ def args_to_flags(args):
             _maybe_switch(flags, name)
             name = arg[2:]
         elif arg[:1] == "-":
-            maybe_num = util.decode_yaml(arg)
+            maybe_num = yaml_util.decode_yaml(arg)
             if isinstance(maybe_num, (int, float)):
                 _set_or_append_flag(flags, name, maybe_num)
             elif len(arg) == 2:
@@ -1516,7 +1517,7 @@ def args_to_flags(args):
                 name = arg[1]
                 _set_or_append_flag(flags, name, arg[2:])
         elif name is not None:
-            _set_or_append_flag(flags, name, util.decode_yaml(arg))
+            _set_or_append_flag(flags, name, yaml_util.decode_yaml(arg))
         else:
             other_args.append(arg)
     _maybe_switch(flags, name)

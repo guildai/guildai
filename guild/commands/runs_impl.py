@@ -45,6 +45,7 @@ from guild import run as runlib
 from guild import run_util
 from guild import util
 from guild import var
+from guild import yaml_util
 
 from . import remote_impl_support
 
@@ -947,7 +948,7 @@ def _print_run_info_dict(name, val):
         elif isinstance(item_val, dict):
             cli.out("  %s:" % item_name)
             # Use full YAML formatting for config blocks.
-            cli.out(_indent(util.encode_yaml(item_val), 4))
+            cli.out(_indent(yaml_util.encode_yaml(item_val), 4))
         else:
             cli.out("  %s: %s" % (item_name, flag_util.encode_flag_val(item_val)))
 
@@ -1454,7 +1455,7 @@ def _try_print_raw_run_attr(run, attr_name):
     except KeyError:
         raise util.TryFailed()
     else:
-        print(util.encode_yaml(val))
+        print(yaml_util.encode_yaml(val))
 
 
 def _no_such_run_attr_error(attr_name):

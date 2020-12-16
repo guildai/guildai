@@ -225,3 +225,4 @@
     guild.var
     guild.vcs_util
     guild.view
+    guild.yaml_util

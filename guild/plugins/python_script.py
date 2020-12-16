@@ -37,6 +37,7 @@ from guild import plugin as pluginlib
 from guild import python_util
 from guild import util
 from guild import var
+from guild import yaml_util
 
 IMPLICIT_ALL_FLAGS = object()
 
@@ -527,7 +528,7 @@ def _fmt_arg(arg):
 
 
 def _assigns_flag_data_desc(data, indent=2):
-    desc = util.encode_yaml(data)
+    desc = yaml_util.encode_yaml(data)
     return _indent(desc, indent)
 
 

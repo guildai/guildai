@@ -128,4 +128,5 @@ tests).
       var:                         ok
       vcs-utils:                   ok
       view:                        ok
+      yaml-utils:                  ok
     <exit 0>

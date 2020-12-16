@@ -23,6 +23,7 @@ import six
 import yaml
 
 from guild import util
+from guild import yaml_util
 
 log = logging.getLogger("guild")
 
@@ -50,7 +51,7 @@ def encode_flag_val(val):
     elif isinstance(val, dict):
         return _encode_dict(val)
     else:
-        return util.encode_yaml(val, default_flow_style=True)
+        return yaml_util.encode_yaml(val, default_flow_style=True)
 
 
 def _encode_list(val_list):
@@ -129,7 +130,7 @@ def _string_type(s):
 
 
 def _boolean_type(s):
-    val = util.decode_yaml(s)
+    val = yaml_util.decode_yaml(s)
     if isinstance(val, (bool, int, float)):
         return bool(val)
     return val
@@ -298,7 +299,7 @@ def _concatenated_list(s):
 
 def _yaml_flag_decoder(nofix):
     if nofix:
-        return util.decode_yaml
+        return yaml_util.decode_yaml
     else:
         return _decode_yaml_with_fix
 
@@ -307,7 +308,7 @@ def _decode_yaml_with_fix(s):
     """Skips yaml decode if s looks like a run ID."""
     if _is_scientific_notation_run_id(s):
         return s
-    return util.decode_yaml(s)
+    return yaml_util.decode_yaml(s)
 
 
 def _is_scientific_notation_run_id(s):
@@ -362,7 +363,7 @@ def _split_anonymous_function(s):
     # decoding it as YAML and testing the result.
     if s[:1] == "[" and s[-1:] == "]" and ":" in s:
         try:
-            l = util.decode_yaml(s)
+            l = yaml_util.decode_yaml(s)
         except Exception:
             return None, s[1:-1]
         else:

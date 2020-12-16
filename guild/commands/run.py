@@ -86,12 +86,12 @@ def _ac_opdef(opspec):
 
 
 def _ac_maybe_flag_choices(incomplete, opdef):
-    from guild import util
+    from guild import yaml_util
 
     flag_name, flag_val_incomplete = incomplete.split("=", 1)
     flagdef = opdef.get_flagdef(flag_name)
     if flagdef and flagdef.choices:
-        choices_str = [util.encode_yaml(c.value) for c in flagdef.choices]
+        choices_str = [yaml_util.encode_yaml(c.value) for c in flagdef.choices]
         return sorted(
             [val for val in choices_str if val.startswith(flag_val_incomplete)]
         )

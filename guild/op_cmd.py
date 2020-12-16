@@ -22,6 +22,7 @@ import six
 
 from guild import flag_util
 from guild import util
+from guild import yaml_util
 
 log = logging.getLogger("guild")
 
@@ -148,8 +149,8 @@ def _split_args_for_dest(parts, dest):
 
 
 def _encode_yaml_list_for_globals_arg(parts):
-    return util.encode_yaml(
-        [util.decode_yaml(part) for part in parts],
+    return yaml_util.encode_yaml(
+        [yaml_util.decode_yaml(part) for part in parts],
         default_flow_style=True,
     )
 
@@ -168,7 +169,7 @@ def _encode_flag_arg_for_globals(val):
     using standard YAML encoding. Decoding must be handled using
     standard YAML decoding.
     """
-    return util.encode_yaml(val, default_flow_style=True)
+    return yaml_util.encode_yaml(val, default_flow_style=True)
 
 
 def _encode_flag_arg_for_argparse(val, arg_split):

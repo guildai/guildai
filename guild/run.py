@@ -25,6 +25,7 @@ import yaml
 
 from guild import opref as opreflib
 from guild import util
+from guild import yaml_util
 
 
 class Run(object):
@@ -222,7 +223,7 @@ class Run(object):
 
     def write_attr(self, name, val, raw=False):
         if not raw:
-            val = util.encode_yaml(val)
+            val = yaml_util.encode_yaml(val)
         with open(self._attr_path(name), "w") as f:
             f.write(val)
             f.write(os.linesep)

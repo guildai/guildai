@@ -66,9 +66,10 @@ files:
 Here's a helper function for printing operation sourcecode config.
 
     >>> import yaml
+    >>> from guild import yaml_util
+
     >>> data = yaml.safe_load(open(join_path(project_dir, "guild.yml"), "r"))
 
-    >>> from guild import util
     >>> def print_config(op):
     ...     parts = op.split(":")
     ...     if len(parts) == 1:
@@ -87,7 +88,7 @@ Here's a helper function for printing operation sourcecode config.
     ...     if "sourcecode" in op_data:
     ...         config["op-sourcecode"] = op_data["sourcecode"]
     ...     if config:
-    ...         print(util.encode_yaml(config).strip())
+    ...         print(yaml_util.encode_yaml(config).strip())
     ...     else:
     ...         print("<none>")
 

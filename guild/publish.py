@@ -31,6 +31,7 @@ import yaml
 from guild import guildfile
 from guild import run_util
 from guild import util
+from guild import yaml_util
 
 DEFAULT_DEST_HOME = "published-runs"
 DEFAULT_TEMPLATE = "default"
@@ -426,7 +427,7 @@ def _publish_run_info(state):
     run = state.run
     frun = state.formatted_run
     path = os.path.join(state.run_dest, "run.yml")
-    encode = lambda x: util.encode_yaml(x).rstrip()
+    encode = lambda x: yaml_util.encode_yaml(x).rstrip()
     fmt_ts = util.utcformat_timestamp
     started = run.get("started")
     stopped = run.get("stopped")

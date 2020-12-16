@@ -30,6 +30,7 @@ import guild.opref
 
 from guild import util
 from guild import var
+from guild import yaml_util
 
 log = logging.getLogger("guild")
 
@@ -425,7 +426,7 @@ class ConfigResolver(FileResolver):
     def _encoder_for_path(cls, path):
         ext = os.path.splitext(path)[1].lower()
         if ext in cls.YAML_EXT:
-            return util.encode_yaml
+            return yaml_util.encode_yaml
         elif ext in cls.JSON_EXT:
             return cls._encode_json
         else:

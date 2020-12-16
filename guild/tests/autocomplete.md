@@ -39,6 +39,7 @@ markdown and text files.
     var
     vcs-utils
     view
+    yaml-utils
     !!file:*.@(md|txt)
 
 Providing a prefix limits the tests shown.
