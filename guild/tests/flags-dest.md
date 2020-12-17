@@ -251,13 +251,13 @@ to globals.
 In the default case, .
 
     >>> run("split-globals")
-    []
+    [1, 2, 3]
     []
 
 Here's the underlying command:
 
     >>> run("split-globals", print_cmd=True)
-    ??? -um guild.op_main globals3 -- --x '[]' --y '[]'
+    ??? -um guild.op_main globals3 -- --x '[1, 2, 3]' --y '[]'
 
 The `x` flag is split using the default shlex parser.
 
@@ -268,7 +268,7 @@ The `x` flag is split using the default shlex parser.
 The `y` flag is split using the `:` char.
 
     >>> run("split-globals", y="1:2:three")
-    []
+    [1, 2, 3]
     [1, 2, 'three']
 
 Here's the underlying command:

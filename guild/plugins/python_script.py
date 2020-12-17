@@ -511,7 +511,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
 
 
 def _encode_splittable_list(l):
-    return " ".join([util.shlex_quote(yaml.encode_val(x)) for x in l])
+    return " ".join([util.shlex_quote(util.encode_yaml(x)) for x in l])
 
 
 def _flags_import_disabled(opdef):
