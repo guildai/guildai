@@ -41,7 +41,7 @@ class op_handler(object):
         elif etype is remotelib.RemoteProcessError:
             _handle_remote_process_error(e)
         elif etype is remotelib.OperationNotSupported or etype is NotImplementedError:
-            _handle_not_supported(self.remote)
+            _handle_not_supported(self.remote, e)
 
 
 def list_runs(args):
@@ -134,8 +134,8 @@ def run(args):
         )
     except remotelib.OperationError as e:
         _handle_op_error(e, remote)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
+    except remotelib.OperationNotSupported as e:
+        _handle_not_supported(remote, e)
     else:
         if args.no_wait:
             cli.out(
@@ -235,8 +235,8 @@ def one_run(run_id_prefix, args):
         return remote.one_run(run_id_prefix)
     except remotelib.RemoteProcessError as e:
         _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
+    except remotelib.OperationNotSupported as e:
+        _handle_not_supported(remote, e)
 
 
 def watch_run(args):
@@ -427,8 +427,12 @@ def _handle_remote_process_error(e):
     cli.error(msg, exit_status=e.exit_status)
 
 
-def _handle_not_supported(remote):
-    cli.error("remote '%s' does not support this operation" % remote.name)
+def _handle_not_supported(remote, e):
+    if e.args:
+        msg = e.args[0]
+    else:
+        msg = "remote '%s' does not support this operation" % remote.name
+    cli.error(msg)
 
 
 def filtered_runs(args):
