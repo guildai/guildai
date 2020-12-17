@@ -30,7 +30,6 @@ Assert locally available runs:
 Ensure that all runs are cleared on Azure:
 
     >>> quiet("guild runs rm -py -r guild-uat-azure-blob")
-    >>> quiet("guild runs purge -y -r guild-uat-azure-blob")
 
 Confirm that Azure source is empty:
 
@@ -38,9 +37,12 @@ Confirm that Azure source is empty:
     [2mSynchronizing runs with guild-uat-azure-blob[0m
     <exit 0>
 
+When we check for deleted runs, we get an error because the Azure blog
+storage remote doesn't currently support deleted runs.
+
     >>> run("guild runs -d -r guild-uat-azure-blob")
-    [2mSynchronizing runs with guild-uat-azure-blob[0m
-    <exit 0>
+    guild: remote 'guild-uat-azure-blob' does not support '--delete' option
+    <exit 1>
 
 Push runs to Azure uat:
 
@@ -81,52 +83,32 @@ Show remote run info.
     scalars:
     <exit 0>
 
-Prompt to delete remote runs:
+Prompt to delete remote runs. Non-permanent delete is not supported.
 
     >>> run("guild runs rm -r guild-uat-azure-blob", timeout=10)
-    ???Synchronizing runs with guild-uat-azure-blob...
-    You are about to delete the following runs on guild-uat-azure-blob:
+    guild: remote 'guild-uat-azure-blob' does not support non permanent deletes
+    Use the '--permanent' with this command and try again.
+    <exit 1>
+
+We need to use the permanent option.
+
+    >>> run("guild runs rm -p -r guild-uat-azure-blob", timeout=10)
+    [2mSynchronizing runs with guild-uat-azure-blob[0m
+    WARNING: You are about to permanently delete the following runs on guild-uat-azure-blob:
       [...]  hello  ...  completed  run-2
       [...]  hello  ...  completed  run-1
-    Delete these runs? (Y/n)
+    Permanently delete these runs? (y/N)
     <exit -9>
 
 Delete remote runs (currently non-permanent deletes are not
 supported):
 
     >>> run("guild runs rm -y -r guild-uat-azure-blob")
-    [2mSynchronizing runs with guild-uat-azure-blob[0m
-    guild: non permanent delete is not supported by this remote
+    guild: remote 'guild-uat-azure-blob' does not support non permanent deletes
     Use the '--permanent' with this command and try again.
     <exit 1>
 
-TODO: This is the output that we expect from the pervious command:
-
-    [2mSynchronizing runs with guild-uat-azure-blob[0m
-    ...
-    <exit 0>
-
     >>> run("guild runs -r guild-uat-azure-blob")
-    [2mSynchronizing runs with guild-uat-azure-blob[0m
-    [1:...]  hello  ...  completed  run-2
-    [2:...]  hello  ...  completed  run-1
-    <exit 0>
-
-TODO: When non-permanent delete is reinstated, this should be the
-output from the previous command:
-
-    [2mSynchronizing runs with guild-uat-azure-blob[0m
-    <exit 0>
-
-List deleted remote runs (currently will alays be empty as
-non-permanent deletes aren't supported):
-
-    >>> run("guild runs -d -r guild-uat-azure-blob")
-    [2mSynchronizing runs with guild-uat-azure-blob[0m
-    <exit 0>
-
-TODO: This should be the output from the previous command:
-
     [2mSynchronizing runs with guild-uat-azure-blob[0m
     [1:...]  hello  ...  completed  run-2
     [2:...]  hello  ...  completed  run-1
@@ -136,14 +118,8 @@ Restore deleted remote runs (doesn't work as non-permanent deletes
 aren't supported):
 
     >>> run("guild runs restore -y -r guild-uat-azure-blob")
-    guild: this remote does not support restore at this time
+    guild: remote 'guild-uat-azure-blob' does not support this operation
     <exit 1>
-
-TODO: This should be the output from the previous command:
-
-    [2mSynchronizing runs with guild-uat-azure-blob[0m
-    ...
-    <exit 0>
 
 Show remote runs:
 
@@ -151,12 +127,6 @@ Show remote runs:
     [2mSynchronizing runs with guild-uat-azure-blob[0m
     [1:...]  hello  ...  completed  run-2
     [2:...]  hello  ...  completed  run-1
-    <exit 0>
-
-Confirm we don't have any deleted runs:
-
-    >>> run("guild runs -d -r guild-uat-azure-blob")
-    [2mSynchronizing runs with guild-uat-azure-blob[0m
     <exit 0>
 
 Delete local runs:
@@ -214,6 +184,17 @@ working):
     >> run("guild runs -d -r guild-uat-azure-blob")
     [2mSynchronizing runs with guild-uat-azure-blob[0m
     <exit 0>
+
+Not supported commands (temp until non-permanent deletes are
+supported):
+
+    >>> run("guild runs purge -y -r guild-uat-azure-blob")
+    guild: remote 'guild-uat-azure-blob' does not support this operation
+    <exit 1>
+
+    >>> run("guild runs restore -y -r guild-uat-azure-blob")
+    guild: remote 'guild-uat-azure-blob' does not support this operation
+    <exit 1>
 
 Permanently delete remote runs:
 

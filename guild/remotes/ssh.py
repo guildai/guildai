@@ -378,10 +378,12 @@ class SSHRemote(remotelib.Remote):
                 raise
             raise remotelib.RunFailed(remote_run_dir)
 
-    def list_runs(self, verbose=False, **filters):
+    def list_runs(self, verbose=False, deleted=False, **filters):
         opts = _list_runs_filter_opts(**filters)
         if verbose:
             opts.append("--verbose")
+        if deleted:
+            opts.append("--deleted")
         self._guild_cmd("runs list", opts)
 
     def filtered_runs(self, **filters):

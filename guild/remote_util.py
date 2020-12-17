@@ -15,9 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import hashlib
+import logging
 import os
-import re
 import sys
 
 from guild import config
@@ -25,6 +24,8 @@ from guild import remote as remotelib
 from guild import subprocess
 from guild import util
 from guild import var
+
+log = logging.getLogger("guild")
 
 
 def require_env(name):
@@ -64,7 +65,10 @@ def config_path(path):
     return os.path.abspath(os.path.join(config_dir, expanded))
 
 
-def subprocess_call(cmd, env=None, quiet=False):
+def subprocess_call(cmd, extra_env=None, quiet=False):
+    env = dict(os.environ)
+    if extra_env:
+        env.update(extra_env)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
     buffer = []
     while True:
@@ -84,13 +88,66 @@ def subprocess_call(cmd, env=None, quiet=False):
         )
 
 
-def local_meta_dir(remote_name, key):
-    base_dir = var.remote_dir(_safe_filename(remote_name))
-    key_hash = hashlib.md5(key.encode()).hexdigest()
-    return os.path.join(base_dir, "meta", key_hash)
+def init_env(env_config):
+    if isinstance(env_config, dict):
+        return env_config
+    elif isinstance(env_config, str):
+        return _env_from_file(env_config)
+    elif env_config is None:
+        return {}
+    else:
+        log.warning("invalid value for remote env %r - ignoring", env_config)
+        return {}
 
 
-def _safe_filename(s):
-    if not s:
-        return s
-    return re.sub(r"\W+", "-", s).strip("-") or "-"
+def _env_from_file(path):
+    if path.lower().endswith(".gpg"):
+        env_str = _try_read_gpg(path)
+    else:
+        env_str = util.try_read(path)
+    if not env_str:
+        log.warning("cannot read remote env from %s - ignorning", path)
+        return {}
+    return _decode_env(env_str)
+
+
+def _try_read_gpg(path):
+    path = os.path.expanduser(path)
+    cmd = _gpg_cmd() + [path]
+    try:
+        p = subprocess.Popen(
+            cmd, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+    except OSError as e:
+        log.error("cannot decode %s with command '%s' (%s)", path, " ".join(cmd), e)
+    else:
+        out, err = p.communicate()
+        if p.returncode != 0:
+            log.error(err.decode(errors="replace").strip())
+            return None
+        return out.decode(errors="replace")
+
+
+def _gpg_cmd():
+    gpg_env = os.getenv("GPG_CMD")
+    if gpg_env:
+        return util.shlex_split(gpg_env)
+    return ["gpg", "-d"]
+
+
+def _decode_env(s):
+    return dict([_split_env_line(line) for line in s.split("\n")])
+
+
+def _split_env_line(s):
+    parts = s.split("=", 1)
+    if len(parts) == 1:
+        parts.append("")
+    return _strip_export(parts[0]), parts[1]
+
+
+def _strip_export(s):
+    s = s.strip()
+    if s.startswith("export "):
+        s = s[7:]
+    return s

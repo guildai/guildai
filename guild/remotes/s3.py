@@ -22,14 +22,13 @@ import subprocess
 import sys
 import uuid
 
-from guild import click_util
 from guild import log as loglib
 from guild import remote as remotelib
 from guild import remote_util
 from guild import util
 from guild import var
 
-from guild.commands import runs_impl
+from . import meta_sync
 
 log = logging.getLogger("guild.remotes.s3")
 
@@ -47,7 +46,7 @@ class S3RemoteType(remotelib.RemoteType):
     def remote_for_spec(self, spec):
         bucket, root = _parse_spec(spec)
         assert root.startswith("/")
-        name = "s3:%s%s" % (bucket, root)
+        name = _remote_name(bucket, root)
         config = remotelib.RemoteConfig(
             {
                 "bucket": bucket,
@@ -66,41 +65,27 @@ def _parse_spec(spec):
         return parts[0], "/" + parts[1]
 
 
-class S3Remote(remotelib.Remote):
+def _remote_name(bucket, root):
+    if root != "/":
+        return "s3:%s%s" % (bucket, root)
+    return "s3:%s" % bucket
+
+
+class S3Remote(meta_sync.MetaSyncRemote):
     def __init__(self, name, config):
         self.name = name
         self.bucket = config["bucket"]
         self.root = config.get("root", "/")
         self.region = config.get("region")
-        self.env = _init_env(config.get("env"))
-        self.local_sync_dir = lsd = self._local_sync_dir()
-        self._runs_dir = os.path.join(lsd, *RUNS_PATH)
-        self._deleted_runs_dir = os.path.join(lsd, *DELETED_RUNS_PATH)
-
-    def _local_sync_dir(self):
-        return remote_util.local_meta_dir(self.name, self._s3_uri())
+        self.env = remote_util.init_env(config.get("env"))
+        self.local_sync_dir = meta_sync.local_meta_dir(name, self._s3_uri())
+        runs_dir = os.path.join(self.local_sync_dir, *RUNS_PATH)
+        deleted_runs_dir = os.path.join(self.local_sync_dir, *DELETED_RUNS_PATH)
+        super(S3Remote, self).__init__(runs_dir, deleted_runs_dir)
 
     def _s3_uri(self, *subpath):
         joined_path = _join_path(self.root, *subpath)
         return "s3://%s/%s" % (self.bucket, joined_path)
-
-    def list_runs(self, verbose=False, **filters):
-        self._sync_runs_meta()
-        runs_dir = self._runs_dir_for_filters(**filters)
-        if not os.path.exists(runs_dir):
-            return
-        args = click_util.Args(verbose=verbose, **filters)
-        args.archive = runs_dir
-        args.deleted = False
-        args.remote = None
-        args.json = False
-        runs_impl.list_runs(args)
-
-    def _runs_dir_for_filters(self, deleted, **_filters):
-        if deleted:
-            return self._deleted_runs_dir
-        else:
-            return self._runs_dir
 
     def _sync_runs_meta(self, force=False):
         log.info(loglib.dim("Synchronizing runs with %s"), self.name)
@@ -180,61 +165,9 @@ class S3Remote(remotelib.Remote):
         cmd.extend(["s3", name] + args)
         log.debug("aws cmd: %r", cmd)
         try:
-            remote_util.subprocess_call(cmd, env=self._cmd_env(), quiet=quiet)
+            remote_util.subprocess_call(cmd, extra_env=self.env, quiet=quiet)
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.for_called_process_error(e)
-
-    def filtered_runs(self, **filters):
-        self._sync_runs_meta()
-        args = click_util.Args(**filters)
-        args.archive = self._runs_dir
-        args.remote = None
-        args.runs = []
-        return runs_impl.runs_for_args(args)
-
-    def delete_runs(self, **opts):
-        self._sync_runs_meta()
-        args = click_util.Args(**opts)
-        args.archive = self._runs_dir
-        if args.permanent:
-            preview = (
-                "WARNING: You are about to permanently delete "
-                "the following runs on %s:" % self.name
-            )
-            confirm = "Permanently delete these runs?"
-        else:
-            preview = "You are about to delete the following runs on %s:" % self.name
-            confirm = "Delete these runs?"
-        no_runs_help = "Nothing to delete."
-
-        def delete_f(selected):
-            self._delete_runs(selected, args.permanent)
-            self._new_meta_id()
-            self._sync_runs_meta(force=True)
-
-        try:
-            runs_impl.runs_op(
-                args,
-                None,
-                False,
-                preview,
-                confirm,
-                no_runs_help,
-                delete_f,
-                confirm_default=not args.permanent,
-            )
-        except SystemExit as e:
-            self._reraise_system_exit(e)
-
-    def _reraise_system_exit(self, e, deleted=False):
-        if not e.args[0]:
-            raise e
-        exit_code = e.args[1]
-        msg = e.args[0].replace(
-            "guild runs list",
-            "guild runs list %s-r %s" % (deleted and "-d " or "", self.name),
-        )
-        raise SystemExit(msg, exit_code)
 
     def _delete_runs(self, runs, permanent):
         for run in runs:
@@ -244,6 +177,7 @@ class S3Remote(remotelib.Remote):
             else:
                 deleted_uri = self._s3_uri(*(DELETED_RUNS_PATH + [run.id]))
                 self._s3_mv(run_uri, deleted_uri)
+        self._new_meta_id()
 
     def _s3_rm(self, uri):
         rm_args = ["--recursive", uri]
@@ -253,73 +187,18 @@ class S3Remote(remotelib.Remote):
         mv_args = ["--recursive", src, dest]
         self._s3_cmd("mv", mv_args)
 
-    def restore_runs(self, **opts):
-        self._sync_runs_meta()
-        args = click_util.Args(**opts)
-        args.archive = self._deleted_runs_dir
-        preview = "You are about to restore the following runs on %s:" % self.name
-        confirm = "Restore these runs?"
-        no_runs_help = "Nothing to restore."
-
-        def restore_f(selected):
-            self._restore_runs(selected)
-            self._new_meta_id()
-            self._sync_runs_meta(force=True)
-
-        try:
-            runs_impl.runs_op(
-                args,
-                None,
-                False,
-                preview,
-                confirm,
-                no_runs_help,
-                restore_f,
-                confirm_default=True,
-            )
-        except SystemExit as e:
-            self._reraise_system_exit(e, deleted=True)
-
     def _restore_runs(self, runs):
         for run in runs:
             deleted_uri = self._s3_uri(*(DELETED_RUNS_PATH + [run.id]))
             restored_uri = self._s3_uri(*(RUNS_PATH + [run.id]))
             self._s3_mv(deleted_uri, restored_uri)
-
-    def purge_runs(self, **opts):
-        self._sync_runs_meta()
-        args = click_util.Args(**opts)
-        args.archive = self._deleted_runs_dir
-        preview = (
-            "WARNING: You are about to permanently delete "
-            "the following runs on %s:" % self.name
-        )
-        confirm = "Permanently delete these runs?"
-        no_runs_help = "Nothing to purge."
-
-        def purge_f(selected):
-            self._purge_runs(selected)
-            self._new_meta_id()
-            self._sync_runs_meta(force=True)
-
-        try:
-            runs_impl.runs_op(
-                args,
-                None,
-                False,
-                preview,
-                confirm,
-                no_runs_help,
-                purge_f,
-                confirm_default=False,
-            )
-        except SystemExit as e:
-            self._reraise_system_exit(e, deleted=True)
+        self._new_meta_id()
 
     def _purge_runs(self, runs):
         for run in runs:
             uri = self._s3_uri(*(DELETED_RUNS_PATH + [run.id]))
             self._s3_rm(uri)
+        self._new_meta_id()
 
     def status(self, verbose=False):
         try:
@@ -406,18 +285,7 @@ class S3Remote(remotelib.Remote):
         self._s3_cmd("sync", args)
 
     def label_runs(self, **opts):
-        raise NotImplementedError("TODO")
-
-    def run_info(self, **opts):
-        self._sync_runs_meta()
-        args = click_util.Args(**opts)
-        args.archive = self._runs_dir
-        args.remote = None
-        args.private_attrs = False
-        runs_impl.run_info(args, None)
-
-    def one_run(self, run_id_prefix):
-        raise NotImplementedError("TODO")
+        raise remotelib.OperationNotSupported()  # TODO
 
     def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
         raise remotelib.OperationNotSupported()
@@ -431,70 +299,23 @@ class S3Remote(remotelib.Remote):
     def stop_runs(self, **opts):
         raise remotelib.OperationNotSupported()
 
+    def cat(self, **opts):
+        raise remotelib.OperationNotSupported()
 
-def _init_env(env_config):
-    if isinstance(env_config, dict):
-        return env_config
-    elif isinstance(env_config, str):
-        return _env_from_file(env_config)
-    elif env_config is None:
-        return {}
-    else:
-        log.warning("invalid value for remote env %r - ignoring", env_config)
-        return {}
+    def comment_runs(self, **opts):
+        raise remotelib.OperationNotSupported()
 
+    def diff_runs(self, **opts):
+        raise remotelib.OperationNotSupported()
 
-def _env_from_file(path):
-    if path.lower().endswith(".gpg"):
-        env_str = _try_read_gpg(path)
-    else:
-        env_str = util.try_read(path)
-    if not env_str:
-        log.warning("cannot read remote env from %s - ignorning", path)
-        return {}
-    return _decode_env(env_str)
+    def list_files(self, **opts):
+        raise remotelib.OperationNotSupported()
 
+    def one_run(self, run_id_prefix):
+        raise remotelib.OperationNotSupported()
 
-def _try_read_gpg(path):
-    path = os.path.expanduser(path)
-    cmd = _gpg_cmd() + [path]
-    try:
-        p = subprocess.Popen(
-            cmd, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-    except OSError as e:
-        log.error("cannot decode %s with command '%s' (%s)", path, " ".join(cmd), e)
-    else:
-        out, err = p.communicate()
-        if p.returncode != 0:
-            log.error(err.decode(errors="replace").strip())
-            return None
-        return out.decode(errors="replace")
-
-
-def _gpg_cmd():
-    gpg_env = os.getenv("GPG_CMD")
-    if gpg_env:
-        return util.shlex_split(gpg_env)
-    return ["gpg", "-d"]
-
-
-def _decode_env(s):
-    return dict([_split_env_line(line) for line in s.split("\n")])
-
-
-def _split_env_line(s):
-    parts = s.split("=", 1)
-    if len(parts) == 1:
-        parts.append("")
-    return _strip_export(parts[0]), parts[1]
-
-
-def _strip_export(s):
-    s = s.strip()
-    if s.startswith("export "):
-        s = s[7:]
-    return s
+    def tag_runs(self, **opts):
+        raise remotelib.OperationNotSupported()
 
 
 def _aws_cmd():
@@ -510,24 +331,6 @@ def _aws_cmd():
 def _join_path(root, *parts):
     path = [part for part in itertools.chain([root], parts) if part not in ("/", "")]
     return "/".join(path)
-
-
-def _list(d):
-    try:
-        return os.listdir(d)
-    except OSError as e:
-        if e.errno != 2:
-            raise
-        return []
-
-
-def _ids_for_prefixes(prefixes):
-    def strip(s):
-        if s.endswith("/"):
-            return s[:-1]
-        return s
-
-    return [strip(p) for p in prefixes]
 
 
 def _uuid():

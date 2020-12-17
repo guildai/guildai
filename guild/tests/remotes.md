@@ -286,7 +286,7 @@ with `guild-home` is not specified.
 
 ### Local meta dirs
 
-    >>> from guild.remote_util import local_meta_dir
+    >>> from guild.remotes.meta_sync import local_meta_dir
 
     >>> def _meta_dir(remote_name, key):
     ...     with Env({"GUILD_CONFIG": "/HOME/guild.yml"}):
@@ -304,7 +304,7 @@ with `guild-home` is not specified.
 
 ### Safe filenames for remote names
 
-    >>> from guild.remote_util import _safe_filename
+    >>> from guild.remotes.meta_sync import _safe_filename
 
     >>> _safe_filename("")
     ''
