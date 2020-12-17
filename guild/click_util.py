@@ -40,15 +40,25 @@ def NUMBER(s):
 
 class Args(object):
     def __init__(self, **kw):
+        self.__names = set()
         for name in kw:
             setattr(self, name, kw[name])
-        self.__names = list(kw)
 
     def __repr__(self):
         return "<guild.click_util.Args %s>" % self.as_kw()
 
     def as_kw(self):
         return {name: getattr(self, name) for name in self.__names}
+
+    def __setattr__(self, name, val):
+        self.__dict__[name] = val
+        if name[0] != "_":
+            self.__names.add(name)
+
+    def copy(self, **kw):
+        copy_kw = self.as_kw()
+        copy_kw.update(kw)
+        return Args(**copy_kw)
 
 
 class Group(click.Group):

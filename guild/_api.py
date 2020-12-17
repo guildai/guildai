@@ -251,6 +251,7 @@ def runs_list(all=False, deleted=False, cwd=".", guild_home=None, limit=None, **
 
     args = click_util.Args(all=all, deleted=deleted)
     _apply_runs_filters(kw, args)
+    _apply_remote(kw, args)
     _assert_empty_kw(kw, "runs_list()")
     with Env(cwd, guild_home):
         runs = runs_impl.filtered_runs(args)
@@ -277,6 +278,10 @@ def _apply_runs_filters(kw, args):
     args.status_terminated = kw.pop("terminated", False)
 
 
+def _apply_remote(kw, args):
+    args.remote = kw.pop("remote", None)
+
+
 def _assert_empty_kw(kw, f):
     try:
         arg = next(iter(kw))
@@ -294,6 +299,7 @@ def runs_delete(runs=None, permanent=False, cwd=".", guild_home=None, **kw):
         runs=_run_ids(runs), permanent=permanent, remote=False, yes=True
     )
     _apply_runs_filters(kw, args)
+    _apply_remote(kw, args)
     _assert_empty_kw(kw, "runs_delete()")
     with Env(cwd, guild_home):
         runs_impl.delete_runs(args)
@@ -338,6 +344,7 @@ def runs_label(
         yes=True,
     )
     _apply_runs_filters(kw, args)
+    _apply_remote(kw, args)
     _assert_empty_kw(kw, "runs_label()")
     ctx = runs_label.label_runs.make_context("", [])
     with Env(cwd, guild_home):
@@ -368,6 +375,7 @@ def runs_tag(
         yes=True,
     )
     _apply_runs_filters(kw, args)
+    _apply_remote(kw, args)
     _assert_empty_kw(kw, "runs_tag()")
     ctx = runs_tag.tag_runs.make_context("", [])
     with Env(cwd, guild_home):
@@ -408,6 +416,7 @@ def mark(runs, clear=False, cwd=".", guild_home=None, **kw):
 
     args = click_util.Args(runs=_run_ids(runs), clear=clear, yes=True)
     _apply_runs_filters(kw, args)
+    _apply_remote(kw, args)
     _assert_empty_kw(kw, "mark()")
     with Env(cwd, guild_home):
         runs_impl.mark(args)
@@ -444,6 +453,7 @@ def compare(
         limit=limit,
     )
     _apply_runs_filters(kw, args)
+    _apply_remote(kw, args)
     _assert_empty_kw(kw, "compare()")
     with Env(cwd, guild_home):
         return compare_impl.get_data(args, format_cells=False)
@@ -481,6 +491,7 @@ def publish(
         yes=True,
     )
     _apply_runs_filters(kw, args)
+    _apply_remote(kw, args)
     _assert_empty_kw(kw, "publish()")
     with Env(cwd, guild_home):
         publish_impl.publish(args, None)
@@ -529,6 +540,7 @@ def select(run=None, min=None, max=None, cwd=".", guild_home=None, **kw):
 
     args = click_util.Args(run=run, min=min, max=max)
     _apply_runs_filters(kw, args)
+    _apply_remote(kw, args)
     _assert_empty_kw(kw, "select()")
     with Env(cwd, guild_home):
         try:

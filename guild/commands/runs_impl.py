@@ -119,24 +119,27 @@ FILTERABLE = [
 STYLE_TABLE_WIDTH_ADJ = 8
 
 
-def runs_for_args(args, force_deleted=False, ctx=None):
-    filtered = filtered_runs(args, force_deleted, ctx)
+def runs_for_args(args, ctx=None):
+    filtered = filtered_runs(args, ctx)
     return select_runs(filtered, args.runs, ctx)
 
 
-def filtered_runs(args, force_deleted=False, ctx=None):
-    return var.runs(
-        _runs_root_for_args(args, force_deleted),
-        sort=["-timestamp"],
-        filter=_runs_filter(args, ctx),
-    )
+def filtered_runs(args, ctx=None):
+    if getattr(args, "remote", None):
+        return remote_impl_support.filtered_runs(args)
+    else:
+        return var.runs(
+            _runs_root_for_args(args),
+            sort=["-timestamp"],
+            filter=_runs_filter(args, ctx),
+        )
 
 
-def _runs_root_for_args(args, force_deleted):
+def _runs_root_for_args(args):
     archive = getattr(args, "archive", None)
     if archive:
         return archive
-    deleted = force_deleted or getattr(args, "deleted", False)
+    deleted = getattr(args, "deleted", False)
     return var.runs_dir(deleted=deleted)
 
 
@@ -567,7 +570,6 @@ def _no_selected_runs_exit(help_msg=None):
 def runs_op(
     args,
     ctx,
-    force_deleted,
     preview_msg,
     confirm_prompt,
     no_runs_help,
@@ -577,7 +579,7 @@ def runs_op(
     runs_callback=None,
 ):
     get_selected = runs_callback or runs_op_selected
-    selected = get_selected(args, ctx, default_runs_arg, force_deleted)
+    selected = get_selected(args, ctx, default_runs_arg)
     if not selected:
         _no_selected_runs_exit(no_runs_help)
     formatted = None  # expensive, lazily init as needed
@@ -602,10 +604,10 @@ def runs_op(
             op_callback(selected)
 
 
-def runs_op_selected(args, ctx, default_runs_arg=None, force_deleted=False):
+def runs_op_selected(args, ctx, default_runs_arg=None):
     default_runs_arg = default_runs_arg or ALL_RUNS_ARG
     runs_arg = _remove_duplicates(args.runs or default_runs_arg)
-    filtered = filtered_runs(args, force_deleted, ctx)
+    filtered = filtered_runs(args, ctx)
     return select_runs(filtered, runs_arg, ctx)
 
 
@@ -658,7 +660,6 @@ def _delete_runs(args, ctx):
     runs_op(
         args,
         ctx,
-        False,
         preview,
         confirm,
         no_runs_help,
@@ -685,7 +686,7 @@ def _purge_runs(args, ctx):
         var.purge_runs(selected)
         cli.out("Permanently deleted %i run(s)" % len(selected))
 
-    runs_op(args, ctx, True, preview, confirm, no_runs_help, purge)
+    runs_op(args.copy(deleted=True), ctx, preview, confirm, no_runs_help, purge)
 
 
 def restore_runs(args, ctx):
@@ -705,7 +706,13 @@ def _restore_runs(args, ctx):
         cli.out("Restored %i run(s)" % len(selected))
 
     runs_op(
-        args, ctx, True, preview, confirm, no_runs_help, restore, confirm_default=True
+        args.copy(deleted=True),
+        ctx,
+        preview,
+        confirm,
+        no_runs_help,
+        restore,
+        confirm_default=True,
     )
 
 
@@ -1033,9 +1040,7 @@ def _set_labels(args, ctx):
         else:
             cli.out("Labeled %i run(s)" % len(selected))
 
-    runs_op(
-        args, ctx, False, preview, confirm, no_runs, set_labels, LATEST_RUN_ARG, True
-    )
+    runs_op(args, ctx, preview, confirm, no_runs, set_labels, LATEST_RUN_ARG, True)
 
 
 def _set_labels_preview(args):
@@ -1117,14 +1122,13 @@ def _stop_runs(args, ctx):
         for run in selected:
             _stop_run(run, args.no_wait)
 
-    def select_runs_f(args, ctx, default_runs_arg, force_deleted):
-        runs = runs_op_selected(args, ctx, default_runs_arg, force_deleted)
+    def select_runs_f(args, ctx, default_runs_arg):
+        runs = runs_op_selected(args, ctx, default_runs_arg)
         return [run for run in runs if not run.remote]
 
     runs_op(
         args,
         ctx,
-        False,
         preview,
         confirm,
         no_runs_help,
@@ -1202,7 +1206,7 @@ def export(args, ctx):
             exported += 1
         cli.out("Exported %i run(s)" % exported)
 
-    runs_op(args, ctx, False, preview, confirm, no_runs, export, ALL_RUNS_ARG, True)
+    runs_op(args, ctx, preview, confirm, no_runs, export, ALL_RUNS_ARG, True)
 
 
 def _init_export_dir(dir):
@@ -1256,7 +1260,7 @@ def import_(args, ctx):
             imported += 1
         cli.out("Imported %i run(s)" % imported)
 
-    runs_op(args, ctx, False, preview, confirm, no_runs, export, ALL_RUNS_ARG, True)
+    runs_op(args, ctx, preview, confirm, no_runs, export, ALL_RUNS_ARG, True)
 
 
 def push(args, ctx):
@@ -1270,7 +1274,16 @@ def push(args, ctx):
     def push_f(runs):
         remote_impl_support.push_runs(runs, args)
 
-    runs_op(args, ctx, False, preview, confirm, no_runs, push_f, ALL_RUNS_ARG, True)
+    runs_op(
+        args.copy(remote=None),
+        ctx,
+        preview,
+        confirm,
+        no_runs,
+        push_f,
+        ALL_RUNS_ARG,
+        True,
+    )
 
 
 def _delete_clause(args):
@@ -1291,14 +1304,13 @@ def pull(args, ctx):
     def pull_f(runs):
         remote_impl_support.pull_runs(runs, args)
 
-    def filtered_runs_f(args, _ctx, _default_runs_arg, _force_deleted):
+    def filtered_runs_f(args, _ctx, _default_runs_arg):
         filtered = remote_impl_support.filtered_runs(args)
         return select_runs(filtered, args.runs, ctx)
 
     runs_op(
         args,
         ctx,
-        False,
         preview,
         confirm,
         no_runs,
@@ -1328,7 +1340,7 @@ def _clear_marked(args, ctx):
 
     if not args.runs:
         args.filter_marked = True
-    runs_op(args, ctx, False, preview, confirm, no_runs, clear, ALL_RUNS_ARG, True)
+    runs_op(args, ctx, preview, confirm, no_runs, clear, ALL_RUNS_ARG, True)
 
 
 def _mark(args, ctx):
@@ -1343,7 +1355,7 @@ def _mark(args, ctx):
 
     if not args.runs:
         args.filter_marked = True
-    runs_op(args, ctx, False, preview, confirm, no_runs, mark, LATEST_RUN_ARG, True)
+    runs_op(args, ctx, preview, confirm, no_runs, mark, LATEST_RUN_ARG, True)
 
 
 def select(args, ctx):
@@ -1495,7 +1507,7 @@ def _set_tags(args, ctx):
                 run.write_attr("label", _synced_label_for_tags(run, old_tags, args))
         cli.out("Modified tags for %i run(s)" % len(selected))
 
-    runs_op(args, ctx, False, preview, confirm, no_runs, set_tags, LATEST_RUN_ARG, True)
+    runs_op(args, ctx, preview, confirm, no_runs, set_tags, LATEST_RUN_ARG, True)
 
 
 def _set_tags_preview(args):
@@ -1717,7 +1729,6 @@ def _delete_comment(comment_index, args, ctx):
     runs_op(
         args,
         ctx,
-        False,
         preview,
         confirm,
         no_runs,
@@ -1752,7 +1763,6 @@ def _clear_comments(args, ctx):
     runs_op(
         args,
         ctx,
-        False,
         preview,
         confirm,
         no_runs,
@@ -1786,7 +1796,6 @@ def _add_comment(args, ctx):
     runs_op(
         args,
         ctx,
-        False,
         preview,
         confirm,
         no_runs,

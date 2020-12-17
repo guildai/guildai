@@ -538,6 +538,8 @@ def _runs_cmd_args(
     unmarked=False,
     started=None,
     digest=None,
+    deleted=None,
+    remote=None,
 ):
     operations = operations or ()
     labels = labels or ()
@@ -559,6 +561,8 @@ def _runs_cmd_args(
         filter_unmarked=unmarked,
         filter_started=started,
         filter_digest=digest,
+        deleted=deleted,
+        remote=remote,
     )
 
 

@@ -170,7 +170,7 @@ class Remote(object):
     def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
         raise NotImplementedError()
 
-    def list_runs(self, verbose=False, **filters):
+    def list_runs(self, verbose=False, deleted=False, **filters):
         raise NotImplementedError()
 
     def filtered_runs(self, **filters):

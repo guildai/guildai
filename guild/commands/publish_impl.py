@@ -47,8 +47,8 @@ def _publish(args, ctx):
         _publish_runs(runs, formatted, args)
         _refresh_index(args, no_dest=True)
 
-    def select_runs_f(args, ctx, default_runs_arg, force_deleted):
-        runs = runs_impl.runs_op_selected(args, ctx, default_runs_arg, force_deleted)
+    def select_runs_f(args, ctx, default_runs_arg):
+        runs = runs_impl.runs_op_selected(args, ctx, default_runs_arg)
         return [
             run for run in runs if args.include_batch or not batch_util.is_batch(run)
         ]
@@ -56,7 +56,6 @@ def _publish(args, ctx):
     runs_impl.runs_op(
         args,
         ctx,
-        False,
         preview,
         confirm,
         no_runs,
