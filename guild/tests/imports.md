@@ -201,6 +201,7 @@
     guild.remotes.__init__
     guild.remotes.azure_blob
     guild.remotes.ec2
+    guild.remotes.gist
     guild.remotes.meta_sync
     guild.remotes.s3
     guild.remotes.ssh

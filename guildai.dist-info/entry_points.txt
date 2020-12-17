@@ -31,3 +31,4 @@ ssh = guild.remotes.ssh:SSHRemoteType
 ec2 = guild.remotes.ec2:EC2RemoteType
 s3 = guild.remotes.s3:S3RemoteType
 azure-blob = guild.remotes.azure_blob:AzureBlobStorageRemoteType
+gist = guild.remotes.gist:GistRemoteType
