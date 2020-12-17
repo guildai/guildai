@@ -123,3 +123,5 @@ def _try_inline_remote(remote_arg):
         return None
     except remotelib.RemoteForSpecNotImplemented as e:
         cli.error("remote type '%s' does not support inline configuration" % e.args[0])
+    except remotelib.UnsupportedRemoteType as e:
+        cli.error("unknown remote type '%s'" % e.args[0])
