@@ -241,6 +241,30 @@ with `guild-home` is not specified.
     >>> remote.local_sync_dir
     '.../remotes/s3-foo-bar/meta/1ce28f3340b3334b1b181b3a874486c6'
 
+### Errors
+
+    >>> guild.remote.for_spec("foo")
+    Traceback (most recent call last):
+    InvalidRemoteSpec: foo
+
+    >>> guild.remote.for_spec("foo:")
+    Traceback (most recent call last):
+    UnsupportedRemoteType: foo
+
+### Remote types that don't support specs
+
+    >>> guild.remote.for_spec("ssh:xxx")
+    Traceback (most recent call last):
+    RemoteForSpecNotImplemented: ('ssh', 'xxx')
+
+    >>> guild.remote.for_spec("ec2:xxx")
+    Traceback (most recent call last):
+    RemoteForSpecNotImplemented: ('ec2', 'xxx')
+
+    >>> guild.remote.for_spec("azure-blob:yyy")
+    Traceback (most recent call last):
+    RemoteForSpecNotImplemented: ('azure-blob', 'yyy')
+
 ## Misc
 
 ### Quoting ssh args
