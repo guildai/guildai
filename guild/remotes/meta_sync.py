@@ -31,7 +31,8 @@ class MetaSyncRemote(remotelib.Remote):
         self._runs_dir = runs_dir
         self._deleted_runs_dir = deleted_runs_dir
 
-    def list_runs(self, verbose=False, deleted=False, **filters):
+    def list_runs(self, **opts):
+        deleted = opts.pop("deleted", False)
         if deleted and not self._deleted_runs_dir:
             raise remotelib.OperationNotSupported(
                 "remote '%s' does not support '--delete' option" % self.name
@@ -40,15 +41,14 @@ class MetaSyncRemote(remotelib.Remote):
         runs_dir = self._deleted_runs_dir if deleted else self._runs_dir
         if not os.path.exists(runs_dir):
             return
-        assert not filters.get("archive"), filters
-        assert not filters.get("remote"), filters
+        assert not opts.get("archive"), opts
+        assert not opts.get("remote"), opts
         args = click_util.Args(
-            verbose=verbose,
             deleted=False,
             archive=runs_dir,
             remote=None,
             json=False,
-            **filters
+            **opts
         )
         runs_impl.list_runs(args)
 

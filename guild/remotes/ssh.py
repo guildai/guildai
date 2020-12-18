@@ -378,13 +378,9 @@ class SSHRemote(remotelib.Remote):
                 raise
             raise remotelib.RunFailed(remote_run_dir)
 
-    def list_runs(self, verbose=False, deleted=False, **filters):
-        opts = _list_runs_filter_opts(**filters)
-        if verbose:
-            opts.append("--verbose")
-        if deleted:
-            opts.append("--deleted")
-        self._guild_cmd("runs list", opts)
+    def list_runs(self, **opts):
+        args = _list_runs_filter_args(**opts)
+        self._guild_cmd("runs list", args)
 
     def filtered_runs(self, **filters):
         opts = _filtered_runs_filter_opts(**filters)
@@ -560,20 +556,30 @@ def _noquote_arg(arg):
     return ""
 
 
-def _list_runs_filter_opts(deleted, all, more, limit, comments, **filters):
-    opts = []
+def _list_runs_filter_args(
+    deleted=False,
+    all=False,
+    more=False,
+    limit=False,
+    comments=False,
+    verbose=False,
+    **filters
+):
+    args = []
     if all:
-        opts.append("--all")
-    opts.extend(_filter_and_status_args(**filters))
+        args.append("--all")
+    args.extend(_filter_and_status_args(**filters))
     if deleted:
-        opts.append("--deleted")
+        args.append("--deleted")
     if more > 0:
-        opts.append("-" + ("m" * more))
+        args.append("-" + ("m" * more))
     if limit:
-        opts.extend(["--limit", str(limit)])
+        args.extend(["--limit", str(limit)])
     if comments:
-        opts.append("--comments")
-    return opts
+        args.append("--comments")
+    if verbose:
+        args.append("--verbose")
+    return args
 
 
 def _filtered_runs_filter_opts(**filters):
