@@ -241,6 +241,60 @@ with `guild-home` is not specified.
     >>> remote.local_sync_dir
     '.../remotes/s3-foo-bar/meta/1ce28f3340b3334b1b181b3a874486c6'
 
+### SSH
+
+    >>> def ssh_remote(spec):
+    ...     remote = guild.remote.for_spec(spec)
+    ...     pprint({
+    ...         "name": remote.name,
+    ...         "host": remote.host,
+    ...         "user": remote.user,
+    ...         "port": remote.port,
+    ...         "venv_path": remote.venv_path,
+    ...     }, width=60)
+
+    >>> ssh_remote("ssh:foo")
+    {'host': 'foo',
+     'name': 'foo',
+     'port': None,
+     'user': None,
+     'venv_path': None}
+
+    >>> ssh_remote("ssh:me@foo")
+    {'host': 'foo',
+     'name': 'me@foo',
+     'port': None,
+     'user': 'me',
+     'venv_path': None}
+
+    >>> ssh_remote("ssh:me@foo:2222")
+    {'host': 'foo',
+     'name': 'me@foo:2222',
+     'port': 2222,
+     'user': 'me',
+     'venv_path': None}
+
+    >>> ssh_remote("ssh:me@foo:2222:~/env/guild-123")
+    {'host': 'foo',
+     'name': 'me@foo:2222:~/env/guild-123',
+     'port': 2222,
+     'user': 'me',
+     'venv_path': '~/env/guild-123'}
+
+    >>> ssh_remote("ssh:me@foo:~/env/guild-123")
+    {'host': 'foo',
+     'name': 'me@foo:~/env/guild-123',
+     'port': None,
+     'user': 'me',
+     'venv_path': '~/env/guild-123'}
+
+    >>> ssh_remote("ssh:foo:~/env/guild-123")
+    {'host': 'foo',
+     'name': 'foo:~/env/guild-123',
+     'port': None,
+     'user': None,
+     'venv_path': '~/env/guild-123'}
+
 ### Errors
 
     >>> guild.remote.for_spec("foo")
@@ -252,10 +306,6 @@ with `guild-home` is not specified.
     UnsupportedRemoteType: foo
 
 ### Remote types that don't support specs
-
-    >>> guild.remote.for_spec("ssh:xxx")
-    Traceback (most recent call last):
-    RemoteForSpecNotImplemented: ('ssh', 'xxx')
 
     >>> guild.remote.for_spec("ec2:xxx")
     Traceback (most recent call last):

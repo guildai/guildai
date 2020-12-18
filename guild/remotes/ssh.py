@@ -19,6 +19,7 @@ import glob
 import json
 import os
 import logging
+import re
 import subprocess
 import sys
 
@@ -48,7 +49,31 @@ class SSHRemoteType(remotelib.RemoteType):
         return SSHRemote(name, config)
 
     def remote_for_spec(self, spec):
-        raise NotImplementedError()
+        user, host, port, path = _parse_spec(spec)
+        config = remotelib.RemoteConfig(
+            {
+                "host": host,
+                "port": port,
+                "user": user,
+                "venv-path": path,
+            }
+        )
+        return SSHRemote(spec, config)
+
+
+def _parse_spec(spec):
+    m = re.match(r"(?:(\w+)@)?([^/:]+)(?::(\d+))?(?::(.+))?$", spec)
+    if not m:
+        raise remotelib.InvalidRemoteSpec(
+            "invalid ssh spec '%s' - "
+            "expected format [USER@]HOST[:PORT][/ENV_PATH]" % spec
+        )
+    return (
+        m.group(1),
+        m.group(2),
+        int(m.group(3)) if m.group(3) else None,
+        m.group(4),
+    )
 
 
 class SSHRemote(remotelib.Remote):
