@@ -22,15 +22,15 @@ from . import runs_support
 
 
 def _ac_location(**_kw):
-    return click_util.completion_dir()
+    return click_util.completion_dir() + click_util.completion_filename(ext=["zip"])
 
 
 def export_params(fn):
     click_util.append_params(
         fn,
         [
+            click.Argument(("location",), autocompletion=_ac_location),
             runs_support.runs_arg,
-            click.Argument(("location",)),
             click.Option(
                 ("-m", "--move"),
                 help="Move exported runs rather than copy.",
@@ -47,8 +47,6 @@ def export_params(fn):
             ),
         ],
     )
-    assert fn.__click_params__[-1].name == "runs", fn.__click_params__
-    fn.__click_params__[-1].autocompletion = _ac_location
     return fn
 
 
