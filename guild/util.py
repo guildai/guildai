@@ -379,7 +379,7 @@ class TempFile(TempBase):
         os.remove(self.path)
 
 
-def mktempdir(prefix=None):
+def mktempdir(prefix=""):
     return tempfile.mkdtemp(prefix=prefix)
 
 
