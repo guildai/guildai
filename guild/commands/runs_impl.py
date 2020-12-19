@@ -36,6 +36,7 @@ import six
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
+from guild import exit_code
 from guild import flag_util
 from guild import op_util
 from guild import plugin as pluginlib
@@ -597,13 +598,14 @@ def runs_op(
         ]
         cli.table(formatted, cols=cols, indent=2)
     fmt_confirm_prompt = confirm_prompt.format(count=len(selected))
-    if args.yes or cli.confirm(fmt_confirm_prompt, confirm_default):
-        # pylint: disable=deprecated-method
-        if len(inspect.getargspec(op_callback).args) == 2:
-            formatted = formatted = format_runs(selected)
-            op_callback(selected, formatted)
-        else:
-            op_callback(selected)
+    if not args.yes and not cli.confirm(fmt_confirm_prompt, confirm_default):
+        raise SystemExit(exit_code.ABORTED)
+    # pylint: disable=deprecated-method
+    if len(inspect.getargspec(op_callback).args) == 2:
+        formatted = formatted = format_runs(selected)
+        op_callback(selected, formatted)
+    else:
+        op_callback(selected)
 
 
 def runs_op_selected(args, ctx, default_runs_arg=None):
@@ -650,7 +652,7 @@ def _delete_runs(args, ctx):
                 "and will be stopped before being deleted."
             )
             if not cli.confirm("Really delete these runs?"):
-                return
+                raise SystemExit(exit_code.ABORTED)
         for run in stoppable:
             _stop_run(run, no_wait=True)
         var.delete_runs(selected, args.permanent)
