@@ -136,10 +136,13 @@ def filtered_runs(args, ctx=None):
 
 def _runs_root_for_args(args):
     archive = getattr(args, "archive", None)
+    deleted = getattr(args, "deleted", False)
+    if archive and deleted:
+        cli.error("--archive and --deleted cannot both be used")
     if archive:
         return archive
-    deleted = getattr(args, "deleted", False)
-    return var.runs_dir(deleted=deleted)
+    else:
+        return var.runs_dir(deleted=deleted)
 
 
 def _runs_filter(args, ctx):
