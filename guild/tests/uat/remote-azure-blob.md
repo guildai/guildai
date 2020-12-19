@@ -29,7 +29,10 @@ Assert locally available runs:
 
 Ensure that all runs are cleared on Azure:
 
-    >>> quiet("guild runs rm -py -r guild-uat-azure-blob")
+    >>> run("guild runs rm -py -r guild-uat-azure-blob")
+    [2mSynchronizing runs with guild-uat-azure-blob[0m
+    ...
+    <exit 0>
 
 Confirm that Azure source is empty:
 

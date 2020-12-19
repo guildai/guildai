@@ -68,6 +68,7 @@ class AzureBlobStorageRemote(meta_sync.MetaSyncRemote):
             self.local_sync_dir, self._remote_meta_id
         ):
             return
+        _ensure_azure_local_dir(self.local_sync_dir)
         meta_sync.clear_local_meta_id(self.local_sync_dir)
         # TODO: This is a terribly ineffecient approach as we're
         # copying everything just to get metadata for the runs. The
@@ -225,3 +226,11 @@ def _azcopy_cmd():
             "common/storage-use-azcopy-v10 for help installing it."
         )
     return cmd
+
+
+def _ensure_azure_local_dir(dir):
+    """Creates dir if it doesn't exist.
+
+    azcopy doesn't know it's a local directory if it doesn't exist.
+    """
+    util.ensure_dir(dir)
