@@ -77,14 +77,40 @@ def runs(root=None, sort=None, filter=None, force_root=False):
 
 def _all_runs_f(root, force_root):
     root = root or runs_dir()
+    if force_root:
+        return _default_all_runs_f(root)
+
     return util.find_apply(
-        [_parent_runs_override_f, _default_all_runs_f], root, force_root
+        [
+            _zipfile_all_runs_f,
+            _runs_under_parent_f,
+            _default_all_runs_f,
+        ],
+        root,
     )
 
 
-def _parent_runs_override_f(root, force_root):
-    if force_root:
-        return None
+def _default_all_runs_f(root):
+    return lambda: _all_runs(root)
+
+
+def _zipfile_all_runs_f(root):
+    if root and root.lower().endswith(".zip"):
+        from . import run_zip_proxy
+
+        def f():
+            try:
+                return run_zip_proxy.all_runs(root)
+            except Exception as e:
+                if log.getEffectiveLevel() <= logging.DEBUG:
+                    log.exception("getting runs for zip file %s", root)
+                log.error("cannot read from %s: %s", root, e)
+                return []
+
+        return f
+
+
+def _runs_under_parent_f(root):
     runs_parent = os.getenv("GUILD_RUNS_PARENT")
     if not runs_parent:
         return None
@@ -115,10 +141,6 @@ def _runs_for_parent_links(parent_path, names, runs_dir):
 
 def _is_parent_run_path(path, runs_dir):
     return util.compare_paths(os.path.dirname(path), runs_dir)
-
-
-def _default_all_runs_f(root, _force_root):
-    return lambda: _all_runs(root)
 
 
 def run_filter(name, *args):
