@@ -44,12 +44,7 @@ def runs_list_options(fn):
                 help="Limit number of runs shown.",
             ),
             click.Option(("-d", "--deleted"), help="Show deleted runs.", is_flag=True),
-            click.Option(
-                ("-A", "--archive"),
-                metavar="DIR",
-                help="Show archived runs in DIR.",
-                autocompletion=click_util.completion_dir,
-            ),
+            runs_support.archive_option("Show archived runs in PATH."),
             click.Option(("-c", "--comments"), help="Show run comments.", is_flag=True),
             click.Option(("-v", "--verbose"), help="Show run details.", is_flag=True),
             click.Option(("--json",), help="Format runs as JSON.", is_flag=True),
@@ -92,10 +87,7 @@ def list_runs(ctx, args):
     run IDs and indexes to use in ``runs restore`` (restore runs) and
     ``runs purge`` (permanently delete runs).
 
-    ### Show Archived Runs
-
-    Use `--archive` to show runs in an archive directory. This option
-    may not be used with `--delete`.
+    {{ runs_support.archive_option }}
 
     ### Show Remote Runs
 

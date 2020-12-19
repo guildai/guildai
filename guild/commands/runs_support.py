@@ -138,6 +138,21 @@ def ac_digest(ctx, incomplete, **_kw):
     return sorted([d for d in digests if d and d.startswith(incomplete)])
 
 
+def ac_archive(**_kw):
+    return click_util.completion_dir() + click_util.completion_filename(ext=["zip"])
+
+
+def acquire_deprecated_option(fn, opt, param_name):
+    """Remove deprecated option from command param fn."""
+    for param in fn.__click_params__:
+        if opt in param.opts:
+            param.opts.remove("-l")
+            param.callback = None
+        if param.name == param_name:
+            if opt not in param.opts:
+                param.opts.insert(0, opt)
+
+
 def runs_arg(fn):
     """### Specify Runs
 
@@ -451,12 +466,26 @@ def all_filters(fn):
     return fn
 
 
-def acquire_deprecated_option(fn, opt, param_name):
-    """Remove deprecated option from command param fn."""
-    for param in fn.__click_params__:
-        if opt in param.opts:
-            param.opts.remove("-l")
-            param.callback = None
-        if param.name == param_name:
-            if opt not in param.opts:
-                param.opts.insert(0, opt)
+def archive_option(help):
+    """### Show Archived Runs
+
+    Use `--archive` to show runs in an archive directory. PATH may be
+    a directory or a zip file created using 'guild export'.
+    """
+    assert isinstance(help, str), "@archive_option must be called with help"
+
+    def wrapper(fn):
+        click_util.append_params(
+            fn,
+            [
+                click.Option(
+                    ("-A", "--archive"),
+                    metavar="PATH",
+                    help=help,
+                    autocompletion=ac_archive,
+                )
+            ],
+        )
+        return fn
+
+    return wrapper
