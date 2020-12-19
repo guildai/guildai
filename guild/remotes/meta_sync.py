@@ -16,14 +16,18 @@ from __future__ import absolute_import
 from __future__ import division
 
 import hashlib
+import logging
 import os
 import re
 
 from guild import click_util
 from guild import remote as remotelib
+from guild import util
 from guild import var
 
 from guild.commands import runs_impl
+
+log = logging.getLogger("guild")
 
 
 class MetaSyncRemote(remotelib.Remote):
@@ -190,3 +194,24 @@ def _safe_filename(s):
     if not s:
         return s
     return re.sub(r"\W+", "-", s).strip("-") or "-"
+
+
+def local_meta_id(local_sync_dir):
+    id_path = os.path.join(local_sync_dir, "meta-id")
+    return util.try_read(id_path, apply=str.strip)
+
+
+def clear_local_meta_id(local_sync_dir):
+    id_path = os.path.join(local_sync_dir, "meta-id")
+    util.ensure_deleted(id_path)
+
+
+def meta_current(local_sync_dir, remote_meta_id_cb):
+    local_id = local_meta_id(local_sync_dir)
+    if local_id is None:
+        log.debug("local meta-id not found, meta not current")
+        return False
+    remote_id = remote_meta_id_cb()
+    log.debug("local meta-id: %s", local_id)
+    log.debug("remote meta-id: %s", remote_id)
+    return local_id == remote_id

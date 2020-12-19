@@ -77,7 +77,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
         self.bucket = config["bucket"]
         self.root = config.get("root", "/")
         self.region = config.get("region")
-        self.env = remote_util.init_env(config.get("env"))
+        self.local_env = remote_util.init_env(config.get("local-env"))
         self.local_sync_dir = meta_sync.local_meta_dir(name, self._s3_uri())
         runs_dir = os.path.join(self.local_sync_dir, *RUNS_PATH)
         deleted_runs_dir = os.path.join(self.local_sync_dir, *DELETED_RUNS_PATH)
@@ -91,7 +91,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
         log.info(loglib.dim("Synchronizing runs with %s"), self.name)
         if not force and self._meta_current():
             return
-        self._clear_local_meta_id()
+        meta_sync.clear_local_meta_id(self.local_sync_dir)
         sync_args = [
             self._s3_uri(),
             self.local_sync_dir,
@@ -110,22 +110,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
         self._s3_cmd("sync", sync_args, quiet=True)
 
     def _meta_current(self):
-        local_id = self._local_meta_id()
-        if local_id is None:
-            log.debug("local meta-id not found, meta not current")
-            return False
-        remote_id = self._remote_meta_id()
-        log.debug("local meta-id: %s", local_id)
-        log.debug("remote meta-id: %s", remote_id)
-        return local_id == remote_id
-
-    def _clear_local_meta_id(self):
-        id_path = os.path.join(self.local_sync_dir, "meta-id")
-        util.ensure_deleted(id_path)
-
-    def _local_meta_id(self):
-        id_path = os.path.join(self.local_sync_dir, "meta-id")
-        return util.try_read(id_path, apply=str.strip)
+        return meta_sync.meta_current(self.local_sync_dir, self._remote_meta_id)
 
     def _remote_meta_id(self):
         with util.TempFile("guild-s3-") as tmp:
@@ -154,8 +139,8 @@ class S3Remote(meta_sync.MetaSyncRemote):
 
     def _cmd_env(self):
         env = dict(os.environ)
-        if self.env:
-            env.update(self.env)
+        if self.local_env:
+            env.update(self.local_env)
         return env
 
     def _s3_cmd(self, name, args, quiet=False):
@@ -165,7 +150,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
         cmd.extend(["s3", name] + args)
         log.debug("aws cmd: %r", cmd)
         try:
-            remote_util.subprocess_call(cmd, extra_env=self.env, quiet=quiet)
+            remote_util.subprocess_call(cmd, extra_env=self.local_env, quiet=quiet)
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.for_called_process_error(e)
 
@@ -257,7 +242,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
         self._s3_cmd("sync", args)
 
     def _new_meta_id(self):
-        meta_id = _uuid()
+        meta_id = uuid.uuid4().hex
         with util.TempFile("guild-s3-") as tmp:
             with open(tmp.path, "w") as f:
                 f.write(meta_id)
@@ -331,11 +316,3 @@ def _aws_cmd():
 def _join_path(root, *parts):
     path = [part for part in itertools.chain([root], parts) if part not in ("/", "")]
     return "/".join(path)
-
-
-def _uuid():
-    try:
-        return uuid.uuid1().hex
-    except ValueError:
-        # Workaround https://bugs.python.org/issue32502
-        return uuid.uuid4().hex
