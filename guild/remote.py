@@ -240,7 +240,7 @@ def for_name(name):
 def for_spec(spec):
     m = re.match(r"([\w-]+):(.*)", spec)
     if not m:
-        raise InvalidRemoteSpec(spec)
+        return None
     remote_type, remote_spec = m.groups()
     try:
         T = _remote_types.one_for_name(remote_type)
