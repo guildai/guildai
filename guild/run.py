@@ -208,7 +208,11 @@ class Run(object):
         return os.path.join(self._guild_dir, "attrs")
 
     def __repr__(self):
-        return "<guild.run.Run '%s'>" % self.id
+        return "<%s.%s '%s'>" % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.id,
+        )
 
     def init_skel(self):
         util.ensure_dir(self.guild_path("attrs"))
