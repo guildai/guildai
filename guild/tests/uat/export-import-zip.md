@@ -1,4 +1,4 @@
-# Export / Import
+# Export / Import Using Zip Archives
 
 These tests illustrate basic export/import features.
 
@@ -30,51 +30,43 @@ Generate three runs:
 
 ## Export with Copy (default)
 
-Create an export dir:
+Create a temp dir to write our archive to.
 
-    >>> export_dir = mkdtemp()
+    >>> archive = path(mkdtemp(), "runs.zip")
 
 Show preview:
 
-    >>> run("guild export %s" % export_dir, timeout=2)
+    >>> run("guild export %s 1 2" % archive, timeout=2)
     You are about to copy the following runs to '...':
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
-      [...]  hello   ...  completed  msg=hello
-      [...]  hello+  ...  completed
     Continue? (Y/n)
     <exit ...>
 
-Export with copy:
+Export (copies):
 
-    >>> run("guild export %s -y" % export_dir)
+    >>> run("guild export %s 1 2 -y" % archive)
     Copying ...
     Copying ...
-    Copying ...
-    Copying ...
-    Exported 4 run(s) to ...
+    Exported 2 run(s) to .../runs.zip
     <exit 0>
 
 Directories in export dir:
 
-    >>> dir(export_dir)
-    ['.guild-nocopy',
-     '...',
-     '...',
-     '...',
-     '...']
+    >>> run("python -m zipfile -l %s" % archive)
+    File Name    Modified         Size
+    .../              ...            0
+    .../.guild/       ...            0
+    ...
 
 List runs in archive:
 
-    >>> run("guild runs --archive %s" % export_dir)
+    >>> run("guild runs -A %s" % archive)
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
-    [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
-Current runs still exist because the default export mode is to copy
-runs.
+Runs still exist because the default export mode is to copy runs.
 
     >>> run("guild runs")
     [1:...]  hello   ...  completed  msg=hola
@@ -83,11 +75,37 @@ runs.
     [4:...]  hello+  ...  completed
     <exit 0>
 
+Export two more runs - preview.
+
+    >>> run("guild export %s 3 4" % archive, timeout=2)
+    You are about to copy the following runs to '...':
+      [...]  hello   ...  completed  msg=hello
+      [...]  hello+  ...  completed
+    Continue? (Y/n)
+    <exit ...>
+
+Export the runs:
+
+    >>> run("guild export %s 3 4 -y" % archive)
+    Copying ...
+    Copying ...
+    Exported 2 run(s) to .../runs.zip
+    <exit 0>
+
+List runs in archive:
+
+    >>> run("guild runs -A %s" % archive)
+    [1:...]  hello   ...  completed  msg=hola
+    [2:...]  hello   ...  completed  msg=hi
+    [3:...]  hello   ...  completed  msg=hello
+    [4:...]  hello+  ...  completed
+    <exit 0>
+
 ## Overwriting Export Runs
 
-Guild won't overwrite runs in an export.
+Guild won't overwrite runs in an archive.
 
-    >>> run("guild export %s -y" % export_dir)
+    >>> run("guild export %s -y" % archive)
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
@@ -99,11 +117,11 @@ Guild won't overwrite runs in an export.
 
 Export to another export dir using the `--move` option:
 
-    >>> export_dir = mkdtemp()
+    >>> archive = path(mkdtemp(), "runs.zip")
 
 Preview:
 
-    >>> run("guild export %s --move" % export_dir, timeout=2)
+    >>> run("guild export %s --move" % archive, timeout=2)
     You are about to move the following runs to '...':
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
@@ -114,7 +132,7 @@ Preview:
 
 Export with move:
 
-    >>> run("guild export %s --move -y" % export_dir)
+    >>> run("guild export %s --move -y" % archive)
     Moving ...
     Moving ...
     Moving ...
@@ -122,14 +140,22 @@ Export with move:
     Exported 4 run(s) to ...
     <exit 0>
 
-Export dir:
+Archive contents:
 
-    >>> dir(export_dir)
-    ['.guild-nocopy',
-     '...',
-     '...',
-     '...',
-     '...']
+    >>> run("python -m zipfile -l %s" % archive)
+    File Name    Modified         Size
+    .../              ...            0
+    .../.guild/       ...            0
+    ...
+
+List runs in archive:
+
+    >>> run("guild runs -A %s" % archive)
+    [1:...]  hello   ...  completed  msg=hola
+    [2:...]  hello   ...  completed  msg=hi
+    [3:...]  hello   ...  completed  msg=hello
+    [4:...]  hello+  ...  completed
+    <exit 0>
 
 Current runs are empty because runs were moved rather than copied.
 
@@ -140,7 +166,7 @@ Current runs are empty because runs were moved rather than copied.
 
 Import preview:
 
-    >>> run("guild import %s" % export_dir, timeout=2)
+    >>> run("guild import %s" % archive, timeout=2)
     You are about to import (copy) the following runs from '...':
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
@@ -151,7 +177,7 @@ Import preview:
 
 Import runs:
 
-    >>> run("guild import %s -y" % export_dir)
+    >>> run("guild import %s -y" % archive)
     Copying ...
     Copying ...
     Copying ...
@@ -162,15 +188,6 @@ Import runs:
 Current runs:
 
     >>> run("guild runs")
-    [1:...]  hello   ...  completed  msg=hola
-    [2:...]  hello   ...  completed  msg=hi
-    [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
-    <exit 0>
-
-Runs in archive:
-
-    >>> run("guild runs -A %s" % export_dir)
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
@@ -181,7 +198,7 @@ Runs in archive:
 
 Import again:
 
-    >>> run("guild import %s -y" % export_dir)
+    >>> run("guild import %s -y" % archive)
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
@@ -189,68 +206,24 @@ Import again:
     Imported 0 run(s) from ...
     <exit 0>
 
-## Import with Move
+## Import with Move - no supported for zip archives
 
-Delete existing runs:
-
-    >>> quiet("guild runs rm -y")
-
-Import preview:
-
-    >>> run("guild import %s --move" % export_dir, timeout=2)
-    You are about to import (move) the following runs from '...':
-      [...]  hello   ...  completed  msg=hola
-      [...]  hello   ...  completed  msg=hi
-      [...]  hello   ...  completed  msg=hello
-      [...]  hello+  ...  completed
-    Continue? (Y/n)
-    <exit ...>
-
-Import runs:
-
-    >>> run("guild import %s --move -y" % export_dir)
-    Moving ...
-    Moving ...
-    Moving ...
-    Moving ...
-    Imported 4 run(s) from ...
-    <exit 0>
-
-Current runs:
-
-    >>> run("guild runs")
-    [1:...]  hello   ...  completed  msg=hola
-    [2:...]  hello   ...  completed  msg=hi
-    [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
-    <exit 0>
-
-Runs in archive:
-
-    >>> run("guild runs -A %s" % export_dir)
-    <exit 0>
+    >>> run("guild import %s --move" % archive, timeout=2)
+    guild: '--move' cannot be used with zip archives
+    <exit 1>
 
 ## Errors
 
-Directory structure to test errors:
+Looks like an zip file but isn't:
 
-    >>> tmpdir = mkdtemp()
-    >>> touch(path(tmpdir, "a-file"))
+    >>> archive = path(mkdtemp(), "run.zip")
+    >>> touch(archive)
 
-Invalid export location:
-
-    >>> run("guild export %s/a-file -y" % tmpdir)
-    guild: '.../a-file' is not a directory
+    >>> run("guild export %s -y" % archive)
+    guild: cannot write to .../run.zip: File is not a zip file
     <exit 1>
 
-Import non-existing archive:
-
-    >>> run("guild import %s/missing-dir -y" % tmpdir)
-    guild: archive '.../missing-dir' does not exist
-    <exit 1>
-
-Import a file rather than a directory:
-
-    >>> run("guild import %s/a-file -y" % tmpdir)
-    guild: invalid archive .../a-file - expected a directory or a zip file
-    <exit 1>
+    >>> run("guild import %s -y" % archive)
+    ERROR: cannot read from .../run.zip: File is not a zip file
+    No runs to import.
+    <exit 0>

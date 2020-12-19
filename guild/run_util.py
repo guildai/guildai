@@ -15,8 +15,10 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import errno
 import logging
 import os
+import shutil
 
 import six
 import yaml
@@ -27,12 +29,21 @@ from guild import opref as opreflib
 from guild import resolver
 from guild import run as runlib
 from guild import util
+from guild import var
 
 log = logging.getLogger("guild")
 
 DEFAULT_MONITOR_INTERVAL = 5
 MIN_MONITOR_INTERVAL = 5
 MAX_RUN_NAME_LEN = 242
+
+
+class RunsExportError(Exception):
+    pass
+
+
+class RunsImportError(Exception):
+    pass
 
 
 class RunsMonitor(util.LoopingThread):
@@ -290,14 +301,14 @@ def _format_func_op(opref):
 
 
 def _apply_batch_desc(base_desc, run, seen_protos):
-    proto_dir = _safe_guild_path(run, "proto", "")
-    if not os.path.exists(proto_dir):
+    proto = run.batch_proto
+    if not proto:
         return base_desc
-    if proto_dir in seen_protos:
+    if proto.dir in seen_protos:
         # We have a cycle - drop this proto_dir
         return base_desc
-    proto_run = runlib.Run("", proto_dir)
-    proto_op_desc = format_operation(proto_run, seen_protos)
+    seen_protos.add(proto.dir)
+    proto_op_desc = format_operation(proto, seen_protos=seen_protos)
     parts = [proto_op_desc]
     if not base_desc.startswith("+"):
         parts.append("+")
@@ -471,3 +482,179 @@ def sourcecode_dir(run):
     if sourcecode_root:
         return os.path.normpath(os.path.join(run.dir, sourcecode_root))
     return run.guild_path("sourcecode")
+
+
+def export_runs(runs, dest, move=False, copy_resources=False):
+    if dest.lower().endswith(".zip"):
+        return _export_runs_to_zip(runs, dest, move, copy_resources)
+    else:
+        return _export_runs_to_dir(runs, dest, move, copy_resources)
+
+
+def _export_runs_to_zip(runs, filename, move, copy_resources):
+    import zipfile
+
+    tmp_dir = util.mktempdir("guild-export-")
+    tmp_zip = os.path.join(tmp_dir, "export.zip")
+    log.debug("writing zip %s", tmp_zip)
+    exported = []
+    with zipfile.ZipFile(tmp_zip, "w", allowZip64=True) as zf:
+        existing = set()
+        if os.path.exists(filename):
+            try:
+                _write_zip_files(filename, zf, existing)
+            except zipfile.BadZipfile as e:
+                raise RunsExportError("cannot write to %s: %s" % (filename, e))
+        _copy_runs_to_zip(runs, move, copy_resources, zf, existing, exported)
+    log.debug("replacing %s with %s", filename, tmp_zip)
+    shutil.move(tmp_zip, filename)
+    if move:
+        _delete_exported_runs(exported)
+    return exported
+
+
+def _write_zip_files(src, zf, written):
+    import zipfile
+
+    with zipfile.ZipFile(src, "r") as src_zf:
+        for name in src_zf.namelist():
+            info = src_zf.getinfo(name)
+            data = src_zf.read(name)
+            zf.writestr(info, data, zipfile.ZIP_DEFLATED)
+            written.add(name)
+
+
+def _copy_runs_to_zip(runs, move, copy_resources, zf, existing, written):
+    import zipfile
+
+    action_desc = "Moving" if move else "Copying"
+    for run in runs:
+        if _zip_path(run.id, "") in existing:
+            log.warning("%s exists, skipping", run.id)
+            continue
+        log.info("%s %s", action_desc, run.id)
+        for src, zip_path in _iter_run_files_for_zip(run, copy_resources):
+            log.debug("writing %s to %s", src, zip_path)
+            if zip_path in existing:
+                log.error(
+                    "unexpected run file %s in %s, skipping",
+                    zip_path,
+                    zf.filename,
+                )
+                continue
+            zf.write(src, zip_path, zipfile.ZIP_DEFLATED)
+        written.append(run)
+
+
+def _iter_run_files_for_zip(run, copy_resources):
+    yield run.dir, run.id
+    for root, dirs, names in os.walk(run.dir, followlinks=copy_resources):
+        zip_path_base = _zip_path_base(root, run)
+        for name in dirs + names:
+            yield os.path.join(root, name), _zip_path(zip_path_base, name)
+
+
+def _zip_path(*parts):
+    return "/".join(parts)
+
+
+def _zip_path_base(root_dir, run):
+    relroot = os.path.relpath(root_dir, run.dir)
+    if relroot == ".":
+        return run.id
+    return "/".join([run.id] + relroot.split(os.path.sep))
+
+
+def _delete_exported_runs(runs):
+    for run in runs:
+        util.safe_rmtree(run.path)
+
+
+def _export_runs_to_dir(runs, dir, move, copy_resources):
+    _init_export_dir(dir)
+    exported = []
+    for run in runs:
+        dest = os.path.join(dir, run.id)
+        if os.path.exists(dest):
+            log.warning("%s exists, skipping", dest)
+            continue
+        if move:
+            log.info("Moving %s", run.id)
+            if copy_resources:
+                shutil.copytree(run.path, dest)
+                util.safe_rmtree(run.path)
+            else:
+                shutil.move(run.path, dest)
+        else:
+            log.info("Copying %s", run.id)
+            follow_links = not copy_resources
+            shutil.copytree(run.path, dest, follow_links)
+        exported.append(run)
+    return exported
+
+
+def _init_export_dir(dir):
+    util.ensure_dir(dir)
+    try:
+        util.touch(os.path.join(dir, ".guild-nocopy"))
+    except IOError as e:
+        if e.errno == errno.ENOTDIR:
+            raise RunsExportError("'%s' is not a directory" % dir)
+        else:
+            raise RunsExportError(
+                "error initializing export directory '%s': %s" % (dir, e)
+            )
+
+
+class _Skipped(Exception):
+    pass
+
+
+def import_runs(runs, move=False, copy_resources=False):
+    imported = []
+    for run in runs:
+        try:
+            _import_run(run, move, copy_resources)
+        except _Skipped:
+            pass
+        else:
+            imported.append(run)
+    return imported
+
+
+def _import_run(run, move, copy_resources):
+    dest = os.path.join(var.runs_dir(), run.id)
+    if os.path.exists(dest):
+        log.warning("%s exists, skipping", run.id)
+        raise _Skipped()
+    if _is_zipfile_run(run):
+        if move:
+            raise RunsImportError("cannot move runs from zip archive")
+        _zipfile_import_run(run, dest)
+    else:
+        _default_import_run(run, dest, move, copy_resources)
+
+
+def _is_zipfile_run(run):
+    return hasattr(run, "zip_src")
+
+
+def _zipfile_import_run(run, dest):
+    from guild import run_zip_proxy
+
+    assert hasattr(run, "zip_src"), run
+    log.info("Copying %s", run.id)
+    run_zip_proxy.copy_run(run.zip_src, run.id, dest)
+
+
+def _default_import_run(run, dest, move, copy_resources):
+    if move:
+        log.info("Moving %s", run.id)
+        if copy_resources:
+            shutil.copytree(run.path, dest)
+            util.safe_rmtree(run.path)
+        else:
+            shutil.move(run.path, dest)
+    else:
+        log.info("Copying %s", run.id)
+        shutil.copytree(run.path, dest, symlinks=not copy_resources)

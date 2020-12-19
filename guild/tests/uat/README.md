@@ -265,6 +265,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [flags-test](flags-test.md)
 - [guild-open](guild-open.md)
 - [export-import](export-import.md)
+- [export-import-zip](export-import-zip.md)
 - [pip-freeze](pip-freeze.md)
 - [no-run-output](no-run-output.md)
 - [staged-dependency-error](staged-dependency-error.md)

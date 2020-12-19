@@ -212,6 +212,7 @@
     guild.run
     guild.run_check
     guild.run_util
+    guild.run_zip_proxy
     guild.service
     guild.serving_util
     guild.steps_main

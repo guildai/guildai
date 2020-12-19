@@ -22,7 +22,6 @@ import json
 import logging
 import os
 import re
-import shutil
 import signal
 
 import six
@@ -1176,55 +1175,43 @@ def export(args, ctx):
     confirm = "Continue?"
     no_runs = "No runs to export."
 
-    def export(selected):
+    def export_f(selected):
         if args.copy_resources and not args.yes:
             cli.out(
-                "WARNING: you have specified --copy-resources, which will "
-                "copy resources used by each run!"
-                ""
+                cli.style(
+                    "WARNING: you specified --copy-resources, which will "
+                    "copy resources used by each run."
+                    "",
+                    fg="yellow",
+                )
             )
             if not cli.confirm("Really copy resources exported runs?"):
-                return
-        _init_export_dir(args.location)
-        exported = 0
-        for run in selected:
-            dest = os.path.join(args.location, run.id)
-            if os.path.exists(dest):
-                log.warning("%s exists, skipping", dest)
-                continue
-            if args.move:
-                cli.out("Moving {}".format(run.id))
-                if args.copy_resources:
-                    shutil.copytree(run.path, dest)
-                    shutil.rmtree(run.path)
-                else:
-                    shutil.move(run.path, dest)
-            else:
-                cli.out("Copying {}".format(run.id))
-                symlinks = not args.copy_resources
-                shutil.copytree(run.path, dest, symlinks)
-            exported += 1
-        cli.out("Exported %i run(s)" % exported)
-
-    runs_op(args, ctx, preview, confirm, no_runs, export, ALL_RUNS_ARG, True)
-
-
-def _init_export_dir(dir):
-    util.ensure_dir(dir)
-    try:
-        util.touch(os.path.join(dir, ".guild-nocopy"))
-    except IOError as e:
-        if e.errno == errno.ENOTDIR:
-            cli.error("'%s' is not a directory" % dir)
+                raise SystemExit(exit_code.ABORTED)
+        try:
+            exported = run_util.export_runs(
+                selected,
+                args.location,
+                move=args.move,
+                copy_resources=args.copy_resources,
+            )
+        except run_util.RunsExportError as e:
+            cli.error(e.args[0])
         else:
-            cli.error("error initializing export directory '%s': %s" % (dir, e))
+            cli.out("Exported %i run(s) to %s" % (len(exported), args.location))
+
+    runs_op(args, ctx, preview, confirm, no_runs, export_f, ALL_RUNS_ARG, True)
 
 
 def import_(args, ctx):
     if not os.path.exists(args.archive):
         cli.error("archive '%s' does not exist" % args.archive)
-    if not os.path.isdir(args.archive):
-        cli.error("invalid archive '%s' - expected a directory" % args.archive)
+    if _is_zip_archive(args.archive):
+        if args.move:
+            cli.error("'--move' cannot be used with zip archives")
+    elif os.path.isfile(args.archive):
+        cli.error(
+            "invalid archive %s - expected a directory or a zip file" % args.archive
+        )
     preview = "You are about to import (%s) the following runs from '%s':" % (
         args.move and "move" or "copy",
         args.archive,
@@ -1232,35 +1219,33 @@ def import_(args, ctx):
     confirm = "Continue?"
     no_runs = "No runs to import."
 
-    def export(selected):
+    def import_f(selected):
         if args.copy_resources and not args.yes:
             cli.out(
-                "WARNING: you have specified --copy-resources, which will "
-                "copy resources used by each run!"
+                cli.style(
+                    "WARNING: you specified --copy-resources, which will "
+                    "copy resources used by each run."
+                    "",
+                    fg="yellow",
+                )
             )
             if not cli.confirm("Really copy resources exported runs?"):
-                return
-        imported = 0
-        for run in selected:
-            dest = os.path.join(var.runs_dir(), run.id)
-            if os.path.exists(dest):
-                log.warning("%s exists, skipping", run.id)
-                continue
-            if args.move:
-                cli.out("Moving {}".format(run.id))
-                if args.copy_resources:
-                    shutil.copytree(run.path, dest)
-                    shutil.rmtree(run.path)
-                else:
-                    shutil.move(run.path, dest)
-            else:
-                cli.out("Copying {}".format(run.id))
-                symlinks = not args.copy_resources
-                shutil.copytree(run.path, dest, symlinks)
-            imported += 1
-        cli.out("Imported %i run(s)" % imported)
+                raise SystemExit(exit_code.ABORTED)
+        try:
+            imported = run_util.import_runs(
+                selected,
+                move=args.move,
+                copy_resources=args.copy_resources,
+            )
+        except run_util.RunsImportError as e:
+            cli.error(e.args[0])
+        cli.out("Imported %i run(s) from %s" % (len(imported), args.archive))
 
-    runs_op(args, ctx, preview, confirm, no_runs, export, ALL_RUNS_ARG, True)
+    runs_op(args, ctx, preview, confirm, no_runs, import_f, ALL_RUNS_ARG, True)
+
+
+def _is_zip_archive(path):
+    return path.lower().endswith(".zip")
 
 
 def push(args, ctx):
