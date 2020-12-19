@@ -235,7 +235,7 @@ with `guild-home` is not specified.
     >>> print(remote.region)
     None
 
-    >>> remote.env
+    >>> remote.local_env
     {}
 
     >>> remote.local_sync_dir
@@ -295,15 +295,20 @@ with `guild-home` is not specified.
      'user': None,
      'venv_path': '~/env/guild-123'}
 
-### Errors
+### Non-existing spec
 
-    >>> guild.remote.for_spec("foo")
-    Traceback (most recent call last):
-    InvalidRemoteSpec: foo
+    >>> print(guild.remote.for_spec("foo"))
+    None
+
+### Errors
 
     >>> guild.remote.for_spec("foo:")
     Traceback (most recent call last):
     UnsupportedRemoteType: foo
+
+    >>> guild.remote.for_spec("gist:foo")
+    Traceback (most recent call last):
+    InvalidRemoteSpec: gist remotes must be specified as USER/GIST_NAME
 
 ### Remote types that don't support specs
 
