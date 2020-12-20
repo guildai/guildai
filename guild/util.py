@@ -1250,6 +1250,8 @@ def platform_info():
 
 
 def _platform_base_info():
+    import platform
+
     return {
         "architecture": " ".join(platform.architecture()),
         "processor": platform.processor(),
@@ -1270,6 +1272,7 @@ def _platform_psutil_info():
 
 
 def guild_user_agent():
+    import platform
     import guild
 
     system, _node, release, _ver, machine, _proc = platform.uname()
