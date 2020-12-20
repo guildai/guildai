@@ -313,7 +313,7 @@ def common_filters(fn):
             ),
             click.Option(
                 ("-U", "--unlabeled", "filter_unlabeled"),
-                help="Filter only runs without labels (deprecated - use --label '').",
+                help="Filter only runs without labels (deprecated - use '-Fl -').",
                 is_flag=True,
                 callback=_deprecated(
                     "-U",
