@@ -351,6 +351,9 @@ class TempBase(object):
         if not self._keep:
             self.delete()
 
+    def keep(self):
+        self._keep = True
+
     @staticmethod
     def delete():
         raise NotImplementedError()
@@ -396,6 +399,14 @@ def safe_rmtree(path):
     assert not _top_level_dir(path), path
     assert path != os.path.expanduser("~"), path
     shutil.rmtree(path)
+
+
+def ensure_safe_rmtree(path):
+    try:
+        safe_rmtree(path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
 
 
 def _top_level_dir(path):
