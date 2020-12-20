@@ -41,8 +41,7 @@ def _try_init_git_attrs():
 def _init_git_commit():
     repo = _guild_repo()
     if repo:
-        line = _cmd_out("git --work-tree \"%s\" log -1 --oneline" % repo)
-        commit = line.split(" ")[0]
+        commit = _cmd_out("git --work-tree \"%s\" log -1 --format=\"%%h\"" % repo)
     else:
         commit = None
     globals()["__git_commit__"] = commit
