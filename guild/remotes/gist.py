@@ -17,10 +17,10 @@ from __future__ import division
 
 import logging
 import os
+import shutil
 import subprocess
 import zipfile
 
-from guild import log as loglib
 from guild import remote as remotelib
 from guild import remote_util
 from guild import util
@@ -71,25 +71,31 @@ class GistRemote(meta_sync.MetaSyncRemote):
         super(GistRemote, self).__init__(runs_dir, None)
 
     def _sync_runs_meta(self, force=False):
-        log.info(loglib.dim("Synchronizing runs with gist.github.com"))
         gist = self._repo_gist()
         if not gist:
-            return
+            raise remotelib.OperationError(
+                "cannot find gist remote '%s' (denoted by the file '%s') for user %s"
+                % (self.gist_name, self._gist_readme_name, self.user)
+            )
         _sync_gist_repo(gist, self._local_gist_repo, self.local_env)
-        self._sync_runs_meta_for_gist()
+        self._sync_runs_meta_for_gist(force)
 
     def _repo_gist(self):
         return _find_gist_with_file(self.user, self._gist_readme_name)
 
-    def _sync_runs_meta_for_gist(self):
+    def _sync_runs_meta_for_gist(self, force):
         git_commit = self._gist_repo_commit()
-        if not meta_sync.meta_current(self.local_sync_dir, lambda: git_commit):
-            _refresh_runs_meta(
-                self._local_gist_repo,
-                self._runs_dir,
-                git_commit,
-                self.local_sync_dir,
-            )
+        if not force and self._meta_current(git_commit):
+            return
+        _refresh_runs_meta(
+            self._local_gist_repo,
+            self._runs_dir,
+            git_commit,
+            self.local_sync_dir,
+        )
+
+    def _meta_current(self, git_commit):
+        return meta_sync.meta_current(self.local_sync_dir, lambda: git_commit)
 
     def _gist_repo_commit(self):
         return _git_commit(self._local_gist_repo)
@@ -110,11 +116,12 @@ class GistRemote(meta_sync.MetaSyncRemote):
         self._sync_runs_meta(force=True)
 
     def _push_run(self, run, delete):
-        print("Somehow push run %s to a gist %s" % (run.id, self.name, delete))
+        assert False, (run, self._gist_readme_name, delete)
 
     def pull(self, runs, delete=False):
-        for run in runs:
-            self._pull_run(run, delete)
+        from guild import var
+
+        _extract_runs(runs, self._local_gist_repo, var.runs_dir())
 
     def label_runs(self, **opts):
         raise remotelib.OperationNotSupported()  # TODO
@@ -260,3 +267,45 @@ def _git_commit(git_repo):
     null = open(os.devnull, "w")
     out = subprocess.check_output(cmd, stderr=null)
     return out.decode("utf-8").strip()
+
+
+def _extract_runs(runs, archive_dir, dest_dir):
+    for run in runs:
+        archive = os.path.join(archive_dir, "%s.run.zip" % run.id)
+        if not os.path.exists(archive):
+            log.error(
+                "%s archive for gist does not exist (%s), skipping", run.id, archive
+            )
+            continue
+        log.info("Copying %s", run.id)
+        _replace_run(archive, run.id, dest_dir)
+
+
+def _replace_run(archive, run_id, dest_dir):
+    with util.TempDir("guild-gist-run-") as tmp:
+        _extract_archive(archive, tmp.path)
+        extracted_run_dir = _validate_extracted_run(tmp.path, run_id, archive)
+        dest_run_dir = os.path.join(dest_dir, run_id)
+        _replace_run_dir(dest_run_dir, extracted_run_dir)
+
+
+def _extract_archive(archive, dest_dir):
+    with zipfile.ZipFile(archive, "r") as zf:
+        for name in zf.namelist():
+            zf.extract(name, dest_dir)
+
+
+def _validate_extracted_run(dir, run_id, archive):
+    # RUN_DIR/.guild/opref is required for a run.
+    extracted_run_dir = os.path.join(dir, run_id)
+    opref_path = os.path.join(extracted_run_dir, ".guild", "opref")
+    if not os.path.exists(opref_path):
+        log.error("%s does not contain expected run %s", archive, run_id)
+        raise remotelib.OperationError("invalid run archive in gist")
+    return extracted_run_dir
+
+
+def _replace_run_dir(run_dir, src_dir):
+    log.debug("moving %s to %s", src_dir, run_dir)
+    util.ensure_safe_rmtree(run_dir)
+    shutil.move(src_dir, run_dir)

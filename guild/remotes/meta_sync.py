@@ -48,11 +48,7 @@ class MetaSyncRemote(remotelib.Remote):
         assert not opts.get("archive"), opts
         assert not opts.get("remote"), opts
         args = click_util.Args(
-            deleted=False,
-            archive=runs_dir,
-            remote=None,
-            json=False,
-            **opts
+            deleted=False, archive=runs_dir, remote=None, json=False, **opts
         )
         runs_impl.list_runs(args)
 
