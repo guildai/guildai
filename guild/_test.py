@@ -930,7 +930,7 @@ def _run(
 
 
 def _run_shell_cmd(cmd):
-    if util.PLATFORM == "Windows":
+    if util.get_platform() == "Windows":
         return _run_shell_win_cmd(cmd)
     else:
         return _run_shell_posix_cmd(cmd)
@@ -998,7 +998,7 @@ def _run_shell_posix_cmd(cmd):
 
 
 def _popen(cmd, env, cwd):
-    if util.PLATFORM == "Windows":
+    if util.get_platform() == "Windows":
         return _popen_win(cmd, env, cwd)
     else:
         return _popen_posix(cmd, env, cwd)
@@ -1033,7 +1033,7 @@ class _kill_after(object):
         self._timer = threading.Timer(timeout, self._kill)
 
     def _kill(self):
-        if util.PLATFORM == "Windows":
+        if util.get_platform() == "Windows":
             self._kill_win()
         else:
             self._kill_posix()

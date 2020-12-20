@@ -38,7 +38,6 @@ from guild import config
 from guild import exit_code
 from guild import flag_util
 from guild import op_util
-from guild import plugin as pluginlib
 from guild import remote_run_support
 from guild import run as runlib
 from guild import run_util
@@ -1151,6 +1150,8 @@ def _stop_run(run, no_wait):
 
 
 def _try_stop_remote_run(run, remote_lock, no_wait):
+    from guild import plugin as pluginlib  # expensive
+
     try:
         plugin = pluginlib.for_name(remote_lock.plugin_name)
     except LookupError:

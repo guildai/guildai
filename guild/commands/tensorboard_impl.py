@@ -114,7 +114,7 @@ def _run_tensorboard(args):
                 log.debug("Removing logdir %s", logdir)
             else:
                 print("TensorBoard logs saved in %s" % logdir)
-    if util.PLATFORM != "Windows":
+    if util.get_platform() != "Windows":
         cli.out()
 
 

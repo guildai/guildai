@@ -240,9 +240,9 @@ def _default_diff_cmd_for_path(path1):
 
 
 def _default_diff_cmd_():
-    if util.PLATFORM == "Linux":
+    if util.get_platform() == "Linux":
         return _find_cmd(["meld", "xxdiff -r", "dirdiff", "colordiff"])
-    elif util.PLATFORM == "Darwin":
+    elif util.get_platform() == "Darwin":
         return _find_cmd(["Kaleidoscope", "meld", "DiffMerge", "FileMerge"])
     else:
         return DEFAULT_DIFF_CMD

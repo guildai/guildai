@@ -20,7 +20,6 @@ import errno
 import fnmatch
 import os
 import logging
-import platform
 import re
 import shlex
 import shutil
@@ -36,8 +35,6 @@ import six
 # Avoid expensive imports.
 
 log = logging.getLogger("guild")
-
-PLATFORM = platform.system()
 
 UNSAFE_OS_ENVIRON = set(["_"])
 
@@ -404,7 +401,7 @@ def safe_rmtree(path):
 def _top_level_dir(path):
     abs_path = os.path.abspath(path)
     parts = [p for p in re.split(r"[/\\]", abs_path) if p]
-    if PLATFORM == "Windows":
+    if get_platform() == "Windows":
         return len(parts) <= 2
     return len(parts) <= 1
 
@@ -603,7 +600,7 @@ def subpath(path, start, sep=None):
 
 
 def which(cmd):
-    which_cmd = "where" if PLATFORM == "Windows" else "which"
+    which_cmd = "where" if get_platform() == "Windows" else "which"
     devnull = open(os.devnull, "w")
     try:
         out = subprocess.check_output([which_cmd, cmd], stderr=devnull)
@@ -615,7 +612,7 @@ def which(cmd):
 
 
 def symlink(target, link):
-    if PLATFORM == "Windows":
+    if get_platform() == "Windows":
         _windows_symlink(target, link)
     else:
         os.symlink(target, link)
@@ -862,7 +859,7 @@ def format_dir(dir):
 
 
 def format_user_dir(s):
-    if PLATFORM == "Windows":
+    if get_platform() == "Windows":
         return s
     user_dir = os.path.expanduser("~")
     if s.startswith(user_dir):
@@ -879,7 +876,7 @@ def apply_env(target, source, names):
 
 
 def safe_filename(s):
-    if PLATFORM == "Windows":
+    if get_platform() == "Windows":
         s = re.sub(r"[:<>?]", "_", s)
     return re.sub(r"[/\\]+", "_", s)
 
@@ -1555,7 +1552,7 @@ def realpath(path):
 
 
 def _strip_windows_prefix(path):
-    if PLATFORM != "Windows":
+    if get_platform() != "Windows":
         return path
     if path.startswith("\\\\?\\"):
         return path[4:]
@@ -1615,7 +1612,7 @@ def _strip_comment_lines(s):
 
 
 def test_windows_symlinks():
-    if PLATFORM != "Windows":
+    if get_platform() != "Windows":
         return
     with TempDir() as tmp:
         os.symlink(tempfile.gettempdir(), os.path.join(tmp.path, "link"))
@@ -1653,3 +1650,9 @@ class PropertyCache(object):
         self._vals[name] = val
         self._expirations[name] = time.time() + self._timeouts[name]
         return val
+
+
+def get_platform():
+    import platform  # expensive
+
+    return platform.system()

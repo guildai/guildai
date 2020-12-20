@@ -404,7 +404,7 @@ def _install_default_guild_dist(config):
 
 
 def _pip_bin_args(env_dir):
-    if util.PLATFORM == "Windows":
+    if util.get_platform() == "Windows":
         python_bin = os.path.join(env_dir, "Scripts", "python.exe")
     else:
         python_bin = os.path.join(env_dir, "bin", "python")

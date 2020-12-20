@@ -121,7 +121,7 @@ def _ensure_dir(path):
 
 
 def _safe_len_path(p):
-    if util.PLATFORM == "Windows":
+    if util.get_platform() == "Windows":
         # See http://bit.ly/windows-long-file-names
         return "\\\\?\\" + p
     return p

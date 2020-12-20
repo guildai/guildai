@@ -1547,7 +1547,7 @@ def _check_incompatible_with_restart(args):
 def _check_platform_compatibility(args):
     if (
         (args.background or args.pidfile)
-        and util.PLATFORM == "Windows"
+        and util.get_platform() == "Windows"
         and os.getenv("FORCE_RUN_IN_BACKGROUND") != "1"
     ):
         _background_on_windows_error()
