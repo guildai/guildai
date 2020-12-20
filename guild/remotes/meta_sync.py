@@ -206,6 +206,12 @@ def clear_local_meta_id(local_sync_dir):
     util.ensure_deleted(id_path)
 
 
+def write_local_meta_id(meta_id, local_sync_dir):
+    id_path = os.path.join(local_sync_dir, "meta-id")
+    with open(id_path, "w") as f:
+        f.write(meta_id)
+
+
 def meta_current(local_sync_dir, remote_meta_id_cb):
     local_id = local_meta_id(local_sync_dir)
     if local_id is None:

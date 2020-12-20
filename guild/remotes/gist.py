@@ -17,9 +17,8 @@ from __future__ import division
 
 import logging
 import os
+import subprocess
 import zipfile
-
-import requests
 
 from guild import log as loglib
 from guild import remote as remotelib
@@ -72,14 +71,28 @@ class GistRemote(meta_sync.MetaSyncRemote):
         super(GistRemote, self).__init__(runs_dir, None)
 
     def _sync_runs_meta(self, force=False):
+        log.info(loglib.dim("Synchronizing runs with gist.github.com"))
         gist = self._repo_gist()
         if not gist:
             return
         _sync_gist_repo(gist, self._local_gist_repo, self.local_env)
-        _refresh_runs_meta(self._local_gist_repo, self._runs_dir)
+        self._sync_runs_meta_for_gist()
 
     def _repo_gist(self):
         return _find_gist_with_file(self.user, self._gist_readme_name)
+
+    def _sync_runs_meta_for_gist(self):
+        git_commit = self._gist_repo_commit()
+        if not meta_sync.meta_current(self.local_sync_dir, lambda: git_commit):
+            _refresh_runs_meta(
+                self._local_gist_repo,
+                self._runs_dir,
+                git_commit,
+                self.local_sync_dir,
+            )
+
+    def _gist_repo_commit(self):
+        return _git_commit(self._local_gist_repo)
 
     def _delete_runs(self, runs, permanent):
         assert False
@@ -98,9 +111,6 @@ class GistRemote(meta_sync.MetaSyncRemote):
 
     def _push_run(self, run, delete):
         print("Somehow push run %s to a gist %s" % (run.id, self.name, delete))
-
-    def _new_meta_id(self):
-        pass
 
     def pull(self, runs, delete=False):
         for run in runs:
@@ -163,6 +173,8 @@ def _ensure_md_ext(s):
 
 
 def _find_gist_with_file(user, filename):
+    import requests  # expensive
+
     page = 1
     url = "https://api.github.com/users/%s/gists" % user
     while True:
@@ -192,7 +204,7 @@ def _gist_repo_url(gist):
 
 def _clone_gist_repo(repo_url, local_repo, env):
     cmd = [_git_cmd(), "clone", repo_url, local_repo]
-    log.info(loglib.dim("Synchronizing runs with gist.github.com"))
+    log.debug("git cmd: %s", cmd)
     remote_util.subprocess_call(cmd, extra_env=env, quiet=True)
 
 
@@ -206,15 +218,17 @@ def _git_cmd():
         )
     return cmd
 
+
 def _pull_gist_repo(local_repo, env):
     cmd = [_git_cmd(), "-C", local_repo, "pull", "--rebase"]
-    log.info(loglib.dim("Synchronizing runs with gist.github.com"))
+    log.debug("git cmd: %s", cmd)
     remote_util.subprocess_call(cmd, extra_env=env, quiet=True)
 
 
-def _refresh_runs_meta(gist_repo, runs_dir):
+def _refresh_runs_meta(gist_repo, runs_dir, meta_id, local_sync_dir):
     for archive in _run_archives(gist_repo):
         _unpack_meta(archive, runs_dir)
+    meta_sync.write_local_meta_id(meta_id, local_sync_dir)
 
 
 def _run_archives(dir):
@@ -233,7 +247,16 @@ def _unpack_meta(archive, runs_dir):
 
 def _is_meta_file(name):
     return (
-        name.endswith(".guild/opref") or
-        "/.guild/attrs/" in name or
-        "/.guild/LOCK" in name
+        name.endswith(".guild/opref")
+        or "/.guild/attrs/" in name
+        or "/.guild/LOCK" in name
     )
+
+
+def _git_commit(git_repo):
+    if not os.path.exists(git_repo):
+        return None
+    cmd = [_git_cmd(), "--work-tree", git_repo, "log", "-1", "--format=%H"]
+    null = open(os.devnull, "w")
+    out = subprocess.check_output(cmd, stderr=null)
+    return out.decode("utf-8").strip()
