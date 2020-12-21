@@ -36,11 +36,13 @@ class op_handler(object):
         return False
 
     def _handle_error(self, etype, e):
-        if etype is remotelib.OperationError:
+        if issubclass(etype, remotelib.OperationError):
             _handle_op_error(e, self.remote)
-        elif etype is remotelib.RemoteProcessError:
+        elif issubclass(etype, remotelib.RemoteProcessError):
             _handle_remote_process_error(e)
-        elif etype is remotelib.OperationNotSupported or etype is NotImplementedError:
+        elif issubclass(etype, remotelib.OperationNotSupported) or issubclass(
+            etype, NotImplementedError
+        ):
             _handle_not_supported(self.remote, e)
 
 
