@@ -186,36 +186,6 @@ class AzureBlobStorageRemote(meta_sync.MetaSyncRemote):
         util.ensure_dir(local_run_dest)
         self._azcopy("sync", args)
 
-    def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def watch_run(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def check(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def stop_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def cat(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def comment_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def diff_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def list_files(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def one_run(self, run_id_prefix):
-        raise remotelib.OperationNotSupported()
-
-    def tag_runs(self, **opts):
-        raise NotImplementedError()
-
 
 def _azcopy_cmd():
     cmd = util.which("azcopy")

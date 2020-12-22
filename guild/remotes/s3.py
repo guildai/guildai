@@ -269,39 +269,6 @@ class S3Remote(meta_sync.MetaSyncRemote):
         log.info("Copying %s from %s", run.id, self.name)
         self._s3_cmd("sync", args)
 
-    def label_runs(self, **opts):
-        raise remotelib.OperationNotSupported()  # TODO
-
-    def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def watch_run(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def check(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def stop_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def cat(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def comment_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def diff_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def list_files(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def one_run(self, run_id_prefix):
-        raise remotelib.OperationNotSupported()
-
-    def tag_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
 
 def _aws_cmd():
     cmd = util.which("aws")

@@ -217,16 +217,10 @@ class SSHRemote(remotelib.Remote):
             opts.append("-v")
         return opts
 
-    def start(self):
-        raise remotelib.OperationNotSupported("start is not supported for ssh remotes")
-
     def reinit(self):
         if not self.init:
             raise remotelib.OperationNotSupported("init is not defined for this remote")
         self._ssh_cmd(self.init)
-
-    def stop(self):
-        raise remotelib.OperationNotSupported("stop is not supported for ssh remotes")
 
     def status(self, verbose=False):
         ssh_util.ssh_ping(

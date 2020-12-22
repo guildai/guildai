@@ -146,77 +146,77 @@ class Remote(object):
     name = None
 
     def push(self, runs, delete=False):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def pull(self, runs, delete=False):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def status(self, verbose=False):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def start(self):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def reinit(self):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def stop(self):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     @staticmethod
     def get_stop_details():
         return None
 
     def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def list_runs(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def filtered_runs(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def one_run(self, run_id_prefix):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def watch_run(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def delete_runs(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def restore_runs(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def purge_runs(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def label_runs(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def tag_runs(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def comment_runs(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def run_info(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def check(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def stop_runs(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def list_files(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def diff_runs(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
     def cat(self, **opts):
-        raise NotImplementedError()
+        raise OperationNotSupported()
 
 
 def for_name(name):

@@ -167,51 +167,6 @@ class GistRemote(meta_sync.MetaSyncRemote):
         # archives to the runs dir.
         _extract_runs(runs, self._local_gist_repo, var.runs_dir())
 
-    def label_runs(self, **opts):
-        raise remotelib.OperationNotSupported()  # TODO
-
-    def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def watch_run(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def check(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def stop_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def cat(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def comment_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def diff_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def list_files(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def one_run(self, run_id_prefix):
-        raise remotelib.OperationNotSupported()
-
-    def tag_runs(self, **opts):
-        raise remotelib.OperationNotSupported()
-
-    def reinit(self):
-        raise remotelib.OperationNotSupported()
-
-    def stop(self):
-        raise remotelib.OperationNotSupported()
-
-    def status(self, verbose=False):
-        raise remotelib.OperationNotSupported()
-
-    def start(self):
-        raise remotelib.OperationNotSupported()
-
 
 def _gist_readme_name(gist_name):
     return "[Guild AI] %s" % _ensure_md_ext(gist_name)
