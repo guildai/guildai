@@ -115,6 +115,7 @@ def _env_from_file(path):
 def _try_read_gpg(path):
     path = os.path.expanduser(path)
     cmd = _gpg_cmd() + [path]
+    log.debug("gpg cmd: %s", cmd)
     try:
         p = subprocess.Popen(
             cmd, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE
