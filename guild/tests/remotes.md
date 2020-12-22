@@ -306,9 +306,14 @@ with `guild-home` is not specified.
     Traceback (most recent call last):
     UnsupportedRemoteType: foo
 
-    >>> guild.remote.for_spec("gist:foo")
+Unless the env var `GIST_USER` is defined, a gist spec must specify a
+user along with a gist name.
+
+    >>> with Env({}, replace=True):
+    ...     guild.remote.for_spec("gist:foo")
     Traceback (most recent call last):
-    InvalidRemoteSpec: gist remotes must be specified as USER/GIST_NAME
+    MissingRequiredEnv: gist remotes must be specified as USER/GIST_NAME
+    if GIST_USER environment variable is not defined
 
 ### Remote types that don't support specs
 
