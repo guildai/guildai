@@ -63,6 +63,7 @@ class AzureBlobStorageRemote(meta_sync.MetaSyncRemote):
         return self.container + "/" + "/".join(all_parts)
 
     def _sync_runs_meta(self, force=False):
+        remote_util.remote_activity("Refreshing run info for %s" % self.name)
         if not force and meta_sync.meta_current(
             self.local_sync_dir, self._remote_meta_id
         ):

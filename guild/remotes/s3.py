@@ -88,6 +88,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
         return "s3://%s/%s" % (self.bucket, joined_path)
 
     def _sync_runs_meta(self, force=False):
+        remote_util.remote_activity("Refreshing run info for %s" % self.name)
         if not force and self._meta_current():
             return
         meta_sync.clear_local_meta_id(self.local_sync_dir)

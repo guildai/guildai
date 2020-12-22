@@ -232,7 +232,6 @@ def _run_kw(args):
 
 def one_run(run_id_prefix, args):
     remote = remote_support.remote_for_args(args)
-    cli.note_once("Getting remote run info")
     try:
         return remote.one_run(run_id_prefix)
     except remotelib.RemoteProcessError as e:
@@ -439,7 +438,6 @@ def _handle_not_supported(remote, e):
 
 def filtered_runs(args):
     remote = remote_support.remote_for_args(args)
-    cli.note_once("Getting remote run info")
     with op_handler(remote):
         return remote.filtered_runs(**_filtered_runs_kw(args))
 

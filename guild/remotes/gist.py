@@ -87,6 +87,7 @@ class GistRemote(meta_sync.MetaSyncRemote):
         super(GistRemote, self).__init__(runs_dir, None)
 
     def _sync_runs_meta(self, force=False):
+        remote_util.remote_activity("Getting run info for %s" % self.name)
         self._ensure_local_gist_repo()
         self._sync_runs_meta_for_gist(force)
 

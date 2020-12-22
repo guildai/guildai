@@ -20,6 +20,7 @@ import os
 import sys
 
 from guild import config
+from guild import log as loglib
 from guild import remote as remotelib
 from guild import subprocess
 from guild import util
@@ -151,3 +152,12 @@ def _strip_export(s):
     if s.startswith("export "):
         s = s[7:]
     return s
+
+
+def remote_activity(msg, *args):
+    """Log remote activity.
+
+    Used to report time consuming work that would otherwise not show
+    user feedback. E.g. use when synchronizing meta data.
+    """
+    log.info(loglib.dim(msg), *args)
