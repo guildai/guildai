@@ -272,3 +272,7 @@ def check_required_args(required, args, ctx, msg_template=None):
         missing_args.append(arg)
     msg = msg_template % ", ".join(missing_args)
     cli.error("%s\nTry `%s --help` for more information." % (msg, ctx.command_path))
+
+
+def format_warn(s):
+    return cli.style(s, fg="yellow")

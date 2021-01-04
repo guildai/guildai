@@ -122,13 +122,15 @@ Mark runs using `mark`.
     >>> print(latest_run.get("marked"))
     None
 
-    >>> gapi.mark([latest_run.id], guild_home=gh)
+    >>> with PrintStderr():
+    ...     gapi.mark([latest_run.id], guild_home=gh)
     Marked 1 run(s)
 
     >>> latest_run.get("marked")
     True
 
-    >>> gapi.mark([latest_run.id], clear=True, guild_home=gh)
+    >>> with PrintStderr():
+    ...     gapi.mark([latest_run.id], clear=True, guild_home=gh)
     Unmarked 1 run(s)
 
     >>> print(latest_run.get("marked"))
@@ -193,15 +195,18 @@ The function takes the same argument as the command.
 
 Runs may be specified using run IDs:
 
-    >>> gapi.runs_delete([latest_run.id], guild_home=gh)
+    >>> with PrintStderr():
+    ...     gapi.runs_delete([latest_run.id], guild_home=gh)
     Deleted 1 run(s)
 
 Or indexes:
 
-    >>> gapi.runs_delete(["1"], guild_home=gh)
+    >>> with PrintStderr():
+    ...     gapi.runs_delete(["1"], guild_home=gh)
     Deleted 1 run(s)
 
 If arguments aren't specified, all runs are deleted.
 
-    >>> gapi.runs_delete(guild_home=gh)
+    >>> with PrintStderr():
+    ...     gapi.runs_delete(guild_home=gh)
     Deleted 1 run(s)

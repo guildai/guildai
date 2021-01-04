@@ -18,11 +18,14 @@ from __future__ import division
 import logging
 import logging.config
 import os
+import re
 import sys
 
 __last_init_kw = None
 
 _isatty = sys.stderr.isatty()
+
+_ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
 NOISY_LOGGERS = (
     "chardet",
@@ -46,7 +49,9 @@ class _FakeTTY(object):
 
 class Formatter(logging.Formatter):
     def format(self, record):
-        return self._color(super(Formatter, self).format(record), record.levelno)
+        return self._maybe_strip_ansi(
+            self._color(super(Formatter, self).format(record), record.levelno)
+        )
 
     @staticmethod
     def _color(s, level):
@@ -58,6 +63,12 @@ class Formatter(logging.Formatter):
             return "\033[33m%s\033[0m" % s
         else:
             return s
+
+    @staticmethod
+    def _maybe_strip_ansi(s):
+        if _isatty:
+            return s
+        return _ansi_p.sub("", s)
 
 
 class ConsoleLogHandler(logging.StreamHandler):

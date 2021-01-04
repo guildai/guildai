@@ -586,7 +586,7 @@ def runs_op(
     formatted = None  # expensive, lazily init as needed
     if not args.yes:
         formatted = formatted = format_runs(selected)
-        cli.out(preview_msg)
+        cli.out(preview_msg, err=True)
         cols = [
             "short_index",
             "op_desc",
@@ -594,7 +594,7 @@ def runs_op(
             "status_with_remote",
             "label",
         ]
-        cli.table(formatted, cols=cols, indent=2)
+        cli.table(formatted, cols=cols, indent=2, err=True)
     fmt_confirm_prompt = confirm_prompt.format(count=len(selected))
     if not args.yes and not cli.confirm(fmt_confirm_prompt, confirm_default):
         raise SystemExit(exit_code.ABORTED)
@@ -630,9 +630,8 @@ def delete_runs(args, ctx=None):
 
 def _delete_runs(args, ctx):
     if args.permanent:
-        preview = cli.style(
-            "WARNING: You are about to permanently delete " "the following runs:",
-            fg="yellow",
+        preview = cmd_impl_support.format_warn(
+            "WARNING: You are about to permanently delete the following runs:"
         )
         confirm = "Permanently delete {count} run(s)?"
     else:
@@ -646,8 +645,11 @@ def _delete_runs(args, ctx):
         ]
         if stoppable and not args.yes:
             cli.out(
-                "WARNING: one or more runs are still running "
-                "and will be stopped before being deleted."
+                cmd_impl_support.format_warn(
+                    "WARNING: One or more runs are still running "
+                    "and will be stopped before being deleted."
+                ),
+                err=True,
             )
             if not cli.confirm("Really delete these runs?"):
                 raise SystemExit(exit_code.ABORTED)
@@ -655,9 +657,9 @@ def _delete_runs(args, ctx):
             _stop_run(run, no_wait=True)
         var.delete_runs(selected, args.permanent)
         if args.permanent:
-            cli.out("Permanently deleted %i run(s)" % len(selected))
+            cli.out("Permanently deleted %i run(s)" % len(selected), err=True)
         else:
-            cli.out("Deleted %i run(s)" % len(selected))
+            cli.out("Deleted %i run(s)" % len(selected), err=True)
 
     runs_op(
         args,
@@ -678,15 +680,15 @@ def purge_runs(args, ctx):
 
 
 def _purge_runs(args, ctx):
-    preview = cli.style(
-        "WARNING: You are about to permanently delete the following runs:", fg="yellow"
+    preview = cmd_impl_support.format_warn(
+        "WARNING: You are about to permanently delete the following runs:"
     )
     confirm = "Permanently delete {count} run(s)?"
     no_runs_help = "Nothing to purge."
 
     def purge(selected):
         var.purge_runs(selected)
-        cli.out("Permanently deleted %i run(s)" % len(selected))
+        cli.out("Permanently deleted %i run(s)" % len(selected), err=True)
 
     runs_op(args.copy(deleted=True), ctx, preview, confirm, no_runs_help, purge)
 
@@ -705,7 +707,7 @@ def _restore_runs(args, ctx):
 
     def restore(selected):
         var.restore_runs(selected)
-        cli.out("Restored %i run(s)" % len(selected))
+        cli.out("Restored %i run(s)" % len(selected), err=True)
 
     runs_op(
         args.copy(deleted=True),
@@ -810,7 +812,7 @@ def _scalar_info(run, args):
     except Exception as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("get scalars")
-        return cli.style("ERROR: %s" % e, fg="yellow")
+        return cmd_impl_support.format_warn("ERROR: %s" % e)
 
 
 def _scalar_info_(run, args):
@@ -1038,9 +1040,9 @@ def _set_labels(args, ctx):
             else:
                 run.write_attr("label", _label_for_run(run, args).strip())
         if args.clear:
-            cli.out("Cleared label for %i run(s)" % len(selected))
+            cli.out("Cleared label for %i run(s)" % len(selected), err=True)
         else:
-            cli.out("Labeled %i run(s)" % len(selected))
+            cli.out("Labeled %i run(s)" % len(selected), err=True)
 
     runs_op(args, ctx, preview, confirm, no_runs, set_labels, LATEST_RUN_ARG, True)
 
@@ -1113,9 +1115,7 @@ def stop_runs(args, ctx):
 
 
 def _stop_runs(args, ctx):
-    preview = cli.style(
-        "WARNING: You are about to stop the following runs:", fg="yellow"
-    )
+    preview = cmd_impl_support.format_warn("You are about to stop the following runs:")
     confirm = "Stop {count} run(s)?"
     no_runs_help = "Nothing to stop."
     args.status_running = True
@@ -1161,14 +1161,14 @@ def _try_stop_remote_run(run, remote_lock, no_wait):
             remote_lock.plugin_name,
         )
     else:
-        cli.out("Stopping %s (remote)" % run.id)
+        cli.out("Stopping %s (remote)" % run.id, err=True)
         plugin.stop_run(run, dict(no_wait=no_wait))
 
 
 def _try_stop_local_run(run):
     pid = run.pid
     if pid and util.pid_exists(pid):
-        cli.out("Stopping %s (pid %i)" % (run.id, run.pid))
+        cli.out("Stopping %s (pid %i)" % (run.id, run.pid), err=True)
         os.kill(pid, signal.SIGTERM)
 
 
@@ -1183,12 +1183,11 @@ def export(args, ctx):
     def export_f(selected):
         if args.copy_resources and not args.yes:
             cli.out(
-                cli.style(
-                    "WARNING: you specified --copy-resources, which will "
+                cmd_impl_support.format_warn(
+                    "WARNING: You specified --copy-resources, which will "
                     "copy resources used by each run."
-                    "",
-                    fg="yellow",
-                )
+                ),
+                err=True,
             )
             if not cli.confirm("Really copy resources exported runs?"):
                 raise SystemExit(exit_code.ABORTED)
@@ -1202,7 +1201,9 @@ def export(args, ctx):
         except run_util.RunsExportError as e:
             cli.error(e.args[0])
         else:
-            cli.out("Exported %i run(s) to %s" % (len(exported), args.location))
+            cli.out(
+                "Exported %i run(s) to %s" % (len(exported), args.location), err=True
+            )
 
     runs_op(args, ctx, preview, confirm, no_runs, export_f, ALL_RUNS_ARG, True)
 
@@ -1227,12 +1228,11 @@ def import_(args, ctx):
     def import_f(selected):
         if args.copy_resources and not args.yes:
             cli.out(
-                cli.style(
-                    "WARNING: you specified --copy-resources, which will "
+                cmd_impl_support.format_warn(
+                    "WARNING: You specified --copy-resources, which will "
                     "copy resources used by each run."
-                    "",
-                    fg="yellow",
-                )
+                ),
+                err=True,
             )
             if not cli.confirm("Really copy resources exported runs?"):
                 raise SystemExit(exit_code.ABORTED)
@@ -1244,7 +1244,7 @@ def import_(args, ctx):
             )
         except run_util.RunsImportError as e:
             cli.error(e.args[0])
-        cli.out("Imported %i run(s) from %s" % (len(imported), args.archive))
+        cli.out("Imported %i run(s) from %s" % (len(imported), args.archive), err=True)
 
     runs_op(args, ctx, preview, confirm, no_runs, import_f, ALL_RUNS_ARG, True)
 
@@ -1326,7 +1326,7 @@ def _clear_marked(args, ctx):
     def clear(selected):
         for run in selected:
             run.del_attr("marked")
-        cli.out("Unmarked %i run(s)" % len(selected))
+        cli.out("Unmarked %i run(s)" % len(selected), err=True)
 
     if not args.runs:
         args.filter_marked = True
@@ -1341,7 +1341,7 @@ def _mark(args, ctx):
     def mark(selected):
         for run in selected:
             run.write_attr("marked", True)
-        cli.out("Marked %i run(s)" % len(selected))
+        cli.out("Marked %i run(s)" % len(selected), err=True)
 
     if not args.runs:
         args.filter_marked = True
@@ -1495,7 +1495,7 @@ def _set_tags(args, ctx):
             run.write_attr("tags", _tags_for_run(old_tags, args))
             if args.sync_labels:
                 run.write_attr("label", _synced_label_for_tags(run, old_tags, args))
-        cli.out("Modified tags for %i run(s)" % len(selected))
+        cli.out("Modified tags for %i run(s)" % len(selected), err=True)
 
     runs_op(args, ctx, preview, confirm, no_runs, set_tags, LATEST_RUN_ARG, True)
 
@@ -1504,16 +1504,15 @@ def _set_tags_preview(args):
     lines = ["You are about to modify tags for the following runs:"]
     if args.sync_labels:
         lines.append(
-            cli.style("Labels are updated to reflect the latest tags.", fg="yellow")
+            cmd_impl_support.format_warn(
+                "Labels are updated to reflect the latest tags."
+            )
         )
     else:
         lines.append(
-            cli.style(
-                (
-                    "Labels are not updated - use --sync-labels to "
-                    "apply changes run labels."
-                ),
-                fg="yellow",
+            cmd_impl_support.format_warn(
+                "Labels are not updated - use --sync-labels to "
+                "apply changes run labels."
             )
         )
     return "\n".join(lines)
@@ -1714,7 +1713,7 @@ def _delete_comment(comment_index, args, ctx):
         for run in selected:
             new_comments = _delete_run_comment(run, comment_index)
             run.write_attr("comments", new_comments)
-        cli.out("Deleted comment for %i run(s)" % len(selected))
+        cli.out("Deleted comment for %i run(s)" % len(selected), err=True)
 
     runs_op(
         args,
@@ -1738,9 +1737,8 @@ def _delete_run_comment(run, comment_index):
 
 
 def _clear_comments(args, ctx):
-    preview = cli.style(
-        "WARNING: You are about to delete ALL comments from the following runs:",
-        fg="yellow",
+    preview = cmd_impl_support.format_warn(
+        "WARNING: You are about to delete ALL comments from the following runs:"
     )
     confirm = "Continue?"
     no_runs = "No runs to modify."
@@ -1748,7 +1746,7 @@ def _clear_comments(args, ctx):
     def clear_comments(selected):
         for run in selected:
             run.del_attr("comments")
-        cli.out("Deleted all comments for %i run(s)" % len(selected))
+        cli.out("Deleted all comments for %i run(s)" % len(selected), err=True)
 
     runs_op(
         args,
@@ -1772,7 +1770,7 @@ def _add_comment(args, ctx):
         for run in selected:
             new_comments = _add_run_comment(run, comment, args.user)
             run.write_attr("comments", new_comments)
-        cli.out("Added comment to %i run(s)" % len(selected))
+        cli.out("Added comment to %i run(s)" % len(selected), err=True)
 
     if edited:
         # Skip prompt below because the editor serves as a prompt.

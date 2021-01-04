@@ -82,6 +82,8 @@ PY35 = doctest.register_optionflag("PY35")
 PY37 = doctest.register_optionflag("PY37")
 ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
 
+_ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
+
 
 def run_all(skip=None):
     return run(all_tests(), skip)
@@ -254,7 +256,7 @@ class Py23DocChecker(doctest.OutputChecker):
 
     @staticmethod
     def _strip_ansi_fmt(got):
-        return re.sub(r"\033\[[0-9]+m", "", got)
+        return _ansi_p.sub("", got)
 
     @staticmethod
     def _windows_got(got, optionflags):
@@ -389,6 +391,7 @@ def test_globals():
         "Env": util.Env,
         "LogCapture": util.LogCapture,
         "ModelPath": ModelPath,
+        "PrintStderr": PrintStderr,
         "Project": Project,
         "Proxy": Proxy,
         "RunError": gapi.RunError,
@@ -531,6 +534,9 @@ class StderrCapture(object):
     _stderr = None
     _captured = []
 
+    def __init__(self, autoprint=False):
+        self._autoprint = autoprint
+
     def __enter__(self):
         self._stderr = sys.stderr
         self._captured = []
@@ -545,6 +551,9 @@ class StderrCapture(object):
 
     def write(self, b):
         self._captured.append(b)
+        if self._autoprint:
+            sys.stdout.write(b.decode("utf-8"))
+            sys.stdout.flush()
 
     def flush(self):
         pass
@@ -553,6 +562,10 @@ class StderrCapture(object):
         for part in self._captured:
             sys.stdout.write(part.decode("utf-8"))
         sys.stdout.flush()
+
+
+def PrintStderr():
+    return StderrCapture(autoprint=True)
 
 
 def write(filename, contents):
@@ -768,7 +781,8 @@ class Project(object):
         return row
 
     def delete_runs(self, runs=None, **kw):
-        gapi.runs_delete(runs, guild_home=self.guild_home, **kw)
+        with PrintStderr():
+            gapi.runs_delete(runs, guild_home=self.guild_home, **kw)
 
     def print_trials(self, *args, **kw):
         print(self._run(print_trials=True, *args, **kw))
@@ -798,7 +812,8 @@ class Project(object):
         cat(os.path.join(run.path, path))
 
     def mark(self, runs, **kw):
-        gapi.mark(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
+        with PrintStderr():
+            gapi.mark(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
 
     def scalars(self, run):
         self.index.refresh([run], ["scalar"])
@@ -812,16 +827,20 @@ class Project(object):
         return gapi.compare(runs=runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
 
     def publish(self, runs=None, **kw):
-        gapi.publish(runs=runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
+        with PrintStderr():
+            gapi.publish(runs=runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
 
     def package(self, **kw):
-        gapi.package(cwd=self.cwd, guild_home=self.guild_home, **kw)
+        with PrintStderr():
+            gapi.package(cwd=self.cwd, guild_home=self.guild_home, **kw)
 
     def label(self, runs=None, **kw):
-        gapi.runs_label(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
+        with PrintStderr():
+            gapi.runs_label(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
 
     def tag(self, runs=None, **kw):
-        gapi.runs_tag(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
+        with PrintStderr():
+            gapi.runs_tag(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
 
     def select(self, run=None, **kw):
         return gapi.select(run, cwd=self.cwd, guild_home=self.guild_home, **kw)
