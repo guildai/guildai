@@ -121,6 +121,7 @@ Here's a preview of the copy, which shows the rules that are applied:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -168,6 +169,7 @@ Specify `root` to change the directory that files are copied from.
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -197,6 +199,7 @@ This rule is applied after the default rules:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -248,6 +251,7 @@ ensures that only those files matching the specified patterns are selected.
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -318,6 +322,7 @@ exclude specs.
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -363,6 +368,7 @@ In the preview, 'subdir' is not mentioned:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -407,6 +413,7 @@ The preview:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -450,6 +457,7 @@ The preview shows that Guild modified the pattern with the glob:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -494,6 +502,7 @@ included.
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -567,6 +576,7 @@ Using an exclude spec:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -601,6 +611,7 @@ Model adds png and operation excludes `*.py` and `a.*` files:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -658,6 +669,7 @@ only py and yml files.
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -695,6 +707,7 @@ Model enables all files to copy:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -763,6 +776,7 @@ Here's the preview:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
