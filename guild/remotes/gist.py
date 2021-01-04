@@ -61,7 +61,10 @@ class GistRemoteType(remotelib.RemoteType):
 def _parse_spec(spec):
     parts = spec.split("/", 1)
     if len(parts) == 1:
-        return _required_gist_user_env({}), parts[0]
+        try:
+            return _required_gist_user_env({}), parts[0]
+        except MissingRequiredEnv as e:
+            raise remotelib.InvalidRemoteSpec(str(e))
     return parts
 
 
@@ -352,8 +355,14 @@ def _git_current_commit(git_repo):
         return None
     cmd = [_git_cmd(), "--work-tree", git_repo, "log", "-1", "--format=%H"]
     null = open(os.devnull, "w")
-    out = subprocess.check_output(cmd, stderr=null)
-    return out.decode("utf-8").strip()
+    try:
+        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        if e.returncode == 128:  # not a valid git repo - ignore
+            return ""
+        raise
+    else:
+        return out.decode("utf-8").strip()
 
 
 def _extract_runs(runs, archive_dir, dest_dir, gist_name):
