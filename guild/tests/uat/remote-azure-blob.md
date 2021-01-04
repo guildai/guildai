@@ -30,14 +30,14 @@ Assert locally available runs:
 Ensure that all runs are cleared on Azure:
 
     >>> run("guild runs rm -py -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     ...
     <exit 0>
 
 Confirm that Azure source is empty:
 
     >>> run("guild runs -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     <exit 0>
 
 When we check for deleted runs, we get an error because the Azure blog
@@ -57,7 +57,7 @@ Push runs to Azure uat:
 List remote runs:
 
     >>> run("guild runs -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     [1:...]  hello  ...  completed  run-2
     [2:...]  hello  ...  completed  run-1
     <exit 0>
@@ -65,7 +65,7 @@ List remote runs:
 Show remote run info.
 
     >>> run("guild runs info -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     id: ...
     operation: hello
     from: .../examples/hello/guild.yml
@@ -96,7 +96,7 @@ Prompt to delete remote runs. Non-permanent delete is not supported.
 We need to use the permanent option.
 
     >>> run("guild runs rm -p -r guild-uat-azure-blob", timeout=10)
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     WARNING: You are about to permanently delete the following runs on guild-uat-azure-blob:
       [...]  hello  ...  completed  run-2
       [...]  hello  ...  completed  run-1
@@ -112,7 +112,7 @@ supported):
     <exit 1>
 
     >>> run("guild runs -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     [1:...]  hello  ...  completed  run-2
     [2:...]  hello  ...  completed  run-1
     <exit 0>
@@ -127,7 +127,7 @@ aren't supported):
 Show remote runs:
 
     >>> run("guild runs -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     [1:...]  hello  ...  completed  run-2
     [2:...]  hello  ...  completed  run-1
     <exit 0>
@@ -145,7 +145,7 @@ Delete local runs:
 Pull remote runs prompt:
 
     >>> run("guild pull guild-uat-azure-blob", timeout=15)
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     You are about to copy (pull) the following runs from guild-uat-azure-blob:
       [...]  hello  ...  completed  run-2
       [...]  hello  ...  completed  run-1
@@ -155,7 +155,7 @@ Pull remote runs prompt:
 Pull remote runs:
 
     >>> run("guild pull -y guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     Copying ... from guild-uat-azure-blob
     ...
     <exit 0>
@@ -169,21 +169,21 @@ Delete and purge remote runs (disabled until non-permanent deletes are
 working):
 
     >> run("guild runs rm -y -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     ...
     <exit 0>
 
     >> run("guild runs purge -y -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     ...
     <exit 0>
 
     >> run("guild runs -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     <exit 0>
 
     >> run("guild runs -d -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     <exit 0>
 
 Not supported commands (temp until non-permanent deletes are
@@ -200,15 +200,15 @@ supported):
 Permanently delete remote runs:
 
     >>> run("guild runs rm -p -y -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     ...
     Job ... has started
     ...
     Final Job Status: Completed
     <BLANKLINE>
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     <exit 0>
 
     >>> run("guild runs -r guild-uat-azure-blob")
-    [2mRefreshing run info for guild-uat-azure-blob[0m
+    Refreshing run info for guild-uat-azure-blob
     <exit 0>

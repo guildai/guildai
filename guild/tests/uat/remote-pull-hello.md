@@ -6,7 +6,7 @@ This test assumes that there are two remote runs, each from the
 We first preview the runs:
 
     >>> run("guild pull guild-uat 1:2", timeout=5)
-    Getting remote run info
+    Getting run info on guild-uat
     You are about to copy (pull) the following runs from guild-uat:
       [...]  gpkg.hello/hello-op    ...  completed  remote-run-123
       [...]  gpkg.hello/hello-file  ...  completed  file=hello.txt
@@ -16,7 +16,7 @@ We first preview the runs:
 Then pull:
 
     >>> run("guild pull guild-uat 1:2 -y")
-    Getting remote run info
+    Getting run info on guild-uat
     Copying ...
     receiving incremental file list
     ...

@@ -35,7 +35,7 @@ Verify that there are no runs to satisfy downstream requirements:
 Run the downstream op without an upstream op, which is required:
 
     >>> run("guild run downstream -r guild-uat -y")
-    Getting remote run info
+    Getting run info on guild-uat
     WARNING: cannot find a suitable run for required resource 'upstream'
     Building package
     ...
@@ -67,7 +67,7 @@ Show run preview to confirm that Guild is finding the remote upstream
 to provide as a default value.
 
     >>> run("guild run downstream -r guild-uat", timeout=5)
-    Getting remote run info
+    Getting run info on guild-uat
     You are about to run downstream on guild-uat
       upstream: ...
     Continue? (Y/n)
@@ -76,7 +76,7 @@ to provide as a default value.
 Run downstream again:
 
     >>> run("guild run downstream -r guild-uat -y")
-    Getting remote run info
+    Getting run info on guild-uat
     Building package
     ...
     Successfully installed gpkg.anonymous-...-0.0.0
@@ -97,7 +97,7 @@ Remote runs:
 Specify an invalid upstream run ID reference:
 
     >>> run("guild run downstream upstream=xxx -r guild-uat", timeout=5)
-    Getting remote run info
+    Getting run info on guild-uat
     WARNING: cannot find a suitable run for required resource 'upstream'
     You are about to run downstream on guild-uat
       upstream: xxx
@@ -108,7 +108,7 @@ If we let this invalid value pass through, Guild runs the operation,
 but it fails.
 
     >>> run("guild run downstream upstream=xxx -r guild-uat -y")
-    Getting remote run info
+    Getting run info on guild-uat
     WARNING: cannot find a suitable run for required resource 'upstream'
     Building package
     ...

@@ -39,7 +39,7 @@ These tests run various hello operations remotely.
 ## `hello-op`
 
     >>> run("guild run hello-op -r guild-uat -y")
-    Getting remote run info
+    Getting run info on guild-uat
     Building package
     ...
     Installing package and its dependencies

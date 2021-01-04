@@ -21,7 +21,7 @@ watching the run so we can run commands while it's running.
 To check the run status locally, we need to pull the run.
 
     >>> run("guild pull guild-uat 1 -y")
-    Getting remote run info
+    Getting run info on guild-uat
     Copying ...
     <exit 0>
 
@@ -43,6 +43,7 @@ With a local run, we can use `sync` to synchronize runs with their
 associated remotes.
 
     >>> run("guild sync")
+    Resolving run on guild-uat
     Syncing ...
     Copying ...
     <exit 0>
@@ -65,6 +66,7 @@ run status up-to-date.
 Run sync again.
 
     >>> run("guild sync")
+    Resolving run on guild-uat
     Syncing ...
     Copying ...
     <exit 0>

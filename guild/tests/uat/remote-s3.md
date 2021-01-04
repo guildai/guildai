@@ -35,11 +35,11 @@ Ensure that all runs are cleared on S3:
 Confirm that S3 source is empty:
 
     >>> run("guild runs -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     <exit 0>
 
     >>> run("guild runs -d -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     <exit 0>
 
 Push runs to S3 uat:
@@ -52,7 +52,7 @@ Push runs to S3 uat:
 List remote runs:
 
     >>> run("guild runs -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     [1:...]  hello  ...  completed  run-2
     [2:...]  hello  ...  completed  run-1
     <exit 0>
@@ -60,7 +60,7 @@ List remote runs:
 Show remote run info.
 
     >>> run("guild runs info -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     id: ...
     operation: hello
     from: .../examples/hello/guild.yml
@@ -94,18 +94,18 @@ Prompt to delete remote runs:
 Delete remote runs:
 
     >>> run("guild runs rm -y -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     ...
     <exit 0>
 
     >>> run("guild runs -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     <exit 0>
 
 List deleted remote runs:
 
     >>> run("guild runs -d -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     [1:...]  hello  ...  completed  run-2
     [2:...]  hello  ...  completed  run-1
     <exit 0>
@@ -113,14 +113,14 @@ List deleted remote runs:
 Restore deleted remote runs:
 
     >>> run("guild runs restore -y -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     ...
     <exit 0>
 
 Show remote runs:
 
     >>> run("guild runs -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     [1:...]  hello  ...  completed  run-2
     [2:...]  hello  ...  completed  run-1
     <exit 0>
@@ -128,7 +128,7 @@ Show remote runs:
 Confirm we don't have any deleted runs:
 
     >>> run("guild runs -d -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     <exit 0>
 
 Delete local runs:
@@ -144,7 +144,7 @@ Delete local runs:
 Pull remote runs prompt:
 
     >>> run("guild pull guild-uat-s3", timeout=15)
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     You are about to copy (pull) the following runs from guild-uat-s3:
       [...]  hello  ...  completed  run-2
       [...]  hello  ...  completed  run-1
@@ -154,7 +154,7 @@ Pull remote runs prompt:
 Pull remote runs:
 
     >>> run("guild pull -y guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     Copying ... from guild-uat-s3
     ...
     <exit 0>
@@ -167,19 +167,19 @@ Pull remote runs:
 Delete and purge remote runs:
 
     >>> run("guild runs rm -y -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     ...
     <exit 0>
 
     >>> run("guild runs purge -y -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     ...
     <exit 0>
 
     >>> run("guild runs -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     <exit 0>
 
     >>> run("guild runs -d -r guild-uat-s3")
-    [2mRefreshing run info for guild-uat-s3[0m
+    Refreshing run info for guild-uat-s3
     <exit 0>

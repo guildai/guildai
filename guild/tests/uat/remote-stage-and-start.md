@@ -60,7 +60,7 @@ Start latest staged run:
     ...   run_id=`guild runs info 1 -r guild-uat | grep ^id: | cut -d' ' -f2`;
     ...   guild run -y --start $run_id -r guild-uat
     ...   """)
-    Getting remote run info
+    Resolving run on guild-uat
     Initializing remote run for restart
     Starting gpkg.hello/hello:from-flag on guild-uat as ...
     staged package from empty dir
@@ -79,7 +79,7 @@ Start first staged run:
     ...   run_id=`guild runs info 3 -r guild-uat | grep ^id: | cut -d' ' -f2`;
     ...   guild run -y --start $run_id -r guild-uat
     ...   """)
-    Getting remote run info
+    Resolving run on guild-uat
     Initializing remote run for restart
     Starting gpkg.hello/hello on guild-uat as ...
     staged example
