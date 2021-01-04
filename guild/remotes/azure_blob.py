@@ -21,7 +21,6 @@ import subprocess
 import sys
 import uuid
 
-from guild import log as loglib
 from guild import remote as remotelib
 from guild import remote_util
 from guild import util
@@ -160,7 +159,7 @@ class AzureBlobStorageRemote(meta_sync.MetaSyncRemote):
         remote_run_dest = self._container_path(*RUNS_PATH + [run.id])
         args = [local_run_src, remote_run_dest]
         if delete:
-            args.insert[:0] = ["--delete-destination", "true"]
+            args[:0] = ["--delete-destination", "true"]
         log.info("Copying %s to %s", run.id, self.name)
         self._azcopy("sync", args)
 
@@ -181,7 +180,7 @@ class AzureBlobStorageRemote(meta_sync.MetaSyncRemote):
         local_run_dest = os.path.join(var.runs_dir(), run.id)
         args = [remote_run_src, local_run_dest]
         if delete:
-            args.insert[:0] = ["--delete-destination", "true"]
+            args[:0] = ["--delete-destination", "true"]
         log.info("Copying %s from %s", run.id, self.name)
         util.ensure_dir(local_run_dest)
         self._azcopy("sync", args)
