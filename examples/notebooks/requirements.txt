@@ -3,3 +3,4 @@ matplotlib
 nbdime
 notebook
 pandas
+scikit-learn>=0.23

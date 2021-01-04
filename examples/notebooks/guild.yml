@@ -1,35 +1,35 @@
 binary-classifier:
-  description: Train classifier on OpenML blood transfusion data set
+  description: Train classifier on OpenML blood transfusion data set.
   references:
     - https://scikit-learn.org/stable/auto_examples/miscellaneous/plot_display_object_visualization.html
     - https://www.openml.org/d/1464
   notebook: plot_display_object_visualization.ipynb
   flags:
-    lr-penalty:
-      description: Norm used in the penalization.
+    penalty:
+      description: Norm used in the penalization
       nb-replace: 'penalty=([''"].+[''"])'
       choices: [l1, l2, elasticnet, none]
-    lr-multi-class:
-      description: Solver class (binary or mutinomial) type.
+    multi-class:
+      description: Solver class (binary or mutinomial) type
       nb-replace: 'multi_class=([''"].+[''"])'
       choices: [auto, ovr, multinomial]
-    lr-C:
-      description: Inverse of regularization strength.
+    C:
+      description: Inverse of regularization strength
       nb-replace: 'C=([\d\.e-]+)'
       type: float
-    lr-class-weight:
-      description: Whether or not to balance weights based on class frequencies.
+    class-weight:
+      description: Whether or not to balance weights based on class frequencies
       nb-replace: 'class_weight=(["''\w]+)'
       choices: [null, balanced]
-    lr-solver:
-      description: Algorithm to use in the optimization problem.
+    solver:
+      description: Algorithm to use in the optimization problem
       nb-replace: 'solver=([''"].+[''"])'
       choices: [newton-cg, lbfgs, liblinear, sag, saga]
-    lr-max-iter:
-      description: Maximum number of iterations for LR.
+    max-iter:
+      description: Maximum number of iterations for LR
       nb-replace: 'max_iter=(\d+)'
-    lr-l1-ratio:
-      description: Ratio of l1 when penalty is elasticnet.
+    l1-ratio:
+      description: Ratio of l1 when penalty is elasticnet
       nb-replace: 'l1_ratio=(None|[\.\d]+)'
   output-scalars:
     test_acc: 'Test accuracy: (\value)'
