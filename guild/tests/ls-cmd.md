@@ -14,8 +14,8 @@ Generate a run.
 
 Helper function to run Guild commands for project runs.
 
-    >>> def guild_run(cmd):
-    ...     run("guild -H %s %s" % (project.guild_home, cmd))
+    >>> def guild_run(cmd, ignore=None):
+    ...     run("guild -H %s %s" % (project.guild_home, cmd), ignore=ignore)
 
 By default ls prints all non-Guild files without following links.
 
@@ -73,7 +73,7 @@ Show the full path for a list with `--full-path`.
 
 List all files with `--all`.
 
-    >>> guild_run("ls --all")  # doctest: +REPORT_UDIFF
+    >>> guild_run("ls --all", ignore="vcs_commit")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
       .guild/
       .guild/attrs/
@@ -95,7 +95,6 @@ List all files with `--all`.
       .guild/attrs/stopped
       .guild/attrs/user
       .guild/attrs/user_flags
-      .guild/attrs/vcs_commit
       .guild/opref
       .guild/output
       .guild/output.index
@@ -115,7 +114,7 @@ List all files with `--all`.
 
 If `--path` wants Guild files, `--all` is implied.
 
-    >>> guild_run("ls --path .guild")
+    >>> guild_run("ls --path .guild", ignore="vcs_commit")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
       .guild/
       .guild/attrs/
@@ -137,13 +136,19 @@ If `--path` wants Guild files, `--all` is implied.
       .guild/attrs/stopped
       .guild/attrs/user
       .guild/attrs/user_flags
-      .guild/attrs/vcs_commit
-      ...
+      .guild/opref
+      .guild/output
+      .guild/output.index
+      .guild/some-guild-file
+      .guild/sourcecode/
+      .guild/sourcecode/README.md
+      .guild/sourcecode/guild.yml
+      .guild/sourcecode/make_fs.py
     <exit 0>
 
 Follow links applies to `--all`.
 
-    >>> guild_run("ls --all -L")  # doctest: +REPORT_UDIFF
+    >>> guild_run("ls --all -L", ignore="vcs_commit")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
       .guild/
       .guild/attrs/
@@ -165,7 +170,6 @@ Follow links applies to `--all`.
       .guild/attrs/stopped
       .guild/attrs/user
       .guild/attrs/user_flags
-      .guild/attrs/vcs_commit
       .guild/opref
       .guild/output
       .guild/output.index
