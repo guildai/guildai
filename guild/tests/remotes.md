@@ -312,7 +312,7 @@ user along with a gist name.
     >>> with Env({}, replace=True):
     ...     guild.remote.for_spec("gist:foo")
     Traceback (most recent call last):
-    MissingRequiredEnv: gist remotes must be specified as USER/GIST_NAME
+    InvalidRemoteSpec: gist remotes must be specified as USER/GIST_NAME
     if GIST_USER environment variable is not defined
 
 ### Remote types that don't support specs

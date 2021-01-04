@@ -115,8 +115,9 @@ List all files with `--all`.
 
 If `--path` wants Guild files, `--all` is implied.
 
-    >>> guild_run("ls --path .guild/att")  # doctest: +REPORT_UDIFF
+    >>> guild_run("ls --path .guild")
     ???/runs/aaaa:
+      .guild/
       .guild/attrs/
       .guild/attrs/cmd
       .guild/attrs/deps
@@ -137,6 +138,7 @@ If `--path` wants Guild files, `--all` is implied.
       .guild/attrs/user
       .guild/attrs/user_flags
       .guild/attrs/vcs_commit
+      ...
     <exit 0>
 
 Follow links applies to `--all`.

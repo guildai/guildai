@@ -99,7 +99,7 @@ Run with different flag values.
     ... })
 
     >>> run = project.list_runs()[0]
-    >>> nb_source(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >>> nb_source(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE -NORMALIZE_PATHS
     x = 1.123
     y = 2
     z = x + y
@@ -183,10 +183,10 @@ not matching as expected. Consider the patterns for `x` and `y` in the
     >>> gf = guildfile.for_dir(project.cwd)
     >>> add_op = gf.default_model.get_operation("add")
 
-    >>> add_op.get_flagdef("x").extra["nb-replace"]
+    >>> add_op.get_flagdef("x").extra["nb-replace"]  # doctest: -NORMALIZE_PATHS
     'print\\((\\d+) \\+ \\d+\\)'
 
-    >>> add_op.get_flagdef("y").extra["nb-replace"]
+    >>> add_op.get_flagdef("y").extra["nb-replace"]  # doctest: -NORMALIZE_PATHS
     'print\\(\\d+ \\+ (\\d+)\\)'
 
 Note that the patterns match only integer values. Let's run `add` with

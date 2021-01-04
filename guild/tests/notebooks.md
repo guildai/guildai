@@ -319,17 +319,17 @@ Note that the lower level function `_replace_flag_assign_vals` does
 not.
 
     >>> with LogCapture() as logs:
-    ...     _replace_flag_assign_vals("%cd\n%pwd", _ApplyFlagsStateProxy({}, {}))
+    ...     _replace_flag_assign_vals("%cd\n%pwd", _ApplyFlagsStateProxy({}, {})) # doctest: -NORMALIZE_PATHS
     '%cd\n%pwd'
 
-    >>> logs.print_all()
+    >>> logs.print_all()  # doctest: -NORMALIZE_PATHS
     WARNING: error parsing Python source '%cd\n%pwd': invalid syntax (<unknown>, line 1)
 
 Using `_apply_flags_to_source_lines`:
 
     >>> _apply_flags_to_source_lines(
     ...     ["%cd ~\n", "%pwd"],
-    ...     _ApplyFlagsStateProxy({}, {}))  # doctest: -PY2
+    ...     _ApplyFlagsStateProxy({}, {}))  # doctest: -PY2 -NORMALIZE_PATHS
     ["get_ipython().run_line_magic('cd', '~')\n", "get_ipython().run_line_magic('pwd', '')"]
 
 Python 2:
