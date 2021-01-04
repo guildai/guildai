@@ -164,7 +164,7 @@ def _find_notebook(notebook):
     log.error(
         "cannot find notebook '%s' - make sure it's copied as source code\n"
         "Use 'guild run <operation> --test-sourcecode to troubleshoot source code "
-        "configuration issues"
+        "configuration issues" % notebook
     )
     sys.exit(1)
 
