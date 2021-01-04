@@ -22,7 +22,6 @@ import subprocess
 import sys
 import uuid
 
-from guild import log as loglib
 from guild import remote as remotelib
 from guild import remote_util
 from guild import util
@@ -223,8 +222,8 @@ class S3Remote(meta_sync.MetaSyncRemote):
         except remotelib.RemoteProcessError:
             raise remotelib.OperationError()
 
-    def get_stop_details(self):
-        return "- S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!" % self.bucket
+    def stop_details(self):
+        return "S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!" % self.bucket
 
     def push(self, runs, delete=False):
         for run in runs:
@@ -239,7 +238,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
         if delete:
             args.insert(0, "--delete")
         log.info("Copying %s to %s", run.id, self.name)
-        self._s3_cmd("sync", args)
+        self._s3_cmd("sync", args, quiet=True)
 
     def _new_meta_id(self):
         meta_id = uuid.uuid4().hex
