@@ -402,6 +402,7 @@ class SSHRemote(remotelib.Remote):
         self._guild_cmd("runs list", args)
 
     def filtered_runs(self, **filters):
+        remote_util.remote_activity("Getting run info on %s", self.name)
         opts = _filtered_runs_filter_opts(**filters)
         out = self._guild_cmd_output("runs list", opts)
         if not out:
@@ -453,7 +454,9 @@ class SSHRemote(remotelib.Remote):
         out = self._guild_cmd_output(
             "runs info", [run_id_prefix, "--private-attrs", "--json"]
         )
-        return remotelib.RunProxy(self._run_data_for_json(out))
+        remote_util.remote_activity("Resolving run on %s", self.name)
+        run_data = self._run_data_for_json(out)
+        return remotelib.RunProxy(run_data)
 
     @staticmethod
     def _run_data_for_json(s):
