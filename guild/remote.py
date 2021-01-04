@@ -143,6 +143,8 @@ class RemoteType(object):
 
 class Remote(object):
 
+    # pylint: disable=unused-argument,no-self-use
+
     name = None
 
     def push(self, runs, delete=False):
@@ -164,7 +166,7 @@ class Remote(object):
         raise OperationNotSupported()
 
     @staticmethod
-    def get_stop_details():
+    def stop_details():
         return None
 
     def run_op(self, opspec, flags, restart, no_wait, stage, **opts):

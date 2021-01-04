@@ -310,3 +310,4 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [remote-deps](remote-deps.md)
 - [remote-s3](remote-s3.md)
 - [remote-azure-blob](remote-azure-blob.md)
+- [remote-gist](remote-gist.md)

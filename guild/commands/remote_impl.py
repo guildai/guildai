@@ -18,6 +18,7 @@ from __future__ import division
 import guild.remote
 
 from guild import cli
+from guild import cmd_impl_support
 
 from . import remote_support
 
@@ -34,13 +35,13 @@ def start(args):
 
 def stop(args):
     remote = remote_support.remote_for_args(args)
-    prompt = "WARNING: You are about to STOP %s" % remote.name
-    stop_details = remote.get_stop_details()
+    prompt = "You are about to STOP %s" % remote.name
+    stop_details = remote.stop_details()
     if stop_details:
-        prompt += "\nThis will result in the following:\n"
-        prompt += stop_details
+        prompt += "\n" + stop_details
     else:
         prompt += "\nThis action may result in permanent loss of data."
+    prompt = cmd_impl_support.format_warn(prompt)
     _remote_op(remote.stop, prompt, False, args)
 
 

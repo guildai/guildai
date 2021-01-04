@@ -66,7 +66,7 @@ def config_path(path):
     return os.path.abspath(os.path.join(config_dir, expanded))
 
 
-def subprocess_call(cmd, extra_env=None, quiet=False):
+def subprocess_call(cmd, extra_env=None, quiet=False, allowed_returncodes=(0,)):
     env = dict(os.environ)
     if extra_env:
         env.update(extra_env)
@@ -81,12 +81,13 @@ def subprocess_call(cmd, extra_env=None, quiet=False):
         else:
             sys.stderr.write(line.decode())
     returncode = p.wait()
-    if returncode != 0:
+    if returncode not in allowed_returncodes:
         for line in buffer:
             sys.stderr.write(line)
         raise SystemExit(
             "error running %s - see above for details" % cmd[0], returncode
         )
+    return returncode
 
 
 def init_env(env_config):

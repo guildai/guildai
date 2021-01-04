@@ -21,6 +21,7 @@ import os
 import re
 
 from guild import click_util
+from guild import cmd_impl_support
 from guild import remote as remotelib
 from guild import util
 from guild import var
@@ -50,7 +51,10 @@ class MetaSyncRemote(remotelib.Remote):
         args = click_util.Args(
             deleted=False, archive=runs_dir, remote=None, json=False, **opts
         )
-        runs_impl.list_runs(args)
+        try:
+            runs_impl.list_runs(args)
+        except SystemExit as e:
+            raise self._fix_system_exit_msg_for_remote(e, ["runs list", "runs"])
 
     def _sync_runs_meta(self, force=False):
         raise NotImplementedError()
@@ -69,7 +73,7 @@ class MetaSyncRemote(remotelib.Remote):
         args = click_util.Args(archive=self._runs_dir, remote=None, **opts)
         self._sync_runs_meta()
         if args.permanent:
-            preview = (
+            preview = cmd_impl_support.format_warn(
                 "WARNING: You are about to permanently delete "
                 "the following runs on %s:" % self.name
             )
@@ -81,7 +85,6 @@ class MetaSyncRemote(remotelib.Remote):
 
         def delete_f(selected):
             self._delete_runs(selected, args.permanent)
-            self._new_meta_id()
             self._sync_runs_meta(force=True)
 
         try:
@@ -95,20 +98,26 @@ class MetaSyncRemote(remotelib.Remote):
                 confirm_default=not args.permanent,
             )
         except SystemExit as e:
-            self._reraise_system_exit(e)
+            raise self._fix_system_exit_msg_for_remote(e, ["runs rm", "runs delete"])
 
     def _delete_runs(self, runs, permanent):
         raise NotImplementedError()
 
-    def _reraise_system_exit(self, e, deleted=False):
-        if not e.args[0]:
-            raise e
-        exit_code = e.args[1]
-        msg = e.args[0].replace(
-            "guild runs list",
-            "guild runs list %s-r %s" % (deleted and "-d " or "", self.name),
-        )
-        raise SystemExit(msg, exit_code)
+    def _fix_system_exit_msg_for_remote(self, e, cmds):
+        from guild import main
+
+        assert isinstance(e, SystemExit), e
+        msg, code = main.system_exit_params(e)
+        if not msg:
+            raise SystemExit(code)
+        for cmd in cmds:
+            maybe_changed = msg.replace(
+                "guild %s" % self.name, "guild %s -r %s" % (self.name, cmd)
+            )
+            if maybe_changed != msg:
+                msg = maybe_changed
+                break
+        raise SystemExit(msg, code)
 
     def restore_runs(self, **opts):
         if not self._deleted_runs_dir:
@@ -134,7 +143,7 @@ class MetaSyncRemote(remotelib.Remote):
                 confirm_default=True,
             )
         except SystemExit as e:
-            self._reraise_system_exit(e, deleted=True)
+            self._fix_system_exit_msg_for_remote(e, ["runs restore"])
 
     def _restore_runs(self, runs):
         raise NotImplementedError()
@@ -166,7 +175,7 @@ class MetaSyncRemote(remotelib.Remote):
                 confirm_default=False,
             )
         except SystemExit as e:
-            self._reraise_system_exit(e, deleted=True)
+            self._fix_system_exit_msg_for_remote(e, ["runs purge"])
 
     def _purge_runs(self, runs):
         raise NotImplementedError()

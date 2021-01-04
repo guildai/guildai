@@ -19,9 +19,9 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import zipfile
 
-from guild import log as loglib
 from guild import remote as remotelib
 from guild import remote_util
 from guild import util
@@ -33,6 +33,7 @@ log = logging.getLogger("guild.remotes.gist")
 
 class NoSuchGist(remotelib.OperationError):
     pass
+
 
 class MissingRequiredEnv(remotelib.OperationError):
     pass
@@ -60,18 +61,27 @@ class GistRemoteType(remotelib.RemoteType):
 def _parse_spec(spec):
     parts = spec.split("/", 1)
     if len(parts) == 1:
-        return _required_gist_user_env(), parts[0]
+        return _required_gist_user_env({}), parts[0]
     return parts
 
 
-def _required_gist_user_env():
+def _required_gist_user_env(env):
     try:
-        return os.environ["GIST_USER"]
+        return _required_env("GIST_USER", [env, os.environ])
     except KeyError:
         raise MissingRequiredEnv(
             "gist remotes must be specified as USER/GIST_NAME if GIST_USER "
             "environment variable is not defined"
         )
+
+
+def _required_env(name, sources):
+    for src in sources:
+        try:
+            return src[name]
+        except KeyError:
+            pass
+    raise KeyError(name)
 
 
 class GistRemote(meta_sync.MetaSyncRemote):
@@ -86,8 +96,55 @@ class GistRemote(meta_sync.MetaSyncRemote):
         runs_dir = os.path.join(self.local_sync_dir, "runs")
         super(GistRemote, self).__init__(runs_dir, None)
 
+    def status(self, verbose=False):
+        remote_util.remote_activity("Getting %s status", self.name)
+        gist = self._repo_gist()
+        sys.stdout.write("%s (gist %s) is available\n" % (self.name, gist["id"]))
+
+    def start(self):
+        remote_util.remote_activity("Getting %s status", self.name)
+        try:
+            gist = self._repo_gist()
+        except NoSuchGist:
+            log.info("Creating gist")
+            gist = self._create_gist()
+            log.info(
+                "Created %s (gist %s) for user %s",
+                self.name,
+                gist["id"],
+                self.user,
+            )
+        else:
+            raise remotelib.OperationError(
+                "%s (gist %s) already exists for user %s"
+                % (self.name, gist["id"], self.user)
+            )
+
+    def stop(self):
+        self._delete_gist()
+        self._clear_gist_cache()
+
+    def _delete_gist(self):
+        gist = self._repo_gist()
+        log.info("Deleting gist %s", gist["id"])
+        _delete_gist(gist, self.local_env)
+
+    def _clear_gist_cache(self):
+        log.info("Clearning local cache")
+        log.debug("deleting %s", self.local_sync_dir)
+        util.ensure_safe_rmtree(self.local_sync_dir)
+
+    def stop_details(self):
+        remote_util.remote_activity("Getting %s status", self.name)
+        try:
+            gist = self._repo_gist()
+        except NoSuchGist:
+            return None
+        else:
+            return "gist %s will be deleted - THIS CANNOT BE UNDONE!" % gist["id"]
+
     def _sync_runs_meta(self, force=False):
-        remote_util.remote_activity("Getting run info for %s" % self.name)
+        remote_util.remote_activity("Refreshing run info for %s" % self.name)
         self._ensure_local_gist_repo()
         self._sync_runs_meta_for_gist(force)
 
@@ -100,10 +157,10 @@ class GistRemote(meta_sync.MetaSyncRemote):
         _sync_gist_repo(gist, self._local_gist_repo, self.local_env)
 
     def _repo_gist(self):
-        gist = _find_gist_with_file(self.user, self._gist_readme_name)
+        gist = _find_gist_with_file(self.user, self._gist_readme_name, self.local_env)
         if not gist:
             raise NoSuchGist(
-                "cannot find gist remote '%s' (denoted by the file '%s') for %s\n"
+                "cannot find gist remote '%s' (denoted by the file '%s') for user %s\n"
                 "If the gist is private, you must specify a valid access token with "
                 "GIST_ACCESS_TOKEN.\nFor more information see "
                 "https://my.guild.ai/docs/gists."
@@ -129,22 +186,29 @@ class GistRemote(meta_sync.MetaSyncRemote):
         return _git_current_commit(self._local_gist_repo)
 
     def _delete_runs(self, runs, permanent):
-        assert False
+        assert permanent  # gist remotes only support permanent delete
+        _delete_gist_runs(runs, self._local_gist_repo, self._runs_dir)
+        _commit_and_push_gist_repo_for_delete(
+            self._local_gist_repo,
+            _delete_commit_msg(),
+            self.local_env,
+            self.name,
+        )
 
     def _restore_runs(self, runs):
-        assert False
+        raise NotImplementedError()
 
     def _purge_runs(self, runs):
-        assert False
+        raise NotImplementedError()
 
     def push(self, runs, delete=False):
-        log.info(loglib.dim("Synchronizing runs with %s"), self.name)
         self._ensure_synced_gist_repo()
         _export_runs_to_gist_archives(runs, self._local_gist_repo)
-        _commit_and_push_gist_repo(
+        _commit_and_push_gist_repo_for_push(
             self._local_gist_repo,
             _push_commit_msg(),
             self.local_env,
+            self.name,
         )
         self._sync_runs_meta_for_gist(True)
 
@@ -155,8 +219,11 @@ class GistRemote(meta_sync.MetaSyncRemote):
             self._init_gist_repo()
 
     def _init_gist_repo(self):
-        gist = _create_gist(self.user, self.gist_name, self._gist_readme_name)
+        gist = self._create_gist()
         _sync_gist_repo(gist, self._local_gist_repo, self.local_env)
+
+    def _create_gist(self):
+        return _create_gist(self.gist_name, self._gist_readme_name, self.local_env)
 
     def pull(self, runs, delete=False):
         from guild import var
@@ -165,7 +232,7 @@ class GistRemote(meta_sync.MetaSyncRemote):
         # this case also contains the runs themselves as zip
         # archives. At this point we need only extract the run
         # archives to the runs dir.
-        _extract_runs(runs, self._local_gist_repo, var.runs_dir())
+        _extract_runs(runs, self._local_gist_repo, var.runs_dir(), self.name)
 
 
 def _gist_readme_name(gist_name):
@@ -178,7 +245,7 @@ def _ensure_md_ext(s):
     return s + ".md"
 
 
-def _find_gist_with_file(user, filename):
+def _find_gist_with_file(user, filename, env):
     import requests  # expensive
 
     page = 1
@@ -187,7 +254,7 @@ def _find_gist_with_file(user, filename):
         resp = requests.get(
             url,
             params={"page": page, "per_page": 100},
-            headers=_github_auth_headers(),
+            headers=_github_auth_headers(env),
         )
         gists = resp.json()
         if not gists:
@@ -199,9 +266,9 @@ def _find_gist_with_file(user, filename):
         page += 1
 
 
-def _github_auth_headers():
+def _github_auth_headers(env):
     try:
-        access_token = _required_gist_access_token()
+        access_token = _required_gist_access_token(env)
     except MissingRequiredEnv:
         return {}
     else:
@@ -289,7 +356,7 @@ def _git_current_commit(git_repo):
     return out.decode("utf-8").strip()
 
 
-def _extract_runs(runs, archive_dir, dest_dir):
+def _extract_runs(runs, archive_dir, dest_dir, gist_name):
     for run in runs:
         archive = os.path.join(archive_dir, _run_archive_filename(run.id))
         if not os.path.exists(archive):
@@ -297,7 +364,7 @@ def _extract_runs(runs, archive_dir, dest_dir):
                 "%s archive for gist does not exist (%s), skipping", run.id, archive
             )
             continue
-        log.info("Copying %s", run.id)
+        log.info("Copying %s from %s", run.id, gist_name)
         _replace_run(archive, run.id, dest_dir)
 
 
@@ -335,10 +402,10 @@ def _replace_run_dir(run_dir, src_dir):
     shutil.move(src_dir, run_dir)
 
 
-def _create_gist(user, gist_remote_name, gist_readme_name):
+def _create_gist(gist_remote_name, gist_readme_name, env):
     import requests
 
-    access_token = _required_gist_access_token()
+    access_token = _required_gist_access_token(env)
     data = {
         "accept": "application/vnd.github.v3+json",
         "description": "Guild AI Repository",
@@ -357,15 +424,15 @@ def _create_gist(user, gist_remote_name, gist_readme_name):
     }
     resp = requests.post("https://api.github.com/gists", json=data, headers=headers)
     if resp.status_code not in (200, 201):
-        raise OperationError(
+        raise remotelib.OperationError(
             "error creating gist: (%i) %s" % (resp.status_code, resp.text)
         )
     return resp.json()
 
 
-def _required_gist_access_token():
+def _required_gist_access_token(env):
     try:
-        return os.environ["GIST_ACCESS_TOKEN"]
+        return _required_env("GIST_ACCESS_TOKEN", [env, os.environ])
     except KeyError:
         raise MissingRequiredEnv(
             "missing required environment variable GIST_ACCESS_TOKEN\n"
@@ -402,7 +469,8 @@ def _export_runs(runs_with_dest):
     from guild import run_util
 
     for run, dest in runs_with_dest:
-        run_util.export_runs([run], dest, copy_resources=False)
+        log.info("Compressing %s", run.id)
+        run_util.export_runs([run], dest, copy_resources=False, quiet=True)
 
 
 def _push_commit_msg():
@@ -415,25 +483,100 @@ def _push_commit_msg():
     )
 
 
-def _commit_and_push_gist_repo(repo, commit_msg, env):
+def _commit_and_push_gist_repo_for_push(repo, commit_msg, env, remote_name):
     _git_add_all(repo, env)
-    _git_commit(repo, commit_msg, env)
-    _git_push(repo, env)
+    try:
+        _git_commit(repo, commit_msg, env)
+    except _NoChanges:
+        log.info("Nothing to copy for %s - gist is up-to-date", remote_name)
+    else:
+        log.info("Copying runs to %s", remote_name)
+        _git_push(repo, env)
 
 
-def _git_add_all(repo, env):
+def _git_add_all(repo, env, update=False):
     cmd = [_git_cmd(), "-C", repo, "add", "."]
+    if update:
+        cmd.append("-u")
     log.debug("git cmd: %s", cmd)
     remote_util.subprocess_call(cmd, extra_env=env, quiet=True)
+
+
+class _NoChanges(Exception):
+    pass
 
 
 def _git_commit(repo, msg, env):
     cmd = [_git_cmd(), "-C", repo, "commit", "-m", msg]
     log.debug("git cmd: %s", cmd)
-    remote_util.subprocess_call(cmd, extra_env=env, quiet=True)
+    result = remote_util.subprocess_call(
+        cmd, extra_env=env, quiet=True, allowed_returncodes=(0, 1)
+    )
+    if result == 1:
+        raise _NoChanges()
 
 
 def _git_push(repo, env):
     cmd = [_git_cmd(), "-C", repo, "push"]
     log.debug("git cmd: %s", cmd)
     remote_util.subprocess_call(cmd, extra_env=env, quiet=True)
+
+
+def _delete_gist(gist, env):
+    import requests
+
+    access_token = _required_gist_access_token(env)
+    data = {
+        "accept": "application/vnd.github.v3+json",
+        "gist_id": gist["id"],
+    }
+    headers = {
+        "Authorization": "token %s" % access_token,
+    }
+    resp = requests.delete(
+        "https://api.github.com/gists/%s" % gist["id"], json=data, headers=headers
+    )
+    if resp.status_code not in (200, 204):
+        raise remotelib.OperationError(
+            "error creating gist: (%i) %s" % (resp.status_code, resp.text)
+        )
+
+
+def _delete_gist_runs(runs, gist_repo, runs_dir):
+    for run in runs:
+        log.info("Deleting %s", run.id)
+        _delete_gist_repo_run_archive(gist_repo, run.id)
+        _delete_run(run, runs_dir)
+
+
+def _delete_gist_repo_run_archive(gist_repo, run_id):
+    run_archive = os.path.join(gist_repo, _run_archive_filename(run_id))
+    log.debug("deleting %s", run_archive)
+    util.ensure_deleted(run_archive)
+
+
+def _delete_run(run, runs_dir):
+    run_dir = os.path.join(runs_dir, run.id)
+    log.debug("deleting %s", run_dir)
+    util.ensure_safe_rmtree(run_dir)
+
+
+def _commit_and_push_gist_repo_for_delete(repo, commit_msg, env, remote_name):
+    _git_add_all(repo, env, update=True)
+    try:
+        _git_commit(repo, commit_msg, env)
+    except _NoChanges:
+        log.info("Nothing to update for %s - gist is up-to-date", remote_name)
+    else:
+        log.info("Updating runs on %s", remote_name)
+        _git_push(repo, env)
+
+
+def _delete_commit_msg():
+    import guild
+
+    return "`guild runs rm` by %s@%s with version %s" % (
+        util.user(),
+        util.hostname(),
+        guild.version(),
+    )

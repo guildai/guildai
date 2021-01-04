@@ -484,14 +484,14 @@ def sourcecode_dir(run):
     return run.guild_path("sourcecode")
 
 
-def export_runs(runs, dest, move=False, copy_resources=False):
+def export_runs(runs, dest, move=False, copy_resources=False, quiet=False):
     if dest.lower().endswith(".zip"):
-        return _export_runs_to_zip(runs, dest, move, copy_resources)
+        return _export_runs_to_zip(runs, dest, move, copy_resources, quiet)
     else:
-        return _export_runs_to_dir(runs, dest, move, copy_resources)
+        return _export_runs_to_dir(runs, dest, move, copy_resources, quiet)
 
 
-def _export_runs_to_zip(runs, filename, move, copy_resources):
+def _export_runs_to_zip(runs, filename, move, copy_resources, quiet):
     import zipfile
 
     tmp_dir = util.mktempdir("guild-export-")
@@ -505,7 +505,7 @@ def _export_runs_to_zip(runs, filename, move, copy_resources):
                 _write_zip_files(filename, zf, existing)
             except zipfile.BadZipfile as e:
                 raise RunsExportError("cannot write to %s: %s" % (filename, e))
-        _copy_runs_to_zip(runs, move, copy_resources, zf, existing, exported)
+        _copy_runs_to_zip(runs, move, copy_resources, zf, existing, quiet, exported)
     log.debug("replacing %s with %s", filename, tmp_zip)
     shutil.move(tmp_zip, filename)
     if move:
@@ -524,7 +524,7 @@ def _write_zip_files(src, zf, written):
             written.add(name)
 
 
-def _copy_runs_to_zip(runs, move, copy_resources, zf, existing, written):
+def _copy_runs_to_zip(runs, move, copy_resources, zf, existing, quiet, written):
     import zipfile
 
     action_desc = "Moving" if move else "Copying"
@@ -532,7 +532,8 @@ def _copy_runs_to_zip(runs, move, copy_resources, zf, existing, written):
         if _zip_path(run.id, "") in existing:
             log.warning("%s exists, skipping", run.id)
             continue
-        log.info("%s %s", action_desc, run.id)
+        if not quiet:
+            log.info("%s %s", action_desc, run.id)
         for src, zip_path in _iter_run_files_for_zip(run, copy_resources):
             log.debug("writing %s to %s", src, zip_path)
             if zip_path in existing:
@@ -570,7 +571,7 @@ def _delete_exported_runs(runs):
         util.safe_rmtree(run.path)
 
 
-def _export_runs_to_dir(runs, dir, move, copy_resources):
+def _export_runs_to_dir(runs, dir, move, copy_resources, quiet):
     _init_export_dir(dir)
     exported = []
     for run in runs:
@@ -579,14 +580,16 @@ def _export_runs_to_dir(runs, dir, move, copy_resources):
             log.warning("%s exists, skipping", dest)
             continue
         if move:
-            log.info("Moving %s", run.id)
+            if not quiet:
+                log.info("Moving %s", run.id)
             if copy_resources:
                 shutil.copytree(run.path, dest)
                 util.safe_rmtree(run.path)
             else:
                 shutil.move(run.path, dest)
         else:
-            log.info("Copying %s", run.id)
+            if not quiet:
+                log.info("Copying %s", run.id)
             follow_links = not copy_resources
             shutil.copytree(run.path, dest, follow_links)
         exported.append(run)
