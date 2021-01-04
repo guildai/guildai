@@ -99,7 +99,7 @@ def _init_modeldef(notebook_path, model_name, op_name):
             "model": model_name,
             "operations": {
                 op_name: {
-                    "main": "guild.plugins.nbexec %s" % notebook_path,
+                    "main": "guild.plugins.nbexec %s" % _normpath_for_main(notebook_path),
                     "flags": _flags_data_for_notebook(notebook_path),
                 }
             },
@@ -107,6 +107,15 @@ def _init_modeldef(notebook_path, model_name, op_name):
     ]
     gf = guildfile.Guildfile(data, dir=os.path.dirname(notebook_path))
     return gf.models[model_name]
+
+
+def _normpath_for_main(path):
+    """Normalize path for use in operation main spec.
+
+    Guild does not support Windows style backslashes in op main specs
+    so we normalize to forward slash.
+    """
+    return path.replace(os.path.sep, "/")
 
 
 def _flags_data_for_notebook(notebook_path, opdef=None, cache=None):

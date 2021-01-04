@@ -1165,8 +1165,6 @@ def shlex_split(s):
     # If s is None, this call will block (see
     # https://bugs.python.org/issue27775)
     s = s or ""
-    if get_platform() == "Windows":
-        s = s.replace("\\", "\\\\")
     return shlex.split(s, posix=True)
 
 
