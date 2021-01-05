@@ -37,8 +37,6 @@ def _max_width():
         return click.get_terminal_size()[0]
 
 
-MAX_WIDTH = _max_width()
-
 try:
     input = raw_input
 except NameError:
@@ -98,7 +96,7 @@ def table(
     data = sorted(data, key=_table_row_sort_key(sort))
     formatted = _format_table_data(data, cols + (detail or []))
     col_info = _col_info(formatted, cols)
-    max_width = MAX_WIDTH + max_width_adj
+    max_width = _max_width() + max_width_adj
     for formatted_item, data_item in zip(formatted, data):
         _table_item_out(
             formatted_item,

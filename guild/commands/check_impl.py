@@ -140,9 +140,17 @@ def _uat_and_exit():
 
 
 def _run_tests(check):
-    os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
-    os.environ["COLUMNS"] = "999"
-    cli.MAX_WIDTH = 999
+    with util.Env(
+        {
+            "NO_IMPORT_FLAGS_PROGRESS": "1",
+            "COLUMNS": "999",
+            "SYNC_RUN_OUTPUT": "1",
+        }
+    ):
+        _run_tests_(check)
+
+
+def _run_tests_(check):
     if check.args.all_tests:
         if check.args.tests:
             log.warning(

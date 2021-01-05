@@ -239,15 +239,14 @@ class RunOutput(object):
         self._assert_closed()
         if proc.stdout is None:
             raise RuntimeError("proc stdout must be a PIPE")
-        if proc.stderr is None:
-            raise RuntimeError("proc stderr must be a PIPE")
         self._proc = proc
         self._output = self._open_output()
         self._index = self._open_index()
         self._out_tee = threading.Thread(target=self._out_tee_run)
-        self._err_tee = threading.Thread(target=self._err_tee_run)
         self._out_tee.start()
-        self._err_tee.start()
+        if proc.stderr:
+            self._err_tee = threading.Thread(target=self._err_tee_run)
+            self._err_tee.start()
         self._open = True
 
     def _assert_closed(self):
@@ -322,7 +321,8 @@ class RunOutput(object):
     def wait(self, timeout=DEFAULT_WAIT_TIMEOUT):
         self._assert_open()
         self._out_tee.join(timeout)
-        self._err_tee.join(timeout)
+        if self._err_tee:
+            self._err_tee.join(timeout)
 
     def _assert_open(self):
         if not self._open:
@@ -331,7 +331,7 @@ class RunOutput(object):
         assert self._output
         assert self._index
         assert self._out_tee
-        assert self._err_tee
+        assert not self._proc.stderr or self._err_tee
 
     def close(self):
         lock = self._acquire_output_lock()
@@ -359,7 +359,7 @@ class RunOutput(object):
             except Exception:
                 log.exception("closing output callback")
         assert not self._out_tee.is_alive()
-        assert not self._err_tee.is_alive()
+        assert not self._err_tee or not self._err_tee.is_alive()
         self._proc = None
         self._output = None
         self._index = None

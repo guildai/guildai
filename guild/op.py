@@ -227,12 +227,14 @@ def _remove_private_env(env, op):
 
 
 def _proc_streams(quiet):
+    """Returns a tuple of stdout, stderr streams for use in op subprocess."""
     if os.getenv("NO_RUN_OUTPUT") == "1":
         if quiet:
-            devnull = _devnull()
-            return devnull, devnull
+            return _devnull(), _devnull()
         else:
             return None, None
+    elif os.getenv("SYNC_RUN_OUTPUT") == "1":
+        return subprocess.PIPE, subprocess.STDOUT
     else:
         return subprocess.PIPE, subprocess.PIPE
 
