@@ -63,7 +63,7 @@ Python 3.6:
     nvidia_smi_version:        ...
     click_version:             7.1.2
     distutils_version:         ...
-    numpy_version:             1.19.4
+    numpy_version:             1.19.5
     pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.0
@@ -85,7 +85,7 @@ Python 3.7:
     nvidia_smi_version:        ...
     click_version:             7.1.2
     distutils_version:         ...
-    numpy_version:             1.19.4
+    numpy_version:             1.19.5
     pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.0
@@ -107,7 +107,7 @@ Python 3.8:
     nvidia_smi_version:        ...
     click_version:             7.1.2
     distutils_version:         ...
-    numpy_version:             1.19.4
+    numpy_version:             1.19.5
     pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.0
