@@ -78,8 +78,11 @@ WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 PY2 = doctest.register_optionflag("PY2")
 PY3 = doctest.register_optionflag("PY3")
+PY27 = doctest.register_optionflag("PY27")
 PY35 = doctest.register_optionflag("PY35")
+PY36 = doctest.register_optionflag("PY36")
 PY37 = doctest.register_optionflag("PY37")
+PY38 = doctest.register_optionflag("PY38")
 ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
 
 _ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
@@ -200,8 +203,6 @@ def run_test_file(filename, globs=None):
             | STRIP_ANSI_FMT
             | PY2
             | PY3
-            | PY35
-            | PY37
             | ANNOTATIONS
         ),
     )
@@ -302,22 +303,25 @@ class TestRunner(doctest.DocTestRunner, object):
                 example.options[SKIP] = True
             if example.options.get(WINDOWS_ONLY) is True and not is_windows:
                 example.options[SKIP] = True
+            # PY2 and PY3 are enabled by default - check if explicitly disabled.
             if example.options.get(PY2) is False and py_major_ver == 2:
                 example.options[SKIP] = True
             if example.options.get(PY3) is False and py_major_ver == 3:
                 example.options[SKIP] = True
-            if (
-                example.options.get(PY35) is False
-                and py_major_ver == 3
-                and py_minor_ver == 5
-            ):
-                example.options[SKIP] = True
-            if (
-                example.options.get(PY37) is False
-                and py_major_ver == 3
-                and py_minor_ver == 7
-            ):
-                example.options[SKIP] = True
+            # Force tests on/off if more specific Python versions specified.
+            for opt, maj_ver, min_ver in [
+                (example.options.get(PY27), 2, 7),
+                (example.options.get(PY35), 3, 5),
+                (example.options.get(PY36), 3, 6),
+                (example.options.get(PY37), 3, 7),
+                (example.options.get(PY38), 3, 8),
+            ]:
+                if (
+                    opt in (True, False)
+                    and py_major_ver == maj_ver
+                    and py_minor_ver == min_ver
+                ):
+                    example.options[SKIP] = opt
 
 
 def run_test_file_with_config(filename, globs, optionflags):
