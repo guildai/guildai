@@ -421,9 +421,9 @@ When Guild imports flags for a module that imports `argparse`, it runs
 the module with `--help`. In this case, any missing modules generate
 an error.
 
-For Python 2:
+For Python 2 and 3.5:
 
-    >>> help_op("import_error_args.py")  # doctest: -PY3
+    >>> help_op("import_error_args.py")  # doctest: -PY3 +PY35
     WARNING: cannot import flags from ./import_error_args.py: ImportError:
     No module named xxx_not_a_valid_module (run with guild --debug for details)
     Usage: guild run [OPTIONS] import_error_args.py [FLAG]...
@@ -433,7 +433,7 @@ For Python 2:
 For Python 3 (not including 3.5):
 
     >>> help_op("import_error_args.py")  # doctest: -PY2 -PY35
-    WARNING: cannot import flags from ./import_error_args.py: ModuleNotFoundError:
+    WARNING: cannot import flags from ./import_error_args.py: ...Error:
     No module named 'xxx_not_a_valid_module' (run with guild --debug for details)
     Usage: guild run [OPTIONS] import_error_args.py [FLAG]...
     <BLANKLINE>
@@ -447,9 +447,9 @@ don't want to flood the output with the applicable traceback.
 We can get the traceback by running with the debug option. We use
 `LOG_LEVEL=10` env var in this case.
 
-For Python 2:
+For Python 2 and 3.5:
 
-    >>> help_op("import_error_args.py", debug=True)  # doctest: -PY3
+    >>> help_op("import_error_args.py", debug=True)  # doctest: -PY3 +PY35
     ???
     WARNING: cannot import flags from ./import_error_args.py: ImportError:
     No module named xxx_not_a_valid_module

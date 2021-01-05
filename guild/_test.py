@@ -321,7 +321,7 @@ class TestRunner(doctest.DocTestRunner, object):
                     and py_major_ver == maj_ver
                     and py_minor_ver == min_ver
                 ):
-                    example.options[SKIP] = opt
+                    example.options[SKIP] = not opt
 
 
 def run_test_file_with_config(filename, globs, optionflags):
