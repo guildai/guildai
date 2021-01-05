@@ -15,6 +15,7 @@ Test source code:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -70,6 +71,7 @@ Test source code:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -127,6 +129,7 @@ Test source code:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -204,6 +207,7 @@ Test source code:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -261,6 +265,7 @@ Test source code:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -314,6 +319,7 @@ The alternative version selects only the root guild.yml:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -346,6 +352,7 @@ Test source code:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -421,6 +428,7 @@ Test source code:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -479,6 +487,7 @@ Test source code:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -529,6 +538,7 @@ Test source code:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
@@ -584,6 +594,7 @@ Test source code:
       exclude dir '.*'
       exclude dir '*' with '.guild-nocopy'
       exclude dir '*' with 'bin/activate'
+      exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
