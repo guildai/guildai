@@ -1,3 +1,4 @@
+ipython
 jupyter
 jupyter_contrib_nbextensions
 pandas<1.2
