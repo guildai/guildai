@@ -933,6 +933,7 @@ def _run(
 ):
     cmd = _run_shell_cmd(cmd)
     env = dict(os.environ)
+    env["SYNC_RUN_OUTPUT"] = "1"
     if guild_home:
         env["GUILD_HOME"] = guild_home
     p = _popen(cmd, env, cwd)
