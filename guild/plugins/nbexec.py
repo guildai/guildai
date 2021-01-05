@@ -127,7 +127,7 @@ def _check_nbextensions():
 
 
 def _nbexec(notebook):
-    notebook_relpath = os.path.relpath(notebook)
+    notebook_relpath = _relpath(notebook)
     cmd = [
         "jupyter-nbconvert",
         "-y",
@@ -144,6 +144,10 @@ def _nbexec(notebook):
     returncode = subprocess.call(cmd)
     if returncode != 0:
         sys.exit(returncode)
+
+
+def _relpath(path):
+    return os.path.relpath(os.path.realpath(path))
 
 
 def _init_run_notebook(notebook, flags, run):
@@ -445,7 +449,7 @@ def _iter_notebook_images(notebook):
 
 
 def _nbconvert_html(notebook):
-    notebook_relpath = os.path.relpath(notebook)
+    notebook_relpath = _relpath(notebook)
     cmd = [
         "jupyter-nbconvert",
         "-y",
