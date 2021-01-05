@@ -354,7 +354,6 @@ def _git_current_commit(git_repo):
     if not os.path.exists(git_repo):
         return None
     cmd = [_git_cmd(), "--work-tree", git_repo, "log", "-1", "--format=%H"]
-    null = open(os.devnull, "w")
     try:
         out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
