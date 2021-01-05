@@ -425,7 +425,7 @@ For Python 2 and 3.5:
 
     >>> help_op("import_error_args.py")  # doctest: -PY3 +PY35
     WARNING: cannot import flags from ./import_error_args.py: ImportError:
-    No module named xxx_not_a_valid_module (run with guild --debug for details)
+    No module named ...xxx_not_a_valid_module... (run with guild --debug for details)
     Usage: guild run [OPTIONS] import_error_args.py [FLAG]...
     <BLANKLINE>
     Use 'guild run --help' for a list of options.
@@ -433,7 +433,7 @@ For Python 2 and 3.5:
 For Python 3 (not including 3.5):
 
     >>> help_op("import_error_args.py")  # doctest: -PY2 -PY35
-    WARNING: cannot import flags from ./import_error_args.py: ...Error:
+    WARNING: cannot import flags from ./import_error_args.py: ModuleNotFoundError:
     No module named 'xxx_not_a_valid_module' (run with guild --debug for details)
     Usage: guild run [OPTIONS] import_error_args.py [FLAG]...
     <BLANKLINE>
@@ -452,13 +452,13 @@ For Python 2 and 3.5:
     >>> help_op("import_error_args.py", debug=True)  # doctest: -PY3 +PY35
     ???
     WARNING: cannot import flags from ./import_error_args.py: ImportError:
-    No module named xxx_not_a_valid_module
+    No module named ...xxx_not_a_valid_module...
     ERROR: [import_flags_main] loading module from './import_error_args.py'
     Traceback (most recent call last):
       ...
       File "./import_error_args.py", line 2, in <module>
         import xxx_not_a_valid_module
-    ImportError: No module named xxx_not_a_valid_module
+    ImportError: No module named ...xxx_not_a_valid_module...
     ...
     Usage: guild run [OPTIONS] import_error_args.py [FLAG]...
     <BLANKLINE>
