@@ -1,4 +1,4 @@
 jupyter
 jupyter_contrib_nbextensions
-pandas
+pandas<1.2
 twine

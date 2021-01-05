@@ -86,7 +86,7 @@ Python 3.7:
     click_version:             7.1.2
     distutils_version:         ...
     numpy_version:             1.19.4
-    pandas_version:            1.2.0
+    pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.0
     skopt_version:             0.8.1
@@ -108,7 +108,7 @@ Python 3.8:
     click_version:             7.1.2
     distutils_version:         ...
     numpy_version:             1.19.4
-    pandas_version:            1.2.0
+    pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.0
     skopt_version:             0.8.1
