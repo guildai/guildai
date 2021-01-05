@@ -18,6 +18,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install wheel"
   - "%PYTHON%\\python.exe -m pip install twine"
   - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
+  - "%PYTHON%\\python.exe -m pip install -r guild\\tests\\requirements.txt"
   - "%PYTHON%\\python.exe -m pip install pandas"
 
 build: off
