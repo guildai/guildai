@@ -547,7 +547,9 @@ def _encode_flags_with_help(vals, opdef):
         flag_help = _format_flag_help(opdef.get_flagdef(name))
         if prev_help or flag_help and lines:
             lines.append("")
-        lines.append("%s: %s" % (yaml_util.encode_yaml(name), util.encode_yaml(val)))
+        lines.append(
+            "%s: %s" % (yaml_util.encode_yaml(name), yaml_util.encode_yaml(val))
+        )
         if flag_help:
             lines.extend(["  # %s" % line for line in flag_help.split("\n")])
         prev_help = flag_help
