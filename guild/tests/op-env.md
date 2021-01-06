@@ -176,3 +176,45 @@ The environment is saved in the `env` run attribute.
     FLAG_S: hello
     FOO: 1
     PYTHONPATH: hello:<pathsep>...
+
+## Secrets
+
+Guild attempts to avoid saving secets to the `env` attribute as well as logging.
+
+Let's run `test` with some environment variables that Guild deems
+"secret". We run with debug to have Guild log the command env. The
+output should not contain secrets.
+
+    >>> secrets = {
+    ...   "ACCESS_TOKEN": "access-token-123",
+    ...   "SECRET_KEY": "secret-key-45678",
+    ...   "MY_PASSWORD": "my-password-abcde"
+    ... }
+
+    >>> with Env(secrets, replace=True):
+    ...     run, out = project.run_capture("test", debug=True)
+
+Confirm that the run env does not contain secrets.
+
+    >>> env = run.get("env")
+    >>> for name in sorted(secrets):
+    ...     assert name not in env, (name, env)
+    ...     print("%s not in env" % name)
+    ACCESS_TOKEN not in env
+    MY_PASSWORD not in env
+    SECRET_KEY not in env
+
+Config that the run output, which contain debug statements of the
+command env, does not contain secrets.
+
+    >>> print(out)
+    ???
+        DEBUG: [guild] operation env: ...
+    ...
+
+    >>> for secret in sorted(secrets.values()):
+    ...     assert secret not in out, (secret, out)
+    ...     print("%s not in output" % secret)
+    access-token-123 not in output
+    my-password-abcde not in output
+    secret-key-45678 not in output

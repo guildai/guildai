@@ -202,10 +202,10 @@ def _op_start_proc(op, run, quiet, extra_env):
     env = _op_proc_env(op, run)
     if extra_env:
         env.update(extra_env)
-    run.write_attr("env", _remove_private_env(env, op))
+    run.write_attr("env", _safe_env(env, op))
     log.debug("starting run %s in %s", run.id, run.dir)
     log.debug("operation command: %s", op.cmd_args)
-    log.debug("operation env: %s", env)
+    log.debug("operation env: %s", _hide_secret_env(env))
     stdout, stderr = _proc_streams(quiet)
     try:
         proc = subprocess.Popen(
@@ -222,8 +222,44 @@ def _op_start_proc(op, run, quiet, extra_env):
         return proc
 
 
+def _safe_env(env, op):
+    return _remove_secrets(_remove_private_env(env, op))
+
+
 def _remove_private_env(env, op):
-    return {name: val for name, val in env.items() if name not in op.private_env}
+    return {name: env[name] for name in env if name not in op.private_env}
+
+
+def _remove_secrets(env):
+    def is_secret_env(name):
+        is_secret = _is_secret_env(name)
+        if is_secret:
+            log.debug("found op env secret %r - will be removed", name)
+        return is_secret
+
+    return {name: env[name] for name in env if not is_secret_env(name)}
+
+
+def _is_secret_env(name):
+    """Returns True if name might be a secret.
+
+    Uses a simple heuristic to test for a secret name.
+    """
+    name_lower = name.lower()
+    secret_parts = ("password", "token", "secret")
+    return any(part in name_lower for part in secret_parts)
+
+
+def _hide_secret_env(env):
+    return {
+        name: _maybe_hide_secret(name, env) for name in env
+    }
+
+
+def _maybe_hide_secret(name, env):
+    if _is_secret_env(name):
+        return "***"
+    return env[name]
 
 
 def _proc_streams(quiet):
