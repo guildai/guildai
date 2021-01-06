@@ -382,9 +382,14 @@ def completion_safe_apply(ctx, f, args):
 
 
 def patch_click():
-    from click import _bashcomplete
+    try:
+        from click import _bashcomplete
+    except ImportError:
+        from click import shell_completion
 
-    _bashcomplete.is_incomplete_option = _patched_is_incomplete_option
+        shell_completion._is_incomplete_option = _patched_is_incomplete_option
+    else:
+        _bashcomplete.is_incomplete_option = _patched_is_incomplete_option
 
 
 def _patched_is_incomplete_option(all_args, cmd_param):
