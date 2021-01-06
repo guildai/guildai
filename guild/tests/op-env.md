@@ -191,7 +191,7 @@ output should not contain secrets.
     ...   "MY_PASSWORD": "my-password-abcde"
     ... }
 
-    >>> with Env(secrets, replace=True):
+    >>> with Env(secrets):
     ...     run, out = project.run_capture("test", debug=True)
 
 Confirm that the run env does not contain secrets.

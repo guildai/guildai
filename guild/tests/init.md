@@ -32,7 +32,8 @@ Here's a helper function to generate a Config object.
     ...     tensorflow=None,
     ...     skip_tensorflow=False,
     ...     isolate_resources=False,
-    ...     no_progress=False)
+    ...     no_progress=False,
+    ...     pre_release=False)
     ...   arg_kw.update(kw)
     ...   args = click_util.Args(**arg_kw)
     ...   with configlib.SetCwd(project_dir):
