@@ -18,14 +18,13 @@ from __future__ import division
 import logging
 import logging.config
 import os
-import re
 import sys
+
+from guild import ansi_util  # lightweight
 
 __last_init_kw = None
 
 _isatty = sys.stderr.isatty()
-
-_ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
 NOISY_LOGGERS = (
     "chardet",
@@ -68,7 +67,7 @@ class Formatter(logging.Formatter):
     def _maybe_strip_ansi(s):
         if _isatty:
             return s
-        return _ansi_p.sub("", s)
+        return ansi_util.strip_ansi_format(s)
 
 
 class ConsoleLogHandler(logging.StreamHandler):

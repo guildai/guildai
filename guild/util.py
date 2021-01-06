@@ -32,6 +32,8 @@ import threading
 
 import six
 
+from guild import ansi_util  # lightweight
+
 # Avoid expensive imports.
 
 log = logging.getLogger("guild")
@@ -475,7 +477,7 @@ class LogCapture(object):
     def _format_record(self, r):
         msg = self._handler().format(r)
         if self._strip_ansi_format:
-            msg = strip_ansi_format(msg)
+            msg = ansi_util.strip_ansi_format(msg)
         return msg
 
     def print_all(self):
@@ -492,10 +494,6 @@ class LogCapture(object):
 
     def get_all(self):
         return self._records
-
-
-def strip_ansi_format(s):
-    return re.sub(r"\033\[[0-9]+m", "", s)
 
 
 def format_timestamp(ts, fmt=None):

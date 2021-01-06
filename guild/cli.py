@@ -23,7 +23,8 @@ import sys
 import click
 import six
 
-from guild import config
+from guild import ansi_util  # lightweight
+from guild import config  # lightweight
 
 log = logging.getLogger("guild")
 
@@ -206,8 +207,10 @@ def _table_item_out(
         val = formatted_item[col]
         last_col = i == len(cols) - 1
         val = _pad_col_val(val, col, col_info) if not last_col else val
-        line_pos = line_pos + len(val)
+        val_display_len = len(ansi_util.strip_ansi_format(val))
+        line_pos = line_pos + val_display_len
         if line_pos > max_col_width:
+            print("#####", val, val[: -(line_pos - max_col_width)])
             click.echo(
                 style(val[: -(line_pos - max_col_width)], **style_kw),
                 file=file,

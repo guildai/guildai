@@ -18,9 +18,9 @@ import textwrap
 
 import click
 
+from guild import ansi_util
 from guild import click_util
 from guild import flag_util
-from guild import util
 
 log = logging.getLogger("guild")
 
@@ -184,7 +184,7 @@ def guildfile_console_help(guildfile, model_desc=None, strip_ansi_format=False):
     _gen_write_help(guildfile, out, fmt_section_title=str.upper)
     s = "".join(out.buffer)
     if strip_ansi_format:
-        s = util.strip_ansi_format(s)
+        s = ansi_util.strip_ansi_format(s)
     return s
 
 

@@ -29,6 +29,7 @@
     guild._lex
     guild._test
     guild._yacc
+    guild.ansi_util
     guild.batch_main
     guild.batch_util
     guild.cli

@@ -200,8 +200,8 @@ Guild supports console help rendering via `guildfile_console_help`.
 
 We strip ansi formatting for test output.
 
-    >>> from guild import util
-    >>> print(util.strip_ansi_format(console_help))  # doctest: +REPORT_UDIFF -NORMALIZE_WHITESPACE
+    >>> from guild.ansi_util import strip_ansi_format
+    >>> print(strip_ansi_format(console_help))  # doctest: +REPORT_UDIFF -NORMALIZE_WHITESPACE
     OVERVIEW
     <BLANKLINE>
         You are viewing help for operations defined in...
