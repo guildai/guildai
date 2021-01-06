@@ -66,8 +66,8 @@ clean:
 UAT_PYTHON = python3
 
 uat:
-	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(guild-uat) -y
-	@. $(guild-uat)/bin/activate && WORKSPACE=$(guild-uat) EXAMPLES=examples $(guild) check --uat --notify
+	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(guild-uat) --pre -y
+	@. $(guild-uat)/bin/activate && WORKSPACE=$(guild-uat) EXAMPLES=examples TEST_DEPS_OPTS='--pre' $(guild) check --uat --notify
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
 
 clean-uat:

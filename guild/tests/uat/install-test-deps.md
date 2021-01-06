@@ -4,7 +4,7 @@ Tests require additional packages that are not included in the Guild
 distribution or requirements.txt. They are defined in
 requirements-test.txt.
 
-    >>> quiet("pip install -r $GUILD_PKGDIR/guild/tests/requirements.txt")
+    >>> quiet("pip install $TEST_DEPS_OPTS -r  $GUILD_PKGDIR/guild/tests/requirements.txt")
 
 Run Guild check with verbose to show various module versions. We need
 different tests for different versions of Python.
@@ -61,7 +61,7 @@ Python 3.6:
     tensorboard_version:       2.4.0
     cuda_version:              ...
     nvidia_smi_version:        ...
-    click_version:             7.1.2
+    click_version:             8.0.0a1
     distutils_version:         ...
     numpy_version:             1.19.5
     pandas_version:            1.1.5
@@ -83,7 +83,7 @@ Python 3.7:
     tensorboard_version:       2.4.0
     cuda_version:              ...
     nvidia_smi_version:        ...
-    click_version:             7.1.2
+    click_version:             8.0.0a1
     distutils_version:         ...
     numpy_version:             1.19.5
     pandas_version:            1.1.5
@@ -105,7 +105,7 @@ Python 3.8:
     tensorboard_version:       2.4.0
     cuda_version:              ...
     nvidia_smi_version:        ...
-    click_version:             7.1.2
+    click_version:             8.0.0a1
     distutils_version:         ...
     numpy_version:             1.19.5
     pandas_version:            1.1.5
