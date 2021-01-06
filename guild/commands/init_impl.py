@@ -53,6 +53,7 @@ class Config(object):
         self.paths = args.path
         self.system_site_packages = args.system_site_packages
         self.isolate_resources = args.isolate_resources
+        self.pre_release = args.pre_release
         self.prompt_params = self._init_prompt_params()
         self.no_progress = args.no_progress
 
@@ -120,6 +121,8 @@ class Config(object):
             params.append(("Guild package requirements", self.guild_pkg_reqs))
         if self.user_reqs:
             params.append(("Python requirements", self.user_reqs))
+        if self.pre_release:
+            params.append(("Use pre-release", "yes"))
         if self.paths:
             params.append(("Additional paths", self.paths))
         if self.isolate_resources:
@@ -412,18 +415,20 @@ def _pip_bin_args(env_dir):
     return [python_bin, "-m", "pip"]
 
 
-def _pip_extra_opts(config):
+def _pip_extra_install_opts(config):
+    opts = []
     if config.no_progress:
-        return ["--progress", "off"]
-    else:
-        return []
+        opts.extend(["--progress", "off"])
+    if config.pre_release:
+        opts.append("--pre")
+    return opts
 
 
 def _install_reqs(reqs, config, ignore_installed=False):
     cmd_args = (
         _pip_bin_args(config.env_dir)
         + ["install", "--no-warn-script-location"]
-        + _pip_extra_opts(config)
+        + _pip_extra_install_opts(config)
     )
     if ignore_installed:
         cmd_args.append("--ignore-installed")

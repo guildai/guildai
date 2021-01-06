@@ -151,6 +151,11 @@ def _ac_path(**_kw):
     is_flag=True,
     help="Don't show progress when installing environment packages.",
 )
+@click.option(
+    "--pre", "pre_release",
+    is_flag=True,
+    help="Install pre-release versions of applicable packages.",
+)
 @click_util.use_args
 def init(args):
     """Initialize a Guild environment.
