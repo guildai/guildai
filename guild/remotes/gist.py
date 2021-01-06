@@ -94,7 +94,9 @@ class GistRemote(meta_sync.MetaSyncRemote):
         self.gist_name = config["gist-name"]
         self._gist_readme_name = _gist_readme_name(self.gist_name)
         self.local_env = remote_util.init_env(config.get("local-env"))
-        self.local_sync_dir = meta_sync.local_meta_dir(name, "")
+        self.local_sync_dir = meta_sync.local_meta_dir(
+            _remote_full_name(self.user, self.gist_name), ""
+        )
         self._local_gist_repo = os.path.join(self.local_sync_dir, "gist")
         runs_dir = os.path.join(self.local_sync_dir, "runs")
         super(GistRemote, self).__init__(runs_dir, None)
@@ -236,6 +238,10 @@ class GistRemote(meta_sync.MetaSyncRemote):
         # archives. At this point we need only extract the run
         # archives to the runs dir.
         _extract_runs(runs, self._local_gist_repo, var.runs_dir(), self.name)
+
+
+def _remote_full_name(user, gist_name):
+    return "%s-%s" % (user, gist_name)
 
 
 def _gist_readme_name(gist_name):
