@@ -210,7 +210,6 @@ def _table_item_out(
         val_display_len = len(ansi_util.strip_ansi_format(val))
         line_pos = line_pos + val_display_len
         if line_pos > max_col_width:
-            print("#####", val, val[: -(line_pos - max_col_width)])
             click.echo(
                 style(val[: -(line_pos - max_col_width)], **style_kw),
                 file=file,
