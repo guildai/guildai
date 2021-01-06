@@ -286,10 +286,10 @@ def _github_auth_headers(env):
 
 def _sync_gist_repo(gist, local_repo, env):
     repo_url = _gist_repo_url(gist)
-    if not os.path.exists(local_repo):
-        _clone_gist_repo(repo_url, local_repo, env)
-    else:
+    if _is_git_repo(local_repo):
         _pull_gist_repo(local_repo, env)
+    else:
+        _clone_gist_repo(repo_url, local_repo, env)
 
 
 def _gist_repo_url(gist):
@@ -364,7 +364,7 @@ def _git_current_commit(git_repo):
         out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         if e.returncode == 128:  # not a valid git repo - ignore
-            return ""
+            return None
         raise
     else:
         return out.decode("utf-8").strip()
