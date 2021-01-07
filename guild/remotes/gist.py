@@ -298,9 +298,9 @@ def _gist_repo_url(gist):
 
 
 def _clone_gist_repo(repo_url, local_repo, env):
-    cmd = [_git_cmd(), "clone", repo_url, local_repo]
-    log.debug("git cmd: %s", cmd)
-    remote_util.subprocess_call(cmd, extra_env=env, quiet=True)
+    cmd = [_git_cmd(), "clone", "--quiet", repo_url, local_repo]
+    log.debug("cloning %s to %s", repo_url, local_repo)
+    _subprocess_tty(cmd, extra_env=env)
 
 
 def _git_cmd():
@@ -315,9 +315,9 @@ def _git_cmd():
 
 
 def _pull_gist_repo(local_repo, env):
-    cmd = [_git_cmd(), "-C", local_repo, "pull", "--rebase"]
-    log.debug("git cmd: %s", cmd)
-    remote_util.subprocess_call(cmd, extra_env=env, quiet=True)
+    cmd = [_git_cmd(), "-C", local_repo, "pull", "--quiet", "--rebase"]
+    log.debug("pulling for %s", local_repo)
+    _subprocess_tty(cmd, extra_env=env)
 
 
 def _refresh_runs_meta(gist_repo, runs_dir, meta_id, local_sync_dir):
@@ -502,32 +502,30 @@ def _commit_and_push_gist_repo_for_push(repo, commit_msg, env, remote_name):
         _git_push(repo, env)
 
 
-def _git_add_all(repo, env, update=False):
-    cmd = [_git_cmd(), "-C", repo, "add", "."]
+def _git_add_all(local_repo, env, update=False):
+    cmd = [_git_cmd(), "-C", local_repo, "add", "."]
     if update:
         cmd.append("-u")
-    log.debug("git cmd: %s", cmd)
-    remote_util.subprocess_call(cmd, extra_env=env, quiet=True)
+    log.debug("adding files for %s", local_repo)
+    _subprocess_quiet(cmd, extra_env=env)
 
 
 class _NoChanges(Exception):
     pass
 
 
-def _git_commit(repo, msg, env):
-    cmd = [_git_cmd(), "-C", repo, "commit", "-m", msg]
-    log.debug("git cmd: %s", cmd)
-    result = remote_util.subprocess_call(
-        cmd, extra_env=env, quiet=True, allowed_returncodes=(0, 1)
-    )
+def _git_commit(local_repo, msg, env):
+    cmd = [_git_cmd(), "-C", local_repo, "commit", "-m", msg]
+    log.debug("commiting for %s", local_repo)
+    result = _subprocess_quiet(cmd, extra_env=env, allowed_returncodes=(0, 1))
     if result == 1:
         raise _NoChanges()
 
 
-def _git_push(repo, env):
-    cmd = [_git_cmd(), "-C", repo, "push"]
-    log.debug("git cmd: %s", cmd)
-    remote_util.subprocess_call(cmd, extra_env=env, quiet=True)
+def _git_push(local_repo, env):
+    cmd = [_git_cmd(), "-C", local_repo, "push", "--quiet"]
+    log.debug("pushing for %s", local_repo)
+    _subprocess_tty(cmd, extra_env=env)
 
 
 def _delete_gist(gist, env):
@@ -587,4 +585,26 @@ def _delete_commit_msg():
         util.user(),
         util.hostname(),
         guild.version(),
+    )
+
+
+def _subprocess_tty(cmd, extra_env, allowed_returncodes=(0,)):
+    env = dict(os.environ)
+    if extra_env:
+        env.update(extra_env)
+    log.debug("%r", cmd)
+    p = subprocess.Popen(cmd, env=env)
+    p.wait()
+    if p.returncode not in allowed_returncodes:
+        log.debug("exit code for %r is %i", cmd, p.returncode)
+        raise SystemExit("error running %s - see above for details" % cmd[0])
+
+
+def _subprocess_quiet(cmd, extra_env, allowed_returncodes=(0,)):
+    log.debug("%r", cmd)
+    return remote_util.subprocess_call(
+        cmd,
+        extra_env=extra_env,
+        quiet=True,
+        allowed_returncodes=allowed_returncodes,
     )

@@ -38,7 +38,7 @@ Create the gist.
 
 List remote runs.
 
-    >>> run("guild runs -r guild-uat-gist")
+    >>> run("guild runs -r guild-uat-gist", ignore="Permanently added")
     Refreshing run info for guild-uat-gist
     <exit 0>
 
@@ -92,7 +92,7 @@ List local runs.
 
 Push runs to remote gist.
 
-    >>> run("guild push guild-uat-gist -y")
+    >>> run("guild push guild-uat-gist -y", ignore="Permanently added")
     Refreshing run info for guild-uat-gist
     Compressing ...
     Compressing ...
@@ -234,7 +234,7 @@ Verify that the remote runs exist.
 
 Permanently delete the remote hello runs.
 
-    >>> run("guild runs rm -Fo hello -p -y -r guild-uat-gist")
+    >>> run("guild runs rm -Fo hello -p -y -r guild-uat-gist", ignore="Permanently added")
     Refreshing run info for guild-uat-gist
     Deleting ...
     Deleting ...
