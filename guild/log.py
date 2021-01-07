@@ -25,6 +25,7 @@ from guild import ansi_util  # lightweight
 __last_init_kw = None
 
 _isatty = sys.stderr.isatty()
+_shell = os.getenv("SHELL")
 
 NOISY_LOGGERS = (
     "chardet",
@@ -147,9 +148,6 @@ def current_settings():
 
 
 def dim(text):
-    import io
-    import click
-
-    f = io.StringIO()
-    click.echo(click.style(text, dim=True), file=f, nl=False)
-    return f.getvalue()
+    if not _shell:
+        return text
+    return "\x1b[2m%s\x1b[0m" % text
