@@ -147,4 +147,9 @@ def current_settings():
 
 
 def dim(text):
-    return "\x1b[2m%s\x1b[0m" % text
+    import io
+    import click
+
+    f = io.StringIO()
+    click.echo(click.style(text, dim=True), file=f, nl=False)
+    return f.getvalue()
