@@ -80,5 +80,5 @@ def system_exit_params(e):
     elif isinstance(e.code, int):
         msg, code = None, e.code
     else:
-        msg, code = e.message, exit_code.DEFAULT_ERROR
+        msg, code = e.code, exit_code.DEFAULT_ERROR
     return msg, code
