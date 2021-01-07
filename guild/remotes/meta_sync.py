@@ -212,6 +212,7 @@ def clear_local_meta_id(local_sync_dir):
 
 
 def write_local_meta_id(meta_id, local_sync_dir):
+    assert meta_id is not None, "meta_id cannot be None"
     id_path = os.path.join(local_sync_dir, "meta-id")
     with open(id_path, "w") as f:
         f.write(meta_id)
