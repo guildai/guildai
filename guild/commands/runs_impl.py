@@ -114,7 +114,11 @@ FILTERABLE = [
     ("terminated", "status_terminated"),
 ]
 
-STYLE_TABLE_WIDTH_ADJ = 8
+if not os.getenv("SHELL"):
+    # Windows command prompt wants a space buffer to avoid wrapping.
+    STYLE_TABLE_WIDTH_ADJ = -1
+else:
+    STYLE_TABLE_WIDTH_ADJ = 0
 
 
 def runs_for_args(args, ctx=None):

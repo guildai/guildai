@@ -23,6 +23,7 @@ import sys
 import click
 import six
 
+from guild import ansi_util  # lightweight
 from guild import config  # lightweight
 
 log = logging.getLogger("guild")
@@ -97,7 +98,10 @@ def table(
     data = sorted(data, key=_table_row_sort_key(sort))
     formatted = _format_table_data(data, cols + (detail or []))
     col_info = _col_info(formatted, cols)
-    max_width = _max_width() + max_width_adj
+    if sys.stdout.isatty():
+        max_width = _max_width() + max_width_adj
+    else:
+        max_width = None
     for formatted_item, data_item in zip(formatted, data):
         _table_item_out(
             formatted_item,
@@ -207,11 +211,15 @@ def _table_item_out(
         val = formatted_item[col]
         last_col = i == len(cols) - 1
         val = _pad_col_val(val, col, col_info) if not last_col else val
-        val_display_len = len(val)
+        val_display_len = len(ansi_util.strip_ansi_format(val))
         line_pos = line_pos + val_display_len
-        if line_pos > max_col_width:
+        if max_col_width is not None:
+            display_val = val[: -(line_pos - max_col_width)]
+        else:
+            display_val = val
+        if max_col_width is not None and line_pos > max_col_width:
             click.echo(
-                style(val[: -(line_pos - max_col_width)], **style_kw),
+                style(display_val, **style_kw),
                 file=file,
                 nl=False,
                 err=err,
