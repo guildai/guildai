@@ -62,11 +62,11 @@ Let's reinit with debug enabled:
 ## Color
 
 If a TTY is available and the SHELL environment variable is defined,
-output is colored. Warning are displayed in yellow (color code 33) and
-errors in red (color code 31).
+output is colored. Warnings are displayed in yellow (color code 33)
+and errors in red (color code 31).
 
     >>> with guild.log._FakeTTY():
-    ...   with Env({"SHELL": "xxx"}):
+    ...   with guild.log._FakeShell():
     ...      with LogCapture(use_root_handler=True, strip_ansi_format=False) as tty_logs:
     ...          log_sample_messages()
     ...      tty_logs.print_all() # doctest: -STRIP_ANSI_FMT

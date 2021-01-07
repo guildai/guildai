@@ -47,6 +47,19 @@ class _FakeTTY(object):
         globals()["_isatty"] = self._saved
 
 
+class _FakeShell(object):
+    """Context manager for defining _shell as 'fake' - used for tests."""
+
+    _saved = None
+
+    def __enter__(self):
+        self._saved = _shell
+        globals()["_shell"] = "fake"
+
+    def __exit__(self, *_exc):
+        globals()["_shell"] = self._saved
+
+
 class Formatter(logging.Formatter):
     def format(self, record):
         return self._maybe_strip_ansi(
