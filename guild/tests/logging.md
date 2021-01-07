@@ -61,13 +61,15 @@ Let's reinit with debug enabled:
 
 ## Color
 
-If a TTY is available, output is colored. Warning are displayed in
-yellow (color code 33) and errors in red (color code 31).
+If a TTY is available and the SHELL environment variable is defined,
+output is colored. Warning are displayed in yellow (color code 33) and
+errors in red (color code 31).
 
     >>> with guild.log._FakeTTY():
-    ...   with LogCapture(use_root_handler=True, strip_ansi_format=False) as tty_logs:
-    ...       log_sample_messages()
-    ...   tty_logs.print_all() # doctest: -STRIP_ANSI_FMT
+    ...   with Env({"SHELL": "xxx"}):
+    ...      with LogCapture(use_root_handler=True, strip_ansi_format=False) as tty_logs:
+    ...          log_sample_messages()
+    ...      tty_logs.print_all() # doctest: -STRIP_ANSI_FMT
     DEBUG: [test] debug entry
     info entry
     [33mWARNING: warning entry[0m
