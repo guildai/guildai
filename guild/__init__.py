@@ -18,7 +18,7 @@ from __future__ import division
 import os
 import subprocess
 
-__version__ = "0.7.2.dev2"
+__version__ = "0.7.2.rc1"
 
 __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 
