@@ -29,6 +29,7 @@ log = logging.getLogger("guild")
 
 TABLE_COL_SPACING = 2
 
+_shell = os.getenv("SHELL")
 
 def _max_width():
     try:
@@ -268,4 +269,6 @@ def page(text):
 
 
 def style(text, **kw):
+    if not _shell:
+        return text
     return click.style(text, **kw)

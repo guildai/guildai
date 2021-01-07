@@ -55,7 +55,7 @@ class Formatter(logging.Formatter):
 
     @staticmethod
     def _color(s, level):
-        if not _isatty:
+        if not _isatty or not _shell:
             return s
         if level >= logging.ERROR:
             return "\033[31m%s\033[0m" % s
