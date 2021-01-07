@@ -241,7 +241,7 @@ class GistRemote(meta_sync.MetaSyncRemote):
 
 
 def _remote_full_name(user, gist_name):
-    return "%s-%s" % (user, gist_name)
+    return "gist-%s-%s" % (user, gist_name)
 
 
 def _gist_readme_name(gist_name):
