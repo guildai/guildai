@@ -23,7 +23,6 @@ import sys
 import click
 import six
 
-from guild import ansi_util  # lightweight
 from guild import config  # lightweight
 
 log = logging.getLogger("guild")
