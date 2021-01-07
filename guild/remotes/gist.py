@@ -357,17 +357,11 @@ def _is_git_repo(dir):
 
 
 def _git_current_commit(git_repo):
-    if not os.path.exists(git_repo):
+    if not _is_git_repo(git_repo):
         return None
-    cmd = [_git_cmd(), "--work-tree", git_repo, "log", "-1", "--format=%H"]
-    try:
-        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        if e.returncode == 128:  # not a valid git repo - ignore
-            return None
-        raise
-    else:
-        return out.decode("utf-8").strip()
+    cmd = [_git_cmd(), "-C", git_repo, "log", "-1", "--format=%H"]
+    out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+    return out.decode("utf-8").strip()
 
 
 def _extract_runs(runs, archive_dir, dest_dir, gist_name):
