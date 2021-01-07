@@ -251,9 +251,7 @@ def _is_secret_env(name):
 
 
 def _hide_secret_env(env):
-    return {
-        name: _maybe_hide_secret(name, env) for name in env
-    }
+    return {name: _maybe_hide_secret(name, env) for name in env}
 
 
 def _maybe_hide_secret(name, env):

@@ -152,7 +152,8 @@ def _ac_path(**_kw):
     help="Don't show progress when installing environment packages.",
 )
 @click.option(
-    "--pre", "pre_release",
+    "--pre",
+    "pre_release",
     is_flag=True,
     help="Install pre-release versions of applicable packages.",
 )
