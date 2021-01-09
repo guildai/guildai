@@ -1303,6 +1303,30 @@ def _apply_nested(name, val, nested):
     cur[parts[-1]] = val
 
 
+def encode_cfg(data):
+    import io
+    import configparser
+
+    cfg = configparser.ConfigParser()
+    io = io.StringIO()
+    for key, val in sorted(data.items()):
+        if isinstance(val, dict):
+            cfg.add_section(key)
+            for option, option_val in sorted(val.items()):
+                cfg.set(key, option, str(option_val))
+        else:
+            cfg.set("DEFAULT", key, str(val))
+    cfg.write(io)
+    return io.getvalue()
+
+
+def _split_cfg_key(key):
+    parts = key.split(".", 1)
+    if len(parts) == 2:
+        return parts
+    return "DEFAULT", parts[0]
+
+
 def short_digest(s):
     if not s:
         return ""

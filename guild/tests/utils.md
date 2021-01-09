@@ -648,3 +648,25 @@ with underscore.
 
     >>> safe_filename("hello/there\\friend")
     'hello_there_friend'
+
+## Encoding Cfg (configparser)
+
+    >>> from guild.util import encode_cfg
+
+    >>> print(encode_cfg({}))
+
+    >>> print(encode_cfg({"foo": 123}))
+    [DEFAULT]
+    foo = 123
+
+    >>> print(encode_cfg({"foo": {"bar": 1.123, "baz": "hello"}, "bam": True}))
+    [DEFAULT]
+    bam = True
+    <BLANKLINE>
+    [foo]
+    bar = 1.123
+    baz = hello
+
+    >>> print(encode_cfg({"foo.bar.baz": [1, 2, 3]}))
+    [DEFAULT]
+    foo.bar.baz = [1, 2, 3]
