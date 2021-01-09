@@ -450,7 +450,7 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
 
 
 def _apply_default_dep_runs(opdef, op_cmd, args, flag_vals):
-    """Applies default run IDs to flag_vals for dependencues."""
+    """Applies default run IDs to flag_vals for dependencies."""
     resolver_factory = _resolver_factory(args)
     for run, dep in op_dep.resolved_op_runs_for_opdef(
         opdef, flag_vals, resolver_factory
