@@ -241,6 +241,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         if (
             os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1"
             and os.getenv("FLAGS_TEST") != "1"
+            and not os.getenv("_GUILD_COMPLETE")
         ):
             cli.note_once("Refreshing flags...")
         try:
