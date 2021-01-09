@@ -64,6 +64,7 @@ Start staged upstream op.
     >>> run("guild run --start %s --yes" % upstream.id)
     Resolving file:file.txt dependency
     Skipping resolution of file:file.txt because it's already resolved
+    --
     <exit 0>
 
 Note that the file dependency is skipped because it was already
@@ -82,4 +83,5 @@ Start staged downstream op.
     >>> run("guild run --start %s --yes" % downstream.id)
     Resolving file dependency
     Using run ... for file resource
+    --
     <exit 0>
