@@ -23,6 +23,7 @@ import time
 
 from guild import config
 from guild import exit_code
+from guild import log as loglib
 from guild import op_dep
 from guild import op_util
 from guild import run as runlib
@@ -484,7 +485,7 @@ def _resolve_deps(op, run, for_stage=False, continue_on_error=False):
 
 
 def _apply_resolve_dep_sources(dep, resolve_context, run, for_stage, resolved):
-    log.info("Resolving %s dependency", dep.resdef.name)
+    log.info(loglib.dim("Resolving %s dependency"), dep.resdef.name)
     for source in dep.resdef.sources:
         if source.name in resolved:
             log.info(
