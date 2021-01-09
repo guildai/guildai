@@ -53,20 +53,24 @@ def _ac_flag(incomplete, ctx, **_kw):
         return _ac_batch_files()
 
     run_args = click_util.Args(**ctx.params)
+    _ensure_log_init()
     opdef = _ac_opdef(run_args.opspec)
     if not opdef:
         return []
 
     if "=" in incomplete:
-        return (
-            _ac_maybe_flag_choices(incomplete, opdef)
-            or click_util.completion_filename()
-        )
+        return _ac_flag_choices(incomplete, opdef)
 
     used_flags = _ac_used_flags(run_args.flags, opdef)
     unused_flags = sorted([f.name for f in opdef.flags if f.name not in used_flags])
     flags_ac = [f for f in unused_flags if f.startswith(incomplete)]
     return ["%s=" % f for f in flags_ac] + click_util.completion_nospace()
+
+
+def _ensure_log_init():
+    from guild import log
+
+    log.init_logging()
 
 
 def _ac_batch_files():
@@ -85,17 +89,29 @@ def _ac_opdef(opspec):
         return None
 
 
-def _ac_maybe_flag_choices(incomplete, opdef):
-    from guild import yaml_util
-
+def _ac_flag_choices(incomplete, opdef):
     flag_name, flag_val_incomplete = incomplete.split("=", 1)
     flagdef = opdef.get_flagdef(flag_name)
-    if flagdef and flagdef.choices:
-        choices_str = [yaml_util.encode_yaml(c.value) for c in flagdef.choices]
-        return sorted(
-            [val for val in choices_str if val.startswith(flag_val_incomplete)]
-        )
-    return []
+    if not flagdef or (not flagdef.choices and _maybe_filename_type(flagdef)):
+        return click_util.completion_filename()
+    choices = _flagdef_choices(flagdef)
+    return [val for val in choices if val.startswith(flag_val_incomplete)]
+
+
+def _maybe_filename_type(flagdef):
+    assert flagdef
+    return flagdef.type not in ("int", "float", "number", "boolean")
+
+
+def _flagdef_choices(flagdef):
+    if flagdef.choices:
+        from guild import yaml_util
+
+        return [yaml_util.encode_yaml(c.value) for c in flagdef.choices]
+    elif flagdef.type == "boolean":
+        return ["true", "false"]
+    else:
+        return []
 
 
 def _ac_used_flags(flag_args, opdef):

@@ -343,6 +343,7 @@ operations.
     !!no-colon-wordbreak
     echo
     fail
+    flags
     noisy
     noisy-flubber
     opt-test-1
@@ -400,16 +401,66 @@ identified.
     c
     d
 
+    >>> run_ac("flags", ["flags"], "c=")
+    123
+    1.123
+    hello
+    false
+
 Choices are limited as well.
 
     >>> run_ac("flags", ["echo"], "z=d")
     d
+
+    >>> run_ac("flags", ["flags"], "c=hel")
+    hello
+
+If flag type is not defined and choices aren't available, file path
+completion is used.
+
+    >>> run_ac("flags", ["flags"], "nt=")
+    !!file:*
+
+Flag type is otherwise used to provide possible completions.
+
+Types that don't support completion include int, float and number.
+
+    >>> run_ac("flags", ["flags"], "i=")
+    <empty>
+
+    >>> run_ac("flags", ["flags"], "f=")
+    <empty>
+
+    >>> run_ac("flags", ["flags"], "n=")
+    <empty>
+
+Boolean flags support 'yes' and 'no'.
+
+    >>> run_ac("flags", ["flags"], "b=")
+    true
+    false
+
+    >>> run_ac("flags", ["flags"], "b=t")
+    true
+
+String types including paths support file name completions.
+
+    >>> run_ac("flags", ["flags"], "s=")
+    !!file:*
+
+    >>> run_ac("flags", ["flags"], "p=")
+    !!file:*
+
+    >>> run_ac("flags", ["flags"], "ep=")
+    !!file:*
 
 If a flag starts with '@' it's considered a batch file. In this case
 completion is handled by the `!!batchfile` directive.
 
     >>> run_ac("flags", ["echo"], "@")
     !!batchfile:*.@(csv|yaml|yml|json)
+
+Flag type
 
 ## Completions `operations`
 
@@ -422,6 +473,7 @@ Default:
     >>> cmd_ac(operations.operations, "filters", [])
     echo
     fail
+    flags
     noisy
     noisy-flubber
     opt-test-1

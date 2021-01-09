@@ -68,6 +68,28 @@
         algorithm: gp
         noise: 0.1
 
+    flags:
+      main: guild.pass
+      flags:
+        i:
+          type: int
+        f:
+          type: float
+        n:
+          type: number
+        b:
+          type: boolean
+        s:
+          type: string
+        p:
+          type: path
+        ep:
+          type: existing-path
+        c:
+          choices: [123, 1.123, hello, no]
+        nt:
+          type: null
+
     poly:
       main: poly
       optimizers:
