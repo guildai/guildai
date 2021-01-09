@@ -39,6 +39,8 @@ from guild import util
 from guild import var
 from guild import yaml_util
 
+from . import flags_import_util
+
 IMPLICIT_ALL_FLAGS = object()
 
 
@@ -128,34 +130,15 @@ class PythonScriptModelProxy(object):
         return python_util.script_module(self.script_path, config.cwd())
 
     def _flags_data(self):
-        _log_flags_info("### Script flags for %s", os.path.normpath(self.script_path))
+        flags_import_util.log_flags_info(
+            "### Script flags for %s", os.path.normpath(self.script_path)
+        )
         plugin = pluginlib.for_name("python_script")
         return plugin._flags_data_for_path(self.script_path, "", ".")
 
     @staticmethod
     def _sourcecode():
         return None
-
-
-class ImportedFlagsOpDefProxy(object):
-    def __init__(self, flags_data, real_opdef, log):
-        self.guildfile = real_opdef.guildfile
-        self.flags = self._init_flags(flags_data, real_opdef.main, log)
-
-    def _init_flags(self, flags_data, main_mod, log):
-        flags = []
-        for name, flag_data in flags_data.items():
-            try:
-                flag_data = guildfile.coerce_flag_data(name, flag_data, self.guildfile)
-            except guildfile.GuildfileError as e:
-                if os.getenv("NO_WARN_FLAGS_IMPORT") != "1":
-                    log.warning("cannot import flags from %s: %s", main_mod, e)
-            else:
-                flags.append(guildfile.FlagDef(name, flag_data, self))
-        return flags
-
-    def flag_values(self):
-        return {f.name: f.default for f in self.flags}
 
 
 class PythonScriptPlugin(pluginlib.Plugin):
@@ -174,9 +157,10 @@ class PythonScriptPlugin(pluginlib.Plugin):
         for m in gf.models.values():
             for opdef in m.operations:
                 self._maybe_apply_main(opdef)
-                if opdef.main and not _is_other_guild_plugin(opdef.main):
-                    self._apply_script_flags(opdef, local_cache)
-                    self._notify_plugins_opdef_loaded(opdef)
+                if not opdef.main or _is_explicit_guild_plugin(opdef.main):
+                    continue
+                self._apply_script_flags(opdef, local_cache)
+                self._notify_plugins_python_script_opdef_loaded(opdef)
 
     @staticmethod
     def _maybe_apply_main(op):
@@ -184,37 +168,25 @@ class PythonScriptPlugin(pluginlib.Plugin):
             op.main = python_util.safe_module_name(op.name)
 
     def _apply_script_flags(self, opdef, local_cache):
-        _log_flags_info("### Script flags for %s", opdef.fullname)
-        if _flags_import_disabled(opdef):
-            _log_flags_info("flags import disabled - skipping")
-            return
-        import_all_marker = object()
-        to_import = _flags_to_import(opdef, import_all_marker)
-        to_skip = _flags_to_skip(opdef)
-        model_paths = op_util.opdef_model_paths(opdef)
-        flags_data = self._flags_data(opdef, model_paths, local_cache)
-        self._apply_flags_dest(flags_data, opdef)
-        import_data = {
-            name: flags_data[name]
-            for name in flags_data
-            if (
-                (to_import is import_all_marker or name in to_import)
-                and not name in to_skip
-            )
-        }
-        opdef.merge_flags(ImportedFlagsOpDefProxy(import_data, opdef, self.log))
+        flags_import_util.apply_flags(
+            opdef,
+            lambda: self._flags_data(opdef, local_cache),
+            lambda flags_data: self._apply_flags_dest(flags_data, opdef),
+        )
 
-    def _flags_data(self, opdef, model_paths, local_cache):
+    def _flags_data(self, opdef, local_cache):
         main_mod = op_util.split_cmd(opdef.main)[0]
         flags_dest = opdef.flags_dest
         try:
             flags_data = local_cache[(main_mod, flags_dest)]
         except KeyError:
-            _log_flags_info("reading flags for main spec %r", main_mod)
+            flags_import_util.log_flags_info("reading flags for main spec %r", main_mod)
+            model_paths = op_util.opdef_model_paths(opdef)
             flags_data = self._flags_data_(main_mod, model_paths, opdef.flags_dest)
         else:
-            local_cache[(main_mod, flags_dest)] = flags_data
-            _log_flags_info("using cached flags for main spec %r", main_mod)
+            flags_import_util.log_flags_info(
+                "using cached flags for main spec %r", main_mod
+            )
         return flags_data
 
     def _flags_data_(self, main_mod, model_paths, flags_dest):
@@ -310,10 +282,12 @@ class PythonScriptPlugin(pluginlib.Plugin):
         elif flags_dest.startswith("args:"):
             data = self._entry_point_args_flags_data(flags_dest, script)
         else:
-            self.log.warning("unsupported flags dest: %r", flags_dest)
+            self.log.debug(
+                "ingoring flags dest '%s' for Python script %s", flags_dest, script
+            )
             data = {}
         if flags_dest:
-            _log_flags_info(
+            flags_import_util.log_flags_info(
                 "%s flags imported for dest %r:\n%s",
                 (_script_desc, script),
                 flags_dest,
@@ -324,12 +298,12 @@ class PythonScriptPlugin(pluginlib.Plugin):
 
     def _script_flags_dest(self, script):
         if self._imports_argparse(script):
-            _log_flags_info(
+            flags_import_util.log_flags_info(
                 "%s imports argparse - assuming args", (_script_desc, script)
             )
             return "args"
         else:
-            _log_flags_info(
+            flags_import_util.log_flags_info(
                 "%s does not import argparse - assuming globals", (_script_desc, script)
             )
             return "globals"
@@ -380,40 +354,10 @@ class PythonScriptPlugin(pluginlib.Plugin):
     def _global_assigns_flags_data(self, script):
         params = script.params
         return {
-            str(name): self._global_assigns_flag_attrs(params[name])
+            str(name): flags_import_util.flag_data_for_val(params[name])
             for name in params
             if self._is_global_assign_flag(name)
         }
-
-    def _global_assigns_flag_attrs(self, val):
-        return {
-            "default": self._global_assigns_flag_val(val),
-            "type": self._global_assigns_flag_type(val),
-            "arg-split": self._global_assigns_arg_split(val),
-        }
-
-    @staticmethod
-    def _global_assigns_flag_val(val):
-        if isinstance(val, list):
-            return _encode_splittable_list(val)
-        return val
-
-    @staticmethod
-    def _global_assigns_flag_type(val):
-        if isinstance(val, six.string_types):
-            return "string"
-        elif isinstance(val, bool):
-            return "boolean"
-        elif isinstance(val, (int, float)):
-            return "number"
-        else:
-            return None
-
-    @staticmethod
-    def _global_assigns_arg_split(val):
-        if isinstance(val, list):
-            return True
-        return None
 
     @staticmethod
     def _is_global_assign_flag(name):
@@ -469,40 +413,19 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 opdef.flags_dest = flags_dest
 
     @staticmethod
-    def _notify_plugins_opdef_loaded(opdef):
+    def _notify_plugins_python_script_opdef_loaded(opdef):
         for _name, plugin in pluginlib.iter_plugins():
             if isinstance(plugin, PythonScriptOpdefSupport):
                 plugin.python_script_opdef_loaded(opdef)
 
 
-def _is_other_guild_plugin(main_spec):
+def _is_explicit_guild_plugin(main_spec):
+    """Returns true if main_spec specifies a Guild plugin.
+
+    Used to avoid performing implicit logic on top of another
+    plugin that's explicitly defined in main.
+    """
     return main_spec.rstrip().startswith("guild.plugins.")
-
-
-def _encode_splittable_list(l):
-    return " ".join([util.shlex_quote(yaml_util.encode_yaml(x)) for x in l])
-
-
-def _flags_import_disabled(opdef):
-    return opdef.flags_import in (False, [])
-
-
-def _flags_to_import(opdef, all_marker):
-    if opdef.flags_import in (True, "all"):
-        return all_marker
-    if opdef.flags_import is None:
-        # If flags-import is not configured, import all defined flags.
-        return set([flag.name for flag in opdef.flags])
-    elif isinstance(opdef.flags_import, list):
-        return set(opdef.flags_import)
-    else:
-        return set([opdef.flags_import])
-
-
-def _flags_to_skip(opdef):
-    if opdef.flags_import_skip:
-        return set(opdef.flags_import_skip)
-    return set()
 
 
 def _log_warnings(out, log):
@@ -513,18 +436,6 @@ def _log_warnings(out, log):
 
 def _script_desc(script):
     return os.path.relpath(script.src)
-
-
-def _log_flags_info(fmt, *args):
-    if os.getenv("FLAGS_TEST") == "1":
-        fmt_args = tuple([_fmt_arg(arg) for arg in args])
-        cli.note(fmt % fmt_args)
-
-
-def _fmt_arg(arg):
-    if isinstance(arg, tuple):
-        return arg[0](*arg[1:])
-    return arg
 
 
 def _assigns_flag_data_desc(data, indent=2):

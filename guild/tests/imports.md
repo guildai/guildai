@@ -171,6 +171,7 @@
     guild.plugins.cpu
     guild.plugins.disk
     guild.plugins.exec_script
+    guild.plugins.flags_import_util
     guild.plugins.gpu
     guild.plugins.hiplot
     guild.plugins.import_argparse_flags_main

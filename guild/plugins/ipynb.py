@@ -24,13 +24,13 @@ import re
 import six
 
 from guild import config as configlib
-from guild import flag_util
 from guild import guildfile
 from guild import model as modellib
 from guild import plugin as pluginlib
 from guild import python_util
 from guild import util
 
+from . import flags_import_util
 
 log = logging.getLogger("guild")
 
@@ -66,8 +66,9 @@ def _apply_notebook_flags(opdef, cache):
     notebook_path = _nbexec_notebook_path(opdef)
     if not notebook_path or not os.path.exists(notebook_path):
         return
-    flags_data = _flags_data_for_notebook(notebook_path, opdef, cache)
-    flag_util.apply_flags_data_to_op(flags_data, opdef)
+    flags_import_util.apply_flags(
+        opdef, lambda: _flags_data_for_notebook(notebook_path, opdef, cache)
+    )
 
 
 def _nbexec_notebook_path(opdef):
