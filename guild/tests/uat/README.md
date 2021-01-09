@@ -45,6 +45,7 @@ commands and helpfulness to the user for operations on missing models.
 
 - [guild-example-hello](guild-example-hello.md)
 - [guild-example-bash](guild-example-bash.md)
+- [guild-example-flags](guild-example-flags.md)
 
 ## Training Guild package models
 

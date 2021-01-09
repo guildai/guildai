@@ -32,6 +32,7 @@ tests).
       comments:                    ok
       compare:                     ok
       config:                      ok
+      config-flags:                ok
       copy-sourcecode:             ok
       copy-sourcecode-warnings:    ok
       cpu-plugin:                  ok

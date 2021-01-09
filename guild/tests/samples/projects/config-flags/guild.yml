@@ -1,0 +1,26 @@
+- include: subdir/guild-config.yml
+
+- operations:
+    $include: subdir-ops
+
+    yaml:
+      main: config_yaml flags.yml
+      flags-dest: config:flags.yml
+      flags-import: all
+
+    yaml-nested:
+      main: config_yaml nested.yml
+      flags-dest: config:nested.yml
+      flags-import: all
+
+    json:
+      main: config_json flags.json
+      flags-dest: config:flags.json
+      flags-import: all
+      flags-import-skip: [i]
+
+    cfg:
+      main: config_cfg flags.cfg
+      flags-dest: config:flags.cfg
+      flags-import: all
+      flags-import-skip: [f, s]

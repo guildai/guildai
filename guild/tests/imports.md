@@ -168,6 +168,7 @@
     guild.plugin
     guild.plugins.__init__
     guild.plugins.click_flags
+    guild.plugins.config_flags
     guild.plugins.cpu
     guild.plugins.disk
     guild.plugins.exec_script

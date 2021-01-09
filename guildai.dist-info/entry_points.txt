@@ -15,6 +15,7 @@ python_script = guild.plugins.python_script:PythonScriptPlugin
 ipynb = guild.plugins.ipynb:NotebookPlugin
 queue = guild.plugins.queue:QueuePlugin
 skopt = guild.plugins.skopt:SkoptPlugin
+config_flags = guild.plugins.config_flags:ConfigFlagsPlugin
 
 [guild.namespaces]
 

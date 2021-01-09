@@ -1,0 +1,10 @@
+i: 123
+f: 1.123
+s: Howdy Guild
+b: no
+l:
+  - 1
+  - 1.2
+  - blue
+  - yes
+d: {}

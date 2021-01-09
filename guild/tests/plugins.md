@@ -15,7 +15,8 @@ ensure we are only working with built-ins:
 Use `iter_plugins` to iterate through the list of available plugins:
 
     >>> sorted(guild.plugin.iter_plugins())
-    [('cpu', <guild.plugins.cpu.CPUPlugin ...>),
+    [('config_flags', <guild.plugins.config_flags.ConfigFlagsPlugin ...>),
+     ('cpu', <guild.plugins.cpu.CPUPlugin ...>),
      ('disk', <guild.plugins.disk.DiskPlugin ...>),
      ('exec_script', <guild.plugins.exec_script.ExecScriptPlugin ...>),
      ('gpu', <guild.plugins.gpu.GPUPlugin ...>),
@@ -24,17 +25,6 @@ Use `iter_plugins` to iterate through the list of available plugins:
      ('perf', <guild.plugins.perf.PerfPlugin ...>),
      ('python_script', <guild.plugins.python_script.PythonScriptPlugin ...>),
      ('skopt', <guild.plugins.skopt.SkoptPlugin ...>)]
-
-    [('cpu', <guild.plugins.cpu.CPUPlugin object at 0x7f1ffaf41210>),
-     ('disk', <guild.plugins.disk.DiskPlugin object at 0x7f1ffaf41150>),
-     ('exec_script', <guild.plugins.exec_script.ExecScriptPlugin object at 0x7f1f484ed850>),
-     ('gpu', <guild.plugins.gpu.GPUPlugin object at 0x7f1ffaf41750>),
-     ('keras', <guild.plugins.keras.KerasPlugin object at 0x7f1f484ede10>),
-     ('memory', <guild.plugins.memory.MemoryPlugin object at 0x7f1ffaf41290>),
-     ('perf', <guild.plugins.perf.PerfPlugin object at 0x7f1ffafd9f50>),
-     ('python_script', <guild.plugins.python_script.PythonScriptPlugin object at 0x7f1f484ed9d0>),
-     ('skopt', <guild.plugins.skopt.SkoptPlugin object at 0x7f1ffafd9ed0>)]
-
 
 ## Plugin instances
 

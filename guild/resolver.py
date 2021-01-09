@@ -17,6 +17,7 @@ from __future__ import division
 
 import hashlib
 import importlib
+import json
 import logging
 import os
 import re
@@ -362,7 +363,8 @@ class ConfigResolver(FileResolver):
 
     YAML_EXT = (".yml", ".yaml")
     JSON_EXT = (".json",)
-    ALL_EXT = YAML_EXT + JSON_EXT
+    CFG_EXT = (".cfg", ".ini")
+    ALL_EXT = YAML_EXT + JSON_EXT + CFG_EXT
 
     def resolve(self, resolve_context):
         if not resolve_context.run:
@@ -376,21 +378,54 @@ class ConfigResolver(FileResolver):
         except Exception as e:
             raise ResolutionError("error loading config from %s: %s" % (path, e))
         else:
+            log.debug("loaded config: %r", config)
             self._apply_params(config)
             self._apply_run_flags(config, resolve_context.run)
             target_path = self._init_target_path(path, resolve_context.run)
+            log.debug("resolved config: %r", config)
             self._write_config(config, target_path)
             return target_path
 
     def _load_config(self, path):
-        if not self._supported_config(path):
+        decoder = self._decoder_for_path(path)
+        if not decoder:
             raise ResolutionError("unsupported file type for '%s'" % path)
-        with open(path, "r") as f:
-            return yaml.safe_load(f)
+        return decoder(path)
 
     @classmethod
-    def _supported_config(cls, path):
-        return os.path.splitext(path)[1] in cls.ALL_EXT
+    def _decoder_for_path(cls, path):
+        ext = os.path.splitext(path)[1].lower()
+        if ext in cls.YAML_EXT:
+            return cls._yaml_load
+        elif ext in cls.JSON_EXT:
+            return cls._json_load
+        elif ext in cls.CFG_EXT:
+            return cls._cfg_load
+        else:
+            return None
+
+    @staticmethod
+    def _yaml_load(path):
+        with open(path) as f:
+            return yaml.safe_load(f)
+
+    @staticmethod
+    def _json_load(path):
+        with open(path) as f:
+            return json.load(f)
+
+    @staticmethod
+    def _cfg_load(path):
+        import configparser
+
+        config = configparser.ConfigParser()
+        config.read(path)
+        data = dict(config.defaults())
+        for section in config.sections():
+            for name in config.options(section):
+                val = config.get(section, name)
+                data["%s.%s" % (section, name)] = val
+        return util.nested_config(data)
 
     def _apply_params(self, config):
         params = self.source.params
@@ -428,15 +463,19 @@ class ConfigResolver(FileResolver):
         if ext in cls.YAML_EXT:
             return yaml_util.encode_yaml
         elif ext in cls.JSON_EXT:
-            return cls._encode_json
+            return cls._json_encode
+        elif ext in cls.CFG_EXT:
+            return cls._cfg_encode
         else:
             assert False, path
 
     @staticmethod
-    def _encode_json(s):
-        import json
+    def _json_encode(config_data):
+        return json.dumps(config_data, sort_keys=True)
 
-        return json.dumps(s, sort_keys=True)
+    @staticmethod
+    def _cfg_encode(config_data):
+        return util.encode_cfg(config_data)
 
 
 ###################################################################

@@ -32,3 +32,21 @@ args-click-default:
   main: args_click
   flags-dest: args:click
   flags-import: all
+
+config:
+  description: Use config file to define globals
+  main: config
+  flags-import: all
+  flags-dest: config:flags.yml
+
+config-legacy:
+  description: Use config file to define globals (legacy method)
+  main: config
+  # With the legacy method (using config dependency below) we need to
+  # explicitly define flags here. They are not importable.
+  flags:
+    i: 1
+    f: 1.123
+    b: no
+  requires:
+    - config: flags.yml

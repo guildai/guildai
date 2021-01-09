@@ -1,0 +1,10 @@
+- config: subdir-ops
+  operations:
+    yaml-subdir:
+      main: guild.pass
+      flags-dest: config:subdir/flags.yaml
+      flags-import: yes
+
+    yaml-subdir-broken:
+      main: guild.pass
+      flags-dest: flags.yml
