@@ -99,12 +99,10 @@ Wait for operation:
     >>> run("guild watch", timeout=10)
     Watching run ...
     INFO: [guild] running upstream: upstream
-    --
     INFO: [guild] running downstream: downstream
     Resolving upstream dependency
     Using run ... for upstream resource
     WARNING: nothing resolved for operation:upstream
-    --
     Run ... stopped with a status of 'completed'
     <exit 0>
 

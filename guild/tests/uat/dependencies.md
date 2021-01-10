@@ -8,7 +8,6 @@ These are general dependency tests.
 
     >>> run("guild run file -y")
     Resolving file:file.txt dependency
-    --
     <exit 0>
 
     >>> run("guild ls -n")
@@ -41,7 +40,6 @@ flag.
     >>> run("guild run customizable-file src=guild.yml -y")
     Resolving src dependency
     Using guild.yml for src resource
-    -- --src guild.yml
     <exit 0>
 
     >>> run("guild ls -n")
@@ -88,7 +86,6 @@ Missing file dependency:
 
     >>> run("guild run dir -y")
     Resolving data dependency
-    --
     <exit 0>
 
     >>> run("guild ls -n -L")
@@ -142,7 +139,6 @@ Required file op:
     >>> run("guild run file-op -y")
     Resolving file dependency
     Using run ... for file resource
-    --
     <exit 0>
 
     >>> run("guild ls -n")
@@ -168,7 +164,6 @@ Required dir op:
     >>> run("guild run dir-op -y")
     Resolving dir dependency
     Using run ... for dir resource
-    --
     <exit 0>
 
     >>> run("guild ls -nL")
@@ -202,7 +197,6 @@ Run without specifying flag values.
 
     >>> run("guild run config -y")
     Resolving config:config.yml dependency
-    --
     <exit 0>
 
     >>> run("guild ls -n")
@@ -234,7 +228,6 @@ Set two of the three flag values.
 
     >>> run("guild run config lr=0.2 dropout=0.3 -y")
     Resolving config:config.yml dependency
-    -- --dropout 0.3 --lr 0.2
     <exit 0>
 
     >>> run("guild ls -n")
@@ -266,7 +259,6 @@ Use modified config.
 
     >>> run("guild run modified-config -y")
     Resolving config:config.yml dependency
-    --
     <exit 0>
 
     >>> run("guild ls -n")
@@ -283,7 +275,6 @@ Change modified config with flags:
 
     >>> run("guild run modified-config dropout=0.5 -y")
     Resolving config:config.yml dependency
-    -- --dropout 0.5
     <exit 0>
 
     >>> run("guild ls -n")
@@ -307,7 +298,6 @@ JSON format:
 
     >>> run("guild run json-config -y")
     Resolving config:config.json dependency
-    --
     <exit 0>
 
     >>> run("guild ls -n")
@@ -322,7 +312,6 @@ JSON format with flags:
 
     >>> run("guild run json-config lr=1e-2 -y")
     Resolving config:config.json dependency
-    -- --lr 0.01
     <exit 0>
 
     >>> run("guild ls -n")
@@ -338,7 +327,6 @@ JSON format with flags:
     >>> run("guild run modules -y")
     Resolving module:pandas dependency
     Resolving module:sklearn dependency
-    --
     <exit 0>
 
     >>> run("guild runs info -d")
@@ -370,43 +358,32 @@ Make sure `all-ops` runs:
     >>> run("guild run all-ops -y")
     INFO: [guild] running file: file
     Resolving file:file.txt dependency
-    --
     INFO: [guild] running dir: dir
     Resolving data dependency
-    --
     INFO: [guild] running url: url
     Resolving https://guild-pub.s3.amazonaws.com/uat/file.txt dependency
     Using cached file .../file.txt
-    --
     INFO: [guild] running file-op: file-op
     Resolving file dependency
     Using run ... for file resource
-    --
     INFO: [guild] running dir-op: dir-op
     Resolving dir dependency
     Using run ... for dir resource
-    --
     INFO: [guild] running config: config
     Resolving config:config.yml dependency
-    --
     INFO: [guild] running modules: modules
     Resolving module:pandas dependency
     Resolving module:sklearn dependency
-    --
     INFO: [guild] running downstream: downstream
     Resolving upstream dependency
     Using run ... for upstream resource
-    --
     INFO: [guild] running customizable-file: customizable-file src=guild.yml
     Resolving src dependency
     Using guild.yml for src resource
-    -- --src guild.yml
     INFO: [guild] running modified-config: modified-config
     Resolving config:config.yml dependency
-    --
     INFO: [guild] running json-config: json-config
     Resolving config:config.json dependency
-    --
     <exit 0>
 
 ## All resources
@@ -430,7 +407,6 @@ named resources.
     Resolving customizable-file dependency
     Resolving modified-config dependency
     Resolving json-config dependency
-    --
     <exit 0>
 
     >>> run("guild ls")

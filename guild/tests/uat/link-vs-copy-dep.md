@@ -58,7 +58,6 @@ Run `op-1`:
     Resolving link-default dependency
     Resolving link-explicit dependency
     Resolving copy dependency
-    --
     <exit 0>
 
     >>> run("guild ls")
@@ -107,7 +106,6 @@ Run op-1:
     >>> run("guild run op-2 -y")
     Resolving copy dependency
     Resolving link dependency
-    --
     <exit 0>
 
 The files:
