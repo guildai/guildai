@@ -174,15 +174,20 @@ class GistRemote(meta_sync.MetaSyncRemote):
         return gist
 
     def _sync_runs_meta_for_gist(self, force):
-        git_commit = self._gist_repo_current_commit()
-        if not force and self._meta_current(git_commit):
-            return
-        _refresh_runs_meta(
-            self._local_gist_repo,
-            self._runs_dir,
-            git_commit,
-            self.local_sync_dir,
-        )
+        try:
+            _pull_gist_repo(self._local_gist_repo, self.local_env)
+        except NoSuchGist:
+            self._clear_gist_cache()
+        else:
+            git_commit = self._gist_repo_current_commit()
+            if not force and self._meta_current(git_commit):
+                return
+            _refresh_runs_meta(
+                self._local_gist_repo,
+                self._runs_dir,
+                git_commit,
+                self.local_sync_dir,
+            )
 
     def _meta_current(self, git_commit):
         return meta_sync.meta_current(self.local_sync_dir, lambda: git_commit)
@@ -317,7 +322,9 @@ def _git_cmd():
 def _pull_gist_repo(local_repo, env):
     cmd = [_git_cmd(), "-C", local_repo, "pull", "--quiet", "--rebase"]
     log.debug("pulling for %s", local_repo)
-    _subprocess_tty(cmd, extra_env=env)
+    code = _subprocess_tty(cmd, extra_env=env, allowed_returncodes=(0, 1))
+    if code == 1:
+        raise NoSuchGist()
 
 
 def _refresh_runs_meta(gist_repo, runs_dir, meta_id, local_sync_dir):
@@ -598,6 +605,7 @@ def _subprocess_tty(cmd, extra_env, allowed_returncodes=(0,)):
     if p.returncode not in allowed_returncodes:
         log.debug("exit code for %r is %i", cmd, p.returncode)
         raise SystemExit("error running %s - see above for details" % cmd[0])
+    return p.returncode
 
 
 def _subprocess_quiet(cmd, extra_env, allowed_returncodes=(0,)):
