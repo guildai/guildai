@@ -929,14 +929,17 @@ def _run(
     cut=None,
     guild_home=None,
     cwd=None,
+    env=None,
     _capture=False,
 ):
     cmd = _run_shell_cmd(cmd)
-    env = dict(os.environ)
-    env["SYNC_RUN_OUTPUT"] = "1"
+    proc_env = dict(os.environ)
+    if env:
+        proc_env.update(env)
+    proc_env["SYNC_RUN_OUTPUT"] = "1"
     if guild_home:
-        env["GUILD_HOME"] = guild_home
-    p = _popen(cmd, env, cwd)
+        proc_env["GUILD_HOME"] = guild_home
+    p = _popen(cmd, proc_env, cwd)
     with _kill_after(p, timeout):
         out, err = p.communicate()
         assert err is None, err

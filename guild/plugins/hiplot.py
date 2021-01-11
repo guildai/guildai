@@ -16,63 +16,54 @@ from __future__ import absolute_import
 from __future__ import division
 
 import csv
+import logging
 import os
-import subprocess
 import time
 
-from guild import cli
 from guild import util
+
+log = logging.getLogger("guild")
 
 
 def compare_runs(get_data_cb):
-    cli.out("Preparing data for compare", err=True)
-    hiplot = _hiplot_include_exe()
+    _check_hiplot_install()
+    log.info("Preparing data for compare")
     data = get_data_cb()
     _format_data_for_hiplot(data)
     html_path_env = os.getenv("HIPLOT_HTML")
     if html_path_env:
-        _handle_html_env(hiplot, data, html_path_env)
+        _handle_html_env(data, html_path_env)
     else:
-        _handle_default(hiplot, data)
+        _handle_default(data)
 
 
-def _handle_html_env(hiplot, data, html_path):
+def _check_hiplot_install():
+    try:
+        import hiplot as _
+    except ImportError:
+        raise SystemExit(
+            "HiPlot is not available\nInstall it by running 'pip install hiplot'"
+        )
+
+
+def _handle_html_env(data, html_path):
     with util.TempDir("guild-compare-") as tmp:
         csv_path = _hiplot_data_path(tmp.path)
         _write_hiplot_data(data, csv_path)
-        _generate_hiplot_html(hiplot, csv_path, html_path)
-        cli.out("Saved HiPlot HTML to %s" % html_path, err=True)
+        _generate_hiplot_html(csv_path, html_path)
+        log.info("Saved HiPlot HTML to %s", html_path)
 
 
-def _handle_default(hiplot, data):
+def _handle_default(data):
     with util.TempDir("guild-compare-") as tmp:
         csv_path = _hiplot_data_path(tmp.path)
         _write_hiplot_data(data, csv_path)
         html_path = _hiplot_html_path(tmp.path)
-        _generate_hiplot_html(hiplot, csv_path, html_path)
-        cli.out("Opening %s" % html_path, err=True)
+        _generate_hiplot_html(csv_path, html_path)
+        log.info("Opening %s", html_path)
         util.open_url(html_path)
-        cli.out("To return to the prompt, press Ctrl-C", err=True)
+        log.info("To return to the prompt, press Ctrl-C")
         _wait_forever()
-
-
-def _hiplot_include_exe():
-    exe = os.getenv("HIPLOT_RENDER")
-    if exe:
-        if os.path.exists(exe):
-            return exe
-        cli.error(
-            "%s specified by HIPLOT_RENDER environment variable does not exist" % exe
-        )
-    exe = util.which("hiplot-render")
-    if exe:
-        return exe
-    cli.error(
-        "cannot find hiplot-render\n"
-        "If HiPlot is installed, specified the path to hiplot-render "
-        "using the HIPLOT_RENDER environment variable or install it "
-        "by running 'pip install hiplot'."
-    )
 
 
 def _format_data_for_hiplot(data):
@@ -95,14 +86,14 @@ def _hiplot_html_path(dir):
     return os.path.join(dir, "compare.html")
 
 
-def _generate_hiplot_html(hiplot_include, csv_path, html_path):
-    try:
-        html = subprocess.check_output([hiplot_include, "--format", "html", csv_path])
-    except subprocess.CalledProcessError as e:
-        cli.error("error running %s: %s" % (hiplot_include, e))
-    with open(html_path, "wb") as f:
-        f.write(html)
-    return html_path
+def _generate_hiplot_html(csv_path, html_path):
+    # pylint: disable=import-error
+    from hiplot import fetchers  # ImportError should be handled upstream.
+
+    exp = fetchers.load_xp_with_fetchers(fetchers.get_fetchers([]), csv_path)
+    exp.validate()
+    with open(html_path, "w") as f:
+        exp.to_html(f)
 
 
 def _wait_forever():

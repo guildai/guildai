@@ -53,6 +53,7 @@ tests).
       guildfiles:                  ok
       help:                        ok
       help-op:                     ok
+      hiplot:                      ok
       hparam-summaries:            ok
       image-summaries:             ok
       import-flags:                ok
