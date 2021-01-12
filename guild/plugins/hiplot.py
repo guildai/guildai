@@ -92,7 +92,7 @@ def _generate_hiplot_html(csv_path, html_path):
 
     exp = fetchers.load_xp_with_fetchers(fetchers.get_fetchers([]), csv_path)
     exp.validate()
-    with open(html_path, "w") as f:
+    with open(html_path, "w", encoding="utf-8") as f:
         exp.to_html(f)
 
 

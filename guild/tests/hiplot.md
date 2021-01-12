@@ -35,5 +35,5 @@ Generate an HTML page for comparison using hiplot tool:
 
 Show some bytes to sanity-check the file:
 
-    >>> open(html, "r").read(60)  # doctest: -PY2
+    >>> open(html, "r").read(60)  # doctest: -PY2 -NORMALIZE_PATHS
     '<!DOCTYPE html>\n\n<html>\n<head>\n<meta content="text/html;char'
