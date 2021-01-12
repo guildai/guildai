@@ -1,5 +1,5 @@
 ipython
-hiplot ; python_version > "3"
+hiplot ; python_version > "3.5"
 jupyter
 jupyter_contrib_nbextensions
 pandas<1.2
