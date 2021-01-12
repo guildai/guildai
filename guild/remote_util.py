@@ -91,6 +91,10 @@ def subprocess_call(cmd, extra_env=None, quiet=False, allowed_returncodes=(0,)):
 
 
 def init_env(env_config):
+    return _legal_env(_env_for_config(env_config))
+
+
+def _env_for_config(env_config):
     if isinstance(env_config, dict):
         return env_config
     elif isinstance(env_config, str):
@@ -100,6 +104,10 @@ def init_env(env_config):
     else:
         log.warning("invalid value for remote env %r - ignoring", env_config)
         return {}
+
+
+def _legal_env(env):
+    return {name: str(val) for name, val in env.items() if val}
 
 
 def _env_from_file(path):
