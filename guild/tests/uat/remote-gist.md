@@ -27,6 +27,7 @@ Create the gist.
     Getting guild-uat-gist status
     Creating gist
     Created guild-uat-gist (gist ...) for user gar1t
+    Refreshing run info for guild-uat-gist
     <exit 0>
 
     >>> run("guild remote status guild-uat-gist")

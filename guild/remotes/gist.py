@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import pprint
 import shutil
 import subprocess
 import sys
@@ -105,6 +106,9 @@ class GistRemote(meta_sync.MetaSyncRemote):
         remote_util.remote_activity("Getting %s status", self.name)
         gist = self._repo_gist()
         sys.stdout.write("%s (gist %s) is available\n" % (self.name, gist["id"]))
+        if verbose:
+            sys.stdout.write(pprint.pformat(gist))
+            sys.stdout.write("\n")
 
     def start(self):
         remote_util.remote_activity("Getting %s status", self.name)
@@ -119,6 +123,7 @@ class GistRemote(meta_sync.MetaSyncRemote):
                 gist["id"],
                 self.user,
             )
+            self._sync_runs_meta()
         else:
             raise remotelib.OperationError(
                 "%s (gist %s) already exists for user %s"
@@ -290,16 +295,25 @@ def _github_auth_headers(env):
 
 
 def _sync_gist_repo(gist, local_repo, env):
-    repo_url = _gist_repo_url(gist)
+    repo_url = _gist_repo_url(gist, env)
     if _is_git_repo(local_repo):
         _pull_gist_repo(local_repo, env)
     else:
         _clone_gist_repo(repo_url, local_repo, env)
 
 
-def _gist_repo_url(gist):
-    # Use ssh to interface with gist repo
-    return "git@gist.github.com:%s.git" % gist["id"]
+def _gist_repo_url(gist, env):
+    if _gist_urltype(env) == "ssh":
+        return "git@gist.github.com:%s.git" % gist["id"]
+    else:
+        return gist["git_pull_url"]
+
+
+def _gist_urltype(env):
+    try:
+        return _required_env("GIST_URLTYPE", [env, os.environ])
+    except KeyError:
+        return None
 
 
 def _clone_gist_repo(repo_url, local_repo, env):
@@ -503,10 +517,9 @@ def _commit_and_push_gist_repo_for_push(repo, commit_msg, env, remote_name):
     try:
         _git_commit(repo, commit_msg, env)
     except _NoChanges:
-        log.info("Nothing to copy for %s - gist is up-to-date", remote_name)
-    else:
-        log.info("Copying runs to %s", remote_name)
-        _git_push(repo, env)
+        pass
+    log.info("Copying runs to %s", remote_name)
+    _git_push(repo, env)
 
 
 def _git_add_all(local_repo, env, update=False):
@@ -531,8 +544,49 @@ def _git_commit(local_repo, msg, env):
 
 def _git_push(local_repo, env):
     cmd = [_git_cmd(), "-C", local_repo, "push", "--quiet"]
+    env = _maybe_askpass(env, local_repo)
     log.debug("pushing for %s", local_repo)
     _subprocess_tty(cmd, extra_env=env)
+
+
+def _maybe_askpass(env, local_repo):
+    if not _gist_access_token_defined(env):
+        return
+    askpass_path = _maybe_gist_access_token_script(local_repo)
+    if not askpass_path:
+        return env
+    env = dict(env)
+    env["GIT_ASKPASS"] = askpass_path
+    return env
+
+
+def _gist_access_token_defined(env):
+    try:
+        _required_env("GIST_ACCESS_TOKEN", [env, os.environ])
+    except KeyError:
+        return False
+    else:
+        return True
+
+
+def _maybe_gist_access_token_script(local_repo):
+    if util.get_platform() == "Windows":
+        return None
+    script_path = _gist_access_token_script(local_repo)
+    if os.path.exists(script_path):
+        return script_path
+    _write_gist_access_token_script(script_path)
+    return script_path
+
+
+def _gist_access_token_script(local_repo):
+    return os.path.join(local_repo, ".git", "gist-access-token")
+
+
+def _write_gist_access_token_script(path):
+    with open(path, "w") as f:
+        f.write("echo $GIST_ACCESS_TOKEN\n")
+    util.make_executable(path)
 
 
 def _delete_gist(gist, env):

@@ -1692,3 +1692,9 @@ def get_platform():
     import platform  # expensive
 
     return platform.system()
+
+
+def make_executable(path):
+    import stat
+
+    os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
