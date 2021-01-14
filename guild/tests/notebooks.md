@@ -81,10 +81,60 @@ code and flags to code containing flag assignments.
     ...     out = _replace_flag_assign_vals(src, state)
     ...     print(out)
 
-Simple example:
+Examples:
 
     >>> apply_flags("x = 1", x=11)
     x = 11
+
+    >>> apply_flags("x = -1", x=11)
+    x = 11
+
+    >>> apply_flags("x = +1", x=11)
+    x = 11
+
+    >>> apply_flags("x = 1", x=-11)
+    x = -11
+
+    >>> apply_flags("x = -1", x=-11)
+    x = -11
+
+    >>> apply_flags("x = +1", x=-11)
+    x = -11
+
+    >>> apply_flags("x = 1.123", x=2.234)
+    x = 2.234
+
+    >>> apply_flags("x = -11111111111111111111111111; y = -2", x=-33333333333, y=-444)
+    x = -33333333333; y = -444
+
+    >>> apply_flags("x = 1; y = 2", x=666, y=777)
+    x = 666; y = 777
+
+    >>> apply_flags("x = -1\n", x='hello', y=777)
+    x = 'hello'
+    <BLANKLINE>
+
+    >>> apply_flags("x = 1; y = 2; z=-3", x=666, y=777, z=888)
+    x = 666; y = 777; z=888
+
+    >>> apply_flags("x = -1\ny = 2", x=666, y=777)
+    x = 666
+    y = 777
+
+    >>> apply_flags("x = 1  # a comment", x=666)
+    x = 666  # a comment
+
+    >>> apply_flags("x = (1)", x=222)
+    x = (222)
+
+    >>> apply_flags("x = -(((1)))", x=222)
+    x = 222
+
+    >>> apply_flags("""x = -(
+    ...
+    ...     1
+    ... )""", x=-11)
+    x = -11
 
 Nothing is changed where there are no flags.
 

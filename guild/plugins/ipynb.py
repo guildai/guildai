@@ -205,9 +205,12 @@ def _iter_notebook_assigns(notebook_path):
         except MissingIPython:
             break
         else:
-            for _assign_node, target_node, _val_node, val in _iter_source_val_assigns(
-                src
-            ):
+            for (
+                _assign_node,
+                target_node,
+                _val_node,
+                val,
+            ) in _iter_source_val_assigns(src):
                 yield target_node.id, val
 
 

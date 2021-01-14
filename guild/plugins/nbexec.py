@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import argparse
+import ast
 import base64
 import io
 import json
@@ -278,9 +279,12 @@ def _assigns_lookup_for_source(source, flags):
 def _assigns_for_source(source, flags):
     return [
         (target_node, val_node, flags[target_node.id])
-        for _assign, target_node, val_node, _val in ipynb._iter_source_val_assigns(
-            source
-        )
+        for (
+            _assign,
+            target_node,
+            val_node,
+            _val,
+        ) in ipynb._iter_source_val_assigns(source)
         if target_node.id in flags
     ]
 
@@ -289,83 +293,209 @@ def _tokenize_source(source):
     return list(tokenize.generate_tokens(io.StringIO(six.text_type(source)).readline))
 
 
+class _ReplaceAssignsState(object):
+    def __init__(self, assigns):
+        self.assigns = assigns
+        self.repl_tokens = []
+        self.line_offset = 0
+        self.col_offset = 0
+
+
+def _tok_type(t):
+    return t[0]
+
+
+def _tok_str(t):
+    return t[1]
+
+
+def _tok_start(t):
+    return t[2]
+
+
+def _tok_end(t):
+    return t[3]
+
+
 def _replace_assigns_for_tokens(tokens, assigns):
-    assign = None
-    have_op = False
-    repl_tokens = []
-    cur_line = 0
-    col_offset = 0
-    line_offset = 0
-
-    for t0 in tokens:
-        if t0[2][0] + line_offset != cur_line:
-            col_offset = 0
-        t = _apply_t_offsets(t0, line_offset, col_offset)
-        cur_line = t[2][0]
-        if have_op:
-            assert assign is not None
-            _target, val_node, flag_val = assign
-            if t0[2] == (val_node.lineno, val_node.col_offset) or (
-                val_node.col_offset == -1 and t0[3][0] == val_node.lineno
-            ):
-                val_t = _val_token(flag_val)
-                repl_t, repl_line_offset, repl_col_offset = _replace_token(t, val_t)
-                line_offset += repl_line_offset
-                col_offset = repl_col_offset
-                repl_tokens.append(repl_t)
-                have_op = False
-                assign = None
-            else:
-                repl_tokens.append(t)
-        elif assign:
-            assert not have_op
-            if t[0] == token.OP and t[1] == "=":
-                have_op = True
-            else:
-                assign = None
-            repl_tokens.append(t)
-        elif t[0] == token.NAME:
-            try:
-                assign = assigns[(t0[1], t0[2])]
-            except KeyError:
-                pass
-            repl_tokens.append(t)
-        else:
-            repl_tokens.append(t)
-
-    return repl_tokens
+    state = _ReplaceAssignsState(assigns)
+    while tokens:
+        t = tokens.pop(0)
+        _maybe_reset_col_offset(t, state)
+        _handle_token_for_replace_assigns(t, tokens, state)
+    return state.repl_tokens
 
 
-def _apply_t_offsets(t, line_offset, start_offset):
-    end_offset = start_offset if t[2][0] == t[3][0] else 0
+def _maybe_reset_col_offset(t, state):
+    if state.repl_tokens:
+        t_line = _tok_start(t)[0]
+        state_repl_line = _tok_end(state.repl_tokens[-1])[0]
+        if t_line + state.line_offset != state_repl_line:
+            state.col_offset = 0
+
+
+def _handle_token_for_replace_assigns(t, tokens, state):
+    if _tok_type(t) == token.NAME:
+        _handle_name_token_for_replace_assigns(t, tokens, state)
+    else:
+        _add_token_for_replace_assigns(t, state)
+
+
+def _add_token_for_replace_assigns(t, state):
+    repos_t = _reposition_token(t, state.line_offset, state.col_offset)
+    state.repl_tokens.append(repos_t)
+
+
+def _reposition_token(t, line_offset, start_offset):
+    t_start = _tok_start(t)
+    t_end = _tok_end(t)
+    end_offset = start_offset if t_start[0] == t_end[0] else 0
     return (
         t[0],
         t[1],
-        (t[2][0] + line_offset, t[2][1] + start_offset),
-        (t[3][0] + line_offset, t[3][1] + end_offset),
+        (t_start[0] + line_offset, t_start[1] + start_offset),
+        (t_end[0] + line_offset, t_end[1] + end_offset),
         t[4],
     )
 
 
-def _val_token(val):
+def _handle_name_token_for_replace_assigns(t, tokens, state):
+    _add_token_for_replace_assigns(t, state)
+    assign = _maybe_assign_for_token(t, state)
+    if assign:
+        _handle_assign_for_replace_assigns(assign, tokens, state)
+
+
+def _maybe_assign_for_token(t, state):
+    assign_key = (_tok_str(t), _tok_start(t))
+    try:
+        return state.assigns[assign_key]
+    except KeyError:
+        return None
+
+
+def _handle_assign_for_replace_assigns(assign, tokens, state):
+    try:
+        t = tokens.pop(0)
+    except IndexError:
+        pass
+    else:
+        _add_token_for_replace_assigns(t, state)
+        if _tok_is_assign_op(t):
+            _handle_assign_op_for_replace_assigns(assign, tokens, state)
+
+
+def _tok_is_assign_op(t):
+    return _tok_type(t) == token.OP and _tok_str(t) == "="
+
+
+def _handle_assign_op_for_replace_assigns(assign, tokens, state):
+    _handle_pre_value_tokens_for_replace_assigns(tokens, assign, state)
+    _handle_value_tokens_for_replace_assigns(tokens, assign, state)
+
+
+def _handle_pre_value_tokens_for_replace_assigns(tokens, assign, state):
+    while tokens:
+        t = tokens[0]
+        if _is_assign_value_token(t, assign):
+            break
+        del tokens[0]
+        _add_token_for_replace_assigns(t, state)
+
+
+def _is_assign_value_token(t, assign):
+    _target, val_node, _flag_val = assign
+    return (
+        _tok_start(t) == (val_node.lineno, val_node.col_offset)
+        or val_node.col_offset == -1
+        and _tok_end(t)[0] == val_node.lineno
+    )
+
+
+def _handle_value_tokens_for_replace_assigns(tokens, assign, state):
+    _target, _val_node, flag_val = assign
+    cur_val_tokens = _pop_value_tokens(tokens)
+    assert cur_val_tokens
+    _handle_replacement_value_for_replace_assigns(flag_val, cur_val_tokens, state)
+
+
+def _pop_value_tokens(tokens):
+    val_tokens = []
+    while tokens:
+        val_tokens.append(tokens.pop(0))
+        if _is_python_expr(val_tokens):
+            break
+    return val_tokens
+
+
+def _is_python_expr(tokens):
+    s = tokenize.untokenize(tokens).strip()
+    try:
+        m = ast.parse(s)
+    except SyntaxError:
+        return False
+    else:
+        assert len(m.body) == 1 and isinstance(m.body[0], ast.Expr), m.body
+        return True
+
+
+def _handle_replacement_value_for_replace_assigns(val, replaced_tokens, state):
+    val_tokens = _val_tokens(val)
+    repl_tokens, repl_line_offset, repl_col_offset = _replace_tokens(
+        replaced_tokens, val_tokens
+    )
+    for t in repl_tokens:
+        _add_token_for_replace_assigns(t, state)
+    state.line_offset += repl_line_offset
+
+    state.col_offset += repl_col_offset
+
+
+def _val_tokens(val):
     val_repr = six.text_type(repr(val))
     gen_tokens = tokenize.generate_tokens(io.StringIO(val_repr).readline)
-    return list(gen_tokens)[0]
+    return _maybe_strip_newline(_strip_endmarker(gen_tokens))
 
 
-def _replace_token(cur_t, new_t):
-    cur_line_offset = _token_line_offset(cur_t)
-    assert _token_line_offset(new_t) == 0, new_t  # cur vals must be on one line
-    new_pos_offset = _token_pos_offset(new_t)
-    repl_pos_offset = new_pos_offset - _token_pos_offset(cur_t)
-    repl_t = (
-        new_t[0],
-        new_t[1],
-        (cur_t[2][0], cur_t[2][1]),
-        (cur_t[2][0], cur_t[2][1] + new_pos_offset),
-        new_t[4],
-    )
-    return repl_t, -cur_line_offset, repl_pos_offset
+def _strip_endmarker(tokens):
+    tokens = list(tokens)
+    assert _tok_type(tokens[-1]) == token.ENDMARKER, tokens
+    return tokens[:-1]
+
+
+def _maybe_strip_newline(tokens):
+    assert tokens
+    if _tok_type(tokens[-1]) == token.NEWLINE:
+        return tokens[:-1]
+    return tokens
+
+
+def _replace_tokens(cur_tokens, new_tokens):
+    assert cur_tokens
+    assert new_tokens
+    cur_start = _tok_start(cur_tokens[0])
+    line = cur_start[0]
+    pos = cur_start[1]
+    repl_tokens = []
+    for t in new_tokens:
+        line_end = line + _token_line_offset(t)
+        pos_end = pos + _token_pos_offset(t)
+        repl_tokens.append(
+            (
+                t[0],
+                t[1],
+                (line, pos),
+                (line_end, pos_end),
+                t[4],
+            )
+        )
+        line = line_end
+        pos = pos_end
+    cur_end = _tok_end(cur_tokens[-1])
+    repl_end = _tok_end(repl_tokens[-1])
+    line_offset = repl_end[0] - cur_end[0]
+    pos_offset = repl_end[1] - cur_end[1]
+    return repl_tokens, line_offset, pos_offset
 
 
 def _token_line_offset(t):
