@@ -154,7 +154,22 @@ def ast_param_val(val):
             return None
     elif isinstance(val, ast.List):
         return [ast_param_val(item) for item in val.elts]
-    raise TypeError(val)
+    elif isinstance(val, ast.UnaryOp):
+        return _unary_val(val)
+    else:
+        raise TypeError(val)
+
+
+def _unary_val(val):
+    if isinstance(val.operand, ast.Num):
+        if isinstance(val.op, ast.USub):
+            return -val.operand.n
+        elif isinstance(val.op, ast.UAdd):
+            return +val.operand.n
+        else:
+            raise TypeError(val)
+    else:
+        raise TypeError(val)
 
 
 class Call(object):

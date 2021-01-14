@@ -26,6 +26,7 @@ The scripts:
      'hello',
      'mnist_mlp',
      'no_breakable_lines',
+     'params',
      'sample_run']
 
 ## Script properties
@@ -109,6 +110,23 @@ Calls:
 
     >>> pprint(flag_imports.params)
     {'b': True, 'f': 1.0, 'i': 1, 'ii': 2, 's': 'hello'}
+
+    >>> params = scripts[6]
+    >>> params.name
+    'params'
+
+    >>> pprint(params.params)
+    {'a': 1,
+     'b': -1,
+     'c': 1,
+     'd': 1.123,
+     'e': -1.123,
+     'f': 1.123,
+     'g': False,
+     'h': True,
+     'i': 'hello',
+     'j': [1, -1, 1, 1.123, -1.123, 1.123, False, True, 'hello'],
+     'k': -123}
 
 ## Errors on init
 
