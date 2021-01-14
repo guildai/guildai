@@ -182,7 +182,6 @@ class Build(object):
                     "COLUMNS=999 "
                     "EXAMPLES={examples} "
                     "{test_env}/bin/guild check --uat".format(
-                        system_guild=self.built_guild_cmd,
                         workspace=self.test_dir,
                         examples=self.examples_dir,
                         uat_skip=",".join(self.uat_skip),
@@ -244,6 +243,7 @@ class LinuxBuild(Build):
         "linux-python_3.6": "circleci/python:3.6-stretch-node",
         "linux-python_3.7": "circleci/python:3.7-stretch-node",
         "linux-python_3.8": "circleci/python:3.8.1-node",
+        "linux-python_3.9": "circleci/python:3.9.0-node",
     }
 
     uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
@@ -272,6 +272,7 @@ class MacBuild(Build):
         "3.6": "3.6.11",
         "3.7": "3.7.9",
         "3.8": "3.8.6",
+        "3.9": "3.9.0",
     }
 
     python_cmds = {
@@ -279,6 +280,7 @@ class MacBuild(Build):
         "3.6": "~/.pyenv/versions/3.6.11/bin/python",
         "3.7": "~/.pyenv/versions/3.7.9/bin/python",
         "3.8": "~/.pyenv/versions/3.8.6/bin/python",
+        "3.9": "~/.pyenv/versions/3.9.0/bin/python",
     }
 
     pip_cmds = {
@@ -287,6 +289,7 @@ class MacBuild(Build):
         "3.6": ("~/.pyenv/versions/3.6.11/bin/python -m pip", False),
         "3.7": ("~/.pyenv/versions/3.7.9/bin/python -m pip", False),
         "3.8": ("~/.pyenv/versions/3.8.6/bin/python -m pip", False),
+        "3.9": ("~/.pyenv/versions/3.9.0/bin/python -m pip", False),
     }
 
     guild_cmds = {
@@ -301,13 +304,16 @@ class MacBuild(Build):
         "3.6": "~/.pyenv/versions/3.6.11/bin/guild-env",
         "3.7": "~/.pyenv/versions/3.7.9/bin/guild-env",
         "3.8": "~/.pyenv/versions/3.8.6/bin/guild-env",
+        "3.9": "~/.pyenv/versions/3.9.0/bin/guild-env",
     }
 
     extra_cache_paths = [
         "/usr/local/Homebrew",
     ]
 
-    uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
+    uat_skips = {
+    #    "3.8": TENSORFLOW_UAT_SKIP,
+    }
 
     def __init__(self, os_version, python):
         self.xcode_version = self.xcode_versions[os_version]
@@ -373,19 +379,22 @@ class Config(object):
 
 
 builds = [
-    LinuxBuild(python="2.7"),
-    LinuxBuild(python="3.5"),
-    LinuxBuild(python="3.6"),
-    LinuxBuild(python="3.7"),
-    LinuxBuild(python="3.8"),
-    MacBuild("10.14", python="2.7"),
-    MacBuild("10.15", python="2.7"),
-    MacBuild("10.14", python="3.6"),
-    MacBuild("10.15", python="3.6"),
-    MacBuild("10.14", python="3.7"),
-    MacBuild("10.15", python="3.7"),
-    MacBuild("10.14", python="3.8"),
-    MacBuild("10.15", python="3.8"),
+    # LinuxBuild(python="2.7"),
+    # LinuxBuild(python="3.5"),
+    # LinuxBuild(python="3.6"),
+    # LinuxBuild(python="3.7"),
+    # LinuxBuild(python="3.8"),
+    LinuxBuild(python="3.9"),
+    # MacBuild("10.14", python="2.7"),
+    # MacBuild("10.15", python="2.7"),
+    # MacBuild("10.14", python="3.6"),
+    # MacBuild("10.15", python="3.6"),
+    # MacBuild("10.14", python="3.7"),
+    # MacBuild("10.15", python="3.7"),
+    # MacBuild("10.14", python="3.8"),
+    # MacBuild("10.15", python="3.8"),
+    MacBuild("10.14", python="3.9"),
+    MacBuild("10.15", python="3.9"),
 ]
 
 
