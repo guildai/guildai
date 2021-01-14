@@ -118,3 +118,25 @@ Python 3.8:
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
+
+Python 3.9:
+
+    >>> run("guild check --verbose --offline")  # doctest: -PY2 -PY3 +PY39
+    guild_version:             ...
+    psutil_version:            5.6.3
+    tensorboard_version:       2.4.0
+    cuda_version:              ...
+    nvidia_smi_version:        ...
+    click_version:             7.1.2
+    distutils_version:         ...
+    numpy_version:             1.19.5
+    pandas_version:            1.1.5
+    pip_version:               18.0
+    sklearn_version:           0.24.0
+    skopt_version:             0.8.1
+    setuptools_version:        ...
+    twine_version:             3.3.0
+    yaml_version:              5.3.1
+    werkzeug_version:          1.0.1
+    latest_guild_version:      ...
+    <exit 0>

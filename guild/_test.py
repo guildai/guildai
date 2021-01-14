@@ -83,6 +83,7 @@ PY35 = doctest.register_optionflag("PY35")
 PY36 = doctest.register_optionflag("PY36")
 PY37 = doctest.register_optionflag("PY37")
 PY38 = doctest.register_optionflag("PY38")
+PY39 = doctest.register_optionflag("PY39")
 ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
 
 _ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
@@ -315,6 +316,7 @@ class TestRunner(doctest.DocTestRunner, object):
                 (example.options.get(PY36), 3, 6),
                 (example.options.get(PY37), 3, 7),
                 (example.options.get(PY38), 3, 8),
+                (example.options.get(PY39), 3, 9),
             ]:
                 if (
                     opt in (True, False)
