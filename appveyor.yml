@@ -7,11 +7,11 @@ environment:
   COLUMNS: 999
   GUILD_START_THRESHOLD: 0.5
   matrix:
-    - PYTHON: "C:\\Python35-x64"
-    - PYTHON: "C:\\Python36-x64"
-    - PYTHON: "C:\\Python37-x64"
-    - PYTHON: "C:\\Python38-x64"
-    - PYTHON: "C:\\Python39-x64"
+    # - PYTHON: "C:\\Python35-x64"
+    # - PYTHON: "C:\\Python36-x64"
+    # - PYTHON: "C:\\Python37-x64"
+    # - PYTHON: "C:\\Python38-x64"
+     - PYTHON: "C:\\Python39-x64"
 
 install:
   - "%PYTHON%\\python.exe -m pip install -U pip"
@@ -36,5 +36,5 @@ artifacts:
   - path: dist\*
 
 # Uncomment to enable post-mortem debugging over RDP:
-##on_finish:
-##  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
