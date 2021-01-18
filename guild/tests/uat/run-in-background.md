@@ -94,9 +94,10 @@ Run steps in the background::
     steps started in background as ... (pidfile ...)
     <exit 0>
 
-Wait for operation:
+Wait for operation (use higher timeout for macOS as tests tend to run
+on slower hardware):
 
-    >>> run("guild watch", timeout=30)
+    >>> run("guild watch", timeout=60 if PLATFORM == "Darwin" else 10)
     Watching run ...
     INFO: [guild] running upstream: upstream
     INFO: [guild] running downstream: downstream
