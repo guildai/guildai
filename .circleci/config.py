@@ -246,7 +246,10 @@ class LinuxBuild(Build):
         "linux-python_3.9": "circleci/python:3.9.0-node",
     }
 
-    uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
+    uat_skips = {
+        "3.8": TENSORFLOW_UAT_SKIP,
+        "3.9": TENSORFLOW_UAT_SKIP,
+    }
 
     guild_bdist_wheel_options = "-p manylinux1_x86_64"
 
