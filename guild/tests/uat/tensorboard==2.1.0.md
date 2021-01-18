@@ -19,10 +19,17 @@ vociferously.
 
 Simple value (used for scalars):
 
-    >>> tb.Summary("tag", simple_value=1.123)
+    >>> tb.Summary("tag", simple_value=1.123) # doctest: -PY39
     value {
       tag: "tag"
       simple_value: 1.123000...
+    }
+    <BLANKLINE>
+
+    >>> tb.Summary("tag", simple_value=1.123) # doctest: -PY2 -PY3 +PY39
+    value {
+      tag: "tag"
+      simple_value: 1.123
     }
     <BLANKLINE>
 
@@ -45,7 +52,7 @@ Images:
     >>> tb.Event(file_version="brain.Event:2")
     file_version: "brain.Event:2"
 
-    >>> tb.Event(summary=tb.Summary("tag", simple_value=1.123), step=100)
+    >>> tb.Event(summary=tb.Summary("tag", simple_value=1.123), step=100) # doctest: -PY39
     step: 100
     summary {
       value {
@@ -54,6 +61,14 @@ Images:
       }
     }
 
+    >>> tb.Event(summary=tb.Summary("tag", simple_value=1.123), step=100) # doctest: -PY2 -PY3 +PY39
+    step: 100
+    summary {
+      value {
+        tag: "tag"
+        simple_value: 1.123
+      }
+    }
 
 ## AsyncWriter
 
