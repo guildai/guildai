@@ -297,6 +297,7 @@ class MacBuild(Build):
         "3.6": "~/.pyenv/versions/3.6.11/bin/guild",
         "3.7": "~/.pyenv/versions/3.7.9/bin/guild",
         "3.8": "~/.pyenv/versions/3.8.6/bin/guild",
+        "3.9": "~/.pyenv/versions/3.9.0/bin/guild",
     }
 
     guild_env_cmds = {
@@ -323,7 +324,7 @@ class MacBuild(Build):
         (self.pip_cmd, self.pip_requires_su) = self.pip_cmds.get(
             self.python, (self.pip_cmd, self.pip_requires_su)
         )
-        self.built_guild_cmd = self.guild_cmds.get(self.python, self.built_guild_cmd)
+        self.built_guild_cmd = self.guild_cmds[self.python]
         self.built_guild_env_cmd = self.guild_env_cmds.get(
             self.python, self.built_guild_env_cmd
         )
