@@ -232,6 +232,10 @@ TENSORFLOW_UAT_SKIP = [
     "test-flags",  # uses get-started example which requires Keras
 ]
 
+PYTORCH_UAT_SKIP = [
+    "*pytorch*",
+]
+
 
 class LinuxBuild(Build):
 
@@ -248,7 +252,7 @@ class LinuxBuild(Build):
 
     uat_skips = {
         "3.8": TENSORFLOW_UAT_SKIP,
-        "3.9": TENSORFLOW_UAT_SKIP,
+        "3.9": TENSORFLOW_UAT_SKIP + PYTORCH_UAT_SKIP,
     }
 
     guild_bdist_wheel_options = "-p manylinux1_x86_64"
@@ -316,7 +320,8 @@ class MacBuild(Build):
     ]
 
     uat_skips = {
-    #    "3.8": TENSORFLOW_UAT_SKIP,
+        "3.8": TENSORFLOW_UAT_SKIP,
+        "3.9": TENSORFLOW_UAT_SKIP + PYTORCH_UAT_SKIP,
     }
 
     def __init__(self, os_version, python):
