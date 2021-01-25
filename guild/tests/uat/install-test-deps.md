@@ -18,6 +18,7 @@ Python 2.7:
     cuda_version:              ...
     nvidia_smi_version:        ...
     click_version:             7.1.2
+    dask_version:              1.2.2
     distutils_version:         ...
     numpy_version:             1.16.6
     pandas_version:            0.24.2
@@ -26,7 +27,7 @@ Python 2.7:
     skopt_version:             0.8.1
     setuptools_version:        ...
     twine_version:             1.15.0
-    yaml_version:              5.3.1
+    yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
@@ -40,6 +41,7 @@ Python 3.5:
     cuda_version:              ...
     nvidia_smi_version:        ...
     click_version:             7.1.2
+    dask_version:              2.6.0
     distutils_version:         ...
     numpy_version:             1.18.5
     pandas_version:            0.25.3
@@ -48,7 +50,7 @@ Python 3.5:
     skopt_version:             0.8.1
     setuptools_version:        ...
     twine_version:             1.15.0
-    yaml_version:              5.3.1
+    yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
@@ -62,15 +64,16 @@ Python 3.6:
     cuda_version:              ...
     nvidia_smi_version:        ...
     click_version:             7.1.2
+    dask_version:              2021.01.1
     distutils_version:         ...
     numpy_version:             1.19.5
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           0.24.0
+    sklearn_version:           0.24.1
     skopt_version:             0.8.1
     setuptools_version:        ...
     twine_version:             3.3.0
-    yaml_version:              5.3.1
+    yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
@@ -84,15 +87,16 @@ Python 3.7:
     cuda_version:              ...
     nvidia_smi_version:        ...
     click_version:             7.1.2
+    dask_version:              2021.01.1
     distutils_version:         ...
     numpy_version:             1.19.5
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           0.24.0
+    sklearn_version:           0.24.1
     skopt_version:             0.8.1
     setuptools_version:        ...
     twine_version:             3.3.0
-    yaml_version:              5.3.1
+    yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
@@ -106,15 +110,16 @@ Python 3.8:
     cuda_version:              ...
     nvidia_smi_version:        ...
     click_version:             7.1.2
+    dask_version:              2021.01.1
     distutils_version:         ...
     numpy_version:             1.19.5
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           0.24.0
+    sklearn_version:           0.24.1
     skopt_version:             0.8.1
     setuptools_version:        ...
     twine_version:             3.3.0
-    yaml_version:              5.3.1
+    yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
@@ -128,15 +133,16 @@ Python 3.9:
     cuda_version:              ...
     nvidia_smi_version:        ...
     click_version:             7.1.2
+    dask_version:              2021.01.1
     distutils_version:         ...
     numpy_version:             1.19.5
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           0.24.0
+    sklearn_version:           0.24.1
     skopt_version:             0.8.1
     setuptools_version:        ...
     twine_version:             3.3.0
-    yaml_version:              5.3.1
+    yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>

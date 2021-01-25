@@ -45,6 +45,7 @@ log = logging.getLogger("guild")
 # (mod_name, required_flag)
 CHECK_MODS = [
     ("click", True),
+    ("dask", False),
     ("distutils", True),
     ("numpy", True),
     ("pandas", False),
@@ -422,7 +423,9 @@ def _try_module_version(name, check, required=True, version_attr="__version__"):
     except ImportError as e:
         if required:
             check.error()
-        return _warn("not installed (%s)" % e)
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("import %s", name)
+        return _warn(_not_installed_msg(e))
     else:
         try:
             ver = getattr(mod, version_attr)
@@ -430,6 +433,13 @@ def _try_module_version(name, check, required=True, version_attr="__version__"):
             return _warn("UNKNOWN")
         else:
             return _format_version(ver)
+
+
+def _not_installed_msg(e):
+    if "No module named " in str(e):
+        return "not installed"
+    else:
+        return "not installed (%s)" % e
 
 
 def _format_version(ver):

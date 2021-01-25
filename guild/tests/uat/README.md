@@ -216,6 +216,10 @@ And test the `keras` example.
 - [concurrent-queues](concurrent-queues.md)
 - [gpu-queues](gpu-queues.md)
 
+## Dask Based Queues
+
+- [dask-basics](dask-basics.md)
+
 ## Packaging
 
 *Creating and installing packages.*

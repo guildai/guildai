@@ -115,8 +115,8 @@ def _global_vars():
     }
 
 
-def _sample(path):
-    return os.path.abspath(testlib.sample(path))
+def _sample(*path):
+    return os.path.abspath(testlib.sample(*path))
 
 
 def _UATEnv():
