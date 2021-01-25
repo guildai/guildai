@@ -202,8 +202,6 @@ class ProcessError(Exception):
 
 class RunOutput(object):
 
-    DEFAULT_WAIT_TIMEOUT = 10
-
     def __init__(self, run, quiet=False, output_cb=None):
         """Creates a run output object.
 
@@ -318,11 +316,19 @@ class RunOutput(object):
                                 )
                                 self._output_cb = None
 
-    def wait(self, timeout=DEFAULT_WAIT_TIMEOUT):
+    def wait(self):
+        """Wait for run output reader threads to exit.
+
+        This call will block until the reader threads exit. Reader
+        threads exit when the underlying streams they read from are
+        closed. If these streams do not close, this call will not
+        return. Streams close when their associated OS process
+        terminates or they're otherwise explicitly closed.
+        """
         self._assert_open()
-        self._out_tee.join(timeout)
+        self._out_tee.join()
         if self._err_tee:
-            self._err_tee.join(timeout)
+            self._err_tee.join()
 
     def _assert_open(self):
         if not self._open:
@@ -367,8 +373,8 @@ class RunOutput(object):
         self._err_tee = None
         self._open = False
 
-    def wait_and_close(self, timeout=DEFAULT_WAIT_TIMEOUT):
-        self.wait(timeout)
+    def wait_and_close(self):
+        self.wait()
         self.close()
 
 
