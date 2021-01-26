@@ -82,8 +82,8 @@ def runs_for_ctx(ctx):
 def _runs_args_for_ctx(ctx):
     args = click_util.Args(**ctx.params)
     if not hasattr(args, "runs"):
-        assert hasattr(args, "run"), "missing runs or run param in %s" % ctx.params
-        args.runs = (args.run,) if args.run else ()
+        maybe_run = getattr(args, "run", None)
+        args.runs = (maybe_run,) if maybe_run else ()
     return args
 
 
