@@ -238,7 +238,9 @@ class GistRemote(meta_sync.MetaSyncRemote):
         _sync_gist_repo(gist, self._local_gist_repo, self.local_env)
 
     def _create_gist(self):
-        return _create_gist(self.gist_name, self._gist_readme_name, self.local_env)
+        return _create_gist(
+            self.user, self.gist_name, self._gist_readme_name, self.local_env
+        )
 
     def pull(self, runs, delete=False):
         from guild import var
@@ -431,10 +433,11 @@ def _replace_run_dir(run_dir, src_dir):
     shutil.move(src_dir, run_dir)
 
 
-def _create_gist(gist_remote_name, gist_readme_name, env):
+def _create_gist(gist_remote_user, gist_remote_name, gist_readme_name, env):
     import requests
 
     access_token = _required_gist_access_token(env)
+    content = _gist_readme_content(gist_remote_user, gist_remote_name)
     data = {
         "accept": "application/vnd.github.v3+json",
         "description": "Guild AI Repository",
@@ -444,7 +447,7 @@ def _create_gist(gist_remote_name, gist_readme_name, env):
                 "filename": gist_readme_name,
                 "type": "text/markdown",
                 "language": "Markdown",
-                "content": _gist_readme_content(gist_remote_name),
+                "content": content,
             }
         },
     }
@@ -471,12 +474,12 @@ def _required_gist_access_token(env):
         )
 
 
-def _gist_readme_content(remote_name):
+def _gist_readme_content(user, remote_name):
     return (
         "This is a Guild AI runs repository. To access runs, "
-        "[install Guild AI](https://guild.ai/install) and run `guild pull gist:%s`. "
+        "[install Guild AI](https://guild.ai/install) and run `guild pull gist:%s/%s`. "
         "For more information about Guild AI Gist based repositories, see "
-        "[Guild AI - Gists](https://my.guild.ai/docs/gist)." % remote_name
+        "[Guild AI - Gists](https://my.guild.ai/docs/gists)." % (user, remote_name)
     )
 
 
