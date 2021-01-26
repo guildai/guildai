@@ -21,12 +21,14 @@ from guild import click_util
 
 from . import remote_support
 
+AC_EXTENSIONS = [".py", ".ipynb"]
+
 
 def _ac_opspec(incomplete, ctx, **_kw):
     ops = _ac_operations(incomplete, ctx)
     if not incomplete and ops:
         return ops
-    return ops + click_util.completion_filename()
+    return ops + click_util.completion_filename(AC_EXTENSIONS)
 
 
 def _ac_operations(incomplete, ctx, **_kw):
