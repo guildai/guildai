@@ -21,7 +21,7 @@ from guild import click_util
 
 from . import remote_support
 
-AC_EXTENSIONS = [".py", ".ipynb"]
+AC_EXTENSIONS = ["py", "ipynb"]
 
 
 def _ac_opspec(incomplete, ctx, **_kw):

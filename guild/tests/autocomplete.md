@@ -364,7 +364,7 @@ used by the bash completion handlers to find matching files.
     >>> run_ac("opspec", [], "echo")
     !!no-colon-wordbreak
     echo
-    !!file:*.@(.py|.ipynb)
+    !!file:*.@(py|ipynb)
 
 ### Flags
 
