@@ -65,5 +65,5 @@ Run operations using Dask measuring time:
 Speed up:
 
     >>> speedup = series_time / parallel_time
-    >>> speedup > 2.0, speedup
+    >>> speedup > 1.5, speedup
     (True, ...)
