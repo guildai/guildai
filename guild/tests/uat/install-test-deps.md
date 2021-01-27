@@ -50,7 +50,7 @@ Python 3.5:
     skopt_version:             0.8.1
     setuptools_version:        ...
     twine_version:             1.15.0
-    yaml_version:              5.4.1
+    yaml_version:              5.3.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
