@@ -47,9 +47,6 @@ def set_remote_lock(remote_run, remote_name, runs_dir=None):
     if remote_run.status == "running":
         with open(remote_lock_file, "w") as f:
             f.write(remote_name)
-    elif remote_run.status == "terminated":
-        with open(lock_file, "w") as f:
-            f.write("0")
 
 
 def config_path(path):
