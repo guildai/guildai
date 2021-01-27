@@ -191,9 +191,9 @@ With extra cols:
 
     >>> project.compare(extra_cols=True)
     [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'x', 'step', 'y'],
-     ['...', 'simple', '...', '0:00:00', 'completed', 'a_tag x=5.0', 'f0f366f3', 5.0, 0, 6.0],
-     ['...', 'simple', '...', '0:00:00', 'completed', 'x=3.0', 'f0f366f3', 3.0, 0, 4.0],
-     ['...', 'simple', '...', '0:00:00', 'completed', 'x=2.0', 'f0f366f3', 2.0, 0, 3.0]]
+     ['...', 'simple', '...', '0:00:00', 'completed', 'a_tag x=5.0', 'fced27f4', 5.0, 0, 6.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', 'x=3.0', 'fced27f4', 3.0, 0, 4.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', 'x=2.0', 'fced27f4', 2.0, 0, 3.0]]
 
 ## Other functions
 

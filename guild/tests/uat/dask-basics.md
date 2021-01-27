@@ -34,20 +34,21 @@ Run operations in series measuring time:
 
     >>> series_time = time.time() - t0
 
-Run operations using Dask measuring time:
+Run operations using Dask measuring time.
 
+    >>> import dask
     >>> from dask.distributed import Client, LocalCluster
     >>> from dask import delayed
 
-    >>> cluster = LocalCluster(processes=False)
-    >>> client = Client(cluster)
-
-    >>> op1_out = delayed(op1)()
-    >>> op2_out = delayed(op2)()
-    >>> op3_out = delayed(op3)()
-
-    >>> t0 = time.time()
-    >>> results = delayed(lambda x: x)([op1_out, op2_out, op3_out]).compute()
+    >>> temp_dir = mkdtemp("guild-dask-worker-space-")
+    >>> with dask.config.set({"temporary-directory": temp_dir}):
+    ...     cluster = LocalCluster(processes=False)
+    ...     client = Client(cluster)
+    ...     op1_out = delayed(op1)()
+    ...     op2_out = delayed(op2)()
+    ...     op3_out = delayed(op3)()
+    ...     t0 = time.time()
+    ...     results = delayed(lambda x: x)([op1_out, op2_out, op3_out]).compute()
     >>> for out in results:
     ...     print(out)
     x: 1
@@ -61,6 +62,11 @@ Run operations using Dask measuring time:
     <BLANKLINE>
 
     >>> parallel_time = time.time() - t0
+
+Verify that `dask-worker-space` wasn't created in the project.
+
+    >>> exists("dask-worker-space")
+    False
 
 Speed up:
 
