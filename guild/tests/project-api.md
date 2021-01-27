@@ -20,24 +20,24 @@ The project API supports two methods of running an operation:
 
 Run silently:
 
-    >>> project.run_quiet("simple")
+    >>> project.run_quiet("simple", flags={"x": 1.0})
 
 Run without capture:
 
-    >>> project.run("simple")
-    x: 1.0
-    y: 2.0
+    >>> project.run("simple", flags={"x": 2.0})
+    x: 2.0
+    y: 3.0
 
 Run with capture:
 
-    >>> run, out = project.run_capture("simple")
+    >>> run, out = project.run_capture("simple", flags={"x": 3.0})
 
     >>> run
     <guild.run.Run '...'>
 
     >>> print(out)
-    x: 1.0
-    y: 2.0
+    x: 3.0
+    y: 4.0
 
 ## Listing runs
 
@@ -60,7 +60,7 @@ Runs can be listed using any of the available filters.
 
 Let's generate a run with a label:
 
-    >>> project.run_quiet("simple", label="hello")
+    >>> project.run_quiet("simple", flags={"x": 4.0}, label="hello")
 
 And list runs matching that label:
 
@@ -92,14 +92,14 @@ Providing an supported filter generates an error:
 
 Use a tag for a label.
 
-    >>> project.run_quiet("simple", tags=["a_tag"])
+    >>> project.run_quiet("simple", flags={"x": 5.0}, tags=["a_tag"])
 
     >>> runs = project.list_runs(labels=["a_tag"])
 
     >>> len(runs)
     1
     >>> runs[0].get("label")
-    'a_tag x=1.0'
+    'a_tag x=5.0'
 
 ## Printing runs
 
@@ -125,9 +125,9 @@ The function supports a list of options for including additional
 column. Each may be used separately or in a group as needed.
 
     >>> project.print_runs(runs[:3], flags=True, labels=True, status=True)
-    simple  x=1.0  a_tag x=1.0  completed
-    simple  x=1.0  hello        completed
-    simple  x=1.0  x=1.0        completed
+    simple  x=5.0  a_tag x=5.0  completed
+    simple  x=4.0  hello        completed
+    simple  x=3.0  x=3.0        completed
 
 ## Deleting runs
 
@@ -151,9 +151,9 @@ We can also delete using filters.
     Deleted 1 run(s)
 
     >>> project.print_runs(labels=True)
-    simple  a_tag x=1.0
-    simple  x=1.0
-    simple  x=1.0
+    simple  a_tag x=5.0
+    simple  x=3.0
+    simple  x=2.0
 
 ## Mark runs
 
@@ -183,15 +183,17 @@ Runs can be compared:
 
     >>> project.compare()
     [['run', 'operation', 'started', 'time', 'status', 'label', 'x', 'step', 'y'],
-     ['...', 'simple', '...', '0:00:00', 'completed', 'x=1.0', 1.0, 0, 2.0],
-     ['...', 'simple', '...', '0:00:00', 'completed', 'x=1.0', 1.0, 0, 2.0]]
+     ['...', 'simple', '...', '0:00:00', 'completed', 'a_tag x=5.0', 5.0, 0, 6.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', 'x=3.0', 3.0, 0, 4.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', 'x=2.0', 2.0, 0, 3.0]]
 
 With extra cols:
 
     >>> project.compare(extra_cols=True)
     [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'x', 'step', 'y'],
-     ['...', 'simple', '...', '0:00:00', 'completed', 'x=1.0', 'fced27f4', 1.0, 0, 2.0],
-     ['...', 'simple', '...', '0:00:00', 'completed', 'x=1.0', 'fced27f4', 1.0, 0, 2.0]]
+     ['...', 'simple', '...', '0:00:00', 'completed', 'a_tag x=5.0', 'f0f366f3', 5.0, 0, 6.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', 'x=3.0', 'f0f366f3', 3.0, 0, 4.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', 'x=2.0', 'f0f366f3', 2.0, 0, 3.0]]
 
 ## Other functions
 
