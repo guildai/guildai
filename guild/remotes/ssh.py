@@ -990,7 +990,7 @@ def _ls_args(
     if no_format:
         args.append("-n")
     if path:
-        args.append("-p")
+        args.extend(["-p", path])
     if sourcecode:
         args.append("--sourcecode")
     if human_readable:
