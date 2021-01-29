@@ -5,9 +5,11 @@ generate runs we can test the `ls` command with.
 
     >>> project = Project(sample("projects", "ls"))
 
-Generate a run.
+Generate a run. We revert disabling of pip freeze to verify it's
+created.
 
-    >>> project.run("make_fs.py", run_id="aaaa")
+    >>> with Env({"NO_PIP_FREEZE": "0"}):
+    ...     project.run("make_fs.py", run_id="aaaa")
 
     >>> project.list_runs()
     [<guild.run.Run 'aaaa'>]
@@ -73,7 +75,7 @@ Show the full path for a list with `--full-path`.
 
 List all files with `--all`.
 
-    >>> guild_run("ls --all", ignore="vcs_commit")  # doctest: +REPORT_UDIFF
+    >>> guild_run("ls --all")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
       .guild/
       .guild/attrs/
@@ -114,7 +116,7 @@ List all files with `--all`.
 
 If `--path` wants Guild files, `--all` is implied.
 
-    >>> guild_run("ls --path .guild", ignore="vcs_commit")  # doctest: +REPORT_UDIFF
+    >>> guild_run("ls --path .guild")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
       .guild/
       .guild/attrs/
@@ -148,7 +150,7 @@ If `--path` wants Guild files, `--all` is implied.
 
 Follow links applies to `--all`.
 
-    >>> guild_run("ls --all -L", ignore="vcs_commit")  # doctest: +REPORT_UDIFF
+    >>> guild_run("ls --all -L")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
       .guild/
       .guild/attrs/

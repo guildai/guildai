@@ -15,11 +15,17 @@ tests are run from source or from an installed Guild package.
     ...         if not file.endswith("vcs_commit"):
     ...             print(file)
 
+We use an environment for runs that reverts the disabling of pip
+freeze.
+
+    >>> PipFreezeEnabled = Env({"NO_PIP_FREEZE": "0"})
+
 ## Normal runs
 
 A simple run that prints a message:
 
-    >>> project.run("say.py", flags={"msg": "hi"})
+    >>> with PipFreezeEnabled:
+    ...     project.run("say.py", flags={"msg": "hi"})
     hi
 
 Our runs:
@@ -118,7 +124,8 @@ generate batch trials.
 Let's run a batch operation to illustrate. We can indicate a run
 should be a batch by specifying a list of values for a flag.
 
-    >>> project.run("say.py", flags={"msg": ["ho"]})
+    >>> with PipFreezeEnabled:
+    ...     project.run("say.py", flags={"msg": ["ho"]})
     INFO: [guild] Running trial ...: say.py (loud=no, msg=ho)
     ho
 
