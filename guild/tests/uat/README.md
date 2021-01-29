@@ -315,3 +315,4 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [remote-s3](remote-s3.md)
 - [remote-azure-blob](remote-azure-blob.md)
 - [remote-gist](remote-gist.md)
+- [remote-status](remote-status.md)

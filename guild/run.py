@@ -116,15 +116,12 @@ class Run(object):
         elif os.path.exists(self.guild_path("STAGED")):
             return "staged"
         else:
-            if self.has_attr("exit_status.remote"):
-                return self._remote_exit_status()
-            else:
-                return self._local_status()
+            return self._local_status()
 
     @property
     def remote(self):
-        remote_lock_file = self.guild_path("LOCK.remote")
-        return util.try_read(remote_lock_file, apply=str.strip)
+        remote_lock_path = self.guild_path("LOCK.remote")
+        return util.try_read(remote_lock_path, apply=str.strip)
 
     @property
     def timestamp(self):
@@ -146,31 +143,14 @@ class Run(object):
             return for_dir(proto_dir)
         return None
 
-    def _remote_exit_status(self):
-        status = self.get("exit_status.remote")
-        if status == 0:
-            return "completed"
-        elif status == 2:
-            return "terminated"
-        else:
-            return "error"
-
     def _local_status(self):
-        pid = self.pid  # side-effect, read once
-        if pid is None:
-            exit_status = self.get("exit_status")
-            if exit_status is None:
-                return "error"
-            elif exit_status == 0:
-                return "completed"
-            elif exit_status < 0:
-                return "terminated"
-            else:
-                return "error"
-        elif util.pid_exists(pid):
+        exit_status = self.get("exit_status")
+        if exit_status is not None:
+            return _status_for_exit_status(exit_status)
+        local_pid = self._get_pid()
+        if local_pid is not None and util.pid_exists(local_pid):
             return "running"
-        else:
-            return "terminated"
+        return "error"
 
     def get(self, name, default=None):
         try:
@@ -262,6 +242,16 @@ class Run(object):
                     yield os.path.join(rel_root, name)
                 for name in files:
                     yield os.path.join(rel_root, name)
+
+
+def _status_for_exit_status(exit_status):
+    assert exit_status is not None, exit_status
+    if exit_status == 0:
+        return "completed"
+    elif exit_status < 0:
+        return "terminated"
+    else:
+        return "error"
 
 
 __last_ts = None

@@ -38,15 +38,37 @@ def require_env(name):
 
 def set_remote_lock(remote_run, remote_name, runs_dir=None):
     assert isinstance(remote_run, remotelib.RunProxy), remote_run
+    local_run_dir = _local_run_dir(remote_run, runs_dir)
+    _ensure_deleted_locks(local_run_dir)
+    _maybe_write_remote_lock_file(remote_run, remote_name, local_run_dir)
+
+
+def _local_run_dir(remote_run, runs_dir=None):
     runs_dir = runs_dir or var.runs_dir()
-    local_run_dir = os.path.join(runs_dir, remote_run.id)
-    lock_file = os.path.join(local_run_dir, ".guild", "LOCK")
-    remote_lock_file = os.path.join(local_run_dir, ".guild", "LOCK.remote")
-    util.ensure_deleted(lock_file)
-    util.ensure_deleted(remote_lock_file)
+    return os.path.join(runs_dir, remote_run.id)
+
+
+def _ensure_deleted_locks(run_dir):
+    util.ensure_deleted(_lock_file_path(run_dir))
+    util.ensure_deleted(_remote_lock_file_path(run_dir))
+
+
+def _lock_file_path(run_dir):
+    return os.path.join(run_dir, ".guild", "LOCK")
+
+
+def _remote_lock_file_path(run_dir):
+    return os.path.join(run_dir, ".guild", "LOCK.remote")
+
+
+def _maybe_write_remote_lock_file(remote_run, remote_name, local_run_dir):
     if remote_run.status == "running":
-        with open(remote_lock_file, "w") as f:
-            f.write(remote_name)
+        _write_remote_lock_file(local_run_dir, remote_name)
+
+
+def _write_remote_lock_file(run_dir, remote_name):
+    with open(_remote_lock_file_path(run_dir), "w") as f:
+        f.write(remote_name)
 
 
 def config_path(path):

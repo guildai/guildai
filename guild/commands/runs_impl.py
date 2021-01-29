@@ -76,7 +76,6 @@ CORE_RUN_ATTRS = [
     "deps",
     "env",
     "exit_status",
-    "exit_status.remote",
     "flags",
     "host",
     "id",

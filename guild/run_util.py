@@ -209,7 +209,7 @@ def _maybe_quote_arg(arg):
 
 
 def _format_exit_status(run):
-    return run.get("exit_status.remote", "") or run.get("exit_status", "")
+    return run.get("exit_status", "")
 
 
 def format_pkg_name(run):

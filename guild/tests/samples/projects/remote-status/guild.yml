@@ -1,0 +1,11 @@
+sleep:
+  flags-import: no
+  flags-dest: globals
+  flags:
+    seconds: 1
+
+error:
+  flags-import: no
+
+kill:
+  flags-import: no
