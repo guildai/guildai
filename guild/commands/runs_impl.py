@@ -1110,7 +1110,7 @@ def _remove_label_part(part, label):
         return " ".join([s for s in [t.strip() for t in split_parts] if s])
 
 
-def stop_runs(args, ctx):
+def stop_runs(args, ctx=None):
     if args.remote:
         remote_impl_support.stop_runs(args)
     else:

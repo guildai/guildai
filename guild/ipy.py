@@ -436,7 +436,7 @@ def _run(op, flag_vals, opts, extra_attrs=None):
             with util.Chdir(run.path):
                 result = op(**flag_vals)
     except KeyboardInterrupt as e:
-        exit_status = exit_code.SIGTERM
+        exit_status = exit_code.KEYBOARD_INTERRUPT
         util.raise_from(RunTerminated(run, e), e)
     except Exception as e:
         exit_status = exit_code.DEFAULT_ERROR

@@ -851,6 +851,9 @@ class Project(object):
     def select(self, run=None, **kw):
         return gapi.select(run, cwd=self.cwd, guild_home=self.guild_home, **kw)
 
+    def stop_runs(self, runs, **kw):
+        gapi.runs_stop(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
+
 
 def _is_run_sourcecode(path):
     return path.startswith(os.path.join(".guild", "sourcecode"))

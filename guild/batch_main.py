@@ -23,6 +23,7 @@ def main():
     op_util.init_logging()
     batch_run = batch_util.batch_run()
     trials = _batch_trials(batch_run)
+    batch_util.stop_trials_on_sigterm(batch_run)
     batch_util.handle_trials(batch_run, trials)
 
 

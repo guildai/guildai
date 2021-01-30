@@ -21,6 +21,7 @@ import itertools
 import logging
 import os
 import random
+import signal
 import sys
 
 import six
@@ -176,7 +177,7 @@ def _try_run_staged_trial(trial_run, batch_run, status_lock):
     try:
         start_trial_run(trial_run, stage)
     except SystemExit as e:
-        _handle_trial_run_error(e, batch_run, trial_run)
+        handle_trial_system_exit(e, batch_run, trial_run)
 
 
 def start_trial_run(run, stage=False):
@@ -222,30 +223,30 @@ def _trial_flags_desc(run):
     return op_util.flags_desc(flags)
 
 
-def _handle_trial_run_error(e, batch_run, trial_run):
-    is_error = log_trial_run_error(e, trial_run)
-    if is_error and fail_on_trial_error(batch_run):
-        log.error(
-            "Stopping batch because a trial failed (remaining staged trials "
-            "may be started as needed)"
-        )
-        raise SystemExit(exit_code.DEFAULT_ERROR)
-
-
-def log_trial_run_error(e, trial_run):
+def handle_trial_system_exit(e, batch_run, trial_run):
     from guild import main
 
     msg, code = main.system_exit_params(e)
     if code == 0:
         if msg:
             log.info(msg)
-        return False
-    log.error(
-        "Trial %s exited with an error%s",
-        _trial_name(trial_run),
-        _trial_run_error_desc(code, msg),
-    )
-    return True
+    elif code == exit_code.SIGTERM:
+        log.info("Trial %s was terminated", _trial_name(trial_run))
+    elif code == exit_code.KEYBOARD_INTERRUPT:
+        log.info("Stopping batch")
+        raise SystemExit(code)
+    else:
+        log.error(
+            "Trial %s exited with an error%s",
+            _trial_name(trial_run),
+            _trial_run_error_desc(code, msg),
+        )
+        if fail_on_trial_error(batch_run):
+            log.error(
+                "Stopping batch because a trial failed (remaining staged trials "
+                "may be started as needed)"
+            )
+            raise SystemExit(code)
 
 
 def _trial_run_error_desc(code, msg):
@@ -455,3 +456,36 @@ def objective_scalar(batch_run, default=None):
     if obj[0] == "-":
         return obj[1:], -1
     return obj, 1
+
+
+def stop_trials_on_sigterm(batch_run):
+    def handler(_signum, _stack_frame):
+        # Reset handler for SIGTERM to avoid reentry.
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        _start_batch_terminate_thread(batch_run)
+
+    signal.signal(signal.SIGTERM, handler)
+
+
+def _start_batch_terminate_thread(batch_run):
+    import threading
+
+    thread = threading.Thread(target=lambda: _terminate_batch(batch_run))
+    thread.start()
+
+
+def _terminate_batch(batch_run):
+    import psutil
+
+    this_p = psutil.Process()
+    assert this_p.pid == batch_run.pid, (this_p.pid, batch_run.pid)
+    children = this_p.children(recursive=True)
+    for child in children:
+        log.info("Stopping trial (proc %i)", child.pid)
+        child.terminate()
+    _gone, alive = psutil.wait_procs(children, timeout=30)
+    for child in alive:
+        log.info("Forcefully terminating trial (proc %i)", child.pid)
+        child.kill()
+    log.info("Stopping batch (remaining staged trials " "may be started as needed)")
+    this_p.terminate()

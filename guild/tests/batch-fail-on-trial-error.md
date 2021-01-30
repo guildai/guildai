@@ -109,5 +109,6 @@ The optimization run stops on the first error when we specify fail on trial erro
     INFO: [guild] Running trial ...: error.py (fail=yes)
     FAIL
     ERROR: [guild] Trial ... exited with an error (1) - see log for details
-    ERROR: [guild] Stopping optimization run because a trial failed
+    ERROR: [guild] Stopping batch because a trial failed (remaining staged
+    trials may be started as needed)
     <exit 1>

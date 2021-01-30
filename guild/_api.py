@@ -19,8 +19,6 @@ import os
 import subprocess
 import sys
 
-import six
-
 # Consider all Guild imports expensive and move to functions
 
 
@@ -124,6 +122,7 @@ def _popen_args(
     gpus=None,
     help_op=False,
     run_id=None,
+    background=False,
 ):
     from guild import op_util
 
@@ -207,6 +206,8 @@ def _popen_args(
         args.append("--help-op")
     if run_id:
         args.extend(["--run-id", run_id])
+    if background:
+        args.append("--background")
     args.extend(op_util.flag_assigns(flags))
     args.extend(["@%s" % path for path in (batch_files or [])])
     env = dict(os.environ)
@@ -312,10 +313,10 @@ def _run_ids(runs):
 
 
 def _coerce_run_id(run):
-    if isinstance(run, six.string_types):
-        return run
-    else:
+    if hasattr(run, "id"):
         return run.id
+    else:
+        return str(run)
 
 
 def runs_label(
@@ -547,3 +548,19 @@ def select(run=None, min=None, max=None, cwd=".", guild_home=None, **kw):
             return runs_impl.select_run(args)
         except SystemExit as e:
             raise ValueError(e)
+
+
+def runs_stop(runs=None, no_wait=False, cwd=".", guild_home=None, **kw):
+    from guild import click_util
+    from guild.commands import runs_impl
+
+    args = click_util.Args(
+        runs=_run_ids(runs),
+        no_wait=no_wait,
+        yes=True,
+    )
+    _apply_runs_filters(kw, args)
+    _apply_remote(kw, args)
+    _assert_empty_kw(kw, "runs_stop()")
+    with Env(cwd, guild_home):
+        runs_impl.stop_runs(args)

@@ -287,7 +287,7 @@ def _op_wait_for_proc(op, proc, run, quiet, stop_after):
     try:
         return _op_watch_proc(op, proc, run, quiet, stop_after)
     except KeyboardInterrupt:
-        return _handle_proc_interrupt(proc)
+        return _handle_proc_keyboard_interrupt(proc)
 
 
 def _op_watch_proc(op, proc, run, quiet, stop_after):
@@ -342,8 +342,9 @@ def _proc_wait_minutes(proc, minutes):
     )
 
 
-def _handle_proc_interrupt(proc):
-    log.info("Operation interrupted - waiting for process to exit")
+def _handle_proc_keyboard_interrupt(proc):
+    if os.getenv("NO_OP_INTERRUPTED_MSG") != "1":
+        log.info("Operation interrupted - waiting for process to exit")
     kill_after = time.time() + PROC_TERM_TIMEOUT_SECONDS
     while time.time() < kill_after:
         if proc.poll() is not None:
@@ -352,11 +353,14 @@ def _handle_proc_interrupt(proc):
     if proc.poll() is None:
         log.warning("Operation process did not exit - stopping forcefully")
         util.kill_process_tree(proc.pid, force=True)
-    return exit_code.SIGTERM
+    return exit_code.KEYBOARD_INTERRUPT
 
 
 def _op_exit_status(proc_exit_status, opdef):
-    if proc_exit_status == exit_code.SIGTERM and opdef.stoppable:
+    if (
+        proc_exit_status in (exit_code.SIGTERM, exit_code.KEYBOARD_INTERRUPT)
+        and opdef.stoppable
+    ):
         return 0
     return proc_exit_status
 

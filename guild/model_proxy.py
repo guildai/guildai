@@ -61,6 +61,9 @@ class BatchModelProxy(object):
                     "flag-encoder": self.flag_encoder,
                     "default-max-trials": self.default_max_trials,
                     "flags": self.flags_data,
+                    "env": {
+                        "NO_OP_INTERRUPTED_MSG": "1",
+                    },
                 }
             }
         }

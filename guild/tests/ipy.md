@@ -843,8 +843,7 @@ And the exit status for the last run:
     1
 
 When KeyboardInterrupt is raised - as it the case when the user types
-Ctrl-C during an operation, Guild handles the exception as a SIGTERM
-result and raises RunTerminated.
+Ctrl-C during an operation, Guild raises RunTerminated.
 
 A function that simulated Ctrl-C by the user:
 
@@ -873,7 +872,7 @@ The generated run exit status:
 
     >>> with guild_home:
     ...     ipy.runs().iloc[0][0].run.get("exit_status")
-    -15
+    -16
 
 ## Run Process
 
