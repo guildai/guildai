@@ -70,6 +70,11 @@ Run operations using Dask measuring time.
 
     >>> parallel_time = time.time() - t0
 
+Cleanup:
+
+    >>> client.close()
+    >>> cluster.close()
+
 The `temporary-directory` config does not work on Python 2.7. We need
 to explicitly delete the `dask-worked-space` directory that Dask
 creates.
