@@ -87,8 +87,12 @@ stream info.
      (..., 1, 'This is to stderr'),
      (..., 0, 'This is delayed by 0.2 seconds')]
 
-Let's confirm that the last entry is in fact delayed.
+Let's confirm that the last entry is in fact delayed. We expect a
+delay of at least 0.2 seconds. We include a small margin of error to
+minimize false failures.
 
+    >>> expected_delay = 200
+    >>> delay_margin = 10
     >>> delay = indexed[2][0] - indexed[1][0]
-    >>> delay >= 200, delay
+    >>> delay >= expected_delay - delay_margin, (delay, expected_delay - delay_margin)
     (True, ...)
