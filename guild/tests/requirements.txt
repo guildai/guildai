@@ -1,4 +1,3 @@
-zict  # workaround missing dep for dask[distributed] on 2.7
 dask[distributed]
 ipython
 hiplot ; python_version > "3.5"

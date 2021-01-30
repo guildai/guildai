@@ -1,5 +1,12 @@
 # Dask Basics
 
+Python 2.7 requires zict 1.x, which is not installed properly when
+test requirements are installed.
+
+    >> quiet("pip install 'zict<2'")  # doctest: -PY3
+
+We use the `simple` project for our tests.
+
     >>> cd(sample("projects", "simple"))
 
 Operation functions:
@@ -63,7 +70,13 @@ Run operations using Dask measuring time.
 
     >>> parallel_time = time.time() - t0
 
-Verify that `dask-worker-space` wasn't created in the project.
+The `temporary-directory` config does not work on Python 2.7. We need
+to explicitly delete the `dask-worked-space` directory that Dask
+creates.
+
+    >>> rmdir("dask-worker-space")  # doctest: -PY3
+
+Verify that `dask-worker-space` doesn't exit.
 
     >>> exists("dask-worker-space")
     False
