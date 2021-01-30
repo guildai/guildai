@@ -1121,7 +1121,8 @@ def _stop_runs(args, ctx):
     preview = cmd_impl_support.format_warn("You are about to stop the following runs:")
     confirm = "Stop {count} run(s)?"
     no_runs_help = "Nothing to stop."
-    args.status_running = True
+    if not args.runs:
+        args.status_running = True
 
     def stop_f(selected):
         for run in selected:
