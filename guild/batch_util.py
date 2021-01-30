@@ -23,6 +23,7 @@ import os
 import random
 import signal
 import sys
+import threading
 
 import six
 
@@ -42,6 +43,9 @@ DEFAULT_MAX_TRIALS = 20
 DEFAULT_OBJECTIVE = "loss"
 
 RUN_STATUS_LOCK_TIMEOUT = 30
+
+
+__trial_running_lock = threading.Lock()
 
 
 class CurrentRunNotBatchError(Exception):
@@ -184,7 +188,8 @@ def start_trial_run(run, stage=False):
     from guild.commands import run_impl
 
     _log_start_trial(run, stage)
-    run_impl.run(restart=run.id, stage=stage)
+    with __trial_running_lock:
+        run_impl.run(restart=run.id, stage=stage)
 
 
 def _trial_op_attr(proto_run, trial_flag_vals):
@@ -468,8 +473,6 @@ def stop_trials_on_sigterm(batch_run):
 
 
 def _start_batch_terminate_thread(batch_run):
-    import threading
-
     thread = threading.Thread(target=lambda: _terminate_batch(batch_run))
     thread.start()
 
@@ -488,4 +491,5 @@ def _terminate_batch(batch_run):
         log.info("Forcefully terminating trial (proc %i)", child.pid)
         child.kill()
     log.info("Stopping batch (remaining staged trials " "may be started as needed)")
-    this_p.terminate()
+    with __trial_running_lock:
+        this_p.terminate()
