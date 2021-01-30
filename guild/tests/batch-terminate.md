@@ -22,7 +22,7 @@ Helper function to run commands within an isolated Guild home.
 
 Start a batch of two runs in the background.
 
-    >>> gh_run("guild run sleep.py seconds=[5,5] --background --yes")
+    >>> gh_run("guild run sleep.py seconds=[10,10] --background --yes")
     + started in background as ... (pidfile ...)
     <exit 0>
 
@@ -33,8 +33,8 @@ Wait for the batch to stage and start a run.
 Show the runs.
 
     >>> gh_run("guild runs")
-    [1:...]  sleep.py   ...  running  seconds=5
-    [2:...]  sleep.py   ...  staged   seconds=5
+    [1:...]  sleep.py   ...  running  seconds=10
+    [2:...]  sleep.py   ...  staged   seconds=10
     [3:...]  sleep.py+  ...  running
     <exit 0>
 
@@ -51,15 +51,15 @@ Wait for the runs to stop;
 Show the runs after stopping the batch.
 
     >>> gh_run("guild runs")
-    [1:...]  sleep.py   ...  terminated  seconds=5
-    [2:...]  sleep.py   ...  staged      seconds=5
+    [1:...]  sleep.py   ...  terminated  seconds=10
+    [2:...]  sleep.py   ...  staged      seconds=10
     [3:...]  sleep.py+  ...  terminated
     <exit 0>
 
 Show output for the batch.
 
     >>> gh_run("guild cat 3 --output")
-    INFO: [guild] Running trial ...: sleep.py (seconds=5)
+    INFO: [guild] Running trial ...: sleep.py (seconds=10)
     INFO: [guild] Stopping trial (proc ...)
     INFO: [guild] Stopping batch (remaining staged trials may be started as needed)
     <exit 0>
