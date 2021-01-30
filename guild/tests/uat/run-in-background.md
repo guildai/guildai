@@ -10,11 +10,13 @@
     ...     time.sleep(1)
     ... """)
 
+    >>> cd(tmp)
+
 ## Generated pidfile
 
 Run in background - Guild chooses a pidfile.
 
-    >>> run("guild -C '%s' run sleep.py --background -y" % tmp)
+    >>> run("guild run sleep.py --background -y")
     sleep.py started in background as ... (pidfile ...)
     <exit 0>
 
@@ -40,7 +42,7 @@ Show the run output.
 
 Run with an explicit pidfile.
 
-    >>> run("guild -C '%s' run sleep.py --pidfile %s/PIDFILE -y" % (tmp, tmp))
+    >>> run("guild run sleep.py --pidfile %s/PIDFILE -y" % tmp)
     sleep.py started in background as ... (pidfile .../PIDFILE)
     <exit 0>
 
@@ -73,6 +75,8 @@ Tmp project directory:
 
     >>> tmp = mkdtemp()
 
+    >>> cd(tmp)
+
 Guild file that defines a steps operation:
 
     >>> write(path(tmp, "guild.yml"), """
@@ -90,14 +94,13 @@ Guild file that defines a steps operation:
 
 Run steps in the background::
 
-    >>> run("guild -C '%s' run steps --background -y" % tmp)
+    >>> run("guild run steps --background -y")
     steps started in background as ... (pidfile ...)
     <exit 0>
 
-Wait for operation (use higher timeout for macOS as tests tend to run
-on slower hardware):
+Wait for operation:
 
-    >>> run("guild watch", timeout=60 if PLATFORM == "Darwin" else 10)
+    >>> run("guild watch")
     Watching run ...
     INFO: [guild] running upstream: upstream
     INFO: [guild] running downstream: downstream
@@ -109,7 +112,7 @@ on slower hardware):
 
 List runs:
 
-    >>> run("guild -C '%s' runs --limit 3" % tmp)
+    >>> run("guild runs --limit 3")
     [1:...]  downstream  ...  completed  upstream=...
     [2:...]  upstream    ...  completed
     [3:...]  steps       ...  completed
