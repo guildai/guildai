@@ -201,7 +201,6 @@ class ProcessError(Exception):
 
 
 class RunOutput(object):
-
     def __init__(self, run, quiet=False, output_cb=None):
         """Creates a run output object.
 

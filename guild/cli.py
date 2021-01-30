@@ -32,6 +32,7 @@ TABLE_COL_SPACING = 2
 
 _shell = os.getenv("SHELL")
 
+
 def _max_width():
     try:
         return int(os.environ["COLUMNS"])
