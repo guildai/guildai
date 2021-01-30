@@ -3,7 +3,7 @@
 Python 2.7 requires zict 1.x, which is not installed properly when
 test requirements are installed.
 
-    >> quiet("pip install 'zict<2'")  # doctest: -PY3
+    >>> quiet("pip install 'zict<2'")  # doctest: -PY3
 
 We use the `simple` project for our tests.
 
