@@ -49,7 +49,7 @@ poll-interval:
   default: 10
   type: int
 run-once:
-  description: Run all staged runs and stop without
+  description: Run all staged runs and stop
   default: no
   arg-switch: yes
   type: boolean
