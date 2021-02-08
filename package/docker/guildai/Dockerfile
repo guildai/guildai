@@ -14,14 +14,14 @@ RUN apt-get update --assume-yes \
     &&  rm -rf /var/lib/apt/lists/*
 
 RUN pip install --pre guildai \
-    && pip install tensorflow \
-    && pip install virtualenv==16
+    && pip install virtualenv --upgrade
 
 WORKDIR /root
 
-RUN wget --quiet https://github.com/guildai/examples/archive/master.zip \
+RUN wget --quiet https://github.com/guildai/guildai/archive/master.zip \
     && unzip master.zip \
-    && mv examples-master guild-examples \
+    && mv guildai-master/examples guild-examples \
+    && rm -rf guildai-master \
     && rm master.zip
 
 CMD [ "/bin/bash" ]
