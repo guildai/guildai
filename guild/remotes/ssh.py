@@ -794,7 +794,7 @@ def _run_args(
     if force_flags:
         args.append("--force-flags")
     if force_sourcecode:
-        args.extend(["--force-sourcecode", force_sourcecode])
+        args.append("--force-sourcecode")
     if gpus:
         args.extend(["--gpus", gpus])
     if label:
