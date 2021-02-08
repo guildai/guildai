@@ -100,5 +100,5 @@ class QueuePlugin(pluginlib.Plugin):
     def resolve_model_op(opspec):
         if opspec in ("queue", "queue:queue"):
             model = QueueModelProxy()
-            return model, "queue"
+            return model, model.name
         return None
