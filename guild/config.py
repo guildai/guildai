@@ -247,8 +247,8 @@ def python_exe():
     return _find_apply(
         [
             _guild_python_exe,
-            _conda_python_exe,
             _virtualenv_python_exe,
+            _conda_python_exe,
             _sys_executable,
         ]
     )

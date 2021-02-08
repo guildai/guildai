@@ -110,9 +110,9 @@ The logic used to select the appropriate Python interpreter is as
 follows:
 
 - Use `GUILD_PYTHON_EXE` env var if defined
-- Use `sys.executable` or `bin/python` under `CONDA_PREFIX` env var if
-  defined
 - Use `sys.executable` or `bin/python` under `VIRTUAL_ENV` env var if
+  defined
+- Use `sys.executable` or `bin/python` under `CONDA_PREFIX` env var if
   defined
 - Use `sys.exectable``
 
@@ -130,6 +130,21 @@ Without any environment the Python exe is the same as
     >>> exe == sys.executable, (exe, sys.executable)
     (True, ...)
 
+If `CONDA_PREFIX` is defined in the environment, it is used to find
+Python. Let's create a `bin/python` under a location specified by
+`CONDA_PREFIX`.
+
+    >>> conda_prefix = mkdtemp()
+    >>> mkdir(path(conda_prefix, "bin"))
+    >>> conda_python_exe = path(conda_prefix, "bin", "python")
+    >>> touch(conda_python_exe)
+
+    >>> with Env({"CONDA_PREFIX": conda_prefix}, replace=True):
+    ...     exe = config.python_exe()
+
+    >>> exe == conda_python_exe, (exe, conda_python_exe)
+    (True, ...)
+
 If `VIRTUAL_ENV` is defined in the environment, `bin/python` in that
 directory is returned, provided it exists. Otherwise, `sys.executable`
 is returned.
@@ -140,9 +155,24 @@ is returned.
     ...     exe = config.python_exe()
 
 In this case, `bin/python` doesn't exist in the environment, so the
-exe `sys.executable`.
+exe is sys.executable.
 
-    >>> exe is sys.executable, (exe, sys.executable)
+    >>> exe == sys.executable, (exe, sys.executable)
+    (True, ...)
+
+If `$CONDA_PREFIX/bin/python` exists and `$VIRTUAL_ENV/bin/python`
+doesn't exist, the location under `CONDA_PREFIX` is used.
+
+    >>> conda_python_exe = path(conda_prefix, "bin", "python")
+
+    >>> exists(conda_python_exe), conda_python_exe
+    (True, ...)
+
+    >>> with Env({"VIRTUAL_ENV": venv_dir,
+    ...           "CONDA_PREFIX": conda_prefix}, replace=True):
+    ...     exe = config.python_exe()
+
+    >>> exe == conda_python_exe, (exe, conda_python_exe)
     (True, ...)
 
 Let's create `bin/python` in the env.
@@ -157,22 +187,6 @@ Let's create `bin/python` in the env.
 This time, the Python exe is the venv exe.
 
     >>> exe == venv_python_exe, (exe, venv_python_exe)
-    (True, ...)
-
-If `CONDA_PREFIX` is defined in the environment, it is used to find
-Python. Let's create a `bin/python` under a location specified by
-`CONDA_PREFIX`.
-
-    >>> conda_prefix = mkdtemp()
-    >>> mkdir(path(conda_prefix, "bin"))
-    >>> conda_python_exe = path(conda_prefix, "bin", "python")
-    >>> touch(conda_python_exe)
-
-    >>> with Env({"CONDA_PREFIX": conda_prefix,
-    ...           "VIRTUAL_ENV": venv_dir}, replace=True):
-    ...     exe = config.python_exe()
-
-    >>> exe == conda_python_exe, (exe, conda_python_exe)
     (True, ...)
 
 Finally, if `GUILD_PYTHON_EXE` is defined, it is always used,
