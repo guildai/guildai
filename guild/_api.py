@@ -221,13 +221,17 @@ def _popen_args(
 
 
 def _apply_guild_home_env(env, guild_home):
-    if guild_home:
-        env["GUILD_HOME"] = guild_home
-    else:
-        try:
-            env["GUILD_HOME"] = os.environ["GUILD_HOME"]
-        except KeyError:
-            pass
+    guild_home = guild_home or _configured_guild_home()
+    env["GUILD_HOME"] = guild_home
+
+
+def _configured_guild_home():
+    try:
+        return os.environ["GUILD_HOME"]
+    except KeyError:
+        from guild import config
+
+        return config.guild_home()
 
 
 def _apply_python_path_env(env):
