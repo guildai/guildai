@@ -67,8 +67,8 @@ EXTERNAL = {
     # retained for future use.
 }
 
-class BinaryDistribution(Distribution):
 
+class BinaryDistribution(Distribution):
     @staticmethod
     def has_ext_modules():
         return True
@@ -175,8 +175,8 @@ def _reset_env_for_pip_wheel():
     except KeyError:
         pass
 
-class DownloadProgressProxy(object):
 
+class DownloadProgressProxy(object):
     def __init__(self, *_args, **_kw):
         pass
 
@@ -240,8 +240,6 @@ _patch_git_obtain()
 setup(
     # Setup class config
     cmdclass={"build_py": Build},
-    distclass=BinaryDistribution,
-
     # Attributes from dist-info
     name="guildai",
     version=guild.__version__,
