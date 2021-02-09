@@ -5,6 +5,7 @@ guild = guild.main_bootstrap:main
 [guild.plugins]
 
 cpu = guild.plugins.cpu:CPUPlugin
+dask = guild.plugins.dask:DaskPlugin
 disk = guild.plugins.disk:DiskPlugin
 exec_script = guild.plugins.exec_script:ExecScriptPlugin
 gpu = guild.plugins.gpu:GPUPlugin

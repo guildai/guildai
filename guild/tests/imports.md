@@ -170,6 +170,8 @@
     guild.plugins.click_flags
     guild.plugins.config_flags
     guild.plugins.cpu
+    guild.plugins.dask
+    guild.plugins.dask_scheduler_main
     guild.plugins.disk
     guild.plugins.exec_script
     guild.plugins.flags_import_util

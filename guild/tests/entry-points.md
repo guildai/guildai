@@ -28,6 +28,7 @@ their own distributions in the same way.
     >>> pprint(guild_entry_points("guild.plugins"))
     [EntryPoint.parse('config_flags = guild.plugins.config_flags:ConfigFlagsPlugin'),
      EntryPoint.parse('cpu = guild.plugins.cpu:CPUPlugin'),
+     EntryPoint.parse('dask = guild.plugins.dask:DaskPlugin'),
      EntryPoint.parse('disk = guild.plugins.disk:DiskPlugin'),
      EntryPoint.parse('exec_script = guild.plugins.exec_script:ExecScriptPlugin'),
      EntryPoint.parse('gpu = guild.plugins.gpu:GPUPlugin'),

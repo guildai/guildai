@@ -219,6 +219,7 @@ And test the `keras` example.
 ## Dask Based Queues
 
 - [dask-basics](dask-basics.md)
+- [dask-scheduler](dask-scheduler.md)
 
 ## Packaging
 
