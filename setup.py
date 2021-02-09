@@ -63,7 +63,8 @@ def guild_packages():
 PKG_INFO, ENTRY_POINTS = guild_dist_info()
 
 EXTERNAL = {
-    "psutil": ("giampaolo/psutil", "release-5.6.3"),
+    # Guild doesn't current use external libs. This support is
+    # retained for future use.
 }
 
 class BinaryDistribution(Distribution):
