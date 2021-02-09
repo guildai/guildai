@@ -44,6 +44,7 @@ if platform.system() == "Windows":
 else:
     npm_cmd = "npm"
 
+
 def guild_dist_info():
     metadata = PathMetadata(".", guild_dist_basename)
     dist = PkgDist.from_filename(guild_dist_basename, metadata)
@@ -54,8 +55,10 @@ def guild_dist_info():
     }
     return dist._parsed_pkg_info, entry_points
 
+
 def guild_packages():
     return find_packages(exclude=["guild.tests", "guild.tests.*"])
+
 
 PKG_INFO, ENTRY_POINTS = guild_dist_info()
 
@@ -68,6 +71,7 @@ class BinaryDistribution(Distribution):
     @staticmethod
     def has_ext_modules():
         return True
+
 
 class Build(build_py):
     """Extension of default build with additional pre-processing.
@@ -89,16 +93,19 @@ class Build(build_py):
             _build_view_dist()
         build_py.run(self)
 
+
 def _validate_env():
     try:
         subprocess.check_output([npm_cmd, "--version"])
     except OSError as e:
         _exit("npm is not installed: %s", e)
 
+
 def _exit(msg, *args):
     sys.stderr.write(msg % args)
     sys.stderr.write("\n")
     sys.exit(1)
+
 
 def _ensure_external():
     """Ensure EXTERNAL deps are available."""
@@ -108,11 +115,11 @@ def _ensure_external():
             continue
         _install_external(name, EXTERNAL[name])
 
+
 def _external_marker(name):
     py_ver = ".".join([str(n) for n in sys.version_info[0:2]])
-    return os.path.join(
-        "./guild/external",
-        ".{}-py{}".format(name, py_ver))
+    return os.path.join("./guild/external", ".{}-py{}".format(name, py_ver))
+
 
 def _install_external(name, dist_spec):
     tmp = util.TempDir(prefix="pip-", suffix="-download")
@@ -120,6 +127,7 @@ def _install_external(name, dist_spec):
     _install_external_wheel(wheel_path)
     util.touch(_external_marker(name))
     tmp.delete()
+
 
 def _pip_wheel(name, dist_spec, root):
     path, tag = dist_spec
@@ -129,12 +137,17 @@ def _pip_wheel(name, dist_spec, root):
     wheel_dir = os.path.join(root, "wheel")
     assert not os.path.exists(wheel_dir), wheel_dir
     args = [
-        "--editable", url,
-        "--src", src_dir,
-        "--build", build_dir,
-        "--wheel-dir", wheel_dir,
+        "--editable",
+        url,
+        "--src",
+        src_dir,
+        "--build",
+        build_dir,
+        "--wheel-dir",
+        wheel_dir,
     ]
     from pip._internal.commands.wheel import WheelCommand
+
     cmd = WheelCommand()
     options, cmd_args = cmd.parse_args(args)
     _reset_env_for_pip_wheel()
@@ -143,6 +156,7 @@ def _pip_wheel(name, dist_spec, root):
     wheels = glob.glob(os.path.join(wheel_dir, name + "-*.whl"))
     assert len(wheels) == 1, wheels
     return wheels[0]
+
 
 def _reset_env_for_pip_wheel():
     """Resets env for building a wheel.
@@ -168,6 +182,7 @@ class DownloadProgressProxy(object):
     def __call__(self, iterator, _len):
         return iterator
 
+
 def _patch_pip_download_progress():
     """Work-around problem on Windows CI.
 
@@ -177,17 +192,21 @@ def _patch_pip_download_progress():
     disabling for all platforms.
     """
     from pip._internal import download
+
     download.DownloadProgressProvider = DownloadProgressProxy
+
 
 def _install_external_wheel(wheel_path):
     zf = zipfile.ZipFile(wheel_path)
     util.ensure_dir("./guild/external")
     zf.extractall("./guild/external")
 
+
 def _build_view_dist():
     """Build view distribution."""
     subprocess.check_call([npm_cmd, "install"], cwd="./guild/view")
     subprocess.check_call([npm_cmd, "run", "build"], cwd="./guild/view")
+
 
 def _patch_git_obtain():
     """Patch pip's git 'obtain' to download rather than clone.
@@ -211,7 +230,9 @@ def _patch_git_obtain():
                 with open(dest_path, "wb") as fdst:
                     fsrc = zf.open(name)
                     shutil.copyfileobj(fsrc, fdst)
+
     Git.obtain = obtain
+
 
 _patch_git_obtain()
 
@@ -234,11 +255,9 @@ setup(
     classifiers=PKG_INFO.get_all("Classifier"),
     license=PKG_INFO.get("License"),
     keywords=PKG_INFO.get("Keywords"),
-
     # Package data
     packages=guild_packages(),
     include_package_data=True,
-
     # Other package info
     zip_safe=False,
     scripts=["./guild/scripts/guild-env"],

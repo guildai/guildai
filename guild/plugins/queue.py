@@ -80,7 +80,7 @@ class QueueModelProxy(object):
                     "queue": {
                         "description": queue_description,
                         "exec": (
-                            "${python_exe} -um guild.plugins.queue_main " "${flag_args}"
+                            "${python_exe} -um guild.plugins.queue_main ${flag_args}"
                         ),
                         "flags": queue_flags_data,
                     }
