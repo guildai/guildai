@@ -89,7 +89,7 @@ Python 3.7:
     click_version:             7.1.2
     dask_version:              2021.02.0
     distutils_version:         ...
-    numpy_version:             1.20.0
+    numpy_version:             1.20.1
     pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.1
@@ -112,7 +112,7 @@ Python 3.8:
     click_version:             7.1.2
     dask_version:              2021.02.0
     distutils_version:         ...
-    numpy_version:             1.20.0
+    numpy_version:             1.20.1
     pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.1
@@ -135,7 +135,7 @@ Python 3.9:
     click_version:             7.1.2
     dask_version:              2021.02.0
     distutils_version:         ...
-    numpy_version:             1.20.0
+    numpy_version:             1.20.1
     pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.1
