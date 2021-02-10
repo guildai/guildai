@@ -31,9 +31,6 @@ test_script:
   - "set PATH=%PYTHON%\\Scripts;%PATH%"
   - "guild check --offline -vT"
 
-after_test:
-  - "%PYTHON%\\python.exe -m twine upload --skip-existing dist\\*.whl"
-
 artifacts:
   - path: dist\*
 

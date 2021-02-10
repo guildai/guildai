@@ -34,8 +34,6 @@ class Build(object):
     examples_dir = "examples"
     extra_cache_paths = []
 
-    guild_bdist_wheel_options = ""
-
     built_guild_cmd = "guild"
     built_guild_env_cmd = "guild-env"
 
@@ -46,6 +44,8 @@ class Build(object):
         "guild/view/package.json",
     ]
 
+    upload_to_pypi = ()
+
     def job(self):
         assert self.env
         return {
@@ -55,6 +55,9 @@ class Build(object):
         }
 
     def steps(self):
+        return self._base_steps() + self._maybe_upload_to_pypi()
+
+    def _base_steps(self):
         return [
             self.checkout(),
             self.restore_cache(),
@@ -64,7 +67,19 @@ class Build(object):
             self.install_dist(),
             self.test(),
             self.store_artifacts(),
-            self.upload_to_pypi(),
+        ]
+
+    def _maybe_upload_to_pypi(self):
+        if self.name not in self.upload_to_pypi:
+            return []
+        return [
+            self._run(
+                "Upload to PyPI",
+                [
+                    self._pip_install(["twine"]),
+                    "%s -m twine upload --skip-existing dist/*.whl" % self.python_cmd,
+                ],
+            )
         ]
 
     @staticmethod
@@ -147,8 +162,7 @@ class Build(object):
             "Build",
             [
                 ". %s/bin/activate" % self.build_dir,
-                "%s/bin/python setup.py bdist_wheel %s"
-                % (self.build_dir, self.guild_bdist_wheel_options),
+                "%s/bin/python setup.py bdist_wheel" % self.build_dir,
             ],
         )
 
@@ -194,15 +208,6 @@ class Build(object):
     @staticmethod
     def store_artifacts():
         return {"store_artifacts": {"path": "dist", "destination": "dist"}}
-
-    def upload_to_pypi(self):
-        return self._run(
-            "Upload to PyPI",
-            [
-                self._pip_install(["twine"]),
-                "%s -m twine upload --skip-existing dist/*.whl" % self.python_cmd,
-            ],
-        )
 
     @staticmethod
     def _run(name, cmd_lines):
@@ -255,7 +260,7 @@ class LinuxBuild(Build):
         "3.9": TENSORFLOW_UAT_SKIP + PYTORCH_UAT_SKIP,
     }
 
-    guild_bdist_wheel_options = "-p manylinux1_x86_64"
+    upload_to_pypi = ("linux-python_3.6",)
 
     def __init__(self, python):
         self.python = python
@@ -394,15 +399,10 @@ builds = [
     LinuxBuild(python="3.7"),
     LinuxBuild(python="3.8"),
     LinuxBuild(python="3.9"),
-    MacBuild("10.14", python="2.7"),
     MacBuild("10.15", python="2.7"),
-    MacBuild("10.14", python="3.6"),
     MacBuild("10.15", python="3.6"),
-    MacBuild("10.14", python="3.7"),
     MacBuild("10.15", python="3.7"),
-    MacBuild("10.14", python="3.8"),
     MacBuild("10.15", python="3.8"),
-    MacBuild("10.14", python="3.9"),
     MacBuild("10.15", python="3.9"),
 ]
 

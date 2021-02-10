@@ -16,8 +16,11 @@ Classifier: Intended Audience :: Information Technology
 Classifier: Intended Audience :: Science/Research
 Classifier: License :: OSI Approved :: Apache Software License
 Classifier: Natural Language :: English
+Classifier: Operating System :: POSIX
 Classifier: Operating System :: POSIX :: Linux
-Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Unix
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: Microsoft :: Windows
 Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
@@ -38,15 +41,18 @@ Requires-Dist: filelock>=3.0.12
 Requires-Dist: jinja2>=2.10
 Requires-Dist: numpy>=1.16
 Requires-Dist: pkginfo
-Requires-Dist: psutil>=5.6.3
+Requires-Dist: psutil>=5.6.3;python_version>"3.5"
+Requires-Dist: psutil>=5.6.3,<5.8;python_version<="3.5"
 Requires-Dist: requests>=2
-Requires-Dist: scikit-learn>=0.19.1
+Requires-Dist: scikit-learn>=0.19.1;python_version>="3.5"
+Requires-Dist: scikit-learn>=0.19.1,<0.21;python_version<"3.5"
 Requires-Dist: scikit-optimize>=0.7.1
 Requires-Dist: setuptools>=40.6.3
 Requires-Dist: six>=1.10.0
 Requires-Dist: tabview>=1.4.3
 Requires-Dist: tensorboard>=2.0.0
 Requires-Dist: virtualenv>=15.1.0
+Requires-Dist: windows-curses;platform_system=="Windows"
 
 Guild AI is an [open source](https://raw.githubusercontent.com/guildai/guildai/master/LICENSE.txt)
 toolkit that automates and optimizes machine learning experiments.
