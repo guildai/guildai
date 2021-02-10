@@ -34,6 +34,7 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 TAIL_BUFFER = 4096
+DEFAULT_EXIT_STATUS_TIMEOUT = 5.0
 
 
 def main(args, ctx):
@@ -172,6 +173,7 @@ def _tail(run):
             elif proc.is_running():
                 time.sleep(0.1)
             else:
+                _wait_for_exit_status(run)
                 break
 
 
@@ -211,6 +213,23 @@ def _wait_for_output(proc, output_path):
             return f
         time.sleep(1.0)
     return _try_open(output_path)
+
+
+def _wait_for_exit_status(run, timeout=DEFAULT_EXIT_STATUS_TIMEOUT):
+    stop_at = time.time() + timeout
+    while True:
+        if time.time() >= stop_at:
+            log.warning("exit status for %s not written", run.id)
+            break
+        try:
+            exit_status = run.get("exit_status")
+        except Exception as e:
+            log.debug("error reading exit status: %s", e)
+            time.sleep(1.0)
+        else:
+            if exit_status is not None:
+                break
+            time.sleep(0.1)
 
 
 def _print_run_status(run):
