@@ -1303,6 +1303,22 @@ def _apply_nested(name, val, nested):
     cur[parts[-1]] = val
 
 
+def encode_nested_config(config):
+    encoded = {}
+    for name, val in config.items():
+        _apply_nested_encoded(name, val, [], encoded)
+    return encoded
+
+
+def _apply_nested_encoded(name, val, parents, encoded):
+    key_path = parents + [name]
+    if isinstance(val, dict) and val:
+        for item_name, item_val in val.items():
+            _apply_nested_encoded(item_name, item_val, key_path, encoded)
+    else:
+        encoded[".".join(key_path)] = val
+
+
 def encode_cfg(data):
     import io
     import configparser

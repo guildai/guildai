@@ -109,7 +109,7 @@ Calls:
     'flag_imports'
 
     >>> pprint(flag_imports.params)
-    {'b': True, 'f': 1.0, 'i': 1, 'ii': 2, 's': 'hello'}
+    {'b': True, 'd': {}, 'f': 1.0, 'i': 1, 'ii': 2, 's': 'hello'}
 
     >>> params = scripts[6]
     >>> params.name

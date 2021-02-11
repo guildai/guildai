@@ -28,10 +28,14 @@ Helper function to print flag attributes.
     ...     op = m[op_name]
     ...     flag = op.get_flagdef(flag_name)
     ...     if flag.description:
-    ...         print("description: {}".format(flag.description))
+    ...         print("description: %s" % flag.description)
     ...     if flag.choices:
-    ...         print("choices: {}".format([c.value for c in flag.choices]))
-    ...     print("default: {}".format(flag.default))
+    ...         print("choices: %s" % str([c.value for c in flag.choices]))
+    ...     if flag.type:
+    ...         print("type: %s" % flag.type)
+    ...     if flag.arg_split is not None:
+    ...         print("arg-split: %s" % flag.arg_split)
+    ...     print("default: %s" % flag.default)
 
 Helper to print flag values:
 
@@ -104,22 +108,35 @@ This applies to `import-all-globals`:
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_int'>,
+     <guild.guildfile.FlagDef 'f_list'>,
      <guild.guildfile.FlagDef 'f_str'>]
 
     >>> flag_info("import-all-globals", "f_bool")
+    type: boolean
     default: False
 
     >>> flag_info("import-all-globals", "f_float")
+    type: number
     default: 7.0
 
     >>> flag_info("import-all-globals", "f_int")
+    type: number
     default: 6
 
     >>> flag_info("import-all-globals", "f_str")
+    type: string
     default: hi
 
+    >>> flag_info("import-all-globals", "f_list")
+    arg-split: True
+    default: 1 true bye
+
     >>> flag_vals("import-all-globals")
-    {'f_bool': False, 'f_float': 7.0, 'f_int': 6, 'f_str': 'hi'}
+    {'f_bool': False,
+     'f_float': 7.0,
+     'f_int': 6,
+     'f_list': '1 true bye',
+     'f_str': 'hi'}
 
     >>> flags_dest("import-all-globals")
     globals
@@ -154,11 +171,13 @@ And for `globals-flags`:
 
     >>> flag_info("globals-flags", "f_float")
     description: A float
+    type: number
     default: 8.8
 
     >>> flag_info("globals-flags", "f_str")
     description: A greeting
     choices: ['hi', 'hola']
+    type: string
     default: hola
 
     >>> flag_vals("globals-flags")
@@ -191,25 +210,34 @@ And for `main_globals`:
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_int'>,
+     <guild.guildfile.FlagDef 'f_list'>,
      <guild.guildfile.FlagDef 'f_str'>]
 
     >>> flag_info("import-all-globals-with-mods", "f_bool")
+    type: boolean
     default: False
 
     >>> flag_info("import-all-globals-with-mods", "f_float")
     description: A float
+    type: number
     default: 8.8
 
     >>> flag_info("import-all-globals-with-mods", "f_int")
+    type: number
     default: 6
 
     >>> flag_info("import-all-globals-with-mods", "f_str")
     description: A greeting
     choices: ['hi', 'hola']
+    type: string
     default: hola
 
     >>> flag_vals("import-all-globals-with-mods")
-    {'f_bool': False, 'f_float': 8.8, 'f_int': 6, 'f_str': 'hola'}
+    {'f_bool': False,
+     'f_float': 8.8,
+     'f_int': 6,
+     'f_list': '1 true bye',
+     'f_str': 'hola'}
 
 ## Explicit flag imports
 
@@ -233,6 +261,7 @@ Similarly for `explicit-globals`:
     [<guild.guildfile.FlagDef 'f_str'>]
 
     >>> flag_info("explicit-globals", "f_str")
+    type: string
     default: hi
 
     >>> flag_vals("explicit-globals")
@@ -273,12 +302,14 @@ be imported.
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_int'>,
+     <guild.guildfile.FlagDef 'f_list'>,
      <guild.guildfile.FlagDef 'f_str'>]
 
     >>> flags("all-imports-2")
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_int'>,
+     <guild.guildfile.FlagDef 'f_list'>,
      <guild.guildfile.FlagDef 'f_str'>]
 
 ## Implicit imports
@@ -321,6 +352,7 @@ flags, she can use `flags-import-skip`.
     >>> flags("skip-imports")
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
+     <guild.guildfile.FlagDef 'f_list'>,
      <guild.guildfile.FlagDef 'f_str'>]
 
     >>> flags("skip-imports-2")
@@ -334,7 +366,7 @@ has a different argparse usage.
     >>> flags("import-all-args2")
     [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
 
-## Marge based on arg-name
+## Merge based on arg-name
 
     >>> flags("merge-by-arg-name")
     [<guild.guildfile.FlagDef 'f_bool2'>,
@@ -343,15 +375,19 @@ has a different argparse usage.
      <guild.guildfile.FlagDef 'f_str2'>]
 
     >>> flag_info("merge-by-arg-name", "f_bool2")
+    type: boolean
     default: False
 
     >>> flag_info("merge-by-arg-name", "f_float")
+    type: number
     default: 8.0
 
     >>> flag_info("merge-by-arg-name", "f_int")
+    type: number
     default: 6
 
     >>> flag_info("merge-by-arg-name", "f_str2")
+    type: string
     default: hi2
 
 ## Error decoding flags

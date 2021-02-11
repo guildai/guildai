@@ -48,11 +48,14 @@ args3:
 
 split-args:
   main: args3
+  flags-import: all
   flags:
     x:
       arg-split: yes  # equivalent to 'shlex'
+      default: "1 2 'a b'"
     y:
       arg-split: ','
+      default: 1,2,3
 
 split-globals:
   main: globals3

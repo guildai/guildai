@@ -428,6 +428,15 @@ Tests:
 
 ## Nested config
 
+Nested config is encoded using a flat mapping of dot-delimited names
+to values. When decoded, nested config is represented by a deep dict
+using dots to denote levels in the decoded dict.
+
+### Decoding nested config
+
+The decoding function is `guild.util.nested_config`. It takes a flag
+map of dot-delimeted names to values.
+
     >>> from guild.util import nested_config as nc
 
     >>> nc({})
@@ -456,6 +465,31 @@ An explicit dict is okay:
 
     >>> pprint(nc({"1.2": {}, "1.1.1": 111, "1.2.1": 121}))
     {'1': {'1': {'1': 111}, '2': {'1': 121}}}
+
+### Encoding nested config
+
+The function `guild.util.encode_nested_config` is used to encode a
+deep dict to a flat dict with dot-delimited names.
+
+    >>> from guild.util import encode_nested_config as enc
+
+    >>> enc({})
+    {}
+
+    >>> enc({"a": "A"})
+    {'a': 'A'}
+
+    >>> pprint(enc({"a.a1": "A1", "a.a2": "A2"}))
+    {'a.a1': 'A1', 'a.a2': 'A2'}
+
+    >>> enc({"1": {"1": 11}})
+    {'1.1': 11}
+
+    >>> pprint(enc({"1": {"1": 11, "2": 12}}))
+    {'1.1': 11, '1.2': 12}
+
+    >>> pprint(enc({"1": {"1": {"1": 111}, "2": {"1": 121}}}))
+    {'1.1.1': 111, '1.2.1': 121}
 
 ## Shorten dirs
 

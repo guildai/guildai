@@ -156,6 +156,11 @@ def ast_param_val(val):
         return [ast_param_val(item) for item in val.elts]
     elif isinstance(val, ast.UnaryOp):
         return _unary_val(val)
+    elif isinstance(val, ast.Dict):
+        return {
+            ast_param_val(item_key): ast_param_val(item_val)
+            for item_key, item_val in zip(val.keys, val.values)
+        }
     else:
         raise TypeError(val)
 

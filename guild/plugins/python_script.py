@@ -278,8 +278,10 @@ class PythonScriptPlugin(pluginlib.Plugin):
         flags_dest = flags_dest or self._script_flags_dest(script)
         if flags_dest == "args":
             data = self._argparse_flags_data(script)
-        elif flags_dest == "globals" or flags_dest.startswith("global"):
+        elif flags_dest == "globals":
             data = self._global_assigns_flags_data(script)
+        elif flags_dest.startswith("global:"):
+            data = self._global_param_flags_data(script, flags_dest[7:])
         elif flags_dest.startswith("args:"):
             data = self._entry_point_args_flags_data(flags_dest, script)
         else:
@@ -355,14 +357,30 @@ class PythonScriptPlugin(pluginlib.Plugin):
     def _global_assigns_flags_data(self, script):
         params = script.params
         return {
-            str(name): flags_import_util.flag_data_for_val(params[name])
-            for name in params
-            if self._is_global_assign_flag(name)
+            str(name): flags_import_util.flag_data_for_val(val)
+            for name, val in params.items()
+            if self._is_global_assign_flag(name) and self._is_assignable_flag_val(val)
         }
 
     @staticmethod
     def _is_global_assign_flag(name):
         return name[:1] != "_"
+
+    @staticmethod
+    def _is_assignable_flag_val(val):
+        # Don't support dict value assignments as flags.
+        return not isinstance(val, dict)
+
+    def _global_param_flags_data(self, script, param_name):
+        param_val = script.params.get(param_name)
+        if not isinstance(param_val, dict):
+            self.log.warning(
+                "cannot import flags for param '%s' in '%s': param must be a dict",
+                param_name,
+                _script_desc(script),
+            )
+            return {}
+        return util.encode_nested_config(param_val)
 
     def _entry_point_args_flags_data(self, flags_dest, script):
         assert flags_dest.startswith("args:")
