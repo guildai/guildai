@@ -299,18 +299,38 @@ def _resolve_opref(opref):
 
 
 def _runs_filter(oprefs, run_id_prefix, status):
-    if run_id_prefix and isinstance(run_id_prefix, six.string_types):
-        return lambda run: run.id.startswith(run_id_prefix)
+    if _is_full_run_id(run_id_prefix):
+        return lambda run: run.id == run_id_prefix
     return var.run_filter(
         "all",
         [
-            var.run_filter(
-                "any",
-                [var.run_filter("attr", "status", status_val) for status_val in status],
-            ),
-            var.run_filter("any", [opref_match_filter(opref) for opref in oprefs]),
+            _run_id_prefix_filter(run_id_prefix),
+            _run_status_filter(status),
+            _run_opref_filter(oprefs),
         ],
     )
+
+
+def _is_full_run_id(s):
+    return s and isinstance(s, six.string_types) and len(s) == 32
+
+
+def _run_id_prefix_filter(run_id_prefix):
+    if run_id_prefix:
+        assert isinstance(run_id_prefix, six.string_types), run_id_prefix
+        return lambda run: run.id.startswith(run_id_prefix)
+    else:
+        return lambda _run: True
+
+
+def _run_status_filter(status):
+    return var.run_filter(
+        "any", [var.run_filter("attr", "status", status_val) for status_val in status]
+    )
+
+
+def _run_opref_filter(oprefs):
+    return var.run_filter("any", [opref_match_filter(opref) for opref in oprefs])
 
 
 class opref_match_filter(object):
