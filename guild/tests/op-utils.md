@@ -144,21 +144,19 @@ Floats:
     >>> p_flags(["a=1.1", "b=.1", "c=1.", "d=1.e1", "e=1.2e2"])
     {'a': 1.1, 'b': 0.1, 'c': 1.0, 'd': 10.0, 'e': 120.0}
 
-Float exceptions (special handling for run ID strings):
+Floats with exponent notation:
 
     >>> p_flags(["a=1e1", "b=12e2", "c=123e3", "d=123456e7"])
-    {'a': '1e1', 'b': '12e2', 'c': '123e3', 'd': '123456e7'}
-
-Various exponent notation:
+    {'a': 10.0, 'b': 1200.0, 'c': 123000.0, 'd': 1234560000000.0}
 
     >>> p_flags(["lr=1e-06"])
     {'lr': 1e-06}
 
     >>> p_flags(["run=1234567e1"])
-    {'run': '1234567e1'}
+    {'run': 12345670.0}
 
     >>> p_flags(["run=1e2345671"])
-    {'run': '1e2345671'}
+    {'run': inf}
 
     >>> p_flags(["lr=1.0e-06"])
     {'lr': 1e-06}

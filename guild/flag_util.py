@@ -31,7 +31,6 @@ ANONYMOUS_FUNCTION_P = re.compile(r"\[([^:]+:.+)\]")
 NAMED_FUNCTION_P = re.compile(r"([a-zA-Z0-9_\-\.]+)\[(.*)\]")
 
 LIST_CONCAT_P = re.compile(r"(\[.*\])\s*\*\s*([0-9]+)$")
-SCIENTIFIC_NOTATION_RUN_ID_P = re.compile(r"[0-9]+e[0-9]+")
 FUNCTION_ARG_DELIM = ":"
 SEQUENCE_FLAG_FUNCTIONS = ("range", "linspace", "geomspace", "logspace")
 
@@ -73,17 +72,15 @@ def _encode_dict(d):
     return "{%s}" % ", ".join(["%s: %s" % kv for kv in encoded_kv])
 
 
-def decode_flag_val(s, flag_type=None, nofix=False):
-    decoded = _decode_flag_val(s, flag_type, nofix)
-    if nofix:
-        return decoded
+def decode_flag_val(s, flag_type=None):
+    decoded = _decode_flag_val(s, flag_type)
     return _fix_surprising_number(decoded, s)
 
 
-def _decode_flag_val(s, flag_type=None, nofix=False):
+def _decode_flag_val(s, flag_type=None):
     if s == "":
         return s
-    decoders = _flag_decoders_for_type(flag_type, nofix)
+    decoders = _flag_decoders_for_type(flag_type)
     for f, e_type in decoders:
         try:
             return f(s)
@@ -94,8 +91,8 @@ def _decode_flag_val(s, flag_type=None, nofix=False):
     return s
 
 
-def _flag_decoders_for_type(flag_type, nofix):
-    return _base_decoders_for_type(flag_type) + _default_flag_decoders(nofix)
+def _flag_decoders_for_type(flag_type):
+    return _base_decoders_for_type(flag_type) + _default_flag_decoders()
 
 
 def _base_decoders_for_type(flag_type):
@@ -113,7 +110,7 @@ def _base_decoders_for_type(flag_type):
     elif flag_type == "float":
         return [(float, ValueError)]
     elif flag_type == "number":
-        return _number_decoders(True)
+        return _number_decoders()
     elif flag_type == "boolean":
         return [(_boolean_type, (ValueError, yaml.YAMLError))]
     else:
@@ -136,20 +133,17 @@ def _boolean_type(s):
     return val
 
 
-def _default_flag_decoders(nofix):
-    return _number_decoders(nofix) + [
+def _default_flag_decoders():
+    return _number_decoders() + [
         (_flag_function_or_expanded_sequence, ValueError),
         (_concatenated_list, ValueError),
-        (_yaml_flag_decoder(nofix), (ValueError, yaml.YAMLError)),
+        (yaml_util.decode_yaml, (ValueError, yaml.YAMLError)),
     ]
 
 
-def _number_decoders(nofix=False):
-    if nofix:
-        # Order matters - try int first as float succeeds with ints.
-        return [(int, ValueError), (float, ValueError)]
-    else:
-        return [(int, ValueError)]
+def _number_decoders():
+    # Order matters - try int first as float succeeds with ints.
+    return [(int, ValueError), (float, ValueError)]
 
 
 def _flag_function_or_expanded_sequence(s):
@@ -297,26 +291,13 @@ def _concatenated_list(s):
     return s
 
 
-def _yaml_flag_decoder(nofix):
-    if nofix:
-        return yaml_util.decode_yaml
-    else:
-        return _decode_yaml_with_fix
-
-
-def _decode_yaml_with_fix(s):
-    """Skips yaml decode if s looks like a run ID."""
-    if _is_scientific_notation_run_id(s):
-        return s
-    return yaml_util.decode_yaml(s)
-
-
-def _is_scientific_notation_run_id(s):
-    return 3 <= len(s) <= 32 and SCIENTIFIC_NOTATION_RUN_ID_P.match(s)
-
-
 def _fix_surprising_number(val, s):
-    """Returns s in cases where val is a surprising result."""
+    """Returns s in cases where val is a surprising result given s.
+
+    Surprising results are numeric values for strings that contain '_'
+    and ':' chars. Later versions of Python for example treat '1_2_3'
+    as the integer 123. YAML treags '1:12' as a time value.
+    """
     if (
         isinstance(val, (int, float))
         and "!!" not in s
@@ -338,7 +319,7 @@ def decode_flag_function(s):
         raise ValueError("requires string")
     name, args_raw = _split_flag_function(s)
     args_encoded = args_raw.split(FUNCTION_ARG_DELIM) if args_raw else []
-    args = [decode_flag_val(encoded.strip(), nofix=True) for encoded in args_encoded]
+    args = [decode_flag_val(encoded.strip()) for encoded in args_encoded]
     return name, tuple(args)
 
 

@@ -659,81 +659,6 @@ Here's a helper to print YAML parsed and Guild decoded values:
     >>> compare("1:2")
     (62, '1:2')
 
-### Short run IDs that resemble scientific notation
-
-Guild run IDs may resemble floating point notation. Guild supports an
-exception to the YAML parsing in order to support 8 character short
-IDs that resemble scientific notation.
-
-Rules:
-
-- Len at least 3 chars and at most 32
-- Does not contain `[-+.]`
-- Contains only lower case `e`
-
-Examples:
-
-    >>> short_ids = [
-    ...     "67217e15",
-    ...     "1e234567",
-    ...     "1234e567",
-    ...     "1e2",
-    ...     "12e3",
-    ...     "123e4",
-    ...     "1234e5",
-    ...     "12345e6",
-    ...     "123456e7",
-    ...     "1e0000001",
-    ...     "1e00000001",
-    ...     "1e000000001",
-    ...     "1e0000000001",
-    ...     "1e00000000001",
-    ...     "1e000000000000000000000000000001",
-    ... ]
-
-YAML parse vs Guild's `decode` - Guild treats each example as a string
-rather than a float:
-
-    >>> for val in short_ids:
-    ...     print("%r %r" % (yaml.safe_load(val), decode(val)))
-    6.7217e+19 '67217e15'
-    inf '1e234567'
-    inf '1234e567'
-    100.0 '1e2'
-    12000.0 '12e3'
-    1230000.0 '123e4'
-    123400000.0 '1234e5'
-    12345000000.0 '12345e6'
-    1234560000000.0 '123456e7'
-    10.0 '1e0000001'
-    10.0 '1e00000001'
-    10.0 '1e000000001'
-    10.0 '1e0000000001'
-    10.0 '1e00000000001'
-    10.0 '1e000000000000000000000000000001'
-
-Non-examples:
-
-    >>> not_short_ids = [
-    ...     "+12345e6",    # contains '+'
-    ...     "123456E7",    # uses upper case 'E'
-    ...     "1.23455e6",   # contains '.'
-    ...     "1e",          # less than three chars
-    ...     "e1",          # less than three chars
-    ...     "1e0000000000000000000000000000001", # more than 32 char
-    ... ]
-
-Guild's `decode` is equivalent to YAML's:
-
-    >>> for val in not_short_ids:
-    ...     print("%r %r" % (decode(val), yaml.safe_load(val)))
-    12345000000.0 12345000000.0
-    1234560000000.0 1234560000000.0
-    1234550.0 1234550.0
-    '1e' '1e'
-    'e1' 'e1'
-    10.0 10.0
-
 ## Decoders
 
 The tests below show how Guild decodes values based on flag type. When
@@ -746,8 +671,8 @@ The private function `_flag_decoders_for_type` performs this duty.
 
 Helper function:
 
-    >>> def decoders(flag_type, nofix=False):
-    ...    for f, _exc_types in _flag_decoders_for_type(flag_type, nofix):
+    >>> def decoders(flag_type):
+    ...    for f, _exc_types in _flag_decoders_for_type(flag_type):
     ...        print(f.__name__)
 
 `nofix` is a flag that disables Guild's "fixes" for various decoding
@@ -759,38 +684,21 @@ checked first as an optimization as these are common value types. We
 also use the standard non-fix `decode_yaml` as our final, fallback
 decoder.
 
-    >>> decoders(None, True)
+    >>> decoders(None)
     int
     float
     _flag_function_or_expanded_sequence
     _concatenated_list
     decode_yaml
-
-When `nofix` is False (the default above) we cannot attempt `float`
-conversions because float values are amoung the fixes that Guild
-applies. We also use `_decode_yaml_with_fix` as the final, fallback
-decoder, which applies any of the fixes described above.
-
-    >>> decoders(None, False)
-    int
-    _flag_function_or_expanded_sequence
-    _concatenated_list
-    _decode_yaml_with_fix
 
 `None` is equivalent to the string 'auto'.
 
-    >>> decoders("auto", True)
+    >>> decoders("auto")
     int
     float
     _flag_function_or_expanded_sequence
     _concatenated_list
     decode_yaml
-
-    >>> decoders("auto", False)
-    int
-    _flag_function_or_expanded_sequence
-    _concatenated_list
-    _decode_yaml_with_fix
 
 If the flag type is a known string type, a string decoder is used for
 cases where the flag value is not potentially a more complex YAML

@@ -1491,7 +1491,21 @@ def parse_flag_assigns(args, opdef=None):
 
 
 def _flag_types_for_opdef(opdef):
-    return {flagdef.name: flagdef.type for flagdef in opdef.flags}
+    types = _resource_flagdef_types(opdef)
+    types.update(_opdef_flagdef_types(opdef))
+    return types
+
+
+def _resource_flagdef_types(opdef):
+    return {
+        flagdef.name: flagdef.type
+        for flagdef in _resource_flagdefs(opdef, {})
+        if flagdef.type
+    }
+
+
+def _opdef_flagdef_types(opdef):
+    return {flagdef.name: flagdef.type for flagdef in opdef.flags if flagdef.type}
 
 
 def parse_flag_arg(arg, flag_types=None):
