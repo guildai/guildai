@@ -77,6 +77,7 @@ tests).
       needed:                      ok
       notebook-exec:               ok
       notebooks:                   ok
+      numeric-run-ids:             ok
       op-cmd:                      ok
       op-desc:                     ok
       op-env:                      ok
