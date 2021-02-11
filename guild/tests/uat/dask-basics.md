@@ -89,5 +89,6 @@ Verify that `dask-worker-space` doesn't exit.
 Speed up:
 
     >>> speedup = series_time / parallel_time
-    >>> speedup > 1.5, speedup
+    >>> speedup_min = float(os.getenv("DASK_SPEEDUP_THRESHOLD", 1.5))
+    >>> speedup >= speedup_min, (speedup, speedup_min)
     (True, ...)

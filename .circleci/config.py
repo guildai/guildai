@@ -195,6 +195,8 @@ class Build(object):
                     "UAT_SKIP={uat_skip},remote-*,hiplot-* "
                     "COLUMNS=999 "
                     "EXAMPLES={examples} "
+                    "GUILD_START_THRESHOLD=2.0 "
+                    "DASK_SPEEDUP_THRESHOLD=1.2 "
                     "{test_env}/bin/guild check --uat".format(
                         workspace=self.test_dir,
                         examples=self.examples_dir,

@@ -42,7 +42,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -92,7 +92,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -142,7 +142,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -198,7 +198,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -248,7 +248,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -298,7 +298,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,*pytorch*,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,*pytorch*,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -349,7 +349,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -404,7 +404,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -459,7 +459,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -514,7 +514,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -569,7 +569,7 @@ jobs:
 
           test-env/bin/guild check -v --offline
 
-          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,*pytorch*,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples test-env/bin/guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,*pytorch*,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
