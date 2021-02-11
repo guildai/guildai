@@ -24,3 +24,13 @@
       flags-dest: config:flags.cfg
       flags-import: all
       flags-import-skip: [f, s]
+
+    test-args-1:
+      main: test_args
+      flags-dest: config:empty.json
+      flags-import: all
+
+    test-args-2:
+      main: test_args foo bar baz
+      flags-dest: config:empty.json
+      flags-import: all

@@ -230,8 +230,7 @@ def _flags_dest(args):
     elif dest.startswith("global:"):
         return _global_dest(args, dest[7:])
     else:
-        log.debug("guild.op_main ignoring flags dest %r", dest)
-        return UNKNOWN_FLAGS_DEST, args, {}
+        return _unknown_dest(dest, args)
 
 
 def _args_dest(args):
@@ -255,6 +254,12 @@ def _global_dest(args, global_name):
     flags = util.nested_config(flags)
     global_dest = op_util.global_dest(global_name, flags)
     return "globals", base_args, global_dest
+
+
+def _unknown_dest(dest, args):
+    log.debug("guild.op_main ignoring flags dest %r", dest)
+    _flag_args, base_args = op_util.split_args_for_flags(args)
+    return UNKNOWN_FLAGS_DEST, base_args, {}
 
 
 def _dispatch_module_exec(flags_interface, module_info):

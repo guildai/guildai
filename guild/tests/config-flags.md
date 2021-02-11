@@ -25,6 +25,8 @@ generating run-specific files using run flag values.
     b.3.c: 876
     b.3.d: 543
 
+## Project Examples
+
 We use the `config-flags` sample project for the tests below.
 
     >>> cd(sample("projects", "config-flags"))
@@ -60,6 +62,10 @@ Help for project contains imported flags.
             f    (default is 2.234)
             l    (default is 1 2 abc)
             s    (default is flu flam)
+    <BLANKLINE>
+        test-args-1
+    <BLANKLINE>
+        test-args-2
     <BLANKLINE>
         yaml
           Flags:
@@ -280,7 +286,6 @@ importing source.
 
     >>> guild("run yaml-subdir -y")
     Resolving config:subdir/flags.yaml dependency
-    -- --msg hello
     <exit 0>
 
     >>> guild("ls -n")
@@ -291,9 +296,28 @@ If the path is relative to the imported source, Guild cannot find the
 config file.
 
     >>> guild("run yaml-subdir-broken -y")
-    --
     <exit 0>
 
     >>> guild("ls -n")
     <BLANKLINE>
+    <exit 0>
+
+### Args Test
+
+Guild passes only base args to the process command when `config`
+destination is specified.
+
+The `test-args-1` operation doesn't define any base args in
+`guild.yml`.
+
+    >>> guild("run test-args-1 -y")
+    Resolving config:empty.json dependency
+    []
+    <exit 0>
+
+The `test-args-2` operation defines three base args in `guild.yml`.
+
+    >>> guild("run test-args-2 -y")
+    Resolving config:empty.json dependency
+    ['foo', 'bar', 'baz']
     <exit 0>
