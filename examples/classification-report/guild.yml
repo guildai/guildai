@@ -1,0 +1,4 @@
+op:
+  output-scalars:
+    - step: 'Step (\step)'
+    - 'weighted avg +(?P<prec>\value) +(?P<recall>\value) +(?P<f1>\value)'
