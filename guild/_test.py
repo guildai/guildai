@@ -406,6 +406,77 @@ def _gen_run_doctest(filename, globs, optionflags, parser=None):
     return results
 
 
+class BashDocTestParser(doctest.DocTestParser):
+    """Hacked DocTestParser to support running bash commands.
+
+    Uses `$` as the prompt and `>` as a continuation char.
+
+    Wraps examples in `run("<example>")` to run them as shell
+    commands.
+    """
+
+    _EXAMPLE_RE = re.compile(
+        r"""
+        # Source consists of a PS1 line followed by zero or more PS2 lines.
+        (?P<source>
+            (?:^(?P<indent> [ ]{4}) \$    .*) # PS1 line
+            (?:\n           [ ]{4}  > .*)*)   # PS2 lines
+        \n?
+        # Want consists of any non-blank lines that do not start with PS1.
+        (?P<want> (?:(?![ ]*$)    # Not a blank line
+                     (?![ ]*>>>)  # Not a line starting with PS1
+                     .+$\n?       # But any other line
+                  )*)
+        """,
+        re.MULTILINE | re.VERBOSE,
+    )
+
+    def _parse_example(self, m, name, lineno):
+        indent = len(m.group("indent"))
+
+        source_lines = m.group("source").split("\n")
+        self._check_prompt_blank(source_lines, indent, name, lineno)
+        self._check_prefix(source_lines[1:], " " * indent + ">", name, lineno)
+        source = "\n".join([sl[indent + 2 :] for sl in source_lines])
+
+        want = m.group("want")
+        want_lines = want.split("\n")
+        if len(want_lines) > 1 and re.match(r" *$", want_lines[-1]):
+            del want_lines[-1]  # forget final newline & spaces after it
+        self._check_prefix(want_lines, " " * indent, name, lineno + len(source_lines))
+        want = "\n".join([wl[indent:] for wl in want_lines])
+
+        m = self._EXCEPTION_RE.match(want)
+        if m:
+            exc_msg = m.group("msg")
+        else:
+            exc_msg = None
+
+        options = self._find_options(source, name, lineno)
+
+        return self._wrap_bash(source), options, want, exc_msg
+
+    @staticmethod
+    def _wrap_bash(source):
+        source = source.replace("\n", " ").replace("\"", "\\\"")
+        return "run(\"%s\")" % source
+
+    @staticmethod
+    def _check_prompt_blank(lines, indent, name, lineno):
+        for i, line in enumerate(lines):
+            if len(line) >= indent + 2 and line[indent + 1] != " ":
+                raise ValueError(
+                    "line %r of the docstring for %s "
+                    "lacks blank after %s: %r"
+                    % (lineno + i + 1, name, line[indent : indent + 1], line)
+                )
+
+
+def _run_bash_doctest(filename, globs, optionflags):
+    parser = BashDocTestParser()
+    return _gen_run_doctest(filename, globs, optionflags, parser)
+
+
 def _load_testfile(filename):
     # Copied from Python 3.6 doctest._load_testfile to ensure utf-8
     # encoding on Python 2.
