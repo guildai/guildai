@@ -287,9 +287,9 @@ class Py23DocChecker(doctest.OutputChecker):
     def _strip_u(got):
         # Strip unicode prefix
         got = re.sub(r"([\W])u'(.*?)'", "\\1'\\2'", got)
-        got = re.sub(r'([\W])u"(.*?)"', '\\1"\\2"', got)
+        got = re.sub(r"([\W])u\"(.*?)\"", "\\1\"\\2\"", got)
         got = re.sub(r"^u'(.*?)'", "'\\1'", got)
-        got = re.sub(r'^u"(.*?)"', '"\\1"', got)
+        got = re.sub(r"^u\"(.*?)\"", "\"\\1\"", got)
         return got
 
     @staticmethod
@@ -316,7 +316,7 @@ class Py23DocChecker(doctest.OutputChecker):
 
     @staticmethod
     def _leading_wildcard_want(want):
-        # Treat leading '???' like '...' (work around for '...' as
+        # Treat leading "???" like "..." (work around for "..." as
         # code continuation token in doctest.
         return re.sub(r"^\?\?\?", "...", want)
 
@@ -410,13 +410,13 @@ def _load_testfile(filename):
     # Copied from Python 3.6 doctest._load_testfile to ensure utf-8
     # encoding on Python 2.
     package = doctest._normalize_module(None, 3)
-    if getattr(package, '__loader__', None) is not None:
-        if hasattr(package.__loader__, 'get_data'):
+    if getattr(package, "__loader__", None) is not None:
+        if hasattr(package.__loader__, "get_data"):
             file_contents = package.__loader__.get_data(filename)
             file_contents = file_contents.decode("utf-8")
-            # get_data() opens files as 'rb', so one must do the equivalent
+            # get_data() opens files as "rb", so one must do the equivalent
             # conversion as universal newlines would do.
-            return file_contents.replace(os.linesep, '\n'), filename
+            return file_contents.replace(os.linesep, "\n"), filename
     with codecs.open(filename, encoding="utf-8") as f:
         return f.read(), filename
 
