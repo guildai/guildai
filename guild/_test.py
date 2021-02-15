@@ -65,6 +65,7 @@ from guild import init
 from guild import op_util
 from guild import run as runlib
 from guild import util
+from guild import yaml_util
 
 PLATFORM = platform.system()
 
@@ -126,13 +127,16 @@ def _run_test(name):
     sys.stdout.write("  %s: " % name)
     sys.stdout.flush()
     filename = _filename_for_test(name)
-    if _skip_windows_test(filename):
-        _log_skipped_windows_test(name)
+    if os.getenv("FORCE_TEST") != "1" and _skip_test(filename):
+        _log_skipped_test(name)
         return True
     try:
         failures, _tests = run_test_file(filename)
     except IOError:
         _log_test_not_found(name)
+        return False
+    except RuntimeError as e:
+        _log_general_error(name, str(e))
         return False
     else:
         if not failures:
@@ -158,32 +162,69 @@ def _resolve_relative_test_filename(filename):
     return doctest._module_relative_path(package, filename)
 
 
-def _skip_windows_test(filename):
-    if PLATFORM != "Windows":
-        return False
-    full_filename = os.path.join(os.path.dirname(__file__), filename)
-    try:
-        with open(full_filename, "r") as f:
-            head = f.read(256)
-    except IOError:
-        return False
-    else:
-        return re.search(r"^skip-windows: *yes$", head, re.MULTILINE)
+def _skip_test(filename):
+    fm = yaml_util.yaml_front_matter(filename)
+    options = _parse_doctest_options(fm.get("doctest"), filename)
+    return options and _skip_for_doctest_options(options) is True
 
 
-def _log_skipped_windows_test(name):
+def _parse_doctest_options(encoded_options, filename):
+    if not encoded_options:
+        return {}
+    parser = doctest.DocTestParser()
+    parser._OPTION_DIRECTIVE_RE = re.compile(r"([^\n'\"]*)$", re.MULTILINE)
+    return parser._find_options(encoded_options, filename, 1)
+
+
+def _skip_for_doctest_options(options):
+    is_windows = PLATFORM == "Windows"
+    py_major_ver = sys.version_info[0]
+    py_minor_ver = sys.version_info[1]
+    skip = None
+    if options.get(WINDOWS) is False and is_windows:
+        skip = True
+    if options.get(WINDOWS_ONLY) is True and not is_windows:
+        skip = True
+    # PY2 and PY3 are enabled by default - check if explicitly disabled.
+    if options.get(PY2) is False and py_major_ver == 2:
+        skip = True
+    if options.get(PY3) is False and py_major_ver == 3:
+        skip = True
+    # Force tests on/off if more specific Python versions specified.
+    for opt, maj_ver, min_ver in [
+        (options.get(PY27), 2, 7),
+        (options.get(PY35), 3, 5),
+        (options.get(PY36), 3, 6),
+        (options.get(PY37), 3, 7),
+        (options.get(PY38), 3, 8),
+        (options.get(PY39), 3, 9),
+    ]:
+        if opt in (True, False) and py_major_ver == maj_ver and py_minor_ver == min_ver:
+            skip = not opt
+    return skip
+
+
+def _log_skipped_test(name):
     sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
-    sys.stdout.write("ok (skipped test on Windows)\n")
+    sys.stdout.write("ok (skipped)\n")
     sys.stdout.flush()
 
 
 def _log_test_not_found(name):
-    sys.stdout.write("%sTEST NOT FOUND\n" % (" " * (TEST_NAME_WIDTH - len(name))))
+    sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
+    sys.stdout.write("TEST NOT FOUND\n")
+    sys.stdout.flush()
 
 
 def _log_test_ok(name):
     sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
     sys.stdout.write("ok\n")
+    sys.stdout.flush()
+
+
+def _log_general_error(name, error):
+    sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
+    sys.stdout.write("ERROR (%s)\n" % error)
     sys.stdout.flush()
 
 
@@ -295,35 +336,10 @@ class TestRunner(doctest.DocTestRunner, object):
 
     @staticmethod
     def _apply_skip(test):
-        SKIP = doctest.SKIP
-        is_windows = PLATFORM == "Windows"
-        py_major_ver = sys.version_info[0]
-        py_minor_ver = sys.version_info[1]
         for example in test.examples:
-            if example.options.get(WINDOWS) is False and is_windows:
-                example.options[SKIP] = True
-            if example.options.get(WINDOWS_ONLY) is True and not is_windows:
-                example.options[SKIP] = True
-            # PY2 and PY3 are enabled by default - check if explicitly disabled.
-            if example.options.get(PY2) is False and py_major_ver == 2:
-                example.options[SKIP] = True
-            if example.options.get(PY3) is False and py_major_ver == 3:
-                example.options[SKIP] = True
-            # Force tests on/off if more specific Python versions specified.
-            for opt, maj_ver, min_ver in [
-                (example.options.get(PY27), 2, 7),
-                (example.options.get(PY35), 3, 5),
-                (example.options.get(PY36), 3, 6),
-                (example.options.get(PY37), 3, 7),
-                (example.options.get(PY38), 3, 8),
-                (example.options.get(PY39), 3, 9),
-            ]:
-                if (
-                    opt in (True, False)
-                    and py_major_ver == maj_ver
-                    and py_minor_ver == min_ver
-                ):
-                    example.options[SKIP] = not opt
+            skip = _skip_for_doctest_options(example.options)
+            if skip is not None:
+                example.options[doctest.SKIP] = skip
 
 
 def run_test_file_with_config(filename, globs, optionflags):
@@ -349,17 +365,32 @@ def _safe_chdir(dir):
 
 def _run_test_file_with_config(filename, globs, optionflags):
     """Modified from doctest.py to use custom checker."""
+    fm = yaml_util.yaml_front_matter(filename)
+    doctest_type = fm.get("doctest-type", "python")
+    if doctest_type == "python":
+        return _run_python_doctest(filename, globs, optionflags)
+    elif doctest_type == "bash":
+        return _run_bash_doctest(filename, globs, optionflags)
+    else:
+        raise RuntimeError("unsupported doctest type '%s'" % doctest_type)
+
+
+def _run_python_doctest(filename, globs, optionflags):
+    return _gen_run_doctest(filename, globs, optionflags)
+
+
+def _gen_run_doctest(filename, globs, optionflags, parser=None):
+    parser = parser or doctest.DocTestParser()
     text, filename = _load_testfile(filename)
     name = os.path.basename(filename)
     if globs is None:
         globs = {}
     else:
         globs = globs.copy()
-    if '__name__' not in globs:
-        globs['__name__'] = '__main__'
+    if "__name__" not in globs:
+        globs["__name__"] = "__main__"
     checker = Py23DocChecker()
     runner = TestRunner(checker=checker, verbose=None, optionflags=optionflags)
-    parser = doctest.DocTestParser()
     test = parser.get_doctest(text, globs, name, filename, 0)
     flags = (
         print_function.compiler_flag

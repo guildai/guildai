@@ -1,4 +1,6 @@
-skip-windows: yes
+---
+doctest: -WINDOWS
+---
 
 Uses OS scrcipts that don't run on Windows.
 

@@ -1,4 +1,6 @@
-skip-windows: yes
+---
+doctest: -WINDOWS
+---
 
 # Batch Terminate Behavior
 

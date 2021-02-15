@@ -109,3 +109,43 @@
 
     >>> decode_yaml("[1, b, yes, 1e2, 2010-05-15]")
     [1, 'b', True, 100.0, datetime.date(2010, 5, 15)]
+
+## YAML Front Matter
+
+    >>> from guild.yaml_util import yaml_front_matter as yfm
+
+    >>> tmp = mkdtemp()
+    >>> working = path(tmp, "working")
+
+    >>> write(working, "")
+    >>> yfm(working)
+    {}
+
+    >>> write(working, """---
+    ... ---
+    ... """)
+    >>> yfm(working)
+    {}
+
+    >>> write(working, """---
+    ... i: 123
+    ... f: 1.123
+    ... s: hello
+    ... ---
+    ...
+    ... Some non-front matter content.
+    ... """)
+    >>> pprint(yfm(working))
+    {'f': 1.123, 'i': 123, 's': 'hello'}
+
+    >>> write(working, """---
+    ... - foo
+    ... - bar
+    ... - baz: 123
+    ...   bam: 456
+    ... ---
+    ...
+    ... Some non-front matter content.
+    ... """)
+    >>> pprint(yfm(working))
+    ['foo', 'bar', {'bam': 456, 'baz': 123}]

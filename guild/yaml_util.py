@@ -40,6 +40,32 @@ def decode_yaml(s):
         raise ValueError(e)
 
 
+def yaml_front_matter(filename):
+    fm_s = _yaml_front_matter_s(filename)
+    if not fm_s:
+        return {}
+    return yaml.safe_load(fm_s)
+
+
+def _yaml_front_matter_s(filename):
+    lines = []
+    reading = False
+    with open(filename) as f:
+        for line in f:
+            trimmed = line.rstrip()
+            if not trimmed.lstrip():
+                continue
+            if trimmed == "---":
+                if reading:
+                    return "\n".join(lines)
+                else:
+                    reading = True
+            elif reading:
+                lines.append(trimmed)
+            else:
+                return None
+
+
 def patch_yaml_resolver():
     """Patch yaml parsing to support Guild specific resolution rules.
 

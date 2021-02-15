@@ -1,4 +1,6 @@
-skip-windows: yes
+---
+doctest: -WINDOWS
+---
 
 NOTE: There is an issue with stop-after on Windows with the sample
 script used below (sleep) that causes the process to require SIGKILL
