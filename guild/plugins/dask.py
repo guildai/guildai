@@ -24,21 +24,44 @@ from guild import model as modellib
 from guild import plugin as pluginlib
 
 dask_scheduler_description = """
-Support for Dask based scehdulers
+Start a Dask scheduler.
 
-TODO: This is a stub for a Dask based queue.
+A Dask scheduler polls for staged runs and starts them in the order \
+they were staged. Dask schedulers are queues that can process runs in \
+parallel.
+
+By default, a Dask scheduler runs staged runs even if there are other \
+runs in progress. To force a scheduler to wait until other runs finish \
+before starting a staged run, set `wait-for-running` to `true` when \
+starting the scheduler.
+
+Use `run-once` to start staged runs and stop without waiting for \
+additional staged runs.
 """
 
 dask_scheduler_flags_data = yaml.safe_load(
     """
-    {} # TODO: placeholder for scheduler flags def
+poll-interval:
+  description: Minimum number of seconds between polls
+  default: 10
+  type: int
+run-once:
+  description: Run all staged runs and stop
+  default: no
+  arg-switch: yes
+  type: boolean
+wait-for-running:
+  description: Wait for other runs to stop before starting staged runs
+  default: no
+  arg-switch: yes
+  type: boolean
 """
 )
 
 
-class DaskSchedulerProxy(object):
+class DaskModelProxy(object):
 
-    name = "dask-scheduler"
+    name = "dask"
 
     def __init__(self):
         self.modeldef = self._init_modeldef()
@@ -49,7 +72,7 @@ class DaskSchedulerProxy(object):
             {
                 "model": self.name,
                 "operations": {
-                    "dask-scheduler": {
+                    "scheduler": {
                         "description": dask_scheduler_description,
                         "exec": (
                             "${python_exe} -um guild.plugins.dask_scheduler_main "
@@ -61,17 +84,17 @@ class DaskSchedulerProxy(object):
             }
         ]
         gf = guildfile.Guildfile(data, src="<%s>" % self.__class__.__name__)
-        return gf.models["dask-scheduler"]
+        return gf.models["dask"]
 
     @staticmethod
     def _init_reference():
-        return modellib.ModelRef("builtin", "guildai", guild.__version__, "queue")
+        return modellib.ModelRef("builtin", "guildai", guild.__version__, "dask")
 
 
 class DaskPlugin(pluginlib.Plugin):
     @staticmethod
     def resolve_model_op(opspec):
-        if opspec in ("dask-scheduler", "dask-scheduler:dask-scheduler"):
-            model = DaskSchedulerProxy()
-            return model, model.name
+        if opspec in ("dask:scheduler", "scheduler"):
+            model = DaskModelProxy()
+            return model, "scheduler"
         return None
