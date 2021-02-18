@@ -71,13 +71,15 @@ The current runs:
 And the logs for each queue.
 
     >>> run("guild cat --output -Fl q1")
-    INFO: [queue] ... Starting staged run ...
-    INFO: [queue] ... Waiting for staged runs
+    INFO: [guild] ... Starting queue
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Waiting for staged runs
     <exit 0>
 
     >>> run("guild cat --output -Fl q2")
-    INFO: [queue] ... Starting staged run ...
-    INFO: [queue] ... Waiting for staged runs
+    INFO: [guild] ... Starting queue
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Waiting for staged runs
     <exit 0>
 
 Note that each queue starts a staged run without waiting.
@@ -133,7 +135,8 @@ At this point we have one run in progress and the other staged:
 Output for the first queue:
 
     >>> run("guild cat --output -Fl q1")
-    INFO: [queue] ... Starting staged run ...
+    INFO: [guild] ... Starting queue
+    INFO: [guild] ... Starting staged run ...
     <exit 0>
 
 Start the second queue:
@@ -151,7 +154,7 @@ in-progress and defer starting the pending staged run until it's next
 check.
 
     >>> run("guild cat --output -Fl q2")
-    INFO: [queue] ... Found staged run ... (waiting for runs to finish: ...)
+    INFO: [guild] ... Found staged run ... (waiting for runs to finish: ...)
     ...
     <exit 0>
 

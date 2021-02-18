@@ -30,13 +30,15 @@ The three trials are staged while the batch itself is completed.
 Use a `queue` to run the staged trials.
 
     >>> project.run("queue", flags={"run-once": True})
-    INFO: [queue] ... Processing staged runs
-    INFO: [queue] ... Starting staged run ...
+    INFO: [guild] ... Starting queue
+    INFO: [guild] ... Processing staged runs
+    INFO: [guild] ... Starting staged run ...
     a
-    INFO: [queue] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
     b
-    INFO: [queue] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
     c
+    INFO: [guild] ... Stopping queue
 
 Our runs after the queue finished.
 

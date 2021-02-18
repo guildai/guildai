@@ -51,5 +51,5 @@ Show runs:
     [1:...]  gpkg.hello/hello:from-file  ...  completed   file=msg.txt
     [2:...]  gpkg.hello/hello            ...  completed   msg=whoop
     [3:...]  gpkg.hello/hello:default    ...  completed
-    [4:...]  queue                       ...  terminated  poll-interval=10 run-once=no wait-for-running=no
+    [4:...]  queue                       ...  completed  poll-interval=10 run-once=no wait-for-running=no
     <exit 0>

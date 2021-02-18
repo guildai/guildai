@@ -64,11 +64,12 @@ Wait for the run to be started and run:
 Output from the queue:
 
     >>> run("guild cat --output -Fo queue")
-    INFO: [queue] ... Waiting for staged runs
-    INFO: [queue] ... Starting staged run ...
+    INFO: [guild] ... Starting queue
+    INFO: [guild] ... Waiting for staged runs
+    INFO: [guild] ... Starting staged run ...
     Masking available GPUs (CUDA_VISIBLE_DEVICES='1')
     Hello Guild!
-    INFO: [queue] ... Waiting for staged runs
+    INFO: [guild] ... Waiting for staged runs
     <exit 0>
 
 The runs:
@@ -143,10 +144,10 @@ Show runs:
 
 Confirm that the queue refused to start the run for the right reason:
 
-    >>> run("guild cat --output -l q1")
-    ???
-    INFO: [queue] ... Waiting for staged runs
-    INFO: [queue] ... Ignorning staged run ... (GPU spec mismatch: run is 2, queue is 1)
+    >>> run("guild cat --output -Fl q1")
+    INFO: [guild] ... Starting queue
+    INFO: [guild] ... Waiting for staged runs
+    INFO: [guild] ... Ignorning staged run ... (GPU spec mismatch: run is 2, queue is 1)
     <exit 0>
 
 We can start another queue, which is associated with GPU `2`, to start
@@ -163,10 +164,11 @@ Wait for the staged run to start:
 Check output from the latest queue:
 
     >>> run("guild cat --output -Fl q2")
-    INFO: [queue] ... Starting staged run ...
+    INFO: [guild] ... Starting queue
+    INFO: [guild] ... Starting staged run ...
     Masking available GPUs (CUDA_VISIBLE_DEVICES='2')
     Hello Guild!
-    INFO: [queue] ... Waiting for staged runs
+    INFO: [guild] ... Waiting for staged runs
     <exit 0>
 
 Show runs:
