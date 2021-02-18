@@ -42,11 +42,6 @@ Deprecation warnings:
     guild: no matching runs
     <exit 1>
 
-    >>> test("guild ls -S today")
-    WARNING: option -S is deprecated and will be removed in version 0.8 - use -Fs instead
-    guild: no matching runs
-    <exit 1>
-
     >>> test("guild ls -D xxx")
     WARNING: option -D is deprecated and will be removed in version 0.8 - use -Fd instead
     guild: no matching runs

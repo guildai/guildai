@@ -348,13 +348,12 @@ def common_filters(fn):
                 callback=_deprecated("-N", "-Fn"),
             ),
             click.Option(
-                ("-Fs", "-S", "--started", "filter_started"),
+                ("-Fs", "--started", "filter_started"),
                 metavar="RANGE",
                 help=(
                     "Filter only runs started within RANGE. See above "
                     "for valid time ranges."
                 ),
-                callback=_deprecated("-S", "-Fs"),
             ),
             click.Option(
                 ("-Fd", "-D", "--digest", "filter_digest"),
@@ -366,6 +365,15 @@ def common_filters(fn):
         ],
     )
     return fn
+
+
+def _callbacks(*cbs):
+    def f(ctx, param, value):
+        for cb in cbs:
+            value = cb(ctx, param, value)
+        return value
+
+    return f
 
 
 def _deprecated(old_option, new_option, *rest):
@@ -400,7 +408,11 @@ def status_filters(fn):
     `--terminated`. These may be used together to include runs that
     match any of the filters. For example to only include runs that
     were either terminated or exited with an error, use ``--terminated
-    --error``, or the short form ``-ET``.
+    --error``, or the short form ``-Set``.
+
+    You may combine more than one status character with ``-S`` to
+    expand the filter. For example, ``-Set`` shows only runs with
+    terminated or error status.
 
     Status filters are applied before `RUN` indexes are resolved. For
     example, a run index of ``1`` is the latest run that matches the
@@ -413,41 +425,99 @@ def status_filters(fn):
                 ("-Sr", "-R", "--running", "status_running"),
                 help="Filter only runs that are still running.",
                 is_flag=True,
-                callback=_deprecated("-R", "-Sr"),
+                callback=_callbacks(
+                    _deprecated("-R", "-Sr"),
+                    _apply_status_chars,
+                ),
             ),
             click.Option(
                 ("-Sc", "-C", "--completed", "status_completed"),
                 help="Filter only completed runs.",
                 is_flag=True,
-                callback=_deprecated("-C", "-Sc"),
+                callback=_callbacks(
+                    _deprecated("-C", "-Sc"),
+                    _apply_status_chars,
+                ),
             ),
             click.Option(
                 ("-Se", "-E", "--error", "status_error"),
                 help="Filter only runs that exited with an error.",
                 is_flag=True,
-                callback=_deprecated("-E", "-Se"),
+                callback=_callbacks(
+                    _deprecated("-E", "-Se"),
+                    _apply_status_chars,
+                ),
             ),
             click.Option(
                 ("-St", "-T", "--terminated", "status_terminated"),
                 help="Filter only runs terminated by the user.",
                 is_flag=True,
-                callback=_deprecated("-T", "-St"),
+                callback=_callbacks(
+                    _deprecated("-T", "-St"),
+                    _apply_status_chars,
+                ),
             ),
             click.Option(
                 ("-Sp", "-P", "--pending", "status_pending"),
                 help="Filter only pending runs.",
                 is_flag=True,
-                callback=_deprecated("-P", "-Sp"),
+                callback=_callbacks(
+                    _deprecated("-P", "-Sp"),
+                    _apply_status_chars,
+                ),
             ),
             click.Option(
                 ("-Ss", "-G", "--staged", "status_staged"),
                 help="Filter only staged runs.",
                 is_flag=True,
-                callback=_deprecated("-G", "-Sg"),
+                callback=_callbacks(
+                    _deprecated("-G", "-Sg"),
+                    _apply_status_chars,
+                ),
+            ),
+            click.Option(
+                # Used by _apply_status_chars to implicitly set status
+                # flags using one or more chars.
+                ("-S", "status_chars"),
+                hidden=True,
             ),
         ],
     )
     return fn
+
+
+def _apply_status_chars(ctx, param, value):
+    if value:
+        return value
+    status_chars = ctx.params.get("status_chars")
+    if not status_chars:
+        return value
+    status_char = _param_status_char(param)
+    if status_char in status_chars:
+        return True
+    return value
+
+
+def _param_status_char(param):
+    for opt in param.opts:
+        if opt.startswith("-S"):
+            char = opt[2:]
+            assert len(char) == 1, param.opts
+            return char
+    assert False, param.opts
+
+
+def _apply_status(ctx, value):
+    for char, status_param_name in [
+        ("r", "status_running"),
+        ("c", "status_completed"),
+        ("e", "status_error"),
+        ("t", "status_terminated"),
+        ("p", "status_pending"),
+        ("g", "status_staged"),
+    ]:
+        if char in value:
+            ctx.params[status_param_name] = True
 
 
 @click_util.render_doc

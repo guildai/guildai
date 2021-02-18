@@ -626,6 +626,7 @@ def _filter_and_status_args(
     status_running,
     status_staged,
     status_terminated,
+    status_chars,
 ):
     filter_args = _filter_args(
         filter_comments,
@@ -645,6 +646,7 @@ def _filter_and_status_args(
         status_running,
         status_staged,
         status_terminated,
+        status_chars,
     )
     return filter_args + status_args
 
@@ -689,7 +691,10 @@ def _status_args(
     status_running,
     status_staged,
     status_terminated,
+    status_chars,  # pylint: disable=unused-argument
 ):
+    # Ignore status_chars if provided as the status is reflected in
+    # the other status attrs.
     args = []
     if status_completed:
         args.append("--completed")

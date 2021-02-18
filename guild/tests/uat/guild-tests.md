@@ -104,6 +104,7 @@ tests).
       run-ops:                     ok
       run-output:                  ok
       run-scripts:                 ok
+      run-status:                  ok
       run-stop-after:              ok
       run-utils:                   ok
       run-with-proto:              ok

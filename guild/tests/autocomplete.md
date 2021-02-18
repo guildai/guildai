@@ -51,6 +51,7 @@ Providing a prefix limits the tests shown.
     run-ops
     run-output
     run-scripts
+    run-status
     run-stop-after
     run-utils
     run-with-proto

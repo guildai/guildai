@@ -97,6 +97,7 @@ def _status_names():
         "status_running",
         "status_staged",
         "status_terminated",
+        "status_chars",
     ]
 
 
