@@ -36,6 +36,7 @@ OP_RUNFILE_PATHS = [
 ]
 
 PROC_TERM_TIMEOUT_SECONDS = 30
+LOG_WAITING_DELAY_SECONDS = 2
 
 ###################################################################
 # Exception classes
@@ -343,10 +344,13 @@ def _proc_wait_minutes(proc, minutes):
 
 
 def _handle_proc_keyboard_interrupt(proc):
-    if os.getenv("NO_OP_INTERRUPTED_MSG") != "1":
-        log.info("Operation interrupted - waiting for process to exit")
+    log_waiting_after = time.time() + LOG_WAITING_DELAY_SECONDS
     kill_after = time.time() + PROC_TERM_TIMEOUT_SECONDS
     while time.time() < kill_after:
+        if log_waiting_after and time.time() > log_waiting_after:
+            if os.getenv("NO_OP_INTERRUPTED_MSG") != "1":
+                log.info("Operation interrupted - waiting for process to exit")
+            log_waiting_after = None
         if proc.poll() is not None:
             break
         time.sleep(1)
