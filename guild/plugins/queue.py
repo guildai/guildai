@@ -29,11 +29,11 @@ Start a queue
 A queue polls for staged runs and starts them in the order they were \
 staged. By default, a queue runs staged runs even if there are other \
 runs in progress. To force a queue to wait until other runs finish \
-before starting a queued run, set `wait-for-running` to `true` when \
-starting the run.
+before starting a staged run, set `wait-for-running` to `true` when \
+starting the queue.
 
-Use `run-once` to start staged runs and stop without waiting for new \
-staged runs.
+Use `run-once` to start staged runs and stop without waiting for \
+additional staged runs.
 
 To associate runs with one or more GPUs, set `gpus` to a comma-separated \
 list of GPU IDs. This value is used when starting staged runs. For \
@@ -100,5 +100,5 @@ class QueuePlugin(pluginlib.Plugin):
     def resolve_model_op(opspec):
         if opspec in ("queue", "queue:queue"):
             model = QueueModelProxy()
-            return model, model.name
+            return model, "queue"
         return None
