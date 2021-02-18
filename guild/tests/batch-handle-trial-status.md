@@ -108,7 +108,7 @@ not 'staged'.
     ...     _run_trial(trial_runs[0])
 
     >>> logs.print_all()
-    WARNING: Skipping ... - status is 'completed' but expected 'staged'
+    Skipping ... because it's status is 'completed'
 
 Let's change the status of the second trial from 'staged' to 'pending'.
 
@@ -125,7 +125,7 @@ Try to start the second trial.
     ...     _run_trial(trial_runs[1])
 
     >>> logs.print_all()
-    WARNING: Skipping ... - status is 'pending' but expected 'staged'
+    Skipping ... because it's status is 'pending'
 
 Finally, start the third trial.
 

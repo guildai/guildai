@@ -170,8 +170,8 @@ def _try_run_staged_trial(trial_run, batch_run, status_lock):
     with status_lock:
         trial_status = trial_run.status
         if trial_status != "staged":
-            log.warning(
-                "Skipping %s - status is '%s' but expected 'staged'",
+            log.info(
+                "Skipping %s because it's status is '%s'",
                 trial_run.id,
                 trial_status,
             )
