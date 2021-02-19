@@ -26,21 +26,33 @@ from guild import plugin as pluginlib
 dask_scheduler_description = """
 Start a Dask scheduler.
 
+Dask schedulers execute staged runs in parallel according to their \
+number of workers. Specify the number of workers using the workers \
+flags.
+
+If the Bokeh Python package is installed, the schduler runs a \
+dashboard application by default on port 8787. Specify a different \
+port or binding address using the dashboard-address flag. To disable \
+the dashboard, specify no for dashboard-address.
+
 A Dask scheduler polls for staged runs and starts them in the order \
 they were staged. Dask schedulers are queues that can process runs in \
 parallel.
 
 By default, a Dask scheduler runs staged runs even if there are other \
 runs in progress. To force a scheduler to wait until other runs finish \
-before starting a staged run, set `wait-for-running` to `true` when \
+before starting a staged run, set wait-for-running to true when \
 starting the scheduler.
 
-Use `run-once` to start staged runs and stop without waiting for \
+Use run-once to start staged runs and stop without waiting for \
 additional staged runs.
 """
 
 dask_scheduler_flags_data = yaml.safe_load(
     """
+workers:
+  description: Number of workers in the Dask cluster
+  type: int
 poll-interval:
   description: Minimum number of seconds between polls
   default: 10
@@ -55,6 +67,14 @@ wait-for-running:
   default: no
   arg-switch: yes
   type: boolean
+dashboard-address:
+  description: >
+    Address to listen to for dashboard connections
+
+    You can specify a port or an address like '0.0.0.0:8787'. Use no
+    to disable the dashboard.
+  default: 8787
+
 """
 )
 

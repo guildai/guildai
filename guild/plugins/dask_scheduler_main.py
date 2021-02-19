@@ -16,10 +16,12 @@ from __future__ import absolute_import
 from __future__ import division
 
 import argparse
+import json
 import logging
 import os
 
 from guild import _api as gapi
+from guild import util
 
 from . import gen_queue
 
@@ -35,7 +37,7 @@ log = logging.getLogger("guild")
 
 
 class State(gen_queue.StateBase):
-    def __init__(self, client, args):
+    def __init__(self, client, args, tmp):
         super(State, self).__init__(
             name="Dask scheduler",
             start_run_cb=_start_run,
@@ -45,6 +47,7 @@ class State(gen_queue.StateBase):
             run_once=args.run_once,
             wait_for_running=args.wait_for_running,
         )
+        self.tmp = tmp
         self.client = client
         self.futures = []
 
@@ -57,6 +60,8 @@ def main():
 
 def _parse_args():
     p = argparse.ArgumentParser()
+    p.add_argument("--workers", type=int)
+    p.add_argument("--dashboard-address")
     p.add_argument("--poll-interval", type=int, default=10)
     p.add_argument("--run-once", action="store_true")
     p.add_argument("--wait-for-running", action="store_true")
@@ -65,12 +70,15 @@ def _parse_args():
 
 def _init_state(args):
     log.info("Initializing Dask cluster")
-    client = _init_dask_client(args)
-    return State(client, args)
+    tmp = util.mktempdir("dask-scheduler-")
+    log.debug("dask scheduler tempt dir: %s", tmp)
+    client = _init_dask_client(args, tmp)
+    return State(client, args, tmp)
 
 
-def _init_dask_client(_args):
+def _init_dask_client(args, tmp):
     _workaround_multiprocessing_cycle()
+    ##_init_dask_config(tmp)  # Required before importing distributed below.
     try:
         from dask.distributed import Client, LocalCluster
     except ImportError:
@@ -79,9 +87,54 @@ def _init_dask_client(_args):
             "install it first using 'pip install dask.distributed'"
         )
     else:
-        cluster = LocalCluster()
-        client = Client(cluster)
-        return client
+        cluster = LocalCluster(
+            n_workers=args.workers,
+            processes=True,
+            dashboard_address=_dashboard_address(args),
+        )
+        return Client(cluster)
+
+
+def _init_dask_config(tmp):
+    dask_tmp = _init_dask_tmp(tmp)
+    os.environ["DASK_CONFIG"] = dask_tmp
+    with open(os.path.join(dask_tmp, "config.json"), "w") as f:
+        json.dump(_dask_config(), f)
+
+
+def _init_dask_tmp(tmp):
+    dask_tmp = os.path.join(tmp, "dask-config")
+    util.ensure_dir(dask_tmp)
+    return dask_tmp
+
+
+def _dask_config():
+    return {
+        "distributed": {
+            "logging": {
+                "version": 1,
+                "level": _dask_log_level(),
+                "format": "%(name)s - %(levelname)s - %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+        },
+    }
+
+
+def _dask_log_level():
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        return logging.DEBUG
+    else:
+        return logging.WARNING
+
+
+def _dashboard_address(args):
+    try:
+        port = int(args.dashboard_address)
+    except ValueError:
+        return args.dashboard_address
+    else:
+        return ":%s" % port
 
 
 def _workaround_multiprocessing_cycle():
@@ -136,6 +189,7 @@ def _cleanup(state):
         print("TODO: send TERM signal to %s" % f)
     state.client.cluster.close()
     state.client.close()
+    util.safe_rmtree(state.tmp)
 
 
 if __name__ == "__main__":
