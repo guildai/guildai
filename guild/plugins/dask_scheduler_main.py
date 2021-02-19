@@ -70,6 +70,7 @@ def _init_state(args):
 
 
 def _init_dask_client(_args):
+    _workaround_multiprocessing_cycle()
     try:
         from dask.distributed import Client, LocalCluster
     except ImportError:
@@ -81,6 +82,14 @@ def _init_dask_client(_args):
         cluster = LocalCluster()
         client = Client(cluster)
         return client
+
+
+def _workaround_multiprocessing_cycle():
+    # See https://github.com/dask/distributed/issues/4168#issuecomment-722049470
+    try:
+        import multiprocessing.popen_spawn_posix as _
+    except ImportError:
+        pass
 
 
 def _start_run(run, state):
