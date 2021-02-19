@@ -523,6 +523,7 @@ def test_globals():
         "dirname": os.path.dirname,
         "ensure_dir": util.ensure_dir,
         "exists": os.path.exists,
+        "example": _example,
         "find": find,
         "findl": file_util.find,
         "gapi": gapi,
@@ -603,6 +604,14 @@ def _filter_ignored(paths, ignore):
     return [
         p for p in paths if not any((fnmatch.fnmatch(p, pattern) for pattern in ignore))
     ]
+
+
+def _example(name):
+    guild_pkg = os.path.abspath(guild.__pkgdir__)
+    examples = os.path.abspath(
+        os.getenv("EXAMPLES") or os.path.join(guild_pkg, "examples")
+    )
+    return os.path.join(examples, name)
 
 
 def cat(*parts):

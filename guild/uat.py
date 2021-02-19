@@ -98,12 +98,6 @@ def _run_tests(tests):
 def _test_globals():
     globs = testlib.test_globals()
     globs.update(_global_vars())
-    globs.update(
-        {
-            "sample": _sample,
-            "example": _example_dir,
-        }
-    )
     return globs
 
 
@@ -113,10 +107,6 @@ def _global_vars():
         for name, val in globals().items()
         if name[0] != "_" and isinstance(val, str)
     }
-
-
-def _sample(*path):
-    return os.path.abspath(testlib.sample(*path))
 
 
 def _UATEnv():
@@ -140,10 +130,6 @@ def _skip_test(name, skip_patterns):
         if fnmatch.fnmatch(name, p):
             return True
     return False
-
-
-def _example_dir(name):
-    return os.path.join(EXAMPLES, name)
 
 
 def _test_passed(name):
