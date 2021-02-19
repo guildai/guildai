@@ -12,7 +12,8 @@ Start a Dask scheduler in the background.
 
 Wait a moment and check scheduler output.
 
-    >>> sleep(2)
+    >>> sleep(5)
+
     >>> run("guild cat --output")
     INFO: [guild] ... Initializing Dask cluster
     INFO: [guild] ... Starting Dask scheduler
