@@ -1,3 +1,7 @@
+---
+doctest: -PY2_MACOS
+---
+
 # Dask Scheduler
 
 Clear existing runs for our tests.

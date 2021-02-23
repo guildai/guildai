@@ -78,6 +78,7 @@ WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 PY2 = doctest.register_optionflag("PY2")
+PY2_MACOS = doctest.register_optionflag("PY2_MACOS")
 PY3 = doctest.register_optionflag("PY3")
 PY27 = doctest.register_optionflag("PY27")
 PY35 = doctest.register_optionflag("PY35")
@@ -178,6 +179,7 @@ def _parse_doctest_options(encoded_options, filename):
 
 def _skip_for_doctest_options(options):
     is_windows = PLATFORM == "Windows"
+    is_macos = PLATFORM == "Darwin"
     py_major_ver = sys.version_info[0]
     py_minor_ver = sys.version_info[1]
     skip = None
@@ -187,6 +189,8 @@ def _skip_for_doctest_options(options):
         skip = True
     # PY2 and PY3 are enabled by default - check if explicitly disabled.
     if options.get(PY2) is False and py_major_ver == 2:
+        skip = True
+    if options.get("PY2_MACOS") is False and py_major_ver == 2 and is_macos:
         skip = True
     if options.get(PY3) is False and py_major_ver == 3:
         skip = True
