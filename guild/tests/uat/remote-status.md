@@ -136,7 +136,7 @@ The exit status attribute does not exit.
 
 Sync with the remote run.
 
-    >>> run("guild watch -r guild-uat")
+    >>> run("guild watch 1 -r guild-uat")
     Watching run ...
     Run ... stopped with a status of 'completed'
     <exit 0>
