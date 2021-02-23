@@ -111,7 +111,7 @@ parallel. We use `run-once` to process the staged runs and then exit.
     >>> run("guild run dask:scheduler workers=10 run-once=yes -y")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing cluster with 10 workers
-    INFO: [guild] ... Dashboard link: http://192.168.1.189:8787/status
+    INFO: [guild] ... Dashboard link: http://...:8787/status
     INFO: [guild] ... Processing staged runs
     INFO: [guild] ... Starting staged run ...
     INFO: [guild] ... Starting staged run ...
