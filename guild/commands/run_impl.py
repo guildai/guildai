@@ -1237,6 +1237,7 @@ def _state_init_batch_op(S):
     _batch_op_init_opdef(S)
     _check_opt_flags_for_missing_batch_opdef(S)
     _check_batch_args_for_missing_batch_op(S)
+    _check_stage_trials_for_batch(S)
     if S.batch_op:
         _op_init_op_cmd(S.batch_op)
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
@@ -1368,6 +1369,16 @@ def _check_batch_args_for_missing_batch_op(S):
         return
     if S.args.max_trials:
         log.warning("not a batch run - ignoring --max-trials")
+
+
+def _check_stage_trials_for_batch(S):
+    if not S.batch_op:
+        return
+    batch_opdef = S.batch_op._opdef
+    if S.args.stage_trials and batch_opdef and not batch_opdef.can_stage_trials:
+        raise SystemExit(
+            "operation '%s' does not support --stage-trials" % batch_opdef.fullname
+        )
 
 
 def _op_init_batch_config(args, user_op, batch_op):

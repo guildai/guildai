@@ -58,3 +58,20 @@ Running with a single category for `i`:
     b: True
     s: hello
     loss: 1.000000
+
+## Staging trials and Sequential Optimizers
+
+None of Guild's skopt bases sequential optimizers can be used to stage
+trials.
+
+    >>> project.run("echo2.py", optimizer="gp", stage_trials=True)
+    guild: operation 'skopt:gp' does not support --stage-trials
+    <exit 1>
+
+    >>> project.run("echo2.py", optimizer="gbrt", stage_trials=True)
+    guild: operation 'skopt:gbrt' does not support --stage-trials
+    <exit 1>
+
+    >>> project.run("echo2.py", optimizer="forest", stage_trials=True)
+    guild: operation 'skopt:forest' does not support --stage-trials
+    <exit 1>

@@ -29,6 +29,7 @@ from guild import plugin as pluginlib
 
 class ProxyBase(model_proxy.BatchModelProxy):
     default_max_trials = 20
+    can_stage_trials = False
 
 
 class RandomOptimizerModelProxy(ProxyBase):
@@ -38,6 +39,7 @@ class RandomOptimizerModelProxy(ProxyBase):
     op_description = "Batch processor supporting random flag value generation."
     module_name = "guild.plugins.random_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
+    can_stage_trials = True
 
 
 ###################################################################

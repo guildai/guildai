@@ -46,6 +46,7 @@ class BatchModelProxy(object):
     module_name = "guild.batch_main"
     flag_encoder = None
     default_max_trials = None
+    can_stage_trials = True
     flags_data = {}
 
     def __init__(self):
@@ -64,6 +65,7 @@ class BatchModelProxy(object):
                     "env": {
                         "NO_OP_INTERRUPTED_MSG": "1",
                     },
+                    "can-stage-trials": self.can_stage_trials,
                 }
             }
         }
