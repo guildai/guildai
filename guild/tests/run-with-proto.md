@@ -222,7 +222,7 @@ Let's run a batch for `echo` in the `optimizers` project.
 
     >>> project = Project(sample("projects", "optimizers"))
 
-    >>> batch_1 = run("echo", flags={"x": [1,2]})
+    >>> batch_1 = run("echo", flags={"x": [1,2]}, keep_batch=True)
     INFO: [guild] Running trial ...: echo (x=1.0, y=2, z=a)
     1.0 2 'a'
     INFO: [guild] Running trial ...: echo (x=2.0, y=2, z=a)

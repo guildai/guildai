@@ -78,7 +78,7 @@ JSON output, including private attrs:
 
     >>> tmp = path(mkdtemp(), "info.json")
     >>> quiet("guild runs info --private-attrs --json > %s" % tmp)
-    >>> cat_json(tmp)
+    >>> cat_json(tmp)  # doctest: +REPORT_UDIFF
     {
         "command": "... -um guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5",
         "exit_status": 0,
@@ -92,6 +92,7 @@ JSON output, including private attrs:
         "label": "batch-size=100 epochs=1 learning-rate=0.5",
         "marked": "no",
         "op": {
+            "delete-on-success": false,
             "deps": [
                 {
                     "description": "Yann Lecun's MNIST dataset in compressed IDX format",

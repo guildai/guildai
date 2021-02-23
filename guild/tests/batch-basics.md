@@ -72,15 +72,10 @@ Let's run `say.py` with a list of one `msg` flag value:
     INFO: [guild] Running trial ...: say.py (loud=no, msg=hi)
     hi
 
-Here are the trial runs:
+Here are the runs:
 
     >>> project.print_runs(flags=True)
     say.py   loud=no msg=hi
-    say.py+
-
-Note there are two runs. The first run, listed as `+`, is the batch
-operation, which is separate from the trial run. The batch operation
-uses the special name `+`.
 
 Let's run `say-with-label` for two runs:
 
@@ -90,10 +85,10 @@ Let's run `say-with-label` for two runs:
     INFO: [guild] Running trial ...: say-with-label (loud=no, msg='hi 2')
     hi 2
 
-    >>> project.print_runs(labels=True, limit=3)
+    >>> project.print_runs(labels=True)
     say-with-label   msg is 'hi 2'
     say-with-label   msg is 'hi 1'
-    say-with-label+
+    say.py          loud=no msg=hi
 
 We can preview the trials that will be generated using the
 `print_trials` flag:
@@ -196,11 +191,9 @@ Here's what our runs look like after the batch operation:
     say.py   loud=no msg='hello 3'
     say.py   loud=yes msg='hello 2'
     say.py   loud=no msg='hello 1'
-    say.py+
 
 In cases where we explicitly define flag values, those flag values are
 always used, even if they're defined in batch files.
-
 
     >>> project.run("say.py", batch_files=["batch.csv"], flags={"loud": False})
     INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 1')

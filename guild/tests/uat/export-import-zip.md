@@ -25,7 +25,6 @@ Generate three runs:
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 ## Export with Copy (default)
@@ -36,19 +35,17 @@ Create a temp dir to write our archive to.
 
 Show preview:
 
-    >>> run("guild export %s 1 2" % archive, timeout=2)
+    >>> run("guild export %s 1" % archive, timeout=2)
     You are about to copy the following runs to '...':
       [...]  hello   ...  completed  msg=hola
-      [...]  hello   ...  completed  msg=hi
     Continue? (Y/n)
     <exit ...>
 
 Export (copies):
 
-    >>> run("guild export %s 1 2 -y" % archive)
+    >>> run("guild export %s 1 -y" % archive)
     Copying ...
-    Copying ...
-    Exported 2 run(s) to .../runs.zip
+    Exported 1 run(s) to .../runs.zip
     <exit 0>
 
 Directories in export dir:
@@ -63,7 +60,6 @@ List runs in archive:
 
     >>> run("guild runs -A %s" % archive)
     [1:...]  hello   ...  completed  msg=hola
-    [2:...]  hello   ...  completed  msg=hi
     <exit 0>
 
 Runs still exist because the default export mode is to copy runs.
@@ -72,21 +68,20 @@ Runs still exist because the default export mode is to copy runs.
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 Export two more runs - preview.
 
-    >>> run("guild export %s 3 4" % archive, timeout=2)
+    >>> run("guild export %s 2 3" % archive, timeout=2)
     You are about to copy the following runs to '...':
+      [...]  hello   ...  completed  msg=hi
       [...]  hello   ...  completed  msg=hello
-      [...]  hello+  ...  completed
     Continue? (Y/n)
     <exit ...>
 
 Export the runs:
 
-    >>> run("guild export %s 3 4 -y" % archive)
+    >>> run("guild export %s 2 3 -y" % archive)
     Copying ...
     Copying ...
     Exported 2 run(s) to .../runs.zip
@@ -98,7 +93,6 @@ List runs in archive:
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 ## Overwriting Export Runs
@@ -106,7 +100,6 @@ List runs in archive:
 Guild won't overwrite runs in an archive.
 
     >>> run("guild export %s -y" % archive)
-    WARNING: ... exists, skipping
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
@@ -126,7 +119,6 @@ Preview:
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
       [...]  hello   ...  completed  msg=hello
-      [...]  hello+  ...  completed
     Continue? (Y/n)
     <exit ...>
 
@@ -136,8 +128,7 @@ Export with move:
     Moving ...
     Moving ...
     Moving ...
-    Moving ...
-    Exported 4 run(s) to ...
+    Exported 3 run(s) to ...
     <exit 0>
 
 Archive contents:
@@ -154,7 +145,6 @@ List runs in archive:
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 Current runs are empty because runs were moved rather than copied.
@@ -171,7 +161,6 @@ Import preview:
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
       [...]  hello   ...  completed  msg=hello
-      [...]  hello+  ...  completed
     Continue? (Y/n)
     <exit ...>
 
@@ -181,8 +170,7 @@ Import runs:
     Copying ...
     Copying ...
     Copying ...
-    Copying ...
-    Imported 4 run(s) from ...
+    Imported 3 run(s) from ...
     <exit 0>
 
 Current runs:
@@ -191,7 +179,6 @@ Current runs:
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 ## Overwriting Runs on Import
@@ -199,7 +186,6 @@ Current runs:
 Import again:
 
     >>> run("guild import %s -y" % archive)
-    WARNING: ... exists, skipping
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping

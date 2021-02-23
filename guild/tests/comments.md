@@ -91,7 +91,8 @@ available for the project API via the `batch_comment` keyword arg.
     >>> project.run("simple",
     ...     flags={"x": [2.0, 3.0]},
     ...     comment="a trial comment",
-    ...     batch_comment="my cool batch")
+    ...     batch_comment="my cool batch",
+    ...     keep_batch=True)
     INFO: [guild] Running trial ...: simple (x=2.0)
     x: 2.0
     y: 3.0

@@ -18,7 +18,8 @@ For our tests we work with the `optimizers` sample project:
 For our initial batch run, we use two values each for flags `x` and
 `y`:
 
-    >>> project.run("echo.py", flags={"x": [1.0,2.0], "y": [2,3]})
+    >>> project.run("echo.py", flags={"x": [1.0,2.0], "y": [2,3]},
+    ...             keep_batch=True)
     INFO: [guild] Running trial ...: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
     INFO: [guild] Running trial ...: echo.py (x=1.0, y=3, z=a)
@@ -107,7 +108,7 @@ We can stage a batch, in which case it doesn't generate trials.
 Restart the staged run:
 
     >>> batch = project.list_runs()[0]
-    >>> project.run(restart=batch.id)
+    >>> project.run(restart=batch.id, keep_batch=True)
     INFO: [guild] Running trial ...: echo.py (x=5.0, y=4, z=a)
     5.0 4 'a'
     INFO: [guild] Running trial ...: echo.py (x=5.0, y=6, z=a)

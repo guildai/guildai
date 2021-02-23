@@ -761,6 +761,8 @@ def _run_args(
     force_sourcecode,
     gpus,
     label,
+    keep_batch,
+    keep_run,
     max_trials,
     maximize,
     minimize,
@@ -804,6 +806,10 @@ def _run_args(
         args.extend(["--gpus", gpus])
     if label:
         args.extend(["--label", label])
+    if keep_batch:
+        args.extend("--keep-batch")
+    if keep_run:
+        args.extend("--keep-run")
     if max_trials is not None:
         args.extend(["--max-trials", str(max_trials)])
     if maximize:

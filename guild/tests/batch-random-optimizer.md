@@ -36,7 +36,7 @@ Guild exits with an error.
 Run three trials with a search over `x`.
 
     >>> project.run("echo.py", optimizer="random", max_trials=3,
-    ...             flags={"x": "[1:100]"})
+    ...             flags={"x": "[1:100]"}, keep_batch=True)
     INFO: [guild] Running trial ...: echo.py (x=..., y=2, z=a)
     ... 2 'a'
     INFO: [guild] Running trial ...: echo.py (x=..., y=2, z=a)
@@ -72,9 +72,10 @@ View unique values for the other runs.
 Run five trials with search over all flags.
 
     >>> project.run("echo.py", optimizer="random", max_trials=10,
+    ...             keep_batch=True,
     ...             flags={"x": "[1:100]",
     ...                    "y": "[-99.99:99.99]",
-    ...                    "z": ["a", "b", "c"]})
+    ...                    "z": ["a", "b", "c"]},)
     INFO: [guild] Running trial ...: echo.py (...)
     ...
 
@@ -109,7 +110,7 @@ by the user.
 
 Uniform distribution short form:
 
-    >>> project.run("echo.py", flags={"x": "[1:10]"}, max_trials=5)
+    >>> project.run("echo.py", flags={"x": "[1:10]"}, max_trials=5, keep_batch=True)
     INFO: [guild] Running trial ...
     INFO: [guild] Running trial ...
     INFO: [guild] Running trial ...
@@ -126,7 +127,7 @@ Uniform distribution short form:
 
 `uniform` function:
 
-    >>> project.run("echo.py", flags={"x": "uniform[1:10]"}, max_trials=1)
+    >>> project.run("echo.py", flags={"x": "uniform[1:10]"}, max_trials=1, keep_batch=True)
     INFO: [guild] Running trial ...
 
     >>> runs = project.list_runs()
@@ -138,7 +139,7 @@ Uniform distribution short form:
 
 `loguniform` function:
 
-    >>> project.run("echo.py", flags={"x": "loguniform[1:10]"}, max_trials=1)
+    >>> project.run("echo.py", flags={"x": "loguniform[1:10]"}, max_trials=1, keep_batch=True)
     INFO: [guild] Running trial ...
 
     >>> runs = project.list_runs()

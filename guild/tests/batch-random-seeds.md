@@ -18,7 +18,8 @@ Some helper functions:
     ...                 random_seed=random_seed,
     ...                 restart=restart,
     ...                 max_trials=max_trials,
-    ...                 optimizer=optimizer)
+    ...                 optimizer=optimizer,
+    ...                 keep_batch=True)
 
     >>> def assert_random_seed(val):
     ...     assert isinstance(val, int), val

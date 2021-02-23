@@ -8,7 +8,8 @@ We use the `batch` project for these tests.
 
 Stage three trials:
 
-    >>> project.run("say.py", flags={"msg": ["a", "b", "c"]}, stage_trials=True)
+    >>> project.run("say.py", flags={"msg": ["a", "b", "c"]}, stage_trials=True,
+    ...             keep_batch=True)
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=a)
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=b)
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=c)
@@ -71,7 +72,7 @@ Our runs:
     >>> project.print_runs(status=True)
     say.py+  staged
 
-Let's start the staged run.
+Let's start the staged run, this time without keeping it.
 
     >>> project.run(start=batch_run.id)
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=a)
@@ -84,7 +85,6 @@ And our runs:
     say.py   loud=no msg=c  staged
     say.py   loud=no msg=b  staged
     say.py   loud=no msg=a  staged
-    say.py+                 completed
 
 ## Stage trials via steps
 
@@ -95,7 +95,7 @@ them.
 For our tests, we delete the current runs.
 
     >>> project.delete_runs()
-    Deleted 4 run(s)
+    Deleted 3 run(s)
 
 The `say-many` operation uses `steps` to run `say.py` in a batch.
 
@@ -116,7 +116,6 @@ The runs are complete:
     say.py    loud=no msg=hola   completed
     say.py    loud=no msg=hello  completed
     say.py    loud=no msg=hi     completed
-    say.py+                      completed
     say-many                     completed
 
 Next, use `--stage-trials`:
@@ -133,10 +132,8 @@ And the runs:
     say.py    loud=no msg=hola   staged
     say.py    loud=no msg=hello  staged
     say.py    loud=no msg=hi     staged
-    say.py+                      completed
     say-many                     completed
     say.py    loud=no msg=hola   completed
     say.py    loud=no msg=hello  completed
     say.py    loud=no msg=hi     completed
-    say.py+                      completed
     say-many                     completed

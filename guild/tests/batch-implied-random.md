@@ -30,7 +30,6 @@ value for `max_trials`:
 And our runs:
 
     >>> project.print_runs(flags=True, status=True)
-    echo.py         x=5.1... y=6 z=seven  completed
-    echo.py         x=5.1... y=6 z=seven  completed
-    echo.py+random                        completed
-    echo.py         x=5.0 y=6 z=seven     completed
+    echo.py  x=5.1... y=6 z=seven  completed
+    echo.py  x=5.1... y=6 z=seven  completed
+    echo.py  x=5.0 y=6 z=seven     completed

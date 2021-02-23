@@ -12,16 +12,19 @@ For our tests we use the `optimizers` sample project.
 
 Here's a helper for running echo:
 
-    >>> def run_echo(needed=False, restart=None, **flags):
+    >>> def run_echo(needed=False, restart=None, keep_batch=False, **flags):
     ...     op = "echo.py" if not restart else None
-    ...     project.run(op, restart=restart, needed=needed, flags=flags)
+    ...     project.run(
+    ...         op, restart=restart, needed=needed,
+    ...         keep_batch=keep_batch, flags=flags)
 
 ## Needed for non-restarts
 
 Let's run an initial batch of a single `echo.py` operation using the
-needed option:
+needed option along with keep_batch to ensure that the batch is not
+automatically deleted:
 
-    >>> run_echo(x=[1], needed=True)
+    >>> run_echo(x=[1], needed=True, keep_batch=True)
     INFO: [guild] Running trial ...: echo.py (x=1, y=2, z=a)
     1 2 'a'
 
@@ -46,7 +49,7 @@ Our runs again - nothing new:
 Next we'll run with a different set of flags, again with the needed
 option:
 
-    >>> run_echo(x=[2], needed=True)
+    >>> run_echo(x=[2], needed=True, keep_batch=True)
     INFO: [guild] Running trial ...: echo.py (x=2, y=2, z=a)
     2 2 'a'
 
@@ -69,7 +72,7 @@ If we request a batch run with any new set of flags - even if some of
 the specified flag values correspond to existing trials, we get a new
 batch run. Here we run a batch using both previous values for `x`:
 
-    >>> run_echo(x=[1,2], needed=True)
+    >>> run_echo(x=[1,2], needed=True, keep_batch=True)
     INFO: [guild] Running trial ...: echo.py (x=1, y=2, z=a)
     1 2 'a'
     INFO: [guild] Running trial ...: echo.py (x=2, y=2, z=a)
@@ -85,7 +88,7 @@ values for `x`:
 If we have two matching batch runs, both are listed in the skipping
 message. Let's run with `x=[1]` again so we have two such runs:
 
-    >>> run_echo(x=[1])
+    >>> run_echo(x=[1], keep_batch=True)
     INFO: [guild] Running trial ...: echo.py (x=1, y=2, z=a)
     1 2 'a'
 

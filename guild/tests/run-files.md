@@ -125,7 +125,7 @@ Let's run a batch operation to illustrate. We can indicate a run
 should be a batch by specifying a list of values for a flag.
 
     >>> with PipFreezeEnabled:
-    ...     project.run("say.py", flags={"msg": ["ho"]})
+    ...     project.run("say.py", flags={"msg": ["ho"]}, keep_batch=True)
     INFO: [guild] Running trial ...: say.py (loud=no, msg=ho)
     ho
 

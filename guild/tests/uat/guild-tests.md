@@ -38,6 +38,7 @@ tests).
       cpu-plugin:                  ok
       cross-package-inheritance:   ok
       debug-sourcecode:            ok
+      delete-on-success:           ok
       dependencies:                ok
       dependencies-2:              ok
       deprecated-options:          ok

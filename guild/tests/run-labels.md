@@ -10,11 +10,13 @@ For our tests, we'll use the `labels` sample project:
 
 Here are some helper functions.
 
+We define `run` with `keep_batch=True` to test batch labels below.
+
     >>> def run(opspec=None, label=None, batch_label=None, tags=None, batch_tags=None,
     ...         opt_flags=None, restart=None, **flags):
     ...   project.run(opspec, flags=flags, label=label, batch_label=batch_label,
     ...               tags=tags, batch_tags=batch_tags, opt_flags=opt_flags, restart=restart,
-    ...               force_flags=True, quiet=True)
+    ...               force_flags=True, quiet=True, keep_batch=True)
 
     >>> def print_last_run():
     ...   print_runs(1)

@@ -376,6 +376,16 @@ def run_params(fn):
                 autocompletion=click_util.completion_filename,
             ),
             click.Option(
+                ("--keep-run",),
+                is_flag=True,
+                help="Keep run even when configured with 'delete-on-success'.",
+            ),
+            click.Option(
+                ("--keep-batch",),
+                is_flag=True,
+                help="Keep batch run rather than delete it on success.",
+            ),
+            click.Option(
                 ("--break", "break_"),
                 metavar="LOCATION",
                 help=(

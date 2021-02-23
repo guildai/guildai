@@ -26,7 +26,7 @@ are used to calculate `loss. We specify USER env to test attribute
 selection below.
 
     >>> with Env({"USER": "test"}):
-    ...     project.run("echo2.py", flags={"f": "range[1.0:3.0]"})
+    ...     project.run("echo2.py", flags={"f": "range[1.0:3.0]"}, keep_batch=True)
     INFO: [guild] Running trial ...: echo2.py (b=yes, f=1.0, i=3, s=hello)
     i: 3
     f: 1.000000

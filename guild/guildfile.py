@@ -1030,6 +1030,7 @@ class OpDef(object):
         self.sourcecode = _init_sourcecode(data.get("sourcecode"), self.guildfile)
         self.default_flag_arg_skip = data.get("default-flag-arg-skip") or False
         self.pip_freeze = data.get("pip-freeze")
+        self.delete_on_success = data.get("delete-on-success") or False
         self.can_stage_trials = data.get("can-stage-trials") or False
 
     def __repr__(self):

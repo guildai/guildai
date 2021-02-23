@@ -185,6 +185,8 @@ def _run_kw(args):
         "force_sourcecode",
         "gpus",
         "stage_trials",
+        "keep_batch",
+        "keep_run",
         "label",
         "max_trials",
         "maximize",

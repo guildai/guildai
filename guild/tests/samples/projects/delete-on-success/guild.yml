@@ -1,0 +1,5 @@
+op:
+  delete-on-success: yes
+  flags:
+    fail: False
+  flags-dest: globals

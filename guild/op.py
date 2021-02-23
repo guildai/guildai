@@ -164,7 +164,7 @@ def run(
     op_util.set_run_started(run)
     if pidfile:
         _run_op_in_background(run, op, pidfile, quiet, stop_after, extra_env)
-        return run, 0
+        return run, None
     else:
         exit_status = _run_op(run, op, quiet, stop_after, extra_env)
         return run, exit_status

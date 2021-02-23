@@ -566,7 +566,7 @@ Restart the downstream run with an upstream flag.
     >>> touch(path(cwd, "pass.py"))
 
     >>> gh = run_gh(cwd, opspec="pass.py", flags=["a=[1,2,3]"],
-    ...             force_flags=True, quiet=True)
+    ...             force_flags=True, quiet=True, keep_batch=True)
 
     >>> runs = var.runs(path(gh, "runs"), sort=["timestamp"])
     >>> len(runs)

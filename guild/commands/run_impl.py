@@ -109,6 +109,7 @@ class Operation(oplib.Operation):
         self._output_scalars = None
         self._sourcecode_root = None
         self._flags_extra = None
+        self._delete_on_success = None
 
 
 def _state_for_args(args):
@@ -132,6 +133,7 @@ def _op_config_data(op):
         "deps": op_util.op_deps_as_data(op.deps),
         "sourcecode-root": op._sourcecode_root,
         "flags-extra": op._flags_extra,
+        "delete-on-success": op._delete_on_success,
     }
 
 
@@ -143,6 +145,7 @@ def _apply_op_config_data(data, op):
     op._output_scalars = data.get("output-scalars")
     op._sourcecode_root = data.get("sourcecode-root")
     op._flags_extra = data.get("flags-extra")
+    op._delete_on_success = data.get("delete-on-success")
     op.deps = op_util.op_deps_for_data(data.get("deps"))
 
 
@@ -206,6 +209,7 @@ def _state_init_user_op(S):
         S.args.tags,
         S.args.comment,
         S.args.edit_comment,
+        S.args.keep_run,
         S.user_op,
     )
     _op_init_core(S.args, S.user_op)
@@ -661,12 +665,20 @@ def _op_init_config(
     tags_arg,
     comments_arg,
     edit_comment_arg,
+    keep_run_arg,
     op,
     is_batch=False,
 ):
     label_template = _label_template(label_arg, tags_arg)
     if op._run:
-        _op_init_config_for_run(op._run, label_template, tags_arg, comments_arg, op)
+        _op_init_config_for_run(
+            op._run,
+            label_template,
+            tags_arg,
+            comments_arg,
+            keep_run_arg,
+            op,
+        )
     else:
         assert op._opdef
         _op_init_config_for_opdef(
@@ -675,6 +687,7 @@ def _op_init_config(
             tags_arg,
             comments_arg,
             edit_comment_arg,
+            keep_run_arg,
             op,
             is_batch,
         )
@@ -692,7 +705,7 @@ def _format_tags_for_label(tags):
     return " ".join(tags)
 
 
-def _op_init_config_for_run(run, label_template, tags, comment, op):
+def _op_init_config_for_run(run, label_template, tags, comment, keep_run, op):
     config = run.get("op")
     if not config:
         _missing_op_config_for_restart_error(run)
@@ -705,6 +718,7 @@ def _op_init_config_for_run(run, label_template, tags, comment, op):
         op._tags = tags
     if comment:
         op._comment = comment
+    op._delete_on_success = config.get("delete-on-success") and not keep_run
 
 
 def _op_init_config_for_opdef(
@@ -713,6 +727,7 @@ def _op_init_config_for_opdef(
     tags,
     comment,
     edit_comment,
+    keep_run,
     op,
     is_batch,
 ):
@@ -724,6 +739,7 @@ def _op_init_config_for_opdef(
     op._flags_extra = _opdef_flags_extra(opdef)
     op._tags = list(tags) + opdef.tags
     op._comment = _init_op_comment(comment, edit_comment, is_batch)
+    op._delete_on_success = _delete_on_success(opdef, keep_run)
 
 
 def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
@@ -786,6 +802,10 @@ def _init_op_comment(comment, edit_comment, is_batch):
             cli.out("Aborting due to an empty comment.", err=True)
             cli.error()
     return comment
+
+
+def _delete_on_success(opdef, keep_run):
+    return opdef.delete_on_success and not keep_run
 
 
 # =================================================================
@@ -1247,6 +1267,7 @@ def _state_init_batch_op(S):
             S.args.batch_tags,
             S.args.batch_comment,
             S.args.edit_batch_comment,
+            S.args.keep_batch,
             S.batch_op,
             is_batch=True,
         )
@@ -2153,13 +2174,13 @@ def _stage_op(op, args):
 
 
 def _print_staged_info(run):
-    if _staged_outside_guild_home(run):
+    if _is_run_outside_guild_home(run):
         _print_staged_dir_instructions(run)
     else:
         _print_stage_pending_instructions(run)
 
 
-def _staged_outside_guild_home(run):
+def _is_run_outside_guild_home(run):
     return not util.compare_paths(os.path.dirname(run.dir), var.runs_dir())
 
 
@@ -2186,7 +2207,7 @@ def _print_stage_pending_instructions(run):
 
 def _run_op(op, args, extra_env=None):
     try:
-        _, exit_status = oplib.run(
+        run, exit_status = oplib.run(
             op,
             quiet=args.quiet,
             pidfile=_op_pidfile(args),
@@ -2199,7 +2220,7 @@ def _run_op(op, args, extra_env=None):
     except oplib.ProcessError as e:
         _op_process_error(op, e)
     else:
-        _handle_run_exit(exit_status)
+        _handle_run_exit(exit_status, op, run)
 
 
 def _op_pidfile(args):
@@ -2211,10 +2232,37 @@ def _op_pidfile(args):
         return None
 
 
-def _handle_run_exit(exit_status):
+def _handle_run_exit(exit_status, op, run):
     sys.stdout.flush()
-    if exit_status != 0:
-        cli.error(exit_status=exit_status)
+    if exit_status is None:
+        pass
+    elif exit_status == 0:
+        _handle_run_success(op, run)
+    else:
+        _handle_run_error(exit_status)
+
+
+def _handle_run_success(op, run):
+    _maybe_delete_run(op, run)
+
+
+def _maybe_delete_run(op, run):
+    if op._delete_on_success and not _is_run_outside_guild_home(run):
+        _log_delete_run(run)
+        var.delete_runs([run])
+
+
+def _log_delete_run(run):
+    log_f = log.info if not run.batch_proto else log.debug
+    log_f(
+        "Deleting interim run %s ('%s' is configured for deletion on success)",
+        run.id,
+        run_util.format_operation(run),
+    )
+
+
+def _handle_run_error(exit_status):
+    cli.error(exit_status=exit_status)
 
 
 ###################################################################

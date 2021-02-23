@@ -21,7 +21,6 @@ Our runs:
     >>> run("guild -H %s runs" % gh)  # doctest: -PY2 -PY35
     [1:...]  noisy.py   ...  completed  noise=0.1 x=0.2
     [2:...]  noisy.py   ...  completed  noise=0.1 x=0.1
-    [3:...]  noisy.py+  ...  completed
     <exit 0>
 
 Generate an HTML page for comparison using hiplot tool:

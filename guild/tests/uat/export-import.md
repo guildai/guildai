@@ -25,7 +25,6 @@ Generate three runs:
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 ## Export with Copy (default)
@@ -41,7 +40,6 @@ Show preview:
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
       [...]  hello   ...  completed  msg=hello
-      [...]  hello+  ...  completed
     Continue? (Y/n)
     <exit ...>
 
@@ -51,15 +49,13 @@ Export with copy:
     Copying ...
     Copying ...
     Copying ...
-    Copying ...
-    Exported 4 run(s) to ...
+    Exported 3 run(s) to ...
     <exit 0>
 
 Directories in export dir:
 
     >>> dir(export_dir)
     ['.guild-nocopy',
-     '...',
      '...',
      '...',
      '...']
@@ -70,7 +66,6 @@ List runs in archive:
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 Current runs still exist because the default export mode is to copy
@@ -80,7 +75,6 @@ runs.
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 ## Overwriting Export Runs
@@ -88,7 +82,6 @@ runs.
 Guild won't overwrite runs in an export.
 
     >>> run("guild export %s -y" % export_dir)
-    WARNING: ... exists, skipping
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
@@ -108,7 +101,6 @@ Preview:
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
       [...]  hello   ...  completed  msg=hello
-      [...]  hello+  ...  completed
     Continue? (Y/n)
     <exit ...>
 
@@ -118,15 +110,13 @@ Export with move:
     Moving ...
     Moving ...
     Moving ...
-    Moving ...
-    Exported 4 run(s) to ...
+    Exported 3 run(s) to ...
     <exit 0>
 
 Export dir:
 
     >>> dir(export_dir)
     ['.guild-nocopy',
-     '...',
      '...',
      '...',
      '...']
@@ -145,7 +135,6 @@ Import preview:
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
       [...]  hello   ...  completed  msg=hello
-      [...]  hello+  ...  completed
     Continue? (Y/n)
     <exit ...>
 
@@ -155,8 +144,7 @@ Import runs:
     Copying ...
     Copying ...
     Copying ...
-    Copying ...
-    Imported 4 run(s) from ...
+    Imported 3 run(s) from ...
     <exit 0>
 
 Current runs:
@@ -165,7 +153,6 @@ Current runs:
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 Runs in archive:
@@ -174,7 +161,6 @@ Runs in archive:
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 ## Overwriting Runs on Import
@@ -182,7 +168,6 @@ Runs in archive:
 Import again:
 
     >>> run("guild import %s -y" % export_dir)
-    WARNING: ... exists, skipping
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
     WARNING: ... exists, skipping
@@ -202,7 +187,6 @@ Import preview:
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
       [...]  hello   ...  completed  msg=hello
-      [...]  hello+  ...  completed
     Continue? (Y/n)
     <exit ...>
 
@@ -212,8 +196,7 @@ Import runs:
     Moving ...
     Moving ...
     Moving ...
-    Moving ...
-    Imported 4 run(s) from ...
+    Imported 3 run(s) from ...
     <exit 0>
 
 Current runs:
@@ -222,7 +205,6 @@ Current runs:
     [1:...]  hello   ...  completed  msg=hola
     [2:...]  hello   ...  completed  msg=hi
     [3:...]  hello   ...  completed  msg=hello
-    [4:...]  hello+  ...  completed
     <exit 0>
 
 Runs in archive:

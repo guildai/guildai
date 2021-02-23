@@ -20,12 +20,11 @@ Our runs:
     >>> project.print_runs(status=True)
     error.py   completed
     error.py   error
-    error.py+  completed
 
 Clear our runs:
 
     >>> project.delete_runs()
-    Deleted 3 run(s)
+    Deleted 2 run(s)
 
     >>> project.print_runs()
 

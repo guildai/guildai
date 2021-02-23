@@ -123,6 +123,8 @@ def _popen_args(
     help_op=False,
     run_id=None,
     background=False,
+    keep_run=False,
+    keep_batch=False,
 ):
     from guild import op_util
 
@@ -208,6 +210,10 @@ def _popen_args(
         args.extend(["--run-id", run_id])
     if background:
         args.append("--background")
+    if keep_run:
+        args.append("--keep-run")
+    if keep_batch:
+        args.append("--keep-batch")
     args.extend(op_util.flag_assigns(flags))
     args.extend(["@%s" % path for path in (batch_files or [])])
     env = dict(os.environ)
