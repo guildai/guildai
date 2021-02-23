@@ -42,17 +42,17 @@ The staged runs:
     <exit 0>
 
 Next, start two queues. We use tags to identify each queue. We wait a
-second in between starting the queues to order the resulting runs (for
-deterministic tests).
+second in between starting the queues to order the resulting runs for
+our tests.
 
     >>> run("guild run queue poll-interval=1 --tag q1 --background -y")
-    queue:queue started in background as ... (pidfile ...)
+    queue started in background as ... (pidfile ...)
     <exit 0>
 
     >>> sleep(1)
 
     >>> run("guild run queue poll-interval=1 --tag q2 --background -y")
-    queue:queue started in background as ... (pidfile ...)
+    queue started in background as ... (pidfile ...)
     <exit 0>
 
 Wait to let the queues start the staged runs.
@@ -117,7 +117,7 @@ slightly after starting the first queue to let it start one of the
 staged runs.
 
     >>> run("guild run queue poll-interval=1 wait-for-running=yes --tag q1 --background -y")
-    queue:queue started in background as ... (pidfile ...)
+    queue started in background as ... (pidfile ...)
     <exit 0>
 
 Wait a moment to let the queue start one of the staged runs:
@@ -142,7 +142,7 @@ Output for the first queue:
 Start the second queue:
 
     >>> run("guild run queue poll-interval=1 wait-for-running=yes --tag q2 --background -y")
-    queue:queue started in background as ... (pidfile ...)
+    queue started in background as ... (pidfile ...)
     <exit 0>
 
 Wait a moment for the second queue to start and check for staged runs.

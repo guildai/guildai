@@ -10,11 +10,11 @@ Start three queues in the background:
 
     >>> for _ in range(3):
     ...     run("guild run queue poll-interval=1 --background -y")
-    queue:queue started in background as ... (pidfile ...)
+    queue started in background as ... (pidfile ...)
     <exit 0>
-    queue:queue started in background as ... (pidfile ...)
+    queue started in background as ... (pidfile ...)
     <exit 0>
-    queue:queue started in background as ... (pidfile ...)
+    queue started in background as ... (pidfile ...)
     <exit 0>
 
 Wait a moment for the queues:

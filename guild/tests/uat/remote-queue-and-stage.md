@@ -8,7 +8,7 @@ Start a queue with no-wait (detached):
 
     >>> run("guild run queue -y -r guild-uat --no-wait")
     Initializing remote run
-    Starting queue:queue on guild-uat as ...
+    Starting queue on guild-uat as ...
     ... is running on guild-uat
     To watch use 'guild watch ... -r guild-uat'
     <exit 0>

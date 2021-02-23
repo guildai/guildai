@@ -66,7 +66,7 @@ gpus:
 
 class QueueModelProxy(object):
 
-    name = "queue"
+    name = ""
 
     def __init__(self):
         self.modeldef = self._init_modeldef()
@@ -88,17 +88,17 @@ class QueueModelProxy(object):
             }
         ]
         gf = guildfile.Guildfile(data, src="<%s>" % self.__class__.__name__)
-        return gf.models["queue"]
+        return gf.models[self.name]
 
     @staticmethod
     def _init_reference():
-        return modellib.ModelRef("builtin", "guildai", guild.__version__, "queue")
+        return modellib.ModelRef("builtin", "guildai", guild.__version__, "")
 
 
 class QueuePlugin(pluginlib.Plugin):
     @staticmethod
     def resolve_model_op(opspec):
-        if opspec in ("queue", "queue:queue"):
+        if opspec in ("queue"):
             model = QueueModelProxy()
             return model, "queue"
         return None

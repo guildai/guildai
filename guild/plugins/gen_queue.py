@@ -152,7 +152,7 @@ def _blocking_runs(state):
 
 
 def _is_queue_or_self(run, state):
-    return run.id == state.run_id or run.opref.to_opspec() == "queue:queue"
+    return run.id == state.run_id or state.is_queue(run)
 
 
 def _staged_runs():

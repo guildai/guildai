@@ -16,7 +16,7 @@ And delete existing runs:
 Let's start a queue in the background with `gpus` set.
 
     >>> run("guild run -y queue gpus=1 poll-interval=1 -t q1 --background")
-    queue:queue started in background as ... (pidfile ...)
+    queue started in background as ... (pidfile ...)
     <exit 0>
 
 Here's the run info for the queue:
@@ -154,7 +154,7 @@ We can start another queue, which is associated with GPU `2`, to start
 the staged run.
 
     >>> run("guild run queue gpus=2 poll-interval=1 -t q2 --background -y")
-    queue:queue started in background as ... (pidfile ...)
+    queue started in background as ... (pidfile ...)
     <exit 0>
 
 Wait for the staged run to start:
