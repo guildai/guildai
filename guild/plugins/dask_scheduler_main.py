@@ -167,8 +167,21 @@ def _workers_log_entry_suffix(args):
 
 def _log_state_info(state):
     cluster = state.client.cluster
-    link = cluster.dashboard_link if not state.dashboard_disabled else "<disabled>"
+    link = (
+        _cluster_dashboard_link(cluster)
+        if not state.dashboard_disabled
+        else "<disabled>"
+    )
     log.info("Dashboard link: %s", link)
+
+
+def _cluster_dashboard_link(cluster):
+    try:
+        return cluster.dashboard_link
+    except KeyError as e:
+        if e.args and e.args[0] != "bokeh":
+            raise
+        return "<disabled> (Bokeh not installed)"
 
 
 def _start_run(run, state):

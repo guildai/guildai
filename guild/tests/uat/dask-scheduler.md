@@ -23,7 +23,7 @@ Wait a moment and check scheduler output.
     >>> run("guild cat --output")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing cluster
-    INFO: [guild] ... Dashboard link: http://...:8787/status
+    INFO: [guild] ... Dashboard link: ...
     INFO: [guild] ... Waiting for staged runs
     <exit 0>
 
@@ -69,7 +69,7 @@ order of log statements but we know there are five runs outputing
     >>> run("guild cat -Fo scheduler --output")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing cluster
-    INFO: [guild] ... Dashboard link: http://...:8787/status
+    INFO: [guild] ... Dashboard link: ...
     INFO: [guild] ... Waiting for staged runs
     INFO: [guild] ... Starting staged run ...
     Waiting 2 second(s)...
@@ -111,7 +111,7 @@ parallel. We use `run-once` to process the staged runs and then exit.
     >>> run("guild run dask:scheduler workers=10 run-once=yes -y")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing cluster with 10 workers
-    INFO: [guild] ... Dashboard link: http://...:8787/status
+    INFO: [guild] ... Dashboard link: ...
     INFO: [guild] ... Processing staged runs
     INFO: [guild] ... Starting staged run ...
     INFO: [guild] ... Starting staged run ...
@@ -151,4 +151,85 @@ The runs:
     [9:...]   op              ...  completed  sleep=2
     [10:...]  op              ...  completed  sleep=2
     [11:...]  dask:scheduler  ...  completed  ...
+    <exit 0>
+
+## Dashboard
+
+Use `dashboard-address` to specify the IP address and/or port used for
+the dashboard web app.
+
+For these tests we need to install the `bokeh` library.
+
+    >>> quiet("pip install bokeh")
+
+### Explicit Port
+
+Let's find a free port.
+
+    >>> from guild import util
+    >>> port = util.free_port(8787)
+
+Start a scheduler with that port specified as the dashboard address.
+
+    >>> run("guild run dask:scheduler dashboard-address=%i --background -y" % port)
+    dask:scheduler started in background as ... (pidfile ...)
+    <exit 0>
+
+Wait for the scheduler to start.
+
+    >>> sleep(5)
+
+Show all output to confirm the scheduler is running as expected.
+
+    >>> run("guild cat --output")
+    INFO: [guild] ... Starting Dask scheduler
+    INFO: [guild] ... Initializing cluster
+    INFO: [guild] ... Dashboard link: http://.../status
+    INFO: [guild] ... Waiting for staged runs
+    <exit 0>
+
+Look for a line indicating that the dashboard is running on the expected port.
+
+    >>> run("guild cat --output | grep -e 'Dashboard link: http://.*:%i/status'" % port)
+    INFO: [guild] ... Dashboard link: http://.../status
+    <exit 0>
+
+Check availability of the dashboard HTTP service.
+
+    >>> run("curl -ISs -X GET http://0.0.0.0:%i/status" % port)
+    HTTP/1.1 200 OK
+    ...
+    <exit 0>
+
+Stop the scheduler.
+
+    >>> run("guild stop -y")
+    Stopping ... (pid ...)
+    <exit 0>
+
+### Disable Dashboard
+
+Use False to disable the dashboard.
+
+    >>> run("guild run dask:scheduler dashboard-address=no --background -y")
+    dask:scheduler started in background as ... (pidfile ...)
+    <exit 0>
+
+Wait for the scheduler to start.
+
+    >>> sleep(5)
+
+Verify that the dashboard is disabled.
+
+    >>> run("guild cat --output")
+    INFO: [guild] ... Starting Dask scheduler
+    INFO: [guild] ... Initializing cluster
+    INFO: [guild] ... Dashboard link: <disabled>
+    INFO: [guild] ... Waiting for staged runs
+    <exit 0>
+
+Stop the scheduler.
+
+    >>> run("guild stop -y")
+    Stopping ... (pid ...)
     <exit 0>
