@@ -36,6 +36,7 @@ class State(gen_queue.StateBase):
     def __init__(self, args):
         super(State, self).__init__(
             start_run_cb=_start_run,
+            is_queue_cb=_is_queue,
             max_startable_runs=1,
             poll_interval=args.poll_interval,
             run_once=args.run_once,
@@ -60,9 +61,9 @@ def _parse_args():
 
 
 def _start_run(run, state):
-    env = _run_env(run)
+    log.info("Starting staged run %s", run.id)
     try:
-        gapi.run(restart=run.id, extra_env=env, gpus=state.gpus)
+        gapi.run(restart=run.id, extra_env=_run_env(run), gpus=state.gpus)
     except gapi.RunError as e:
         raise RuntimeError("%s failed with exit code %i" % (run.id, e.returncode))
 
@@ -72,6 +73,10 @@ def _run_env(run):
         "NO_RESTARTING_MSG": "1",
         "PYTHONPATH": run.guild_path("job-packages"),
     }
+
+
+def _is_queue(run):
+    return run.opref.to_opspec() == "queue"
 
 
 if __name__ == "__main__":

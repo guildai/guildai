@@ -8,6 +8,8 @@ Clear existing runs for our tests.
 
     >>> quiet("guild runs rm -y")
 
+## Long Running Operation
+
 Start a Dask scheduler in the background.
 
     >>> run("guild run dask:scheduler poll-interval=1 --background -y")
@@ -19,8 +21,9 @@ Wait a moment and check scheduler output.
     >>> sleep(5)
 
     >>> run("guild cat --output")
-    INFO: [guild] ... Initializing Dask cluster
     INFO: [guild] ... Starting Dask scheduler
+    INFO: [guild] ... Initializing cluster
+    INFO: [guild] ... Dashboard link: http://...:8787/status
     INFO: [guild] ... Waiting for staged runs
     <exit 0>
 
@@ -44,12 +47,12 @@ accommodate the scheduler poll interval of one second (see above).
 Check the run status.
 
     >>> run("guild runs")
-    [1:...]  op         ...  completed  sleep=2
-    [2:...]  op         ...  completed  sleep=2
-    [3:...]  op         ...  completed  sleep=2
-    [4:...]  op         ...  completed  sleep=2
-    [5:...]  op         ...  completed  sleep=2
-    [6:...]  scheduler  ...  running    poll-interval=1 run-once=no wait-for-running=no
+    [1:...]  op              ...  completed  sleep=2
+    [2:...]  op              ...  completed  sleep=2
+    [3:...]  op              ...  completed  sleep=2
+    [4:...]  op              ...  completed  sleep=2
+    [5:...]  op              ...  completed  sleep=2
+    [6:...]  dask:scheduler  ...  running    ...
     <exit 0>
 
 Stop the sceduler.
@@ -64,8 +67,9 @@ order of log statements but we know there are five runs outputing
 
     >>> sleep(2)
     >>> run("guild cat -Fo scheduler --output")
-    INFO: [guild] ... Initializing Dask cluster
     INFO: [guild] ... Starting Dask scheduler
+    INFO: [guild] ... Initializing cluster
+    INFO: [guild] ... Dashboard link: http://...:8787/status
     INFO: [guild] ... Waiting for staged runs
     INFO: [guild] ... Starting staged run ...
     Waiting 2 second(s)...
@@ -75,4 +79,76 @@ order of log statements but we know there are five runs outputing
     Waiting 2 second(s)...
     INFO: [guild] ... Stopping Dask scheduler
     INFO: [guild] ... Stopping Dask cluster
+    <exit 0>
+
+## Run Once
+
+The Dask scheduler can be run once to process staged runs and then
+exit.
+
+First delete runs in preparation for tests.
+
+    >>> quiet("guild runs rm -y")
+
+This requires staged runs. We can use a batch to stage them in one command.
+
+    >>> run("guild run op sleep=[2]*10 --stage-trials -y")
+    INFO: [guild] Staging trial ...: op (sleep=2)
+    INFO: [guild] Staging trial ...: op (sleep=2)
+    INFO: [guild] Staging trial ...: op (sleep=2)
+    INFO: [guild] Staging trial ...: op (sleep=2)
+    INFO: [guild] Staging trial ...: op (sleep=2)
+    INFO: [guild] Staging trial ...: op (sleep=2)
+    INFO: [guild] Staging trial ...: op (sleep=2)
+    INFO: [guild] Staging trial ...: op (sleep=2)
+    INFO: [guild] Staging trial ...: op (sleep=2)
+    INFO: [guild] Staging trial ...: op (sleep=2)
+    <exit 0>
+
+Start a scheduler with 10 workers so we can process all ten trials in
+parallel. We use `run-once` to process the staged runs and then exit.
+
+    >>> run("guild run dask:scheduler workers=10 run-once=yes -y")
+    INFO: [guild] ... Starting Dask scheduler
+    INFO: [guild] ... Initializing cluster with 10 workers
+    INFO: [guild] ... Dashboard link: http://192.168.1.189:8787/status
+    INFO: [guild] ... Processing staged runs
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
+    INFO: [guild] ... Starting staged run ...
+    Waiting 2 second(s)
+    Waiting 2 second(s)
+    Waiting 2 second(s)
+    Waiting 2 second(s)
+    Waiting 2 second(s)
+    Waiting 2 second(s)
+    Waiting 2 second(s)
+    Waiting 2 second(s)
+    Waiting 2 second(s)
+    Waiting 2 second(s)
+    INFO: [guild] ... Stopping Dask scheduler
+    INFO: [guild] ... Stopping Dask cluster
+    <exit 0>
+
+The runs:
+
+    >>> run("guild runs")
+    [1:...]   op              ...  completed  sleep=2
+    [2:...]   op              ...  completed  sleep=2
+    [3:...]   op              ...  completed  sleep=2
+    [4:...]   op              ...  completed  sleep=2
+    [5:...]   op              ...  completed  sleep=2
+    [6:...]   op              ...  completed  sleep=2
+    [7:...]   op              ...  completed  sleep=2
+    [8:...]   op              ...  completed  sleep=2
+    [9:...]   op              ...  completed  sleep=2
+    [10:...]  op              ...  completed  sleep=2
+    [11:...]  dask:scheduler  ...  completed  ...
     <exit 0>

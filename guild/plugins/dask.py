@@ -53,6 +53,17 @@ dask_scheduler_flags_data = yaml.safe_load(
 workers:
   description: Number of workers in the Dask cluster
   type: int
+loglevel:
+  description: Log level used for Dask scheduler
+  default: warn
+  choices: [debug, info, warn, error]
+dashboard-address:
+  description: >
+    Address to listen to for dashboard connections
+
+    You can specify a port or an address like '0.0.0.0:8787'. Use no
+    to disable the dashboard. Use 0 for a randomly assigned port.
+  default: 8787
 poll-interval:
   description: Minimum number of seconds between polls
   default: 10
@@ -67,13 +78,6 @@ wait-for-running:
   default: no
   arg-switch: yes
   type: boolean
-dashboard-address:
-  description: >
-    Address to listen to for dashboard connections
-
-    You can specify a port or an address like '0.0.0.0:8787'. Use no
-    to disable the dashboard.
-  default: 8787
 
 """
 )
@@ -104,7 +108,7 @@ class DaskModelProxy(object):
             }
         ]
         gf = guildfile.Guildfile(data, src="<%s>" % self.__class__.__name__)
-        return gf.models["dask"]
+        return gf.models[self.name]
 
     @staticmethod
     def _init_reference():
@@ -114,7 +118,7 @@ class DaskModelProxy(object):
 class DaskPlugin(pluginlib.Plugin):
     @staticmethod
     def resolve_model_op(opspec):
-        if opspec in ("dask:scheduler", "scheduler"):
+        if opspec in ("dask:scheduler",):
             model = DaskModelProxy()
             return model, "scheduler"
         return None

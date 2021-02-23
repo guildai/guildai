@@ -35,7 +35,10 @@ class StateBase(object):
     def __init__(
         self,
         start_run_cb,
+        is_queue_cb,
         name="queue",
+        init_cb=None,
+        wait_for_running_cb=None,
         cleanup_cb=None,
         max_startable_runs=None,
         run_once=False,
@@ -44,9 +47,12 @@ class StateBase(object):
         poll_interval=DEFAULT_POLL_INTERVAL,
         run_status_lock_timeout=DEFAULT_RUN_STATUS_LOCK_TIMEOUT,
     ):
-        self.start_run = start_run_cb
+        self.start_run_cb = start_run_cb
+        self.is_queue_cb = is_queue_cb
         self.name = name
-        self.cleanup = cleanup_cb
+        self.init_cb = init_cb
+        self.wait_for_running_cb = wait_for_running_cb
+        self.cleanup_cb = cleanup_cb
         self.max_startable_runs = max_startable_runs
         self.run_once = run_once
         self.wait_for_running = wait_for_running
@@ -63,12 +69,18 @@ class StateBase(object):
 
 def run(state):
     log.info("Starting %s", state.name)
+    _init(state)
     _init_sigterm_handler()
     try:
         _run(state)
     finally:
         log.info("Stopping %s", state.name)
         _stop(state)
+
+
+def _init(state):
+    if state.init_cb:
+        state.init_cb(state)
 
 
 def _run(state):
@@ -90,6 +102,7 @@ def _init_sigterm_handler():
 def _run_once(state):
     log.info("Processing staged runs")
     _run_staged(state)
+    _wait_for_running(state)
 
 
 def _poll(state):
@@ -152,7 +165,7 @@ def _blocking_runs(state):
 
 
 def _is_queue_or_self(run, state):
-    return run.id == state.run_id or state.is_queue(run)
+    return run.id == state.run_id or state.is_queue_cb(run)
 
 
 def _staged_runs():
@@ -235,7 +248,7 @@ def _handle_blocking(run, blocking, state):
     if run.id not in state.waiting:
         log.info(
             "Found staged run %s (waiting for runs to finish: %s)",
-            run.short_id,
+            run.id,
             _runs_desc(blocking),
         )
         state.logged_waiting = True
@@ -243,7 +256,7 @@ def _handle_blocking(run, blocking, state):
 
 
 def _runs_desc(runs):
-    return ", ".join([run.short_id for run in runs])
+    return ", ".join([run.id for run in runs])
 
 
 def _limit_startable_runs(runs, state):
@@ -252,9 +265,8 @@ def _limit_startable_runs(runs, state):
 
 def _start_runs(runs, state):
     for run in runs:
-        log.info("Starting staged run %s", run.id)
         try:
-            state.start_run(run, state)
+            state.start_run_cb(run, state)
         except Exception as e:
             if log.getEffectiveLevel() <= logging.DEBUG:
                 log.exception("run %s", run.id)
@@ -269,6 +281,11 @@ def _log_waiting(state):
     state.logged_waiting = True
 
 
+def _wait_for_running(state):
+    if state.wait_for_running_cb:
+        state.wait_for_running_cb(state)
+
+
 def _stop(state):
-    if state.cleanup:
-        state.cleanup(state)
+    if state.cleanup_cb:
+        state.cleanup_cb(state)
