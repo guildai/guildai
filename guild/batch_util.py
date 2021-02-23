@@ -189,7 +189,7 @@ def start_trial_run(run, stage=False):
 
     _log_start_trial(run, stage)
     with __trial_running_lock:
-        run_impl.run(restart=run.id, stage=stage)
+        run_impl.run(restart=run.id, stage=stage, quiet=stage)
 
 
 def _trial_op_attr(proto_run, trial_flag_vals):

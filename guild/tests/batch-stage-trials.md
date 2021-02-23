@@ -10,14 +10,8 @@ Stage three trials:
 
     >>> project.run("say.py", flags={"msg": ["a", "b", "c"]}, stage_trials=True)
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=a)
-    say.py staged as ...
-    To start the operation, use 'guild run --start ...'
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=b)
-    say.py staged as ...
-    To start the operation, use 'guild run --start ...'
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=c)
-    say.py staged as ...
-    To start the operation, use 'guild run --start ...'
 
 The three trials are staged while the batch itself is completed.
 
@@ -81,14 +75,8 @@ Let's start the staged run.
 
     >>> project.run(start=batch_run.id)
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=a)
-    say.py staged as ...
-    To start the operation, use 'guild run --start ...'
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=b)
-    say.py staged as ...
-    To start the operation, use 'guild run --start ...'
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=c)
-    say.py staged as ...
-    To start the operation, use 'guild run --start ...'
 
 And our runs:
 
@@ -136,14 +124,8 @@ Next, use `--stage-trials`:
     >>> project.run("say-many", stage_trials=True)
     INFO: [guild] running say.py: say.py --stage-trials msg=[hi, hello, hola]
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=hi)
-    say.py staged as ...
-    To start the operation, use 'guild run --start ...'
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=hello)
-    say.py staged as ...
-    To start the operation, use 'guild run --start ...'
     INFO: [guild] Staging trial ...: say.py (loud=no, msg=hola)
-    say.py staged as ...
-    To start the operation, use 'guild run --start ...'
 
 And the runs:
 
