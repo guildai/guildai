@@ -86,16 +86,16 @@ Our trials:
 
     >>> with Env({"TRIAL_ENV": "1"}):
     ...     project.print_runs(flags=True, status=True)
-    noisy.py+gp  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=3 xi=0.05  error
-    noisy.py     noise=0.1 x=...                                                      completed
-    noisy.py     noise=0.1 x=0.1                                                      completed
-    noisy.py+gp  acq-func=gp_hedge kappa=1.5 noise=gaussian random-starts=3 xi=0.2    completed
-    noisy.py     noise=0.1 x=...                                                      completed
-    noisy.py     noise=0.1 x=...                                                      completed
-    noisy.py     noise=0.1 x=...                                                      completed
-    noisy.py     noise=0.1 x=...                                                      completed
-    noisy.py     noise=0.1 x=...                                                      completed
-    noisy.py+gp  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=3 xi=0.05  completed
+    noisy.py+skopt:gp  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=3 xi=0.05  error
+    noisy.py           noise=0.1 x=...                                                      completed
+    noisy.py           noise=0.1 x=0.1                                                      completed
+    noisy.py+skopt:gp  acq-func=gp_hedge kappa=1.5 noise=gaussian random-starts=3 xi=0.2    completed
+    noisy.py           noise=0.1 x=...                                                      completed
+    noisy.py           noise=0.1 x=...                                                      completed
+    noisy.py           noise=0.1 x=...                                                      completed
+    noisy.py           noise=0.1 x=...                                                      completed
+    noisy.py           noise=0.1 x=...                                                      completed
+    noisy.py+skopt:gp  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=3 xi=0.05  completed
 
 Cleanup for next tests:
 
@@ -147,14 +147,14 @@ Range with an initial value and opt flags:
 Our trials:
 
     >>> project.print_runs(flags=True, status=True)
-    noisy.py         noise=0.1 x=...                     completed
-    noisy.py         noise=0.1 x=0.3                     completed
-    noisy.py+forest  kappa=1.3 random-starts=3 xi=0.3    completed
-    noisy.py         noise=0.1 x=...                     completed
-    noisy.py         noise=0.1 x=...                     completed
-    noisy.py         noise=0.1 x=...                     completed
-    noisy.py         noise=0.1 x=...                     completed
-    noisy.py+forest  kappa=1.96 random-starts=3 xi=0.05  completed
+    noisy.py               noise=0.1 x=...                     completed
+    noisy.py               noise=0.1 x=0.3                     completed
+    noisy.py+skopt:forest  kappa=1.3 random-starts=3 xi=0.3    completed
+    noisy.py               noise=0.1 x=...                     completed
+    noisy.py               noise=0.1 x=...                     completed
+    noisy.py               noise=0.1 x=...                     completed
+    noisy.py               noise=0.1 x=...                     completed
+    noisy.py+skopt:forest  kappa=1.96 random-starts=3 xi=0.05  completed
 
 Cleanup for next tests:
 
@@ -206,11 +206,11 @@ Range with an initial value and opt flags:
 Our trials:
 
     >>> project.print_runs(flags=True, status=True)
-    noisy.py       noise=0.1 x=...                     completed
-    noisy.py       noise=0.1 x=...                     completed
-    noisy.py       noise=0.1 x=0.4                     completed
-    noisy.py+gbrt  kappa=1.4 random-starts=3 xi=0.4    completed
-    noisy.py       noise=0.1 x=...                     completed
-    noisy.py       noise=0.1 x=...                     completed
-    noisy.py       noise=0.1 x=...                     completed
-    noisy.py+gbrt  kappa=1.96 random-starts=2 xi=0.05  completed
+    noisy.py             noise=0.1 x=...                     completed
+    noisy.py             noise=0.1 x=...                     completed
+    noisy.py             noise=0.1 x=0.4                     completed
+    noisy.py+skopt:gbrt  kappa=1.4 random-starts=3 xi=0.4    completed
+    noisy.py             noise=0.1 x=...                     completed
+    noisy.py             noise=0.1 x=...                     completed
+    noisy.py             noise=0.1 x=...                     completed
+    noisy.py+skopt:gbrt  kappa=1.96 random-starts=2 xi=0.05  completed

@@ -285,7 +285,7 @@ def _format_script_op(opref):
 
 
 def _format_builtin_op(opref):
-    return opref.op_name
+    return _full_op_name(opref)
 
 
 def _format_pending_op(opref):

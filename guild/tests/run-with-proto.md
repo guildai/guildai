@@ -288,9 +288,9 @@ Run an optimizer batch.
     ... 2 'c'
 
     >>> print_runs()
-    echo     x=... y=2 z=c                                                   completed
-    echo     x=... y=2 z=c                                                   completed
-    echo+gp  acq-func=gp_hedge kappa=1.96 noise=0.1 random-starts=1 xi=0.05  completed
+    echo           x=... y=2 z=c                                                   completed
+    echo           x=... y=2 z=c                                                   completed
+    echo+skopt:gp  acq-func=gp_hedge kappa=1.96 noise=0.1 random-starts=1 xi=0.05  completed
 
 Start a new batch using the first batch as a prototype and use new
 flags for both the user op and the batch:
@@ -304,9 +304,9 @@ flags for both the user op and the batch:
     ... 3 'c'
 
     >>> print_runs()
-    echo     x=... y=3 z=c                                                   completed
-    echo     x=... y=3 z=c                                                   completed
-    echo+gp  acq-func=gp_hedge kappa=1.5 noise=0.1 random-starts=1 xi=0.05   completed
-    echo     x=... y=2 z=c                                                   completed
-    echo     x=... y=2 z=c                                                   completed
-    echo+gp  acq-func=gp_hedge kappa=1.96 noise=0.1 random-starts=1 xi=0.05  completed
+    echo           x=... y=3 z=c                                                   completed
+    echo           x=... y=3 z=c                                                   completed
+    echo+skopt:gp  acq-func=gp_hedge kappa=1.5 noise=0.1 random-starts=1 xi=0.05   completed
+    echo           x=... y=2 z=c                                                   completed
+    echo           x=... y=2 z=c                                                   completed
+    echo+skopt:gp  acq-func=gp_hedge kappa=1.96 noise=0.1 random-starts=1 xi=0.05  completed
