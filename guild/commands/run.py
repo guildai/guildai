@@ -278,7 +278,7 @@ def run_params(fn):
                 help="Flag for OPTIMIZER. May be used multiple times.",
             ),
             click.Option(
-                ("-m", "--max-trials"),
+                ("-m", "--max-trials", "--trials"),
                 metavar="N",
                 type=click.IntRange(1, None),
                 help=(
