@@ -177,11 +177,13 @@ def _log_state_info(state):
 
 def _cluster_dashboard_link(cluster):
     try:
-        return cluster.dashboard_link
+        link = cluster.dashboard_link
     except KeyError as e:
         if e.args and e.args[0] != "bokeh":
             raise
         return "<disabled> (Bokeh not installed)"
+    else:
+        return link or "<disabled>"
 
 
 def _start_run(run, state):
