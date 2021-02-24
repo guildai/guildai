@@ -51,7 +51,11 @@ additional staged runs.
 dask_scheduler_flags_data = yaml.safe_load(
     """
 workers:
-  description: Number of workers in the Dask cluster
+  description: >
+    Number of workers in the Dask cluster
+
+    By default, the cluster uses one worker per CPU core available on
+    the system.
   type: int
 loglevel:
   description: Log level used for Dask scheduler
