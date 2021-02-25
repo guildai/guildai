@@ -137,7 +137,13 @@ def _is_legal_flag_val(val):
 
 def _ensure_config_dep(config_src, opdef):
     if not _has_config_dep(opdef, config_src):
-        depdef = guildfile.OpDependencyDef({"config": config_src}, opdef)
+        depdef = guildfile.OpDependencyDef(
+            {
+                "config": config_src,
+                "replace-existing": True,
+            },
+            opdef,
+        )
         opdef.dependencies.append(depdef)
 
 
