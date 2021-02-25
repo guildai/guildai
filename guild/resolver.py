@@ -455,14 +455,42 @@ class ConfigResolver(FileResolver):
                 return
             util.nested_config(params, config)
 
-    @staticmethod
-    def _apply_run_flags(config, run):
-        flags = {
-            name: val
-            for name, val in (run.get("flags") or {}).items()
-            if val is not None
-        }
+    def _apply_run_flags(self, config, run):
+        flags = self._run_flags_for_config(run)
+        self._apply_arg_split(run, flags)
         util.nested_config(flags, config)
+
+    @staticmethod
+    def _run_flags_for_config(run):
+        """Returns dict of flags with non-None values."""
+        flags = run.get("flags") or {}
+        return {name: val for name, val in flags.items() if val is not None}
+
+    def _apply_arg_split(self, run, flags):
+        flags_config = self._flags_config(run)
+        for name in flags:
+            arg_split = flags_config.get(name, {}).get("arg-split")
+            self._maybe_apply_flag_arg_split(arg_split, name, flags)
+
+    @staticmethod
+    def _flags_config(run):
+        op_config = run.get("op") or {}
+        return op_config.get("op-cmd", {}).get("cmd-flags", {})
+
+    def _maybe_apply_flag_arg_split(self, arg_split, flag_name, flags):
+        if not arg_split:
+            return
+        val = flags.get(flag_name)
+        if not isinstance(val, six.string_types):
+            return
+        flags[flag_name] = self._split_encoded_list(val, arg_split)
+
+    @staticmethod
+    def _split_encoded_list(encoded, split_spec):
+        from guild import flag_util
+
+        split_val = flag_util.split_encoded_flag_val(encoded, split_spec)
+        return [flag_util.decode_flag_val(part) for part in split_val]
 
     @staticmethod
     def _init_target_path(path, run):

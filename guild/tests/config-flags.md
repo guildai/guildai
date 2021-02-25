@@ -115,7 +115,7 @@ Results with default flags:
      'd': {},
      'f': 1.123,
      'i': 123,
-     'l': '1 1.2 blue true',
+     'l': [1, 1.2, 'blue', True],
      's': 'Howdy Guild'}
     <exit 0>
 
@@ -123,7 +123,7 @@ Results with modified flags:
 
     >>> guild("run yaml b=yes f=4.456 l='a b 123' s=hi -y")
     Resolving config:flags.yml dependency
-    {'b': True, 'd': {}, 'f': 4.456, 'i': 123, 'l': 'a b 123', 's': 'hi'}
+    {'b': True, 'd': {}, 'f': 4.456, 'i': 123, 'l': ['a', 'b', 123], 's': 'hi'}
     <exit 0>
 
 The config file is generated for the run.
@@ -137,7 +137,10 @@ The config file is generated for the run.
     d: {}
     f: 4.456
     i: 123
-    l: a b 123
+    l:
+    - a
+    - b
+    - 123
     s: hi
     <exit 0>
 
@@ -177,19 +180,19 @@ Results with default flags:
      'd': {'a': 'A', 'b': 'B'},
      'f': 2.234,
      'i': 456,
-     'l': '1 2 abc',
+     'l': [1, 2, 'abc'],
      's': 'flu flam'}
     <exit 0>
 
 Results with modified flags:
 
-    >>> guild("run json s=abc -y")
+    >>> guild("run json s=abc l=\"2 1 'a b' d\" -y")
     Resolving config:flags.json dependency
     {'b': True,
      'd': {'a': 'A', 'b': 'B'},
      'f': 2.234,
      'i': 456,
-     'l': '1 2 abc',
+     'l': [2, 1, 'a b', 'd'],
      's': 'abc'}
     <exit 0>
 
@@ -200,7 +203,7 @@ Guild generates a run specific config file.
     <exit 0>
 
     >>> guild("cat -p flags.json")
-    {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456, "l": "1 2 abc", "s": "abc"}
+    {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456, "l": [2, 1, "a b", "d"], "s": "abc"}
     <exit 0>
 
 ### CFG
