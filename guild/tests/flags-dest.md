@@ -41,6 +41,7 @@ And its operations:
      <guild.guildfile.OpDef 'args2'>,
      <guild.guildfile.OpDef 'args3'>,
      <guild.guildfile.OpDef 'globals'>,
+     <guild.guildfile.OpDef 'no-dest'>,
      <guild.guildfile.OpDef 'params'>,
      <guild.guildfile.OpDef 'split-args'>,
      <guild.guildfile.OpDef 'split-globals'>,
@@ -326,6 +327,14 @@ Guild applies flag type to each part of a split flag value.
     INFO: [guild] Running trial ...: split-args (x="c 'd e'", y=1,2)
     ['c', 'd e']
     [1, 2]
+
+## No flags interface
+
+Use `none` for flags dests to skip the application of flags. This is
+useful when the main spec assumes responsibility for all of the
+command arguments.
+
+    >>> guild_run("no-dest", x="123", y="abc")
 
 ## Flag Imports
 

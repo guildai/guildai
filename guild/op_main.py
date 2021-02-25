@@ -37,7 +37,7 @@ log = None  # initialized in _init_logging
 
 __argv0 = sys.argv
 
-UNKNOWN_FLAGS_DEST = object()
+NO_FLAGS_DEST = object()
 
 
 class Debugger(pdb.Pdb):
@@ -229,6 +229,8 @@ def _flags_dest(args):
         return _globals_dest(args)
     elif dest.startswith("global:"):
         return _global_dest(args, dest[7:])
+    elif dest == "none":
+        return _no_dest_args(args)
     else:
         return _unknown_dest(dest, args)
 
@@ -256,16 +258,20 @@ def _global_dest(args, global_name):
     return "globals", base_args, global_dest
 
 
+def _no_dest_args(args):
+    _flag_args, base_args = op_util.split_args_for_flags(args)
+    return NO_FLAGS_DEST, base_args, {}
+
+
 def _unknown_dest(dest, args):
     log.debug("guild.op_main ignoring flags dest %r", dest)
-    _flag_args, base_args = op_util.split_args_for_flags(args)
-    return UNKNOWN_FLAGS_DEST, base_args, {}
+    return _no_dest_args(args)
 
 
 def _dispatch_module_exec(flags_interface, module_info):
     _maybe_test_internal_error()
     dest, args, flags = flags_interface
-    if dest in ("args", UNKNOWN_FLAGS_DEST):
+    if dest in ("args", NO_FLAGS_DEST):
         _exec_module(module_info, args)
     elif dest == "globals":
         _exec_module(module_info, args, flags)

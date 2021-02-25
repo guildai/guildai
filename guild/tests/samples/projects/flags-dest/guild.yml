@@ -76,3 +76,10 @@ split-typed:
       type: int
       arg-name: y
       arg-split: yes
+
+no-dest:
+  main: guild.main args=${x},${y}
+  flags-dest: none
+  flags:
+    x: 1
+    y: a
