@@ -13,6 +13,10 @@ basic-tutorial-2:
   flags-dest: config:config.yaml
   flags-import: all
   requires:
+    # This is required to write the config file in the source code
+    # path so that Hydra can find it. By default Guild writes to the
+    # root directory. We include replace-existing to ensure that the
+    # modified config replaces the source code version.
     - config: config.yaml
       target-path: .guild/sourcecode
       replace-existing: yes
