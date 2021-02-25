@@ -53,8 +53,10 @@ is where hydra expects it.
 ## Example 3
 
 The third example, implemented in [`my_app_3.py`](my_app_3.py) uses
-[Hydra config groups] and argparse to expose a group name and
-additional config values via flag values.
+[Hydra config
+groups](https://hydra.cc/docs/tutorials/basic/your_first_app/config_groups)
+and argparse to expose a group name and additional config values via
+flag values.
 
     $ guild run basic-tutorial-3
     >   db=postgresql
