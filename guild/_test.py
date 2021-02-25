@@ -383,7 +383,7 @@ def _run_python_doctest(filename, globs, optionflags):
     return _gen_run_doctest(filename, globs, optionflags)
 
 
-def _gen_run_doctest(filename, globs, optionflags, parser=None):
+def _gen_run_doctest(filename, globs, optionflags, parser=None, checker=None):
     parser = parser or doctest.DocTestParser()
     text, filename = _load_testfile(filename)
     name = os.path.basename(filename)
@@ -393,7 +393,7 @@ def _gen_run_doctest(filename, globs, optionflags, parser=None):
         globs = globs.copy()
     if "__name__" not in globs:
         globs["__name__"] = "__main__"
-    checker = Py23DocChecker()
+    checker = checker or Py23DocChecker()
     runner = TestRunner(checker=checker, verbose=None, optionflags=optionflags)
     test = parser.get_doctest(text, globs, name, filename, 0)
     flags = (
@@ -476,9 +476,24 @@ class BashDocTestParser(doctest.DocTestParser):
                 )
 
 
+class BashDocTestChecker(doctest.OutputChecker):
+    def check_output(self, want, got, optionflags):
+        got = self._normalize_exit_0(want, got)
+        return doctest.OutputChecker.check_output(self, want, got, optionflags)
+
+    @staticmethod
+    def _normalize_exit_0(want, got):
+        want = want.rstrip()
+        got = got.rstrip()
+        if got.endswith("\n<exit 0>") and not want.endswith("\n<exit 0>"):
+            return got[:-9]
+        return got
+
+
 def _run_bash_doctest(filename, globs, optionflags):
     parser = BashDocTestParser()
-    return _gen_run_doctest(filename, globs, optionflags, parser)
+    checker = BashDocTestChecker()
+    return _gen_run_doctest(filename, globs, optionflags, parser, checker)
 
 
 def _load_testfile(filename):
