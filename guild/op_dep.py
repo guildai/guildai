@@ -295,9 +295,9 @@ def _resolve_source_for_path(source_path, source_location, source, target_dir):
         source_path, source_location, source, target_dir
     )
     if target_type == "link":
-        _link_to_source(source_path, target_path)
+        _link_to_source(source_path, target_path, source.replace_existing)
     elif target_type == "copy":
-        _copy_source(source_path, target_path)
+        _copy_source(source_path, target_path, source.replace_existing)
     else:
         assert False, (target_type, source, source.resdef)
 
@@ -351,12 +351,15 @@ def _source_target_path(source, source_path, source_location):
         return target_path_attr or source.resdef.target_path or ""
 
 
-def _link_to_source(source_path, link):
+def _link_to_source(source_path, link, replace_existing=False):
     assert os.path.isabs(link), link
     source_path = util.strip_trailing_sep(source_path)
     if os.path.lexists(link) or os.path.exists(link):
-        log.warning("%s already exists, skipping link", link)
-        return
+        if not replace_existing:
+            log.warning("%s already exists, skipping link", link)
+            return
+        log.debug("deleting existing source link %s", link)
+        util.safe_rmtree(link)
     util.ensure_dir(os.path.dirname(link))
     log.debug("resolving source %s as link %s", source_path, link)
     source_rel_path = _source_rel_path(source_path, link)
@@ -393,11 +396,14 @@ def _rename_source(name, rename):
     return name
 
 
-def _copy_source(source_path, dest_path):
+def _copy_source(source_path, dest_path, replace_existing=False):
     assert os.path.isabs(dest_path), dest_path
     if os.path.lexists(dest_path) or os.path.exists(dest_path):
-        log.warning("%s already exists, skipping copy", dest_path)
-        return
+        if not replace_existing:
+            log.warning("%s already exists, skipping copy", dest_path)
+            return
+        log.debug("deleting existing source dest %s", dest_path)
+        util.safe_rmtree(dest_path)
     util.ensure_dir(os.path.dirname(dest_path))
     log.debug("resolving source %s as copy %s", source_path, dest_path)
     if os.path.isdir(source_path):

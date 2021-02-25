@@ -400,7 +400,10 @@ def safe_rmtree(path):
     """Removes path if it's not top level or user dir."""
     assert not _top_level_dir(path), path
     assert path != os.path.expanduser("~"), path
-    shutil.rmtree(path)
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+    else:
+        os.remove(path)
 
 
 def ensure_safe_rmtree(path):

@@ -160,6 +160,7 @@ class ResourceSource(object):
         post_process=None,
         target_path=None,
         target_type=None,
+        replace_existing=False,
         path=None,
         preserve_path=False,
         params=None,
@@ -182,6 +183,7 @@ class ResourceSource(object):
         self.post_process = post_process
         self.target_path = _init_target_path(target_path, path, "source %s" % self.name)
         self.target_type = target_type
+        self.replace_existing = replace_existing
         self.preserve_path = preserve_path
         self.params = params or {}
         self.help = help

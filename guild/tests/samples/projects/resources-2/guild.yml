@@ -1,0 +1,37 @@
+no-replace-dep-link:
+  main: guild.pass
+  sourcecode:
+    select: [file-1]
+    dest: .
+  requires:
+    - file: file-1
+      replace-existing: no  # default
+
+no-replace-dep-copy:
+  main: guild.pass
+  sourcecode:
+    select: [file-1]
+    dest: .
+  requires:
+    - file: file-1
+      replace-existing: no  # default
+      target-type: copy
+
+replace-dep-link:
+  main: guild.pass
+  sourcecode:
+    select: [file-1]
+    dest: .
+  requires:
+    - file: file-1
+      replace-existing: yes
+
+replace-dep-copy:
+  main: guild.pass
+  sourcecode:
+    select: [file-1]
+    dest: .
+  requires:
+    - file: file-1
+      replace-existing: yes
+      target-type: copy
