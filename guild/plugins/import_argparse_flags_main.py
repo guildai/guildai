@@ -21,6 +21,7 @@ import logging as logging
 import os as os
 import sys as sys
 
+from guild import flag_util
 from guild import python_util as python_util
 
 action_types = (
@@ -120,6 +121,7 @@ def _maybe_apply_flag(action, flags):
         attrs["arg-switch"] = False
     if _multi_arg(action):
         attrs["arg-split"] = True
+        _maybe_encode_splittable_default(attrs)
     log.debug("added flag %r: %r", flag_name, attrs)
 
 
@@ -143,9 +145,15 @@ def _ensure_json_encodable(x, flag_name):
 
 
 def _multi_arg(action):
-    return action.nargs == "+" or (
+    return action.nargs in ("+", "*") or (
         isinstance(action.nargs, (int, float)) and action.nargs > 1
     )
+
+
+def _maybe_encode_splittable_default(flag_attrs):
+    default = flag_attrs.get("default")
+    if isinstance(default, list):
+        flag_attrs["default"] = flag_util.join_splittable_flag_vals(default)
 
 
 def _exec_module(mod_path, package):

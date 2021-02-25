@@ -459,7 +459,7 @@ def _string_split(encoded, sep):
     return [part for part in encoded.split(str(sep)) if part]
 
 
-def join_splittable_flag_vals(vals, split_spec):
+def join_splittable_flag_vals(vals, split_spec=None):
     encoded_vals = [encode_flag_val(val) for val in vals]
     if split_spec in (None, True, "shlex"):
         return " ".join([util.shlex_quote(x) for x in encoded_vals])

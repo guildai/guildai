@@ -364,7 +364,21 @@ The module `main_args2` - used by the `import-all-args2` operation -
 has a different argparse usage.
 
     >>> flags("import-all-args2")
-    [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
+    [<guild.guildfile.FlagDef 'bar'>,
+     <guild.guildfile.FlagDef 'foo'>,
+     <guild.guildfile.FlagDef 'list'>]
+
+    >>> flag_info("import-all-args2", "bar")
+    description: Bar
+    default: 0.001
+
+    >>> flag_info("import-all-args2", "foo")
+    description: Foo
+    default: 1
+
+    >>> flag_info("import-all-args2", "list")
+    arg-split: True
+    default:
 
 ## Merge based on arg-name
 
