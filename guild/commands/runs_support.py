@@ -507,19 +507,6 @@ def _param_status_char(param):
     assert False, param.opts
 
 
-def _apply_status(ctx, value):
-    for char, status_param_name in [
-        ("r", "status_running"),
-        ("c", "status_completed"),
-        ("e", "status_error"),
-        ("t", "status_terminated"),
-        ("p", "status_pending"),
-        ("g", "status_staged"),
-    ]:
-        if char in value:
-            ctx.params[status_param_name] = True
-
-
 @click_util.render_doc
 def all_filters(fn):
     """
