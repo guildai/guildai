@@ -27,7 +27,7 @@
 
     >>> run("guild run config b=yes i=456 l='no green 2' -y")
     Resolving config:flags.yml dependency
-    {'b': True, 'f': 1.123, 'i': 456, 'l': 'no green 2', 's': 'Howdy Guild'}
+    {'b': True, 'f': 1.123, 'i': 456, 'l': [False, 'green', 2], 's': 'Howdy Guild'}
     <exit 0>
 
 Legacy support:
