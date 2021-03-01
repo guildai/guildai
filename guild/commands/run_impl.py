@@ -1902,6 +1902,8 @@ def _confirm_run(S):
 def _preview_op_action(S):
     if S.args.stage:
         return "stage"
+    elif S.args.stage_trials:
+        return "stage trials for"
     elif S.args.restart:
         return "start"
     else:
