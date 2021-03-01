@@ -59,7 +59,12 @@ wait-for-running:
   arg-switch: yes
   type: boolean
 gpus:
-  description: Value used for gpus option when starting staged runs
+  description: >
+    Value used for gpus option when starting staged runs
+
+    If this flag is specified and a staged run has a different value for
+    gpus, the queue will not run it.
+  null-label: unspecified
 """
 )
 
