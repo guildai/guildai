@@ -38,7 +38,9 @@ class StateBase(object):
         is_queue_cb,
         name="queue",
         init_cb=None,
+        can_start_cb=None,
         wait_for_running_cb=None,
+        sync_state_cb=None,
         cleanup_cb=None,
         max_startable_runs=None,
         run_once=False,
@@ -51,7 +53,9 @@ class StateBase(object):
         self.is_queue_cb = is_queue_cb
         self.name = name
         self.init_cb = init_cb
+        self.can_start_cb = can_start_cb
         self.wait_for_running_cb = wait_for_running_cb
+        self.sync_state_cb = sync_state_cb
         self.cleanup_cb = cleanup_cb
         self.max_startable_runs = max_startable_runs
         self.run_once = run_once
@@ -59,7 +63,7 @@ class StateBase(object):
         self.gpus = gpus
         self.poll_interval = poll_interval
         self.run_id = os.environ["RUN_ID"]
-        self.gpu_mismatch = set()
+        self._logged_gpu_mismatch = set()
         self.waiting = set()
         self.logged_waiting = False
         self.run_status_lock = locklib.Lock(
@@ -101,8 +105,10 @@ def _init_sigterm_handler():
 
 def _run_once(state):
     log.info("Processing staged runs")
+    time0 = time.time()
     _run_staged(state)
     _wait_for_running(state)
+    _log_runtime(time0, state)
 
 
 def _poll(state):
@@ -147,7 +153,10 @@ def _unsafe_next_runs(state):
     """
     blocking = _blocking_runs(state)
     staged = _staged_runs()
-    _sync_state_for_blocking_and_staged(blocking, staged, state)
+    _sync_state_for_blocking(blocking, state)
+    _sync_state_for_staged(staged, state)
+    if state.sync_state_cb:
+        state.sync_state_cb(state, blocking=blocking, staged=staged)
     startable_runs = [run for run in staged if _can_start(run, blocking, state)]
     next_runs = _limit_startable_runs(startable_runs, state)
     for run in next_runs:
@@ -174,22 +183,19 @@ def _staged_runs():
     )
 
 
-def _sync_state_for_blocking_and_staged(blocking, staged, state):
-    """Syncs state given current blocking and staged runs.
-
-    The set of waiting runs is limited to the set of blocking
-    runs. The set of gpu mismatch runs (used for logging) is limited
-    to those only being staged.
-    """
+def _sync_state_for_blocking(blocking, state):
     waiting_count_before_sync = len(state.waiting)
     state.waiting.intersection_update(_run_ids(blocking))
     if state.waiting:
         log.debug("waiting on: %s", state.waiting)
-    state.gpu_mismatch.intersection_update(_run_ids(staged))
-    if state.gpu_mismatch:
-        log.debug("gpu mismatch: %s", state.gpu_mismatch)
     if waiting_count_before_sync and not state.waiting:
         state.logged_waiting = False
+
+
+def _sync_state_for_staged(staged, state):
+    state._logged_gpu_mismatch.intersection_update(_run_ids(staged))
+    if state._logged_gpu_mismatch:
+        log.debug("gpu mismatch: %s", state._logged_gpu_mismatch)
 
 
 def _run_ids(runs):
@@ -201,6 +207,7 @@ def _can_start(run, blocking, state):
         [
             lambda: _check_gpu_mismatch(run, state),
             lambda: _check_blocking(run, blocking, state),
+            lambda: _check_state_can_start(run, state),
             lambda: True,
         ]
     )
@@ -219,7 +226,7 @@ def _gpu_mismatch(run, state):
         return None
     run_gpus = _run_gpus(run)
     if run_gpus and run_gpus != state.gpus:
-        return run_gpus
+        return True
     return None
 
 
@@ -229,12 +236,14 @@ def _run_gpus(run):
 
 
 def _handle_gpu_mismatch(run, run_gpus, state):
-    if run.id not in state.gpu_mismatch:
+    if run.id not in state._logged_gpu_mismatch:
         log.info(
-            "Ignorning staged run %s (GPU spec mismatch: run is %s, queue is %s)"
-            % (run.id, run_gpus, state.gpus)
+            "Ignorning staged run %s (GPU spec mismatch: run is %s, queue is %s)",
+            run.id,
+            run_gpus,
+            state.gpus,
         )
-        state.gpu_mismatch.add(run.id)
+        state._logged_gpu_mismatch.add(run.id)
 
 
 def _check_blocking(run, blocking, state):
@@ -259,6 +268,12 @@ def _runs_desc(runs):
     return ", ".join([run.id for run in runs])
 
 
+def _check_state_can_start(run, state):
+    if not state.can_start_cb:
+        return None
+    return state.can_start_cb(run, state)
+
+
 def _limit_startable_runs(runs, state):
     return runs[0 : state.max_startable_runs]
 
@@ -267,11 +282,8 @@ def _start_runs(runs, state):
     for run in runs:
         try:
             state.start_run_cb(run, state)
-        except Exception as e:
-            if log.getEffectiveLevel() <= logging.DEBUG:
-                log.exception("run %s", run.id)
-            else:
-                log.error(e)
+        except Exception:
+            log.exception("error calling %r for run %s", state.start_run_cb, run.id)
     state.logged_waiting = False
 
 
@@ -283,7 +295,17 @@ def _log_waiting(state):
 
 def _wait_for_running(state):
     if state.wait_for_running_cb:
-        state.wait_for_running_cb(state)
+        try:
+            state.wait_for_running_cb(state)
+        except KeyboardInterrupt:
+            pass
+        except Exception:
+            log.exception("error waiting for runs via %r", state.wait_for_running_cb)
+
+
+def _log_runtime(time0, state):
+    runtime = time.time() - time0
+    log.info("%s ran for %f seconds", state.name, runtime)
 
 
 def _stop(state):

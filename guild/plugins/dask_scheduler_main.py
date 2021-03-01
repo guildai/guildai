@@ -38,22 +38,30 @@ log = logging.getLogger("guild")
 
 
 class State(gen_queue.StateBase):
+
+    client = None
+    dashboard_disabled = False
+    resources = None
+
     def __init__(self, args):
         super(State, self).__init__(
             _start_run,
             _is_queue,
             name="Dask scheduler",
             init_cb=_init_client,
+            can_start_cb=_can_start_run,
             wait_for_running_cb=_wait_for_running,
+            sync_state_cb=_sync_state_for_staged,
             cleanup_cb=_cleanup,
             max_startable_runs=1,
             poll_interval=args.poll_interval,
             run_once=args.run_once,
             wait_for_running=args.wait_for_running,
+            gpus=args.gpus,
         )
         self.args = args
-        self.client = None  # Initialized in _init_client
         self.futures = []
+        self._logged_missing_resoures = set()
 
 
 def main():
@@ -70,13 +78,16 @@ def _parse_args():
     p.add_argument("--poll-interval", type=int, default=10)
     p.add_argument("--run-once", action="store_true")
     p.add_argument("--wait-for-running", action="store_true")
+    p.add_argument("--gpus")
+    p.add_argument("--resources")
     return p.parse_args()
 
 
 def _init_client(state):
-    client, dashboard_disabled = _init_dask_client(state.args)
+    client, dashboard_disabled, resources = _init_dask_client(state.args)
     state.client = client
     state.dashboard_disabled = dashboard_disabled
+    state.resources = resources
     _log_state_info(state)
 
 
@@ -91,16 +102,18 @@ def _init_dask_client(args):
         )
     else:
         dashboard_address = _dashboard_address(args)
+        resources = _cluster_resources(args)
         log.info("Initializing cluster%s", _workers_log_entry_suffix(args))
         cluster = LocalCluster(
             n_workers=args.workers,
             processes=False,
             silence_logs=_dask_loglevel(args),
             dashboard_address=dashboard_address,
+            resources=resources,
         )
         dashboard_disabled = dashboard_address is None
         client = Client(cluster)
-        return client, dashboard_disabled
+        return client, dashboard_disabled, resources
 
 
 def _workaround_multiprocessing_cycle():
@@ -112,6 +125,8 @@ def _workaround_multiprocessing_cycle():
 
 
 def _dask_loglevel(args):
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        return "DEBUG"
     return args.loglevel.upper()
 
 
@@ -165,6 +180,12 @@ def _workers_log_entry_suffix(args):
         return " with %i workers" % args.workers
 
 
+def _cluster_resources(args):
+    if not args.resources:
+        return None
+    return _decode_dask_resources(args.resources)
+
+
 def _log_state_info(state):
     cluster = state.client.cluster
     link = (
@@ -173,6 +194,8 @@ def _log_state_info(state):
         else "<disabled>"
     )
     log.info("Dashboard link: %s", link)
+    if state.resources:
+        log.info("Cluster resources: %s", _resources_desc(state.resources))
 
 
 def _cluster_dashboard_link(cluster):
@@ -195,6 +218,7 @@ def _release_futures(state):
     active_futures = []
     for f in state.futures:
         if f.done():
+            _maybe_log_future_error(f)
             log.debug("Releasing future %s", f.key)
             f.release()
         else:
@@ -202,17 +226,63 @@ def _release_futures(state):
     state.futures = active_futures
 
 
+def _maybe_log_future_error(f):
+    exc = f.exception()
+    if exc:
+        log.error("exception detail for %s:\n%s", f.key, _format_exc(exc))
+
+
+def _format_exc(exc):
+    import traceback
+
+    return "".join(traceback.format_tb(exc.__traceback__))
+
+
 def _start_run_(run, state):
-    log.info("Starting staged run %s", run.id)
-    env = _run_env(run)
-    f = state.client.submit(
-        gapi.run,
-        key="run-%s" % run.id,
+    resources = _run_resources(run, quiet=True)
+    run_kwargs = dict(
         restart=run.id,
-        extra_env=env,
+        extra_env=_run_env(run),
         gpus=state.gpus,
     )
-    state.futures.append(f)
+    if resources:
+        log.info(
+            "Starting staged run %s (requires %s)",
+            run.id,
+            _resources_desc(resources),
+        )
+    else:
+        log.info("Starting staged run %s", run.id)
+    future = state.client.submit(
+        gapi.run, key=_run_key(run), resources=resources, **run_kwargs
+    )
+    state.futures.append(future)
+
+
+def _run_resources(run, quiet=False):
+    tags = run.get("tags") or []
+    resources = {}
+    for tag in tags:
+        if tag.startswith("dask:"):
+            encoded = tag[5:]
+            resources.update(_decode_dask_resources(encoded, quiet))
+    return resources
+
+
+def _decode_dask_resources(encoded, quiet=False):
+    from guild import op_util
+
+    args = util.shlex_split(encoded)
+    try:
+        return op_util.parse_flag_assigns(args)
+    except op_util.ArgValueError:
+        if not quiet:
+            log.warning(
+                "Ignoring invalid dask resources spec %r: parts must be in "
+                "format KEY=VAL",
+                encoded,
+            )
+        return {}
 
 
 def _run_env(run):
@@ -220,6 +290,49 @@ def _run_env(run):
         "NO_RESTARTING_MSG": "1",
         "PYTHONPATH": run.guild_path("job-packages"),
     }
+
+
+def _resources_desc(resources):
+    from guild import flag_util
+
+    return " ".join(flag_util.flag_assigns(resources))
+
+
+def _run_key(run):
+    return "run-%s" % run.id
+
+
+def _run_id_for_key(key):
+    assert key.startwith("run-") and len(key) == 36, key
+    return key[4:]
+
+
+def _can_start_run(run, state):
+    run_resources = _run_resources(run) or {}
+    if not run_resources:
+        return True
+    return _check_run_resources(run_resources, run, state)
+
+
+def _check_run_resources(run_resources, run, state):
+    cluster_resources = state.resources or {}
+    missing_resources = [
+        name for name in run_resources if name not in cluster_resources
+    ]
+    if missing_resources:
+        _handle_missing_resources(missing_resources, run, state)
+        return False
+    return True
+
+
+def _handle_missing_resources(missing_resources, run, state):
+    if run.id not in state._logged_missing_resoures:
+        log.info(
+            "Ignorning staged run %s (requires resources not defined for cluster: %s)",
+            run.id,
+            ", ".join(sorted(missing_resources)),
+        )
+        state._logged_missing_resoures.add(run.id)
 
 
 def _wait_for_running(state):
@@ -233,6 +346,13 @@ def _wait_for_running(state):
 
 def _is_queue(run):
     return run.opref.to_opspec() == "dask:scheduler"
+
+
+def _sync_state_for_staged(state, staged, **_kw):
+    staged_run_ids = [run.id for run in (staged or [])]
+    state._logged_missing_resoures.intersection_update(staged_run_ids)
+    if state._logged_missing_resoures:
+        log.debug("missing resource runs: %s", state._logged_missing_resoures)
 
 
 def _cleanup(state):

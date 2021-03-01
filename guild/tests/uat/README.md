@@ -220,6 +220,7 @@ And test the `keras` example.
 
 - [dask-basics](dask-basics.md)
 - [dask-scheduler](dask-scheduler.md)
+- [dask-scheduler-resources](dask-scheduler-resources.md)
 
 ## Packaging
 

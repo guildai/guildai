@@ -28,7 +28,8 @@ Start a Dask scheduler.
 
 Dask schedulers execute staged runs in parallel according to their \
 number of workers. Specify the number of workers using the workers \
-flags.
+flags. The default worker count is based on the number of CPU cores \
+available on the system.
 
 If the Bokeh Python package is installed, the schduler runs a \
 dashboard application by default on port 8787. Specify a different \
@@ -56,7 +57,7 @@ workers:
 
     By default, the cluster uses one worker per CPU core available on
     the system.
-  type: int
+  null-label: auto
 loglevel:
   description: Log level used for Dask scheduler
   default: warn
@@ -82,7 +83,28 @@ wait-for-running:
   default: no
   arg-switch: yes
   type: boolean
+gpus:
+  description: >
+    Value used for gpus option when starting staged runs
 
+    If this flag is specified and a staged run has a different value
+    for gpus, the scheduler will not run it.
+  null-label: unspecified
+resources:
+  description: >
+    Set of resource levels available to the scheduler
+
+    Use this flag to specify resources for the scheduler. When runs
+    are staged with a tag in the format 'dask:<resources>', each run
+    depletes a resource by the value specified in the tag. For
+    example, if a scheduler is started with 'resources=MEM=5e9' and a
+    run is staged with a tag value 'dask:MEM=1e9', the 'MEM' resource
+    is reduced by 1e9 for that run. When the run is completed, the
+    depleted resource is restored to the scheduler.
+
+    If a run is staged with required resources that are not defined
+    for the scheduler, the scheduler does not start the run.
+  null-label: unconstrained
 """
 )
 

@@ -1,4 +1,3 @@
-import datetime
 import time
 
 sleep = 1
