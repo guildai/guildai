@@ -139,7 +139,8 @@ class Run(object):
     @property
     def batch_proto(self):
         proto_dir = self.guild_path("proto")
-        if os.path.exists(proto_dir):
+        proto_opref_path = os.path.join(proto_dir, ".guild", "opref")
+        if os.path.exists(proto_opref_path):
             return for_dir(proto_dir)
         return None
 
