@@ -632,6 +632,7 @@ def clear_run_marker(run, marker):
 
 def set_run_pending(run):
     set_run_marker(run, "PENDING")
+    clear_run_marker(run, "STAGED")
 
 
 def clear_run_pending(run):
