@@ -5,10 +5,7 @@ status.
 
     >>> gh = mkdtemp()
     >>> symlink(sample("runs"), path(gh, "runs"))
-
-    >>> _run = run
-    >>> def run(cmd):
-    ...     _run(cmd, env={"GUILD_HOME": gh})
+    >>> set_guild_home(gh)
 
     >>> run("guild runs")
     [1:42803252]  mnist:evaluate  ...  completed

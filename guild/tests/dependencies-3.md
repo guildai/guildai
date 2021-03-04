@@ -9,12 +9,7 @@ Tests use the `resources-2` project.
 
 Use an isolated Guild env.
 
-    >>> env = {"GUILD_HOME": mkdtemp()}
-
-    >>> _run = run
-
-    >>> def run(*args, **kw):
-    ...     return _run(*args, env=env, **kw)
+    >>> set_guild_home(mkdtemp())
 
 Verify project operations.
 

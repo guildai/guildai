@@ -15,16 +15,13 @@ We use the `sleep` project for our tests.
 
     >>> cd(sample("projects", "sleep"))
 
-Helper function to run commands within an isolated Guild home.
+Use an isolated Guild home.
 
-    >>> gh_env = {"GUILD_HOME": mkdtemp()}
-
-    >>> def gh_run(cmd):
-    ...     run(cmd, env=gh_env)
+    >>> set_guild_home(mkdtemp())
 
 Start a batch of two runs in the background.
 
-    >>> gh_run("guild run sleep.py seconds=[99,99] --background --yes")
+    >>> run("guild run sleep.py seconds=[99,99] --background --yes")
     + started in background as ... (pidfile ...)
     <exit 0>
 
@@ -34,7 +31,7 @@ Wait for the batch to stage and start a run.
 
 Show the runs.
 
-    >>> gh_run("guild runs")
+    >>> run("guild runs")
     [1:...]  sleep.py   ...  running  seconds=99
     [2:...]  sleep.py   ...  staged   seconds=99
     [3:...]  sleep.py+  ...  running
@@ -42,7 +39,7 @@ Show the runs.
 
 Stop the batch run.
 
-    >>> gh_run("guild stop 3 -y")
+    >>> run("guild stop 3 -y")
     Stopping ... (pid ...)
     <exit 0>
 
@@ -52,7 +49,7 @@ Wait for the runs to stop;
 
 Show the runs after stopping the batch.
 
-    >>> gh_run("guild runs")
+    >>> run("guild runs")
     [1:...]  sleep.py   ...  terminated  seconds=99
     [2:...]  sleep.py   ...  staged      seconds=99
     [3:...]  sleep.py+  ...  terminated
@@ -60,7 +57,7 @@ Show the runs after stopping the batch.
 
 Show output for the batch.
 
-    >>> gh_run("guild cat 3 --output")
+    >>> run("guild cat 3 --output")
     INFO: [guild] Running trial ...: sleep.py (seconds=99)
     INFO: [guild] Stopping trial (proc ...)
     INFO: [guild] Stopping batch (remaining staged trials may be started as needed)

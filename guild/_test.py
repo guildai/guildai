@@ -546,6 +546,7 @@ def test_globals():
         "find": find,
         "findl": file_util.find,
         "gapi": gapi,
+        "guild_home": configlib.guild_home,
         "guild": guild,
         "guildfile": guildfile,
         "isdir": os.path.isdir,
@@ -571,6 +572,7 @@ def test_globals():
         "run_capture": _run_capture,
         "sample": sample,
         "samples_dir": samples_dir,
+        "set_guild_home": configlib.set_guild_home,
         "sha256": util.file_sha256,
         "sleep": time.sleep,
         "symlink": os.symlink,
@@ -1072,8 +1074,7 @@ def _run(
     if env:
         proc_env.update(env)
     proc_env["SYNC_RUN_OUTPUT"] = "1"
-    if guild_home:
-        proc_env["GUILD_HOME"] = guild_home
+    proc_env["GUILD_HOME"] = guild_home or configlib.guild_home()
     p = _popen(cmd, proc_env, cwd)
     with _kill_after(p, timeout):
         out, err = p.communicate()
