@@ -142,6 +142,15 @@ Use -a/--attr to show a run attribute.
     test
     <exit 0>
 
+Use -p/--path to show run directory.
+
+    >>> out, code = run_capture("guild select 3 --path", guild_home=project.guild_home)
+    >>> code
+    0
+
+    >>> out == runs[2].dir
+    True
+
 An invalid attr generates an error.
 
     >>> run("guild select 3 --attr wombat", guild_home=project.guild_home)

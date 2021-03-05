@@ -1431,6 +1431,8 @@ def _print_select_info(run, args):
         _print_run_attr(run, args.attr)
     elif args.short_id:
         print(run.short_id)
+    elif args.path:
+        print(run.dir)
     else:
         print(run.id)
 
