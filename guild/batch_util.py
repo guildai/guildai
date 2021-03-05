@@ -46,6 +46,7 @@ RUN_STATUS_LOCK_TIMEOUT = 30
 
 
 __trial_running_lock = threading.Lock()
+__batch_exiting = threading.Event()
 
 
 class CurrentRunNotBatchError(Exception):
@@ -131,6 +132,8 @@ def _run_trials(batch_run, trials):
     run_status_lock = locklib.Lock(locklib.RUN_STATUS, timeout=RUN_STATUS_LOCK_TIMEOUT)
     for trial_run in trial_runs:
         _try_run_staged_trial(trial_run, batch_run, run_status_lock)
+        if __batch_exiting.is_set():
+            break
 
 
 def _init_trial_runs(batch_run, trials):
@@ -480,6 +483,7 @@ def _start_batch_terminate_thread(batch_run):
 def _terminate_batch(batch_run):
     import psutil
 
+    __batch_exiting.set()
     this_p = psutil.Process()
     assert this_p.pid == batch_run.pid, (this_p.pid, batch_run.pid)
     children = this_p.children(recursive=True)
