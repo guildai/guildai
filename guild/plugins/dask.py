@@ -83,13 +83,6 @@ wait-for-running:
   default: no
   arg-switch: yes
   type: boolean
-gpus:
-  description: >
-    Value used for gpus option when starting staged runs
-
-    If this flag is specified and a staged run has a different value
-    for gpus, the scheduler will not run it.
-  null-label: unspecified
 resources:
   description: >
     Set of resource levels available to the scheduler
