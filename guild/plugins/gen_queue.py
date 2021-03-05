@@ -69,6 +69,7 @@ class StateBase(object):
         self.run_status_lock = locklib.Lock(
             locklib.RUN_STATUS, timeout=run_status_lock_timeout
         )
+        self.started = 0
 
 
 def run(state):
@@ -284,6 +285,8 @@ def _start_runs(runs, state):
             state.start_run_cb(run, state)
         except Exception:
             log.exception("error calling %r for run %s", state.start_run_cb, run.id)
+        else:
+            state.started += 1
     state.logged_waiting = False
 
 
@@ -305,7 +308,12 @@ def _wait_for_running(state):
 
 def _log_runtime(time0, state):
     runtime = time.time() - time0
-    log.info("%s ran for %f seconds", state.name, runtime)
+    log.info(
+        "%s processed %i run(s) in %f seconds",
+        state.name,
+        state.started,
+        runtime,
+    )
 
 
 def _stop(state):
