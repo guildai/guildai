@@ -252,26 +252,18 @@ only one run per GPU.
     INFO: [guild] ... Dashboard link: ...
     INFO: [guild] ... Cluster resources: gpu0=1 gpu1=1
     INFO: [guild] ... Processing staged runs
-    INFO: [guild] ... Scheduling run aaa (requires gpu0=1)
-    INFO: [guild] ... Run aaa started
-    INFO: [guild] ... Scheduling run bbb (requires gpu0=1)
-    INFO: [guild] ... Scheduling run ccc (requires gpu0=1 gpu1=1)
-    INFO: [guild] ... Scheduling run ddd (requires gpu1=1)
+    INFO: [guild] ... Scheduling run aaa (requires gpu0=1)...
+    INFO: [guild] ... Scheduling run bbb (requires gpu0=1)...
+    INFO: [guild] ... Scheduling run ccc (requires gpu0=1 gpu1=1)...
+    INFO: [guild] ... Scheduling run ddd (requires gpu1=1)...
     Run aaa start (CUDA_VISIBLE_DEVICES=0)
-    Run aaa stop
-    INFO: [guild] ... Run aaa completed
-    INFO: [guild] ... Run bbb started
+    Run aaa stop...
     Run bbb start (CUDA_VISIBLE_DEVICES=0)
-    Run bbb stop
-    INFO: [guild] ... Run bbb completed
-    INFO: [guild] ... Run ccc started
+    Run bbb stop...
     Run ccc start (CUDA_VISIBLE_DEVICES=0,1)
-    Run ccc stop
-    INFO: [guild] ... Run ccc completed
-    INFO: [guild] ... Run ddd started
+    Run ccc stop...
     Run ddd start (CUDA_VISIBLE_DEVICES=1)
-    Run ddd stop
-    INFO: [guild] ... Run ddd completed
+    Run ddd stop...
     INFO: [guild] ... Dask scheduler ran for ... seconds
     INFO: [guild] ... Stopping Dask scheduler
     INFO: [guild] ... Stopping Dask cluster
@@ -303,26 +295,18 @@ Run the scheduler as before.
     INFO: [guild] ... Dashboard link: ...
     INFO: [guild] ... Cluster resources: gpu0=1 gpu1=1
     INFO: [guild] ... Processing staged runs
-    INFO: [guild] ... Scheduling run aaa (requires gpu0=1)
-    INFO: [guild] ... Run aaa started
-    INFO: [guild] ... Scheduling run ddd (requires gpu1=1)
-    INFO: [guild] ... Scheduling run bbb (requires gpu0=1)
-    INFO: [guild] ... Run ddd started
-    INFO: [guild] ... Scheduling run ccc (requires gpu0=1 gpu1=1)
+    INFO: [guild] ... Scheduling run aaa (requires gpu0=1)...
+    INFO: [guild] ... Scheduling run ddd (requires gpu1=1)...
+    INFO: [guild] ... Scheduling run bbb (requires gpu0=1)...
+    INFO: [guild] ... Scheduling run ccc (requires gpu0=1 gpu1=1)...
     Run aaa start (CUDA_VISIBLE_DEVICES=0)
     Run ddd start (CUDA_VISIBLE_DEVICES=1)
     Run aaa stop
-    Run ddd stop
-    INFO: [guild] ... Run aaa completed
-    INFO: [guild] ... Run bbb started
-    INFO: [guild] ... Run ddd completed
+    Run ddd stop...
     Run bbb start (CUDA_VISIBLE_DEVICES=0)
-    Run bbb stop
-    INFO: [guild] ... Run bbb completed
-    INFO: [guild] ... Run ccc started
+    Run bbb stop...
     Run ccc start (CUDA_VISIBLE_DEVICES=0,1)
-    Run ccc stop
-    INFO: [guild] ... Run ccc completed
+    Run ccc stop...
     INFO: [guild] ... Dask scheduler ran for ... seconds
     INFO: [guild] ... Stopping Dask scheduler
     INFO: [guild] ... Stopping Dask cluster
