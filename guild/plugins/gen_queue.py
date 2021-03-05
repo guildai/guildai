@@ -226,7 +226,7 @@ def _gpu_mismatch(run, state):
         return None
     run_gpus = _run_gpus(run)
     if run_gpus and run_gpus != state.gpus:
-        return True
+        return run_gpus
     return None
 
 
