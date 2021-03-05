@@ -22,7 +22,7 @@ We use an isolated Guild home for these tests.
 
 Use the Get Started train example.
 
-    >>> cd(example("get-started"))
+    >>> cd(sample("projects/get-started"))
 
 Start by generating some training runs.
 
