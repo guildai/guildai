@@ -1,8 +1,11 @@
 op:
+  description: Operation that sleeps for a specified number of seconds
   main: sleep
+  pip-freeze: no
   flags-import: all
 
 steps:
+  description: Sample pipeline
   flags:
     sleep: 5
   steps:
