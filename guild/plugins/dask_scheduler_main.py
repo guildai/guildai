@@ -316,7 +316,7 @@ def _run_key(run):
 
 
 def _run_id_for_key(key):
-    assert key.startwith("run-") and len(key) == 36, key
+    assert key.startwith("run-"), key
     return key[4:]
 
 
