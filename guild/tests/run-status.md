@@ -59,3 +59,10 @@ status.
     [1:42803252]  mnist:evaluate  ...  completed
     [2:360192fd]  mnist:train     ...  pending
     <exit 0>
+
+## Unsupported Status Chars
+
+    >>> run("guild runs -Sxyz")
+    guild: unrecognized status char 'x' in option '-S'
+    Try 'guild runs --help' for more information.
+    <exit 1>

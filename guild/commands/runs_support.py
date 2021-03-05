@@ -480,6 +480,7 @@ def status_filters(fn):
                 # flags using one or more chars.
                 ("-S", "status_chars"),
                 hidden=True,
+                callback=_validate_status_chars,
             ),
         ],
     )
@@ -505,6 +506,18 @@ def _param_status_char(param):
             assert len(char) == 1, param.opts
             return char
     assert False, param.opts
+
+
+def _validate_status_chars(ctx, _param, value):
+    if not value:
+        return value
+    for char in value:
+        if char not in "rcetps":
+            raise SystemExit(
+                "unrecognized status char '%s' in option '-S'\n"
+                "Try '%s --help' for more information." % (char, ctx.command_path)
+            )
+    return value
 
 
 @click_util.render_doc
