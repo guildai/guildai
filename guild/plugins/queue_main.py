@@ -48,6 +48,7 @@ class State(gen_queue.StateBase):
 def main():
     args = _parse_args()
     state = State(args)
+    gen_queue.simulate_batch()
     gen_queue.run(state)
 
 

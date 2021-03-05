@@ -311,3 +311,14 @@ def _log_runtime(time0, state):
 def _stop(state):
     if state.cleanup_cb:
         state.cleanup_cb(state)
+
+
+def simulate_batch():
+    """Ensure that the current queue run looks like a batch run to Guild.
+
+    Creates a proto dir to mimick the appearance of a batch. This
+    ensures that the queue doesn't show up in compare and other
+    facilities that ignore batch runs by default.
+    """
+    this_run = op_util.current_run()
+    util.ensure_dir(this_run.guild_path("proto"))
