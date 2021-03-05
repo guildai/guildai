@@ -1937,7 +1937,7 @@ def _batch_desc_preview_part(op):
     elif opt_name in ("random", "skopt:random"):
         return " with random search"
     else:
-        return " with '%s' optimizer" % opt_name
+        return " with %s optimizer" % opt_name
 
 
 def _batch_qualifier_preview_part(S):
@@ -1946,7 +1946,7 @@ def _batch_qualifier_preview_part(S):
     if batch_op.opref.op_name == "+":
         parts.append(_preview_trials_count(S))
     elif batch_op._max_trials:
-        parts.append("max %i trials" % batch_op._max_trials)
+        parts.append("%i trials" % batch_op._max_trials)
     if _is_likey_optimizer(batch_op) and batch_op._objective:
         parts.append(_objective_preview_part(batch_op._objective))
     if not parts:

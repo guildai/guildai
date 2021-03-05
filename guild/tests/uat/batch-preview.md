@@ -48,7 +48,7 @@ trial count.
 Random batch:
 
     >>> run("guild run test.py x=[1:100] --max-trials 5", timeout=3)
-    You are about to run test.py with random search (max 5 trials)
+    You are about to run test.py with random search (5 trials)
       x: [1:100]
       y: 2
     Continue? (Y/n)
@@ -57,7 +57,7 @@ Random batch:
 Optimizer with default objective:
 
     >>> run("guild run test.py x=[1:100] -o gp", timeout=3)
-    You are about to run test.py with 'skopt:gp' optimizer (max 20 trials, minimize loss)
+    You are about to run test.py with skopt:gp optimizer (20 trials, minimize loss)
       x: [1:100]
       y: 2
     Optimizer flags:
@@ -72,7 +72,7 @@ Optimizer with default objective:
 Optimizer with explict objective:
 
     >>> run("guild run test.py x=[1:100] -o gbrt -X foo -m10", timeout=3)
-    You are about to run test.py with 'skopt:gbrt' optimizer (max 10 trials, maximize foo)
+    You are about to run test.py with skopt:gbrt optimizer (10 trials, maximize foo)
       x: [1:100]
       y: 2
     Optimizer flags:
