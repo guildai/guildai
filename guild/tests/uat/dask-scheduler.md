@@ -36,13 +36,13 @@ Stage five runs, each run sleeping for 3 seconds.
     >>> quiet("guild run op sleep=2 --stage -y")
     >>> quiet("guild run op sleep=2 --stage -y")
 
-Wait 6 seconds for the runs to start and complete. If run in series,
+Wait 8 seconds for the runs to start and complete. If run in series,
 the set of runs would take over 10 seconds to complete. The Dask
 scheduler runs these concurrently so we expect them to be completed in
-a little over two seconds. We use 6 seconds as a buffer and to
+a little over two seconds. We use 8 seconds as a buffer and to
 accommodate the scheduler poll interval of one second (see above).
 
-    >>> sleep(6)
+    >>> sleep(8)
 
 Check the run status.
 
