@@ -887,10 +887,8 @@ def _proc_python_exe(python_requires):
 
 def _apply_gpu_arg_env(args, env):
     if args.no_gpus:
-        log.info("Masking available GPUs (CUDA_VISIBLE_DEVICES='')")
         env["CUDA_VISIBLE_DEVICES"] = ""
     elif args.gpus is not None:
-        log.info("Masking available GPUs (CUDA_VISIBLE_DEVICES='%s')", args.gpus)
         env["CUDA_VISIBLE_DEVICES"] = args.gpus
 
 

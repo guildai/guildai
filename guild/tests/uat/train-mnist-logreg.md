@@ -9,7 +9,6 @@ specify the full model name as long as our term refers to one and only
 one model.
 
     >>> run("guild run -y --no-gpus logreg:train epochs=1")
-    Masking available GPUs (CUDA_VISIBLE_DEVICES='')
     Resolving mnist-dataset dependency
     ...
     Step 20:...

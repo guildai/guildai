@@ -67,7 +67,6 @@ Output from the queue:
     INFO: [guild] ... Starting queue
     INFO: [guild] ... Waiting for staged runs
     INFO: [guild] ... Starting staged run ...
-    Masking available GPUs (CUDA_VISIBLE_DEVICES='1')
     Hello Guild!
     INFO: [guild] ... Waiting for staged runs
     <exit 0>
@@ -102,7 +101,6 @@ If a staged operation specifies a `--gpus` value that matches the
 queue, the queue will start the operation.
 
     >>> run("guild run hello --gpus 1 -l gpus-1 --stage -y")
-    Masking available GPUs (CUDA_VISIBLE_DEVICES='1')
     hello staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>
@@ -123,7 +121,6 @@ If a staged run specifies a different GPU spec, the queue will refuse
 to start it.
 
     >>> run("guild run hello --gpus 2 -l gpus-2 --stage -y")
-    Masking available GPUs (CUDA_VISIBLE_DEVICES='2')
     hello staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>
@@ -166,7 +163,6 @@ Check output from the latest queue:
     >>> run("guild cat --output -Fl q2")
     INFO: [guild] ... Starting queue
     INFO: [guild] ... Starting staged run ...
-    Masking available GPUs (CUDA_VISIBLE_DEVICES='2')
     Hello Guild!
     INFO: [guild] ... Waiting for staged runs
     <exit 0>

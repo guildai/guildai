@@ -6,7 +6,6 @@ operation to test it against all of the test data.
     >>> cd(example("models"))
 
     >>> run("guild run intro:evaluate -y --no-gpus")
-    Masking available GPUs (CUDA_VISIBLE_DEVICES='')
     Resolving data dependency...
     Resolving train dependency
     Using run ...
