@@ -51,6 +51,7 @@ tests).
       flag-vals:                   ok
       flagdefs:                    ok
       flags-dest:                  ok
+      gpus:                        ok
       guild-home:                  ok
       guildfiles:                  ok
       help:                        ok

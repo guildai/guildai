@@ -137,6 +137,7 @@ JSON output, including private attrs:
                     "__flag_args__"
                 ],
                 "cmd-env": {
+                    "CUDA_VISIBLE_DEVICES": "",
                     "GUILD_PLUGINS": "",
                     "PROJECT_DIR": ".../gpkg/mnist"
                 },

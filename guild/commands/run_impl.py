@@ -202,7 +202,7 @@ def _state_init_user_op(S):
     _op_init_force_sourcecode(S.args.force_sourcecode, S.user_op)
     _op_init_opdef(S.args.opspec, S.user_op, S.args)
     _op_init_user_flags(S.args.flags, S.user_op)
-    _op_init_op_cmd(S.user_op)
+    _op_init_op_cmd(S.user_op, S.args)
     _op_init_op_flags(S.args, S.user_op)
     _op_init_config(
         S.args.label,
@@ -356,9 +356,10 @@ def _default_opdef():
 # =================================================================
 
 
-def _op_init_op_cmd(op):
+def _op_init_op_cmd(op, args):
     if op._opdef:
         op._op_cmd, run_attrs = _op_cmd_for_opdef(op._opdef)
+        _apply_gpu_arg_env(args, op._op_cmd.cmd_env)
         if run_attrs:
             op._op_cmd_run_attrs.update(run_attrs)
 
@@ -852,7 +853,7 @@ def _op_init_cmd(args, op):
     op.cmd_args, op.cmd_env = _generate_op_cmd(
         op._op_cmd, op._op_flag_vals, op._python_requires
     )
-    _apply_gpu_arg_env(args, op.cmd_env)
+    _apply_gpu_arg_env(args, op.cmd_env)  # Enable GPU override on restart.
     _apply_break_args_env(args, op.cmd_env)
 
 
@@ -1260,7 +1261,7 @@ def _state_init_batch_op(S):
     _check_batch_args_for_missing_batch_op(S)
     _check_stage_trials_for_batch(S)
     if S.batch_op:
-        _op_init_op_cmd(S.batch_op)
+        _op_init_op_cmd(S.batch_op, S.args)
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)
         _op_init_config(
