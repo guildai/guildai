@@ -121,7 +121,10 @@ def _init_dask_client(args):
 def _workaround_multiprocessing_cycle():
     # See https://github.com/dask/distributed/issues/4168#issuecomment-722049470
     try:
-        import multiprocessing.popen_spawn_posix as _
+        if util.get_platform() == "Windows":
+            import multiprocessing.popen_spawn_win32 as _
+        else:
+            import multiprocessing.popen_spawn_posix as _
     except ImportError:
         pass
 
