@@ -634,7 +634,7 @@ def _example(name):
 
 
 def _default_examples_dir():
-    return os.path.join(os.path.abspath(guild.__pkgdir__), "guild", "examples")
+    return os.path.join(os.path.abspath(guild.__pkgdir__), "examples")
 
 
 def cat(*parts):
