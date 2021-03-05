@@ -83,10 +83,13 @@ def _run_tests(tests):
             if _skip_test(name, to_skip):
                 print("  skipped (user requested)")
                 continue
-            if _test_passed(name):
+            elif _test_passed(name):
                 print("  skipped (already passed)")
                 continue
             filename = os.path.join("tests", "uat", name + ".md")
+            if testlib.front_matter_skip_test(filename):
+                print("  skipped (doctest options)")
+                continue
             failed, attempted = testlib.run_test_file(filename, globs)
             if not failed:
                 print("  %i test(s) passed" % attempted)

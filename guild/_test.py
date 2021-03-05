@@ -128,7 +128,7 @@ def _run_test(name):
     sys.stdout.write("  %s: " % name)
     sys.stdout.flush()
     filename = _filename_for_test(name)
-    if os.getenv("FORCE_TEST") != "1" and _skip_test(filename):
+    if os.getenv("FORCE_TEST") != "1" and front_matter_skip_test(filename):
         _log_skipped_test(name)
         return True
     try:
@@ -163,7 +163,8 @@ def _resolve_relative_test_filename(filename):
     return doctest._module_relative_path(package, filename)
 
 
-def _skip_test(filename):
+def front_matter_skip_test(filename):
+    filename = _resolve_relative_test_filename(filename)
     fm = yaml_util.yaml_front_matter(filename)
     options = _parse_doctest_options(fm.get("doctest"), filename)
     return options and _skip_for_doctest_options(options) is True
