@@ -206,7 +206,7 @@ def _wsgi_app_v2(
         from tensorboard.backend.event_processing import data_ingester
         from tensorboard import program
 
-    tb = program.TensorBoard(plugins, program.get_default_assets_zip_provider())
+    tb = program.TensorBoard(plugins)
     argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
         tensorboard_options
     )
