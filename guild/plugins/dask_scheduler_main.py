@@ -106,7 +106,8 @@ def _init_dask_client(args):
         resources = _cluster_resources(args)
         log.info("Initializing cluster%s", _workers_log_entry_suffix(args))
         cluster = LocalCluster(
-            n_workers=args.workers,
+            n_workers=1,
+            threads_per_worker=args.workers,
             processes=False,
             silence_logs=_dask_loglevel(args),
             dashboard_address=dashboard_address,
