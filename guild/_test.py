@@ -573,7 +573,7 @@ def test_globals():
         "run_capture": _run_capture,
         "sample": sample,
         "samples_dir": samples_dir,
-        "set_guild_home": configlib.set_guild_home,
+        "set_guild_home": _set_guild_home,
         "sha256": util.file_sha256,
         "sleep": time.sleep,
         "symlink": os.symlink,
@@ -1252,3 +1252,9 @@ def _cut_line(line, to_cut):
 
 def _chdir(s):
     os.chdir(os.path.expandvars(s))
+
+
+def _set_guild_home(path):
+    if os.getenv("DEBUG") == "1":
+        sys.stderr.write("Setting Guild home: %s\n" % path)
+    configlib.set_guild_home(path)
