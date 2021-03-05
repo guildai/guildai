@@ -220,7 +220,12 @@ def _run_seq_trials(batch_run, suggest_x_cb):
     random_state = batch_run.get("random_seed")
     random_starts = min(batch_flag_vals.get("random-starts") or 0, max_trials)
     objective_scalar, objective_negate = _objective_y_info(batch_run)
-    prev_trials_cb = lambda: batch_util.trial_results(batch_run, [objective_scalar])
+    prev_trials_model = (
+        batch_flag_vals.get("prev-trials") or batch_util.PREV_TRIALS_BATCH
+    )
+    prev_trials_cb = lambda: batch_util.trial_results(
+        batch_run, [objective_scalar], prev_trials_model
+    )
     trials_count = 0
     for trial_flag_vals, is_trial_random_start, prev_trials, x0 in _iter_seq_trials(
         proto_flag_vals,

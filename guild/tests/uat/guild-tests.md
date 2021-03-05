@@ -26,6 +26,7 @@ tests).
       batch-save-trials:           ok
       batch-skopt:                 ok
       batch-skopt2:                ok
+      batch-skopt3:                ok
       batch-stage-trials:          ok
       batch-terminate:             ok
       breakpoints:                 ok

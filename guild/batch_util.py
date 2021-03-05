@@ -44,6 +44,10 @@ DEFAULT_OBJECTIVE = "loss"
 
 RUN_STATUS_LOCK_TIMEOUT = 30
 
+PREV_TRIALS_BATCH = "batch"
+PREV_TRIALS_SOURCECODE = "sourcecode"
+PREV_TRIALS_OPERATION = "operation"
+
 
 __trial_running_lock = threading.Lock()
 __batch_exiting = threading.Event()
@@ -408,8 +412,8 @@ def sample_trials(trials, count=None, random_seed=None):
     return [trials[i] for i in sorted(sampled_i)]
 
 
-def trial_results(batch_run, scalars):
-    return trial_results_for_runs(trial_runs(batch_run), scalars)
+def trial_results(batch_run, scalars, prev_trials_mode=PREV_TRIALS_BATCH):
+    return trial_results_for_runs(trial_runs(batch_run, prev_trials_mode), scalars)
 
 
 def trial_results_for_runs(runs, scalars):
@@ -417,12 +421,92 @@ def trial_results_for_runs(runs, scalars):
     return [(run.get("flags"), _result_scalars(run, scalars, index)) for run in runs]
 
 
-def trial_runs(batch_run):
-    runs = var.runs(batch_run.dir, sort=["timestamp"], force_root=True)
-    # Update run dirs to real location rather than links under batch run.
+def trial_runs(batch_run, prev_trials_mode=PREV_TRIALS_BATCH):
+    if prev_trials_mode == PREV_TRIALS_BATCH:
+        return _batch_trial_runs(batch_run)
+    elif prev_trials_mode == PREV_TRIALS_SOURCECODE:
+        return _proto_sourcecode_runs(batch_run)
+    elif prev_trials_mode == PREV_TRIALS_OPERATION:
+        return _proto_op_runs(batch_run)
+    else:
+        raise ValueError(
+            "unsupported value for prev_trials_mode: %r" % prev_trials_mode
+        )
+
+
+def _batch_trial_runs(batch_run):
+    """Returns trial runs associated with a batch run."""
+    runs = var.runs(
+        batch_run.dir,
+        filter=_completed_filter,
+        sort=["timestamp"],
+        force_root=True,
+    )
+    _apply_batch_runs_realpath(runs)
+    return runs
+
+
+def _completed_filter(run):
+    return run.status == "completed"
+
+
+def _apply_batch_runs_realpath(runs):
+    """Update run dirs to real location from relative location under batch."""
     for run in runs:
         run.path = util.realpath(run.path)
-    return runs
+
+
+def _proto_sourcecode_runs(batch_run):
+    """Returns runs whose sourcecode digest matches that of a batch proto."""
+    return var.runs(
+        filter=_completed_sourcecode_filter(batch_run.batch_proto),
+        sort=["timestamp"],
+    )
+
+
+def _completed_sourcecode_filter(proto_run):
+    assert proto_run
+    proto_sourcecode_digest = _proto_sourcecode_digest(proto_run)
+
+    def f(run):
+        run_sourecode_digest = run.get("sourcecode_digest")
+        return (
+            run.status == "completed"
+            and run_sourecode_digest == proto_sourcecode_digest
+        )
+
+    return f
+
+
+def _proto_sourcecode_digest(proto_run):
+    sourcecode_digest = proto_run.get("sourcecode_digest")
+    if not sourcecode_digest:
+        log.error(
+            "Cannot find runs for batch proto in %s: missing sourcecode digest",
+            proto_run.dir,
+        )
+        raise SystemExit(1)
+    return sourcecode_digest
+
+
+def _proto_op_runs(batch_run):
+    """Returns runs whose op matches that of a batch proto."""
+    return var.runs(
+        filter=_completed_op_filter(batch_run.batch_proto),
+        sort=["timestamp"],
+    )
+
+
+def _completed_op_filter(proto_run):
+    assert proto_run
+
+    proto_opspec = run_util.format_operation(proto_run, nowarn=True)
+
+    def f(run):
+        run_opspec = run_util.format_operation(run, nowarn=True)
+        return run.status == "completed" and run_opspec == proto_opspec
+
+    return f
 
 
 def _run_index_for_scalars(runs):
