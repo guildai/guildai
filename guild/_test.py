@@ -628,11 +628,12 @@ def _filter_ignored(paths, ignore):
 
 
 def _example(name):
-    guild_pkg = os.path.abspath(guild.__pkgdir__)
-    examples = os.path.abspath(
-        os.getenv("EXAMPLES") or os.path.join(guild_pkg, "examples")
-    )
+    examples = os.path.abspath(os.getenv("EXAMPLES") or _default_examples_dir())
     return os.path.join(examples, name)
+
+
+def _default_examples_dir():
+    return os.path.join(os.path.abspath(guild.__pkgdir__), "guild", "examples")
 
 
 def cat(*parts):
