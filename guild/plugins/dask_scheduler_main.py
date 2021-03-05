@@ -104,7 +104,7 @@ def _init_dask_client(args):
     else:
         dashboard_address = _dashboard_address(args)
         resources = _cluster_resources(args)
-        log.info("Initializing cluster%s", _workers_log_entry_suffix(args))
+        log.info("Initializing Dask cluster%s", _workers_log_entry_suffix(args))
         cluster = LocalCluster(
             n_workers=1,
             threads_per_worker=args.workers,
@@ -245,21 +245,18 @@ def _format_exc(exc):
 
 def _start_run_(run, state):
     resources = _run_resources(run, quiet=True)
+    _log_scheduling(run, resources)
     run_kwargs = dict(
         restart=run.id,
         extra_env=_run_env(run),
         gpus=state.gpus,
     )
-    if resources:
-        log.info(
-            "Starting staged run %s (requires %s)",
-            run.id,
-            _resources_desc(resources),
-        )
-    else:
-        log.info("Starting staged run %s", run.id)
     future = state.client.submit(
-        gapi.run, key=_run_key(run), resources=resources, **run_kwargs
+        _run,
+        run=run,
+        run_kwargs=run_kwargs,
+        key=_run_key(run),
+        resources=resources,
     )
     state.futures.append(future)
 
@@ -290,17 +287,28 @@ def _decode_dask_resources(encoded, quiet=False):
         return {}
 
 
-def _run_env(run):
-    return {
-        "NO_RESTARTING_MSG": "1",
-        "PYTHONPATH": run.guild_path("job-packages"),
-    }
+def _log_scheduling(run, resources):
+    if resources:
+        log.info(
+            "Scheduling run %s (requires %s)",
+            run.id,
+            _resources_desc(resources),
+        )
+    else:
+        log.info("Scheduling run %s", run.id)
 
 
 def _resources_desc(resources):
     from guild import flag_util
 
     return " ".join(flag_util.flag_assigns(resources))
+
+
+def _run_env(run):
+    return {
+        "NO_RESTARTING_MSG": "1",
+        "PYTHONPATH": run.guild_path("job-packages"),
+    }
 
 
 def _run_key(run):
@@ -310,6 +318,16 @@ def _run_key(run):
 def _run_id_for_key(key):
     assert key.startwith("run-") and len(key) == 36, key
     return key[4:]
+
+
+def _run(run, run_kwargs):
+    log.info("Run %s started", run.id)
+    try:
+        gapi.run(**run_kwargs)
+    except gapi.RunError as e:
+        log.error("Run %s exited with code %i", run.id, e.returncode)
+    else:
+        log.info("Run %s completed", run.id)
 
 
 def _can_start_run(run, state):

@@ -31,22 +31,39 @@ number of workers. Specify the number of workers using the workers \
 flags. The default worker count is based on the number of CPU cores \
 available on the system.
 
-If the Bokeh Python package is installed, the schduler runs a \
-dashboard application by default on port 8787. Specify a different \
-port or binding address using the dashboard-address flag. To disable \
-the dashboard, specify no for dashboard-address.
-
 A Dask scheduler polls for staged runs and starts them in the order \
-they were staged. Dask schedulers are queues that can process runs in \
-parallel.
+they were staged.
+
+You can specify a set of available resources for a scheduler using the \
+resources flag. A resource is a named quantity that is made available \
+to a run. When a run requires a resource, it specifies the required \
+quantity using a tag in the format 'dask:NAME=QUANTITY'. If that \
+quantity is not available to the scheduler, the run waits until the \
+quantity is available. When started, the run temporarily depletes its \
+required quantity from the scheduler. When the run finishes, it \
+replenishes the depleted quantity. In this way, resources limit what \
+is run by a scheduler to avoid resource exhaustion. \
+
+Resources can be used to constrain runs by available memory, GPUs, \
+disk space or any other resource type including abstract resources \
+like job size or user quotas.
+
+Resources are specified using name value pairs in the format \
+NAME=VALUE. Multiple resources are specified by separating name value \
+pairs with whitespace.
+
+Use run-once to start staged runs and stop without waiting for \
+additional staged runs.
 
 By default, a Dask scheduler runs staged runs even if there are other \
 runs in progress. To force a scheduler to wait until other runs finish \
 before starting a staged run, set wait-for-running to true when \
 starting the scheduler.
 
-Use run-once to start staged runs and stop without waiting for \
-additional staged runs.
+If the Bokeh Python package is installed, the schduler runs a \
+dashboard application by default on port 8787. Specify a different \
+port or binding address using the dashboard-address flag. To disable \
+the dashboard, specify no for dashboard-address.
 """
 
 dask_scheduler_flags_data = yaml.safe_load(
