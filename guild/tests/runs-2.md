@@ -31,6 +31,31 @@ Filtered by 'train' operation:
     7d145216 mnist:train error
     360192fd mnist:train pending
 
+Filter by partial op name 'ain':
+
+    >>> print_runs(runs_list(ops=["ain"]))
+    7d145216 mnist:train error
+    360192fd mnist:train pending
+
+Filter by starts with 'mnist':
+
+    >>> print_runs(runs_list(ops=["^mnist:"]))
+    42803252 mnist:evaluate completed
+    7d145216 mnist:train error
+    360192fd mnist:train pending
+
+Filter to select mnist train or evaluate:
+
+    >>> print_runs(runs_list(ops=["^mnist:(train|evaluate)"]))
+    42803252 mnist:evaluate completed
+    7d145216 mnist:train error
+    360192fd mnist:train pending
+
+Filter to select evaluate or test:
+
+    >>> print_runs(runs_list(ops=[":(evaluate|test)$"]))
+    42803252 mnist:evaluate completed
+
 Filtered by 'evaluate' operation:
 
     >>> print_runs(runs_list(ops=["evaluate"]))

@@ -178,9 +178,23 @@ def _apply_ops_filter(args, filters):
 def _op_run_filter(op_refs):
     def f(run):
         opspec = run_util.format_operation(run, nowarn=True)
-        return any((ref in opspec for ref in op_refs))
+        return any((_compare_op(ref, opspec) for ref in op_refs))
 
     return f
+
+
+def _compare_op(ref, opspec):
+    if ref.startswith("^") or ref.endswith("$"):
+        return _re_match(ref, opspec)
+    else:
+        return ref in opspec
+
+
+def _re_match(pattern, target):
+    try:
+        return re.search(pattern, target)
+    except re.error:
+        return False
 
 
 def _apply_labels_filter(args, filters):
