@@ -550,7 +550,6 @@ def _encode_flags_with_help(vals, opdef):
     lines = []
     prev_help = None
     lines.append("# Editing flags for %s" % opdef.fullname)
-    lines.append("")
     for name, val in sorted(vals.items()):
         flag_help = _format_flag_help(opdef.get_flagdef(name))
         if prev_help or flag_help and lines:
