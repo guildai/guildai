@@ -131,9 +131,9 @@ def _run_trials(batch_run, trials):
     trial_runs = _init_trial_runs(batch_run, trials)
     run_status_lock = locklib.Lock(locklib.RUN_STATUS, timeout=RUN_STATUS_LOCK_TIMEOUT)
     for trial_run in trial_runs:
-        _try_run_staged_trial(trial_run, batch_run, run_status_lock)
         if __batch_exiting.is_set():
             break
+        _try_run_pending_trial(trial_run, batch_run, run_status_lock)
 
 
 def _init_trial_runs(batch_run, trials):
@@ -152,7 +152,8 @@ def init_trial_run(batch_run, trial_flag_vals, run_dir=None):
     run.write_attr("flags", trial_flag_vals)
     run.write_attr("label", _trial_label(proto_run, trial_flag_vals))
     run.write_attr("op", _trial_op_attr(proto_run, trial_flag_vals))
-    op_util.set_run_staged(run)
+    op_util.set_run_pending(run)
+    op_util.set_run_started(run)
     return run
 
 
@@ -168,19 +169,17 @@ def _trial_label(proto_run, trial_flag_vals):
     return op_util.run_label(label_template, trial_flag_vals)
 
 
-def _try_run_staged_trial(trial_run, batch_run, status_lock):
+def _try_run_pending_trial(trial_run, batch_run, status_lock):
     stage = batch_run.get("stage_trials")
     with status_lock:
         trial_status = trial_run.status
-        if trial_status != "staged":
+        if trial_status != "pending":
             log.info(
-                "Skipping %s because it's status is '%s'",
+                "Skipping %s because its status is %s",
                 trial_run.id,
                 trial_status,
             )
             return
-    # Race condition here. Correct implementation is to pass the
-    # lock through and release after trial_run status is changed.
     try:
         start_trial_run(trial_run, stage)
     except SystemExit as e:
@@ -251,8 +250,8 @@ def handle_trial_system_exit(e, batch_run, trial_run):
         )
         if fail_on_trial_error(batch_run):
             log.error(
-                "Stopping batch because a trial failed (remaining staged trials "
-                "may be started as needed)"
+                "Stopping batch because a trial failed (pending trials "
+                "can be started as needed)"
             )
             raise SystemExit(code)
 
@@ -494,6 +493,6 @@ def _terminate_batch(batch_run):
     for child in alive:
         log.info("Forcefully terminating trial (proc %i)", child.pid)
         child.kill()
-    log.info("Stopping batch (remaining staged trials " "may be started as needed)")
+    log.info("Stopping batch (pending trials can be started as needed)")
     with __trial_running_lock:
         this_p.terminate()

@@ -1,6 +1,6 @@
 # Batch Handle Trial Status
 
-A batch run must confirm that a trial is in a 'staged' state before
+A batch run must confirm that a trial is in a 'pending' state before
 running it.
 
 To illustrate, we work with the private API of `guild.batch_util`.
@@ -30,7 +30,7 @@ The current runs:
     >>> project.print_runs(status=True)
     op.py+  staged
 
-We have a staged batch run that we can use to initialize some staged
+We have a staged batch run that we can use to initialize some pending
 trials.
 
     >>> batch_run = project.list_runs()[0]
@@ -57,9 +57,9 @@ Initialize some trial runs.
 Our runs:
 
     >>> project.print_runs(status=True, flags=True)
-    op.py   id=3  staged
-    op.py   id=2  staged
-    op.py   id=1  staged
+    op.py   id=3  pending
+    op.py   id=2  pending
+    op.py   id=1  pending
     op.py+        staged
 
     >>> trial_runs[0].get("flags")
@@ -72,7 +72,7 @@ Our runs:
     {'id': 3}
 
 We want to run the trials to show how `batch_util` handles trial run
-status. Here's a helper that uses `batch_util._try_run_staged` to
+status. Here's a helper that uses `batch_util._try_run_pending` to
 start a trial.
 
     >>> from guild import lock as locklib
@@ -80,9 +80,9 @@ start a trial.
     >>> def _run_trial(trial_run):
     ...     status_lock = locklib.Lock(locklib.RUN_STATUS, timeout=5)
     ...     with SetGuildHome(project.guild_home):
-    ...         batch_util._try_run_staged_trial(trial_run, batch_run, status_lock)
+    ...         batch_util._try_run_pending_trial(trial_run, batch_run, status_lock)
 
-Run the first staged trial.
+Run the first pending trial.
 
     >>> with LogCapture() as logs:
     ...     _run_trial(trial_runs[0])
@@ -94,12 +94,12 @@ Our runs:
 
     >>> project.print_runs(status=True, flags=True)
     op.py   id=1  completed
-    op.py   id=3  staged
-    op.py   id=2  staged
+    op.py   id=3  pending
+    op.py   id=2  pending
     op.py+        staged
 
-If we run the first trial again, we Guild refuses because the trial is
-not 'staged'.
+If we run the first trial again, Guild refuses because the trial is
+not pending.
 
     >>> trial_runs[0].status
     'completed'
@@ -108,16 +108,16 @@ not 'staged'.
     ...     _run_trial(trial_runs[0])
 
     >>> logs.print_all()
-    Skipping ... because it's status is 'completed'
+    Skipping ... because its status is completed
 
-Let's change the status of the second trial from 'staged' to 'pending'.
+Let's change the status of the second trial from pending to staged.
 
     >>> from guild import op_util
 
-    >>> op_util.set_run_pending(trial_runs[1])
+    >>> op_util.set_run_staged(trial_runs[1])
 
     >>> trial_runs[1].status
-    'pending'
+    'staged'
 
 Try to start the second trial.
 
@@ -125,7 +125,7 @@ Try to start the second trial.
     ...     _run_trial(trial_runs[1])
 
     >>> logs.print_all()
-    Skipping ... because it's status is 'pending'
+    Skipping ... because its status is staged
 
 Finally, start the third trial.
 
@@ -134,3 +134,11 @@ Finally, start the third trial.
 
     >>> logs.print_all()
     Running trial ...: op.py (id=3)
+
+The runs:
+
+    >>> project.print_runs(status=True, flags=True)
+    op.py   id=3  completed
+    op.py   id=2  staged
+    op.py   id=1  completed
+    op.py+        staged

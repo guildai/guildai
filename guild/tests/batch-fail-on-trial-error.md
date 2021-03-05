@@ -35,16 +35,15 @@ first trial error occurs.
     INFO: [guild] Running trial ...: error.py (fail=yes)
     FAIL
     ERROR: [guild] Trial ... exited with an error (1) - see log for details
-    ERROR: [guild] Stopping batch because a trial failed (remaining staged trials
-    may be started as needed)
+    ERROR: [guild] Stopping batch because a trial failed (pending trials can be
+    started as needed)
     <exit 1>
 
-Our runs - note that the batch run has failed and that the second run
-remains as staged.
+The batch run has failed and that the second run remains as pending.
 
     >>> project.print_runs(status=True)
     error.py   error
-    error.py   staged
+    error.py   pending
     error.py+  error
 
 ## Fail on trial error and steps
@@ -108,6 +107,6 @@ The optimization run stops on the first error when we specify fail on trial erro
     INFO: [guild] Running trial ...: error.py (fail=yes)
     FAIL
     ERROR: [guild] Trial ... exited with an error (1) - see log for details
-    ERROR: [guild] Stopping batch because a trial failed (remaining staged
-    trials may be started as needed)
+    ERROR: [guild] Stopping batch because a trial failed (pending trials can
+    be started as needed)
     <exit 1>

@@ -58,6 +58,6 @@ If we run with `fail_on_trial_error` the batch will also fail.
         raise Exception("big time fail")
     Exception: big time fail
     ERROR: [guild] Trial ... exited with an error (1) - see log for details
-    ERROR: [guild] Stopping batch because a trial failed (remaining staged
-    trials may be started as needed)
+    ERROR: [guild] Stopping batch because a trial failed (pending trials can
+    be started as needed)
     <exit 1>
