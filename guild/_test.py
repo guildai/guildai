@@ -1083,7 +1083,7 @@ def _run(
         assert err is None, err
         exit_code = p.returncode
     if _capture or not quiet or exit_code != 0:
-        out = out.strip().decode("utf-8")
+        out = out.strip().decode("latin-1")
         if ignore:
             out = _strip_lines(out, ignore)
         if cut:
