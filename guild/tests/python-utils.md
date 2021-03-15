@@ -188,7 +188,9 @@ Let's patch `say`:
 
     >>> def wrap_say(say, msg):
     ...   say("I've wrapped '%s'" % msg)
+
     >>> python_util.listen_method(Hello, "say", wrap_say)
+    <guild.python_util.MethodWrapper object at ...>
 
 When we call `hello` on an object:
 
@@ -222,7 +224,10 @@ its own value by raising `python_util.Result`:
     >>> def wrap_and_prevent(say, msg):
     ...   say("I've wrapped '%s' and prevented the original call!" % msg)
     ...   raise python_util.Result(None)
+
     >>> python_util.listen_method(Hello, "say", wrap_and_prevent)
+    <guild.python_util.MethodWrapper object at ...>
+
     >>> hello.say("Hello once more!")
     I've wrapped 'Hello once more!'
     I've also wrapped 'Hello once more!'
@@ -237,6 +242,8 @@ by creating a wrapper that generates an error:
 Let's add this function and call `say`:
 
     >>> python_util.listen_method(Hello, "say", wrap_error)
+    <guild.python_util.MethodWrapper object at ...>
+
     >>> hello.say("And again!")
     Traceback (most recent call last):
     ZeroDivisionError: ...
@@ -276,7 +283,9 @@ And a wrapper that modifies the bound `self` for a wrapped function:
     >>> def wrap_say2(say):
     ...     self = python_util.wrapped_self(say)
     ...     self.msg = "Hello Two!"
+
     >>> python_util.listen_method(Hello2, "say", wrap_say2)
+    <guild.python_util.MethodWrapper object at ...>
 
     >>> Hello2().say()
     Hello Two!
@@ -308,6 +317,7 @@ we're replacing it altogether.
 We wrap the original:
 
     >>> python_util.listen_method(Calc, "incr", incr2)
+    <guild.python_util.MethodWrapper object at ...>
 
 And here's our new behavior:
 
@@ -347,7 +357,10 @@ Here are two listeners, both of which provide results:
 Let's add both as listeners:
 
     >>> python_util.listen_method(Calc, "incr", incr_by_2)
+    <guild.python_util.MethodWrapper object at ...>
+
     >>> python_util.listen_method(Calc, "incr", incr_by_3)
+    <guild.python_util.MethodWrapper object at ...>
 
 And test our method:
 
@@ -362,13 +375,22 @@ from the last to provide a result.
 Let re-order our listeners to confirm:
 
     >>> python_util.remove_method_listeners(Calc.incr)
+
     >>> python_util.listen_method(Calc, "incr", incr_by_3)
-    >>> python_util.listen_method(Calc, "incr", incr_by_2)
+    <guild.python_util.MethodWrapper object at ...>
+
+    >>> wrapper = python_util.listen_method(Calc, "incr", incr_by_2)
 
     >>> calc.incr(1)
     incr_by_3 called
     incr_by_2 called
     3
+
+We can unwrap the function by calling `unwrap` on the wrapper.
+
+    >>> wrapper.unwrap()
+    >>> calc.incr(1)
+    2
 
 ## Wrapping functions
 

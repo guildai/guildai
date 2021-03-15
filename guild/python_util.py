@@ -285,6 +285,7 @@ def listen_method(cls, method_name, cb):
     if wrapper is None:
         wrapper = MethodWrapper(method, cls, method_name)
     wrapper.add_cb(cb)
+    return wrapper
 
 
 def remove_method_listener(method, cb):

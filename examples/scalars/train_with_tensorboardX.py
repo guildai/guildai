@@ -29,12 +29,12 @@ print("Step 1: loss=2.235 accuracy=0.123")
 # Log the scalars for step 1
 
 writer.add_scalar("loss", 2.345, 1)
-writer.add_scalar("accuracy", 0.123, 1)
+writer.add_scalar("accuracy", 0.123, global_step=1)
 
 # Log the scalars for step 2
 
 print("Step 2: loss=1.234 accuracy=0.456")
 writer.add_scalar("loss", 1.234, 2)
-writer.add_scalar("accuracy", 0.456, 2)
+writer.add_scalar("accuracy", 0.456, global_step=2)
 
 writer.close()
