@@ -22,6 +22,7 @@ import os
 import re
 import sys
 
+import six
 from werkzeug import serving
 
 from guild import flag_util
@@ -143,9 +144,15 @@ def _experiment_hparams(runs):
     hparams = {}
     for run in runs:
         for name, val in (run.get("flags") or {}).items():
-            hparams.setdefault(name, set()).add(val)
+            hparams.setdefault(name, set()).add(_hparam_val_for_flag_val(val))
         hparams.setdefault(SOURCECODE_HPARAM, set()).add(_run_sourcecode(run))
     return hparams
+
+
+def _hparam_val_for_flag_val(val):
+    if isinstance(val, (six.string_types, int, float)):
+        return val
+    return str(val)
 
 
 def _run_sourcecode(run):

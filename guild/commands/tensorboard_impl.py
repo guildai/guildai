@@ -38,18 +38,10 @@ DEFAULT_PREPARE_THRESHOLD = 5  # seconds
 
 
 def main(args):
-    if args.check:
-        _check()
-    elif args.export_scalars:
+    if args.export_scalars:
         _export_scalars(args)
     else:
         _run_tensorboard(args)
-
-
-def _check():
-    from guild.plugins import tensorboard
-
-    tensorboard.check()
 
 
 def _export_scalars(args):
@@ -77,7 +69,7 @@ def _run_tensorboard(args):
     from guild import tensorboard
 
     tensorboard.setup_logging()
-    with util.TempDir("guild-tensorboard-", keep=args.keep_logdir) as tmp:
+    with util.TempDir("guild-tensorboard-", keep=_keep_logdir(args)) as tmp:
         logdir = tmp.path
         (log.info if args.keep_logdir else log.debug)("Using logdir %s", logdir)
         tensorboard_options = _tensorboard_options(args)
@@ -92,6 +84,9 @@ def _run_tensorboard(args):
         t0 = time.time()
         cli.out("Preparing runs for TensorBoard")
         monitor.run_once(exit_on_error=True)
+        if args.test_logdir:
+            cli.out("Initialized log dir %s" % logdir)
+            return
         _maybe_log_prepare_time(t0)
         monitor.start()
         try:
@@ -116,6 +111,10 @@ def _run_tensorboard(args):
                 print("TensorBoard logs saved in %s" % logdir)
     if util.get_platform() != "Windows":
         cli.out()
+
+
+def _keep_logdir(args):
+    return args.keep_logdir or args.test_logdir
 
 
 def _maybe_log_prepare_time(t0):
