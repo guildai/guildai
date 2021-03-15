@@ -1,3 +1,7 @@
+---
+doctest: -PY2 -PY3  # Disable tests until we have proper support for Azure.
+---
+
 # Azure Blob Storage remote
 
 We use `guild-uat-azure-blob` remote for these tests.
