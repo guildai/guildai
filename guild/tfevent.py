@@ -38,6 +38,7 @@ class EventReader(object):
         """Yields event for all available events in dir."""
         from guild.plugins import tensorboard
 
+        _ensure_tb_logging_patched()
         try:
             for event in tensorboard.iter_tf_events(self.dir):
                 if self.all_events or event.HasField("summary"):
