@@ -125,6 +125,7 @@ tests).
       steps:                       ok
       steps-run-isolation:         ok
       summary:                     ok
+      summary-utils:               ok
       tables:                      ok
       tags:                        ok
       tensorboard:                 ok
