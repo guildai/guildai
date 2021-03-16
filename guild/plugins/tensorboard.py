@@ -66,9 +66,8 @@ def AsyncWriter(
     filename = event_filename(
         logdir, filename_base=filename_base, filename_suffix=filename_suffix
     )
-    return event_file_writer._AsyncWriter(
-        event_file_writer.RecordWriter(open(filename, "wb")), max_queue_size, flush_secs
-    )
+    record_writer = event_file_writer.RecordWriter(open(filename, "wb"))
+    return event_file_writer._AsyncWriter(record_writer, max_queue_size, flush_secs)
 
 
 def event_filename(logdir, filename_base=None, filename_suffix=""):
