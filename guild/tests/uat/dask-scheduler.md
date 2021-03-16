@@ -1,5 +1,5 @@
 ---
-doctest: -PY2_MACOS
+doctest: -PY2
 ---
 
 # Dask Scheduler
