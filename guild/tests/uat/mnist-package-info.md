@@ -1,10 +1,11 @@
+
 # `gpkg.mnist` package info
 
 Use `guild packages info PKG` to show information about a package:
 
     >>> run("guild packages info gpkg.mnist") # doctest: +REPORT_UDIFF
     name: gpkg.mnist
-    version: 0.6.0...
+    version: 0.6.1
     summary: CNN and multinomial logistic regression classifiers for MNIST digits (Guild AI)
     home-page: https://github.com/guildai/index/tree/master/gpkg/mnist
     author: Guild AI
@@ -20,7 +21,7 @@ information.
 
     >>> run("guild packages info gpkg.mnist --verbose --files") # doctest: +REPORT_UDIFF
     name: gpkg.mnist
-    version: 0.6.0...
+    version: 0.6.1
     summary: CNN and multinomial logistic regression classifiers for MNIST digits (Guild AI)
     home-page: https://github.com/guildai/index/tree/master/gpkg/mnist
     author: Guild AI

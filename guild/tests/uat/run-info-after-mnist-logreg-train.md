@@ -5,7 +5,7 @@ Use `guild runs info` to show information about the latest run:
     >>> run("guild runs info") # doctest: +REPORT_UDIFF
     id: ...
     operation: gpkg.mnist/logreg:train
-    from: gpkg.mnist==0.6.0
+    from: gpkg.mnist==0.6.1
     status: completed
     started: ...
     stopped: ...
@@ -87,7 +87,7 @@ JSON output, including private attrs:
             "epochs": 1,
             "learning-rate": 0.5
         },
-        "from": "gpkg.mnist==0.6.0",
+        "from": "gpkg.mnist==0.6.1",
         "id": "...",
         "label": "batch-size=100 epochs=1 learning-rate=0.5",
         "marked": "no",
@@ -103,19 +103,19 @@ JSON output, including private attrs:
                     "sources": [
                         {
                             "sha256": "440fcabf73cc546fa21475e81ea370265605f56be210a4024d2ca8f203523609",
-                            "url": "http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz"
+                            "url": "https://guild-pub.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz"
                         },
                         {
                             "sha256": "3552534a0a558bbed6aed32b30c495cca23d567ec52cac8be1a0730e8010255c",
-                            "url": "http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz"
+                            "url": "https://guild-pub.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz"
                         },
                         {
                             "sha256": "8d422c7b0a1c1c79245a5bcf07fe86e33eeafee792b84584aec276f5a2dbc4e6",
-                            "url": "http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz"
+                            "url": "https://guild-pub.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz"
                         },
                         {
                             "sha256": "f7ae60f92e00ec6debd23a6088c31dbd2371eca3ffa0defaefb259924204aec6",
-                            "url": "http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz"
+                            "url": "https://guild-pub.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz"
                         }
                     ]
                 }
@@ -148,7 +148,7 @@ JSON output, including private attrs:
             "sourcecode-root": ".guild/sourcecode"
         },
         "operation": "gpkg.mnist/logreg:train",
-        "opref": "package:gpkg.mnist 0.6.0 logreg train",
+        "opref": "package:gpkg.mnist 0.6.1 logreg train",
         "pid": "",
         "run_dir": "...",
         "scalars": {
