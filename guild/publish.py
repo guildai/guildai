@@ -756,8 +756,4 @@ def _published_runs(dest_home):
             continue
         info = yaml.safe_load(open(run_yml, "r"))
         runs.append(info)
-    return sorted(
-        runs,
-        key=lambda run: (run.get("started"), run.get("op")),
-        reverse=True,
-    )
+    return sorted(runs, key=lambda run: run.get("started"), reverse=True)
