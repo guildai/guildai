@@ -241,7 +241,10 @@ Template `just-files` includes only the default run file template part
 run file lists are rendered by the default template.
 
 Let's generate a run that includes a source link as well as generates
-a new file (see `op3` operation in sample project):
+a new file (see `op3` operation in sample project). We wait a moment
+to ensure our sort order below.
+
+    >>> sleep(1)
 
     >>> project.run("op3")
     Resolving file:src.txt dependency
