@@ -180,13 +180,9 @@ def _list_runs_cb(args):
         runs = runs_impl.runs_for_args(args)
         if args.include_batch:
             return runs
-        return _remove_batch_runs(runs)
+        return [run for run in runs if not batch_util.is_batch(run)]
 
     return f
-
-
-def _remove_batch_runs(runs):
-    return [run for run in runs if not batch_util.is_batch(run)]
 
 
 def _open_cb(args):

@@ -196,9 +196,9 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
 
 def _runs_for_args(args):
     runs = runs_impl.runs_for_args(args)
-    if not args.include_batch:
-        runs = [run for run in runs if not batch_util.is_batch(run)]
-    return runs
+    if args.include_batch:
+        return runs
+    return [run for run in runs if not batch_util.is_batch(run)]
 
 
 def _cols_table(runs, args, index):
