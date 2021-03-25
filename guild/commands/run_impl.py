@@ -526,9 +526,10 @@ def _apply_dep_run_id_to_list(run_id, l):
 
 
 def _edit_op_flags(op):
+    flag_vals = op._op_flag_vals
+    if not flag_vals:
+        return flag_vals
     encoded_flags = _encode_flags_with_help(op._op_flag_vals, op._opdef)
-    if not encoded_flags:
-        return encoded_flags
     while True:
         # Loop to let user re-edit on error.
         edited = util.edit(encoded_flags, extension=".yml")
