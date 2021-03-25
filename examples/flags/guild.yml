@@ -15,14 +15,17 @@ globals-2:
     i: 2
     f: 2.2
 
-global-dict:
+global:
   description: Use a global dict for flag values
   main: global_dict
   flags-dest: global:params
   flags-import: all
-  flags:
-    l:
-      arg-split: yes
+
+namespace:
+  description: Use a SimpleNamespace for flag values
+  main: global_namespace
+  flags-dest: namespace:params
+  flags-import: all
 
 args-default:
   description: Use all CLI options

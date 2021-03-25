@@ -160,7 +160,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 if not opdef.main or _is_explicit_guild_plugin(opdef.main):
                     continue
                 self._apply_script_flags(opdef, local_cache)
-                self._notify_plugins_python_script_opdef_loaded(opdef)
+                _notify_plugins_python_script_opdef_loaded(opdef)
 
     @staticmethod
     def _maybe_apply_main(op):
@@ -171,7 +171,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         flags_import_util.apply_flags(
             opdef,
             lambda: self._flags_data(opdef, local_cache),
-            lambda flags_data: self._apply_flags_dest(flags_data, opdef),
+            lambda flags_data: _apply_flags_dest(flags_data, opdef),
         )
 
     def _flags_data(self, opdef, local_cache):
@@ -260,11 +260,11 @@ class PythonScriptPlugin(pluginlib.Plugin):
             return {}
         else:
             try:
-                data = self._flags_data_for_script(script, flags_dest)
+                data = _flags_data_for_script(script, flags_dest, self.log)
             except DataLoadError:
                 return {}
             else:
-                self._apply_abs_paths(data, os.path.dirname(script.src))
+                _apply_abs_paths(data, os.path.dirname(script.src))
                 self._cache_data(data, cached_data_path)
                 return data
 
@@ -274,173 +274,206 @@ class PythonScriptPlugin(pluginlib.Plugin):
         with open(path, "w") as f:
             json.dump(data, f)
 
-    def _flags_data_for_script(self, script, flags_dest):
-        flags_dest = flags_dest or self._script_flags_dest(script)
-        if flags_dest == "args":
-            data = self._argparse_flags_data(script)
-        elif flags_dest == "globals":
-            data = self._global_assigns_flags_data(script)
-        elif flags_dest.startswith("global:"):
-            data = self._global_param_flags_data(script, flags_dest[7:])
-        elif flags_dest.startswith("args:"):
-            data = self._entry_point_args_flags_data(flags_dest, script)
-        else:
-            self.log.debug(
-                "ingoring flags dest '%s' for Python script %s", flags_dest, script
-            )
-            data = {}
-        if flags_dest:
-            flags_import_util.log_flags_info(
-                "%s flags imported for dest %r:\n%s",
-                (_script_desc, script),
-                flags_dest,
-                (_assigns_flag_data_desc, data),
-            )
-        data["$dest"] = flags_dest
-        return data
 
-    def _script_flags_dest(self, script):
-        if self._imports_argparse(script):
-            flags_import_util.log_flags_info(
-                "%s imports argparse - assuming args", (_script_desc, script)
-            )
-            return "args"
-        else:
-            flags_import_util.log_flags_info(
-                "%s does not import argparse - assuming globals", (_script_desc, script)
-            )
-            return "globals"
-
-    @staticmethod
-    def _imports_argparse(script):
-        return "argparse" in script.imports
-
-    def _argparse_flags_data(self, script):
-        env = dict(os.environ)
-        env.update(
-            {
-                "PYTHONPATH": os.path.pathsep.join([script.sys_path or ''] + sys.path),
-                "LOG_LEVEL": str(self.log.getEffectiveLevel()),
-                "PYTHONDONTWRITEBYTECODE": "1",
-            }
+def _flags_data_for_script(script, flags_dest, log):
+    flags_dest = flags_dest or _script_flags_dest(script)
+    if flags_dest == "args":
+        data = _argparse_flags_data(script, log)
+    elif flags_dest == "globals":
+        data = _global_assigns_flags_data(script)
+    elif flags_dest.startswith("global:"):
+        data = _global_param_flags_data(script, flags_dest[7:], log)
+    elif flags_dest.startswith("dict:"):
+        data = _global_param_flags_data(script, flags_dest[5:], log)
+    elif flags_dest.startswith("namespace:"):
+        data = _global_param_flags_data(script, flags_dest[10:], log)
+    elif flags_dest.startswith("args:"):
+        data = _entry_point_args_flags_data(flags_dest, script, log)
+    else:
+        log.debug(
+            "ingoring flags dest '%s' for Python script %s", flags_dest, script
         )
-        with util.TempFile() as tmp:
-            cmd = [
-                sys.executable,
-                "-m",
-                "guild.plugins.import_argparse_flags_main",
-                script.src,
-                script.mod_package or '',
-                tmp.path,
-            ]
-            self.log.debug("import_argparse_flags_main env: %s", env)
-            self.log.debug("import_argparse_flags_main cmd: %s", cmd)
-            try:
-                out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, env=env)
-            except subprocess.CalledProcessError as e:
-                error, details = _split_argparse_flags_error(e.output.decode().strip())
-                if details and self.log.getEffectiveLevel() > logging.DEBUG:
-                    error += " (run with guild --debug for details)"
-                if os.getenv("NO_WARN_FLAGS_IMPORT") != "1":
-                    self.log.warning(
-                        "cannot import flags from %s: %s", script.src, error
-                    )
-                if details and self.log.getEffectiveLevel() <= logging.DEBUG:
-                    self.log.error(details)
-                raise DataLoadError()
-            else:
-                out = out.decode()
-                self.log.debug("import_argparse_flags_main output: %s", out)
-                _log_warnings(out, self.log)
-                return _load_data(tmp.path)
+        data = {}
+    if flags_dest:
+        flags_import_util.log_flags_info(
+            "%s flags imported for dest %r:\n%s",
+            (_script_desc, script),
+            flags_dest,
+            (_assigns_flag_data_desc, data),
+        )
+    data["$dest"] = flags_dest
+    return data
 
-    def _global_assigns_flags_data(self, script):
-        params = script.params
-        return {
-            str(name): flags_import_util.flag_data_for_val(val)
-            for name, val in params.items()
-            if self._is_global_assign_flag(name) and self._is_assignable_flag_val(val)
+
+def _script_flags_dest(script):
+    if _imports_argparse(script):
+        flags_import_util.log_flags_info(
+            "%s imports argparse - assuming args", (_script_desc, script)
+        )
+        return "args"
+    else:
+        flags_import_util.log_flags_info(
+            "%s does not import argparse - assuming globals", (_script_desc, script)
+        )
+        return "globals"
+
+
+def _imports_argparse(script):
+    return "argparse" in script.imports
+
+
+def _argparse_flags_data(script, log):
+    env = dict(os.environ)
+    env.update(
+        {
+            "PYTHONPATH": os.path.pathsep.join([script.sys_path or ''] + sys.path),
+            "LOG_LEVEL": str(log.getEffectiveLevel()),
+            "PYTHONDONTWRITEBYTECODE": "1",
         }
-
-    @staticmethod
-    def _is_global_assign_flag(name):
-        return name[:1] != "_"
-
-    @staticmethod
-    def _is_assignable_flag_val(val):
-        # Don't support dict value assignments as flags.
-        return not isinstance(val, dict)
-
-    def _global_param_flags_data(self, script, param_name):
-        param_val = script.params.get(param_name)
-        if not isinstance(param_val, dict):
-            self.log.warning(
-                "cannot import flags for param '%s' in '%s': param must be a dict",
-                param_name,
-                _script_desc(script),
-            )
-            return {}
-        config_vals = util.encode_nested_config(param_val)
-        return {
-            str(name): flags_import_util.flag_data_for_val(val)
-            for name, val in config_vals.items()
-            if self._is_global_assign_flag(name) and self._is_assignable_flag_val(val)
-        }
-
-    def _entry_point_args_flags_data(self, flags_dest, script):
-        assert flags_dest.startswith("args:")
-        ep_name = flags_dest[5:]
+    )
+    with util.TempFile() as tmp:
+        cmd = [
+            sys.executable,
+            "-m",
+            "guild.plugins.import_argparse_flags_main",
+            script.src,
+            script.mod_package or '',
+            tmp.path,
+        ]
+        log.debug("import_argparse_flags_main env: %s", env)
+        log.debug("import_argparse_flags_main cmd: %s", cmd)
         try:
-            importer = _flag_importers.one_for_name(ep_name)
-        except LookupError:
-            self.log.warning(
-                "cannot find flag import support for flag-dest %r - unable "
-                "to import flags",
-                ep_name,
-            )
-            return {}
+            out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, env=env)
+        except subprocess.CalledProcessError as e:
+            error, details = _split_argparse_flags_error(e.output.decode().strip())
+            if details and log.getEffectiveLevel() > logging.DEBUG:
+                error += " (run with guild --debug for details)"
+            if os.getenv("NO_WARN_FLAGS_IMPORT") != "1":
+                log.warning("cannot import flags from %s: %s", script.src, error)
+            if details and log.getEffectiveLevel() <= logging.DEBUG:
+                log.error(details)
+            raise DataLoadError()
         else:
-            return importer.flags_for_script(script, self.log)
+            out = out.decode()
+            log.debug("import_argparse_flags_main output: %s", out)
+            _log_warnings(out, log)
+            return _load_data(tmp.path)
 
-    @staticmethod
-    def _apply_abs_paths(data, script_dir):
-        for flag_data in data.values():
-            if not isinstance(flag_data, dict):
-                continue
-            default = flag_data.get("default")
-            if (
-                not default
-                or not isinstance(default, six.string_types)
-                or os.path.sep not in default
-            ):
-                continue
-            abs_path = os.path.join(script_dir, default)
-            if os.path.exists(abs_path):
-                flag_data["default"] = abs_path
 
-    @staticmethod
-    def _apply_flags_dest(flags_data, opdef):
-        """Applies '$dest' in flags_data to opdef.
+def _global_param_flags_data(script, param_name, log):
+    param_val = script.params.get(param_name)
+    if isinstance(param_val, dict):
+        return _dict_param_flag_data(param_val)
+    elif _is_simple_namespace(param_val):
+        return _simple_namespace_param_flag_data(param_val)
+    else:
+        log.warning(
+            "cannot import flags for param '%s' in '%s': param must "
+            "be a dict or SimpleNamespace (got %s)",
+            param_name,
+            _script_desc(script),
+            type(param_val).__name__,
+        )
+        return {}
 
-        The process of applying always removes '$dest' from
-        flags_data if it exists.
 
-        The process of applying will never modify a non-None value of
-        opdef.flags_dest.
-        """
-        try:
-            flags_dest = flags_data.pop("$dest")
-        except KeyError:
-            pass
-        else:
-            if opdef.flags_dest is None:
-                opdef.flags_dest = flags_dest
+def _entry_point_args_flags_data(flags_dest, script, log):
+    assert flags_dest.startswith("args:")
+    ep_name = flags_dest[5:]
+    try:
+        importer = _flag_importers.one_for_name(ep_name)
+    except LookupError:
+        log.warning(
+            "cannot find flag import support for flag-dest %r - unable "
+            "to import flags",
+            ep_name,
+        )
+        return {}
+    else:
+        return importer.flags_for_script(script, log)
 
-    @staticmethod
-    def _notify_plugins_python_script_opdef_loaded(opdef):
-        for _name, plugin in pluginlib.iter_plugins():
-            if isinstance(plugin, PythonScriptOpdefSupport):
-                plugin.python_script_opdef_loaded(opdef)
+
+def _apply_abs_paths(data, script_dir):
+    for flag_data in data.values():
+        if not isinstance(flag_data, dict):
+            continue
+        default = flag_data.get("default")
+        if (
+            not default
+            or not isinstance(default, six.string_types)
+            or os.path.sep not in default
+        ):
+            continue
+        abs_path = os.path.join(script_dir, default)
+        if os.path.exists(abs_path):
+            flag_data["default"] = abs_path
+
+
+def _apply_flags_dest(flags_data, opdef):
+    """Applies '$dest' in flags_data to opdef.
+
+    The process of applying always removes '$dest' from
+    flags_data if it exists.
+
+    The process of applying will never modify a non-None value of
+    opdef.flags_dest.
+    """
+    try:
+        flags_dest = flags_data.pop("$dest")
+    except KeyError:
+        pass
+    else:
+        if opdef.flags_dest is None:
+            opdef.flags_dest = flags_dest
+
+
+def _notify_plugins_python_script_opdef_loaded(opdef):
+    for _name, plugin in pluginlib.iter_plugins():
+        if isinstance(plugin, PythonScriptOpdefSupport):
+            plugin.python_script_opdef_loaded(opdef)
+
+
+def _dict_param_flag_data(param_val):
+    config_vals = util.encode_nested_config(param_val)
+    return {
+        str(name): flags_import_util.flag_data_for_val(val)
+        for name, val in config_vals.items()
+        if _is_global_assign_flag(name) and _is_assignable_flag_val(val)
+    }
+
+
+def _global_assigns_flags_data(script):
+    params = script.params
+    return {
+        str(name): flags_import_util.flag_data_for_val(val)
+        for name, val in params.items()
+        if _is_global_assign_flag(name) and _is_assignable_flag_val(val)
+    }
+
+
+def _is_assignable_flag_val(val):
+    # Don't support dict value assignments as flags.
+    return not isinstance(val, dict)
+
+
+def _is_global_assign_flag(name):
+    return name[:1] != "_"
+
+
+def _is_simple_namespace(val):
+    return type(val).__name__ == "SimpleNamespace"
+
+
+def _simple_namespace_param_flag_data(param_val):
+    return _dict_param_flag_data(_namespace_to_dict(param_val))
+
+
+def _namespace_to_dict(ns):
+    return {name: _namespace_to_dict_or_val(val) for name, val in ns.__dict__.items()}
+
+
+def _namespace_to_dict_or_val(val):
+    return _namespace_to_dict(val) if _is_simple_namespace(val) else val
 
 
 def _is_explicit_guild_plugin(main_spec):

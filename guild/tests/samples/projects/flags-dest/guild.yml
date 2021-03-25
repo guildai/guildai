@@ -31,6 +31,25 @@ params:
     s2:
       arg-name: strings.s2
 
+params-dict:
+  main: params
+  flags-import: all
+  flags-dest: dict:params
+  flags:
+    i: 2
+    s1:
+      default: Hola
+      arg-name: strings.s1
+    s2:
+      arg-name: strings.s2
+
+params-namespace:
+  main: params_namespace
+  flags-import: all
+  flags-dest: namespace:params
+  flags:
+    i: 2
+
 args2:
   main: args2
   flags-import: all

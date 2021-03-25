@@ -156,7 +156,12 @@ def _encode_yaml_list_for_globals_arg(parts):
 
 
 def _encode_flag_arg(val, dest, arg_split):
-    if dest == "globals" or dest.startswith("global:"):
+    if (
+        dest == "globals"
+        or dest.startswith("global:")
+        or dest.startswith("dict:")
+        or dest.startswith("namespace:")
+    ):
         return _encode_flag_arg_for_globals(val)
     else:
         return _encode_flag_arg_for_argparse(val, arg_split)
