@@ -26,6 +26,7 @@ from . import server_support
 @click.command(name="view")
 @runs_support.runs_arg
 @server_support.host_and_port_options
+@click.option("--include-batch", is_flag=True, help="Include batch runs.")
 @click.option(
     "-n", "--no-open", help="Don't open Guild View in a browser.", is_flag=True
 )

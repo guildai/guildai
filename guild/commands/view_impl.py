@@ -25,6 +25,7 @@ import sys
 import guild
 import guild.run
 
+from guild import batch_util
 from guild import cli
 from guild import click_util
 from guild import config
@@ -57,7 +58,6 @@ class ViewDataImpl(view.ViewData):
             min_col=None,
             max_col=None,
             limit=None,
-            include_batch=False,
             skip_core=False,
             skip_op_cols=False,
             all_scalars=False,
@@ -65,7 +65,10 @@ class ViewDataImpl(view.ViewData):
         )
 
     def runs(self):
-        return runs_impl.runs_for_args(self._args)
+        runs = runs_impl.runs_for_args(self._args)
+        if self._args.include_batch:
+            return runs
+        return [run for run in runs if not batch_util.is_batch(run)]
 
     def runs_data(self):
         return list(self._runs_data_iter(self.runs()))
