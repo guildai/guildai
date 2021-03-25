@@ -13,7 +13,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.optimizers import RMSprop
 
-_10sec = True
+_10sec = False
 
 batch_size = 128
 num_classes = 10
