@@ -15,6 +15,15 @@ globals-2:
     i: 2
     f: 2.2
 
+global-dict:
+  description: Use a global dict for flag values
+  main: global_dict
+  flags-dest: global:params
+  flags-import: all
+  flags:
+    l:
+      arg-split: yes
+
 args-default:
   description: Use all CLI options
   main: args
@@ -43,7 +52,8 @@ config-legacy:
   description: Use config file to define globals (legacy method)
   main: config
   # With the legacy method (using config dependency below) we need to
-  # explicitly define flags here. They are not importable.
+  # explicitly define flags here. They are not importable. See the
+  # config operation for the current recommended method.
   flags:
     i: 1
     f: 1.123

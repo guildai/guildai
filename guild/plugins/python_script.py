@@ -380,7 +380,12 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 _script_desc(script),
             )
             return {}
-        return util.encode_nested_config(param_val)
+        config_vals = util.encode_nested_config(param_val)
+        return {
+            str(name): flags_import_util.flag_data_for_val(val)
+            for name, val in config_vals.items()
+            if self._is_global_assign_flag(name) and self._is_assignable_flag_val(val)
+        }
 
     def _entry_point_args_flags_data(self, flags_dest, script):
         assert flags_dest.startswith("args:")

@@ -122,7 +122,16 @@ Let's run it:
     >>> guild_run("params", i=5, s2="Whah")
     {'f': {'a': 1.123, 'b': 2.234},
      'i': 5,
+     'l': [1, 2, 'foo'],
      'strings': {'s1': 'Hola', 's2': 'Whah'}}
+
+And again with an encoded list flag:
+
+    >>> guild_run("params", i=2, l="2 3 bar baz")
+    {'f': {'a': 1.123, 'b': 2.234},
+     'i': 2,
+     'l': [2, 3, 'bar', 'baz'],
+     'strings': {'s1': 'Hola'}}
 
 ## Force args dest
 
@@ -376,6 +385,7 @@ the `--help-op` option.
       f.a  (default is 1.123)
       f.b  (default is 2.234)
       i    (default is 2)
+      l    (default is 1 2 foo)
       s1   (default is Hola)
       s2
     <exit 0>
