@@ -43,6 +43,8 @@ And its operations:
      <guild.guildfile.OpDef 'globals'>,
      <guild.guildfile.OpDef 'no-dest'>,
      <guild.guildfile.OpDef 'params'>,
+     <guild.guildfile.OpDef 'params-dict'>,
+     <guild.guildfile.OpDef 'params-namespace'>,
      <guild.guildfile.OpDef 'split-args'>,
      <guild.guildfile.OpDef 'split-globals'>,
      <guild.guildfile.OpDef 'split-typed'>]
@@ -132,6 +134,46 @@ And again with an encoded list flag:
      'i': 2,
      'l': [2, 3, 'bar', 'baz'],
      'strings': {'s1': 'Hola'}}
+
+## Alt global dict
+
+The `params-dict` operation is the same operation def as `params` but
+uses the `dict:<name>` flags dest. This is equivalent to
+`global:<name>`.
+
+    >>> params_dict_op = gf.default_model["params-dict"]
+    >>> params_dict_op.flags_dest
+    'dict:params'
+
+Run it:
+
+    >>> guild_run("params-dict", i=5, s2="Whah")
+    {'f': {'a': 1.123, 'b': 2.234},
+     'i': 5,
+     'l': [1, 2, 'foo'],
+     'strings': {'s1': 'Hola', 's2': 'Whah'}}
+
+And again with an encoded list flag:
+
+    >>> guild_run("params-dict", i=2, l="2 3 bar baz")
+    {'f': {'a': 1.123, 'b': 2.234},
+     'i': 2,
+     'l': [2, 3, 'bar', 'baz'],
+     'strings': {'s1': 'Hola'}}
+
+## Global namespace
+
+The `params-namespace` operation uses a `SimpleNamespace` instead of a
+`dict`.
+
+    >>> params_namespace_op = gf.default_model["params-namespace"]
+    >>> params_namespace_op.flags_dest
+    'namespace:params'
+
+Run it:
+
+    >>> guild_run("params-namespace", b=1, f=2.234, s="hi", l="2 3 bar")
+    namespace(b=True, f=2.234, i=2, l=[2, 3, 'bar'], s='hi')
 
 ## Force args dest
 

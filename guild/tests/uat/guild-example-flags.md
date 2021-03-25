@@ -9,9 +9,10 @@
     config              Use config file to define globals
     config-legacy       Use config file to define globals (legacy method)
     disabled            Disable flag imports
-    global-dict         Use a global dict for flag values
+    global              Use a global dict for flag values
     globals-2           Use some global variables and redefine defaults
     globals-default     Use all global variables
+    namespace           Use a SimpleNamespace for flag values
     <exit 0>
 
 ## Args
@@ -96,7 +97,7 @@ Legacy support:
 
 Global dict param:
 
-    >>> run("guild run global-dict --help-op")
+    >>> run("guild run global --help-op")
     ???
     Flags:
       b  (default is yes)
@@ -108,8 +109,26 @@ Global dict param:
 
 Sample run:
 
-    >>> run("guild run global-dict b=no i=456 l='2 3 bar baz' -y")
+    >>> run("guild run global b=no i=456 l='2 3 bar baz' -y")
     {'b': False, 'f': 1.123, 'i': 456, 'l': [2, 3, 'bar', 'baz'], 's': 'hello'}
+    <exit 0>
+
+Namespace param:
+
+    >>> run("guild run namespace --help-op")
+    ???
+    Flags:
+      b  (default is no)
+      f  (default is 1.123)
+      i  (default is 123)
+      l  (default is 1 2 foo)
+      s  (default is hello)
+    <exit 0>
+
+Sample run:
+
+    >>> run("guild run namespace b=yes l='2 3 baz bar' i=789 -y")
+    namespace(b=True, f=1.123, i=789, l=[2, 3, 'baz', 'bar'], s='hello')
     <exit 0>
 
 Globals support:

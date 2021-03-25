@@ -151,7 +151,7 @@ def _try_module(arg1, args):
     except ImportError as e:
         _error(str(e))
     else:
-        _dispatch_module_exec(_flags_dest(args), module_info)
+        _dispatch_module_exec(_flags_interface(args), module_info)
 
 
 def _parse_module_spec(spec):
@@ -221,14 +221,18 @@ def _find_package_main(mod_path):
     return None
 
 
-def _flags_dest(args):
+def _flags_interface(args):
     dest = os.getenv("FLAGS_DEST", "args")
     if dest == "args" or dest.startswith("args:"):
         return _args_dest(args)
     elif dest == "globals":
         return _globals_dest(args)
     elif dest.startswith("global:"):
-        return _global_dest(args, dest[7:])
+        return _global_dict_dest(args, dest[7:])
+    elif dest.startswith("dict:"):
+        return _global_dict_dest(args, dest[5:])
+    elif dest.startswith("namespace:"):
+        return _global_simple_namespace_dest(args, dest[10:])
     elif dest == "none":
         return _no_dest_args(args)
     else:
@@ -251,11 +255,37 @@ def _base_args_and_flags_for_globals(args):
     return other_args, flags
 
 
-def _global_dest(args, global_name):
+def _global_dict_dest(args, global_name):
     base_args, flags = _base_args_and_flags_for_globals(args)
     flags = util.nested_config(flags)
     global_dest = op_util.global_dest(global_name, flags)
     return "globals", base_args, global_dest
+
+
+def _global_simple_namespace_dest(args, global_name):
+    _, base_args, global_dest = _global_dict_dest(args, global_name)
+    _convert_global_dict_to_namespace(global_dest)
+    return "globals", base_args, global_dest
+
+
+def _convert_global_dict_to_namespace(global_dest):
+    assert len(global_dest) == 1, global_dest
+    for global_name, namespace_kw_dict in global_dest.items():
+        global_dest[global_name] = _dict_to_simple_namespace(namespace_kw_dict)
+        break
+
+
+def _dict_to_simple_namespace(d):
+    from guild import python_util
+
+    kw = {name: _dict_to_simple_namespace_or_val(val) for name, val in d.items()}
+    return python_util._SimpleNamespace(kw)
+
+
+def _dict_to_simple_namespace_or_val(val):
+    if isinstance(val, dict):
+        return _dict_to_simple_namespace(val)
+    return val
 
 
 def _no_dest_args(args):

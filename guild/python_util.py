@@ -161,6 +161,8 @@ def ast_param_val(val):
             ast_param_val(item_key): ast_param_val(item_val)
             for item_key, item_val in zip(val.keys, val.values)
         }
+    elif _is_namespace(val):
+        return _namespace_val(val)
     else:
         raise TypeError(val)
 
@@ -175,6 +177,50 @@ def _unary_val(val):
             raise TypeError(val)
     else:
         raise TypeError(val)
+
+
+def _is_namespace(val):
+    return (
+        isinstance(val, ast.Call)
+        and isinstance(val.func, ast.Name)
+        and val.func.id.endswith("SimpleNamespace")
+    )
+
+
+def _namespace_val(val):
+    kw = _namespace_kw(val)
+    return _SimpleNamespace(kw)
+
+
+def _namespace_kw(val):
+    return {kw.arg: ast_param_val(kw.value) for kw in val.keywords}
+
+
+def _SimpleNamespace(kw):
+    try:
+        from types import SimpleNamespace as BuiltinSimpleNamespace
+    except ImportError:
+        return SimpleNamespace(**kw)
+    else:
+        return BuiltinSimpleNamespace(**kw)
+
+
+class SimpleNamespace(object):
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+    def __repr__(self):
+        from pprint import pformat
+
+        items = (
+            "{}={}".format(k, pformat(v)) for k, v in sorted(self.__dict__.items())
+        )
+        return "namespace({})".format(", ".join(items))
+
+    def __eq__(self, other):
+        if isinstance(self, SimpleNamespace) and isinstance(other, SimpleNamespace):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
 
 
 class Call(object):
