@@ -933,7 +933,10 @@ class RunOutputReader(object):
                 line = output.readline().rstrip().decode()
                 if not line:
                     break
-                time, stream = struct.unpack("!QB", index.read(9))
+                header = index.read(9)
+                if len(header) < 9:
+                    break
+                time, stream = struct.unpack("!QB", header)
                 lines.append((time, stream, line))
                 if end is not None and end < len(self._lines):
                     break

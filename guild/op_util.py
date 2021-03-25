@@ -286,12 +286,13 @@ class RunOutput(object):
             stream_fileno = None
         output_fileno = self._output.fileno()
         index_fileno = self._index.fileno()
-        time_ = time.time
         lock = self._output_lock
         line = []
         while True:
             buf = os_read(input_fileno, RUN_OUTPUT_STREAM_BUFFER)
             if not buf:
+                if line:
+                    self._output_eol(index_fileno, line, stream_type)
                 break
             with lock:
                 if stream_fileno is not None:
@@ -302,18 +303,19 @@ class RunOutput(object):
                         continue
                     line.append(b)
                     if b == LF:
-                        line_bytes = BYTES_JOIN(line)
+                        self._output_eol(index_fileno, line, stream_type)
                         del line[:]
-                        entry = struct.pack("!QB", int(time_() * 1000), stream_type)
-                        os_write(index_fileno, entry)
-                        if self._output_cb:
-                            try:
-                                self._output_cb.write(line_bytes)
-                            except Exception:
-                                log.exception(
-                                    "error in output callback (will be " "removed)"
-                                )
-                                self._output_cb = None
+
+    def _output_eol(self, index_fileno, line, stream_type):
+        line_bytes = BYTES_JOIN(line)
+        entry = struct.pack("!QB", int(time.time() * 1000), stream_type)
+        os.write(index_fileno, entry)
+        if self._output_cb:
+            try:
+                self._output_cb.write(line_bytes)
+            except Exception:
+                log.exception("error in output callback (will be " "removed)")
+                self._output_cb = None
 
     def wait(self):
         """Wait for run output reader threads to exit.
