@@ -72,7 +72,7 @@ Python 3.6:
     sklearn_version:           0.24.1
     skopt_version:             0.8.1
     setuptools_version:        ...
-    twine_version:             3.4.0
+    twine_version:             3.4.1
     yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
@@ -95,7 +95,7 @@ Python 3.7:
     sklearn_version:           0.24.1
     skopt_version:             0.8.1
     setuptools_version:        ...
-    twine_version:             3.4.0
+    twine_version:             3.4.1
     yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
@@ -118,7 +118,7 @@ Python 3.8:
     sklearn_version:           0.24.1
     skopt_version:             0.8.1
     setuptools_version:        ...
-    twine_version:             3.4.0
+    twine_version:             3.4.1
     yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
@@ -141,7 +141,7 @@ Python 3.9:
     sklearn_version:           0.24.1
     skopt_version:             0.8.1
     setuptools_version:        ...
-    twine_version:             3.4.0
+    twine_version:             3.4.1
     yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
