@@ -550,18 +550,18 @@ def _encode_flags_with_help(vals, opdef):
     if not opdef:
         return yaml_util.encode_yaml(vals)
     lines = []
-    prev_help = None
     lines.append("# Editing flags for %s" % opdef.fullname)
+    lf_needed = True
     for name, val in sorted(vals.items()):
         flag_help = _format_flag_help(opdef.get_flagdef(name))
-        if prev_help or flag_help and lines:
+        if lf_needed or flag_help:
             lines.append("")
         lines.append(
             "%s: %s" % (yaml_util.encode_yaml(name), yaml_util.encode_yaml(val))
         )
         if flag_help:
             lines.extend(["  # %s" % line for line in flag_help.split("\n")])
-        prev_help = flag_help
+        lf_needed = flag_help
     return "\n".join(lines)
 
 
