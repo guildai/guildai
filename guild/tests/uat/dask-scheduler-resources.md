@@ -1,3 +1,7 @@
+---
+doctest: -PY2
+---
+
 # Dask Scheduler Resources
 
 Clear existing runs for our tests.
