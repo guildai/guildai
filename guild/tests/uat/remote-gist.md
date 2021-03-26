@@ -235,7 +235,7 @@ Verify that the remote runs exist.
 
 Permanently delete the remote hello runs.
 
-    >>> run("guild runs rm -Fo hello -p -y -r guild-uat-gist", ignore="Permanently added")
+    >>> run("guild runs rm -Fo hello* -p -y -r guild-uat-gist", ignore="Permanently added")
     Refreshing run info for guild-uat-gist
     Deleting ...
     Deleting ...

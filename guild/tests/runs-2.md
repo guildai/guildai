@@ -31,11 +31,56 @@ Filtered by 'train' operation:
     7d145216 mnist:train error
     360192fd mnist:train pending
 
-Filter by partial op name 'ain':
+Filter by partial op name 'ain' does not match:
 
     >>> print_runs(runs_list(ops=["ain"]))
+
+    >>> print_runs(runs_list(ops=["tra"]))
+
+We can use a wildcard pattern however:
+
+    >>> print_runs(runs_list(ops=["*ain"]))
     7d145216 mnist:train error
     360192fd mnist:train pending
+
+    >>> print_runs(runs_list(ops=["tra*"]))
+    7d145216 mnist:train error
+    360192fd mnist:train pending
+
+Use a spec containing model:
+
+    >>> print_runs(runs_list(ops=["mnist:train"]))
+    7d145216 mnist:train error
+    360192fd mnist:train pending
+
+Show all ops for model:
+
+    >>> print_runs(runs_list(ops=["mnist:*"]))
+    42803252 mnist:evaluate completed
+    7d145216 mnist:train error
+    360192fd mnist:train pending
+
+Match the wrong model:
+
+    >>> print_runs(runs_list(ops=["mnist2:*"]))
+
+Use a wildcard to match everything:
+
+    >>> print_runs(runs_list(ops=["*"]))
+    42803252 mnist:evaluate completed
+    7d145216 mnist:train error
+    360192fd mnist:train pending
+
+Use a wildcard to match the model:
+
+    >>> print_runs(runs_list(ops=["*:evaluate"]))
+    42803252 mnist:evaluate completed
+
+    >>> print_runs(runs_list(ops=["mni*:evaluate"]))
+    42803252 mnist:evaluate completed
+
+    >>> print_runs(runs_list(ops=["*ist:evaluate"]))
+    42803252 mnist:evaluate completed
 
 Filter by starts with 'mnist':
 

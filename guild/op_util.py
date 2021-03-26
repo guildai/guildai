@@ -498,7 +498,7 @@ def _model_op_spec(spec):
 
 
 def _package_model_op_spec(spec):
-    m = re.match(r"([^/:]+/[^/:?]+):([^/:]+)$", spec)
+    m = re.match(r"([^/:]*/[^/:?]*):([^/:]+)$", spec)
     if not m:
         return None
     return m.groups()

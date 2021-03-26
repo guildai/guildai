@@ -517,10 +517,25 @@ Package and op:
     >>> parse("package/:op")
     ('package/', 'op')
 
-Pakcage, model, and op:
+Package, model, and op:
 
     >>> parse("package/model:op")
     ('package/model', 'op')
+
+Empty package with model and op:
+
+    >>> parse("/model:op")
+    ('/model', 'op')
+
+Empty model with package and op:
+
+    >>> parse("package/:op")
+    ('package/', 'op')
+
+Empty package and model with op:
+
+    >>> parse("/:op")
+    ('/', 'op')
 
 Invalid:
 
@@ -547,6 +562,10 @@ Invalid:
     >>> parse("a:b/c:d")
     Traceback (most recent call last):
     ValueError: a:b/c:d
+
+    >>> parse("/op")
+    Traceback (most recent call last):
+    ValueError: /op
 
 ## Run labels
 

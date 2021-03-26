@@ -4,7 +4,7 @@ List from the `examples/hello` directory:
 
     >>> cd(example("hello"))
 
-    >>> run("guild runs -Fo hello")
+    >>> run("guild runs -Fo 'hello*'")
     [1:...]   hello       ...  completed  msg=yop
     [2:...]   hello       ...  completed  msg=yop
     [3:...]   hello       ...  completed  msg=hola
@@ -21,7 +21,7 @@ List from the `examples` directory:
 
     >>> cd(example(""))
 
-    >>> run("guild runs -Fo hello")
+    >>> run("guild runs -Fo 'hello*'")
     [1:...]   hello (hello)         ...  completed  msg=yop
     [2:...]   hello (hello)         ...  completed  msg=yop
     [3:...]   hello (hello)         ...  completed  msg=hola

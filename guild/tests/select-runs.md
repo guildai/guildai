@@ -72,7 +72,7 @@ Select run by position:
 
 Select filtering by op:
 
-    >>> check(project.select(ops=["+"]), runs, 3)
+    >>> check(project.select(ops=["echo2.py+"]), runs, 3)
 
 Select min loss:
 

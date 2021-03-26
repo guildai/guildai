@@ -108,7 +108,7 @@ Filter with status:
 With operation:
 
     >>> with guild_home:
-    ...     ipy.runs(operations=["hello"], completed=True)
+    ...     ipy.runs(operations=["hello()"], completed=True)
        run  operation  started     status            label
     0  ...    hello()      ...  completed  run3 msg=Ya n=1
     1  ...    hello()      ...  completed             run2

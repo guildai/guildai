@@ -7,7 +7,7 @@ Verify that a whole-run diff exits without error:
 Spot check various diffs (limit to legacy ops 'hello:from' pattern
 match):
 
-    >>> run("guild diff -Fo hello:from --flags -r guild-uat -c 'diff -ur'")
+    >>> run("guild diff -Fo hello:from-* --flags -r guild-uat -c 'diff -ur'")
     --- ...
     +++ ...
     @@ -1 +1 @@
@@ -15,7 +15,7 @@ match):
     +file: msg.txt
     <exit 0>
 
-    >>> run("guild diff -Fo hello:from -p output -r guild-uat -c 'diff -ur'")
+    >>> run("guild diff -Fo hello:from-* -p output -r guild-uat -c 'diff -ur'")
     --- .../output ...
     +++ .../output ...
     @@ -1 +1,2 @@
@@ -24,7 +24,7 @@ match):
     +
     <exit 0>
 
-    >>> run("guild diff -Fo hello:from --output -r guild-uat -c 'diff -ur'")
+    >>> run("guild diff -Fo hello:from-* --output -r guild-uat -c 'diff -ur'")
     --- .../.guild/output ...
     +++ .../.guild/output ...
     @@ -1 +1,2 @@

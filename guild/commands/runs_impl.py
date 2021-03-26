@@ -187,7 +187,7 @@ def _compare_op(ref, opspec):
     if ref.startswith("^") or ref.endswith("$"):
         return _re_match(ref, opspec)
     else:
-        return ref in opspec
+        return _opspec_match(ref, opspec)
 
 
 def _re_match(pattern, target):
@@ -195,6 +195,50 @@ def _re_match(pattern, target):
         return re.search(pattern, target)
     except re.error:
         return False
+
+
+def _opspec_match(ref, opspec):
+    ref_parts = _split_opspec(ref)
+    opspec_parts = _split_opspec(opspec)
+    assert len(ref_parts) == 3 and len(opspec_parts) == 3, (ref_parts, opspec_parts)
+    for ref_part, opspec_part in zip(ref_parts, opspec_parts):
+        if not _opspec_part_match(ref_part, opspec_part):
+            return False
+    return True
+
+
+def _split_opspec(opspec):
+    parsed = op_util.parse_opspec(opspec)
+    if parsed:
+        model, op = parsed
+        pkg, model = _split_model_pkg(model)
+        return pkg, model, op
+    return None, None, None
+
+
+def _split_model_pkg(model):
+    if model:
+        parts = model.split("/", 1)
+        if len(parts) == 2:
+            return parts
+    return None, model
+
+
+def _opspec_part_match(ref, part):
+    if not ref:
+        return True
+    if not part:
+        return False
+    if "*" in ref:
+        return _opspec_part_fnmatch(ref, part)
+    else:
+        return ref == part
+
+
+def _opspec_part_fnmatch(ref, part):
+    from fnmatch import fnmatch
+
+    return fnmatch(part, ref)
 
 
 def _apply_labels_filter(args, filters):
