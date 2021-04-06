@@ -1178,6 +1178,10 @@ def shlex_quote(s):
     return _simplify_shlex_quote(six.moves.shlex_quote(s))
 
 
+def shlex_join(args):
+    return " ".join([shlex_quote(arg) for arg in args])
+
+
 def _simplify_shlex_quote(s):
     repls = [
         ("''\"'\"'", "\"'"),

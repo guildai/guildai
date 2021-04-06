@@ -52,6 +52,7 @@ tests).
       flag-vals:                   ok
       flagdefs:                    ok
       flags-dest:                  ok
+      flags-sub-commands:          ok
       gpus:                        ok
       guild-home:                  ok
       guildfiles:                  ok

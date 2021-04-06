@@ -42,7 +42,7 @@ log = _init_log()
 
 
 class ClickFlags(python_script.PythonFlagsImporter):
-    def flags_for_script(self, script, log):
+    def flags_for_script(self, script, base_args, log):
         env = dict(os.environ)
         env.update(
             {
@@ -58,6 +58,7 @@ class ClickFlags(python_script.PythonFlagsImporter):
                 "guild.plugins.click_flags",
                 script.src,
                 script.mod_package or '',
+                util.shlex_join(base_args),
                 tmp.path,
             ]
             log.debug("click_flags env: %s", env)
@@ -80,17 +81,46 @@ class ClickFlags(python_script.PythonFlagsImporter):
 
 def main():
     args = _init_args()
-    _patch_click(args.output_path)
+    base_args = util.shlex_split(args.base_args)
+    _patch_click(base_args, args.output_path)
     # Importing module has the side-effect of writing flag data due to
     # patched argparse.
-    import_argparse_flags_main._exec_module(args.mod_path, args.package)
+    import_argparse_flags_main._exec_module(args.mod_path, args.package, base_args)
 
 
-def _patch_click(output_path):
-    handle_cmd_init = lambda _init, *_args, **kw: _write_flags(
-        kw["params"], output_path
+def _patch_click(base_args, output_path):
+    handle_command_call = lambda group_call, *_args, **_kw: _write_command_flags(
+        group_call, base_args, output_path
     )
-    python_util.listen_method(click.Command, "__init__", handle_cmd_init)
+    python_util.listen_method(click.Command, "__call__", handle_command_call)
+
+
+def _write_command_flags(group_call_f0, base_args, output_path):
+    called_cmd = _cmd_for_call_f(group_call_f0)
+    op_cmd = _cmd_for_base_args(base_args, called_cmd)
+    _write_flags(op_cmd.params, output_path)
+
+
+def _cmd_for_call_f(call_f):
+    closure = call_f.__closure__
+    if len(closure) != 2:
+        raise SystemExit("unexpected closure len for %s: %s" % (call_f, closure))
+    cmd = closure[1].cell_contents
+    if not isinstance(cmd, click.Command):
+        raise SystemExit(
+            "unexpected entry for group in closure for %s: %s" % (call_f, cmd)
+        )
+    return cmd
+
+
+def _cmd_for_base_args(base_args, group):
+    cmd = group
+    for arg in base_args:
+        try:
+            cmd = cmd.commands[arg]
+        except KeyError:
+            break
+    return cmd
 
 
 def _write_flags(params, output_path):
@@ -112,10 +142,8 @@ def _maybe_apply_flag(param, flags):
     if not arg_name or not isinstance(param, click.Option):
         log.debug("skipping %s - not a flag option", param.name)
         return
-    flag_name = param.name
+    flag_name = arg_name  # Use long form arg name as flag name.
     flags[flag_name] = attrs = {}
-    if arg_name != flag_name:
-        attrs["arg-name"] = arg_name
     if param.help:
         attrs["description"] = param.help
     if param.default is not None:
@@ -144,6 +172,7 @@ def _init_args():
     p = argparse.ArgumentParser()
     p.add_argument("mod_path")
     p.add_argument("package")
+    p.add_argument("base_args")
     p.add_argument("output_path")
     return p.parse_args()
 

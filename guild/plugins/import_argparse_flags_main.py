@@ -23,6 +23,7 @@ import sys as sys
 
 from guild import flag_util
 from guild import python_util as python_util
+from guild import util
 
 action_types = (
     argparse._StoreAction,
@@ -46,13 +47,15 @@ def main():
     _patch_argparse(args.output_path)
     # Importing module has the side-effect of writing flag data due to
     # patched argparse.
-    _exec_module(args.mod_path, args.package)
+    base_args = util.shlex_split(args.base_args)
+    _exec_module(args.mod_path, args.package, base_args)
 
 
 def _init_args():
     p = argparse.ArgumentParser()
     p.add_argument("mod_path")
     p.add_argument("package")
+    p.add_argument("base_args")
     p.add_argument("output_path")
     return p.parse_args()
 
@@ -156,9 +159,9 @@ def _maybe_encode_splittable_default(flag_attrs):
         flag_attrs["default"] = flag_util.join_splittable_flag_vals(default)
 
 
-def _exec_module(mod_path, package):
+def _exec_module(mod_path, package, base_args):
     assert mod_path.endswith(".py"), mod_path
-    sys.argv = [mod_path, "--help"]
+    sys.argv = [mod_path] + base_args + ["--help"]
     log.debug("loading module from '%s'", mod_path)
     python_util.exec_script(mod_path, mod_name=_exec_mod_name(package))
 

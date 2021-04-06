@@ -28,14 +28,14 @@
     >>> run("guild run args-click-default --help-op")
     ???
     Flags:
-      b      sample flag (default is no)
-      color  sample choices (default is red)
+      b  sample flag (default is no)
+      c  sample choices (default is red)
     <BLANKLINE>
-             Choices:  red, blue, green
+         Choices:  red, blue, green
     <BLANKLINE>
-      f      sample float (default is 1.1)
-      i      sample int (default is 1)
-      s      sample string (default is hello)
+      f  sample float (default is 1.1)
+      i  sample int (default is 1)
+      s  sample string (default is hello)
     <exit 0>
 
     >>> run("guild run args-default --help-op")

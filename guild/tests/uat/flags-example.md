@@ -28,12 +28,12 @@
     Flags: 1 1.1 True hello red
     <exit 0>
 
-    >>> run("guild run args-click-default i=9 f=9.9 s=hola color=green -y")
+    >>> run("guild run args-click-default i=9 f=9.9 s=hola c=green -y")
     Flags: 9 9.9 True hola green
     <exit 0>
 
-    >>> run("guild run args-click-default color=yellow -y")
-    Unsupported value for 'color' - supported values are:
+    >>> run("guild run args-click-default c=yellow -y")
+    Unsupported value for 'c' - supported values are:
     <BLANKLINE>
       red
       blue

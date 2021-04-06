@@ -1,0 +1,22 @@
+argparse-a:
+  main: args_argparse a
+  flags-import: all
+
+argparse-b:
+  main: args_argparse b
+  flags-import: all
+
+click-a:
+  main: args_click a
+  flags-dest: args:click
+  flags-import: all
+
+click-b:
+  main: args_click b
+  flags-dest: args:click
+  flags-import: all
+
+click-b-sub:
+  main: args_click b b-sub
+  flags-dest: args:click
+  flags-import: all

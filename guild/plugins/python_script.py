@@ -74,7 +74,7 @@ class PythonFlagsImporter(object):
     def __init__(self, ep):
         self.ep = ep
 
-    def flags_for_script(self, script, log):
+    def flags_for_script(self, script, base_args, log):
         """Returns Guild flag config for a Python script."""
         pass
 
@@ -134,7 +134,7 @@ class PythonScriptModelProxy(object):
             "### Script flags for %s", os.path.normpath(self.script_path)
         )
         plugin = pluginlib.for_name("python_script")
-        return plugin._flags_data_for_path(self.script_path, "", ".")
+        return plugin._flags_data_for_path(self.script_path, "", ".", [], None)
 
     @staticmethod
     def _sourcecode():
@@ -175,21 +175,23 @@ class PythonScriptPlugin(pluginlib.Plugin):
         )
 
     def _flags_data(self, opdef, local_cache):
-        main_mod = op_util.split_cmd(opdef.main)[0]
+        main_mod, base_args = _split_main_spec(opdef.main)
         flags_dest = opdef.flags_dest
         try:
             flags_data = local_cache[(main_mod, flags_dest)]
         except KeyError:
             flags_import_util.log_flags_info("reading flags for main spec %r", main_mod)
             model_paths = op_util.opdef_model_paths(opdef)
-            flags_data = self._flags_data_(main_mod, model_paths, opdef.flags_dest)
+            flags_data = self._flags_data_(
+                main_mod, base_args, model_paths, opdef.flags_dest
+            )
         else:
             flags_import_util.log_flags_info(
                 "using cached flags for main spec %r", main_mod
             )
         return flags_data
 
-    def _flags_data_(self, main_mod, model_paths, flags_dest):
+    def _flags_data_(self, main_mod, base_args, model_paths, flags_dest):
         try:
             sys_path, mod_path = python_util.find_module(main_mod, model_paths)
         except ImportError as e:
@@ -198,23 +200,27 @@ class PythonScriptPlugin(pluginlib.Plugin):
             return {}
         else:
             package = self._main_spec_package(main_mod)
-            return self._flags_data_for_path(mod_path, package, sys_path, flags_dest)
+            return self._flags_data_for_path(
+                mod_path, package, sys_path, base_args, flags_dest
+            )
 
     @staticmethod
     def _main_spec_package(main_spec):
         parts = main_spec.rsplit("/", 1)
         return python_util.split_mod_name(parts[-1])[0]
 
-    def _flags_data_for_path(self, mod_path, mod_package, sys_path, flags_dest=None):
-        data, cached_data_path = self._cached_data(mod_path)
+    def _flags_data_for_path(
+        self, mod_path, mod_package, sys_path, base_args, flags_dest
+    ):
+        data, cached_data_path = self._cached_data(mod_path, base_args)
         if data is not None:
             return data
         return self._load_and_cache_flags_data(
-            mod_path, mod_package, sys_path, flags_dest, cached_data_path
+            mod_path, mod_package, sys_path, base_args, flags_dest, cached_data_path
         )
 
-    def _cached_data(self, mod_path):
-        cached_path = self._cached_data_path(mod_path)
+    def _cached_data(self, mod_path, base_args):
+        cached_path = self._cached_data_path(mod_path, base_args)
         if self._cache_valid(cached_path, mod_path):
             with open(cached_path, "r") as f:
                 # Use yaml to avoid json's insistence on treating
@@ -223,11 +229,11 @@ class PythonScriptPlugin(pluginlib.Plugin):
         return None, cached_path
 
     @staticmethod
-    def _cached_data_path(mod_path):
+    def _cached_data_path(mod_path, base_args):
         cache_dir = var.cache_dir("import-flags")
-        abs_path = os.path.abspath(mod_path)
-        path_hash = hashlib.md5(abs_path.encode()).hexdigest()
-        return os.path.join(cache_dir, path_hash)
+        to_hash = "/".join([os.path.abspath(mod_path)] + base_args)
+        hashed = hashlib.md5(to_hash.encode()).hexdigest()
+        return os.path.join(cache_dir, hashed)
 
     @staticmethod
     def _cache_valid(cache_path, mod_path):
@@ -236,7 +242,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         return os.path.getmtime(mod_path) <= os.path.getmtime(cache_path)
 
     def _load_and_cache_flags_data(
-        self, mod_path, mod_package, sys_path, flags_dest, cached_data_path
+        self, mod_path, mod_package, sys_path, base_args, flags_dest, cached_data_path
     ):
         if (
             os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1"
@@ -260,7 +266,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
             return {}
         else:
             try:
-                data = _flags_data_for_script(script, flags_dest, self.log)
+                data = _flags_data_for_script(script, base_args, flags_dest, self.log)
             except DataLoadError:
                 return {}
             else:
@@ -275,10 +281,15 @@ class PythonScriptPlugin(pluginlib.Plugin):
             json.dump(data, f)
 
 
-def _flags_data_for_script(script, flags_dest, log):
+def _split_main_spec(main_spec):
+    parts = op_util.split_cmd(main_spec)
+    return parts[0], parts[1:]
+
+
+def _flags_data_for_script(script, base_args, flags_dest, log):
     flags_dest = flags_dest or _script_flags_dest(script)
     if flags_dest == "args":
-        data = _argparse_flags_data(script, log)
+        data = _argparse_flags_data(script, base_args, log)
     elif flags_dest == "globals":
         data = _global_assigns_flags_data(script)
     elif flags_dest.startswith("global:"):
@@ -288,11 +299,9 @@ def _flags_data_for_script(script, flags_dest, log):
     elif flags_dest.startswith("namespace:"):
         data = _global_param_flags_data(script, flags_dest[10:], log)
     elif flags_dest.startswith("args:"):
-        data = _entry_point_args_flags_data(flags_dest, script, log)
+        data = _entry_point_args_flags_data(flags_dest, script, base_args, log)
     else:
-        log.debug(
-            "ingoring flags dest '%s' for Python script %s", flags_dest, script
-        )
+        log.debug("ingoring flags dest '%s' for Python script %s", flags_dest, script)
         data = {}
     if flags_dest:
         flags_import_util.log_flags_info(
@@ -322,7 +331,7 @@ def _imports_argparse(script):
     return "argparse" in script.imports
 
 
-def _argparse_flags_data(script, log):
+def _argparse_flags_data(script, base_args, log):
     env = dict(os.environ)
     env.update(
         {
@@ -338,6 +347,7 @@ def _argparse_flags_data(script, log):
             "guild.plugins.import_argparse_flags_main",
             script.src,
             script.mod_package or '',
+            util.shlex_join(base_args),
             tmp.path,
         ]
         log.debug("import_argparse_flags_main env: %s", env)
@@ -360,6 +370,10 @@ def _argparse_flags_data(script, log):
             return _load_data(tmp.path)
 
 
+def _encode_base_args(args):
+    return " ".join([util.shlex_quote(arg) for arg in args])
+
+
 def _global_param_flags_data(script, param_name, log):
     param_val = script.params.get(param_name)
     if isinstance(param_val, dict):
@@ -377,7 +391,7 @@ def _global_param_flags_data(script, param_name, log):
         return {}
 
 
-def _entry_point_args_flags_data(flags_dest, script, log):
+def _entry_point_args_flags_data(flags_dest, script, base_args, log):
     assert flags_dest.startswith("args:")
     ep_name = flags_dest[5:]
     try:
@@ -390,7 +404,7 @@ def _entry_point_args_flags_data(flags_dest, script, log):
         )
         return {}
     else:
-        return importer.flags_for_script(script, log)
+        return importer.flags_for_script(script, base_args, log)
 
 
 def _apply_abs_paths(data, script_dir):
