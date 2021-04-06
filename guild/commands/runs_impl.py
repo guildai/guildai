@@ -21,7 +21,6 @@ import json
 import logging
 import os
 import re
-import signal
 
 import six
 
@@ -118,6 +117,8 @@ if not os.getenv("SHELL"):
     STYLE_TABLE_WIDTH_ADJ = -1
 else:
     STYLE_TABLE_WIDTH_ADJ = 0
+
+STOP_TIMEOUT = 30
 
 
 def runs_for_args(args, ctx=None):
@@ -1231,7 +1232,15 @@ def _try_stop_local_run(run):
     pid = run.pid
     if pid and util.pid_exists(pid):
         cli.out("Stopping %s (pid %i)" % (run.id, run.pid), err=True)
-        os.kill(pid, signal.SIGTERM)
+        _gone, alive = util.kill_process_tree(pid, timeout=STOP_TIMEOUT)
+        if alive:
+            _handle_non_stopped_pids(alive)
+
+
+def _handle_non_stopped_pids(alive):
+    alive_desc = ", ".join(alive)
+    cli.out("The following processes did not stop as expected: %s" % alive_desc)
+    cli.error()
 
 
 def export(args, ctx):
