@@ -1424,12 +1424,39 @@ def _mark(args, ctx):
 
 def select(args, ctx):
     _check_select_args(args, ctx)
-    run = select_run(args, ctx)
-    _print_select_info(run, args)
+    _maybe_apply_select_all(args)
+    if args.all:
+        _print_all_selected_runs(args, ctx)
+    else:
+        _print_latest_selected_run(args, ctx)
 
 
 def _check_select_args(args, ctx):
-    cmd_impl_support.check_incompatible_args([("short_id", "attr")], args, ctx)
+    cmd_impl_support.check_incompatible_args(
+        [
+            ("short_id", "attr"),
+            ("min", "max"),
+        ],
+        args,
+        ctx,
+    )
+
+
+def _maybe_apply_select_all(args):
+    if len(args.runs) > 1 and not args.min and not args.max:
+        args.all = True
+    elif args.min or args.max:
+        args.all = False
+
+
+def _print_all_selected_runs(args, ctx):
+    for run in _select_runs(args, ctx):
+        _print_select_info(run, args)
+
+
+def _print_latest_selected_run(args, ctx):
+    run = select_run(args, ctx)
+    _print_select_info(run, args)
 
 
 def select_run(args, ctx=None):
@@ -1439,6 +1466,7 @@ def select_run(args, ctx=None):
     elif args.max:
         return _select_min_run(args, ctx, args.max, reverse=True)
     else:
+        args.run = args.runs[0] if args.runs else None
         return one_run(args, ctx)
 
 
@@ -1446,54 +1474,75 @@ def _check_select_run_args(args, ctx):
     cmd_impl_support.check_incompatible_args([("min", "max")], args, ctx)
 
 
-def _select_min_run(args, ctx, scalar, reverse=False):
+def _select_min_run(args, ctx, colspec, reverse=False):
     runs = _select_runs(args, ctx)
-    assert runs
-    return _sort_selected_runs(runs, scalar, reverse)[0]
+    assert runs  # _select_runs exits early if nothing matches.
+    return _sort_selected_runs(runs, colspec, reverse)[0]
 
 
 def _select_runs(args, ctx):
-    args.runs = [args.run] if args.run else []
     return runs_for_args(args, ctx=ctx)
 
 
-def _sort_selected_runs(runs, scalar, reverse):
+def _sort_selected_runs(runs, colspec, reverse):
     from guild import index as indexlib  # expensive
 
-    run_scalar_args = _run_scalar_args_for_select(scalar)
+    colspec_val_for_run = _colspec_val_f(colspec)
+
     index = indexlib.RunIndex()
-    index.refresh(runs, ["scalar"])
-    factor = -1 if reverse else 1
-    inf = float('inf')
+    index.refresh(runs, ["scalar", "flag", "attr"])
 
     def key(run):
-        scalar = index.run_scalar(run, *run_scalar_args)
-        if scalar is None:
-            return inf
-        return factor * scalar
+        val = colspec_val_for_run(run, index)
+        log.debug("got %r for '%s' for run %s", val, colspec, run.id)
+        return val
 
-    return sorted(runs, key=key)
+    return util.natsorted(runs, key=key, reverse=reverse)
 
 
-def _run_scalar_args_for_select(scalar_spec):
+def _colspec_val_f(colspec):
     from guild import query
 
     try:
-        cols = query.parse_colspec(scalar_spec).cols
+        cols = query.parse_colspec(colspec).cols
     except query.ParseError as e:
-        cli.error("invalid scalar '%s': %s" % (scalar_spec, e))
+        cli.error("invalid col spec '%s': %s" % (colspec, e))
     else:
-        assert cols, scalar_spec
+        assert cols, colspec
         if len(cols) > 1:
-            cli.error(
-                "invalid scalar '%s': multiple scalars not supported" % scalar_spec
-            )
+            cli.error("invalid col spec '%s': multiple cols not supported" % colspec)
         col = cols[0]
-        # 'header', 'key', 'named_as', 'qualifier', 'split_key', 'step'
-        if col.named_as:
-            log.warning("ignoring 'as %s' in scalar", col.named_as)
-        prefix, tag = col.split_key()
-        return prefix, tag, col.qualifier, col.step
+        if isinstance(col, query.Scalar):
+            return _scalar_val_f(col)
+        elif isinstance(col, query.Flag):
+            return _flag_val_f(col)
+        elif isinstance(col, query.Attr):
+            return _attr_val_f(col)
+
+
+def _scalar_val_f(col):
+    if col.named_as:
+        log.warning("ignoring 'as %s' in scalar", col.named_as)
+    prefix, tag = col.split_key()
+
+    def f(run, index):
+        return index.run_scalar(run, prefix, tag, col.qualifier, col.step)
+
+    return f
+
+
+def _flag_val_f(col):
+    def f(run, index):
+        return index.run_flag(run, col.name)
+
+    return f
+
+
+def _attr_val_f(col):
+    def f(run, index):
+        return index.run_attr(run, col.name)
+
+    return f
 
 
 def _print_select_info(run, args):

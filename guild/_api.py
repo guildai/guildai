@@ -542,11 +542,12 @@ def package(
         print(out.decode())
 
 
-def select(run=None, min=None, max=None, cwd=".", guild_home=None, **kw):
+def select(runs=None, min=None, max=None, cwd=".", guild_home=None, **kw):
     from guild import click_util
     from guild.commands import runs_impl
 
-    args = click_util.Args(run=run, min=min, max=max)
+    runs = runs or []
+    args = click_util.Args(runs=runs, min=min, max=max)
     _apply_runs_filters(kw, args)
     _apply_remote(kw, args)
     _assert_empty_kw(kw, "select()")

@@ -88,7 +88,7 @@ Select min of non-existing scalar - fails to alter sort order:
 
 No matching runs:
 
-    >>> project.select("555555")
+    >>> project.select("xxx")
     Traceback (most recent call last):
     ValueError: ...
 
@@ -104,7 +104,7 @@ Invalid scalar spec:
 
     >>> project.select(min="foo bar")
     Traceback (most recent call last):
-    ValueError: ("invalid scalar 'foo bar': unexpected token 'bar', line 1, pos 11", 1)
+    ValueError: ("invalid col spec 'foo bar': unexpected token 'bar', line 1, pos 11", 1)
 
 ## Select Command
 

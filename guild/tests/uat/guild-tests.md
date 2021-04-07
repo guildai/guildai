@@ -120,6 +120,7 @@ tests).
       scalars:                     ok
       select-resources:            ok
       select-runs:                 ok
+      select-runs-2:               ok
       skopt:                       ok
       skopt-utils:                 ok
       sourcecode-digest:           ok

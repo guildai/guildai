@@ -56,23 +56,30 @@ def _ac_attr(incomplete, ctx, **_kw):
 
 
 @click.command()
-@runs_support.run_arg
+@runs_support.runs_arg
+@click.option(
+    "-A",
+    "--all",
+    help="Select all matching runs, not just the latest.",
+    is_flag=True,
+)
 @click.option(
     "-min",
     "--min",
-    metavar="SCALAR",
-    help="Select the run with the lowest value for SCALAR.",
+    metavar="COLSPEC",
+    help="Select the run with the lowest value for the specified COLSPEC.",
 )
 @click.option(
     "-max",
     "--max",
-    metavar="SCALAR",
-    help="Select the run with the highest value for SCALAR.",
+    metavar="COLSPEC",
+    help="Select the run with the highest value for the specified COLSPEC.",
 )
 @click.option("-s", "--short-id", help="Use short ID.", is_flag=True)
 @click.option(
     "-a",
     "--attr",
+    metavar="ATTR",
     help="Show specified run attribute rather than run ID.",
     autocompletion=_ac_attr,
 )
@@ -96,9 +103,12 @@ def select(ctx, args):
 
     ### Selecting Min or Max Scalar
 
-    To select the run with the lowest or highest scalar value, use
+    To select the run with the lowest or highest column value, use
     `--min` or `--max` respectively. For example, to select the run
     with the lowest `loss` scalar value, use `--min loss`.
+
+    For help with COLSPEC formatting, see `COLUMN SPECS` in `compare`
+    help by running `guild compare --help`.
 
     Other run filters are applied before selecting a minimum or
     maximium scalar value.
