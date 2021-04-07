@@ -75,7 +75,7 @@ def _header(dir, args):
 
 
 def _print_file_listing(dir, args):
-    for val in sorted(_list(dir, args)):
+    for val in util.natsorted(_list(dir, args)):
         _print_path(val, args)
 
 

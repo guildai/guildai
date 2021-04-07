@@ -197,7 +197,7 @@ class ViewDataImpl(view.ViewData):
             path for path in files if os.path.islink(path) or os.path.isfile(path)
         ]
         formatted = [self._format_file(path, root) for path in filtered]
-        return sorted(formatted, key=lambda x: x["path"])
+        return util.natsorted(formatted, key=lambda x: x["path"])
 
     def _format_file(self, path, root):
         typeDesc, icon, iconTooltip, viewer = self._file_type_info(path)

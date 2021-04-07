@@ -47,6 +47,7 @@ tests).
       disk-plugin:                 ok
       entry-points:                ok
       file-utils:                  ok
+      filename-sorting:            ok
       flag-functions:              ok
       flag-utils:                  ok
       flag-vals:                   ok

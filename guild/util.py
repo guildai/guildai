@@ -1737,3 +1737,9 @@ def make_executable(path):
     import stat
 
     os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
+
+
+def natsorted(*args, **kw):
+    from natsort import natsorted as ns
+
+    return ns(*args, **kw)
