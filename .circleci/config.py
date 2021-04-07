@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2017-2018 TensorHub, Inc.
+# Copyright 2017-2021 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -249,8 +249,6 @@ class LinuxBuild(Build):
     env = "docker"
 
     images = {
-        "linux-python_2.7": "circleci/python:2.7-stretch-node",
-        "linux-python_3.5": "circleci/python:3.5-stretch-node",
         "linux-python_3.6": "circleci/python:3.6-stretch-node",
         "linux-python_3.7": "circleci/python:3.7-stretch-node",
         "linux-python_3.8": "circleci/python:3.8.1-node",
@@ -290,7 +288,6 @@ class MacBuild(Build):
     }
 
     python_cmds = {
-        "2.7": "python2",
         "3.6": "~/.pyenv/versions/3.6.11/bin/python",
         "3.7": "~/.pyenv/versions/3.7.9/bin/python",
         "3.8": "~/.pyenv/versions/3.8.6/bin/python",
@@ -299,7 +296,6 @@ class MacBuild(Build):
 
     pip_cmds = {
         # ver: (cmd, pip_requires_su)
-        "2.7": ("python2 -m pip", True),
         "3.6": ("~/.pyenv/versions/3.6.11/bin/python -m pip", False),
         "3.7": ("~/.pyenv/versions/3.7.9/bin/python -m pip", False),
         "3.8": ("~/.pyenv/versions/3.8.6/bin/python -m pip", False),
@@ -307,7 +303,6 @@ class MacBuild(Build):
     }
 
     guild_cmds = {
-        "2.7": "guild",
         "3.6": "~/.pyenv/versions/3.6.11/bin/guild",
         "3.7": "~/.pyenv/versions/3.7.9/bin/guild",
         "3.8": "~/.pyenv/versions/3.8.6/bin/guild",
@@ -315,7 +310,6 @@ class MacBuild(Build):
     }
 
     guild_env_cmds = {
-        "2.7": "guild-env",
         "3.6": "~/.pyenv/versions/3.6.11/bin/guild-env",
         "3.7": "~/.pyenv/versions/3.7.9/bin/guild-env",
         "3.8": "~/.pyenv/versions/3.8.6/bin/guild-env",
@@ -354,17 +348,7 @@ class MacBuild(Build):
         mac_lines.extend(self._python_install_cmd())
         return mac_lines + default_lines
 
-    def _ensure_virtual_env_cmd(self):
-        # Workaround issue with Python 2.7 virtualenv 20.x, which
-        # doesn't isolate environments from system packages.
-        if self.python == "2.7":
-            return self._pip_install(["virtualenv==16.7.9"])
-        return super(MacBuild, self)._ensure_virtual_env_cmd()
-
     def _python_install_cmd(self):
-        if self.python == "2.7":
-            # 2.7 is default on OSX
-            return []
         pyenv_ver = self.pyenv_versions[self.python]
         return [
             "brew install pyenv",
@@ -380,7 +364,11 @@ class Config(object):
         self.builds = builds
 
     def write(self):
-        config = {"version": 2, "jobs": self._jobs(), "workflows": self._workflows()}
+        config = {
+            "version": self.version,
+            "jobs": self._jobs(),
+            "workflows": self._workflows(),
+        }
         with open("config.yml", "w") as out:
             yaml.dump(config, out, default_flow_style=False, width=9999)
 
@@ -395,13 +383,10 @@ class Config(object):
 
 
 builds = [
-    LinuxBuild(python="2.7"),
-    LinuxBuild(python="3.5"),
     LinuxBuild(python="3.6"),
     LinuxBuild(python="3.7"),
     LinuxBuild(python="3.8"),
     LinuxBuild(python="3.9"),
-    MacBuild("10.15", python="2.7"),
     MacBuild("10.15", python="3.6"),
     MacBuild("10.15", python="3.7"),
     MacBuild("10.15", python="3.8"),
