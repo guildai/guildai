@@ -38,11 +38,13 @@ Help for the project.
 Run the operations with default flag vals.
 
     >>> run("guild run argparse-a -y")
-    Namespace(a_foo=2, base_foo=1)
+    base_foo=1
+    a_foo=2
     <exit 0>
 
     >>> run("guild run argparse-b -y")
-    Namespace(b_foo=3, base_foo=1)
+    base_foo=1
+    b_foo=3
     <exit 0>
 
     >>> run("guild run click-a -y")
@@ -70,11 +72,13 @@ the `b` command, which is a Click group.
 Run with modified flag vals.
 
     >>> run("guild run argparse-a a-foo=22 -y")
-    Namespace(a_foo=22, base_foo=1)
+    base_foo=1
+    a_foo=22
     <exit 0>
 
     >>> run("guild run argparse-b b-foo=33 -y")
-    Namespace(b_foo=33, base_foo=1)
+    base_foo=1
+    b_foo=33
     <exit 0>
 
     >>> run("guild run click-a a-foo=55 -y")
