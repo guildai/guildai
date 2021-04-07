@@ -1,3 +1,7 @@
+---
+doctest: -WINDOWS
+---
+
 # Stopping Runs
 
 The `stop` command stops runs. We use the `multiprocessing` sample
