@@ -23,7 +23,7 @@ steps below.
 The script prints associated OS pids associated. Wait a moment and
 read these from the run output.
 
-    >>> sleep(1)
+    >>> sleep(3)
     >>> out, exit = run_capture("guild cat --output -Fl run-stop-test")
     >>> exit
     0
