@@ -59,6 +59,6 @@ Show output for the batch.
 
     >>> run("guild cat 3 --output")
     INFO: [guild] Running trial ...: sleep.py (seconds=99)
-    INFO: [guild] Trial ... was terminated
+    INFO: [guild] Stopping trial (proc ...)
     INFO: [guild] Stopping batch (pending trials can be started as needed)
     <exit 0>

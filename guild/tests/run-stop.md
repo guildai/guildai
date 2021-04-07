@@ -37,7 +37,7 @@ Verify that the pids are alive.
 
 Stop the run.
 
-    >>> run("guild stop -Fl run-stop-test -y", timeout=5)
+    >>> run("guild stop -Fl run-stop-test -y", timeout=10)
     Stopping ... (pid ...)
     <exit 0>
 

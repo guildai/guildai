@@ -119,6 +119,7 @@ else:
     STYLE_TABLE_WIDTH_ADJ = 0
 
 STOP_TIMEOUT = 30
+CHILD_TERM_TIMEOUT = 5
 
 
 def runs_for_args(args, ctx=None):
@@ -1232,7 +1233,9 @@ def _try_stop_local_run(run):
     pid = run.pid
     if pid and util.pid_exists(pid):
         cli.out("Stopping %s (pid %i)" % (run.id, run.pid), err=True)
-        _gone, alive = util.kill_process_tree(pid, timeout=STOP_TIMEOUT)
+        _gone, alive = util.kill_process_tree(
+            pid, timeout=STOP_TIMEOUT, child_term_timeout=CHILD_TERM_TIMEOUT
+        )
         if alive:
             _handle_non_stopped_pids(alive)
 
