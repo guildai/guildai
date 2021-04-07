@@ -1,104 +1,4 @@
 jobs:
-  linux-python_2.7:
-    docker:
-    - image: circleci/python:2.7-stretch-node
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - linux-python_2.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-    - run:
-        command: 'sudo -H python -m pip install --upgrade pip | cat
-
-          sudo -H python -m pip install --upgrade virtualenv | cat
-
-          rm -rf build-env && python -m virtualenv build-env
-
-          . build-env/bin/activate
-
-          sudo -H build-env/bin/pip install --upgrade -r requirements.txt | cat
-
-          cd guild/view && npm install'
-        name: Install build dependencies
-        no_output_timeout: 1800
-    - save_cache:
-        key: linux-python_2.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-        paths:
-        - build-env
-    - run:
-        command: '. build-env/bin/activate
-
-          build-env/bin/python setup.py bdist_wheel'
-        name: Build
-        no_output_timeout: 1800
-    - run:
-        command: sudo -H python -m pip install --upgrade dist/*.whl | cat
-        name: Install dist
-        no_output_timeout: 1800
-    - run:
-        command: 'guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
-
-          TERM=xterm-256color source guild-env test-env
-
-          test-env/bin/guild check -v --offline
-
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
-        name: Test
-        no_output_timeout: 1800
-    - store_artifacts:
-        destination: dist
-        path: dist
-    working_directory: ~/repo
-  linux-python_3.5:
-    docker:
-    - image: circleci/python:3.5-stretch-node
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - linux-python_3.5-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-    - run:
-        command: 'sudo -H python -m pip install --upgrade pip | cat
-
-          sudo -H python -m pip install --upgrade virtualenv | cat
-
-          rm -rf build-env && python -m virtualenv build-env
-
-          . build-env/bin/activate
-
-          sudo -H build-env/bin/pip install --upgrade -r requirements.txt | cat
-
-          cd guild/view && npm install'
-        name: Install build dependencies
-        no_output_timeout: 1800
-    - save_cache:
-        key: linux-python_3.5-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-        paths:
-        - build-env
-    - run:
-        command: '. build-env/bin/activate
-
-          build-env/bin/python setup.py bdist_wheel'
-        name: Build
-        no_output_timeout: 1800
-    - run:
-        command: sudo -H python -m pip install --upgrade dist/*.whl | cat
-        name: Install dist
-        no_output_timeout: 1800
-    - run:
-        command: 'guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
-
-          TERM=xterm-256color source guild-env test-env
-
-          test-env/bin/guild check -v --offline
-
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
-        name: Test
-        no_output_timeout: 1800
-    - store_artifacts:
-        destination: dist
-        path: dist
-    working_directory: ~/repo
   linux-python_3.6:
     docker:
     - image: circleci/python:3.6-stretch-node
@@ -299,57 +199,6 @@ jobs:
           test-env/bin/guild check -v --offline
 
           WORKSPACE=test-env UAT_SKIP=*keras*,*logreg*,*mnist*,*tensorflow*,simple-example,test-flags,*pytorch*,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
-        name: Test
-        no_output_timeout: 1800
-    - store_artifacts:
-        destination: dist
-        path: dist
-    working_directory: ~/repo
-  macos_10.15-python_2.7:
-    macos:
-      xcode: 11.2.1
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - macos_10.15-python_2.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-    - run:
-        command: 'sudo -H python2 -m pip install --upgrade pip | cat
-
-          sudo -H python2 -m pip install --upgrade virtualenv==16.7.9 | cat
-
-          rm -rf build-env && python2 -m virtualenv build-env
-
-          . build-env/bin/activate
-
-          sudo -H build-env/bin/pip install --upgrade -r requirements.txt | cat
-
-          cd guild/view && npm install'
-        name: Install build dependencies
-        no_output_timeout: 1800
-    - save_cache:
-        key: macos_10.15-python_2.7-20-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-        paths:
-        - build-env
-        - /usr/local/Homebrew
-    - run:
-        command: '. build-env/bin/activate
-
-          build-env/bin/python setup.py bdist_wheel'
-        name: Build
-        no_output_timeout: 1800
-    - run:
-        command: sudo -H python2 -m pip install --upgrade dist/*.whl | cat
-        name: Install dist
-        no_output_timeout: 1800
-    - run:
-        command: 'guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
-
-          TERM=xterm-256color source guild-env test-env
-
-          test-env/bin/guild check -v --offline
-
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat'
         name: Test
         no_output_timeout: 1800
     - store_artifacts:
@@ -580,18 +429,6 @@ version: 2
 workflows:
   all:
     jobs:
-    - linux-python_2.7:
-        filters:
-          branches:
-            only:
-            - release
-            - pre-release
-    - linux-python_3.5:
-        filters:
-          branches:
-            only:
-            - release
-            - pre-release
     - linux-python_3.6:
         filters:
           branches:
@@ -611,12 +448,6 @@ workflows:
             - release
             - pre-release
     - linux-python_3.9:
-        filters:
-          branches:
-            only:
-            - release
-            - pre-release
-    - macos_10.15-python_2.7:
         filters:
           branches:
             only:
