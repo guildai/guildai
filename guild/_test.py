@@ -61,6 +61,7 @@ WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 PY2 = doctest.register_optionflag("PY2")
 PY2_MACOS = doctest.register_optionflag("PY2_MACOS")
+MACOS = doctest.register_optionflag("MACOS")
 PY3 = doctest.register_optionflag("PY3")
 PY27 = doctest.register_optionflag("PY27")
 PY35 = doctest.register_optionflag("PY35")
@@ -174,6 +175,8 @@ def _skip_for_doctest_options(options):
     if options.get(PY2) is False and py_major_ver == 2:
         skip = True
     if options.get("PY2_MACOS") is False and py_major_ver == 2 and is_macos:
+        skip = True
+    if options.get("MACOS") is False and is_macos:
         skip = True
     if options.get(PY3) is False and py_major_ver == 3:
         skip = True
