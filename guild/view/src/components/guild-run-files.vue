@@ -35,7 +35,7 @@
         item-key="path"
         :hide-headers="run.files.length == 0"
         hide-actions
-        must-sort
+        disable-initial-sort
         no-data-text="There are no files associated with this run"
         no-results-text="No matches for the current filter">
         <template slot="items" slot-scope="files">
