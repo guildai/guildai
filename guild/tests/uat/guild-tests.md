@@ -78,6 +78,7 @@ tests).
       memory-plugin:               ok
       model-proxies:               ok
       models:                      ok
+      multi-run-deps:              ok
       namespaces:                  ok
       needed:                      ok
       notebook-exec:               ok
