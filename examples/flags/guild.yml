@@ -68,8 +68,8 @@ config-3:
       type: auto  # type indicates the list part type, which
                   # is imported as string based on the INI option
                   # value. We need to explicitly set to auto to
-                  # tell Guild to decode string parts rather than
-                  # coerce to string.
+                  # tell Guild to decode parts to their YAML encoded
+                  # types rather than coerce to string.
 
 config-legacy:
   description: Use config file to define globals (legacy method)
