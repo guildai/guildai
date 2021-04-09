@@ -162,21 +162,30 @@ def _parse_doctest_options(encoded_options, filename):
 
 
 def _skip_for_doctest_options(options):
+    skip = _skip_platform_for_doctest_options(options)
+    if skip is True:
+        return skip
+    return _skip_version_for_doctest_options(options)
+
+
+def _skip_platform_for_doctest_options(options):
     is_windows = PLATFORM == "Windows"
     is_macos = PLATFORM == "Darwin"
+    if options.get(WINDOWS) is False and is_windows:
+        return True
+    if options.get(WINDOWS_ONLY) is True and not is_windows:
+        return True
+    if options.get(MACOS) is False and is_macos:
+        return True
+    return None
+
+
+def _skip_version_for_doctest_options(options):
     py_major_ver = sys.version_info[0]
     py_minor_ver = sys.version_info[1]
     skip = None
-    if options.get(WINDOWS) is False and is_windows:
-        skip = True
-    if options.get(WINDOWS_ONLY) is True and not is_windows:
-        skip = True
     # PY2 and PY3 are enabled by default - check if explicitly disabled.
     if options.get(PY2) is False and py_major_ver == 2:
-        skip = True
-    if options.get("PY2_MACOS") is False and py_major_ver == 2 and is_macos:
-        skip = True
-    if options.get("MACOS") is False and is_macos:
         skip = True
     if options.get(PY3) is False and py_major_ver == 3:
         skip = True
@@ -196,7 +205,10 @@ def _skip_for_doctest_options(options):
 
 def _log_skipped_test(name):
     sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
-    sys.stdout.write("ok (skipped)\n")
+    if os.getenv("NO_SKIPPED_MSG") == "1":
+        sys.stdout.write("ok\n")
+    else:
+        sys.stdout.write("ok (skipped)\n")
     sys.stdout.flush()
 
 
