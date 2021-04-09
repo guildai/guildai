@@ -141,6 +141,4 @@ def _flag_type(val):
 
 
 def _flag_arg_split(val):
-    if isinstance(val, list):
-        return True
-    return None
+    return True if isinstance(val, list) else None
