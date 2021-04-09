@@ -46,10 +46,30 @@ args-click-default:
   flags-import: all
 
 config:
-  description: Use config file to define globals
+  description: Use YAML config file to define globals
   main: config
   flags-import: all
   flags-dest: config:flags.yml
+
+config-2:
+  description: Use JSON config file to define globals
+  main: config2
+  flags-import: all
+  flags-dest: config:flags.json
+
+config-3:
+  description: Use INI config file to define globals
+  main: config3
+  flags-import: all
+  flags-dest: config:flags.ini
+  flags:
+    l:
+      arg-split: yes
+      type: auto  # type indicates the list part type, which
+                  # is imported as string based on the INI option
+                  # value. We need to explicitly set to auto to
+                  # tell Guild to decode string parts rather than
+                  # coerce to string.
 
 config-legacy:
   description: Use config file to define globals (legacy method)

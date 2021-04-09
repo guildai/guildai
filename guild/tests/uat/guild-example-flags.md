@@ -6,7 +6,9 @@
     args-2              Use some CLI options and define defaults
     args-click-default  Use Click API to define CLI
     args-default        Use all CLI options
-    config              Use config file to define globals
+    config              Use YAML config file to define globals
+    config-2            Use JSON config file to define globals
+    config-3            Use INI config file to define globals
     config-legacy       Use config file to define globals (legacy method)
     disabled            Disable flag imports
     global              Use a global dict for flag values

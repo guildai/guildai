@@ -1,0 +1,7 @@
+{
+  "i": 123,
+  "f": 1.123,
+  "s": "Howdy Guild",
+  "b": false,
+  "l": [1, 1.2, "blue", true]
+}
