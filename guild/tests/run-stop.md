@@ -2,6 +2,11 @@
 doctest: -WINDOWS -MACOS
 ---
 
+    >>> import platform
+    >>> platform.system()
+
+    >>> "NOT MACOS"  # doctest: -MACOS
+
 # Stopping Runs
 
 The `stop` command stops runs. We use the `multiprocessing` sample
