@@ -141,3 +141,62 @@ And various checks for restart:
 
     >>> op_util.restart_needed(latest, {"x": 1.0, "y": 2, "z": "d", "a": 0})
     True
+
+## Restarts and Source Code
+
+By default, a restart uses the unmodified soure code.
+
+To illustate, we create a custom project with a sample hello script.
+
+    >>> cd(mkdtemp())
+    >>> write("hello.py", "print('hello-1')\n")
+
+Isolate our runs.
+
+    >>> set_guild_home(mkdtemp())
+
+Run the script.
+
+    >>> run("guild run hello.py -y")
+    hello-1
+    <exit 0>
+
+Source code for the run:
+
+    >>> run("guild cat --sourcecode -p hello.py")
+    print('hello-1')
+    <exit 0>
+
+Let's modify the script to print a different message.
+
+    >>> write("hello.py", "print('hello-2')\n")
+
+Confirm the message by running the script a second time (without
+restarting).
+
+    >>> run("guild run hello.py -y")
+    hello-2
+    <exit 0>
+
+Source code for the second run:
+
+    >>> run("guild cat --sourcecode --path hello.py")
+    print('hello-2')
+    <exit 0>
+
+Restart the first run without `--force-sourcecode`.
+
+    >>> out, exit = run_capture("guild select 2")
+    >>> exit
+    0
+    >>> run_id = out.rstrip()
+
+    >>> run("guild run --restart %s -y" % run_id)
+    hello-1
+    <exit 0>
+
+Restart the first run with `--force-sourcecode`:
+
+    >>> run("guild run --restart %s --force-sourcecode -y" % run_id)
+    hello-2
+    <exit 0>

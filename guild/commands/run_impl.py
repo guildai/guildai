@@ -1110,7 +1110,13 @@ def _op_init_callbacks(op):
 
 
 def _op_init_callbacks_for_restart(op):
-    op.callbacks = oplib.OperationCallbacks(init_output_summary=_init_output_summary)
+    if op._force_sourcecode:
+        assert op._opdef
+        _op_init_callbacks_for_opdef(op._opdef, op)
+    else:
+        op.callbacks = oplib.OperationCallbacks(
+            init_output_summary=_init_output_summary
+        )
 
 
 def _init_output_summary(op, run):
