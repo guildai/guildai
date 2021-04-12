@@ -457,8 +457,9 @@ class ConfigResolver(FileResolver):
 
     def _apply_run_flags(self, config, run):
         flags = self._run_flags_for_config(run)
-        self._apply_arg_split(run, flags)
-        util.nested_config(flags, config)
+        flags_config = self._flags_config(run)
+        self._apply_arg_split(flags_config, flags)
+        self._apply_nested_config(flags, flags_config, config)
 
     @staticmethod
     def _run_flags_for_config(run):
@@ -466,8 +467,7 @@ class ConfigResolver(FileResolver):
         flags = run.get("flags") or {}
         return {name: val for name, val in flags.items() if val is not None}
 
-    def _apply_arg_split(self, run, flags):
-        flags_config = self._flags_config(run)
+    def _apply_arg_split(self, flags_config, flags):
         for name in flags:
             arg_split = flags_config.get(name, {}).get("arg-split")
             self._maybe_apply_flag_arg_split(arg_split, name, flags)
@@ -491,6 +491,19 @@ class ConfigResolver(FileResolver):
 
         split_val = flag_util.split_encoded_flag_val(encoded, split_spec)
         return [flag_util.decode_flag_val(part) for part in split_val]
+
+    def _apply_nested_config(self, flags, flags_config, config):
+        flag_with_applied_name = {
+            self._apply_config_flag_name(name, flags_config): val
+            for name, val in flags.items()
+        }
+        util.nested_config(flag_with_applied_name, config)
+
+
+    @staticmethod
+    def _apply_config_flag_name(name, flags_config):
+        return flags_config.get(name, {}).get("arg-name") or name
+
 
     @staticmethod
     def _init_target_path(path, run):

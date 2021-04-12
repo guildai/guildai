@@ -54,6 +54,12 @@ Help for project contains imported flags.
             foo.s  (default is bye)
             i      (default is 123)
     <BLANKLINE>
+        cfg-2
+          Flags:
+            f  (default is 2.234)
+            i  (default is 456)
+            s  (default is bye)
+    <BLANKLINE>
         json
           Flags:
             b    (default is yes)
@@ -62,6 +68,11 @@ Help for project contains imported flags.
             f    (default is 2.234)
             l    (default is 1 2 abc)
             s    (default is flu flam)
+    <BLANKLINE>
+        json-2
+          Flags:
+            aa  (default is A)
+            bb  (default is BB)
     <BLANKLINE>
         test-args-1
     <BLANKLINE>
@@ -206,6 +217,31 @@ Guild generates a run specific config file.
     {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456, "l": [2, 1, "a b", "d"], "s": "abc"}
     <exit 0>
 
+### JSON v2
+
+The `json-2` operation maps flags names to different locations in the
+JSON file.
+
+    >>> guild("run json-2 -y")
+    Resolving config:flags.json dependency
+    {'b': True,
+     'd': {'a': 'A', 'b': 'BB'},
+     'f': 2.234,
+     'i': 456,
+     'l': [1, 2, 'abc'],
+     's': 'flu flam'}
+    <exit 0>
+
+    >>> guild("run json-2 aa=AAA bb=B -y")
+    Resolving config:flags.json dependency
+    {'b': True,
+     'd': {'a': 'AAA', 'b': 'B'},
+     'f': 2.234,
+     'i': 456,
+     'l': [1, 2, 'abc'],
+     's': 'flu flam'}
+    <exit 0>
+
 ### CFG
 
 The original config file:
@@ -276,6 +312,25 @@ Guild generates a run specific config file.
     f = 432.2
     i = 456
     s = hej hej
+    <exit 0>
+
+### CFG v2
+
+The `cfg-2` operation maps alternative flag names to various INI entries.
+
+    >>> guild("run cfg-2 i=222 -y")
+    Resolving config:flags.cfg dependency
+    [DEFAULT]
+    b = yes
+    f = 1.123
+    i = 123
+    s = hello there
+    <BLANKLINE>
+    [foo]
+    b = 0
+    f = 2.234
+    i = 222
+    s = bye
     <exit 0>
 
 ## Implicit Dependency

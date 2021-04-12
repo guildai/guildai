@@ -19,11 +19,41 @@
       flags-import: all
       flags-import-skip: [i]
 
+    json-2:
+      main: config_json flags.json
+      flags-dest: config:flags.json
+      flags-import:
+        - d.a
+        - d.b
+      flags:
+        aa:
+          arg-name: d.a
+          type: auto
+        bb:
+          arg-name: d.b
+          type: auto
+          default: BB
+
     cfg:
       main: config_cfg flags.cfg
       flags-dest: config:flags.cfg
       flags-import: all
       flags-import-skip: [f, s]
+
+    cfg-2:
+      main: config_cfg flags.cfg
+      flags-dest: config:flags.cfg
+      flags-import:
+        - foo.i
+        - foo.f
+        - foo.s
+      flags:
+        i:
+          arg-name: foo.i
+        f:
+          arg-name: foo.f
+        s:
+          arg-name: foo.s
 
     test-args-1:
       main: test_args
