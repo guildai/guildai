@@ -54,14 +54,22 @@ def error(msg=None, exit_status=1):
 
 def out(s="", wrap=False, **kw):
     if wrap:
-        s = _wrap(s)
+        s = wrap(s)
     _echo(s, **kw)
 
 
-def _wrap(s):
-    terminal_width = click.get_terminal_size()[0]
-    width = max(min(terminal_width, 78), 40)
+def wrap(s, width=None):
+    width = width or _default_terminal_width()
     return click.wrap_text(s, width)
+
+
+def _default_terminal_width():
+    width = terminal_width()
+    return max(min(width, 78), 40)
+
+
+def terminal_width():
+    return click.get_terminal_size()[0]
 
 
 def _echo(s, err=False, **kw):
@@ -263,7 +271,7 @@ def _pad_col_val(val, col, col_info):
 
 def confirm(prompt, default=False, wrap=False):
     if wrap:
-        prompt = _wrap(prompt)
+        prompt = wrap(prompt)
     click.echo(prompt, nl=False, err=True)
     click.echo(" %s " % ("(Y/n)" if default else "(y/N)"), nl=False, err=True)
     c = input()

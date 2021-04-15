@@ -30,6 +30,7 @@ tests).
       batch-stage-trials:          ok
       batch-terminate:             ok
       breakpoints:                 ok
+      cli:                         ok
       comments:                    ok
       compare:                     ok
       config:                      ok
