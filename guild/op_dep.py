@@ -418,6 +418,7 @@ def _copy_source(source_path, dest_path, replace_existing=False):
 
 
 def resolved_op_runs_for_opdef(opdef, flag_vals, resolver_factory=None):
+    """Returns a list of run, dep tuples for resolved run deps for opdef."""
     try:
         deps = deps_for_opdef(opdef, flag_vals)
     except OpDependencyError as e:
