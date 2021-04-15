@@ -380,7 +380,7 @@ def _op_init_op_flags(args, op):
     if op._run:
         _apply_run_flags(op._run, op._op_flag_vals)
     if op._opdef:
-        _apply_op_flags_vals_for_opdef(
+        _apply_op_flag_vals_for_opdef(
             op._opdef,
             op._user_flag_vals,
             args.force_flags or op._batch_trials,
@@ -397,7 +397,7 @@ def _apply_run_flags(run, flag_vals):
     flag_vals.update(run.get("flags") or {})
 
 
-def _apply_op_flags_vals_for_opdef(
+def _apply_op_flag_vals_for_opdef(
     opdef,
     user_flag_vals,
     force_flags,
