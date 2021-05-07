@@ -108,6 +108,6 @@ def publish_runs(ctx, args):
     {{ runs_support.all_filters }}
 
     """
-    from . import runs_impl
+    from . import publish_impl
 
-    runs_impl.publish(args, ctx)
+    publish_impl.publish(args, ctx)
