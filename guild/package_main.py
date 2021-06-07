@@ -321,10 +321,8 @@ def _pkg_keywords(pkgdef):
 
 
 def _pkg_install_requires(pkgdef):
-    if pkgdef.requires is None:
+    if pkgdef.requires is None or not pkgdef.requires:
         return _maybe_requirements_txt(pkgdef)
-    elif not pkgdef.requires:
-        return []
     else:
         return [
             _project_name(req) for req in pkgdef.requires if not _is_multi_arch_req(req)
