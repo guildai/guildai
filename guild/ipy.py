@@ -540,6 +540,7 @@ def _runs_cmd_args(
     digest=None,
     deleted=None,
     remote=None,
+    archive=None,
 ):
     operations = operations or ()
     labels = labels or ()
@@ -563,6 +564,7 @@ def _runs_cmd_args(
         filter_digest=digest,
         deleted=deleted,
         remote=remote,
+        archive=archive
     )
 
 
