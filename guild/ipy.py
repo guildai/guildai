@@ -573,6 +573,7 @@ def _format_runs(runs):
         "started",
         "status",
         "label",
+        "tags",
     )
     data = [_format_run(run, cols) for run in runs]
     return data, cols
@@ -590,7 +591,7 @@ def _run_attr(run, name, fmt):
         return fmt[name]
     elif name in ("started", "stopped"):
         return _datetime(run.get(name))
-    elif name in ("label",):
+    elif name in ("label", "tags"):
         return run.get(name, "")
     elif name == "time":
         return _run_time(run)
@@ -686,7 +687,7 @@ def _run_flags_key(flag_vals):
 
 
 def _runs_compare(items):
-    core_cols = ["run", "operation", "started", "time", "status", "label"]
+    core_cols = ["run", "operation", "started", "time", "status", "label", "tags"]
     flag_cols = set()
     scalar_cols = set()
     data = []
