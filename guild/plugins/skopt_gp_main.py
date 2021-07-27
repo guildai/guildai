@@ -50,7 +50,7 @@ def _suggest_x(dims, x0, y0, random_start, random_state, opts):
 def gen_trials(
     flags,
     prev_results_cb,
-    opt_random_starts=0,
+    opt_random_starts=3,
     opt_acq_func="gp_hedge",
     opt_kappa=1.96,
     opt_xi=0.01,

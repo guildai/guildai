@@ -593,6 +593,7 @@ This operation logs progress, so we capture logs.
     ...                 _minimize="x",
     ...                 _max_trials=3,
     ...                 _random_seed=1,
+    ...                 _opt_random_starts=0,
     ...                 _opt_xi=0.02)
     Running op1 (a=-2, b=2):
     x: 0
@@ -709,13 +710,23 @@ Unsupported optimizer:
 Default max trials (testing only with gp):
 
     >>> with guild_home:
-    ...     with LogCapture():
+    ...     with LogCapture() as logs:
     ...         runs, _ = ipy.run(op1, a=slice(-10, 10), b=slice(-5, 5),
     ...                   _optimizer="gp", _minimize="x")
     Running op1...
 
     >>> len(runs)
     20
+
+    >>> logs.print_all()
+    Random start for optimization (1 of 3)
+    Random start for optimization (2 of 3)
+    Random start for optimization (3 of 3)
+    Found 3 previous trial(s) for use in optimization
+    Found 4 previous trial(s) for use in optimization
+    ...
+    Found 18 previous trial(s) for use in optimization
+    Found 19 previous trial(s) for use in optimization
 
 ## Alternative Operation Implementations
 
