@@ -28,7 +28,7 @@ Python 3.6:
     setuptools_version:        ...
     twine_version:             3.4.2
     yaml_version:              5.4.1
-    werkzeug_version:          2.0.1
+    werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
 
@@ -51,7 +51,7 @@ Python 3.7:
     setuptools_version:        ...
     twine_version:             3.4.1
     yaml_version:              5.4.1
-    werkzeug_version:          2.0.1
+    werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
 
@@ -74,7 +74,7 @@ Python 3.8:
     setuptools_version:        ...
     twine_version:             3.4.1
     yaml_version:              5.4.1
-    werkzeug_version:          2.0.1
+    werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
 
@@ -97,6 +97,6 @@ Python 3.9:
     setuptools_version:        ...
     twine_version:             3.4.1
     yaml_version:              5.4.1
-    werkzeug_version:          2.0.1
+    werkzeug_version:          1.0.1
     latest_guild_version:      ...
     <exit 0>
