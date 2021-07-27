@@ -559,16 +559,27 @@ Finally, we can specify an explicit "random" optimizer:
     >>> [runs[i].get("label") for i in range(3)]
     ['random-3', 'random-3', 'random-3']
 
-## Hyperparameter optimization
+Below we run without max trials to show that the default (20) is used.
 
-Guild `ipy` supports other optimizers including "gp", "forest", and
-"gbrt".
+    >>> with guild_home:
+    ...     runs, _ = ipy.run(op1, a=slice(0, 5), b=1)
+    Running op1...
+
+    >>> len(runs)
+    20
+
+Clear runs for subsequent tests.
 
 Let's clear our runs first:
 
     >>> with guild_home:
     ...     len(ipy.runs().delete())
-    9
+    29
+
+## Hyperparameter optimization
+
+Guild `ipy` supports other optimizers including "gp", "forest", and
+"gbrt".
 
 Run `op1` for three runs using the "gp" optimizer to minimize scalar
 `x` where both `a` and `b` are selected from uniform distributions.
@@ -694,6 +705,17 @@ Unsupported optimizer:
     ...     ipy.run(op1, a=1, b=2, _optimizer="not supported")
     Traceback (most recent call last):
     TypeError: optimizer 'not supported' is not supported
+
+Default max trials (testing only with gp):
+
+    >>> with guild_home:
+    ...     with LogCapture():
+    ...         runs, _ = ipy.run(op1, a=slice(-10, 10), b=slice(-5, 5),
+    ...                   _optimizer="gp", _minimize="x")
+    Running op1...
+
+    >>> len(runs)
+    20
 
 ## Alternative Operation Implementations
 

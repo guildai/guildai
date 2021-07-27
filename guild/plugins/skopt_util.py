@@ -401,7 +401,7 @@ def ipy_gen_trials(
     proto_flag_vals,
     prev_results_cb,
     suggest_x_cb,
-    max_trials=None,
+    max_trials=DEFAULT_MAX_TRIALS,
     random_seed=None,
     random_starts=None,
     minimize=None,
@@ -543,27 +543,29 @@ def patched_gp_minimize(
     """
     if base_estimator is None:
         base_estimator = _patched_gp_base_estimator(dimensions, random_state, noise)
-    return skopt.gp_minimize(
-        func,
-        dimensions,
-        base_estimator=base_estimator,
-        n_calls=n_calls,
-        n_random_starts=n_random_starts,
-        acq_func=acq_func,
-        acq_optimizer=acq_optimizer,
-        x0=x0,
-        y0=y0,
-        random_state=random_state,
-        verbose=verbose,
-        callback=callback,
-        n_points=n_points,
-        n_restarts_optimizer=n_restarts_optimizer,
-        xi=xi,
-        kappa=kappa,
-        noise=noise,
-        n_jobs=n_jobs,
-        model_queue_size=model_queue_size,
-    )
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=Warning)
+        return skopt.gp_minimize(
+            func,
+            dimensions,
+            base_estimator=base_estimator,
+            n_calls=n_calls,
+            n_random_starts=n_random_starts,
+            acq_func=acq_func,
+            acq_optimizer=acq_optimizer,
+            x0=x0,
+            y0=y0,
+            random_state=random_state,
+            verbose=verbose,
+            callback=callback,
+            n_points=n_points,
+            n_restarts_optimizer=n_restarts_optimizer,
+            xi=xi,
+            kappa=kappa,
+            noise=noise,
+            n_jobs=n_jobs,
+            model_queue_size=model_queue_size,
+        )
 
 
 def _patched_gp_base_estimator(dimensions, random_state, noise):
