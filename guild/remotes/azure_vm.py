@@ -203,11 +203,8 @@ class AzureVMRemote(ssh_remote.SSHRemote):
         remote_name = self._safe_name()
         remote_key = "guild_%s" % remote_name
         resource_group = {
-            remote_key: {
-                "name": "guild-%s-rg" % remote_name,
-                "location": self.region
-                }
-            }
+            remote_key: {"name": "guild-%s-rg" % remote_name, "location": self.region}
+        }
         vnet = {
             remote_key: {
                 "name": "guild-%s-vnet" % remote_name,
@@ -220,7 +217,8 @@ class AzureVMRemote(ssh_remote.SSHRemote):
             remote_key: {
                 "name": "guild-%s-subnet" % remote_name,
                 "resource_group_name": "${azurerm_resource_group.%s.name}" % remote_key,
-                "virtual_network_name": "${azurerm_virtual_network.%s.name}" % remote_key,
+                "virtual_network_name": "${azurerm_virtual_network.%s.name}"
+                % remote_key,
                 "address_prefixes": ["10.0.1.0/24"],
             }
         }
@@ -251,8 +249,8 @@ class AzureVMRemote(ssh_remote.SSHRemote):
                 "source_address_prefix": "*",
                 "destination_address_prefix": "*",
                 "resource_group_name": "${azurerm_resource_group.%s.name}" % remote_key,
-                "network_security_group_name":
-                    "${azurerm_network_security_group.%s.name}" % remote_key,
+                "network_security_group_name": "${azurerm_network_security_group.%s.name}"
+                % remote_key,
             }
         }
         nic = {
@@ -265,13 +263,11 @@ class AzureVMRemote(ssh_remote.SSHRemote):
                     "subnet_id": "${azurerm_subnet.%s.id}" % remote_key,
                     "private_ip_address_allocation": "dynamic",
                     "public_ip_address_id": "${azurerm_public_ip.%s.id}" % remote_key,
-                }
+                },
             }
         }
         if "id" in self.image:
-            image_reference = {
-                "id": self.image["id"]
-            }
+            image_reference = {"id": self.image["id"]}
         elif "urn" in self.image:
             urn = self.image["urn"].split(':')
             image_reference = {
@@ -297,7 +293,9 @@ class AzureVMRemote(ssh_remote.SSHRemote):
                 "name": "guild-%s-vm" % remote_name,
                 "location": self.region,
                 "resource_group_name": "${azurerm_resource_group.%s.name}" % remote_key,
-                "network_interface_ids": ["${azurerm_network_interface.%s.id}" % remote_key],
+                "network_interface_ids": [
+                    "${azurerm_network_interface.%s.id}" % remote_key
+                ],
                 "vm_size": self.instance_type,
                 "storage_os_disk": {
                     "name": "guild-%s-osdisk" % remote_name,
@@ -312,13 +310,14 @@ class AzureVMRemote(ssh_remote.SSHRemote):
                 },
                 "os_profile_linux_config": {
                     "disable_password_authentication": "true",
-                    "ssh_keys": {
-                    },
-                }
+                    "ssh_keys": {},
+                },
             }
         }
         if self.root_device_size:
-            instance[remote_key]["storage_os_disk"]["disk_size_gb"] = self.root_device_size
+            instance[remote_key]["storage_os_disk"][
+                "disk_size_gb"
+            ] = self.root_device_size
         output = {"host": {"value": "${azurerm_public_ip.%s.ip_address}" % remote_key}}
         config = {
             "provider": {"azurerm": {"features": {}}, "null": {}},
@@ -332,28 +331,26 @@ class AzureVMRemote(ssh_remote.SSHRemote):
                 "azurerm_network_interface": nic,
                 "azurerm_virtual_machine": instance,
             },
-            "output": output
+            "output": output,
         }
         if not self.user:
             self.user = util.user()
-            (config["resource"]
-                   ["azurerm_virtual_machine"]
-                   [remote_key]
-                   ["os_profile"]
-                   ["admin_username"]) = self.user
+            (
+                config["resource"]["azurerm_virtual_machine"][remote_key]["os_profile"][
+                    "admin_username"
+                ]
+            ) = self.user
         public_key = self._public_key()
-        (config["resource"]
-                ["azurerm_virtual_machine"]
-                [remote_key]
-                ["os_profile_linux_config"]
-                ["ssh_keys"]
-                ["key_data"]) = public_key
-        (config["resource"]
-                ["azurerm_virtual_machine"]
-                [remote_key]
-                ["os_profile_linux_config"]
-                ["ssh_keys"]
-                ["path"]) = "/home/%s/.ssh/authorized_keys" % self.user
+        (
+            config["resource"]["azurerm_virtual_machine"][remote_key][
+                "os_profile_linux_config"
+            ]["ssh_keys"]["key_data"]
+        ) = public_key
+        (
+            config["resource"]["azurerm_virtual_machine"][remote_key][
+                "os_profile_linux_config"
+            ]["ssh_keys"]["path"]
+        ) = ("/home/%s/.ssh/authorized_keys" % self.user)
         init_script = self._init_script()
         if init_script:
             init_script_path = self._write_init_script(init_script)
@@ -375,7 +372,8 @@ class AzureVMRemote(ssh_remote.SSHRemote):
                 "%s_init"
                 % remote_key: {
                     "triggers": {
-                        "cluster_instance_ids": "${azurerm_virtual_machine.%s.id}" % remote_key
+                        "cluster_instance_ids": "${azurerm_virtual_machine.%s.id}"
+                        % remote_key
                     },
                     "connection": connection,
                     "provisioner": [{"remote-exec": {"script": init_script_path}}],

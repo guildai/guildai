@@ -206,6 +206,7 @@
     guild.remote_util
     guild.remotes.__init__
     guild.remotes.azure_blob
+    guild.remotes.azure_vm
     guild.remotes.ec2
     guild.remotes.gist
     guild.remotes.meta_sync
