@@ -155,6 +155,7 @@ def _runs_filter(args, ctx):
     _apply_ops_filter(args, filters)
     _apply_labels_filter(args, filters)
     _apply_tags_filter(args, filters)
+    _apply_tags_query(args, filters)
     _apply_comments_filter(args, filters)
     _apply_marked_filter(args, filters)
     _apply_started_filter(args, ctx, filters)
@@ -284,6 +285,37 @@ def _tags_filter(tags):
         return any((t in run_tags for t in tags))
 
     return f
+
+
+def _apply_tags_query(args, filters):
+    if args.tags_query:
+        filters.append(_tags_query(args.tags_query))
+
+
+def _tags_query(query):
+    query = _process_query(query, "run_tags")
+
+    def f(run):
+        run_tags = run.get("tags") or ["None"]
+        return eval(query, dict(run_tags=run_tags))
+
+    return f
+
+
+def _process_query(query, list_name):
+    for match in reversed(list(re.finditer('(?<!not )\w+', query))):
+        if match.group(0) == 'not':
+            continue
+
+        query =  query[:match.start()] + f"'{match.group(0)}' in {list_name}"  + query[match.end():]
+
+    for match in reversed(list(re.finditer('not (\w+)', query))):
+        query =  query[:match.start()] + f"'{match.group(1)}' not in {list_name}"  + query[match.end():]
+
+    query = query.replace('|', 'or')
+    query = query.replace('&', 'and')
+
+    return query
 
 
 def _apply_comments_filter(args, filters):
@@ -457,6 +489,7 @@ def _check_list_runs_args(args, ctx):
             ("comments", "json"),
             ("json", "verbose"),
             ("archive", "deleted"),
+            ("filter_tags", "tags_query")
         ],
         args,
         ctx,
@@ -533,6 +566,7 @@ def _list_runs_(runs, args):
         "op_desc",
         "started",
         "status_with_remote",
+        "tags",
         "label",
     ]
     detail = RUN_DETAIL if args.verbose else None

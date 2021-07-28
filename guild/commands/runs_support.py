@@ -19,6 +19,7 @@ import logging
 import sys
 
 import click
+from click.core import MultiCommand
 
 from guild import click_util
 
@@ -328,6 +329,12 @@ def common_filters(fn):
                 help="Filter runs with TAG.",
                 multiple=True,
                 autocompletion=ac_tag,
+            ),
+            click.Option(
+                ("--tags", "tags_query"),
+                metavar="QUERY",
+                help="Filter runs with query matching tags.",
+                multiple=False,
             ),
             click.Option(
                 ("-Fc", "--comment", "filter_comments"),

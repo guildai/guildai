@@ -156,7 +156,7 @@ def format_run(run, index=None):
         "id": run.id,
         "index": _format_run_index(run, index),
         "label": run.get("label") or "",
-        "tags": ", ".join(run.get("run_params")["tags"]) or "",
+        "tags": run.get("tags") or "",
         "marked": format_attr(bool(run.get("marked"))),
         "model": run.opref.model_name,
         "op_name": run.opref.op_name,

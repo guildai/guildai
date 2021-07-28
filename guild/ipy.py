@@ -574,8 +574,8 @@ def _format_runs(runs):
         "operation",
         "started",
         "status",
-        "label",
         "tags",
+        "label",
     )
     data = [_format_run(run, cols) for run in runs]
     return data, cols
