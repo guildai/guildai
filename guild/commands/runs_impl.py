@@ -293,25 +293,30 @@ def _apply_tags_query(args, filters):
 
 
 def _tags_query(query):
-    query = _process_query(query, "run_tags")
+    parsed_query = _parse_query(query)
 
     def f(run):
         run_tags = run.get("tags") or ["None"]
-        return eval(query, dict(run_tags=run_tags))
+        try:
+            return eval(parsed_query, dict(vals=run_tags))
+        except SyntaxError:
+            cli.error("invalid query: %s" % query)
 
     return f
 
 
-def _process_query(query, list_name):
-    for match in reversed(list(re.finditer('(?<!not )\w+', query))):
-        if match.group(0) == 'not':
-            continue
+def _parse_query(query):
+    # Add white space around logical operators `&` and `|`
+    for match in reversed(list(re.finditer(r'[&|]', query))):
+        query = query[:match.start()] + f" {match.group(0)} " + query[match.end():]
 
-        query =  query[:match.start()] + f"'{match.group(0)}' in {list_name}"  + query[match.end():]
+    for match in reversed(list(re.finditer('(not\s+\w+)|and|or|(\w+)', query))):
+        if match.group(1):
+            query =  query[:match.start()] + f"'{match.group(1)}' not in vals"  + query[match.end():]
+        elif match.group(2):
+            query =  query[:match.start()] + f"'{match.group(0)}' in vals"  + query[match.end():]
 
-    for match in reversed(list(re.finditer('not (\w+)', query))):
-        query =  query[:match.start()] + f"'{match.group(1)}' not in {list_name}"  + query[match.end():]
-
+    # Replace logical operators
     query = query.replace('|', 'or')
     query = query.replace('&', 'and')
 
@@ -488,8 +493,7 @@ def _check_list_runs_args(args, ctx):
             ("comments", "verbose"),
             ("comments", "json"),
             ("json", "verbose"),
-            ("archive", "deleted"),
-            ("filter_tags", "tags_query")
+            ("archive", "deleted")
         ],
         args,
         ctx,
