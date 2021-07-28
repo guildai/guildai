@@ -19,7 +19,6 @@ import logging
 import sys
 
 import click
-from click.core import MultiCommand
 
 from guild import click_util
 
