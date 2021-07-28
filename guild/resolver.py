@@ -499,11 +499,9 @@ class ConfigResolver(FileResolver):
         }
         util.nested_config(flag_with_applied_name, config)
 
-
     @staticmethod
     def _apply_config_flag_name(name, flags_config):
         return flags_config.get(name, {}).get("arg-name") or name
-
 
     @staticmethod
     def _init_target_path(path, run):
