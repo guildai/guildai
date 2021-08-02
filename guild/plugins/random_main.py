@@ -54,7 +54,9 @@ def _search_dim_error(e):
     sys.exit(1)
 
 
-def gen_trials(flags, _prev_results, max_trials=None, random_seed=None, **_opts):
+def gen_trials(
+    flags, _prev_results, max_trials=DEFAULT_MAX_TRIALS, random_seed=None, **_opts
+):
     """ipy interface for randomly generated trials."""
     return skopt_util.random_trials_for_flags(flags, max_trials, random_seed)
 

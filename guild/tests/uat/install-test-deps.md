@@ -14,7 +14,7 @@ Python 3.6:
     >>> run("guild check --verbose --offline")  # doctest: -PY2 -PY3 +PY36
     guild_version:             ...
     psutil_version:            5.8.0
-    tensorboard_version:       2.4.1
+    tensorboard_version:       2.5.0
     cuda_version:              ...
     nvidia_smi_version:        ...
     click_version:             7.1.2
@@ -23,10 +23,10 @@ Python 3.6:
     numpy_version:             1.19.5
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           0.24.1
+    sklearn_version:           0.24.2
     skopt_version:             0.8.1
     setuptools_version:        ...
-    twine_version:             3.4.1
+    twine_version:             3.4.2
     yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
@@ -37,19 +37,19 @@ Python 3.7:
     >>> run("guild check --verbose --offline")  # doctest: -PY2 -PY3 +PY37
     guild_version:             ...
     psutil_version:            5.8.0
-    tensorboard_version:       2.4.1
+    tensorboard_version:       2.5.0
     cuda_version:              ...
     nvidia_smi_version:        ...
     click_version:             7.1.2
     dask_version:              2021...
     distutils_version:         ...
-    numpy_version:             1.20.2
+    numpy_version:             1.21.1
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           0.24.1
+    sklearn_version:           0.24.2
     skopt_version:             0.8.1
     setuptools_version:        ...
-    twine_version:             3.4.1
+    twine_version:             3.4.2
     yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
@@ -60,19 +60,19 @@ Python 3.8:
     >>> run("guild check --verbose --offline")  # doctest: -PY2 -PY3 +PY38
     guild_version:             ...
     psutil_version:            5.8.0
-    tensorboard_version:       2.4.1
+    tensorboard_version:       2.5.0
     cuda_version:              ...
     nvidia_smi_version:        ...
     click_version:             7.1.2
     dask_version:              2021...
     distutils_version:         ...
-    numpy_version:             1.20.2
+    numpy_version:             1.21.1
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           0.24.1
+    sklearn_version:           0.24.2
     skopt_version:             0.8.1
     setuptools_version:        ...
-    twine_version:             3.4.1
+    twine_version:             3.4.2
     yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
@@ -83,19 +83,19 @@ Python 3.9:
     >>> run("guild check --verbose --offline")  # doctest: -PY2 -PY3 +PY39
     guild_version:             ...
     psutil_version:            5.8.0
-    tensorboard_version:       2.4.1
+    tensorboard_version:       2.5.0
     cuda_version:              ...
     nvidia_smi_version:        ...
     click_version:             7.1.2
     dask_version:              2021...
     distutils_version:         ...
-    numpy_version:             1.20.2
+    numpy_version:             1.21.1
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           0.24.1
+    sklearn_version:           0.24.2
     skopt_version:             0.8.1
     setuptools_version:        ...
-    twine_version:             3.4.1
+    twine_version:             3.4.2
     yaml_version:              5.4.1
     werkzeug_version:          1.0.1
     latest_guild_version:      ...
