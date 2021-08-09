@@ -545,11 +545,16 @@ def _runs_cmd_args(
     operations = operations or ()
     labels = labels or ()
     tags = tags or ()
+    tags_query = ""
+    if isinstance(tags, str):
+        tags_query = tags
+        tags = ()
     comments = comments or ()
     return click_util.Args(
         filter_ops=operations,
         filter_labels=labels,
         filter_tags=tags,
+        tags_query=tags_query,
         filter_comments=comments,
         status_running=running,
         status_completed=completed,
