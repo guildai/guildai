@@ -564,7 +564,7 @@ def _runs_cmd_args(
         filter_digest=digest,
         deleted=deleted,
         remote=remote,
-        archive=archive
+        archive=archive,
     )
 
 
