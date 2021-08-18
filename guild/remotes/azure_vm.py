@@ -96,12 +96,12 @@ class AzureVMRemote(ssh_remote.SSHRemote):
             devnull = open(os.devnull, "w")
             try:
                 out = subprocess.check_output(cmd_login, stderr=devnull)
-            except subprocess.CalledProcessError as e:
+            except subprocess.CalledProcessError:
                 raise remotelib.OperationError(
                     "User must be logged into Azure CLI - run 'az login' or refer to "
                     "https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli "
                     "for more information."
-                ) from e
+                )
             else:
                 return out.decode("utf-8").split(os.linesep)[0]
         else:
@@ -153,8 +153,8 @@ class AzureVMRemote(ssh_remote.SSHRemote):
         self._terraform_refresh()
         try:
             host = self._output("host")
-        except LookupError as e:
-            raise remotelib.Down("not running") from e
+        except LookupError:
+            raise remotelib.Down("not running")
         else:
             if not host:
                 raise remotelib.Down("stopped")
@@ -185,10 +185,10 @@ class AzureVMRemote(ssh_remote.SSHRemote):
         cmd = ["terraform", "output", "-json"]
         try:
             out = subprocess.check_output(cmd, cwd=self.working_dir)
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             raise remotelib.OperationError(
                 "unable to get Terraform output in %s" % self.working_dir
-            ) from e
+            )
         else:
             output = json.loads(out.decode())
             return output[name]["value"]
@@ -428,10 +428,10 @@ class AzureVMRemote(ssh_remote.SSHRemote):
     def _ssh_host(self):
         try:
             host = self._output("host")
-        except LookupError as e:
+        except LookupError:
             raise remotelib.OperationError(
                 "cannot get host for %s - is the remote started?" % self.name
-            ) from e
+            )
         else:
             if not host:
                 raise remotelib.OperationError(
