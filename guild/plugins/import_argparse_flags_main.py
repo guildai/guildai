@@ -118,6 +118,8 @@ def _maybe_apply_flag(action, flags):
         attrs["choices"] = _ensure_json_encodable(action.choices, flag_name)
     if action.required:
         attrs["required"] = True
+    if action.type:
+        attrs["type"] = _flag_type_for_action(action.type, flag_name)
     if isinstance(action, argparse._StoreTrueAction):
         attrs["arg-switch"] = True
     elif isinstance(action, argparse._StoreFalseAction):
@@ -145,6 +147,24 @@ def _ensure_json_encodable(x, flag_name):
         return str(x)
     else:
         return x
+
+
+def _flag_type_for_action(action_type, flag_name):
+    if action_type is str:
+        return "string"
+    elif action_type is float:
+        return "float"
+    elif action_type is int:
+        return "int"
+    elif action_type is bool:
+        return "boolean"
+    else:
+        log.warning(
+            "unsupported flag type %s for flag %s - ignoring type setting",
+            action_type,
+            flag_name,
+        )
+        return None
 
 
 def _multi_arg(action):

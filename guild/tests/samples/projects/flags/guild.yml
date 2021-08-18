@@ -129,3 +129,7 @@ all-imports-2:
 parser-parents:
   main: parser_parents
   flags-import: all
+
+arg-attrs:
+  main: arg_attrs
+  flags-import: all

@@ -429,12 +429,14 @@ class LogCapture(object):
         echo_to_stdout=False,
         strip_ansi_format=True,
         log_level=None,
+        other_loggers=None,
     ):
         self._records = []
         self._use_root_handler = use_root_handler
         self._echo_to_stdout = echo_to_stdout
         self._strip_ansi_format = strip_ansi_format
         self._log_level = log_level
+        self._other_loggers = other_loggers or []
         self._saved_log_levels = {}
 
     def __enter__(self):
@@ -464,12 +466,13 @@ class LogCapture(object):
         else:
             logger.setLevel(level)
 
-    @staticmethod
-    def _iter_loggers():
+    def _iter_loggers(self):
         yield logging.root
         for logger in logging.Logger.manager.loggerDict.values():
             if isinstance(logger, logging.Logger):
                 yield logger
+        for logger in self._other_loggers:
+            yield logger
 
     def filter(self, record):
         self._records.append(record)

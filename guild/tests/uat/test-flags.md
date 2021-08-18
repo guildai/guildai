@@ -32,16 +32,22 @@
         default: relu
       batch-size:
         default: 128
+        type: int
       dropout:
         default: 0.2
+        type: float
       epochs:
         default: 20
+        type: int
       inner-layers:
         default: 1
+        type: int
       layer-size:
         default: 512
+        type: int
       learning-rate:
         default: 0.001
+        type: float
     ### Script flags for train-config
     flags import disabled - skipping
     flags-dest: globals
@@ -124,16 +130,22 @@
         default: relu
       batch-size:
         default: 128
+        type: int
       dropout:
         default: 0.2
+        type: float
       epochs:
         default: 20
+        type: int
       inner-layers:
         default: 1
+        type: int
       layer-size:
         default: 512
+        type: int
       learning-rate:
         default: 0.001
+        type: float
     ### Script flags for train-config
     flags import disabled - skipping
     flags-dest: args
@@ -171,7 +183,7 @@
         null-label:
       batch-size:
         default: 128
-        type:
+        type: int
         required: no
         arg-name:
         arg-skip:
@@ -186,7 +198,7 @@
         null-label:
       dropout:
         default: 0.2
-        type:
+        type: float
         required: no
         arg-name:
         arg-skip:
@@ -201,7 +213,7 @@
         null-label:
       epochs:
         default: 20
-        type:
+        type: int
         required: no
         arg-name:
         arg-skip:
@@ -216,7 +228,7 @@
         null-label:
       inner-layers:
         default: 1
-        type:
+        type: int
         required: no
         arg-name:
         arg-skip:
@@ -231,7 +243,7 @@
         null-label:
       layer-size:
         default: 512
-        type:
+        type: int
         required: no
         arg-name:
         arg-skip:
@@ -246,7 +258,7 @@
         null-label:
       learning-rate:
         default: 0.001
-        type:
+        type: float
         required: no
         arg-name:
         arg-skip:

@@ -289,7 +289,7 @@ our example above doesn't work with `args3.py`.
 
     >>> guild_run("args3.py", x="1 2 foo", y="2,1")
     Traceback (most recent call last):
-    RunError: ...args3.py: error: argument --y: invalid int value: '2,1'...
+    RunError: ...guild: invalid value 2,1 for y: invalid value for type 'int'...
 
 When we use the expected syntax:
 

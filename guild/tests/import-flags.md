@@ -7,11 +7,27 @@ We'll use the sample project `flags`:
 
     >>> project_dir = sample("projects", "flags")
 
-Load the guild file:
+Load the guild file. We apply special handling to the loading to
+capture any logs from the Python plugin, which is responsible for flag
+imports.
+
+    >>> from guild import plugin as pluginlib
+    >>> python_plugin = pluginlib.for_name("python_script")
 
     >>> with Env({"NO_IMPORT_FLAGS_CACHE": "1",
     ...           "NO_IMPORT_FLAGS_PROGRESS": "1"}):
-    ...     gf = guildfile.for_dir(project_dir, no_cache=True)
+    ...     with LogCapture(
+    ...         strip_ansi_format=True,
+    ...         other_loggers=[python_plugin.log]) as project_import_logs:
+    ...         gf = guildfile.for_dir(project_dir, no_cache=True)
+
+Logger output:
+
+    >>> project_import_logs.print_all()
+    WARNING: [import_flags_main] unsupported flag type <function <lambda> ...>
+    for flag unsupported-type - ignoring type setting
+
+See *Argparse flag attributes* below for details on the logged warning.
 
 Ref to the default model:
 
@@ -90,10 +106,12 @@ the main module:
     >>> flag_info("import-all-args", "foo")
     description: Foo
     choices: [1, 2]
+    type: int
     default: 1
 
     >>> flag_info("import-all-args", "bar")
     description: Bar
+    type: float
     default: 0.001
 
     >>> flag_vals("import-all-args")
@@ -154,10 +172,12 @@ not specified.
     >>> flag_info("args-flags", "foo")
     description: Foo
     choices: [1, 2]
+    type: int
     default: 2
 
     >>> flag_info("args-flags", "bar")
     description: Raised bar
+    type: float
     default: 0.001
 
     >>> flag_vals("args-flags")
@@ -195,10 +215,12 @@ Guild files can redefine default values.
     >>> flag_info("import-all-args-with-mods", "foo")
     description: Foo
     choices: [1, 2]
+    type: int
     default: 2
 
     >>> flag_info("import-all-args-with-mods", "bar")
     description: Raised bar
+    type: float
     default: 0.001
 
     >>> flag_vals("import-all-args-with-mods")
@@ -250,6 +272,7 @@ imports:
     >>> flag_info("explicit-args", "foo")
     description: Foo
     choices: [1, 2]
+    type: int
     default: 1
 
     >>> flag_vals("explicit-args")
@@ -325,10 +348,12 @@ Each flag imports attributes from the module.
     >>> flag_info("implicit-imports", "foo")
     description: Foo
     choices: [1, 2]
+    type: int
     default: 1
 
     >>> flag_info("implicit-imports", "bar")
     description: Bar
+    type: float
     default: 0.001
 
 The first variant uses `flags-import-skip` to skip import of 'bar'.
@@ -339,6 +364,7 @@ The first variant uses `flags-import-skip` to skip import of 'bar'.
     >>> flag_info("implicit-imports-2", "foo")
     description: Foo
     choices: [1, 2]
+    type: int
     default: 2
 
     >>> flag_info("implicit-imports-2", "bar")
@@ -553,3 +579,56 @@ Guild cannot even inspect a module with a syntax error.
     Usage: guild run [OPTIONS] syntax_error.py [FLAG]...
     <BLANKLINE>
     Use 'guild run --help' for a list of options.
+
+## Argparse flag attributes
+
+Guild uses applicable argparse argument attributes when importing flags.
+
+The `arg-attrs` operation imports `argparse` defined flags that are
+configured with various attributes.
+
+    >>> flags("arg-attrs")
+    [<guild.guildfile.FlagDef 'any'>,
+     <guild.guildfile.FlagDef 'bool'>,
+     <guild.guildfile.FlagDef 'float'>,
+     <guild.guildfile.FlagDef 'int'>,
+     <guild.guildfile.FlagDef 'str-choice'>,
+     <guild.guildfile.FlagDef 'unsupported-type'>]
+
+The unsupported type is logged during the project import.
+
+    >>> project_import_logs.print_all()
+    WARNING: [import_flags_main] unsupported flag type <function <lambda> ...> for
+    flag unsupported-type - ignoring type setting
+
+Flag info for each flag:
+
+    >>> flag_info("arg-attrs", "any")
+    description: Any type
+    default: None
+
+    >>> flag_info("arg-attrs", "bool")
+    description: A bool
+    type: boolean
+    default: True
+
+    >>> flag_info("arg-attrs", "float")
+    description: A float
+    type: float
+    default: 1.123
+
+    >>> flag_info("arg-attrs", "int")
+    description: An int
+    type: int
+    default: None
+
+    >>> flag_info("arg-attrs", "str-choice")
+    description: Some choices
+    choices: ['A', 'B', 'C']
+    type: string
+    default: A
+
+    >>> flag_info("arg-attrs", "unsupported-type")
+    description: An unsupported type
+    choices: [123, 456, 'foo']
+    default: 123

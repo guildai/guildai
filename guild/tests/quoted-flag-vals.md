@@ -212,18 +212,14 @@ Some some alternative values:
     'hola' <str>
     False <bool>
 
-Because arg parsing scripts apply type conversions, if we pass values
-with invalid types, the script fails with an error.
+Guild imports type settings for args and so catches invalid input
+before running the script.
 
     >>> flag_vals = {"f1": "one"}
 
-    >>> project.run("args.py", flag_vals, print_cmd=True)
-    ??? -um guild.op_main args --f1 one --f2 1.1 --f3 hello --f4 ''
-
     >>> project.run("args.py", flag_vals)
-    usage: args.py [-h] [--f1 F1] [--f2 F2] [--f3 F3] [--f4 F4]
-    args.py: error: argument --f1: invalid int value: 'one'
-    <exit 2>
+    guild: invalid value one for f1: invalid value for type 'int'
+    <exit 1>
 
 We can pass any string through to a string arg (flag `f3` in this
 case).

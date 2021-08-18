@@ -17,6 +17,7 @@
     summary.py flags imported for dest 'args':
       min-loss:
         default: -0.2
+        type: float
       output:
         default: .
       use-marked:
@@ -57,6 +58,7 @@
     summary.py flags imported for dest 'args':
       min-loss:
         default: -0.2
+        type: float
       output:
         default: .
       use-marked:
@@ -67,7 +69,7 @@
     flags:
       min-loss:
         default: -0.2
-        type:
+        type: float
         required: no
         arg-name:
         arg-skip:
