@@ -576,6 +576,7 @@ def _iter_notebook_images(notebook):
                     output_pos,
                 )
                 yield filename, img_bytes
+            output_pos += 1
 
 
 def _nbconvert_html(notebook):
