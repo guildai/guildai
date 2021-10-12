@@ -24,7 +24,7 @@ Python 3.6:
     pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.2
-    skopt_version:             0.8.1
+    skopt_version:             0.9.0
     setuptools_version:        ...
     twine_version:             3.4.2
     yaml_version:              5.4.1
@@ -47,7 +47,7 @@ Python 3.7:
     pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.2
-    skopt_version:             0.8.1
+    skopt_version:             0.9.0
     setuptools_version:        ...
     twine_version:             3.4.2
     yaml_version:              5.4.1
@@ -70,7 +70,7 @@ Python 3.8:
     pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.2
-    skopt_version:             0.8.1
+    skopt_version:             0.9.0
     setuptools_version:        ...
     twine_version:             3.4.2
     yaml_version:              5.4.1
@@ -93,7 +93,7 @@ Python 3.9:
     pandas_version:            1.1.5
     pip_version:               18.0
     sklearn_version:           0.24.2
-    skopt_version:             0.8.1
+    skopt_version:             0.9.0
     setuptools_version:        ...
     twine_version:             3.4.2
     yaml_version:              5.4.1
