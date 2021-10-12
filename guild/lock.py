@@ -22,7 +22,11 @@ from guild import util
 
 # filelock uses `info` level logging for acquire/release status - move
 # this to debug level.
-filelock.logger().info = filelock.logger().debug
+if hasattr(filelock, "logger"):
+    filelock.logger().info = filelock.logger().debug
+elif hasattr(filelock, "_api"):
+    filelock._api._LOGGER.setLevel(20)  # 20 is logging.INFO
+
 
 Timeout = filelock.Timeout
 
