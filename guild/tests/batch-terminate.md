@@ -45,7 +45,7 @@ Stop the batch run.
 
 Wait for the runs to stop;
 
-    >>> sleep(5)
+    >>> sleep(10)
 
 Show the runs after stopping the batch.
 
