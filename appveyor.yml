@@ -24,11 +24,11 @@ install:
 
 build: off
 
-test_script:
-  - "%PYTHON%\\python.exe setup.py bdist_wheel"
-  - 'PowerShell -Command "%PYTHON%\\python.exe -m pip install dist\\$(ls dist)"'
-  - "set PATH=%PYTHON%\\Scripts;%PATH%"
-  - "guild check --offline -vT"
+# test_script:
+#   - "%PYTHON%\\python.exe setup.py bdist_wheel"
+#   - 'PowerShell -Command "%PYTHON%\\python.exe -m pip install dist\\$(ls dist)"'
+#   - "set PATH=%PYTHON%\\Scripts;%PATH%"
+#   - "guild check --offline -vT"
 
 artifacts:
   - path: dist\*
