@@ -85,8 +85,13 @@ def _validate_env():
 
 def _build_view_dist():
     """Build view distribution."""
-    subprocess.check_call([NPM_CMD, "install"], cwd="./guild/view")
-    subprocess.check_call([NPM_CMD, "run", "build"], cwd="./guild/view")
+    # Switch to opt out of npm builds driven by npm issues on
+    # Appveyor. Workaround is to store developer-built view app in
+    # source and use as fallback on platforms struggling to build with
+    # npm.
+    if os.getenv("SKIP_NPM") != "1":
+        subprocess.check_call([NPM_CMD, "install"], cwd="./guild/view")
+        subprocess.check_call([NPM_CMD, "run", "build"], cwd="./guild/view")
 
 
 setup(
