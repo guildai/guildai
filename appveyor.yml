@@ -4,6 +4,7 @@ branches:
   only:
     - release
     - pre-release
+    - windows-debug
 
 environment:
   COLUMNS: 999
