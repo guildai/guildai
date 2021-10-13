@@ -9,6 +9,7 @@ branches:
 environment:
   COLUMNS: 999
   GUILD_START_THRESHOLD: 0.5
+  SKIP_NPM: 1
   matrix:
      - PYTHON: "C:\\Python36-x64"
      - PYTHON: "C:\\Python37-x64"
@@ -25,15 +26,15 @@ install:
 
 build: off
 
-# test_script:
-#   - "%PYTHON%\\python.exe setup.py bdist_wheel"
-#   - 'PowerShell -Command "%PYTHON%\\python.exe -m pip install dist\\$(ls dist)"'
-#   - "set PATH=%PYTHON%\\Scripts;%PATH%"
-#   - "guild check --offline -vT"
+test_script:
+  - "%PYTHON%\\python.exe setup.py bdist_wheel"
+  - 'PowerShell -Command "%PYTHON%\\python.exe -m pip install dist\\$(ls dist)"'
+  - "set PATH=%PYTHON%\\Scripts;%PATH%"
+  - "guild check --offline -vT"
 
 artifacts:
   - path: dist\*
 
 # Uncomment to enable post-mortem debugging over RDP:
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+##on_finish:
+##  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
