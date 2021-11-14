@@ -360,6 +360,7 @@ def _op_init_op_cmd(op, args):
     if op._opdef:
         op._op_cmd, run_attrs = _op_cmd_for_opdef(op._opdef)
         _apply_gpu_arg_env(args, op._op_cmd.cmd_env)
+        _apply_no_output_env(op._op_cmd.cmd_env)
         if run_attrs:
             op._op_cmd_run_attrs.update(run_attrs)
 
@@ -369,6 +370,20 @@ def _op_cmd_for_opdef(opdef):
         return op_util.op_cmd_for_opdef(opdef)
     except op_util.InvalidOpDef as e:
         _invalid_opdef_error(opdef, e.msg)
+
+
+def _apply_no_output_env(op_env):
+    """Applies op env 'NO_RUN_OUTPUT' to `os.environ` if defined.
+
+    Skipped if 'NO_RUN_OUTPUT' is defined in the current Guild env.
+
+    This lets the operation control whether or not run output is disabled.
+
+    We take this approach because Guild's only interface for disabling
+    run output is the current Guild env's 'NO_RUN_OUTPUT' value.
+    """
+    if "NO_RUN_OUTPUT" in op_env and not "NO_RUN_OUTPUT" in os.environ:
+        os.environ["NO_RUN_OUTPUT"] = str(op_env["NO_RUN_OUTPUT"])
 
 
 # =================================================================
