@@ -43,10 +43,10 @@ Python 3.7:
     click_version:             7.1.2
     dask_version:              2021...
     distutils_version:         ...
-    numpy_version:             1.21.2
+    numpy_version:             1.21.4
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           1.0
+    sklearn_version:           1.0.1
     skopt_version:             0.9.0
     setuptools_version:        ...
     twine_version:             3.6.0
@@ -66,10 +66,10 @@ Python 3.8:
     click_version:             7.1.2
     dask_version:              2021...
     distutils_version:         ...
-    numpy_version:             1.21.2
+    numpy_version:             1.21.4
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           1.0
+    sklearn_version:           1.0.1
     skopt_version:             0.9.0
     setuptools_version:        ...
     twine_version:             3.6.0
@@ -89,10 +89,10 @@ Python 3.9:
     click_version:             7.1.2
     dask_version:              2021...
     distutils_version:         ...
-    numpy_version:             1.21.2
+    numpy_version:             1.21.4
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           1.0
+    sklearn_version:           1.0.1
     skopt_version:             0.9.0
     setuptools_version:        ...
     twine_version:             3.6.0
