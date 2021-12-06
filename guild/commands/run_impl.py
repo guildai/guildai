@@ -2422,7 +2422,10 @@ def _invalid_flag_choice_error(e):
     )
     cli.table(
         [
-            {"val": choice.value, "desc": choice.description}
+            {
+                "val": flag_util.encode_flag_val(choice.value),
+                "desc": choice.description,
+            }
             for choice in e.flag.choices
         ],
         ["val", "desc"],
