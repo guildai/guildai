@@ -74,9 +74,9 @@ class PythonFlagsImporter(object):
     def __init__(self, ep):
         self.ep = ep
 
-    def flags_for_script(self, script, base_args, log):
+    def flags_for_script(self, script, base_args):
         """Returns Guild flag config for a Python script."""
-        pass
+        raise NotImplementedError()
 
 
 class PythonScriptModelProxy(object):
@@ -301,7 +301,7 @@ def _flags_data_for_script(script, base_args, flags_dest, log):
     elif flags_dest.startswith("args:"):
         data = _entry_point_args_flags_data(flags_dest, script, base_args, log)
     else:
-        log.debug("ingoring flags dest '%s' for Python script %s", flags_dest, script)
+        log.debug("ignoring flags dest '%s' for Python script %s", flags_dest, script)
         data = {}
     if flags_dest:
         flags_import_util.log_flags_info(
@@ -404,7 +404,7 @@ def _entry_point_args_flags_data(flags_dest, script, base_args, log):
         )
         return {}
     else:
-        return importer.flags_for_script(script, base_args, log)
+        return importer.flags_for_script(script, base_args)
 
 
 def _apply_abs_paths(data, script_dir):

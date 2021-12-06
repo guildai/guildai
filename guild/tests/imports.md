@@ -185,6 +185,7 @@
     guild.plugins.nbexec
     guild.plugins.perf
     guild.plugins.python_script
+    guild.plugins.pytorch_flags
     guild.plugins.queue
     guild.plugins.queue_main
     guild.plugins.random_main

@@ -1,0 +1,3 @@
+pytorch-lightning
+torch
+torchvision

@@ -24,7 +24,7 @@ imports.
 Logger output:
 
     >>> project_import_logs.print_all()
-    WARNING: [import_flags_main] unsupported flag type <function <lambda> ...>
+    WARNING: unsupported flag type <function <lambda> ...>
     for flag unsupported-type - ignoring type setting
 
 See *Argparse flag attributes* below for details on the logged warning.
@@ -443,7 +443,7 @@ warning message and coerces the value to a string.
     ...         gf = guildfile.for_dir(project_dir, no_cache=True)
 
     >>> logs.print_all()
-    WARNING: [import_flags_main] cannot serialize value <object object at ...>
+    WARNING: cannot serialize value <object object at ...>
     for flag foo - coercing to string
 
     >>> gf.default_model.operations
@@ -529,7 +529,7 @@ For Python 2 and 3.5:
     ???
     WARNING: cannot import flags from ./import_error_args.py: ImportError:
     No module named ...xxx_not_a_valid_module...
-    ERROR: [import_flags_main] loading module from './import_error_args.py'
+    ERROR: [guild.plugins.import_argparse_flags_main] loading module from './import_error_args.py'
     Traceback (most recent call last):
       ...
       File "./import_error_args.py", line 2, in <module>
@@ -546,7 +546,7 @@ For Python 3 (not including 3.5):
     ???
     WARNING: cannot import flags from ./import_error_args.py: ModuleNotFoundError:
     No module named 'xxx_not_a_valid_module'
-    ERROR: [import_flags_main] loading module from './import_error_args.py'
+    ERROR: [guild.plugins.import_argparse_flags_main] loading module from './import_error_args.py'
     Traceback (most recent call last):
       ...
       File "./import_error_args.py", line 2, in <module>
@@ -598,8 +598,8 @@ configured with various attributes.
 The unsupported type is logged during the project import.
 
     >>> project_import_logs.print_all()
-    WARNING: [import_flags_main] unsupported flag type <function <lambda> ...> for
-    flag unsupported-type - ignoring type setting
+    WARNING: unsupported flag type <function <lambda> ...> for flag unsupported-type
+    - ignoring type setting
 
 Flag info for each flag:
 

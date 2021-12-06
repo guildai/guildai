@@ -42,7 +42,7 @@ log = _init_log()
 
 
 class ClickFlags(python_script.PythonFlagsImporter):
-    def flags_for_script(self, script, base_args, log):
+    def flags_for_script(self, script, base_args):
         env = dict(os.environ)
         env.update(
             {

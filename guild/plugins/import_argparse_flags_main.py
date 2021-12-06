@@ -12,18 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# The odd naming convention below is to minimize the changes of
-# colliding with symbols in the imported module.
+import argparse
+import json
+import logging
+import sys
 
-import argparse as argparse
-import json as json
-import logging as logging
-import os as os
-import sys as sys
-
+from guild import entry_point_util
 from guild import flag_util
+from guild import log as loglib
 from guild import python_util as python_util
 from guild import util
+
+
+_action_importers = entry_point_util.EntryPointResources(
+    "guild.python.argparse_actions", "Argparse action importers"
+)
+
+
+class ArgparseActionFlagsImporter(object):
+
+    priority = 50
+
+    def __init__(self, ep):
+        self.ep = ep
+
+    def flag_attrs_for_argparse_action(self, action, flag_name):
+        """Return a dict of flag config attrs for an argparse action."""
+        raise NotImplementedError()
+
 
 action_types = (
     argparse._StoreAction,
@@ -32,14 +48,8 @@ action_types = (
 )
 
 
-def _init_log():
-    level = int(os.getenv("LOG_LEVEL", logging.WARN))
-    format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
-    logging.basicConfig(level=level, format=format)
-    return logging.getLogger("import_flags_main")
-
-
-log = _init_log()
+loglib.init_logging()
+log = logging.getLogger("guild.plugins.import_argparse_flags_main")
 
 
 def main():
@@ -109,7 +119,32 @@ def _maybe_apply_flag(action, flags):
     if not isinstance(action, action_types):
         log.debug("skipping %s - not an action type", action)
         return
-    flags[flag_name] = attrs = {}
+    attrs = _flag_attrs_for_action(action, flag_name)
+    if attrs is not None:
+        flags[flag_name] = attrs
+        log.debug("added flag %r: %r", flag_name, attrs)
+    else:
+        log.debug("unable to import %s flag for action %r" % (flag_name, action))
+
+
+def _flag_attrs_for_action(action, flag_name):
+    for importer in _action_importers_by_priority():
+        attrs = importer.flag_attrs_for_argparse_action(action, flag_name)
+        if attrs is not None:
+            return attrs
+    return default_flag_attrs_for_argparse_action(action, flag_name)
+
+
+def _action_importers_by_priority():
+    importers = [importer for _name, importer in _action_importers]
+    importers.sort(key=lambda x: x.priority)
+    return importers
+
+
+def default_flag_attrs_for_argparse_action(
+    action, flag_name, ignore_unknown_type=False
+):
+    attrs = {}
     if action.help:
         attrs["description"] = action.help
     if action.default is not None:
@@ -119,7 +154,9 @@ def _maybe_apply_flag(action, flags):
     if action.required:
         attrs["required"] = True
     if action.type:
-        attrs["type"] = _flag_type_for_action(action.type, flag_name)
+        attrs["type"] = _flag_type_for_action(
+            action.type, flag_name, ignore_unknown_type
+        )
     if isinstance(action, argparse._StoreTrueAction):
         attrs["arg-switch"] = True
     elif isinstance(action, argparse._StoreFalseAction):
@@ -127,14 +164,7 @@ def _maybe_apply_flag(action, flags):
     if _multi_arg(action):
         attrs["arg-split"] = True
         _maybe_encode_splittable_default(attrs)
-    log.debug("added flag %r: %r", flag_name, attrs)
-
-
-def _flag_name(action):
-    for opt in action.option_strings:
-        if opt.startswith("--"):
-            return opt[2:]
-    return None
+    return attrs
 
 
 def _ensure_json_encodable(x, flag_name):
@@ -142,14 +172,16 @@ def _ensure_json_encodable(x, flag_name):
         json.dumps(x)
     except TypeError:
         log.warning(
-            "cannot serialize value %r for flag %s - coercing to string", x, flag_name
+            "cannot serialize value %r for flag %s - coercing to string",
+            x,
+            flag_name,
         )
         return str(x)
     else:
         return x
 
 
-def _flag_type_for_action(action_type, flag_name):
+def _flag_type_for_action(action_type, flag_name, ignore_unknown_type):
     if action_type is str:
         return "string"
     elif action_type is float:
@@ -159,11 +191,12 @@ def _flag_type_for_action(action_type, flag_name):
     elif action_type is bool:
         return "boolean"
     else:
-        log.warning(
-            "unsupported flag type %s for flag %s - ignoring type setting",
-            action_type,
-            flag_name,
-        )
+        if not ignore_unknown_type:
+            log.warn(
+                "unsupported flag type %s for flag %s - ignoring type setting",
+                action_type,
+                flag_name,
+            )
         return None
 
 
@@ -177,6 +210,13 @@ def _maybe_encode_splittable_default(flag_attrs):
     default = flag_attrs.get("default")
     if isinstance(default, list):
         flag_attrs["default"] = flag_util.join_splittable_flag_vals(default)
+
+
+def _flag_name(action):
+    for opt in action.option_strings:
+        if opt.startswith("--"):
+            return opt[2:]
+    return None
 
 
 def _exec_module(mod_path, package, base_args):

@@ -1,0 +1,3 @@
+train:
+  main: mnist
+  flags-import: all

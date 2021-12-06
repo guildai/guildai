@@ -252,6 +252,8 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 ## PyTorch tests
 
 - [install-pytorch.md](install-pytorch.md)
+- [install-pytorch-lightning](install-pytorch-lightning.md)
+- [pytorch-lightning-example](pytorch-lightning-example.md)
 
 ## Other tests
 

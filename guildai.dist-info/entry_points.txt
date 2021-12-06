@@ -27,6 +27,10 @@ guildfile = guild.model:GuildfileNamespace
 
 click = guild.plugins.click_flags:ClickFlags
 
+[guild.python.argparse_actions]
+
+pytorch = guild.plugins.pytorch_flags:PytorchArgparseActions
+
 [guild.remotetypes]
 
 ssh = guild.remotes.ssh:SSHRemoteType
