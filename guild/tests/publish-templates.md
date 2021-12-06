@@ -99,8 +99,7 @@ default. When we attempt to load the template, we get an error.
 
     >>> run_report = publish.Template(sample("templates/run-report"))
     Traceback (most recent call last):
-    TemplateError: .../samples/templates/run-report/README.md:22:
-    no filter named 'env'
+    TemplateError: .../samples/templates/run-report/README.md:22: No filter named 'env'.
 
 To load the template, we must provide the `env` filter. Filters are
 functions that accepts one or more arguments, the first of which is

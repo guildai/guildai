@@ -1,7 +1,7 @@
 dask[distributed]
 ipython
 hiplot
-jinja2<3
+jinja2
 jupyter
 jupyter_contrib_nbextensions
 pandas<1.2

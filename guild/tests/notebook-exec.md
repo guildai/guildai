@@ -211,7 +211,7 @@ substitutions where possibly applicable.
 
     >>> project.run("invalid_language.ipynb")
     INFO: [guild] Initializing invalid_language.ipynb for run
-    INFO: [guild] Executing invalid_language.ipynb
+    INFO: [guild] Executing invalid_language.ipynb...
     Traceback (most recent call last):
     ...
     jupyter_client.kernelspec.NoSuchKernel: No such kernel named xxx
