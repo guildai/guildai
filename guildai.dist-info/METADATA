@@ -38,7 +38,7 @@ Requires-Dist: chardet>=3.0.4
 Requires-Dist: click>=7.1.2,<8
 Requires-Dist: daemonize>=2.4.7
 Requires-Dist: filelock>=3.0.12
-Requires-Dist: jinja2>=2.10,<3
+Requires-Dist: jinja2>=3.0.3
 Requires-Dist: natsort
 Requires-Dist: numpy>=1.16
 Requires-Dist: pkginfo
