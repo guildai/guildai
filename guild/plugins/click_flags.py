@@ -17,7 +17,7 @@ from __future__ import division
 
 import argparse
 import json
-import logging as logging
+import logging
 import os
 import subprocess
 import sys
@@ -32,6 +32,7 @@ from . import python_script
 
 
 def _init_log():
+    # pylint: disable=invalid-envvar-default
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     logging.basicConfig(level=level, format=format)

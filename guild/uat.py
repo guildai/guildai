@@ -83,7 +83,7 @@ def _run_tests(tests):
             if _skip_test(name, to_skip):
                 print("  skipped (user requested)")
                 continue
-            elif _test_passed(name):
+            if _test_passed(name):
                 print("  skipped (already passed)")
                 continue
             filename = os.path.join("tests", "uat", name + ".md")

@@ -126,7 +126,7 @@ def p_date_medium(p):
 
 def _date_for_medium(medium, ref):
     year, month, day = medium
-    assert year >= 0 and year <= 100, year
+    assert 0 <= year <= 100, year
     ref_c = ref.year // 100 * 100
     return date(ref_c + year, month, day)
 

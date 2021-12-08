@@ -192,6 +192,7 @@ class RunsSeries(pd.Series):
         return _runs_flags([self[0].value])
 
     def compare(self):
+        # pylint: disable=arguments-differ
         return _runs_compare([self[0]])
 
 

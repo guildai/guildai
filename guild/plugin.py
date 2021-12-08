@@ -50,7 +50,6 @@ class Plugin(object):
         To modify a Guild file after it's been loaded, use
         `guildfile_loaded`.
         """
-        pass
 
     def guildfile_loaded(self, _gf):
         """Called immediately after a Guild file is loaded.
@@ -59,7 +58,6 @@ class Plugin(object):
         it's been loaded. To modify the data before it's used to load
         the Guild file, use `guildfile_data`.
         """
-        pass
 
     @staticmethod
     def enabled_for_op(_op):

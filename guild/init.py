@@ -224,5 +224,4 @@ def _handle_init_os_error(e):
         log.exception("init")
     if e.errno == errno.EACCES:
         raise PermissionError(e.filename)
-    else:
-        raise InitError(e)
+    raise InitError(e)

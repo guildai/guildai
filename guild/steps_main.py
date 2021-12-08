@@ -276,6 +276,7 @@ def main():
 
 
 def _init_logging():
+    # pylint: disable=invalid-envvar-default
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     guild.log.init_logging(level, {"_": format})
@@ -467,7 +468,7 @@ def _format_step_cmd(cmd):
         "--force-flags",
         "--run-dir",
     ], cmd
-    return " ".join([arg for arg in cmd[8:]])
+    return " ".join(cmd[8:])
 
 
 def _maybe_check_step_run(step, run):

@@ -98,7 +98,7 @@ def _flags_to_import(opdef, all_marker):
         return all_marker
     if opdef.flags_import is None:
         # If flags-import is not configured, import all defined flags.
-        return set([flag.name for flag in opdef.flags])
+        return {flag.name for flag in opdef.flags}
     elif isinstance(opdef.flags_import, list):
         return set(opdef.flags_import)
     else:

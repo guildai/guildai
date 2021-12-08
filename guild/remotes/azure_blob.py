@@ -143,10 +143,7 @@ class AzureBlobStorageRemote(meta_sync.MetaSyncRemote):
             raise remotelib.OperationError(
                 "%s is not available - %s does not exist" % (self.name, self.container)
             )
-        else:
-            raise remotelib.OperationError(
-                "%s is not available: %s" % (self.name, output)
-            )
+        raise remotelib.OperationError("%s is not available: %s" % (self.name, output))
 
     def push(self, runs, delete=False):
         for run in runs:

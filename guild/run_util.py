@@ -603,10 +603,9 @@ def _init_export_dir(dir):
     except IOError as e:
         if e.errno == errno.ENOTDIR:
             raise RunsExportError("'%s' is not a directory" % dir)
-        else:
-            raise RunsExportError(
-                "error initializing export directory '%s': %s" % (dir, e)
-            )
+        raise RunsExportError(
+            "error initializing export directory '%s': %s" % (dir, e)
+        )
 
 
 class _Skipped(Exception):

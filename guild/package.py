@@ -105,8 +105,7 @@ def create_package(
     if p.returncode != 0:
         if capture_output:
             raise SystemExit(p.returncode, out.decode())
-        else:
-            raise SystemExit(p.returncode)
+        raise SystemExit(p.returncode)
     return out
 
 

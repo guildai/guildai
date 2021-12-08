@@ -534,7 +534,7 @@ def _resolve_cwd_model(model_ref):
 def _cwd_guildfile():
     try:
         return guildfile.for_dir(config.cwd())
-    except guildfile.NoModels as e:
+    except guildfile.NoModels:
         return None
     except guildfile.GuildfileError as e:
         raise CwdGuildfileError(e)
@@ -601,7 +601,6 @@ def _model_by_name(name, models):
 def _maybe_no_model_error(model_ref):
     if model_ref:
         raise NoMatchingModel(model_ref)
-    return None
 
 
 def _opdef_for_model_op(model, op_name):
@@ -1352,7 +1351,7 @@ def _ResourceFlagDefProxy(name, opdef):
 
 
 def _check_no_such_flags(flag_vals, flagdefs):
-    flagdef_names = set([flagdef.name for flagdef in flagdefs])
+    flagdef_names = {flagdef.name for flagdef in flagdefs}
     for name in flag_vals:
         if name not in flagdef_names:
             raise NoSuchFlagError(name)

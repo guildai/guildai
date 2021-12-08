@@ -54,7 +54,7 @@ class MetaSyncRemote(remotelib.Remote):
         try:
             runs_impl.list_runs(args)
         except SystemExit as e:
-            raise self._fix_system_exit_msg_for_remote(e, ["runs list", "runs"])
+            self._system_exit_for_remote(e, ["runs list", "runs"])
 
     def _sync_runs_meta(self, force=False):
         raise NotImplementedError()
@@ -98,12 +98,12 @@ class MetaSyncRemote(remotelib.Remote):
                 confirm_default=not args.permanent,
             )
         except SystemExit as e:
-            raise self._fix_system_exit_msg_for_remote(e, ["runs rm", "runs delete"])
+            self._system_exit_for_remote(e, ["runs rm", "runs delete"])
 
     def _delete_runs(self, runs, permanent):
         raise NotImplementedError()
 
-    def _fix_system_exit_msg_for_remote(self, e, cmds):
+    def _system_exit_for_remote(self, e, cmds):
         from guild import main
 
         assert isinstance(e, SystemExit), e
@@ -143,7 +143,7 @@ class MetaSyncRemote(remotelib.Remote):
                 confirm_default=True,
             )
         except SystemExit as e:
-            self._fix_system_exit_msg_for_remote(e, ["runs restore"])
+            self._system_exit_for_remote(e, ["runs restore"])
 
     def _restore_runs(self, runs):
         raise NotImplementedError()
@@ -175,7 +175,7 @@ class MetaSyncRemote(remotelib.Remote):
                 confirm_default=False,
             )
         except SystemExit as e:
-            self._fix_system_exit_msg_for_remote(e, ["runs purge"])
+            self._system_exit_for_remote(e, ["runs purge"])
 
     def _purge_runs(self, runs):
         raise NotImplementedError()

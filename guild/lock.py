@@ -38,4 +38,5 @@ def Lock(name, timeout=-1, guild_home=None):
     locks_dir = os.path.join(guild_home, "locks")
     util.ensure_dir(locks_dir)
     lock_path = os.path.join(locks_dir, name)
+    # pylint: disable=abstract-class-instantiated
     return filelock.FileLock(lock_path, timeout)

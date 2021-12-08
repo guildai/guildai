@@ -200,10 +200,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
             raise remotelib.OperationError(
                 "%s is not available - %s does not exist" % (self.name, self.bucket)
             )
-        else:
-            raise remotelib.OperationError(
-                "%s is not available: %s" % (self.name, output)
-            )
+        raise remotelib.OperationError("%s is not available: %s" % (self.name, output))
 
     def start(self):
         log.info("Creating S3 bucket %s", self.bucket)

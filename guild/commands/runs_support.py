@@ -98,7 +98,7 @@ def ac_operation(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
-    ops = set([run_util.format_operation(run, nowarn=True) for run in runs])
+    ops = {run_util.format_operation(run, nowarn=True) for run in runs}
     return sorted([op for op in ops if op.startswith(incomplete)])
 
 
@@ -106,7 +106,7 @@ def ac_label(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
-    labels = set([run.get("label") or "" for run in runs])
+    labels = {run.get("label") or "" for run in runs}
     return sorted([_quote_label(l) for l in labels if l and l.startswith(incomplete)])
 
 
@@ -134,7 +134,7 @@ def ac_digest(ctx, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
-    digests = set([run.get("sourcecode_digest") or "" for run in runs])
+    digests = {run.get("sourcecode_digest") or "" for run in runs}
     return sorted([d for d in digests if d and d.startswith(incomplete)])
 
 

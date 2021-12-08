@@ -635,6 +635,7 @@ def _default_examples_dir():
 
 
 def cat(*parts):
+    # pylint: disable=no-value-for-parameter
     with open(os.path.join(*parts), "r") as f:
         s = f.read()
         if not s:
@@ -644,6 +645,7 @@ def cat(*parts):
 
 
 def cat_json(*parts):
+    # pylint: disable=no-value-for-parameter
     with open(os.path.join(*parts), "r") as f:
         data = json.load(f)
         json.dump(data, sys.stdout, sort_keys=True, indent=4, separators=(",", ": "))
@@ -1178,6 +1180,7 @@ def _popen_win(cmd, env, cwd):
 
 
 def _popen_posix(cmd, env, cwd):
+    # pylint: disable=subprocess-popen-preexec-fn
     return subprocess.Popen(
         cmd,
         shell=True,

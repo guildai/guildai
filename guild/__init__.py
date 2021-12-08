@@ -64,9 +64,9 @@ def _init_git_status():
 
 
 def _cmd_out(cmd):
-    null = open(os.devnull, "w")
-    out = subprocess.check_output(cmd, stderr=null, shell=True)
-    return out.decode("utf-8").strip()
+    with open(os.devnull, "w") as null:
+        out = subprocess.check_output(cmd, stderr=null, shell=True)
+        return out.decode("utf-8").strip()
 
 
 def version():

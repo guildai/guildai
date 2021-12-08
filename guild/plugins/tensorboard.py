@@ -27,7 +27,7 @@ log = logging.getLogger("guild")
 
 
 def version():
-    import tensorboard.version as version
+    from tensorboard import version
 
     return version.VERSION
 

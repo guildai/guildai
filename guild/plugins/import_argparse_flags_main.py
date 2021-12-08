@@ -20,7 +20,7 @@ import sys
 from guild import entry_point_util
 from guild import flag_util
 from guild import log as loglib
-from guild import python_util as python_util
+from guild import python_util
 from guild import util
 
 
@@ -192,7 +192,7 @@ def _flag_type_for_action(action_type, flag_name, ignore_unknown_type):
         return "boolean"
     else:
         if not ignore_unknown_type:
-            log.warn(
+            log.warning(
                 "unsupported flag type %s for flag %s - ignoring type setting",
                 action_type,
                 flag_name,

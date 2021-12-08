@@ -128,7 +128,7 @@ def for_project_name(project_name):
         if membership == Membership.yes:
             ns = maybe_ns
             break
-        elif membership == Membership.maybe:
+        if membership == Membership.maybe:
             ns = maybe_ns
     assert ns, project_name
     return ns

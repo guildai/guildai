@@ -265,9 +265,7 @@ class RunOutput(object):
         self._ensure_output(run)
         start = req.args.get("s", None, int)
         end = req.args.get("e", None, int)
-        lines = [
-            (time, stream, line) for time, stream, line in self._output.read(start, end)
-        ]
+        lines = self._output.read(start, end)
         return serving_util.json_resp(lines)
 
     def _ensure_output(self, run_id):

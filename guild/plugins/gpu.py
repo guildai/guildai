@@ -86,7 +86,7 @@ class GPUPlugin(SummaryPlugin):
             ("temp", _parse_raw(raw[7], _parse_int)),
             ("powerdraw", _parse_raw(raw[8], _parse_watts)),
         ]
-        return dict([(_gpu_val_key(index, name), val) for name, val in vals])
+        return {_gpu_val_key(index, name): val for name, val in vals}
 
 
 def _stats_cmd():

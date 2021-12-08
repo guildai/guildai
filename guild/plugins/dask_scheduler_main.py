@@ -26,6 +26,7 @@ from guild import util
 from . import gen_queue
 
 logging.basicConfig(
+    # pylint: disable=invalid-envvar-default
     level=int(os.getenv("LOG_LEVEL", logging.INFO)),
     format="%(levelname)s: [%(name)s] %(asctime)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",

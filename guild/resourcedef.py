@@ -95,7 +95,7 @@ class ResourceDef(object):
                     "attribute (one of %s)"
                     % (data, self.fullname, ", ".join(self.source_types))
                 )
-            elif type_count > 1:
+            if type_count > 1:
                 conflicting = ", ".join([item[0] for item in type_items if item[1]])
                 raise ResourceFormatError(
                     "invalid source %s in resource '%s': conflicting "

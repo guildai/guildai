@@ -83,7 +83,7 @@ class Viewer(ViewerBase):
         ViewerBase.__init__(self, *args, **kw)
 
     def _init_data(self):
-        data, logs = self.get_data()
+        data, logs = self.get_data()  # pylint: disable=not-callable
         return tabview.process_data(data), logs
 
     def _column_widths(self, data):
@@ -113,6 +113,7 @@ class Viewer(ViewerBase):
         self.keys["!"] = self.sort_by_column_numeric_reverse
         self.keys["2"] = self.sort_by_column_numeric_reverse
         self.keys["`"] = self.show_logs
+        # pylint: disable=not-an-iterable
         self.keys.update(
             {
                 key: self._action_handler(action_cb)
@@ -141,6 +142,7 @@ class Viewer(ViewerBase):
         self.resize()
 
     def _insert_actions_help(self, text):
+        # pylint: disable=not-an-iterable
         actions_help = "\n".join(
             [
                 key.ljust(viewer_help_key_width) + help_text
@@ -179,6 +181,7 @@ class Viewer(ViewerBase):
     def show_cell(self):
         yp = self.y + self.win_y
         xp = self.x + self.win_x
+        # pylint: disable=not-callable
         detail = self.get_detail(self.data, yp, xp)
         if not detail:
             return

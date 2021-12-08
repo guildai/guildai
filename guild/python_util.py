@@ -19,6 +19,7 @@ import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
+    # pylint: disable=deprecated-module
     import imp
 
 import ast
@@ -290,8 +291,6 @@ class MethodWrapper(object):
                     cb(wrapped_bound, *args, **kw)
                 except Result as e:
                     result = e.value
-                except KeyboardInterrupt:
-                    raise
             if result is marker:
                 return wrapped_bound(*args, **kw)
             else:
@@ -373,8 +372,6 @@ class FunctionWrapper(object):
                     cb(self._func, *args, **kw)
                 except Result as e:
                     result = e.value
-                except KeyboardInterrupt:
-                    raise
             if result is marker:
                 return self._func(*args, **kw)
             else:

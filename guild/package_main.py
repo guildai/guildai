@@ -458,7 +458,7 @@ def _twine_repo_args(repo):
 def _pypirc_section_for_repo(repo):
     from twine import utils
 
-    config = utils.get_config()
+    config = utils.get_config("~/.pypirc")
     for section in config:
         if config[section].get("repository") == repo:
             return section

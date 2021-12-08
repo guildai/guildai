@@ -65,7 +65,6 @@ class PythonScriptOpdefSupport(object):
 
         Gives implementor an opportunity to modify the opdef.
         """
-        pass
 
 
 class PythonFlagsImporter(object):

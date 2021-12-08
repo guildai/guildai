@@ -227,7 +227,7 @@ class Guildfile(object):
                     % (", ".join(ALL_TYPES), item)
                 ),
             )
-        elif len(used) > 1:
+        if len(used) > 1:
             raise GuildfileError(
                 self, ("multiple types (%s) in %r" % (", ".join(used), item))
             )

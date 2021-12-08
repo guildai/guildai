@@ -231,7 +231,7 @@ def _guild_resource_cache():
 
 
 def _format_plugins():
-    names = set([name for name, _ in plugin.iter_plugins()])
+    names = {name for name, _ in plugin.iter_plugins()}
     return ", ".join(sorted(names))
 
 
@@ -270,7 +270,7 @@ def _print_tensorboard_info(check):
 
 def _tensorboard_version(check):
     try:
-        import tensorboard.version as version
+        from tensorboard import version
     except ImportError:
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("tensorboard version")

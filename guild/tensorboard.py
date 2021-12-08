@@ -385,7 +385,7 @@ def _count_images(dir):
 def _unique_digests(dir):
     if not os.path.exists(dir):
         return []
-    return set([os.path.splitext(name)[1] for name in os.listdir(dir)])
+    return {os.path.splitext(name)[1] for name in os.listdir(dir)}
 
 
 def _path_digest(path):

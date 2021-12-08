@@ -216,7 +216,7 @@ def _HParam(name, vals):
 
 
 def hparam_type(vals):
-    types = set([_hparam_val_type(val) for val in vals])
+    types = {_hparam_val_type(val) for val in vals}
     if len(types) == 1:
         return types.pop()
     return HPARAM_TYPE_NONE

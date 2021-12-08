@@ -43,7 +43,7 @@ def _max_width():
 try:
     input = raw_input
 except NameError:
-    input = input
+    pass
 
 _noted = set()
 
@@ -234,8 +234,7 @@ def _table_item_out(
                 err=err,
             )
             break
-        else:
-            click.echo(style(val, **style_kw), file=file, nl=False, err=err)
+        click.echo(style(val, **style_kw), file=file, nl=False, err=err)
     click.echo(file=file, err=err)
     terminal_width = click.get_terminal_size()[0]
     if detail_cb:

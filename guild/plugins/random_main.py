@@ -43,7 +43,7 @@ def _batch_trials(batch_run):
         return skopt_util.random_trials_for_flags(
             proto_flag_vals, max_trials, random_seed
         )
-    except skopt_util.MissingSearchDimension as e:
+    except skopt_util.MissingSearchDimension:
         skopt_util.missing_search_dim_error(proto_flag_vals)
     except skopt_util.InvalidSearchDimension as e:
         _search_dim_error(e)

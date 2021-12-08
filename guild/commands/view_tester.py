@@ -39,7 +39,7 @@ def start_tester(host, port, exit=None):
     tester.start()
 
 
-def _test_view(host, port, exit):
+def _test_view(host, port, exit_f):
     view_url = util.local_server_url(host, port)
     try:
         _wait_for(view_url)
@@ -47,9 +47,9 @@ def _test_view(host, port, exit):
         _test_tensorboard(view_url)
     except Exception:
         log.exception("testing %s", view_url)
-        exit(1)
+        exit_f(1)
     else:
-        exit(0)
+        exit_f(0)
 
 
 def _wait_for(url):
