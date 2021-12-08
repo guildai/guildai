@@ -1,5 +1,5 @@
 try:
-    from type import SimpleNamespace
+    from types import SimpleNamespace
 except ImportError:
 
     class SimpleNamespace(object):

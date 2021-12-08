@@ -74,7 +74,7 @@ And our run helper:
 ## Flags as args
 
 Guild's command line argument interface is well documented throughout
-the Guild tests. We'll demonstrate here however for completeness.
+the Guild tests. We demonstrate here for completeness.
 
 The `args` operation uses `args` for its flag dest:
 
