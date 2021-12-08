@@ -7,13 +7,12 @@ Gets to 98.40% test accuracy after 20 epochs
 
 from __future__ import print_function
 
-import json
-
-import keras
+from tensorflow import keras
 from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
-from keras.optimizers import RMSprop
+from tensorflow.keras.optimizers import RMSprop
+from keras.utils import np_utils
 
 class Config(object):
     def __init__(self, filename):
@@ -43,8 +42,8 @@ print(x_train.shape[0], 'train samples')
 print(x_test.shape[0], 'test samples')
 
 # convert class vectors to binary class matrices
-y_train = keras.utils.to_categorical(y_train, config.num_classes)
-y_test = keras.utils.to_categorical(y_test, config.num_classes)
+y_train = np_utils.to_categorical(y_train, num_classes)
+y_test = np_utils.to_categorical(y_test, num_classes)
 
 model = Sequential()
 model.add(Dense(config.layer_size, activation=config.activation,

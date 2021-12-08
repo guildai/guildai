@@ -39,7 +39,7 @@ class SummaryPlugin(Plugin):
 
     def __init__(self, ep):
         super(SummaryPlugin, self).__init__(ep)
-        self._summary_cache = SummaryCache(self.MIN_SUMMARY_INTERVAL)
+        self._summary_cache = SummaryCache(self.MIN_SUMMARY_INTERVAL, self.log)
 
     def patch_env(self):
         self._patch_guild_summary()
@@ -247,11 +247,13 @@ def tf_scalar_summary(vals):
 
 
 class SummaryCache(object):
-    def __init__(self, timeout):
+    def __init__(self, timeout, log):
         self._timeout = timeout
         self._expires = None
         self._step = None
         self._val = None
+        self._log = log
+        self._logged_cannot_evaluate = False
 
     def expired(self):
         return self._expires is None or time.time() >= self._expires
@@ -262,4 +264,17 @@ class SummaryCache(object):
         self._val = val
 
     def for_step(self, step):
-        return self._val if step == self._step else None
+        try:
+            is_current_step = bool(step == self._step)
+        except Exception as e:
+            self._maybe_log_cannot_evaluate(e)
+        else:
+            return self._val if is_current_step else None
+
+    def _maybe_log_cannot_evaluate(self, e):
+        if self._logged_cannot_evaluate:
+            return
+        self._log.debug(
+            "cannot evaluate current step, ignoring plugin summary value: %s" % e
+        )
+        self._logged_cannot_evaluate = True
