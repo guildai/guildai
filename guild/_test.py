@@ -311,20 +311,20 @@ class Py23DocChecker(doctest.OutputChecker):
         return got
 
     def _want(self, want, optionflags):
-        want = self._leading_wildcard_want(want)
+        want = _leading_wildcard_want(want)
         if optionflags & ANNOTATIONS:
             want = self._annotations_want(want)
         return want
 
     @staticmethod
-    def _leading_wildcard_want(want):
-        # Treat leading "???" like "..." (work around for "..." as
-        # code continuation token in doctest.
-        return re.sub(r"^\?\?\?", "...", want)
-
-    @staticmethod
     def _annotations_want(want):
         return want.replace(":<pathsep>", os.path.pathsep)
+
+
+def _leading_wildcard_want(want):
+    # Treat leading "???" like "..." (work around for "..." as
+    # code continuation token in doctest.
+    return re.sub(r"^\?\?\?", "...", want)
 
 
 class TestRunner(doctest.DocTestRunner, object):
@@ -477,6 +477,7 @@ class BashDocTestParser(doctest.DocTestParser):
 class BashDocTestChecker(doctest.OutputChecker):
     def check_output(self, want, got, optionflags):
         got = self._normalize_exit_0(want, got)
+        want = _leading_wildcard_want(want)
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
     @staticmethod
