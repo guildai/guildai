@@ -8,7 +8,14 @@ This example demonstrates Guild's support for importing PyTorch
 Lightning CLI options as flags.
 
 PyTorch Lightning provides some custom `argparse` action types that
-Guild detects when importing flags.
+Guild detects when importing flags. The script `mnist.py` uses PyTorch
+Lightning's CLI support. In particular, the call to
+`Trainer.add_argparse_args()` adds a number of preconfigured arguments
+to an `argparse` parser.
+
+[This
+line](https://github.com/guildai/guildai/blob/master/examples/pytorch-lightning/mnist.py#L68)
+shows the addition of the arguments.
 
 To illustrate, create a virtual environment and install the required
 packages.
@@ -17,8 +24,62 @@ packages.
 
     $ venv/bin/python -m pip install -q -r requirements.txt
 
-Get help for the `mnist.py` script. This shows the flags that Guild
-imports.
+Show help for `mnist.py` using Python:
+
+    $ venv/bin/python mnist.py --help
+    usage: mnist.py [-h] [--lr LR] [--logger [LOGGER]]
+    [--checkpoint_callback [CHECKPOINT_CALLBACK]]
+    [--enable_checkpointing [ENABLE_CHECKPOINTING]]
+    [--default_root_dir DEFAULT_ROOT_DIR]
+    [--gradient_clip_val GRADIENT_CLIP_VAL]
+    [--gradient_clip_algorithm GRADIENT_CLIP_ALGORITHM]
+    [--process_position PROCESS_POSITION]
+    [--num_nodes NUM_NODES] [--num_processes NUM_PROCESSES]
+    [--devices DEVICES] [--gpus GPUS]
+    [--auto_select_gpus [AUTO_SELECT_GPUS]]
+    [--tpu_cores TPU_CORES] [--ipus IPUS]
+    [--log_gpu_memory LOG_GPU_MEMORY]
+    [--progress_bar_refresh_rate PROGRESS_BAR_REFRESH_RATE]
+    [--enable_progress_bar [ENABLE_PROGRESS_BAR]]
+    [--overfit_batches OVERFIT_BATCHES]
+    [--track_grad_norm TRACK_GRAD_NORM]
+    [--check_val_every_n_epoch CHECK_VAL_EVERY_N_EPOCH]
+    [--fast_dev_run [FAST_DEV_RUN]]
+    [--accumulate_grad_batches ACCUMULATE_GRAD_BATCHES]
+    [--max_epochs MAX_EPOCHS] [--min_epochs MIN_EPOCHS]
+    [--max_steps MAX_STEPS] [--min_steps MIN_STEPS]
+    [--max_time MAX_TIME] [--limit_train_batches LIMIT_TRAIN_BATCHES]
+    [--limit_val_batches LIMIT_VAL_BATCHES]
+    [--limit_test_batches LIMIT_TEST_BATCHES]
+    [--limit_predict_batches LIMIT_PREDICT_BATCHES]
+    [--val_check_interval VAL_CHECK_INTERVAL]
+    [--flush_logs_every_n_steps FLUSH_LOGS_EVERY_N_STEPS]
+    [--log_every_n_steps LOG_EVERY_N_STEPS] [--accelerator ACCELERATOR]
+    [--strategy STRATEGY] [--sync_batchnorm [SYNC_BATCHNORM]]
+    [--precision PRECISION] [--enable_model_summary [ENABLE_MODEL_SUMMARY]]
+    [--weights_summary WEIGHTS_SUMMARY]
+    [--weights_save_path WEIGHTS_SAVE_PATH]
+    [--num_sanity_val_steps NUM_SANITY_VAL_STEPS]
+    [--resume_from_checkpoint RESUME_FROM_CHECKPOINT]
+    [--profiler PROFILER] [--benchmark [BENCHMARK]]
+    [--deterministic [DETERMINISTIC]]
+    [--reload_dataloaders_every_n_epochs RELOAD_DATALOADERS_EVERY_N_EPOCHS]
+    [--reload_dataloaders_every_epoch [RELOAD_DATALOADERS_EVERY_EPOCH]]
+    [--auto_lr_find [AUTO_LR_FIND]]
+    [--replace_sampler_ddp [REPLACE_SAMPLER_DDP]]
+    [--detect_anomaly [DETECT_ANOMALY]]
+    [--auto_scale_batch_size [AUTO_SCALE_BATCH_SIZE]]
+    [--prepare_data_per_node [PREPARE_DATA_PER_NODE]] [--plugins PLUGINS]
+    [--amp_backend AMP_BACKEND] [--amp_level AMP_LEVEL]
+    [--move_metrics_to_cpu [MOVE_METRICS_TO_CPU]]
+    [--multiple_trainloader_mode MULTIPLE_TRAINLOADER_MODE]
+    [--stochastic_weight_avg [STOCHASTIC_WEIGHT_AVG]]
+    [--terminate_on_nan [TERMINATE_ON_NAN]]
+    <BLANKLINE>
+    ...
+
+Next, use Guild to show help for `mnist.py`. Guild imports the CLI
+options as flags.
 
     $ venv/bin/guild run mnist.py --help-op
     Usage: guild run [OPTIONS] mnist.py [FLAG]...
@@ -385,9 +446,9 @@ imports.
                                       to the Trainer's ``callbacks`` argument.
                                       (default is top)
 
-Show the command line used to run the script. In particular this shows
-how Guild handles boolean options (i.e. provides `yes` and `no`
-arguments, which are handled by the PyTorch Lightning CLI support).
+Show the command line used to run the script. Note how Guild handles
+boolean options -- i.e. provides `yes` and `no` arguments. This
+atypical interface is handled by the PyTorch Lightning CLI support).
 
     $ venv/bin/guild run mnist.py --print-cmd
     ??? -um guild.op_main mnist --amp_backend native --auto_lr_find no
