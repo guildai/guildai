@@ -99,7 +99,6 @@ class RunsMonitor(util.LoopingThread):
         run_paths = [self._run_path(run) for run in runs]
         self._delete_missing_runs(run_paths)
         for run, run_path in zip(runs, run_paths):
-            name = self.run_name_cb(run)
             _ensure_dir(run_path)
             self.refresh_run_cb(run, run_path)
 
@@ -112,8 +111,7 @@ class RunsMonitor(util.LoopingThread):
 
     def _delete_missing_runs(self, latest_run_paths):
         existing_runs = [
-            os.path.join(self.logdir, basename)
-            for basename in os.listdir(self.logdir)
+            os.path.join(self.logdir, basename) for basename in os.listdir(self.logdir)
         ]
         for run_path in existing_runs:
             if not run_path in latest_run_paths:
@@ -608,9 +606,7 @@ def _init_export_dir(dir):
     except IOError as e:
         if e.errno == errno.ENOTDIR:
             raise RunsExportError("'%s' is not a directory" % dir)
-        raise RunsExportError(
-            "error initializing export directory '%s': %s" % (dir, e)
-        )
+        raise RunsExportError("error initializing export directory '%s': %s" % (dir, e))
 
 
 class _Skipped(Exception):

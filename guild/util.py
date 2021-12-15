@@ -657,7 +657,7 @@ def _maybe_symlink_error(err_msg, err_code):
             "You do not have sufficient privilege to perform this operation\n\n"
             "For help, see "
             "https://my.guild.ai/docs/windows#symbolic-links-privileges-in-windows",
-            err_code
+            err_code,
         )
 
 
