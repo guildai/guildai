@@ -35,7 +35,14 @@ log = logging.getLogger("guild")
 
 DEFAULT_MONITOR_INTERVAL = 5
 MIN_MONITOR_INTERVAL = 5
-MAX_RUN_NAME_LEN = 242
+
+# This is a tricky number - max dir len on Windows is 248 and on many
+# POSIX file systems it's 255. We grant an additional 100 chars for
+# files stored under the run directory (as there's no point allowing a
+# max-len dir, where files can't be written).
+_MAX_WIN_DIR_LEN = 248
+_RUN_FILES_PADDING = 100
+MAX_RUN_PATH_LEN = _MAX_WIN_DIR_LEN - _RUN_FILES_PADDING
 
 
 class RunsExportError(Exception):
@@ -89,31 +96,29 @@ class RunsMonitor(util.LoopingThread):
             self._refresh_logdir(runs)
 
     def _refresh_logdir(self, runs):
-        to_delete = self._run_dirs()
-        for run in runs:
+        run_paths = [self._run_path(run) for run in runs]
+        self._delete_missing_runs(run_paths)
+        for run, run_path in zip(runs, run_paths):
             name = self.run_name_cb(run)
-            util.safe_list_remove(name, to_delete)
-            path = self._ensure_run(name)
-            self.refresh_run_cb(run, path)
-        for name in to_delete:
-            self._delete_run(name)
+            _ensure_dir(run_path)
+            self.refresh_run_cb(run, run_path)
 
-    def _run_dirs(self):
-        return [
-            name
-            for name in os.listdir(self.logdir)
-            if os.path.isdir(os.path.join(self.logdir, name))
-        ]
-
-    def _ensure_run(self, name):
+    def _run_path(self, run):
+        name = self.run_name_cb(run)
         safe_name = util.safe_filename(name)
-        path = os.path.join(self.logdir, safe_name)
-        _ensure_dir(path)
-        return path
+        run_path = os.path.join(self.logdir, safe_name)
+        safe_len_path = run_path[:MAX_RUN_PATH_LEN]
+        return safe_len_path
 
-    def _delete_run(self, name):
-        path = os.path.join(self.logdir, name)
-        util.safe_rmtree(path)
+    def _delete_missing_runs(self, latest_run_paths):
+        existing_runs = [
+            os.path.join(self.logdir, basename)
+            for basename in os.listdir(self.logdir)
+        ]
+        for run_path in existing_runs:
+            if not run_path in latest_run_paths:
+                log.debug("Deleting run %s", run_path)
+                util.safe_rmtree(run_path)
 
 
 def _ensure_dir(path):
@@ -140,7 +145,7 @@ def run_name(run, label):
     parts.append(util.format_timestamp(run.get("started")))
     if label:
         parts.append(label)
-    return util.safe_filename(" ".join(parts))[:MAX_RUN_NAME_LEN]
+    return util.safe_filename(" ".join(parts))
 
 
 def format_run(run, index=None):

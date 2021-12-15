@@ -646,7 +646,19 @@ def _windows_symlink(target, link):
     try:
         subprocess.check_output(args, shell=True, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
-        raise OSError(e.returncode, e.output.decode(errors="ignore").strip())
+        err_msg = e.output.decode(errors="ignore").strip()
+        _maybe_symlink_error(err_msg, e.returncode)
+        raise OSError(e.returncode, err_msg)
+
+
+def _maybe_symlink_error(err_msg, err_code):
+    if "You do not have sufficient privilege to perform this operation" in err_msg:
+        raise SystemExit(
+            "You do not have sufficient privilege to perform this operation\n\n"
+            "For help, see "
+            "https://my.guild.ai/docs/windows#symbolic-links-privileges-in-windows",
+            err_code
+        )
 
 
 _text_ext = set(
