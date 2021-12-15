@@ -318,6 +318,7 @@ def _resolve_table_cols(table, index):
 
 
 def _resolve_table_section(run, section, index):
+    # pylint: disable=consider-using-generator
     return tuple([_resolve_run_cols(run, cols, index) for cols in section])
 
 

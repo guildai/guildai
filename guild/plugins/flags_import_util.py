@@ -79,6 +79,7 @@ def apply_flags(opdef, import_flags_data_cb, apply_flags_data_cb=None):
 
 def log_flags_info(fmt, *args):
     if os.getenv("FLAGS_TEST") == "1":
+        # pylint: disable=consider-using-generator
         fmt_args = tuple([_fmt_arg(arg) for arg in args])
         cli.note(fmt % fmt_args)
 

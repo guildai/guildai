@@ -65,6 +65,7 @@ def t_LONGDATE(t):
 
 def _parse_ints(t):
     groups = [g for g in t.lexer.lexmatch.groups() if g is not None]
+    # pylint: disable=consider-using-generator
     return tuple([int(g) for g in groups[1:]])
 
 
