@@ -74,6 +74,7 @@ tests).
       labels:                      ok
       locks:                       ok
       logging:                     ok
+      long-run-names:              ok
       ls-cmd:                      ok
       marked-runs:                 ok
       memory-plugin:               ok
