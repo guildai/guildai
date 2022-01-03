@@ -291,7 +291,7 @@ def _init_venv(config):
 
 def _venv_cmd_args(config):
     args = _venv_cmd_base_args() + [config.env_dir]
-    args.extend(["--prompt", "({}) ".format(config.env_name)])
+    args.extend(["--prompt", config.env_name])
     if config.venv_python:
         args.extend(["--python", config.venv_python])
     if config.system_site_packages:
