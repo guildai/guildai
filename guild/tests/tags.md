@@ -19,6 +19,14 @@ Generate runs with tags.
     >>> print(run3.get("tags"))
     ['baz', 'bam']
 
+List all tags.
+
+    >>> project.tag(list_all=True)
+    bam
+    bar
+    baz
+    foo
+
 Show all runs.
 
     >>> project.print_runs(labels=True)
@@ -70,6 +78,12 @@ Add tags 'abc' and 'def' to runs 1 and 2.
     echo.py  abc def bar x=1.0 y=2 z=a
     echo.py  abc def foo x=1.0 y=2 z=a
 
+    >>> project.tag(list_all=True)
+    abc
+    bar
+    baz
+    def
+    foo
 
 Clear tags for run2.
 
@@ -82,6 +96,14 @@ Clear tags for run2.
     >>> project.print_runs([run2], labels=True)
     echo.py  x=1.0 y=2 z=a
 
+    >>> project.tag([run2], list_all=True)
+
+    >>> project.tag(list_all=True)
+    abc
+    baz
+    def
+    foo
+
 Clear and add tags to run3.
 
     >>> project.tag([run3], clear=True, add=["blue", "green"], sync_labels=True)
@@ -92,6 +114,10 @@ Clear and add tags to run3.
 
     >>> project.print_runs([run3], labels=True)
     echo.py  blue green x=1.0 y=2 z=a
+
+    >>> project.tag([run3], list_all=True)
+    blue
+    green
 
 Clear tags from run3 without syncing labels.
 

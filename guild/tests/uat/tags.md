@@ -245,3 +245,26 @@ message related to syncing labels.
       [...]  hello  ...  completed  example hello run
     Continue? (Y/n)
     <exit -9>
+
+List all tags:
+
+    >>> run("guild tag --list-all")
+    blue
+    <exit 0>
+
+Incompatible options:
+
+    >>> run("guild tag --add foo --list-all -y")
+    guild: --add and --list-all cannot both be specified
+    Try 'guild tag --help' for more information.
+    <exit 1>
+
+    >>> run("guild tag --delete foo --list-all -y")
+    guild: --delete and --list-all cannot both be specified
+    Try 'guild tag --help' for more information.
+    <exit 1>
+
+    >>> run("guild tag --clear --list-all -y")
+    guild: --clear and --list-all cannot both be specified
+    Try 'guild tag --help' for more information.
+    <exit 1>

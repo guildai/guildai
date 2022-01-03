@@ -36,6 +36,12 @@ Add two tags with label sync.
     ...
     <exit 0>
 
+    >>> run("guild tag --list-all -r guild-uat")
+    blue
+    green
+    h2
+    <exit 0>
+
 Delete two tags, one non-existing.
 
     >>> run("guild tag -d blue -d yellow -s -r guild-uat -y")
@@ -51,6 +57,11 @@ Delete two tags, one non-existing.
     tags:
       - green
     ...
+    <exit 0>
+
+    >>> run("guild tag --list-all -r guild-uat")
+    green
+    h2
     <exit 0>
 
 Delete an existing tag, add a new tag.
@@ -70,6 +81,11 @@ Delete an existing tag, add a new tag.
     ...
     <exit 0>
 
+    >>> run("guild tag --list-all -r guild-uat")
+    h2
+    orange
+    <exit 0>
+
 Clear tags and add a new tag.
 
     >>> run("guild tag -c -a cyan -s -r guild-uat -y")
@@ -87,6 +103,11 @@ Clear tags and add a new tag.
     ...
     <exit 0>
 
+    >>> run("guild tag --list-all -r guild-uat")
+    cyan
+    h2
+    <exit 0>
+
 Clear all tags without label sync.
 
     >>> run("guild tag -c -r guild-uat -y")
@@ -101,6 +122,10 @@ Clear all tags without label sync.
     ...
     tags:
     ...
+    <exit 0>
+
+    >>> run("guild tag --list-all -r guild-uat")
+    h2
     <exit 0>
 
 Reset run label (assumed by subsequent remote tests).

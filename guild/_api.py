@@ -365,6 +365,7 @@ def runs_tag(
     remove=None,
     clear=False,
     sync_labels=False,
+    list_all=False,
     cwd=".",
     guild_home=None,
     **kw
@@ -379,6 +380,7 @@ def runs_tag(
         delete=_coerce_list(remove),
         clear=clear,
         sync_labels=sync_labels,
+        list_all=list_all,
         remote=False,
         yes=True,
     )

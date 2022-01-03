@@ -956,7 +956,7 @@ def _label_runs_args(runs, set, prepend, append, remove, clear, yes, **filters):
     return args
 
 
-def _tag_runs_args(runs, add, delete, clear, sync_labels, yes, **filters):
+def _tag_runs_args(runs, add, delete, clear, sync_labels, list_all, yes, **filters):
     args = _filter_and_status_args(**filters)
     if yes:
         args.append("-y")
@@ -968,6 +968,8 @@ def _tag_runs_args(runs, add, delete, clear, sync_labels, yes, **filters):
         args.append("-c")
     if sync_labels:
         args.append("-s")
+    if list_all:
+        args.append("--list-all")
     args.extend(runs)
     return args
 

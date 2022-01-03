@@ -1594,7 +1594,10 @@ def tag(args, ctx):
     if args.remote:
         remote_impl_support.tag_runs(args)
     else:
-        _set_tags(args, ctx)
+        if args.list_all:
+            _list_all_tags(args, ctx)
+        else:
+            _set_tags(args, ctx)
 
 
 def _check_tag_args(args, ctx):
@@ -1603,10 +1606,40 @@ def _check_tag_args(args, ctx):
             "add",
             "delete",
             "clear",
+            "list_all",
         ],
         args,
         ctx,
     )
+    cmd_impl_support.check_incompatible_args(
+        [
+            ("add", "list_all"),
+            ("delete", "list_all"),
+            ("clear", "list_all"),
+        ],
+        args,
+        ctx,
+    )
+
+
+def _list_all_tags(args, ctx):
+    selected = runs_op_selected(args, ctx, ALL_RUNS_ARG)
+    tags = set()
+    for run in selected:
+        tags.update(_run_tags(run))
+    for tag in sorted(tags):
+        print(tag)
+
+
+def _run_tags(run):
+    tags = run.get("tags")
+    if not tags:
+        return []
+    try:
+        return list(tags)
+    except Exception as e:
+        log.warning("Error reading tags for run %s: %s", run.id, e)
+        return []
 
 
 def _set_tags(args, ctx):
@@ -1616,10 +1649,12 @@ def _set_tags(args, ctx):
 
     def set_tags(selected):
         for run in selected:
-            old_tags = run.get("tags")
-            run.write_attr("tags", _tags_for_run(old_tags, args))
+            old_tags = _run_tags(run)
+            new_tags = _tags_for_run(old_tags, args)
+            run.write_attr("tags", new_tags)
             if args.sync_labels:
-                run.write_attr("label", _synced_label_for_tags(run, old_tags, args))
+                new_label = _synced_label_for_tags(run, old_tags, args)
+                run.write_attr("label", new_label)
         cli.out("Modified tags for %i run(s)" % len(selected), err=True)
 
     runs_op(args, ctx, preview, confirm, no_runs, set_tags, LATEST_RUN_ARG, True)

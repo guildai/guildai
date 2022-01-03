@@ -398,6 +398,7 @@ def _tag_runs_kw(args):
         "delete",
         "clear",
         "sync_labels",
+        "list_all",
         "yes",
     ]
     ignore = ["remote"]

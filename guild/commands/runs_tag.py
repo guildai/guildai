@@ -70,6 +70,11 @@ def tag_params(fn):
                 ),
                 is_flag=True,
             ),
+            click.Option(
+                ("--list-all",),
+                help="List all tags used for the specified runs.",
+                is_flag=True,
+            ),
             runs_support.all_filters,
             remote_support.remote_option("Tag remote runs."),
             click.Option(
