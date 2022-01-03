@@ -1,0 +1,3 @@
+hello:
+  main: say
+  flags-import: all

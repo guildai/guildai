@@ -421,3 +421,7 @@ def find(root, followlinks=False, includedirs=False):
         for name in files:
             all.append(relpath(path, name))
     return sorted(all)
+
+
+def expand_path(path):
+    return os.path.expanduser(os.path.expandvars(path))

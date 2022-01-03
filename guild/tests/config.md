@@ -4,6 +4,68 @@ The module `guild.config` handles user config.
 
     >>> from guild import config
 
+## User config paths
+
+User config is specified using one of three methods, listed in order
+of precedence:
+
+- In a path specified by the `GUILD_CONFIG` environment variable
+- `guild-config.yml` in the current working directory
+- `~/.guild/config.yml`
+
+Define user config in three locations.
+
+An arbitrary directory (will be specified using environment variable
+`GUILD_CONFIG`):
+
+    >>> other_dir = mkdtemp()
+    >>> other_guild_config = path(other_dir, "guild-config.yml")
+    >>> write(other_guild_config, """remotes:
+    ...   foo:
+    ...     description: Remote defined in arbitrary location
+    ... """)
+
+A sample project:
+
+    >>> project_dir = mkdtemp()
+    >>> write(path(project_dir, "guild-config.yml"), """remotes:
+    ...   foo:
+    ...     description: Remote defined in project user config
+    ... """)
+
+A directory simulating user home (will be used by hacking the HOME env
+var):
+
+    >>> fake_home = mkdtemp()
+    >>> mkdir(path(fake_home, ".guild"))
+    >>> write(path(fake_home, ".guild", "config.yml"), """remotes:
+    ...   foo:
+    ...     description: Remote defined in default location
+    ... """)
+
+`GUILD_CONFIG` is always used if specified:
+
+    >>> with SetCwd(project_dir):
+    ...     with Env({"GUILD_CONFIG": other_guild_config, "HOME": fake_home}):
+    ...         pprint(config.user_config())
+    {'remotes': {'foo': {'description': 'Remote defined in arbitrary location'}}}
+
+Otherwise, the project config is used if it exists:
+
+    >>> with SetCwd(project_dir):
+    ...     with Env({"HOME": fake_home}):
+    ...         pprint(config.user_config())
+    {'remotes': {'foo': {'description': 'Remote defined in project user config'}}}
+
+Otherwise, the default location `~/.guild/config.yml` is used. Here we
+redefine `HOME` to use the test config created above.
+
+    >>> empty_dir = mkdtemp()
+    >>> with SetCwd(empty_dir):
+    ...     with Env({"HOME": fake_home}):
+    ...         pprint(config.user_config())
+    {'remotes': {'foo': {'description': 'Remote defined in default location'}}}
+
 ## User config inheritance
 
 User config can use the `extends` construct to extend other config

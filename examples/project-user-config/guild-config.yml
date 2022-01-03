@@ -1,0 +1,9 @@
+remotes:
+  localhost:
+    description: Run on localhost over ssh
+    type: ssh
+    host: localhost
+check:
+  offline: yes
+diff:
+  command: 'echo "Using echo:"'

@@ -233,10 +233,26 @@ def user_config():
 
 
 def user_config_path():
-    try:
-        return os.environ["GUILD_CONFIG"]
-    except KeyError:
-        return os.path.join(os.path.expanduser("~"), ".guild", "config.yml")
+    return _find_apply(
+        [
+            _user_config_env,
+            _cwd_user_config,
+            _user_home_user_config,
+        ]
+    )
+
+
+def _user_config_env():
+    return os.environ.get("GUILD_CONFIG")
+
+
+def _cwd_user_config():
+    path = os.path.join(cwd(), "guild-config.yml")
+    return path if os.path.exists(path) else None
+
+
+def _user_home_user_config():
+    return os.path.join(os.path.expanduser("~"), ".guild", "config.yml")
 
 
 def user_config_home():

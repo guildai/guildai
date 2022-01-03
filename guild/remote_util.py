@@ -20,6 +20,7 @@ import os
 import sys
 
 from guild import config
+from guild import file_util
 from guild import log as loglib
 from guild import remote as remotelib
 from guild import subprocess
@@ -80,7 +81,7 @@ def config_path(path):
     """
     if path is None:
         return None
-    expanded = os.path.expanduser(os.path.expandvars(path))
+    expanded = file_util.expand_path(path)
     config_dir = os.path.dirname(config.user_config_path())
     return os.path.abspath(os.path.join(config_dir, expanded))
 
