@@ -876,6 +876,7 @@ class Project(object):
         ids=False,
         flags=False,
         labels=False,
+        tags=False,
         status=False,
         cwd=None,
         limit=None,
@@ -883,15 +884,17 @@ class Project(object):
         cwd = os.path.join(self.cwd, cwd) if cwd else self.cwd
         if runs is None:
             runs = self.list_runs(limit=limit)
-        cols = self._cols_for_print_runs(ids, flags, labels, status)
+        cols = self._cols_for_print_runs(ids, flags, labels, tags, status)
         rows = []
         with util.Chdir(cwd):
             for run in runs:
-                rows.append(self._row_for_print_run(run, ids, flags, labels, status))
+                rows.append(
+                    self._row_for_print_run(run, ids, flags, labels, tags, status)
+                )
         cli.table(rows, cols)
 
     @staticmethod
-    def _cols_for_print_runs(ids, flags, labels, status):
+    def _cols_for_print_runs(ids, flags, labels, tags, status):
         cols = ["opspec"]
         if ids:
             cols.append("id")
@@ -899,12 +902,14 @@ class Project(object):
             cols.append("flags")
         if labels:
             cols.append("label")
+        if tags:
+            cols.append("tags")
         if status:
             cols.append("status")
         return cols
 
     @staticmethod
-    def _row_for_print_run(run, ids, flags, labels, status):
+    def _row_for_print_run(run, ids, flags, labels, tags, status):
         from guild.commands import runs_impl
 
         fmt_run = runs_impl.format_run(run)
@@ -915,7 +920,9 @@ class Project(object):
             flag_vals = run.get("flags") or {}
             row["flags"] = op_util.flags_desc(flag_vals, delim=" ")
         if labels:
-            row["label"] = run.get("label", "")
+            row["label"] = run.get("label")
+        if tags:
+            row["tags"] = " ".join(sorted(run.get("tags") or []))
         if status:
             row["status"] = run.status
         return row

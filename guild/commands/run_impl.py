@@ -69,6 +69,12 @@ FLAG_TEST_ATTRS = [
     "null_label",
 ]
 
+RESPECIFIABLE_RUN_PARAMS = {
+    "gpus",
+    "label",
+    "tags",
+}
+
 
 ###################################################################
 # State
@@ -123,6 +129,30 @@ def _state_for_args(args):
     return S
 
 
+def _apply_run_params_for_args(args, attrs):
+    """Applies values for 'run_params' to attrs given args.
+
+    This function handles cases where args are re-specificed after
+    being initially specified. This occurs when a run is staged
+    (initial run params specification) and then started (run params
+    re-respecification).
+
+    There are a limited number of params that can be
+    re-specified. These are defined in `RESPECIFIABLE_RUN_PARAMS`.
+
+    If any of these are re-specified, run params are
+    updated. Otherwise, run params are not updated if they are already
+    specified.
+    """
+    params = attrs.setdefault("run_params", {})
+    for name, val in args.as_kw().items():
+        if name not in params:
+            params[name] = val
+            continue
+        if val and name in RESPECIFIABLE_RUN_PARAMS:
+            params[name] = val
+
+
 def _op_config_data(op):
     return {
         "flag-null-labels": op._flag_null_labels,
@@ -167,6 +197,7 @@ def _state_init_restart_run(S):
         S.restart_run = _remote_run_for_spec(S.args.restart, S.args)
     else:
         S.restart_run = _local_run_for_spec(S.args.restart)
+    _apply_restart_run_state(S)
 
 
 def _state_init_proto_run(S):
@@ -189,6 +220,20 @@ def _local_run_for_spec(spec):
         ],
         spec,
     )
+
+
+def _apply_restart_run_state(S):
+    """Applies any state from a restart run.
+
+    The only state applied from a restart run is the 'run_params'
+    attr. This is initialized to ensure that any original run params
+    are preserved from the original run spec (e.g. a staged run)
+    unless otherwise updated by the restart.
+    """
+    op = S.batch_op if S.batch_op else S.user_op
+    assert op
+    assert not op.run_attrs, op.run_attrs
+    op.run_attrs["run_params"] = S.restart_run.get("run_params") or {}
 
 
 # =================================================================
@@ -1052,7 +1097,7 @@ def _op_init_run_attrs(args, op):
         attrs["trials"] = op._batch_trials
     attrs["flags"] = op._op_flag_vals
     attrs["user_flags"] = op._user_flag_vals
-    attrs["run_params"] = args.as_kw()
+    _apply_run_params_for_args(args, attrs)
     attrs["random_seed"] = op._random_seed
     if op._max_trials:
         attrs["max_trials"] = op._max_trials

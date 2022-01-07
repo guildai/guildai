@@ -130,6 +130,7 @@ tests).
       startup-time:                ok
       step-checks:                 ok
       steps:                       ok
+      steps-inherited-params:      ok
       steps-run-isolation:         ok
       summary:                     ok
       summary-utils:               ok
