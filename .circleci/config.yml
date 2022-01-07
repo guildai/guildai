@@ -207,7 +207,7 @@ jobs:
     working_directory: ~/repo
   macos_10.15-python_3.6:
     macos:
-      xcode: 11.2.1
+      xcode: 12.4.0
     steps:
     - checkout
     - restore_cache:
@@ -262,7 +262,7 @@ jobs:
     working_directory: ~/repo
   macos_10.15-python_3.7:
     macos:
-      xcode: 11.2.1
+      xcode: 12.4.0
     steps:
     - checkout
     - restore_cache:
@@ -317,7 +317,7 @@ jobs:
     working_directory: ~/repo
   macos_10.15-python_3.8:
     macos:
-      xcode: 11.2.1
+      xcode: 12.4.0
     steps:
     - checkout
     - restore_cache:
@@ -372,7 +372,7 @@ jobs:
     working_directory: ~/repo
   macos_10.15-python_3.9:
     macos:
-      xcode: 11.2.1
+      xcode: 12.4.0
     steps:
     - checkout
     - restore_cache:

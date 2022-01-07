@@ -276,8 +276,7 @@ class MacBuild(Build):
     env = "macos"
 
     xcode_versions = {
-        "10.14": "11.1.0",
-        "10.15": "11.2.1",
+        "10.15": "12.4.0",
     }
 
     pyenv_versions = {
