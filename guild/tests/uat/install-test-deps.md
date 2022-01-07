@@ -46,7 +46,7 @@ Python 3.7:
     numpy_version:             1.21.4
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           1.0.1
+    sklearn_version:           1.0...
     skopt_version:             0.9.0
     setuptools_version:        ...
     twine_version:             3.7.1
@@ -69,7 +69,7 @@ Python 3.8:
     numpy_version:             1.21.4
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           1.0.1
+    sklearn_version:           1.0...
     skopt_version:             0.9.0
     setuptools_version:        ...
     twine_version:             3.7.1
@@ -92,7 +92,7 @@ Python 3.9:
     numpy_version:             1.21.4
     pandas_version:            1.1.5
     pip_version:               18.0
-    sklearn_version:           1.0.1
+    sklearn_version:           1.0...
     skopt_version:             0.9.0
     setuptools_version:        ...
     twine_version:             3.7.1
