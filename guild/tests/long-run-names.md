@@ -29,7 +29,7 @@ Let's illustrate using a temp directory.
 
     >>> open(join_path(tmp, "a" * 374), "w").close()  # doctest: -WINDOWS
     Traceback (most recent call last):
-    OSError: [Errno 36] File name too long: '...aaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    OSError: [Errno ...] File name too long: '...aaaaaaaaaaaaaaaaaaaaaaaaaaa'
 
 Runs monitor support handles this problem by truncating the run path
 to fit within the system limits.
