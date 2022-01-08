@@ -123,7 +123,7 @@ class build_py(orig.build_py, Mixin2to3):
                 outf, copied = self.copy_file(srcfile, target)
                 srcfile = os.path.abspath(srcfile)
                 if (copied and
-                        srcfile in self.distribution.convert_2to3_doctests):
+                        srcfile in getattr(self.distribution, "convert_2to3_doctests", [])):
                     self.__doctests_2to3.append(outf)
 
     def analyze_manifest(self):
