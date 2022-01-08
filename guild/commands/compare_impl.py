@@ -486,7 +486,8 @@ def _format_run_detail(run, index):
     if scalars:
         lines.append("Scalars:")
         for s in scalars:
-            lines.append("  %s" % run_util.run_scalar_key(s))
+            key, step, val = (run_util.run_scalar_key(s), s["last_step"], s["last_val"])
+            lines.append("  %s: %f (step %i)" % (key, val, step))
     return "\n".join(lines)
 
 
