@@ -231,23 +231,23 @@ class LoopingThread(threading.Thread):
         self._interval = interval
         self._first_interval = first_interval
         self._stop_timeout = stop_timeout
-        self._stop = threading.Event()
-        self._stopped = threading.Event()
+        self._stop_event = threading.Event()
+        self._stopped_event = threading.Event()
 
     def run(self):
         try:
             loop(
                 cb=self._cb,
-                wait=self._stop.wait,
+                wait=self._stop_event.wait,
                 interval=self._interval,
                 first_interval=self._first_interval,
             )
         finally:
-            self._stopped.set()
+            self._stopped_event.set()
 
     def stop(self):
-        self._stop.set()
-        self._stopped.wait(self._stop_timeout)
+        self._stop_event.set()
+        self._stopped_event.wait(self._stop_timeout)
 
 
 def safe_osenv():
