@@ -28,7 +28,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          build-env/bin/python setup.py bdist_wheel'
+          SKIP_NPM=1 build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
@@ -84,7 +84,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          build-env/bin/python setup.py bdist_wheel'
+          SKIP_NPM=1 build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
@@ -134,7 +134,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          build-env/bin/python setup.py bdist_wheel'
+          SKIP_NPM=1 build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
@@ -184,7 +184,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          build-env/bin/python setup.py bdist_wheel'
+          SKIP_NPM=1 build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
@@ -239,7 +239,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          build-env/bin/python setup.py bdist_wheel'
+          SKIP_NPM=1 build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
@@ -294,7 +294,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          build-env/bin/python setup.py bdist_wheel'
+          SKIP_NPM=1 build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
@@ -349,7 +349,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          build-env/bin/python setup.py bdist_wheel'
+          SKIP_NPM=1 build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
@@ -404,7 +404,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          build-env/bin/python setup.py bdist_wheel'
+          SKIP_NPM=1 build-env/bin/python setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1800
     - run:
