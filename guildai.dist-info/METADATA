@@ -48,7 +48,6 @@ Requires-Dist: requests>=2
 Requires-Dist: scikit-learn>=0.19.1;python_version>="3.5"
 Requires-Dist: scikit-learn>=0.19.1,<0.21;python_version<"3.5"
 Requires-Dist: scikit-optimize>=0.7.1
-Requires-Dist: setuptools>=40.6.3
 Requires-Dist: six>=1.10.0
 Requires-Dist: tabview>=1.4.3
 Requires-Dist: tensorboard>=2.0.0

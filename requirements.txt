@@ -20,7 +20,6 @@ requests>=2
 scikit-learn>=0.19.1;python_version>="3.5"
 scikit-learn>=0.19.1,<0.21;python_version<"3.5"
 scikit-optimize>=0.7.1
-setuptools>=40.6.3
 six>=1.10.0
 tabview>=1.4.3
 tensorboard>=2.0.0
