@@ -14,8 +14,27 @@ Helper to run VCS commands:
 Create a repo:
 
     >>> repo = mkdtemp()
-    >>> run("git init", repo)
 
+Pre-configure repo to suppress warning/error messages. We do this
+manually before init to avoid init warnings.
+
+    >>> mkdir(path(repo, ".git"))
+    >>> write(path(repo, ".git", "config"), """
+    ... [core]
+    ... repositoryformatversion = 0
+    ... filemode = true
+    ... bare = false
+    ... logallrefupdates = true
+    ... [user]
+    ... name = test
+    ... email = test@localhost
+    ... [init]
+    ... defaultBranch = master
+    ... """)
+
+Init repo:
+
+    >>> run("git init", repo)
     >>> dir(repo)
     ['.git']
 
