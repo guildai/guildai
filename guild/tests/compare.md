@@ -184,6 +184,43 @@ Otherwise both values are coverted to strings and compared.
     >>> K(1) < K("02")
     False
 
+## Skip unchanged cols
+
+The `--skip-unchanged` option tells Guild to skip any columns
+containing unchanged values -- i.e. that only contain the same value.
+
+As a baseline, here's a comparison using some columns we might be
+interested in.
+
+    >>> project.compare(strict_cols=".op,.status,.label,=x")
+    [['run',    'op',    'status', 'label',   'x'],
+    ['...', 'op2.py', 'completed', None,      None],
+    ['...', 'op2.py', 'completed', "x=''",    ''],
+    ['...', 'op2.py', 'completed', 'x=hello', 'hello'],
+    ['...', 'op2.py', 'completed', 'x=1.123', 1.123],
+    ['...', 'op2.py', 'completed', 'x=1',     1],
+    ['...', 'op2.py', 'completed', None,      None]]
+
+Note in this case that the op and status columns each have unchanged
+values. We can skip these columns using `skip_unchanged`.
+
+    >>> project.compare(strict_cols=".op,.status,.label,=x", skip_unchanged=True)
+    [['run', 'label',   'x'],
+    ['...', None,      None],
+    ['...', "x=''",    ''],
+    ['...', 'x=hello', 'hello'],
+    ['...', 'x=1.123', 1.123],
+    ['...', 'x=1',     1],
+    ['...', None,      None]]
+
+We can apply this feature to a subset of runs. Let's compare run that
+have the same values for label and the x flags.
+
+    >>> project.compare(runs=("1", "6"), skip_unchanged=True)
+    [['run', 'started'],
+    ['...', '...'],
+    ['...', '...']]
+
 ## Run detail
 
 Run detail is shown when the user presses Enter on a run in the

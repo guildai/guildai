@@ -436,9 +436,11 @@ def compare(
     runs=None,
     cols=None,
     extra_cols=False,
+    strict_cols=None,
     all_scalars=False,
     skip_op_cols=False,
     skip_core=False,
+    skip_unchanged=False,
     include_batch=False,
     min_col=None,
     max_col=None,
@@ -452,11 +454,13 @@ def compare(
 
     args = click_util.Args(
         runs=_run_ids(runs),
-        extra_cols=extra_cols,
-        all_scalars=all_scalars,
         cols=cols,
+        extra_cols=extra_cols,
+        strict_cols=strict_cols,
+        all_scalars=all_scalars,
         skip_op_cols=skip_op_cols,
         skip_core=skip_core,
+        skip_unchanged=skip_unchanged,
         include_batch=include_batch,
         min_col=min_col,
         max_col=max_col,
@@ -466,6 +470,10 @@ def compare(
     _apply_remote(kw, args)
     _assert_empty_kw(kw, "compare()")
     with Env(cwd, guild_home):
+        # Call pre-processing steps from compare_impl.main prior to
+        # calling get_data.
+        compare_impl._check_args(args, None)
+        compare_impl._apply_strict_columns(args)
         return compare_impl.get_data(args, format_cells=False)
 
 

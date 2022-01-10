@@ -77,9 +77,21 @@ from . import runs_support
     ),
 )
 @click.option(
-    "-p", "--skip-op-cols", is_flag=True, help="Don't show operation columns."
+    "-p",
+    "--skip-op-cols",
+    is_flag=True,
+    help=(
+        "Don't show columns specified by the 'compare' operation "
+        "attribute in the Guild file."
+    ),
 )
 @click.option("-r", "--skip-core", is_flag=True, help="Don't show core columns.")
+@click.option(
+    "-u",
+    "--skip-unchanged",
+    is_flag=True,
+    help="Don't show columns with values that do not change.",
+)
 @click.option("-t", "--table", is_flag=True, help="Show comparison data as a table.")
 @click.option(
     "--csv",

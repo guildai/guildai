@@ -189,6 +189,8 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
             if format_cells:
                 _format_cells(rows, header, runs)
             log = log_capture.get_all()
+            if args.skip_unchanged and len(rows) > 1:
+                header, rows =_drop_unchanged_cols(header, rows)
             return [header] + rows, log
 
     return f
@@ -442,6 +444,41 @@ def _format_float(f):
     be represented as `1.000000`.
     """
     return flag_util.format_flag(f, truncate_floats=6)
+
+
+def _drop_unchanged_cols(header, rows):
+    assert len(rows) > 1
+    unchanged = _unchanged_cols(rows)
+    new_header = _drop_unchanged(header, unchanged)
+    new_rows = [_drop_unchanged(row, unchanged) for row in rows]
+    return new_header, new_rows
+
+
+def _unchanged_cols(rows):
+    cols = _rotate_rows(rows)
+    unchanged = []
+    for i, col in enumerate(cols):
+        if _unchanged(col):
+            unchanged.append(i)
+    return unchanged
+
+
+def _unchanged(vals):
+    assert vals
+    x0 = vals[0]
+    return all((x == x0 for x in vals[1:]))
+
+
+def _rotate_rows(rows):
+    return list(zip(*reversed(rows)))
+
+
+def _drop_unchanged(l, unchanged):
+    """Drops items in list l for each index in unchanged."""
+    # Assuming that unchanged is sorted.
+    for i in reversed(unchanged):
+        del l[i]
+    return l
 
 
 def _get_run_detail_cb(index):
