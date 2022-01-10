@@ -62,12 +62,17 @@ def main():
 
 
 def _init_args():
-    p = argparse.ArgumentParser()
-    p.add_argument("mod_path")
-    p.add_argument("package")
-    p.add_argument("base_args")
-    p.add_argument("output_path")
-    return p.parse_args()
+    if len(sys.argv) != 5:
+        raise SystemExit(
+            "usage: import_argparse_flags_main.py "
+            "mod_path package base_args output_path"
+        )
+    return argparse.Namespace(
+        mod_path=sys.argv[1],
+        package=sys.argv[2],
+        base_args=sys.argv[3],
+        output_path=sys.argv[4],
+    )
 
 
 def _patch_argparse(output_path):

@@ -133,3 +133,12 @@ parser-parents:
 arg-attrs:
   main: arg_attrs
   flags-import: all
+
+args-with-base:
+  main: arg_attrs --int 123 --str-choice A --unsupported-type foo
+  flags-import: all
+  flags-import-skip: [int, str-choice, unsupported-type]
+
+store-true:
+  main: store_true --foo
+  flags-import: all

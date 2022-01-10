@@ -632,3 +632,21 @@ Flag info for each flag:
     description: An unsupported type
     choices: [123, 456, 'foo']
     default: 123
+
+## Argparse with base args
+
+    >>> flags("args-with-base")
+    [<guild.guildfile.FlagDef 'any'>,
+     <guild.guildfile.FlagDef 'bool'>,
+     <guild.guildfile.FlagDef 'float'>]
+
+## Single store true arg
+
+This is a test for regression on #316. A regression would also be
+flagged above when `project_import_logs` is printed.
+
+    >>> flags("store-true")
+    [<guild.guildfile.FlagDef 'foo'>]
+
+    >>> flag_info("store-true", "foo")
+    default: False
