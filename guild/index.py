@@ -35,10 +35,7 @@ class AttrReader(object):
         self._data = {}
 
     def refresh(self, runs):
-        self._data = self._runs_data(runs)
-
-    def _runs_data(self, runs):
-        return {run.id: _run_attr_data(run) for run in runs}
+        self._data = _runs_data(runs)
 
     def read(self, run, attr):
         run_data = self._data.get(run.id, {})
@@ -46,6 +43,10 @@ class AttrReader(object):
             return run_data[attr]
         except KeyError:
             return run.get(attr)
+
+
+def _runs_data(runs):
+    return {run.id: _run_attr_data(run) for run in runs}
 
 
 def _run_attr_data(run):
