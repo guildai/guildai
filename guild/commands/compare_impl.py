@@ -190,7 +190,7 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
                 _format_cells(rows, header, runs)
             log = log_capture.get_all()
             if args.skip_unchanged and len(rows) > 1:
-                header, rows =_drop_unchanged_cols(header, rows)
+                header, rows = _drop_unchanged_cols(header, rows)
             return [header] + rows, log
 
     return f
