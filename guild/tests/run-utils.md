@@ -207,3 +207,67 @@ and a new run (the new name).
 ### Max run names
 
 Refer to [long-run-names.md](long-run-names.md) for these tests.
+
+## Run duration
+
+The function `calc_run_duration` uses run status, started, and stopped
+timestamps to calculate a formatted string duration.
+
+    >>> duration = run_util.calc_run_duration
+
+A duration is calculated if the run status is running or a stopped
+timestamp is provided.
+
+If running, the current time is used to calculate a proxy for the
+stopped timestamp.
+
+    >>> import time
+    >>> timestamp = lambda: time.time() * 1000000
+    >>> seconds = lambda n: n * 1000000
+    >>> minutes = lambda n: seconds(n) * 60
+    >>> hours = lambda n: minutes(n) * 60
+
+    >>> duration("running", timestamp())
+    '0:00:00'
+
+    >>> duration("running", timestamp() - seconds(1))
+    '0:00:01'
+
+    >>> duration("running", timestamp() - minutes(2))
+    '0:02:00'
+
+    >>> duration("running", timestamp() - hours(1) - minutes(5) - seconds(10))
+    '1:05:10'
+
+If status is running, stopped is ignored.
+
+    >>> started = timestamp()
+    >>> duration("running", started, started + seconds(10))
+    '0:00:00'
+
+If status is not running and a stopped is provided, started and
+stopped are used to calculate duration.
+
+    >>> duration("terminated", started, started)
+    '0:00:00'
+
+    >>> duration("stopped", started, started + seconds(1))
+    '0:00:01'
+
+    >>> duration("other", started, started + minutes(2) + seconds(5))
+    '0:02:05'
+
+    >>> duration("stopped", started, started + hours(5) + minutes(10) + seconds(23))
+    '5:10:23'
+
+If status is not running and stopped isn't provided, duraton cannot be
+calculated.
+
+    >>> print(duration("terminated", started))
+    None
+
+    >>> print(duration("stopped", started))
+    None
+
+    >>> print(duration("other", started))
+    None

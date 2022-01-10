@@ -183,3 +183,48 @@ Otherwise both values are coverted to strings and compared.
 
     >>> K(1) < K("02")
     False
+
+## Run detail
+
+Run detail is shown when the user presses Enter on a run in the
+compare tabview. To illustrate, we call a private function in
+`compare_impl` to format run details.
+
+We need an index for the project runs.
+
+    >>> from guild import index as indexlib
+    >>> with SetGuildHome(project.guild_home):
+    ...     index = indexlib.RunIndex()
+    ...     index.refresh(project.list_runs())
+
+Get the default callback function used to format run detail from
+`compare_impl`.
+
+    >>> from guild.commands.compare_impl import _format_run_detail
+
+Show run detail for some runs.
+
+    >>> runs = project.list_runs()
+    >>> print(_format_run_detail(runs[0], index))
+    Id: ...
+    Operation: op2.py
+    From: .../samples/projects/compare
+    Status: completed
+    Started: ...
+    Stopped: ...
+    Time: 0:00:0...
+    Label:
+    Flags:
+      x:
+
+    >>> print(_format_run_detail(runs[2], index))
+    Id: ...
+    Operation: op2.py
+    From: .../samples/projects/compare
+    Status: completed
+    Started: ...
+    Stopped: ...
+    Time: 0:00:0...
+    Label: x=hello
+    Flags:
+      x: hello

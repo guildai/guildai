@@ -661,3 +661,18 @@ def _default_import_run(run, dest, move, copy_resources):
     else:
         log.info("Copying %s", run.id)
         shutil.copytree(run.path, dest, symlinks=not copy_resources)
+
+
+def run_duration(run):
+    status = run.status
+    started = run.get("started")
+    stopped = run.get("stopped")
+    return calc_run_duration(status, started, stopped)
+
+
+def calc_run_duration(status, started, stopped=None):
+    if status == "running":
+        return util.format_duration(started)
+    elif stopped:
+        return util.format_duration(started, stopped)
+    return None

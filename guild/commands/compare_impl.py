@@ -459,7 +459,7 @@ def _get_run_detail_cb(index):
             return "This run no longer exists.", title
         else:
             run = runlib.Run(run_id, path)
-            index.refresh([run], ["scalar"])
+            index.refresh([run])
             detail = _format_run_detail(run, index)
             return detail, title
 
@@ -467,28 +467,46 @@ def _get_run_detail_cb(index):
 
 
 def _format_run_detail(run, index):
-    lines = [
-        "Id: %s" % run.id,
-        "Operation: %s" % run_util.format_operation(run),
-        "From: %s" % run_util.format_pkg_name(run),
-        "Status: %s" % run.status,
-        "Started: %s" % util.format_timestamp(run.get("started")),
-        "Stopped: %s" % util.format_timestamp(run.get("stopped")),
-        "Label: %s" % (run.get("label") or ""),
-    ]
-    flags = run.get("flags")
-    if flags:
-        lines.append("Flags:")
-        for name, val in sorted(flags.items()):
-            val = val if val is not None else ""
-            lines.append("  {}: {}".format(name, val))
-    scalars = list(index.run_scalars(run))
-    if scalars:
-        lines.append("Scalars:")
-        for s in scalars:
-            key, step, val = (run_util.run_scalar_key(s), s["last_step"], s["last_val"])
-            lines.append("  %s: %f (step %i)" % (key, val, step))
+    lines = []
+    _append_run_details_core(run, index, lines)
+    _append_run_details_flags(run, lines)
+    _append_run_details_scalars(run, index, lines)
     return "\n".join(lines)
+
+
+def _append_run_details_core(run, index, lines):
+    lines.extend(
+        [
+            "Id: %s" % run.id,
+            "Operation: %s" % run_util.format_operation(run),
+            "From: %s" % run_util.format_pkg_name(run),
+            "Status: %s" % run.status,
+            "Started: %s" % util.format_timestamp(run.get("started")),
+            "Stopped: %s" % util.format_timestamp(run.get("stopped")),
+            "Time: %s" % index.run_attr(run, "time"),
+            "Label: %s" % (run.get("label") or ""),
+        ]
+    )
+
+
+def _append_run_details_flags(run, lines):
+    flags = run.get("flags")
+    if not flags:
+        return
+    lines.append("Flags:")
+    for name, val in sorted(flags.items()):
+        val = val if val is not None else ""
+        lines.append("  {}: {}".format(name, val))
+
+
+def _append_run_details_scalars(run, index, lines):
+    scalars = list(index.run_scalars(run))
+    if not scalars:
+        return
+    lines.append("Scalars:")
+    for s in scalars:
+        key, step, val = (run_util.run_scalar_key(s), s["last_step"], s["last_val"])
+        lines.append("  %s: %f (step %i)" % (key, val, step))
 
 
 def _tabview_actions():

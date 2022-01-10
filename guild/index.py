@@ -38,34 +38,7 @@ class AttrReader(object):
         self._data = self._runs_data(runs)
 
     def _runs_data(self, runs):
-        return {run.id: self._run_data(run) for run in runs}
-
-    def _run_data(self, run):
-        opref = run.opref
-        started = run.get("started")
-        stopped = run.get("stopped")
-        status = run.status
-        return {
-            "id": run.id,
-            "run": run.short_id,
-            "model": opref.model_name,
-            "operation": run_util.format_operation(run),
-            "from": run_util.format_pkg_name(run),
-            "op": opref.op_name,
-            "sourcecode": util.short_digest(run.get("sourcecode_digest")),
-            "started": util.format_timestamp(started),
-            "stopped": util.format_timestamp(stopped),
-            "status": status,
-            "time": self._duration(status, started, stopped),
-        }
-
-    @staticmethod
-    def _duration(status, started, stopped):
-        if status == "running":
-            return util.format_duration(started)
-        elif stopped:
-            return util.format_duration(started, stopped)
-        return None
+        return {run.id: _run_attr_data(run) for run in runs}
 
     def read(self, run, attr):
         run_data = self._data.get(run.id, {})
@@ -73,6 +46,26 @@ class AttrReader(object):
             return run_data[attr]
         except KeyError:
             return run.get(attr)
+
+
+def _run_attr_data(run):
+    opref = run.opref
+    started = run.get("started")
+    stopped = run.get("stopped")
+    status = run.status
+    return {
+        "id": run.id,
+        "run": run.short_id,
+        "model": opref.model_name,
+        "operation": run_util.format_operation(run),
+        "from": run_util.format_pkg_name(run),
+        "op": opref.op_name,
+        "sourcecode": util.short_digest(run.get("sourcecode_digest")),
+        "started": util.format_timestamp(started),
+        "stopped": util.format_timestamp(stopped),
+        "status": status,
+        "time": run_util.calc_run_duration(status, started, stopped),
+    }
 
 
 class FlagReader(object):
