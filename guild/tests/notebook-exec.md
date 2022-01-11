@@ -27,10 +27,10 @@ The `flags.ipynb` uses a number of variable assignments.
 
     >>> nb_source(path(project.cwd, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     x = 1
-    y = 2
+    y : int = 2
     z = x + y
     print("z: %s" % z)
-    a = 1.1; b = 2.2
+    a:float = 1.1; b = 2.2
     c = b - a
     print("c: %f" % c)
     f = True
@@ -68,10 +68,10 @@ When we run this notebook, the defaults are used.
     >>> run = project.list_runs()[0]
     >>> nb_source(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     x = 1
-    y = 2
+    y : int = 2
     z = x + y
     print("z: %s" % z)
-    a = 1.1; b = 2.2
+    a:float = 1.1; b = 2.2
     c = b - a
     print("c: %f" % c)
     f = 1
@@ -101,10 +101,10 @@ Run with different flag values.
     >>> run = project.list_runs()[0]
     >>> nb_source(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE -NORMALIZE_PATHS
     x = 1.123
-    y = 2
+    y : int = 2
     z = x + y
     print("z: %s" % z)
-    a = 1.1; b = 3.3
+    a:float = 1.1; b = 3.3
     c = b - a
     print("c: %f" % c)
     f = 1

@@ -144,9 +144,9 @@ def _iter_notebook_flag_data(notebook_path, opdef=None):
         for name, val in _iter_notebook_flag_replacements(notebook_path, opdef):
             yield name, _flag_data_for_val(val)
             seen.add(name)
-    for name, val in _iter_notebook_assigns(notebook_path):
+    for name, val, ann_type in _iter_notebook_assigns(notebook_path):
         if not name in seen:
-            yield name, _flag_data_for_val(val)
+            yield name, _flag_data_for_val(val, ann_type)
 
 
 def _iter_notebook_flag_replacements(notebook_path, opdef):
@@ -210,8 +210,9 @@ def _iter_notebook_assigns(notebook_path):
                 target_node,
                 _val_node,
                 val,
+                ann_type,
             ) in _iter_source_val_assigns(src):
-                yield target_node.id, val
+                yield target_node.id, val, ann_type
 
 
 class MissingIPython(Exception):
@@ -263,10 +264,10 @@ def _iter_source_val_assigns(src):
         except TypeError:
             pass
         else:
-            # Only support assigns to right-most name targets.
-            target = node.targets[-1]
+            target = _assign_node_target(node)
+            ann_type = _assign_node_ann_type(node)
             if isinstance(target, ast.Name):
-                yield node, target, node.value, val
+                yield node, target, node.value, val, ann_type
 
 
 def _iter_source_assigns(s):
@@ -279,14 +280,51 @@ def _iter_source_assigns(s):
             log.warning("error parsing Python source %r: %s", s, e)
     else:
         for node in m.body:
-            if isinstance(node, ast.Assign):
+            if _is_assign(node):
                 yield node
 
 
-def _flag_data_for_val(val):
+def _is_assign(node):
+    if isinstance(node, ast.Assign):
+        return True
+    if hasattr(ast, "AnnAssign") and isinstance(node, ast.AnnAssign):
+        return True
+    return False
+
+
+def _assign_node_target(node):
+    if hasattr(node, "targets"):
+        # Only support assigns to right-most name targets.
+        return node.targets[-1]
+    elif hasattr(node, "target"):
+        return node.target
+    assert False, node
+
+
+def _assign_node_ann_type(node):
+    if hasattr(node, "annotation"):
+        return _flag_type_for_annotation(node.annotation)
+    return None
+
+
+def _flag_type_for_annotation(ann):
+    if not isinstance(ann, ast.Name):
+        return None
+    name = ann.id
+    if name == "int":
+        return "int"
+    elif name == "float":
+        return "float"
+    elif name == "bool":
+        return "boolean"
+    elif name == "str":
+        return "string"
+
+
+def _flag_data_for_val(val, ann_type=None):
     return {
         "default": val,
-        "type": _flag_type(val),
+        "type": ann_type or _flag_type(val),
     }
 
 

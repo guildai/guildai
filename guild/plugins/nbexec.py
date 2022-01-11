@@ -284,6 +284,7 @@ def _assigns_for_source(source, flags):
             target_node,
             val_node,
             _val,
+            _ann_type,
         ) in ipynb._iter_source_val_assigns(source)
         if target_node.id in flags
     ]
@@ -375,26 +376,11 @@ def _maybe_assign_for_token(t, state):
 
 
 def _handle_assign_for_replace_assigns(assign, tokens, state):
-    try:
-        t = tokens.pop(0)
-    except IndexError:
-        pass
-    else:
-        _add_token_for_replace_assigns(t, state)
-        if _tok_is_assign_op(t):
-            _handle_assign_op_for_replace_assigns(assign, tokens, state)
-
-
-def _tok_is_assign_op(t):
-    return _tok_type(t) == token.OP and _tok_str(t) == "="
-
-
-def _handle_assign_op_for_replace_assigns(assign, tokens, state):
-    _handle_pre_value_tokens_for_replace_assigns(tokens, assign, state)
+    _move_to_assign_value_for_replace_assigns(tokens, assign, state)
     _handle_value_tokens_for_replace_assigns(tokens, assign, state)
 
 
-def _handle_pre_value_tokens_for_replace_assigns(tokens, assign, state):
+def _move_to_assign_value_for_replace_assigns(tokens, assign, state):
     while tokens:
         t = tokens[0]
         if _is_assign_value_token(t, assign):
@@ -447,7 +433,6 @@ def _handle_replacement_value_for_replace_assigns(val, replaced_tokens, state):
     for t in repl_tokens:
         _add_token_for_replace_assigns(t, state)
     state.line_offset += repl_line_offset
-
     state.col_offset += repl_col_offset
 
 
