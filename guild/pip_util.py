@@ -29,6 +29,10 @@ class InstallError(Exception):
     pass
 
 
+class SearchError(Exception):
+    pass
+
+
 def SearchCommand(spec, operator, *args, **kw):
     """Guild specific pip search implementation.
 
@@ -178,7 +182,10 @@ def search(spec, operator):
     _ensure_search_logger()
     cmd = _pip_cmd(SearchCommand, spec, operator)
     options, unused_parsed_query = cmd.parse_args([])
-    return cmd.search(unused_parsed_query, options)
+    try:
+        return cmd.search(unused_parsed_query, options)
+    except Exception as e:
+        raise SearchError(str(e))
 
 
 class QuietLogger(logging.Logger):
@@ -190,6 +197,7 @@ class QuietLogger(logging.Logger):
 
 def _ensure_search_logger():
     try:
+        from pip._internal import download as _  # Avoid circular import (see #313)
         from pip._vendor.requests.packages.urllib3 import connectionpool
     except ImportError:
         pass

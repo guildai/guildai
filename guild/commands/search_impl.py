@@ -27,7 +27,10 @@ def main(args):
 
 def _search(args):
     spec, operator = _search_spec(args)
-    return pip_util.search(spec, operator)
+    try:
+        return pip_util.search(spec, operator)
+    except pip_util.SearchError as e:
+        cli.error(e)
 
 
 def _search_spec(args):
