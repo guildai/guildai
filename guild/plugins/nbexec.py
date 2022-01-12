@@ -260,9 +260,17 @@ def _pattern_slices(m):
 
 def _replace_flag_assign_vals(source, state):
     assigns = _assigns_lookup_for_source(source, state.flags)
-    source_tokens = _tokenize_source(source)
+    source_tokens, nl_added = _tokenize_source_with_nl(source)
     repl_tokens = _replace_assigns_for_tokens(source_tokens, assigns)
-    return tokenize.untokenize(repl_tokens)
+    repl_source = tokenize.untokenize(repl_tokens)
+    return _maybe_strip_nl(nl_added, repl_source)
+
+
+def _maybe_strip_nl(nl_added, source):
+    if nl_added:
+        assert source[-1:] == "\n", source
+        return source[:-1]
+    return source
 
 
 def _assigns_lookup_for_source(source, flags):
@@ -289,6 +297,25 @@ def _assigns_for_source(source, flags):
         ) in ipynb._iter_source_val_assigns(source)
         if target_node.id in flags
     ]
+
+
+def _tokenize_source_with_nl(source):
+    """Tokenizes source ensuring that the last line is terminated with nl.
+
+    This is a workaround for #303, which is caused by the Python
+    tokenizer library not handling last-line comments that aren't
+    terminated with a new line.
+
+    Returns a tuple of the tokens and a flag indicated whether or not
+    the nl was added. This flag can be used to remove the nl for
+    future untokenized source code.
+    """
+    if source[-1:] != "\n":
+        source += "\n"
+        nl_added = True
+    else:
+        nl_added = False
+    return _tokenize_source(source), nl_added
 
 
 def _tokenize_source(source):
@@ -319,7 +346,8 @@ def _tok_end(t):
     return t[3]
 
 
-def _replace_assigns_for_tokens(tokens, assigns):
+def _replace_assigns_for_tokens(tokens0, assigns):
+    tokens = list(tokens0)  # avoid mutating the tokens arg
     state = _ReplaceAssignsState(assigns)
     while tokens:
         t = tokens.pop(0)

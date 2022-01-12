@@ -232,3 +232,14 @@ omits input cells from the generates HTML.
     INFO: [guild] Executing add.ipynb
     3
     INFO: [guild] Saving HTML (omitting input cells)
+
+## Regression tests
+
+## 301
+
+Fix for comments appearning on the last line of a cell.
+
+    >>> project.run("reg_301.ipynb")
+    INFO: [guild] Initializing reg_301.ipynb for run
+    INFO: [guild] Executing reg_301.ipynb
+    INFO: [guild] Saving HTML
