@@ -16,12 +16,12 @@ modules.
     >>> with LogCapture() as logs:
     ...     flags_data = ipynb._flags_data_for_notebook(flags_ipynb)
     >>> pprint(flags_data)
-    {'a': {'default': 1.1, 'type': 'number'},
+    {'a': {'default': 1.1, 'type': 'float'},
      'b': {'default': 2.2, 'type': 'number'},
      'f': {'default': True, 'type': 'boolean'},
      's': {'default': 'hello', 'type': 'string'},
      'x': {'default': 1, 'type': 'number'},
-     'y': {'default': 2, 'type': 'number'}}
+     'y': {'default': 2, 'type': 'int'}}
 
 Verify that we didn't get any warnings while processing the notebook
 source.
