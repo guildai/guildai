@@ -28,3 +28,6 @@ extended:
         # Summarize results
         print("x: %s" % x)
         print("y: %s" % y)
+
+add2:
+  notebook: add.ipynb --html-no-input

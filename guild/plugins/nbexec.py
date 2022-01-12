@@ -66,7 +66,7 @@ def main():
     _nbexec(run_notebook)
     _print_output(run_notebook)
     _save_images(run_notebook)
-    _nbconvert_html(run_notebook)
+    _nbconvert_html(run_notebook, args)
 
 
 def _init_logging():
@@ -79,6 +79,7 @@ def _parse_args():
     p.add_argument("notebook")
     p.add_argument("--run-dir")
     p.add_argument("--no-exec", action="store_true")
+    p.add_argument("--html-no-input", action="store_true")
     return p.parse_known_args()
 
 
@@ -563,7 +564,7 @@ def _iter_notebook_images(notebook):
                 yield filename, img_bytes
 
 
-def _nbconvert_html(notebook):
+def _nbconvert_html(notebook, args):
     notebook_relpath = _relpath(notebook)
     cmd = [
         "jupyter-nbconvert",
@@ -572,10 +573,14 @@ def _nbconvert_html(notebook):
         "WARN",
         "--to",
         "html",
-        notebook_relpath,
     ]
+    if args.html_no_input:
+        cmd.append("--no-input")
+    cmd.append(notebook_relpath)
     log.debug("jupyter-nbconvert cmd: %s", cmd)
-    log.info("Saving HTML")
+    log.info(
+        "Saving HTML%s" % (" (omitting input cells)" if args.html_no_input else "")
+    )
     returncode = subprocess.call(cmd)
     if returncode != 0:
         sys.exit(returncode)

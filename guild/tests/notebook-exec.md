@@ -85,6 +85,11 @@ When we run this notebook, the defaults are used.
     c: 1.100000
     hello
 
+Guild generates saves a copy of the generated notebook and generates an HTML report.
+
+    >>> project.ls()
+    ['flags.html', 'flags.ipynb']
+
 Run with different flag values.
 
     >>> project.run_quiet("flags.ipynb", flags={
@@ -155,7 +160,7 @@ Run the operation with default values.
     30
     INFO: [guild] Saving HTML
 
-The run Notebook reflexts the default flag values.
+The run Notebook reflects the default flag values.
 
     >>> run = project.list_runs()[0]
     >>> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
@@ -216,3 +221,14 @@ substitutions where possibly applicable.
     ...
     jupyter_client.kernelspec.NoSuchKernel: No such kernel named xxx
     <exit 1>
+
+## Omitting input in HTML
+
+The `add2` operation provides the option `--html-no-input`, which
+omits input cells from the generates HTML.
+
+    >>> project.run("add2")
+    INFO: [guild] Initializing add.ipynb for run
+    INFO: [guild] Executing add.ipynb
+    3
+    INFO: [guild] Saving HTML (omitting input cells)
