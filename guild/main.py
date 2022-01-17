@@ -36,7 +36,7 @@ def main():
     except click.exceptions.ClickException as e:
         _handle_click_exception(e)
     except SystemExit as e:
-        _handle_system_exit(e)
+        handle_system_exit(e)
 
 
 def _configure_help_formatter():
@@ -69,7 +69,7 @@ def _print_error_and_exit(msg, exit_status):
     sys.exit(exit_status)
 
 
-def _handle_system_exit(e):
+def handle_system_exit(e):
     msg, code = system_exit_params(e)
     _print_error_and_exit(msg, code)
 

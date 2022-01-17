@@ -170,7 +170,10 @@ def _uniform_dim(args, func_name, flag_name):
     from skopt.space import space
 
     dim_args, initial = _dim_args_and_initial(args, func_name, flag_name)
-    return space.check_dimension(dim_args), initial
+    try:
+        return space.check_dimension(dim_args), initial
+    except ValueError as e:
+        raise batch_util.InvalidFlagFunctionArgs(func_name, args, flag_name, str(e))
 
 
 def _real_dim(args, prior, func_name, flag_name):
@@ -178,7 +181,10 @@ def _real_dim(args, prior, func_name, flag_name):
 
     dim_args, initial = _dim_args_and_initial(args, func_name, flag_name)
     real_init_args = list(dim_args) + [prior]
-    return space.Real(*real_init_args), initial
+    try:
+        return space.Real(*real_init_args), initial
+    except ValueError as e:
+        raise batch_util.InvalidFlagFunctionArgs(func_name, args, flag_name, str(e))
 
 
 def _dim_args_and_initial(args, func_name, flag_name):

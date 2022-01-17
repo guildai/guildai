@@ -29,11 +29,18 @@ def main():
 
 def _batch_trials(batch_run):
     random_seed = batch_run.get("random_seed")
-    all_trials = batch_util.expanded_batch_trials(batch_run, random_seed)
+    all_trials = _expand_batch_trials(batch_run, random_seed)
     max_trials = batch_run.get("max_trials")
     if max_trials is None:
         return all_trials
     return batch_util.sample_trials(all_trials, max_trials, random_seed)
+
+
+def _expand_batch_trials(batch_run, random_seed):
+    try:
+        return batch_util.expanded_batch_trials(batch_run, random_seed)
+    except batch_util.InvalidFlagFunctionArgs as e:
+        batch_util.invalid_flag_function_args_error(e)
 
 
 if __name__ == "__main__":

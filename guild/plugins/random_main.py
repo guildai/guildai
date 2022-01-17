@@ -47,6 +47,8 @@ def _batch_trials(batch_run):
         skopt_util.missing_search_dim_error(proto_flag_vals)
     except skopt_util.InvalidSearchDimension as e:
         _search_dim_error(e)
+    except batch_util.InvalidFlagFunctionArgs as e:
+        batch_util.invalid_flag_function_args_error(e)
 
 
 def _search_dim_error(e):
@@ -62,4 +64,7 @@ def gen_trials(
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit as e:
+        batch_util.handle_system_exit(e)

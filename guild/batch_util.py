@@ -22,7 +22,6 @@ import logging
 import os
 import random
 import signal
-import sys
 import threading
 
 import six
@@ -32,6 +31,7 @@ from guild import cli
 from guild import exit_code
 from guild import flag_util
 from guild import lock as locklib
+from guild import main
 from guild import op_util
 from guild import run_util
 from guild import util
@@ -55,6 +55,14 @@ __batch_exiting = threading.Event()
 
 class CurrentRunNotBatchError(Exception):
     pass
+
+
+class InvalidFlagFunctionArgs(Exception):
+    def __init__(self, name, args, flag_name, msg):
+        super(InvalidFlagFunctionArgs, self).__init__(msg)
+        self.function_name = name
+        self.function_args = args
+        self.flag_name = flag_name
 
 
 ###################################################################
@@ -234,9 +242,19 @@ def _trial_flags_desc(run):
     return op_util.flags_desc(flags)
 
 
-def handle_trial_system_exit(e, batch_run, trial_run):
-    from guild import main
+def invalid_flag_function_args_error(e):
+    raise SystemExit(
+        "invalid function args in '%s=%s': %s"
+        % (e.flag_name, _flag_value_for_function(e.function_name, e.function_args), e)
+    )
 
+
+def _flag_value_for_function(name, args):
+    args_list = ":".join([str(arg) for arg in args])
+    return "%s[%s]" % (name, args_list)
+
+
+def handle_trial_system_exit(e, batch_run, trial_run):
     msg, code = main.system_exit_params(e)
     if code == 0:
         if msg:
@@ -527,15 +545,7 @@ def _run_scalar(run, scalar, index):
 
 
 def handle_system_exit(e):
-    if isinstance(e.code, tuple) and len(e.code) == 2:
-        msg, code = e.code
-    elif isinstance(e.code, int):
-        msg, code = None, e.code
-    else:
-        msg, code = e.message, exit_code.DEFAULT
-    if msg:
-        sys.stderr.write("guild: %s\n" % msg)
-    sys.exit(code)
+    main.handle_system_exit(e)
 
 
 def init_logging():

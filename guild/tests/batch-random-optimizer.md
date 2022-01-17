@@ -175,3 +175,15 @@ Too many arguments to loguniform function:
     >>> project.run("echo.py", flags={"x": "loguniform[1:2:3:4]"})
     ERROR: [guild] loguniform requires 2 or 3 args, got (1, 2, 3, 4) for flag x
     <exit 1>
+
+Invalid order of range args:
+
+    >>> project.run("echo.py", flags={"x": "loguniform[1.2:1.1]"})
+    guild: invalid function args in 'x=loguniform[1.2:1.1]': the lower bound 1.2 has
+    to be less than the upper bound 1.1
+    <exit 1>
+
+    >>> project.run("echo.py", optimizer="+", flags={"x": "loguniform[4:1]"})
+    guild: invalid function args in 'dummy=loguniform[4:1]': the lower bound 4 has
+    to be less than the upper bound 1
+    <exit 1>

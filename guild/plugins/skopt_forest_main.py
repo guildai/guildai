@@ -69,4 +69,7 @@ def gen_trials(
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit as e:
+        batch_util.handle_system_exit(e)
