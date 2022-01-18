@@ -386,6 +386,13 @@ def run_params(fn):
                 help="Keep batch run rather than delete it on success.",
             ),
             click.Option(
+                ("-D", "--dep", "additional_deps"),
+                metavar="PATH",
+                help=("Include PATH as a dependency."),
+                multiple=True,
+                autocompletion=click_util.completion_filename,
+            ),
+            click.Option(
                 ("--break", "break_"),
                 metavar="LOCATION",
                 help=(

@@ -61,10 +61,10 @@ class OpDependency(object):
 
 
 def deps_for_opdef(opdef, flag_vals):
-    return [_init_dep(depdef, flag_vals) for depdef in opdef.dependencies]
+    return [dep_for_depdef(depdef, flag_vals) for depdef in opdef.dependencies]
 
 
-def _init_dep(depdef, flag_vals):
+def dep_for_depdef(depdef, flag_vals):
     resdef, res_location = resource_def(depdef, flag_vals)
     config = _resdef_config(resdef, flag_vals)
     return OpDependency(resdef, res_location, config)
@@ -203,6 +203,21 @@ def _resolve_rename_spec_refs(specs, flag_vals, resdef):
 
 
 ###################################################################
+# Dep constructors
+###################################################################
+
+
+def dep_for_path(path, resource_name=None):
+    res_data = {
+        "sources": [{"file": path}],
+        "target-type": "link",
+    }
+    resource_name = resource_name or "file:%s" % path
+    resdef = resourcedef.ResourceDef(resource_name, res_data)
+    return OpDependency(resdef, res_location=".", config=None)
+
+
+###################################################################
 # Resolve support
 ###################################################################
 
@@ -239,8 +254,9 @@ def resolve_source(source, dep, resolve_context):
 
 def _dep_resource_locations(dep):
     yield dep.res_location
-    for parent in dep.resdef.modeldef.parents:
-        yield parent.dir
+    if hasattr(dep.resdef, "modeldef"):
+        for parent in dep.resdef.modeldef.parents:
+            yield parent.dir
 
 
 def _resolve_source_for_location(source, dep, location, resolve_context):

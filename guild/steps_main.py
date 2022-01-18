@@ -38,6 +38,7 @@ from guild import util
 log = None  # intialized in _init_logging
 
 STEP_USED_PARAMS = (
+    "additional_deps",
     "batch_label",
     "batch_tags",
     "break_",

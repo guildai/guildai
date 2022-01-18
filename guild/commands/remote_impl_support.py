@@ -174,6 +174,7 @@ def _handle_op_error(e, remote):
 
 def _run_kw(args):
     names = [
+        "additional_deps",
         "batch_comment",
         "batch_label",
         "batch_tags",
