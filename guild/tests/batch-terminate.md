@@ -57,9 +57,16 @@ Show the runs after stopping the batch.
 
 Show output for the batch.
 
-    >>> run("guild cat 3 --output")
+    >>> out, exit_code = run_capture("guild cat 3 --output")
+    >>> (out, exit_code)
+    (..., 0)
+
+    >>> print(out)
     INFO: [guild] Running trial ...: sleep.py (seconds=99)
-    INFO: [guild] Stopping trial (proc ...)
-    INFO: [guild] Trial ... was terminated
-    INFO: [guild] Stopping batch (pending trials can be started as needed)
-    <exit 0>
+    ...
+
+    >>> "INFO: [guild] Stopping trial" in out, out
+    (True, ...)
+
+    >>> "INFO: [guild] Stopping batch (pending trials can be started as needed)" in out, out
+    (True, ...)
