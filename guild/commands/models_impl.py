@@ -21,7 +21,7 @@ from guild import cli
 from guild import cmd_impl_support
 from guild import config
 from guild import guildfile
-from guild import model
+from guild import model as modellib
 from guild import util
 
 
@@ -47,7 +47,7 @@ def models_iter_dirs(args):
 def iter_models(dirs=None, include_anonymous=False):
     dirs = dirs or []
     abs_dirs = [os.path.abspath(d) for d in dirs]
-    for m in model.iter_models():
+    for m in modellib.iter_models():
         if (m.modeldef.name or include_anonymous) and _match_dirs(m, abs_dirs):
             yield m
 
@@ -92,6 +92,6 @@ def _model_sort_key(m):
 
 
 def _model_type_key(m):
-    if isinstance(m["_model"], model.GuildfileModel):
+    if isinstance(m["_model"], modellib.GuildfileModel):
         return 999
     return 0
