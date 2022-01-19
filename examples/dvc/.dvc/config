@@ -1,0 +1,5 @@
+[core]
+    analytics = false
+    remote = default
+['remote "default"']
+    url = s3://guild-pub/dvc-store

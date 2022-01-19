@@ -1,0 +1,26 @@
+stages:
+  prepare-data:
+    cmd: python prepare_data.py
+    deps:
+    - iris.csv
+    - prepare_data.py
+    outs:
+    - iris.npy
+  train-models:
+    cmd: python train_models.py
+    deps:
+    - iris.npy
+    outs:
+    - model-1.joblib
+    - model-2.joblib
+    - model-3.joblib
+    - model-4.joblib
+  eval-models:
+    cmd: python eval_models.py
+    deps:
+    - model-1.joblib
+    - model-2.joblib
+    - model-3.joblib
+    - model-4.joblib
+    outs:
+    - models-eval.png

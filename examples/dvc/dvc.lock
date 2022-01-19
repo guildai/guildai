@@ -1,0 +1,53 @@
+schema: '2.0'
+stages:
+  prepare-data:
+    cmd: python prepare_data.py
+    deps:
+    - path: iris.csv
+      md5: 717820ef0af287ff346c5cabfb4c612c
+      size: 5107
+    - path: prepare_data.py
+      md5: 004ed07cb655d55d178d29fc612c92dc
+      size: 375
+    outs:
+    - path: iris.npy
+      md5: 7c9fdb5ece2856f20d0eba3c21a4cbf8
+      size: 6128
+  train-models:
+    cmd: python train_models.py
+    deps:
+    - path: iris.npy
+      md5: 7c9fdb5ece2856f20d0eba3c21a4cbf8
+      size: 6128
+    outs:
+    - path: model-1.joblib
+      md5: 2e71655308aa5fe1301817023eb91b5f
+      size: 5555
+    - path: model-2.joblib
+      md5: b835ddb774c2944cad61dab48c1c1457
+      size: 776
+    - path: model-3.joblib
+      md5: 4d0abf187f9eb5319fae2ebab5a64d48
+      size: 5770
+    - path: model-4.joblib
+      md5: 6491f67c1757807b139f005116addca1
+      size: 4937
+  eval-models:
+    cmd: python eval_models.py
+    deps:
+    - path: model-1.joblib
+      md5: 2e71655308aa5fe1301817023eb91b5f
+      size: 5555
+    - path: model-2.joblib
+      md5: b835ddb774c2944cad61dab48c1c1457
+      size: 776
+    - path: model-3.joblib
+      md5: 4d0abf187f9eb5319fae2ebab5a64d48
+      size: 5770
+    - path: model-4.joblib
+      md5: 6491f67c1757807b139f005116addca1
+      size: 4937
+    outs:
+    - path: models-eval.png
+      md5: 6c257a00a0ce6529bad895b86f9919b4
+      size: 88238
