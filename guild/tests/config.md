@@ -61,7 +61,7 @@ Otherwise, the default location `~/.guild/config.yml` is used. Here we
 redefine `HOME` to use the test config created above.
 
     >>> empty_dir = mkdtemp()
-    >>> with SetCwd(empty_dir):
+    >>> with SetCwd(empty_dir):  # doctest: -WINDOWS
     ...     with Env({"HOME": fake_home}):
     ...         pprint(config.user_config())
     {'remotes': {'foo': {'description': 'Remote defined in default location'}}}
