@@ -1,4 +1,4 @@
-# Copyright 2017-2021 TensorHub, Inc.
+# Copyright 2017-2022 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -751,6 +751,7 @@ def _build_package(src_dir, dist_dir):
 
 
 def _run_args(
+    additional_deps,
     batch_comment,
     batch_label,
     batch_tags,
@@ -786,6 +787,8 @@ def _run_args(
     yes,
 ):
     args = []
+    for dep in additional_deps:
+        args.extend(["--dep", dep])
     if batch_comment:
         args.extend(["--batch-comment", batch_comment])
     if batch_label:

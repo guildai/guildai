@@ -32,6 +32,7 @@ Default list includes all built-in tests and a directive to include
 markdown and text files.
 
     >>> ac_check_tests("")
+    additional-deps
     anonymous-models
     api
     autocomplete

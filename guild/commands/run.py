@@ -1,4 +1,4 @@
-# Copyright 2017-2021 TensorHub, Inc.
+# Copyright 2017-2022 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -384,6 +384,13 @@ def run_params(fn):
                 ("--keep-batch",),
                 is_flag=True,
                 help="Keep batch run rather than delete it on success.",
+            ),
+            click.Option(
+                ("-D", "--dep", "additional_deps"),
+                metavar="PATH",
+                help=("Include PATH as a dependency."),
+                multiple=True,
+                autocompletion=click_util.completion_filename,
             ),
             click.Option(
                 ("--break", "break_"),

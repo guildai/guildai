@@ -1,4 +1,4 @@
-# Copyright 2017-2021 TensorHub, Inc.
+# Copyright 2017-2022 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -174,6 +174,7 @@ def _handle_op_error(e, remote):
 
 def _run_kw(args):
     names = [
+        "additional_deps",
         "batch_comment",
         "batch_label",
         "batch_tags",

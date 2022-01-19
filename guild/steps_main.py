@@ -1,4 +1,4 @@
-# Copyright 2017-2021 TensorHub, Inc.
+# Copyright 2017-2022 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ from guild import util
 log = None  # intialized in _init_logging
 
 STEP_USED_PARAMS = (
+    "additional_deps",
     "batch_label",
     "batch_tags",
     "break_",

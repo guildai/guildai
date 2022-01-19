@@ -1,4 +1,4 @@
-# Copyright 2017-2021 TensorHub, Inc.
+# Copyright 2017-2022 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -116,6 +116,7 @@ class Operation(oplib.Operation):
         self._sourcecode_root = None
         self._flags_extra = None
         self._delete_on_success = None
+        self._additional_deps = []
 
 
 def _state_for_args(args):
@@ -886,7 +887,7 @@ def _op_init_core(args, op):
     _op_init_run_dir(args, op)
     _op_init_label(op)
     _op_init_random_seed(args.random_seed, op)
-    _op_init_deps(op)
+    _op_init_deps(args, op)
     _op_init_run_attrs(args, op)
     _op_init_callbacks(op)
 
@@ -1055,11 +1056,12 @@ def _random_seed_for_run(run):
 # =================================================================
 
 
-def _op_init_deps(op):
+def _op_init_deps(args, op):
     if op._run:
         _check_flags_for_resolved_deps(op._user_flag_vals, op._run)
     if op._opdef:
         op.deps = _op_deps_for_opdef(op._opdef, op._op_flag_vals)
+    _append_additional_deps(args, op)
 
 
 def _check_flags_for_resolved_deps(flag_vals, run):
@@ -1078,6 +1080,12 @@ def _op_deps_for_opdef(opdef, flag_vals):
         return op_dep.deps_for_opdef(opdef, flag_vals)
     except op_dep.OpDependencyError as e:
         _invalid_opdef_error(opdef, e)
+
+
+def _append_additional_deps(args, op):
+    op.deps.extend(
+        [op_dep.dep_for_path(path, resource_name=path) for path in args.additional_deps]
+    )
 
 
 # =================================================================

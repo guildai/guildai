@@ -1,4 +1,4 @@
-# Copyright 2017-2021 TensorHub, Inc.
+# Copyright 2017-2022 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -125,6 +125,7 @@ def _popen_args(
     background=False,
     keep_run=False,
     keep_batch=False,
+    deps=None,
 ):
     from guild import op_util
 
@@ -214,6 +215,9 @@ def _popen_args(
         args.append("--keep-run")
     if keep_batch:
         args.append("--keep-batch")
+    deps = deps or []
+    for dep in deps:
+        args.extend(["--dep", dep])
     args.extend(op_util.flag_assigns(flags))
     args.extend(["@%s" % path for path in (batch_files or [])])
     env = dict(os.environ)

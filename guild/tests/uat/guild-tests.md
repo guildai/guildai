@@ -6,6 +6,7 @@ tests).
 
     >>> run("NO_SKIPPED_MSG=1 guild check -nT", timeout=1800) # doctest: +REPORT_UDIFF
     internal tests:
+      additional-deps:             ok
       anonymous-models:            ok
       api:                         ok
       autocomplete:                ok
