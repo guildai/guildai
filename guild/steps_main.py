@@ -439,7 +439,8 @@ def _link_to_step_run(step, step_run_dir, parent_run_dir):
     link_name = _step_link_name(step)
     link_path_base = os.path.join(parent_run_dir, link_name)
     link_path = _ensure_unique_link(link_path_base)
-    os.symlink(step_run_dir, link_path)
+    rel_step_run_dir = os.path.relpath(step_run_dir, os.path.dirname(link_path))
+    os.symlink(rel_step_run_dir, link_path)
 
 
 def _step_link_name(step):
@@ -529,4 +530,7 @@ def _error(msg, exit_code=exit_code.DEFAULT_ERROR):
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit as e:
+        op_util.handle_system_exit(e)
