@@ -35,6 +35,7 @@ from guild import guildfile
 from guild import file_util
 from guild import flag_util
 from guild import log as loglib
+from guild import main
 from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import run as runlib
@@ -1902,3 +1903,7 @@ def init_logging(default_level=logging.WARN):
 
 def current_run():
     return _api.current_run()
+
+
+def handle_system_exit(e):
+    main.handle_system_exit(e)

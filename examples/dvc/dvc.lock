@@ -4,7 +4,7 @@ stages:
     cmd: python prepare_data.py
     deps:
     - path: iris.csv
-      md5: 717820ef0af287ff346c5cabfb4c612c
+      md5: 17c3e930dc562074369b062ebd90de77
       size: 5107
     - path: prepare_data.py
       md5: 004ed07cb655d55d178d29fc612c92dc
@@ -51,3 +51,5 @@ stages:
     - path: models-eval.png
       md5: 6c257a00a0ce6529bad895b86f9919b4
       size: 88238
+  test:
+    cmd: python test.py

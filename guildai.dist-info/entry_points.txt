@@ -7,6 +7,7 @@ guild = guild.main_bootstrap:main
 cpu = guild.plugins.cpu:CPUPlugin
 dask = guild.plugins.dask:DaskPlugin
 disk = guild.plugins.disk:DiskPlugin
+dvc = guild.plugins.dvc:DvcPlugin
 exec_script = guild.plugins.exec_script:ExecScriptPlugin
 gpu = guild.plugins.gpu:GPUPlugin
 keras = guild.plugins.keras:KerasPlugin

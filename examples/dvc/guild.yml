@@ -1,0 +1,7 @@
+- model: ''
+  extra:
+    dvc-stages-import: all
+  operations:
+    prepare-data: {}
+    dvc-test:
+      exec: dvc repro test

@@ -24,3 +24,5 @@ stages:
     - model-4.joblib
     outs:
     - models-eval.png
+  test:
+    cmd: python test.py

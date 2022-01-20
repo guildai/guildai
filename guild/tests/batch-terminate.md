@@ -49,11 +49,25 @@ Wait for the runs to stop;
 
 Show the runs after stopping the batch.
 
-    >>> run("guild runs")
+    >>> out, exit_code = run_capture("guild runs")
+    >>> (out, exit_code)
+    (..., 0)
+
+    >>> re.search(r"sleep.py   .*?  terminated  seconds=99", out, re.MULTILINE) is not None, out
+    (True, ...)
+
+    >>> re.search(r"sleep.py   .*?  pending     seconds=99", out, re.MULTILINE) is not None, out
+    (True, ...)
+
+    >>> re.search(r"sleep.py\+  .*?  terminated", out, re.MULTILINE) is not None, out
+    (True, ...)
+
+
     [1:...]  sleep.py   ...  terminated  seconds=99
     [2:...]  sleep.py   ...  pending     seconds=99
     [3:...]  sleep.py+  ...  terminated
     <exit 0>
+
 
 Show output for the batch.
 
