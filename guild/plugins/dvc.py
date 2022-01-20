@@ -12,6 +12,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""TODO:
+
+- Expose 'pipeline' switch as flag to a DvC operation
+- Link to upstream stages from pipeline op
+- Support for flags
+  - Pipeline level (all available params from dvc.param)
+  - Stage level (stage specific params from dvc.param)
+
+Flags I think will require in-place editing of the params file for the
+run. To preserve the copy of params that was used, this file must be
+copied to the run dir immediately after changing it and before
+starting the op.
+
+What to do with inputs to an operation? Should these be copied into
+the run directory as well, but before the operation starts? How else
+can you track these files? Maybe there's a flag to the stage op to
+configure this behavior.
+
+Maybe these options:
+
+- Copy inputs
+- Don't copy inputs
+- Link to cached inputs
+
+XXX - before biting down on the "run in project dir + copy", play
+around with "copy + run in run dir" using the same basic logic. Always
+copying from the project and maintaining shared cache/tmp dirs. I
+think the problem here will be, what to copy. Not sure!
+
+I think the risk to the above is:
+
+- It gets complicated, with Guild knowing a lot about everything that
+  DvC does
+- With the complexity, it'll be hard for users to know what's going on
+- Is there a need for this, given that DvC works that way
+
+Counterpoint:
+
+- It's a much better model, to copy the repo and run from the run dir
+- If we can find a simple Zen implementation, it might not be
+  complicated
+
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 
@@ -33,7 +77,7 @@ log = logging.getLogger("guild")
 
 class _DvcModelProxy(object):
 
-    name = "__dvc__"
+    name = "dvc.yaml"
 
     def __init__(self, target_stage, config_dir):
         self.modeldef = _init_dvc_modeldef(self.name, target_stage, config_dir)
@@ -47,7 +91,8 @@ def _init_dvc_modeldef(model_name, target_stage, config_dir):
             "operations": {
                 target_stage: {
                     "exec": (
-                        "${python_exe} -um guild.plugins.dvc_stage_main %s %s"
+                        "${python_exe} -um guild.plugins.dvc_stage_main "
+                        "--project-dir %s %s"
                         % (util.shlex_quote(config_dir), util.shlex_quote(target_stage))
                     ),
                 }
@@ -59,7 +104,7 @@ def _init_dvc_modeldef(model_name, target_stage, config_dir):
 
 
 def _init_dvc_model_reference():
-    return modellib.ModelRef("builtin", "guildai", guild.__version__, "__dvc__")
+    return modellib.ModelRef("builtin", "guildai", guild.__version__, "dvc.yaml")
 
 
 class _Stage:
@@ -77,8 +122,8 @@ class DvcPlugin(pluginlib.Plugin):
 
     @staticmethod
     def resolve_model_op(opspec):
-        if opspec.startswith("__dvc__:"):
-            target_stage = opspec[8:]
+        if opspec.startswith("dvc.yaml:"):
+            target_stage = opspec[9:]
             model = _DvcModelProxy(target_stage, os.path.abspath(config.cwd()))
             return model, target_stage
         return None
@@ -164,7 +209,7 @@ def _apply_stage_config_to_opdef(stage, opdef):
         log.warning(
             "ignoring operation main attribute %r for DvC stage import", opdef.main
         )
-    opdef.main = "guild.plugins.dvc_stage_main --pipeline %s %s" % (
+    opdef.main = "guild.plugins.dvc_stage_main --pipeline --project-dir %s %s" % (
         util.shlex_quote(stage.config_dir),
         util.shlex_quote(stage.name),
     )

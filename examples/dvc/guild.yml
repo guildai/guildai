@@ -3,5 +3,13 @@
     dvc-stages-import: all
   operations:
     prepare-data: {}
-    dvc-test:
-      exec: dvc repro test
+    test-dvc-stage:
+      main: guild.plugins.dvc_stage_main test --project-dir ${project_dir}
+    test-dvc-pipeline:
+      main: guild.plugins.dvc_stage_main test --pipeline
+    test-op: test
+    test-guild-pipeline:
+      steps:
+        - test-op
+        - test-op
+        - test-op

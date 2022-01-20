@@ -26,3 +26,5 @@ stages:
     - models-eval.png
   test:
     cmd: python test.py
+    outs:
+      - test.out
