@@ -62,13 +62,6 @@ Show the runs after stopping the batch.
     >>> re.search(r"sleep.py\+  .*?  terminated", out, re.MULTILINE) is not None, out
     (True, ...)
 
-
-    [1:...]  sleep.py   ...  terminated  seconds=99
-    [2:...]  sleep.py   ...  pending     seconds=99
-    [3:...]  sleep.py+  ...  terminated
-    <exit 0>
-
-
 Show output for the batch.
 
     >>> out, exit_code = run_capture("guild cat 3 --output")
