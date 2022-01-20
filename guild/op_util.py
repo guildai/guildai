@@ -1060,6 +1060,7 @@ def _op_cmd_args_and_run_attrs(opdef):
     exec_args = split_cmd(exec_str)
     _apply_main_args(main_args, exec_args)
     _apply_flag_args_marker(exec_args)
+    _apply_other_args(exec_args, opdef)
     return exec_args, run_attrs
 
 
@@ -1116,6 +1117,16 @@ def _apply_flag_args_marker(exec_args):
     for i, val in enumerate(exec_args):
         if val == "${flag_args}":
             exec_args[i] = "__flag_args__"
+
+
+def _apply_other_args(args, opdef):
+    repl = [
+        ("${project_dir}", opdef.guildfile.dir),
+    ]
+    for i, val in enumerate(args):
+        for pattern, text in repl:
+            if val and text:
+                args[i] = val.replace(pattern, text)
 
 
 def _op_cmd_env(opdef, extra_env):
