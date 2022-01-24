@@ -112,6 +112,7 @@ class FileResolver(Resolver):
     def resolve(self, resolve_context):
         if self.resource.config:
             return _resolve_config_path(self.resource.config, self.source.resdef.name)
+        pre_process(self.source, self.resource.location)
         source_path = self._abs_source_path()
         unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)
         resolved = self._resolve_source_files(source_path, unpack_dir)
@@ -820,8 +821,22 @@ def _write_cached_unpacked(unpacked, unpack_dir, source_path):
 
 
 ###################################################################
-# Post process support
+# Pre and post process support
 ###################################################################
+
+
+def pre_process(source, cwd):
+    if not source.pre_process:
+        return
+    cmd_in = source.pre_process.strip().replace("\n", " ")
+    cmd = _apply_source_script_functions(cmd_in, source)
+    log.info("Pre processing %s resource in %s: %r", source.resdef.name, cwd, cmd)
+    try:
+        subprocess.check_call(cmd, shell=True, cwd=cwd)
+    except subprocess.CalledProcessError as e:
+        raise ResolutionError(
+            "error pre processing %s resource: %s" % (source.resdef.name, e)
+        )
 
 
 def post_process(source, cwd, use_cache=True):

@@ -565,7 +565,7 @@ def test_globals():
         "re": re,
         "realpath": util.realpath,
         "relpath": os.path.relpath,
-        "rm": os.remove,
+        "rm": _rm,
         "rmdir": util.safe_rmtree,
         "run": _run,
         "run_capture": _run_capture,
@@ -1061,6 +1061,12 @@ def _strip_class_module(class_name):
 
 def _normlf(s):
     return s.replace("\r", "")
+
+
+def _rm(path, force=False):
+    if force and not os.path.exists(path):
+        return
+    os.remove(path)
 
 
 def _run_capture(*args, **kw):

@@ -39,8 +39,8 @@ stages:
     cmd: python eval_models.py
     deps:
     - path: eval_models.py
-      md5: a0e479c106f513395e94cd19cd018284
-      size: 1515
+      md5: 6fe1049cf1470fae199e82b1c7b9cfba
+      size: 1829
     - path: model-1.joblib
       md5: 2e71655308aa5fe1301817023eb91b5f
       size: 5555
@@ -54,6 +54,9 @@ stages:
       md5: 6491f67c1757807b139f005116addca1
       size: 4937
     outs:
+    - path: models-eval.json
+      md5: 63697de1383989c3e70e4a9e192e64dc
+      size: 119
     - path: models-eval.png
       md5: 6c257a00a0ce6529bad895b86f9919b4
       size: 88238
@@ -70,3 +73,22 @@ stages:
     - path: test.out
       md5: 3a4bfa584a02c3d09b0c5d536911686f
       size: 9
+  hello:
+    cmd: python hello.py
+    deps:
+    - path: hello.in
+      md5: b1ac47603ca5974c0f0eee8db3936241
+      size: 6
+    - path: hello.py
+      md5: 4fa7642dd08ea34b2b9abcb489347e31
+      size: 105
+    outs:
+    - path: hello.out
+      md5: afc1e5908513ab21112a3b958c7ee67d
+      size: 13
+  delme:
+    cmd: python eval_models.py
+    outs:
+    - path: models-eval.json
+      md5: 63697de1383989c3e70e4a9e192e64dc
+      size: 119

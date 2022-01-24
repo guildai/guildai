@@ -75,7 +75,9 @@ def _init_dvc_modeldef(model_name, target_stage, config_dir):
                         % (util.shlex_quote(config_dir), util.shlex_quote(target_stage))
                     ),
                     "flags": {
+                        "pipeline": _pipeline_flag_data(default=False),
                         "copy-deps": _copy_deps_flag_data(),
+                        "pull-first": _pull_first_flag_data(default=False),
                     },
                 }
             },
@@ -169,47 +171,54 @@ def _filter_dvc_stage(name, import_spec):
 
 
 def _add_or_merge_operation_for_stage(stage, model):
-    opdef = _ensure_opdef(stage.name, model)
+    opdef = _ensure_stage_opdef(stage, model)
     log.debug("importing DvC stage '%s' as '%s'", stage.name, opdef.fullname)
-    _apply_stage_config_to_opdef(stage, opdef)
 
 
-def _ensure_opdef(name, model):
-    opdef = model.get_operation(name)
-    if not opdef:
-        opdef = _init_opdef(name, model)
-        model.operations.append(opdef)
-    return opdef
+def _ensure_stage_opdef(stage, model):
+    model_opdef = model.get_operation(stage.name)
+    stage_opdef = _init_stage_opdef(stage, model)
+    if model_opdef:
+        _apply_stage_opdef_config(stage_opdef, model_opdef)
+        return model_opdef
+    else:
+        model.operations.append(stage_opdef)
+        return stage_opdef
 
 
-def _init_opdef(name, model):
+def _init_stage_opdef(stage, model):
     op_data = {
+        "main": "guild.plugins.dvc_stage_main --project-dir %s %s"
+        % (
+            util.shlex_quote(stage.config_dir),
+            util.shlex_quote(stage.name),
+        ),
+        "description": "Stage '%s' imported from dvc.yaml" % stage.name,
         "flags": {
-            "pipeline": {
-                "description": (
-                    "Run stage as pipeline. This runs stage dependencies first."
-                ),
-                "type": "boolean",
-                "arg-switch": True,
-                "default": True,
-            },
+            "pipeline": _pipeline_flag_data(default=True),
             "copy-deps": _copy_deps_flag_data(),
-            "pull-first": {
-                "description": "Run 'dvc pull' before running stages.",
-                "type": "boolean",
-                "arg-switch": True,
-                "default": True,
-            },
+            "pull-first": _pull_first_flag_data(default=True),
         },
     }
-    return guildfile.OpDef(name, op_data, model)
+    return guildfile.OpDef(stage.name, op_data, model)
+
+
+def _pipeline_flag_data(default):
+    return {
+        "description": (
+            "Run stage as pipeline. This runs stage dependencies first."
+        ),
+        "type": "boolean",
+        "arg-switch": True,
+        "default": default,
+    }
 
 
 def _copy_deps_flag_data():
     return {
         "description": (
             "Whether or not to copy stage dependencies to the run directory. "
-            "Note that '*.dvc' files are always copied for when available."
+            "Note that '*.dvc' files are always copied when available."
         ),
         "type": "boolean",
         "arg-switch": True,
@@ -217,12 +226,24 @@ def _copy_deps_flag_data():
     }
 
 
-def _apply_stage_config_to_opdef(stage, opdef):
-    if opdef.main:
+def _pull_first_flag_data(default):
+    return {
+        "description": "Run 'dvc pull' before running stages.",
+        "type": "boolean",
+        "arg-switch": True,
+        "default": default,
+    }
+
+
+def _apply_stage_opdef_config(stage_opdef, model_opdef):
+    if model_opdef.main:
         log.warning(
-            "ignoring operation main attribute %r for DvC stage import", opdef.main
+            "ignoring operation main attribute %r for DvC stage import",
+            model_opdef.main,
         )
-    opdef.main = "guild.plugins.dvc_stage_main --project-dir %s %s" % (
-        util.shlex_quote(stage.config_dir),
-        util.shlex_quote(stage.name),
-    )
+    model_opdef.main = stage_opdef.main
+    if not model_opdef.description:
+        model_opdef.description = stage_opdef.description
+    if model_opdef.flags:
+        log.warning("ignoring operation flags for DvC stage import")
+    model_opdef.flags = list(stage_opdef.flags)

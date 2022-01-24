@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import argparse
+import json
 import logging
 import os
 import re
@@ -27,6 +28,7 @@ import yaml
 from guild import config
 from guild import op_util
 from guild import steps_util
+from guild import summary
 from guild import util
 
 from guild.commands import run_impl
@@ -196,9 +198,14 @@ def _assert_not_ran_pipeline_stage(stage, pipeline):
 def _run_pipeline_stage(stage, pipeline):
     stage_run = _init_stage_run(stage, pipeline)
     env = _stage_env()
+    flags = ("copy-deps=%s" % ("yes" if pipeline.copy_deps else "no"),)
     with config.SetCwd(pipeline.project_dir):
         with util.Env(env, replace=True):
-            run_impl.run(opspec="dvc.yaml:%s" % stage, run_dir=stage_run.dir)
+            run_impl.run(
+                opspec="dvc.yaml:%s" % stage,
+                flags=flags,
+                run_dir=stage_run.dir,
+            )
 
 
 def _init_stage_run(stage, pipeline):
@@ -227,8 +234,9 @@ def _handle_stage(pipeline):
     _maybe_pull(pipeline)
     _repro_run_for_pipeline(pipeline)
     _copy_dvc_meta_to_run_dir(pipeline)
-    _copy_stage_deps_to_run_dir(pipeline)
-    _copy_stage_outputs_to_run_dir(pipeline)
+    _copy_deps_to_run_dir(pipeline)
+    _copy_outputs_to_run_dir(pipeline)
+    _copy_metrics_to_run_dir(pipeline)
 
 
 def _repro_run_for_pipeline(pipeline):
@@ -266,7 +274,14 @@ def _copy_dvc_meta_to_run_dir(pipeline):
         shutil.copy(src, run_dir)
 
 
-def _copy_stage_deps_to_run_dir(pipeline):
+def _required_run_dir():
+    run_dir = os.getenv("RUN_DIR")
+    if not run_dir:
+        raise SystemExit("missing required environment RUN_DIR for operation")
+    return run_dir
+
+
+def _copy_deps_to_run_dir(pipeline):
     source_dir = pipeline.project_dir
     deps = _target_stage_deps(pipeline)
     run_dir = _required_run_dir()
@@ -296,7 +311,7 @@ def _copy_stage_file(name, source_dir, dest_dir, desc, if_exists=False):
     shutil.copy(src, dest_dir)
 
 
-def _copy_stage_outputs_to_run_dir(pipeline):
+def _copy_outputs_to_run_dir(pipeline):
     source_dir = pipeline.project_dir
     outputs = _target_stage_outputs(pipeline)
     run_dir = _required_run_dir()
@@ -309,11 +324,67 @@ def _target_stage_outputs(pipeline):
     return stage_data.get("outs", [])
 
 
-def _required_run_dir():
-    run_dir = os.getenv("RUN_DIR")
-    if not run_dir:
-        raise SystemExit("missing required environment RUN_DIR for operation")
-    return run_dir
+def _copy_metrics_to_run_dir(pipeline):
+    source_dir = pipeline.project_dir
+    metrics = _target_stage_metrics(pipeline)
+    run_dir = _required_run_dir()
+    with summary.SummaryWriter(run_dir) as events:
+        for name in metrics:
+            _copy_stage_file(name, source_dir, run_dir, "metrics")
+            _write_metrics_as_scalars(name, run_dir, events)
+
+
+def _target_stage_metrics(pipeline):
+    stage_data = pipeline.dvc_yaml.get("stages", {}).get(pipeline.target_stage, {})
+    for x in stage_data.get("metrics", []):
+        if isinstance(x, str):
+            yield x
+        elif isinstance(x, dict):
+            for name in x:
+                yield name
+        else:
+            log.warning(
+                "unexpected metrics value %r for stage '%s', skipping",
+                x,
+                pipeline.target_stage,
+            )
+
+
+def _write_metrics_as_scalars(metrics_name, run_dir, events):
+    try:
+        data = _load_metrics(os.path.join(run_dir, metrics_name))
+    except Exception as e:
+        log.warning("error reading metrics from %s: %s", metrics_name, e)
+    else:
+        for tag, val in _iter_metrics_scalars(data):
+            events.add_scalar(tag, val)
+
+
+def _load_metrics(path):
+    ext = os.path.splitext(path)[1]
+    if ext in (".yml", "yaml"):
+        return _load_yaml(path)
+    elif ext in (".json",):
+        return _load_json(path)
+    else:
+        raise ValueError("unsupported metrics type in %s" % os.path.basename(path))
+
+
+def _load_yaml(path):
+    return yaml.safe_load(open(path))
+
+
+def _load_json(path):
+    return json.load(open(path))
+
+
+def _iter_metrics_scalars(data):
+    if not isinstance(data, dict):
+        return
+    flattened_data = util.encode_nested_config(data)
+    for name, val in flattened_data.items():
+        if isinstance(val, (int, float)):
+            yield name, val
 
 
 if __name__ == "__main__":

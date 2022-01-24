@@ -283,6 +283,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [tensorboard-versions](tensorboard-versions.md)
 - [guild-patch](guild-patch.md)
 - [completion-command](completion-command.md)
+- [dvc.md](dvc.md)
 
 ## Error cases
 

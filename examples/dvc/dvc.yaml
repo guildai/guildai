@@ -24,12 +24,15 @@ stages:
     - model-3.joblib
     - model-4.joblib
     - eval_models.py
+    metrics:
+    - models-eval.json:
+        cache: false
     outs:
     - models-eval.png
-  test:
+  hello:
     deps:
-    - test.in
-    - test.py
-    cmd: python test.py
+    - hello.in
+    - hello.py
+    cmd: python hello.py
     outs:
-    - test.out
+    - hello.out

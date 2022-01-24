@@ -157,6 +157,7 @@ class ResourceSource(object):
         fail_if_empty=False,
         rename=None,
         help=None,
+        pre_process=None,
         post_process=None,
         target_path=None,
         target_type=None,
@@ -180,6 +181,7 @@ class ResourceSource(object):
         self.warn_if_empty = warn_if_empty
         self.fail_if_empty = fail_if_empty
         self.rename = _init_rename(rename)
+        self.pre_process = pre_process
         self.post_process = post_process
         self.target_path = _init_target_path(target_path, path, "source %s" % self.name)
         self.target_type = target_type

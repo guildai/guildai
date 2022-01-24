@@ -1,5 +1,7 @@
 # Credit: https://scikit-learn.org/stable/auto_examples/svm/plot_iris_svc.html
 
+import json
+
 import numpy as np
 import joblib
 
@@ -31,6 +33,16 @@ models = (
     joblib.load("model-3.joblib"),
     joblib.load("model-4.joblib"),
 )
+
+print("Saving models-eval.json")
+metrics_data = {
+    "modle-1-score": models[0].score(X, y),
+    "modle-2-score": models[1].score(X, y),
+    "modle-3-score": models[2].score(X, y),
+    "modle-4-score": models[3].score(X, y),
+}
+with open("models-eval.json", "w") as f:
+    json.dump(metrics_data, f)
 
 titles = (
     "SVC with linear kernel",
