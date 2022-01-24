@@ -1,0 +1,4 @@
+outs:
+- md5: c4ca4238a0b923820dcc509a6f75849b
+  size: 1
+  path: test.in

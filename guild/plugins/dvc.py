@@ -70,10 +70,13 @@ def _init_dvc_modeldef(model_name, target_stage, config_dir):
             "operations": {
                 target_stage: {
                     "exec": (
-                        "${python_exe} -um guild.plugins.dvc_stage_main "
+                        "${python_exe} -um guild.plugins.dvc_stage_main ${flag_args} "
                         "--project-dir %s %s"
                         % (util.shlex_quote(config_dir), util.shlex_quote(target_stage))
                     ),
+                    "flags": {
+                        "copy-deps": _copy_deps_flag_data(),
+                    },
                 }
             },
         }
@@ -186,12 +189,32 @@ def _init_opdef(name, model):
                 "description": (
                     "Run stage as pipeline. This runs stage dependencies first."
                 ),
+                "type": "boolean",
+                "arg-switch": True,
+                "default": True,
+            },
+            "copy-deps": _copy_deps_flag_data(),
+            "pull-first": {
+                "description": "Run 'dvc pull' before running stages.",
+                "type": "boolean",
                 "arg-switch": True,
                 "default": True,
             },
         },
     }
     return guildfile.OpDef(name, op_data, model)
+
+
+def _copy_deps_flag_data():
+    return {
+        "description": (
+            "Whether or not to copy stage dependencies to the run directory. "
+            "Note that '*.dvc' files are always copied for when available."
+        ),
+        "type": "boolean",
+        "arg-switch": True,
+        "default": False,
+    }
 
 
 def _apply_stage_config_to_opdef(stage, opdef):

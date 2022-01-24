@@ -42,10 +42,12 @@ DVC_META_NAMES = ["dvc.yaml", "dvc.lock"]
 
 
 class _Pipeline:
-    def __init__(self, target_stage, project_dir):
+    def __init__(self, target_stage, project_dir, copy_deps, pull_first):
         _assert_dvc_yaml(project_dir)
         self.target_stage = target_stage
         self.project_dir = project_dir
+        self.copy_deps = copy_deps
+        self.pull_first = pull_first
         self.ran_stages = []
         self.dvc_yaml = _load_dvc_yaml(project_dir)
         self.parent_run = op_util.current_run()
@@ -66,7 +68,12 @@ def main():
     op_util.init_logging()
     globals()["log"] = logging.getLogger("guild")
     args = _init_args()
-    pipeline = _Pipeline(args.stage, args.project_dir)
+    pipeline = _Pipeline(
+        args.stage,
+        args.project_dir,
+        args.copy_deps,
+        args.pull_first,
+    )
     if args.pipeline:
         _handle_pipeline(pipeline)
     else:
@@ -76,6 +83,8 @@ def main():
 def _init_args():
     p = argparse.ArgumentParser()
     p.add_argument("--pipeline", action="store_true")
+    p.add_argument("--copy-deps", action="store_true")
+    p.add_argument("--pull-first", action="store_true")
     p.add_argument("--project-dir")
     p.add_argument("stage")
     args = p.parse_args()
@@ -101,11 +110,25 @@ def _missing_dvc_yaml_error(project_dir):
 
 
 def _handle_pipeline(pipeline):
+    _maybe_pull(pipeline)
     for stage in _iter_pipeline_stages(pipeline):
         _assert_not_ran_pipeline_stage(stage, pipeline)
         _run_pipeline_stage(stage, pipeline)
         pipeline.ran_stages.append(stage)
     _assert_target_stage_ran(pipeline)
+
+
+def _maybe_pull(pipeline):
+    if not pipeline.pull_first:
+        return
+    log.info("Pulling DvC files")
+    cmd = ["dvc", "pull"]
+    p = subprocess.Popen(cmd, cwd=pipeline.project_dir)
+    returncode = p.wait()
+    if returncode != 0:
+        raise SystemExit(
+            "'dvc pull' failed (exit code %i) - see above for details" % returncode
+        )
 
 
 def _iter_pipeline_stages(pipeline):
@@ -200,16 +223,12 @@ def _assert_target_stage_ran(pipeline):
 
 
 def _handle_stage(pipeline):
-    stage_outputs = _target_stage_outputs(pipeline)
     log.info("Running DvC stage %s", pipeline.target_stage)
+    _maybe_pull(pipeline)
     _repro_run_for_pipeline(pipeline)
-    _copy_dvc_meta_to_run_dir(pipeline.project_dir)
-    _copy_stage_outputs_to_run_dir(stage_outputs, pipeline.project_dir)
-
-
-def _target_stage_outputs(pipeline):
-    stage_data = pipeline.dvc_yaml.get("stages", {}).get(pipeline.target_stage, {})
-    return stage_data.get("outs", [])
+    _copy_dvc_meta_to_run_dir(pipeline)
+    _copy_stage_deps_to_run_dir(pipeline)
+    _copy_stage_outputs_to_run_dir(pipeline)
 
 
 def _repro_run_for_pipeline(pipeline):
@@ -229,7 +248,8 @@ def _repro_run_for_pipeline(pipeline):
         )
 
 
-def _copy_dvc_meta_to_run_dir(source_dir):
+def _copy_dvc_meta_to_run_dir(pipeline):
+    source_dir = pipeline.project_dir
     run_dir = _required_run_dir()
     for name in DVC_META_NAMES:
         src = os.path.join(source_dir, name)
@@ -246,13 +266,47 @@ def _copy_dvc_meta_to_run_dir(source_dir):
         shutil.copy(src, run_dir)
 
 
-def _copy_stage_outputs_to_run_dir(outputs, source_dir):
+def _copy_stage_deps_to_run_dir(pipeline):
+    source_dir = pipeline.project_dir
+    deps = _target_stage_deps(pipeline)
     run_dir = _required_run_dir()
-    for path in outputs:
-        src = os.path.join(source_dir, path)
-        log.debug("copying stage output '%s' to run directory '%s'", src, run_dir)
-        log.info("Copying %s", path)
-        shutil.copy(src, run_dir)
+    for name in deps:
+        if pipeline.copy_deps:
+            _copy_stage_file(name, source_dir, run_dir, "dep")
+        _copy_stage_file("%s.dvc", source_dir, run_dir, "dvc file", if_exists=True)
+
+
+def _target_stage_deps(pipeline):
+    stage_data = pipeline.dvc_yaml.get("stages", {}).get(pipeline.target_stage, {})
+    return stage_data.get("deps", [])
+
+
+def _copy_stage_file(name, source_dir, dest_dir, desc, if_exists=False):
+    src = os.path.join(source_dir, name)
+    if not os.path.exists(src):
+        if not if_exists:
+            log.warning(
+                "Stage %s '%s' does not exist - cannot copy to Guild run directory",
+                desc,
+                name,
+            )
+        return
+    log.debug("copying stage %s '%s' to run directory '%s'", desc, src, dest_dir)
+    log.info("Copying %s", name)
+    shutil.copy(src, dest_dir)
+
+
+def _copy_stage_outputs_to_run_dir(pipeline):
+    source_dir = pipeline.project_dir
+    outputs = _target_stage_outputs(pipeline)
+    run_dir = _required_run_dir()
+    for name in outputs:
+        _copy_stage_file(name, source_dir, run_dir, "output")
+
+
+def _target_stage_outputs(pipeline):
+    stage_data = pipeline.dvc_yaml.get("stages", {}).get(pipeline.target_stage, {})
+    return stage_data.get("outs", [])
 
 
 def _required_run_dir():
