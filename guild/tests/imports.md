@@ -225,6 +225,7 @@
     guild.service
     guild.serving_util
     guild.steps_main
+    guild.steps_util
     guild.summary
     guild.tabview
     guild.tensorboard
