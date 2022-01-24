@@ -53,7 +53,14 @@ stages:
       size: 88238
   test:
     cmd: python test.py
+    deps:
+    - path: test.in
+      md5: c4ca4238a0b923820dcc509a6f75849b
+      size: 1
+    - path: test.py
+      md5: af74598cc508dd1950f1fde68e040c2e
+      size: 103
     outs:
     - path: test.out
-      md5: e134ced312b3511d88943d57ccd70c83
-      size: 7
+      md5: 3a4bfa584a02c3d09b0c5d536911686f
+      size: 9

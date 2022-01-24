@@ -14,8 +14,6 @@
 
 """TODO:
 
-- Expose 'pipeline' switch as flag to a DvC operation
-- Link to upstream stages from pipeline op
 - Support for flags
   - Pipeline level (all available params from dvc.param)
   - Stage level (stage specific params from dvc.param)
@@ -35,25 +33,6 @@ Maybe these options:
 - Copy inputs
 - Don't copy inputs
 - Link to cached inputs
-
-XXX - before biting down on the "run in project dir + copy", play
-around with "copy + run in run dir" using the same basic logic. Always
-copying from the project and maintaining shared cache/tmp dirs. I
-think the problem here will be, what to copy. Not sure!
-
-I think the risk to the above is:
-
-- It gets complicated, with Guild knowing a lot about everything that
-  DvC does
-- With the complexity, it'll be hard for users to know what's going on
-- Is there a need for this, given that DvC works that way
-
-Counterpoint:
-
-- It's a much better model, to copy the repo and run from the run dir
-- If we can find a simple Zen implementation, it might not be
-  complicated
-
 """
 
 from __future__ import absolute_import
@@ -201,7 +180,18 @@ def _ensure_opdef(name, model):
 
 
 def _init_opdef(name, model):
-    return guildfile.OpDef(name, {}, model)
+    op_data = {
+        "flags": {
+            "pipeline": {
+                "description": (
+                    "Run stage as pipeline. This runs stage dependencies first."
+                ),
+                "arg-switch": True,
+                "default": True,
+            },
+        },
+    }
+    return guildfile.OpDef(name, op_data, model)
 
 
 def _apply_stage_config_to_opdef(stage, opdef):
@@ -209,7 +199,7 @@ def _apply_stage_config_to_opdef(stage, opdef):
         log.warning(
             "ignoring operation main attribute %r for DvC stage import", opdef.main
         )
-    opdef.main = "guild.plugins.dvc_stage_main --pipeline --project-dir %s %s" % (
+    opdef.main = "guild.plugins.dvc_stage_main --project-dir %s %s" % (
         util.shlex_quote(stage.config_dir),
         util.shlex_quote(stage.name),
     )

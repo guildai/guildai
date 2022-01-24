@@ -26,6 +26,7 @@ import yaml
 
 from guild import config
 from guild import op_util
+from guild import steps_util
 from guild import util
 
 from guild.commands import run_impl
@@ -37,6 +38,8 @@ PIPELINE_STAGE_PS = [
     re.compile(r"Running stage '(.*?)':"),
 ]
 
+DVC_META_NAMES = ["dvc.yaml", "dvc.lock"]
+
 
 class _Pipeline:
     def __init__(self, target_stage, project_dir):
@@ -45,6 +48,7 @@ class _Pipeline:
         self.project_dir = project_dir
         self.ran_stages = []
         self.dvc_yaml = _load_dvc_yaml(project_dir)
+        self.parent_run = op_util.current_run()
 
 
 def _assert_dvc_yaml(project_dir):
@@ -137,28 +141,23 @@ def _repro_dry_run_for_pipeline(pipeline):
     out, err = p.communicate()
     log.debug(
         "dvc repro dry run result:\n%s---\n%s---\n%i",
-        _lazy_decode(out),
-        _lazy_decode(err),
+        util.lazy_str(lambda: _decode(out)),
+        util.lazy_str(lambda: _decode(err)),
         p.returncode,
     )
     if p.returncode != 0:
         _dvc_pipeline_status_error(err, p.returncode)
     assert not err, (err, out)
-    return out.decode("utf-8", errors="ignore")
+    return _decode(out)
 
 
-class _lazy_decode:
-    def __init__(self, s):
-        self.s = s
-
-    def __str__(self):
-        if self.s is None:
-            return None
-        return self.s.decode("utf-8", errors="ignore")
+def _decode(s):
+    return s.decode("utf-8", errors="ignore") if s is not None else None
 
 
 def _dvc_pipeline_status_error(err_raw, returncode):
-    err = err_raw.decode("utf-8", errors="ignore").strip()
+    assert err_raw is not None
+    err = _decode(err_raw).strip()
     raise SystemExit("error getting DvC pipeline status: %s (%i)" % (err, returncode))
 
 
@@ -172,8 +171,23 @@ def _assert_not_ran_pipeline_stage(stage, pipeline):
 
 
 def _run_pipeline_stage(stage, pipeline):
+    stage_run = _init_stage_run(stage, pipeline)
+    env = _stage_env()
     with config.SetCwd(pipeline.project_dir):
-        run_impl.run(opspec="dvc.yaml:%s" % stage)
+        with util.Env(env, replace=True):
+            run_impl.run(opspec="dvc.yaml:%s" % stage, run_dir=stage_run.dir)
+
+
+def _init_stage_run(stage, pipeline):
+    stage_run = steps_util.init_step_run(pipeline.parent_run.dir)
+    steps_util.link_to_step_run(stage, stage_run.dir, pipeline.parent_run.dir)
+    return stage_run
+
+
+def _stage_env():
+    env = dict(os.environ)
+    env["NO_WARN_RUNDIR"] = "1"
+    return env
 
 
 def _assert_target_stage_ran(pipeline):
@@ -189,7 +203,7 @@ def _handle_stage(pipeline):
     stage_outputs = _target_stage_outputs(pipeline)
     log.info("Running DvC stage %s", pipeline.target_stage)
     _repro_run_for_pipeline(pipeline)
-    log.info("Copying stage outputs to run directory")
+    _copy_dvc_meta_to_run_dir(pipeline.project_dir)
     _copy_stage_outputs_to_run_dir(stage_outputs, pipeline.project_dir)
 
 
@@ -205,6 +219,7 @@ def _repro_run_for_pipeline(pipeline):
         pipeline.target_stage,
     ]
     log.debug("dvc repro cmd: %s", cmd)
+    log.debug("dvc repro cwd: %s", pipeline.project_dir)
     p = subprocess.Popen(cmd, cwd=pipeline.project_dir)
     returncode = p.wait()
     if returncode != 0:
@@ -214,12 +229,29 @@ def _repro_run_for_pipeline(pipeline):
         )
 
 
+def _copy_dvc_meta_to_run_dir(source_dir):
+    run_dir = _required_run_dir()
+    for name in DVC_META_NAMES:
+        src = os.path.join(source_dir, name)
+        if not os.path.exists(src):
+            log.warning(
+                "DvC meta file %s does not exist in %s - "
+                "cannot copy to Guild run directory",
+                name,
+                source_dir,
+            )
+            continue
+        log.debug("copying stage output '%s' to run directory '%s'", src, run_dir)
+        log.info("Copying %s", name)
+        shutil.copy(src, run_dir)
+
+
 def _copy_stage_outputs_to_run_dir(outputs, source_dir):
     run_dir = _required_run_dir()
     for path in outputs:
-        log.info("Copying %s", path)
         src = os.path.join(source_dir, path)
         log.debug("copying stage output '%s' to run directory '%s'", src, run_dir)
+        log.info("Copying %s", path)
         shutil.copy(src, run_dir)
 
 

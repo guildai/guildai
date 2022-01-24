@@ -10,6 +10,7 @@ stages:
     cmd: python train_models.py
     deps:
     - iris.npy
+    - train_models.py
     outs:
     - model-1.joblib
     - model-2.joblib
@@ -22,9 +23,13 @@ stages:
     - model-2.joblib
     - model-3.joblib
     - model-4.joblib
+    - eval_models.py
     outs:
     - models-eval.png
   test:
+    deps:
+    - test.in
+    - test.py
     cmd: python test.py
     outs:
-      - test.out
+    - test.out
