@@ -20,6 +20,14 @@ import re
 import os
 import subprocess
 
+import six
+
+from guild import util
+
+
+class UnsupportedRepo(Exception):
+    pass
+
 
 class Scheme(object):
     def __init__(
@@ -119,3 +127,43 @@ def _format_commit(commit, scheme):
 
 def _format_status(status):
     return bool(status)
+
+
+def iter_source_files(dir):
+    try:
+        return util.try_apply([_TryGitSourceIter], dir)
+    except util.TryFailed:
+        six.raise_from(UnsupportedRepo(dir), None)
+
+
+class _TryGitSourceIter:
+    """Class that conforms to the util.try_apply scheme for iterating source.
+
+    Raises `util.TryFailed` in the contructor
+    """
+
+    def __init__(self, dir):
+        self._dir = dir
+        self._ls_files = _try_ls_files(dir)
+
+    def __iter__(self):
+        for path in self._ls_files:
+            if path:
+                yield path
+        for path in _try_ls_files(self._dir, untracked=True):
+            if path:
+                yield path
+
+
+def _try_ls_files(dir, untracked=False):
+    cmd = ["git", "ls-files"]
+    if untracked:
+        cmd.extend(["--other", "--exclude-standard"])
+    p = subprocess.Popen(cmd, cwd=dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out, _err = p.communicate()
+    if p.returncode != 0:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.error("error listing git files (%i)", p.returncode)
+            log.error(out)
+        raise util.TryFailed()
+    return out.decode("utf-8", errors="ignore").rstrip().split("\n")

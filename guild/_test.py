@@ -708,12 +708,13 @@ def PrintStderr():
     return StderrCapture(autoprint=True)
 
 
-def write(filename, contents):
+def write(filename, contents, append=False):
     try:
         contents = contents.encode()
     except AttributeError:
         pass
-    with open(filename, "wb") as f:
+    opts = "ab" if append else "wb"
+    with open(filename, opts) as f:
         f.write(contents)
 
 

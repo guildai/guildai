@@ -38,6 +38,7 @@ markdown and text files.
     autocomplete
     ...
     var
+    vcs-source
     vcs-utils
     view
     yaml-utils

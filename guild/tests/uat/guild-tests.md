@@ -144,6 +144,7 @@ tests).
       timerange:                   ok
       utils:                       ok
       var:                         ok
+      vcs-source:                  ok
       vcs-utils:                   ok
       view:                        ok
       yaml-utils:                  ok
