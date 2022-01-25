@@ -14,25 +14,13 @@
 
 """TODO:
 
-- Support for flags
-  - Pipeline level (all available params from dvc.param)
-  - Stage level (stage specific params from dvc.param)
+- Complete correct implementatiom of run support
+- Do we care about pipelines vs not?
+- Flags
+- How to handle big files or directories?
+- Cleanup / lint (remove unused or commented out code)
+- Test concurrency using parallel runs in DvC
 
-Flags I think will require in-place editing of the params file for the
-run. To preserve the copy of params that was used, this file must be
-copied to the run dir immediately after changing it and before
-starting the op.
-
-What to do with inputs to an operation? Should these be copied into
-the run directory as well, but before the operation starts? How else
-can you track these files? Maybe there's a flag to the stage op to
-configure this behavior.
-
-Maybe these options:
-
-- Copy inputs
-- Don't copy inputs
-- Link to cached inputs
 """
 
 from __future__ import absolute_import
@@ -58,33 +46,41 @@ class _DvcModelProxy(object):
 
     name = "dvc.yaml"
 
-    def __init__(self, target_stage, config_dir):
-        self.modeldef = _init_dvc_modeldef(self.name, target_stage, config_dir)
+    def __init__(self, target_stage, project_dir):
+        self.modeldef = _init_dvc_modeldef(self.name, target_stage, project_dir)
         self.reference = _init_dvc_model_reference()
 
 
-def _init_dvc_modeldef(model_name, target_stage, config_dir):
+def _init_dvc_modeldef(model_name, stage_name, project_dir):
     data = [
         {
             "model": model_name,
-            "operations": {
-                target_stage: {
-                    "exec": (
-                        "${python_exe} -um guild.plugins.dvc_stage_main ${flag_args} "
-                        "--project-dir %s %s"
-                        % (util.shlex_quote(config_dir), util.shlex_quote(target_stage))
-                    ),
-                    "flags": {
-                        "pipeline": _pipeline_flag_data(default=False),
-                        "copy-deps": _copy_deps_flag_data(),
-                        "pull-first": _pull_first_flag_data(default=False),
-                    },
-                }
-            },
+            "operations": {stage_name: _stage_op_data(stage_name, project_dir)},
         }
     ]
     gf = guildfile.Guildfile(data, src="<guild.plugins._DvcModelProxy>")
     return gf.models[model_name]
+
+
+def _stage_op_data(stage_name, project_dir):
+    return {
+        "main": "guild.plugins.dvc_stage_main --project-dir %s %s"
+        % (
+            util.shlex_quote(project_dir),
+            util.shlex_quote(stage_name),
+        ),
+        "description": "Stage '%s' imported from dvc.yaml" % stage_name,
+        "flags": {
+            #     "pipeline": {
+            #         "description": (
+            #             "Run stage as pipeline. This runs stage dependencies first."
+            #         ),
+            #         "type": "boolean",
+            #         "arg-switch": True,
+            #         "default": False,
+            #     }
+        },
+    }
 
 
 def _init_dvc_model_reference():
@@ -92,10 +88,10 @@ def _init_dvc_model_reference():
 
 
 class _Stage:
-    def __init__(self, name, config, config_dir):
+    def __init__(self, name, config, project_dir):
         self.name = name
         self.config = config
-        self.config_dir = config_dir
+        self.project_dir = project_dir
 
 
 class DvcPlugin(pluginlib.Plugin):
@@ -122,14 +118,14 @@ def _model_dir(model):
     return model.guildfile.dir
 
 
-def _iter_dvc_stages(dvc_config, config_dir):
+def _iter_dvc_stages(dvc_config, project_dir):
     stages_import = _coerce_dvc_stages_import(dvc_config.get("dvc-stages-import"))
     if not stages_import:
         return
-    dvc_config = _load_dvc_config_for_stages_import(config_dir)
+    dvc_config = _load_dvc_config_for_stages_import(project_dir)
     for stage_name, stage_config in (dvc_config.get("stages") or {}).items():
         if _filter_dvc_stage(stage_name, stages_import):
-            yield _Stage(stage_name, stage_config, config_dir)
+            yield _Stage(stage_name, stage_config, project_dir)
 
 
 def _coerce_dvc_stages_import(val):
@@ -187,52 +183,11 @@ def _ensure_stage_opdef(stage, model):
 
 
 def _init_stage_opdef(stage, model):
-    op_data = {
-        "main": "guild.plugins.dvc_stage_main --project-dir %s %s"
-        % (
-            util.shlex_quote(stage.config_dir),
-            util.shlex_quote(stage.name),
-        ),
-        "description": "Stage '%s' imported from dvc.yaml" % stage.name,
-        "flags": {
-            "pipeline": _pipeline_flag_data(default=True),
-            "copy-deps": _copy_deps_flag_data(),
-            "pull-first": _pull_first_flag_data(default=True),
-        },
-    }
-    return guildfile.OpDef(stage.name, op_data, model)
-
-
-def _pipeline_flag_data(default):
-    return {
-        "description": (
-            "Run stage as pipeline. This runs stage dependencies first."
-        ),
-        "type": "boolean",
-        "arg-switch": True,
-        "default": default,
-    }
-
-
-def _copy_deps_flag_data():
-    return {
-        "description": (
-            "Whether or not to copy stage dependencies to the run directory. "
-            "Note that '*.dvc' files are always copied when available."
-        ),
-        "type": "boolean",
-        "arg-switch": True,
-        "default": False,
-    }
-
-
-def _pull_first_flag_data(default):
-    return {
-        "description": "Run 'dvc pull' before running stages.",
-        "type": "boolean",
-        "arg-switch": True,
-        "default": default,
-    }
+    return guildfile.OpDef(
+        stage.name,
+        _stage_op_data(stage.name, stage.project_dir),
+        model,
+    )
 
 
 def _apply_stage_opdef_config(stage_opdef, model_opdef):

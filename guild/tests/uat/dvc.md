@@ -13,7 +13,49 @@ Ensure that DvC reqs are installed.
 
 Refer to the Guild file for the example for details.
 
-    >>> run("guild ops")
+    >>> run("guild ops")  # doctest: +REPORT_UDIFF
+    hello  Stage 'hello' imported from dvc.yaml
+    <exit 0>
+
+## Imported from dvc.yaml
+
+### `hello`
+
+    >>> run("guild run hello -y")
+    INFO: [guild] Running DvC stage hello
+    INFO: [guild] Initializing run directory
+    INFO: [guild] Copying hello.in
+    ...
+    <exit 0>
+
+    >>> run("guild runs -n1")
+    [1:...]  hello  ...  completed
+    <exit 0>
+
+    >>> run("guild cat -p hello.in")
+    World
+    <exit 0>
+
+    >>> run("guild cat -p hello.out")
+    Hello World!
+    <exit 0>
+
+
+
+
+## Cleanup
+
+    >>> quiet("guild runs rm -py")
+
+
+
+
+
+
+=== OLD =======================================================================
+
+
+    >> run("guild ops")  # doctest: +REPORT_UDIFF
     hello                 Stage 'hello' imported from dvc.yaml
     hello-dvc-pipeline    DvC hello pipeline
     hello-dvc-stage       DvC hello stage
@@ -32,7 +74,7 @@ Refer to the Guild file for the example for details.
 
 Guild supports import of stages defined in dvc.yaml.
 
-    >>> cat("guild.yml")
+    >> cat("guild.yml")
     - model: ''
       extra:
         dvc-stages-import: hello
@@ -56,7 +98,7 @@ can use the `pre-process` attribute. In our example, the
 to ensure that the DvC managed file `hello.in` is available locally
 before resolving it.
 
-    >>> cat("guild.yml")
+    >> cat("guild.yml")
     ???
         hello-guild-op:
           main: hello
@@ -68,28 +110,29 @@ before resolving it.
 
 To illustrate, delete the required file.
 
-    >>> rm("hello.in", force=True)
+    >> rm("hello.in", force=True)
 
 When we run 'hello-guild-op' DvC is used to restore the file.
 
-    >>> run("guild run hello-guild-op -y")
+    >> run("guild run hello-guild-op -y")
     Resolving file:hello.in dependency
     Pre processing file:hello.in resource in .../examples/dvc: 'dvc pull hello.in'
     A       hello.in
     1 file added
+    Hello Guild!
     <exit 0>
 
-    >>> run("guild ls -n")
+    >> run("guild ls -n")
     hello.in
     hello.out
     <exit 0>
 
-    >>> run("guild cat -p hello.in")
+    >> run("guild cat -p hello.in")
     Guild
     <exit 0>
 
-    >>> run("guild cat -p hello.out")
-    Hello! Guild
+    >> run("guild cat -p hello.out")
+    Hello Guild!
     <exit 0>
 
 ## Run stages defined in dvc.yaml
@@ -97,7 +140,7 @@ When we run 'hello-guild-op' DvC is used to restore the file.
 Guild can run stages defined in dvc.yaml using the special operation
 name syntax `dvc.yaml:<stage>`.
 
-    >>> run("guild run dvc.yaml:hello --help-op")
+    >> run("guild run dvc.yaml:hello --help-op")
     Usage: guild run [OPTIONS] dvc.yaml:hello [FLAG]...
     <BLANKLINE>
     Use 'guild run --help' for a list of options.
@@ -115,12 +158,12 @@ name syntax `dvc.yaml:<stage>`.
 
 Verify that `hello.in` exists before running the stage.
 
-    >>> exists("hello.in")
+    >> exists("hello.in")
     True
 
 Run the stage.
 
-    >>> run("guild run dvc.yaml:hello -y")
+    >> run("guild run dvc.yaml:hello -y")
     INFO: [guild] Running DvC stage hello
     'hello.in.dvc' didn't change, skipping
     Stage 'hello' didn't change, skipping
@@ -133,19 +176,19 @@ Run the stage.
 By default, Guild copies the DvC metadata files and the stage outputs
 but not deps.
 
-    >>> run("guild ls -n")
+    >> run("guild ls -n")
     dvc.lock
     dvc.yaml
     hello.out
     <exit 0>
 
-    >>> run("guild cat -p hello.out")
-    Hello! Guild
+    >> run("guild cat -p hello.out")
+    Hello Guild!
     <exit 0>
 
 Dependencies can be copied by setting the `copy-deps` flag to `yes`.
 
-    >>> run("guild run dvc.yaml:hello copy-deps=yes -y")
+    >> run("guild run dvc.yaml:hello copy-deps=yes -y")
     INFO: [guild] Running DvC stage hello
     'hello.in.dvc' didn't change, skipping
     Stage 'hello' didn't change, skipping
@@ -157,7 +200,7 @@ Dependencies can be copied by setting the `copy-deps` flag to `yes`.
     INFO: [guild] Copying hello.out
     <exit 0>
 
-    >>> run("guild ls -n")
+    >> run("guild ls -n")
     dvc.lock
     dvc.yaml
     hello.in
@@ -165,12 +208,12 @@ Dependencies can be copied by setting the `copy-deps` flag to `yes`.
     hello.py
     <exit 0>
 
-    >>> run("guild cat -p hello.in")
+    >> run("guild cat -p hello.in")
     Guild
     <exit 0>
 
-    >>> run("guild cat -p hello.out")
-    Hello! Guild
+    >> run("guild cat -p hello.out")
+    Hello Guild!
     <exit 0>
 
 By default, Guild does not run 'dvc pull' before running a stage. You
@@ -178,11 +221,11 @@ can run 'dvc pull' by setting the `pull-first` flag to `yes`.
 
 Delete 'hello.in' first.
 
-    >>> rm("hello.in")
+    >> rm("hello.in")
 
 Run the stage, pulling first.
 
-    >>> run("guild run dvc.yaml:hello pull-first=yes -y")
+    >> run("guild run dvc.yaml:hello pull-first=yes -y")
     INFO: [guild] Running DvC stage hello
     INFO: [guild] Pulling DvC files
     ...
@@ -199,7 +242,7 @@ Run the stage, pulling first.
 Stages are imported from dvc.yaml using `dvc-stages-import` extra attr
 for a model (see above).
 
-    >>> run("guild run hello --help-op")
+    >> run("guild run hello --help-op")
     Usage: guild run [OPTIONS] hello [FLAG]...
     <BLANKLINE>
     Stage 'hello' imported from dvc.yaml
@@ -224,7 +267,7 @@ Note in the case of importing a stage:
 
 Run the imported stage.
 
-    >>> run("guild run hello -y")
+    >> run("guild run hello -y")
     INFO: [guild] Pulling DvC files
     Everything is up to date.
     INFO: [guild] Running DvC stage hello
@@ -238,14 +281,14 @@ Run the imported stage.
 
 When run as a pipeline, a stage acts like a steps parent.
 
-    >>> run("guild runs -n2")
+    >> run("guild runs -n2")
     [1:...]  dvc.yaml:hello  ...  completed  copy-deps=no pipeline=no pull-first=no
     [2:...]  hello           ...  completed  copy-deps=no pipeline=yes pull-first=yes
     <exit 0>
 
 Each stage is linked from the parent.
 
-    >>> run("guild ls 2 -L -n")
+    >> run("guild ls 2 -L -n")
     hello/
     hello/.guild/
     ...
@@ -263,18 +306,18 @@ and 'iris:train-models' to run as dependencies.
 To show the full pipeline, we first delete all DvC managed and
 generated files.
 
-    >>> rm("iris.csv", force=True)
-    >>> rm("iris.npy", force=True)
-    >>> rm("model-1.joblib", force=True)
-    >>> rm("model-2.joblib", force=True)
-    >>> rm("model-3.joblib", force=True)
-    >>> rm("model-4.joblib", force=True)
-    >>> rm("models-eval.png", force=True)
-    >>> rm("models-eval.json", force=True)
+    >> rm("iris.csv", force=True)
+    >> rm("iris.npy", force=True)
+    >> rm("model-1.joblib", force=True)
+    >> rm("model-2.joblib", force=True)
+    >> rm("model-3.joblib", force=True)
+    >> rm("model-4.joblib", force=True)
+    >> rm("models-eval.png", force=True)
+    >> rm("models-eval.json", force=True)
 
 Run the imported pipeline.
 
-    >>> run("guild run iris:eval-models -y")  # doctest: +REPORT_UDIFF
+    >> run("guild run iris:eval-models -y")  # doctest: +REPORT_UDIFF
     INFO: [guild] Pulling DvC files
     ...
     INFO: [guild] Running DvC stage prepare-data
@@ -309,14 +352,14 @@ Run the imported pipeline.
 
 The pipeline runs with three stages.
 
-    >>> run("guild runs -n4")
+    >> run("guild runs -n4")
     [1:...]  dvc.yaml:eval-models   ...  completed  copy-deps=no pipeline=no pull-first=no
     [2:...]  dvc.yaml:train-models  ...  completed  copy-deps=no pipeline=no pull-first=no
     [3:...]  dvc.yaml:prepare-data  ...  completed  copy-deps=no pipeline=no pull-first=no
     [4:...]  iris:eval-models       ...  completed  copy-deps=no pipeline=yes pull-first=yes
     <exit 0>
 
-    >>> run("guild ls 4 -n")
+    >> run("guild ls 4 -n")
     eval-models/
     prepare-data/
     train-models/
@@ -326,7 +369,7 @@ Each stage contains outputs and DvC metadata files.
 
 `iris:prepare-data`:
 
-    >>> run("guild ls 3 -n")
+    >> run("guild ls 3 -n")
     dvc.lock
     dvc.yaml
     iris.npy
@@ -334,7 +377,7 @@ Each stage contains outputs and DvC metadata files.
 
 `iris:train-models`:
 
-    >>> run("guild ls 2 -n")
+    >> run("guild ls 2 -n")
     dvc.lock
     dvc.yaml
     model-1.joblib
@@ -345,7 +388,7 @@ Each stage contains outputs and DvC metadata files.
 
 `iris:eval-models`:
 
-    >>> run("guild ls 1 -n")
+    >> run("guild ls 1 -n")
     dvc.lock
     dvc.yaml
     events.out.tfevents...
@@ -357,7 +400,7 @@ Note that 'iris:eval-models' also contains a TF events file. In this
 case, Guild converts metrics written to 'models-eval.json' to
 scalars. We can view these as run info.
 
-    >>> run("guild runs info")
+    >> run("guild runs info")
     id: ...
     operation: dvc.yaml:eval-models
     from: guildai
@@ -369,7 +412,7 @@ scalars. We can view these as run info.
     sourcecode_digest:
     vcs_commit:
     run_dir: ...
-    command: ... -um guild.plugins.dvc_stage_main --project-dir .../examples/dvc eval-models
+    command: ... -um guild.op_main guild.plugins.dvc_stage_main --project-dir .../examples/dvc eval-models --
     exit_status: 0
     pid:
     tags:
@@ -388,7 +431,7 @@ We can tell Guild to also copy dependencies for each run by setting
 `copy-deps` to `yes` for the pipeline. We'll also tell Guild not to
 run dvc pull.
 
-    >>> run("guild run iris:eval-models "
+    >> run("guild run iris:eval-models "
     ...     "copy-deps=yes pull-first=no -y")  # doctest: +REPORT_UDIFF
     INFO: [guild] Running DvC stage prepare-data
     'iris.csv.dvc' didn't change, skipping
@@ -429,7 +472,7 @@ run dvc pull.
     INFO: [guild] Copying models-eval.json
     <exit 0>
 
-    >>> run("guild runs -n4")
+    >> run("guild runs -n4")
     [1:...]  dvc.yaml:eval-models   ...  completed  copy-deps=yes pipeline=no pull-first=no
     [2:...]  dvc.yaml:train-models  ...  completed  copy-deps=yes pipeline=no pull-first=no
     [3:...]  dvc.yaml:prepare-data  ...  completed  copy-deps=yes pipeline=no pull-first=no
@@ -438,13 +481,13 @@ run dvc pull.
 
 And the files for each run.
 
-    >>> run("guild ls 4 -n")
+    >> run("guild ls 4 -n")
     eval-models/
     prepare-data/
     train-models/
     <exit 0>
 
-    >>> run("guild ls 3 -n")
+    >> run("guild ls 3 -n")
     dvc.lock
     dvc.yaml
     iris.csv
@@ -452,7 +495,7 @@ And the files for each run.
     prepare_data.py
     <exit 0>
 
-    >>> run("guild ls 2 -n")
+    >> run("guild ls 2 -n")
     dvc.lock
     dvc.yaml
     iris.npy
@@ -463,7 +506,7 @@ And the files for each run.
     train_models.py
     <exit 0>
 
-    >>> run("guild ls 1 -n")
+    >> run("guild ls 1 -n")
     dvc.lock
     dvc.yaml
     eval_models.py

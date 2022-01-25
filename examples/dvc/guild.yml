@@ -1,40 +1,49 @@
+# - model: ''
+#   extra:
+#     dvc-stages-import: hello
+#   operations:
+#     hello-dvc-stage:
+#       main: guild.plugins.dvc_stage_main hello --project-dir ${project_dir}
+#       description: DvC hello stage
+#     hello-dvc-pipeline:
+#       main: guild.plugins.dvc_stage_main hello --pipeline
+#       description: DvC hello pipeline
+#     hello-guild-op:
+#       main: hello
+#       description: Guild hello operation
+#       requires:
+#         - file: hello.in
+#           pre-process: dvc pull hello.in
+#     hello-guild-pipeline:
+#       description: Sample Guild pipeline (contrast to DvC hello pipeline)
+#       steps:
+#         - hello-op
+#         - hello-op
+#         - hello-op
+
+# - model: iris
+#   extra:
+#     dvc-stages-import:
+#       - prepare-data
+#       - train-models
+#       - eval-models
+#   operations:
+#     prepare-data:
+#       description: Prepare Iris data for model training
+#     train-models:
+#       description: Train Iris models
+#     eval-models:
+#       description: Evaluate trained Iris models
+
+# - model: all-dvc
+#   extra:
+#     dvc-stages-import: all
+
+# hello:
+#   main: guild.plugins.dvc_stage_main hello
+#   sourcecode: no
+
 - model: ''
   extra:
-    dvc-stages-import: hello
-  operations:
-    hello-dvc-stage:
-      main: guild.plugins.dvc_stage_main hello --project-dir ${project_dir}
-      description: DvC hello stage
-    hello-dvc-pipeline:
-      main: guild.plugins.dvc_stage_main hello --pipeline
-      description: DvC hello pipeline
-    hello-guild-op:
-      main: hello
-      description: Guild hello operation
-      requires:
-        - file: hello.in
-          pre-process: dvc pull hello.in
-    hello-guild-pipeline:
-      description: Sample Guild pipeline (contrast to DvC hello pipeline)
-      steps:
-        - hello-op
-        - hello-op
-        - hello-op
-
-- model: iris
-  extra:
     dvc-stages-import:
-      - prepare-data
-      - train-models
-      - eval-models
-  operations:
-    prepare-data:
-      description: Prepare Iris data for model training
-    train-models:
-      description: Train Iris models
-    eval-models:
-      description: Evaluate trained Iris models
-
-- model: all-dvc
-  extra:
-    dvc-stages-import: all
+      - hello

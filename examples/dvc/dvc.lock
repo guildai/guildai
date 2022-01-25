@@ -20,20 +20,23 @@ stages:
       md5: 7c9fdb5ece2856f20d0eba3c21a4cbf8
       size: 6128
     - path: train_models.py
-      md5: c8a2e0dd3767ebdd037850c2f11b9a3b
-      size: 523
+      md5: 6d2e75d92731a007587b2bfd4f84b354
+      size: 619
+    params:
+      params.json:
+        train.C: 5.0
     outs:
     - path: model-1.joblib
-      md5: 2e71655308aa5fe1301817023eb91b5f
-      size: 5555
+      md5: fa4c81568c3afdd4214cd0e96e3092e2
+      size: 5191
     - path: model-2.joblib
-      md5: 9e06d9e6a894d7f28fba0992310f3a58
+      md5: 45fb1b29648d1b8948581aa2808b30e2
       size: 776
     - path: model-3.joblib
-      md5: 4d0abf187f9eb5319fae2ebab5a64d48
-      size: 5770
+      md5: 20e2a3a2b300b4f07c7886d7130e9921
+      size: 5354
     - path: model-4.joblib
-      md5: 6491f67c1757807b139f005116addca1
+      md5: ed59f7e268ee4d40374a2eb81a0d011f
       size: 4937
   eval-models:
     cmd: python eval_models.py
@@ -42,24 +45,24 @@ stages:
       md5: 6fe1049cf1470fae199e82b1c7b9cfba
       size: 1829
     - path: model-1.joblib
-      md5: 2e71655308aa5fe1301817023eb91b5f
-      size: 5555
+      md5: fa4c81568c3afdd4214cd0e96e3092e2
+      size: 5191
     - path: model-2.joblib
-      md5: 9e06d9e6a894d7f28fba0992310f3a58
+      md5: 45fb1b29648d1b8948581aa2808b30e2
       size: 776
     - path: model-3.joblib
-      md5: 4d0abf187f9eb5319fae2ebab5a64d48
-      size: 5770
+      md5: 20e2a3a2b300b4f07c7886d7130e9921
+      size: 5354
     - path: model-4.joblib
-      md5: 6491f67c1757807b139f005116addca1
+      md5: ed59f7e268ee4d40374a2eb81a0d011f
       size: 4937
     outs:
     - path: models-eval.json
-      md5: 63697de1383989c3e70e4a9e192e64dc
-      size: 119
+      md5: d13d8db8f752466c6fcf21ff14d41028
+      size: 106
     - path: models-eval.png
-      md5: 6c257a00a0ce6529bad895b86f9919b4
-      size: 88238
+      md5: cafa2673e36ff4ad1d22a52d6e1847c6
+      size: 87982
   test:
     cmd: python test.py
     deps:
@@ -77,15 +80,15 @@ stages:
     cmd: python hello.py
     deps:
     - path: hello.in
-      md5: b1ac47603ca5974c0f0eee8db3936241
-      size: 6
+      md5: 04507d73eb28ae37a015beb3ee0bbb31
+      size: 8
     - path: hello.py
-      md5: 4fa7642dd08ea34b2b9abcb489347e31
-      size: 105
+      md5: 4c9762c3809f3f4f6d26addf614649b3
+      size: 125
     outs:
     - path: hello.out
-      md5: afc1e5908513ab21112a3b958c7ee67d
-      size: 13
+      md5: 0d6fc4c9622a80fd10dced46242d32ec
+      size: 17
   delme:
     cmd: python eval_models.py
     outs:

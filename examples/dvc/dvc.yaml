@@ -16,6 +16,9 @@ stages:
     - model-2.joblib
     - model-3.joblib
     - model-4.joblib
+    params:
+      - params.json:
+          - train.C
   eval-models:
     cmd: python eval_models.py
     deps:

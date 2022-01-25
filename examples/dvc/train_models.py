@@ -1,11 +1,17 @@
 # Credit: https://scikit-learn.org/stable/auto_examples/svm/plot_iris_svc.html
 
+import json
+
 import joblib
+
 from sklearn import svm, datasets
 
 from data_util import load_data
 
-C = 1.0
+params = json.load(open("params.json"))
+
+C = params["train"]["C"]
+print("Using C=%f" % C)
 
 models = (
     svm.SVC(kernel="linear", C=C),
