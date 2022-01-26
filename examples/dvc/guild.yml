@@ -47,3 +47,12 @@
   extra:
     dvc-stages-import:
       - hello
+      #- prepare-data
+      - train-models
+
+  operations:
+    prepare-data:
+      description: Prepare Iris data for training
+      main: guild.plugins.dvc_stage_main hello
+      requires:
+        - url: dvc://iris.csv

@@ -1,6 +1,7 @@
 # Credit: https://scikit-learn.org/stable/auto_examples/svm/plot_iris_svc.html
 
 import json
+import os
 
 import joblib
 
@@ -8,7 +9,10 @@ from sklearn import svm, datasets
 
 from data_util import load_data
 
-params = json.load(open("params.json"))
+if os.path.exists("params.json"):
+    params = json.load(open("params.json"))
+else:
+    params = json.load(open("params.json.in"))
 
 C = params["train"]["C"]
 print("Using C=%f" % C)

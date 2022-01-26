@@ -1,0 +1,4 @@
+outs:
+- md5: 52f83ff6877e42f613bcd2444c22528c
+  size: 6
+  path: hello.in
