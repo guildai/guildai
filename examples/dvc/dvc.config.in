@@ -1,5 +1,7 @@
 [core]
     analytics = false
-    remote = default
-['remote "default"']
+    remote = guild-pub
+['remote "guild-pub"']
+    url = https://guild-pub.s3.amazonaws.com/dvc-store
+['remote "guild-s3"']
     url = s3://guild-pub/dvc-store

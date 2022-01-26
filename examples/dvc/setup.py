@@ -1,4 +1,5 @@
 import argparse
+import glob
 import os
 import shutil
 import subprocess
@@ -11,6 +12,7 @@ def main():
     _init_dvc(args)
     _config_dvc(args)
     _copy_source_code(args)
+    _pull_dvc_files(args)
 
 
 def _init_args():
@@ -26,12 +28,12 @@ def _init_dest(args):
 
 def _init_git(args):
     print("Initializing Git")
-    subprocess.check_call(["git", "init"], cwd=args.dest)
+    _ = subprocess.check_output(["git", "init"], cwd=args.dest)
 
 
 def _init_dvc(args):
     print("Initializing DvC")
-    subprocess.check_call(["dvc", "init"], cwd=args.dest)
+    _ = subprocess.check_output(["dvc", "init"], cwd=args.dest)
 
 
 def _config_dvc(args):
@@ -50,6 +52,12 @@ def _git_ls_files():
         line = line.strip()
         if line:
             yield line
+
+
+def _pull_dvc_files(args):
+    dvc_files = glob.glob("*.dvc")
+    print("Fetching DvC files")
+    _ = subprocess.check_output(["dvc", "pull"] + dvc_files, cwd=args.dest)
 
 
 if __name__ == "__main__":
