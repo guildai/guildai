@@ -81,8 +81,9 @@ def _print_file_listing(dir, args):
 
 def _list(dir, args):
     for root, dirs, files in os.walk(dir, followlinks=args.follow_links):
-        if root == dir:
-            _maybe_rm_guild_dir(dirs, args)
+        if not args.all:
+            _maybe_rm_dot_names(dirs, args, root==dir)
+            _maybe_rm_dot_names(files, args, root==dir)
         for name in dirs + files:
             full_path = os.path.join(root, name)
             rel_path = os.path.relpath(full_path, dir)
@@ -91,20 +92,13 @@ def _list(dir, args):
             yield _list_path(full_path, rel_path, args)
 
 
-def _maybe_rm_guild_dir(dirs, args):
-    if not args.all and not _wants_guild_files(args.path):
-        _rm_guild_dir(dirs)
-
-
-def _wants_guild_files(path):
-    return path and path.startswith(".guild")
-
-
-def _rm_guild_dir(dirs):
-    try:
-        dirs.remove(".guild")
-    except ValueError:
-        pass
+def _maybe_rm_dot_names(names, args, force_path):
+    for name in list(names):
+        if name[:1] != ".":
+            continue
+        if force_path and args.path and name.startswith(args.path):
+            continue
+        names.remove(name)
 
 
 def _match_path(filename, pattern):

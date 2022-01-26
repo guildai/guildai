@@ -105,6 +105,7 @@ List all files with `--all`.
       .guild/sourcecode/README.md
       .guild/sourcecode/guild.yml
       .guild/sourcecode/make_fs.py
+      .hidden
       a
       b
       c/
@@ -114,7 +115,7 @@ List all files with `--all`.
       l/
     <exit 0>
 
-If `--path` wants Guild files, `--all` is implied.
+If `--path` wants a hidden file, it's included.
 
     >>> guild_run("ls --path .guild")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
@@ -146,6 +147,15 @@ If `--path` wants Guild files, `--all` is implied.
       .guild/sourcecode/README.md
       .guild/sourcecode/guild.yml
       .guild/sourcecode/make_fs.py
+    <exit 0>
+
+    >>> guild_run("ls --path .hi")
+    ???/runs/aaaa:
+      .hidden
+    <exit 0>
+
+    >>> guild_run("ls --path .hid -n")
+    .hidden
     <exit 0>
 
 Follow links applies to `--all`.
@@ -180,6 +190,7 @@ Follow links applies to `--all`.
       .guild/sourcecode/README.md
       .guild/sourcecode/guild.yml
       .guild/sourcecode/make_fs.py
+      .hidden
       a
       b
       c/
