@@ -43,7 +43,7 @@ class Plugin(object):
         self.name = ep.name
         self.log = logging.getLogger("guild." + self.name)
 
-    def guildfile_data(self, _data, _src):
+    def guildfile_data(self, data, src):
         """Called before data is used to initialize a Guildfile.
 
         Plugins may use this callback to mutate data before it's used.
@@ -51,7 +51,7 @@ class Plugin(object):
         `guildfile_loaded`.
         """
 
-    def guildfile_loaded(self, _gf):
+    def guildfile_loaded(self, gf):
         """Called immediately after a Guild file is loaded.
 
         Plugins may use this callback to modify a Guild file after
@@ -59,16 +59,18 @@ class Plugin(object):
         the Guild file, use `guildfile_data`.
         """
 
-    @staticmethod
-    def enabled_for_op(_op):
+    def enabled_for_op(self, op):  # pylint: disable=unused-argument,no-self-use
+        """Returns a tuple of boolean and reason.
+
+        The boolean indicates whether or not the plugin is enabled for
+        `op`. The reason is used to provide additional information to the user.
+        """
         return False, "not applicable to operation"
 
-    @staticmethod
-    def patch_env():
-        pass
+    def patch_env(self):
+        """Called to let the plugin patch the Python environment."""
 
-    @staticmethod
-    def resolve_model_op(_opspec):
+    def resolve_model_op(self, opspec):  # pylint: disable=unused-argument,no-self-use
         """Return a tuple of model, op_name for opspec.
 
         If opspec cannot be resolved to a model, the function should
