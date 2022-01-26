@@ -16,10 +16,14 @@
 
 - Complete correct implementatiom of run support
 - Do we care about pipelines vs not?
+- Reinstate summaries from metrics
 - Flags
+  - Import flags from params config
+  - Copy + modify config files
 - How to handle big files or directories?
 - Cleanup / lint (remove unused or commented out code)
 - Test concurrency using parallel runs in DvC
+- Scenario: run op with specific/multiple data versions (used in pull)
 
 """
 
@@ -29,8 +33,6 @@ from __future__ import division
 import logging
 import os
 import subprocess
-
-import guild
 
 from guild import config
 from guild import guildfile
@@ -50,14 +52,16 @@ class _DvcModelProxy(object):
 
     def __init__(self, target_stage, project_dir):
         self.modeldef = _init_dvc_modeldef(self.name, target_stage, project_dir)
-        self.reference = _init_dvc_model_reference()
+        self.reference = _init_dvc_model_reference(project_dir)
 
 
 def _init_dvc_modeldef(model_name, stage_name, project_dir):
     data = [
         {
             "model": model_name,
-            "operations": {stage_name: _stage_op_data(stage_name, project_dir)},
+            "operations": {
+                stage_name: _stage_op_data(stage_name, project_dir),
+            },
         }
     ]
     gf = guildfile.Guildfile(data, src="<guild.plugins._DvcModelProxy>")
@@ -89,8 +93,13 @@ def _stage_op_data(stage_name, project_dir):
     }
 
 
-def _init_dvc_model_reference():
-    return modellib.ModelRef("builtin", "guildai", guild.__version__, "dvc.yaml")
+def _init_dvc_model_reference(project_dir):
+    dvc_yaml_path = os.path.join(project_dir, "dvc.yaml")
+    if os.path.isfile(dvc_yaml_path):
+        version = modellib.file_hash(dvc_yaml_path)
+    else:
+        version = "unknown"
+    return modellib.ModelRef("import", dvc_yaml_path, version, "dvc.yaml")
 
 
 class _Stage:

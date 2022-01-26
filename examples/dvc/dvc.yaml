@@ -22,6 +22,7 @@ stages:
   eval-models:
     cmd: python eval_models.py
     deps:
+    - iris.npy
     - model-1.joblib
     - model-2.joblib
     - model-3.joblib

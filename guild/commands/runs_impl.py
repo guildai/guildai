@@ -590,6 +590,8 @@ def _run_op_dir(run):
         return os.path.dirname(opref.pkg_name)
     elif opref.pkg_type == "script":
         return opref.pkg_name
+    elif opref.pkg_type == "import":
+        return os.path.dirname(opref.pkg_name)
     else:
         return None
 

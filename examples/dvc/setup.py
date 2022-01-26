@@ -55,7 +55,6 @@ def _git_ls_files():
 
 
 def _git_first_commit(args):
-    print("Creating first Git commit")
     _ = subprocess.check_output(["git", "add", "."], cwd=args.dest)
     _ = subprocess.check_output(["git", "commit", "-m", "First commit"], cwd=args.dest)
 

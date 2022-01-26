@@ -20,6 +20,9 @@ import os
 
 import yaml
 
+from guild import util
+from guild import var
+
 log = logging.getLogger("guild")
 
 
@@ -95,3 +98,46 @@ def iter_stage_params(stage, dvc_config):
 
 def _stage_params(stage_config):
     return stage_config.get("params", [])
+
+
+def marked_or_latest_run_for_stage(dvc_config_path, stage):
+    runs = runs_for_stage(dvc_config_path, stage)
+    if not runs:
+        return None
+    for run in runs:
+        if run.get("marked"):
+            return run
+    return runs[0]
+
+
+def runs_for_stage(dvc_config_path, stage):
+    return var.runs(
+        sort=["-started"],
+        filter=_dvc_stage_op_filter(dvc_config_path, stage),
+    )
+
+
+def _dvc_stage_op_filter(dvc_config_path, stage):
+    dvc_config_path = _ensure_config_dir(dvc_config_path)
+
+    def f(run):
+        opref = run.opref
+        return (
+            opref.op_name == stage
+            and opref.pkg_type in ("guildfile", "import")
+            and _match_dvc_path(opref.pkg_name, dvc_config_path)
+            and run.status == "completed"
+        )
+
+    return f
+
+
+def _ensure_config_dir(dvc_config_path):
+    if dvc_config_path.endswith("dvc.yaml"):
+        return os.path.dirname(dvc_config_path)
+    return dvc_config_path
+
+
+def _match_dvc_path(opref_pkg_name, target_path):
+    opref_path = os.path.dirname(opref_pkg_name)
+    return util.compare_paths(opref_path, target_path)
