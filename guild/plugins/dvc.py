@@ -28,8 +28,7 @@ from __future__ import division
 
 import logging
 import os
-
-import yaml
+import subprocess
 
 import guild
 
@@ -37,7 +36,10 @@ from guild import config
 from guild import guildfile
 from guild import model as modellib
 from guild import plugin as pluginlib
+from guild import resolver as resolverlib
 from guild import util
+
+from . import dvc_util
 
 log = logging.getLogger("guild")
 
@@ -80,6 +82,10 @@ def _stage_op_data(stage_name, project_dir):
             #         "default": False,
             #     }
         },
+        "sourcecode": {
+            "dest": ".",
+            "select": [],
+        },
     }
 
 
@@ -92,6 +98,24 @@ class _Stage:
         self.name = name
         self.config = config
         self.project_dir = project_dir
+
+
+class _DvcFileResolver(resolverlib.Resolver):
+    def resolve(self, resolve_context):
+        assert self.source.uri.startswith("dvc://"), self.source.uri
+        dvc_dep = self.source.uri[6:]
+        _pull_dep(dvc_dep, resolve_context.run.dir)
+
+
+def _pull_dep(dep, cwd):
+    cmd = ["dvc", "pull", dep]
+    p = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    _out, err = p.communicate()
+    if p.returncode != 0:
+        raise resolverlib.ResolutionError(
+            "error fetching DvC dependency '%s': %s"
+            % (dep, err.strip().decode("utf-8", errors="ignore"))
+        )
 
 
 class DvcPlugin(pluginlib.Plugin):
@@ -108,6 +132,12 @@ class DvcPlugin(pluginlib.Plugin):
             return model, target_stage
         return None
 
+    @staticmethod
+    def resolver_class_for_url_scheme(scheme):
+        if scheme == "dvc":
+            return _DvcFileResolver
+        return None
+
 
 def _maybe_apply_dvc_stages(model_config, model):
     for stage in _iter_dvc_stages(model_config, _model_dir(model)):
@@ -122,7 +152,7 @@ def _iter_dvc_stages(dvc_config, project_dir):
     stages_import = _coerce_dvc_stages_import(dvc_config.get("dvc-stages-import"))
     if not stages_import:
         return
-    dvc_config = _load_dvc_config_for_stages_import(project_dir)
+    dvc_config = dvc_util.load_dvc_config(project_dir)
     for stage_name, stage_config in (dvc_config.get("stages") or {}).items():
         if _filter_dvc_stage(stage_name, stages_import):
             yield _Stage(stage_name, stage_config, project_dir)
@@ -139,23 +169,6 @@ def _coerce_dvc_stages_import(val):
         val,
     )
     return None
-
-
-def _load_dvc_config_for_stages_import(dir):
-    config_filename = _dvc_config_filename(dir)
-    if not os.path.exists(config_filename):
-        log.warning(
-            "%s not found - skipping DvC stages import",
-            os.path.relpath(config_filename),
-        )
-        return {}
-    log.debug("loading %s for DvC stages import", config_filename)
-    with open(config_filename) as f:
-        return yaml.safe_load(f)
-
-
-def _dvc_config_filename(dir):
-    return os.path.join(dir, "dvc.yaml")
 
 
 def _filter_dvc_stage(name, import_spec):

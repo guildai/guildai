@@ -175,6 +175,7 @@
     guild.plugins.disk
     guild.plugins.dvc
     guild.plugins.dvc_stage_main
+    guild.plugins.dvc_util
     guild.plugins.exec_script
     guild.plugins.flags_import_util
     guild.plugins.gen_queue

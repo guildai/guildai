@@ -35,6 +35,8 @@ from guild import vcs_util
 
 ##from guild.commands import run_impl
 
+from . import dvc_util
+
 log = None
 
 PIPELINE_STAGE_PS = [
@@ -234,6 +236,7 @@ def _init_run_dir(pipeline):
     copied = _copy_project_source(pipeline)
     _link_to_dvc_cache(pipeline)
     _resolve_deps(pipeline, copied)
+    _copy_params_with_flags(pipeline)
 
 
 def _init_empty_vcs_repo(pipeline):
@@ -252,6 +255,8 @@ def _copy_project_source(pipeline):
     copied = set()
     for path in vcs_util.iter_source_files(pipeline.project_dir):
         src = os.path.join(pipeline.project_dir, path)
+        if not os.path.exists(src):
+            continue
         dest = os.path.join(pipeline.run_dir, path)
         log.debug("copying %s to %s", src, dest)
         util.ensure_dir(os.path.dirname(dest))
@@ -274,62 +279,93 @@ def _link_to_dvc_cache(pipeline):
 
 
 def _resolve_deps(pipeline, copied):
-    for dep in _target_stage_deps(pipeline):
+    for dep, dep_stage in dvc_util.iter_stage_deps(
+        pipeline.target_stage, pipeline.dvc_yaml
+    ):
         if dep in copied:
             continue
-        try:
-            _copy_or_link_dep(dep, pipeline)
-        except FileNotFoundError:
-            _pull_dep(dep, pipeline)
+        _resolve_dep(dep, dep_stage, pipeline)
 
 
-def _target_stage_deps(pipeline):
-    stage_data = pipeline.dvc_yaml.get("stages", {}).get(pipeline.target_stage, {})
-    return stage_data.get("deps", [])
-
-
-def _copy_or_link_dep(dep, pipeline):
-    dep_src = os.path.join(pipeline.project_dir, dep)
-    if not os.path.exists(dep_src):
-        raise FileNotFoundError(dep_src)
-    if _can_copy_dep(dep_src):
-        _copy_dep(dep, pipeline)
+def _resolve_dep(dep, stage, pipeline):
+    if stage:
+        _resolve_stage_dep(dep, stage, pipeline)
     else:
-        _link_dep(dep, pipeline)
+        _resolve_project_dep(dep, pipeline)
+
+
+def _resolve_stage_dep(dep, stage, pipeline):
+    assert False, ("TODO resolve dep from op", dep, stage, pipeline)
+
+
+def _resolve_project_dep(dep, pipeline):
+    if _is_project_file(dep, pipeline):
+        _copy_or_link_project_file(dep, pipeline)
+    else:
+        _pull_dep(dep, pipeline)
+
+
+def _is_project_file(dep, pipeline):
+    path = os.path.join(pipeline.project_dir, dep)
+    return os.path.exists(path)
+
+
+def _copy_or_link_project_file(dep, pipeline):
+    dep_path = os.path.join(pipeline.project_dir, dep)
+    if _can_copy_dep(dep_path):
+        _copy_project_file(dep_path, dep, pipeline)
+    else:
+        _link_project_file(dep_path, dep, pipeline)
 
 
 def _can_copy_dep(dep_path):
     return os.path.isfile(dep_path)
 
 
-def _copy_dep(dep, pipeline):
-    src = os.path.join(pipeline.project_dir, dep)
+def _copy_project_file(src, dep, pipeline):
     dest = os.path.join(pipeline.run_dir, dep)
     log.info("Copying %s", dep)
     util.copyfile(src, dest)
 
 
-def _link_dep(dep, _pipeline):
-    assert False, dep
+def _link_project_file(src, dep, pipeline):
+    link = os.path.join(pipeline.run_dir, dep)
+    rel_src = os.path.relpath(src, os.path.dirname(link))
+    log.info("Linking to %s", dep)
+    util.symlink(rel_src, link)
 
 
-def _pull_dep(dep, _pipeline):
-    assert False, dep
+def _pull_dep(dep, pipeline):
+    cmd = ["dvc", "pull", dep]
+    log.info("Fetching %s", dep)
+    p = subprocess.Popen(cmd, cwd=pipeline.run_dir)
+    returncode = p.wait()
+    if returncode != 0:
+        raise SystemExit(
+            "'dvc pull' failed (exit code %i) - see above for details" % returncode
+        )
 
 
-# def _pull_deps(pipeline, run_dir):
-#     log.info("Pulling DvC stage dependencies")
-#     cmd = ["dvc", "pull", pipeline.target_stage, "--with-deps"]
-#     p = subprocess.Popen(cmd, cwd=run_dir)
-#     returncode = p.wait()
-#     if returncode != 0:
-#         raise SystemExit(
-#             "'dvc pull' failed (exit code %i) - see above for details" % returncode
-#         )
+def _copy_params_with_flags(pipeline):
+    for name in _iter_stage_param_files(pipeline):
+        log.info("Copying %s", name)
+        src = os.path.join(pipeline.project_dir, name)
+        dest = os.path.join(pipeline.run_dir, name)
+        util.copyfile(src, dest)
+
+
+def _iter_stage_param_files(pipeline):
+    seen = set()
+    for _param, filename in dvc_util.iter_stage_params(
+        pipeline.target_stage, pipeline.dvc_yaml
+    ):
+        if not filename in seen:
+            yield filename
+            seen.add(filename)
 
 
 def _repro_run(pipeline):
-    cmd = ["dvc", "repro", pipeline.target_stage]
+    cmd = ["dvc", "repro", "--single-item", pipeline.target_stage]
     p = subprocess.Popen(cmd, cwd=pipeline.run_dir)
     returncode = p.wait()
     if returncode != 0:

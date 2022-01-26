@@ -1,5 +1,4 @@
 import argparse
-import glob
 import os
 import shutil
 import subprocess
@@ -12,7 +11,7 @@ def main():
     _init_dvc(args)
     _config_dvc(args)
     _copy_source_code(args)
-    _pull_dvc_files(args)
+    _git_first_commit(args)
 
 
 def _init_args():
@@ -23,7 +22,8 @@ def _init_args():
 
 def _init_dest(args):
     print("Initializing {}".format(args.dest))
-    os.makedirs(args.dest)
+    if not os.path.exists(args.dest):
+        os.makedirs(args.dest)
 
 
 def _init_git(args):
@@ -54,10 +54,10 @@ def _git_ls_files():
             yield line
 
 
-def _pull_dvc_files(args):
-    dvc_files = glob.glob("*.dvc")
-    print("Fetching DvC files")
-    _ = subprocess.check_output(["dvc", "pull"] + dvc_files, cwd=args.dest)
+def _git_first_commit(args):
+    print("Creating first Git commit")
+    _ = subprocess.check_output(["git", "add", "."], cwd=args.dest)
+    _ = subprocess.check_output(["git", "commit", "-m", "First commit"], cwd=args.dest)
 
 
 if __name__ == "__main__":
