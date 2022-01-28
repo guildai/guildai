@@ -1545,7 +1545,7 @@ class ResourceDef(resourcedef.ResourceDef):
     def __init__(self, name, data, modeldef):
         try:
             super(ResourceDef, self).__init__(
-                name, data, "%s:%s" % (modeldef.name, name)
+                name, data, _resdef_fullname(name, modeldef)
             )
         except resourcedef.ResourceDefValueError:
             raise GuildfileError(
@@ -1560,12 +1560,36 @@ class ResourceDef(resourcedef.ResourceDef):
         self.private = self.private
         self.modeldef = modeldef
 
+    def _resource_source_for_data(self, data):
+        try:
+            return super(ResourceDef, self)._resource_source_for_data(data)
+        except resourcedef.ResourceFormatError:
+            source = _try_plugins_for_resource_source_data(data, self)
+            if not source:
+                raise
+            return source
+
     def _source_for_type(self, type, val, data):
         data = self._coerce_source_data(data)
         if type == "operation":
             return resourcedef.ResourceSource(self, "operation:%s" % val, **data)
         else:
             return super(ResourceDef, self)._source_for_type(type, val, data)
+
+
+def _try_plugins_for_resource_source_data(data, resdef):
+    from guild import plugin as pluginlib  # Expensive
+
+    for _name, plugin in pluginlib.iter_plugins():
+        source = plugin.resource_source_for_data(data, resdef)
+        if source:
+            return source
+    return None
+
+
+def _resdef_fullname(config_name, modeldef):
+    res_name = config_name if config_name else "<inline>"
+    return "%s:%s" % (modeldef.name, res_name)
 
 
 def _resdef_name_for_sources(sources):

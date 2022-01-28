@@ -15,6 +15,7 @@
 """TODO:
 
 - Complete correct implementatiom of run support
+- 'always-pull' attr in DvC source def
 - Do we care about pipelines vs not?
 - Reinstate summaries from metrics
 - Flags
@@ -30,6 +31,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import copy
 import logging
 import os
 import subprocess
@@ -39,6 +41,7 @@ from guild import guildfile
 from guild import model as modellib
 from guild import plugin as pluginlib
 from guild import resolver as resolverlib
+from guild import resourcedef
 from guild import util
 
 from . import dvc_util
@@ -109,24 +112,6 @@ class _Stage:
         self.project_dir = project_dir
 
 
-class _DvcFileResolver(resolverlib.Resolver):
-    def resolve(self, resolve_context):
-        assert self.source.uri.startswith("dvc://"), self.source.uri
-        dvc_dep = self.source.uri[6:]
-        _pull_dep(dvc_dep, resolve_context.run.dir)
-
-
-def _pull_dep(dep, cwd):
-    cmd = ["dvc", "pull", dep]
-    p = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    _out, err = p.communicate()
-    if p.returncode != 0:
-        raise resolverlib.ResolutionError(
-            "error fetching DvC dependency '%s': %s"
-            % (dep, err.strip().decode("utf-8", errors="ignore"))
-        )
-
-
 class DvcPlugin(pluginlib.Plugin):
     @staticmethod
     def guildfile_loaded(gf):
@@ -144,8 +129,152 @@ class DvcPlugin(pluginlib.Plugin):
     @staticmethod
     def resolver_class_for_url_scheme(scheme):
         if scheme == "dvc":
-            return _DvcFileResolver
+            return _DvcResolver
         return None
+
+    @staticmethod
+    def resource_source_for_data(data, resdef):
+        if "dvc" not in data:
+            return None
+        data_copy = copy.copy(data)
+        dep_spec = data_copy.pop("dvc")
+        if not dep_spec:
+            raise resourcedef.ResourceFormatError(
+                "missing spec for 'dvc' source attribute"
+            )
+        return resourcedef.ResourceSource(resdef, "dvc:%s" % dep_spec, **data_copy)
+
+    @staticmethod
+    def resolver_class_for_source(source):
+        if not source.parsed_uri.scheme == "dvc":
+            return None
+        return _DvcResolver
+
+
+class _DvcResolver(resolverlib.FileResolver):
+    def resolve(self, resolve_context):
+        try:
+            return super(_DvcResolver, self).resolve(resolve_context)
+        except resolverlib.ResolutionError as e:
+            log.debug("error trying default file resolution: %s", e)
+            return self._pull_dep(resolve_context)
+
+    def _pull_dep(self, resolve_context):
+        dep = self.source.parsed_uri.path
+        run_dir = resolve_context.run.dir
+        project_dir = self.resource.location
+        _ensure_dvc_repo(run_dir, project_dir)
+        _copy_dep_dvc_file(dep, project_dir, run_dir)
+        pulled_dep_path = _pull_dep(dep, run_dir)
+        return [pulled_dep_path]
+
+
+def _ensure_dvc_repo(run_dir, project_dir):
+    _ensure_git_repo(run_dir)
+    _ensure_dvc_config(run_dir, project_dir)
+    _ensure_shared_dvc_cache(run_dir, project_dir)
+
+
+def _ensure_git_repo(run_dir):
+    try:
+        _ = subprocess.check_output(["git", "init"], cwd=run_dir)
+    except FileNotFoundError:
+        raise resolverlib.ResolutionError(
+            "cannot initialize Git in run directory %s "
+            "(required for 'dvc pull') - is Git installed and "
+            "available on the path?" % run_dir
+        )
+    except subprocess.CalledProcessError:
+        raise resolverlib.ResolutionError(
+            "error initializing Git repo in run directory %s "
+            "(required for 'dvc pull')" % run_dir
+        )
+
+
+def _ensure_dvc_config(run_dir, project_dir):
+    if os.path.exists(os.path.join(run_dir, ".dvc", "config")):
+        return
+    util.find_apply(
+        [
+            _try_copy_dvc_config,
+            _try_copy_dvc_config_in,
+            _no_dvc_config_resolution_error,
+        ],
+        project_dir,
+        run_dir,
+    )
+
+
+def _try_copy_dvc_config(project_dir, run_dir):
+    src = os.path.join(project_dir, ".dvc", "config")
+    if not os.path.exists(src):
+        return None
+    dest = os.path.join(run_dir, ".dvc", "config")
+    util.ensure_dir(os.path.dirname(dest))
+    util.copyfile(src, dest)
+    return dest
+
+
+def _try_copy_dvc_config_in(project_dir, run_dir):
+    src = os.path.join(project_dir, "dvc.config.in")
+    if not os.path.exists(src):
+        return None
+    dest = os.path.join(run_dir, ".dvc", "config")
+    util.ensure_dir(os.path.dirname(dest))
+    util.copyfile(src, dest)
+    return dest
+
+
+def _no_dvc_config_resolution_error(project_dir, _run_dir):
+    raise resolverlib.ResolutionError(
+        "cannot find DvC config ('.dvc/config' or 'dvc.config.in') "
+        "in %s (required for 'dvc pull')" % os.path.relpath(project_dir)
+    )
+
+
+def _ensure_shared_dvc_cache(run_dir, project_dir):
+    dest = os.path.join(run_dir, ".dvc", "cache")
+    if os.path.exists(dest):
+        return
+    src = os.path.join(project_dir, ".dvc", "cache")
+    if not os.path.exists(src):
+        return
+    util.symlink(src, dest)
+
+
+def _copy_dep_dvc_file(dep, project_dir, run_dir):
+    dvc_file_name = dep + ".dvc"
+    src = os.path.join(project_dir, dvc_file_name)
+    if not os.path.exists(src):
+        raise resolverlib.ResolutionError(
+            "cannot find DvC file %s in %s (required for 'dvc pull')"
+            % (dvc_file_name, os.path.relpath(project_dir))
+        )
+    dest = os.path.join(run_dir, dvc_file_name)
+    util.ensure_dir(os.path.dirname(dest))
+    util.copyfile(src, dest)
+
+
+def _pull_dep(dep, run_dir):
+    cmd = ["dvc", "pull", dep]
+    log.info("Fetching DvC resource %s", dep)
+    try:
+        subprocess.check_call(["dvc", "pull", dep], cwd=run_dir)
+    except subprocess.CalledProcessError as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("cmd: %s", cmd)
+        raise resolverlib.ResolutionError(
+            "error fetching DvC resource %s: 'dvc pull' exited with "
+            "non-zero exit status %i (see above for details)" % (dep, e.returncode)
+        )
+    else:
+        dep_path = os.path.join(run_dir, dep)
+        if not os.path.exists(dep_path):
+            raise resolverlib.ResolutionError(
+                "'dvc pull' did not fetch the expected file %s (see above for details)"
+                % dep
+            )
+        return dep_path
 
 
 def _maybe_apply_dvc_stages(model_config, model):

@@ -46,7 +46,43 @@
 - model: ''
   extra:
     dvc-stages-import:
-      - hello
-      - prepare-data
-      - train-models
-      - eval-models
+      #- hello
+      #- prepare-data
+      #- train-models
+      #- eval-models
+
+
+  operations:
+    hello-2:
+      main: hello
+      requires:
+        - dvc: hello.in
+
+    prepare-data:
+      main: guild.plugins.dvc_stage_main prepare-data
+      requires:
+        file: iris.csv.dvc
+      sourcecode:
+        select: []
+        dest: .
+    train-models:
+      main: guild.plugins.dvc_stage_main train-models
+      requires:
+        - operation: prepare-data
+          select:
+            - iris.npy
+      sourcecode:
+        select: []
+        dest: .
+    eval-models:
+      main: guild.plugins.dvc_stage_main eval-models
+      requires:
+        - operation: prepare-data
+          select:
+            - iris.npy
+        - operation: train-models
+          select:
+            - model-.*\.joblib
+      sourcecode:
+        select: []
+        dest: .

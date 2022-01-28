@@ -71,7 +71,7 @@ class Resolver(object):
 
 
 def for_resdef_source(source, resource):
-    cls = _resolver_class_for_source(source)
+    cls = _resolver_class_for_source(source) or _try_plugins_for_resolver_class(source)
     if not cls:
         return None
     return cls(source, resource)
@@ -101,6 +101,16 @@ def _operation_resolver_cls(resdef):
         return OperationResolver(source, resource, resdef.modeldef)
 
     return cls
+
+
+def _try_plugins_for_resolver_class(source):
+    from guild import plugin as pluginlib
+
+    for _name, plugin in pluginlib.iter_plugins():
+        cls = plugin.resolver_class_for_source(source)
+        if cls:
+            return cls
+    return None
 
 
 ###################################################################

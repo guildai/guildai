@@ -310,6 +310,9 @@ def _resolve_source_for_path(source_path, source_location, source, target_dir):
     target_path = _target_path_for_source(
         source_path, source_location, source, target_dir
     )
+    if util.compare_paths(source_path, target_path):
+        # Source was resolved directly to run dir - nothing to do.
+        return
     if target_type == "link":
         _link_to_source(source_path, target_path, source.replace_existing)
     elif target_type == "copy":

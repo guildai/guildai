@@ -78,6 +78,26 @@ class Plugin(object):
         """
         return None
 
+    def resource_source_for_data(
+        self, data, resdef
+    ):  # pylint: disable=unused-argument,no-self-use
+        """Return an instance of `guild.resourcedef.ResourceSource` for data.
+
+        Return None if data is not supported as a resource source.
+        """
+        return None
+
+    def resolver_class_for_source(
+        self, source
+    ):  # pylint: disable=unused-argument,no-self-use
+        """Return a class (or factory) for a resolver suitable for `source`.
+
+        `source` is an instance of `guild.resourcedef.ResourceSource`.
+
+        Return None if resolution for the source is not supported by the plugin.
+        """
+        return None
+
 
 def iter_plugins():
     return iter(_plugins)
