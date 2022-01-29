@@ -53,36 +53,60 @@
 
 
   operations:
-    hello-2:
+    hello-guild-dep:
+      description: Standard Guild dependency example without DvC support
+      main: hello
+      requires:
+        - file: hello.in
+          help: Missing hello.in - run 'dvc pull hello.in' to fetch it
+
+    hello-dvc-dep:
+      description: Uses DvC dependency to fetch required file
       main: hello
       requires:
         - dvc: hello.in
 
-    prepare-data:
+    hello-dvc-stage:
+      description: Uses Guild DvC plugin to run hello stage
+      main: guild.plugins.dvc_stage_main hello
+
+    prepare-data-dvc-stage:
+      description: Use Guild DvC plugin to run prepare-data stage
       main: guild.plugins.dvc_stage_main prepare-data
-      requires:
-        file: iris.csv.dvc
-      sourcecode:
-        select: []
-        dest: .
-    train-models:
+
+    train-models-dvc-stage:
+      description: Use Guild DvC plugin to run train-models stage
       main: guild.plugins.dvc_stage_main train-models
-      requires:
-        - operation: prepare-data
-          select:
-            - iris.npy
-      sourcecode:
-        select: []
-        dest: .
-    eval-models:
+
+    eval-models-dvc-stage:
+      description: Use Guild DvC plugin to run eval-models stage
       main: guild.plugins.dvc_stage_main eval-models
-      requires:
-        - operation: prepare-data
-          select:
-            - iris.npy
-        - operation: train-models
-          select:
-            - model-.*\.joblib
-      sourcecode:
-        select: []
-        dest: .
+
+    # prepare-data:
+    #   main: guild.plugins.dvc_stage_main prepare-data
+    #   requires:
+    #     file: iris.csv.dvc
+    #   sourcecode:
+    #     select: []
+    #     dest: .
+    # train-models:
+    #   main: guild.plugins.dvc_stage_main train-models
+    #   requires:
+    #     - operation: prepare-data
+    #       select:
+    #         - iris.npy
+    #   sourcecode:
+    #     select: []
+    #     dest: .
+    # eval-models:
+    #   main: guild.plugins.dvc_stage_main eval-models
+    #   requires:
+    #     - operation: prepare-data
+    #       select:
+    #         - iris.npy
+    #     - operation: train-models
+    #       select:
+    #         - model-.*\.joblib
+    #   sourcecode:
+    #     select: []
+    #     dest: .

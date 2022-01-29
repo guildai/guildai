@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import subprocess
 
 import yaml
 
@@ -24,6 +25,14 @@ from guild import util
 from guild import var
 
 log = logging.getLogger("guild")
+
+
+class DvcInitError(Exception):
+    pass
+
+
+class DvcPullError(Exception):
+    pass
 
 
 def load_dvc_config(dir):
@@ -100,8 +109,8 @@ def _stage_params(stage_config):
     return stage_config.get("params", [])
 
 
-def marked_or_latest_run_for_stage(dvc_config_path, stage):
-    runs = runs_for_stage(dvc_config_path, stage)
+def marked_or_latest_run_for_stage(stage):
+    runs = runs_for_stage(stage)
     if not runs:
         return None
     for run in runs:
@@ -110,34 +119,130 @@ def marked_or_latest_run_for_stage(dvc_config_path, stage):
     return runs[0]
 
 
-def runs_for_stage(dvc_config_path, stage):
+def runs_for_stage(stage):
     return var.runs(
         sort=["-started"],
-        filter=_dvc_stage_op_filter(dvc_config_path, stage),
+        filter=_dvc_stage_op_filter(stage),
     )
 
 
-def _dvc_stage_op_filter(dvc_config_path, stage):
-    dvc_config_path = _ensure_config_dir(dvc_config_path)
-
+def _dvc_stage_op_filter(stage):
     def f(run):
-        opref = run.opref
-        return (
-            opref.op_name == stage
-            and opref.pkg_type in ("guildfile", "import")
-            and _match_dvc_path(opref.pkg_name, dvc_config_path)
-            and run.status == "completed"
-        )
+        return run.get("dvc-stage") == stage and run.status == "completed"
 
     return f
 
 
-def _ensure_config_dir(dvc_config_path):
-    if dvc_config_path.endswith("dvc.yaml"):
-        return os.path.dirname(dvc_config_path)
-    return dvc_config_path
+def ensure_dvc_repo(run_dir, project_dir):
+    _ensure_git_repo(run_dir)
+    _ensure_dvc_config(run_dir, project_dir)
+    _ensure_shared_dvc_cache(run_dir, project_dir)
 
 
-def _match_dvc_path(opref_pkg_name, target_path):
-    opref_path = os.path.dirname(opref_pkg_name)
-    return util.compare_paths(opref_path, target_path)
+def _ensure_git_repo(run_dir):
+    try:
+        _ = subprocess.check_output(["git", "init"], cwd=run_dir)
+    except FileNotFoundError:
+        raise DvcInitError(
+            "cannot initialize Git in run directory %s "
+            "(required for 'dvc pull') - is Git installed and "
+            "available on the path?" % run_dir
+        )
+    except subprocess.CalledProcessError:
+        raise DvcInitError(
+            "error initializing Git repo in run directory %s "
+            "(required for 'dvc pull')" % run_dir
+        )
+
+
+def _ensure_dvc_config(run_dir, project_dir):
+    if os.path.exists(os.path.join(run_dir, ".dvc", "config")):
+        return
+    util.find_apply(
+        [
+            _try_copy_dvc_config,
+            _try_copy_dvc_config_in,
+            _no_dvc_config_resolution_error,
+        ],
+        project_dir,
+        run_dir,
+    )
+
+
+def _try_copy_dvc_config(project_dir, run_dir):
+    src = os.path.join(project_dir, ".dvc", "config")
+    if not os.path.exists(src):
+        return None
+    dest = os.path.join(run_dir, ".dvc", "config")
+    util.ensure_dir(os.path.dirname(dest))
+    util.copyfile(src, dest)
+    return dest
+
+
+def _try_copy_dvc_config_in(project_dir, run_dir):
+    src = os.path.join(project_dir, "dvc.config.in")
+    if not os.path.exists(src):
+        return None
+    dest = os.path.join(run_dir, ".dvc", "config")
+    util.ensure_dir(os.path.dirname(dest))
+    util.copyfile(src, dest)
+    return dest
+
+
+def _no_dvc_config_resolution_error(project_dir, _run_dir):
+    raise DvcInitError(
+        "cannot find DvC config ('.dvc/config' or 'dvc.config.in') "
+        "in %s (required for 'dvc pull')" % os.path.relpath(project_dir)
+    )
+
+
+def _ensure_shared_dvc_cache(run_dir, project_dir):
+    dest = os.path.join(run_dir, ".dvc", "cache")
+    if os.path.exists(dest):
+        return
+    src = os.path.join(project_dir, ".dvc", "cache")
+    if not os.path.exists(src):
+        return
+    util.symlink(src, dest)
+
+
+def pull_dvc_dep(dep, run_dir, project_dir):
+    _ensure_dvc_file(dep, run_dir, project_dir)
+    return _pull_dep(dep, run_dir)
+
+
+def _ensure_dvc_file(dep, run_dir, project_dir):
+    dvc_file_name = dep + ".dvc"
+    dest = os.path.join(run_dir, dvc_file_name)
+    if os.path.exists(dest):
+        return
+    src = os.path.join(project_dir, dvc_file_name)
+    if not os.path.exists(src):
+        raise DvcPullError(
+            "cannot find DvC file %s in %s (required for 'dvc pull')"
+            % (dvc_file_name, os.path.relpath(project_dir))
+        )
+    util.ensure_dir(os.path.dirname(dest))
+    util.copyfile(src, dest)
+
+
+def _pull_dep(dep, run_dir):
+    cmd = ["dvc", "pull", dep]
+    log.info("Fetching DvC resource %s", dep)
+    try:
+        subprocess.check_call(["dvc", "pull", dep], cwd=run_dir)
+    except subprocess.CalledProcessError as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("cmd: %s", cmd)
+        raise DvcPullError(
+            "error fetching DvC resource %s: 'dvc pull' exited with "
+            "non-zero exit status %i (see above for details)" % (dep, e.returncode)
+        )
+    else:
+        dep_path = os.path.join(run_dir, dep)
+        if not os.path.exists(dep_path):
+            raise DvcPullError(
+                "'dvc pull' did not fetch the expected file %s (see above for details)"
+                % dep
+            )
+        return dep_path

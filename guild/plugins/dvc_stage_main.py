@@ -33,7 +33,6 @@ from guild import run as runlib
 
 ##from guild import summary
 from guild import util
-from guild import vcs_util
 
 ##from guild.commands import run_impl
 
@@ -45,8 +44,6 @@ PIPELINE_STAGE_PS = [
     re.compile(r"Stage '(.*?)' didn't change, skipping"),
     re.compile(r"Running stage '(.*?)':"),
 ]
-
-DVC_META_NAMES = ["dvc.yaml", "dvc.lock"]
 
 
 class _Pipeline:
@@ -227,6 +224,8 @@ def _handle_stage(pipeline):
     _init_run_dir(pipeline)
     _repro_run(pipeline)
     _cleanup_run_dir(pipeline)
+
+    # Old...
     # _copy_dvc_meta_to_run_dir(pipeline)
     # _copy_deps_to_run_dir(pipeline)
     # _copy_outputs_to_run_dir(pipeline)
@@ -236,93 +235,33 @@ def _handle_stage(pipeline):
 def _init_run_dir(pipeline):
     log.info("Initializing run")
     _write_run_attrs(pipeline)
-    _init_vcs_repo(pipeline)
     _init_dvc_repo(pipeline)
-    _xxx_pull_special(pipeline)
-    copied = _copy_project_source(pipeline)
-    _link_to_dvc_cache(pipeline)
-    # _resolve_deps(pipeline, copied)
+    _copy_dvc_yaml(pipeline)
+    _resolve_deps(pipeline)
     _copy_params_with_flags(pipeline)
-
-
-def _xxx_pull_special(pipeline):
-    for name in os.listdir(pipeline.run_dir):
-        if not name.endswith(".dvc"):
-            continue
-        dep = name[:-4]
-        if not dep:
-            continue
-        project_path = os.path.join(pipeline.project_dir, dep)
-        if os.path.exists(project_path):
-            _copy_or_link_project_file(dep, pipeline)
-        else:
-            log.info("Fetching %s", dep)
-            subprocess.check_call(["dvc", "pull", dep], cwd=pipeline.run_dir)
 
 
 def _write_run_attrs(pipeline):
     pipeline.run.write_attr("dvc-stage", pipeline.target_stage)
 
 
-def _init_vcs_repo(pipeline):
-    _assert_is_git_based(pipeline.project_dir)
-    _ = subprocess.check_output(
-        ["git", "init"],
-        stderr=subprocess.STDOUT,
-        cwd=pipeline.run_dir,
-    )
-
-
-def _assert_is_git_based(project_dir):
-    git_marker = os.path.join(project_dir, ".dvc", ".gitignore")
-    if not os.path.exists(git_marker):
-        raise SystemExit("Cannot run DvC stages in %s - requires Git repository")
-
-
 def _init_dvc_repo(pipeline):
-    _ = subprocess.check_output(
-        ["dvc", "init"],
-        stderr=subprocess.STDOUT,
-        cwd=pipeline.run_dir,
-    )
-    util.copyfile(
-        os.path.join(pipeline.project_dir, ".dvc", "config"),
-        os.path.join(pipeline.run_dir, ".dvc", "config"),
-    )
+    try:
+        dvc_util.ensure_dvc_repo(pipeline.run_dir, pipeline.project_dir)
+    except dvc_util.DvcInitError as e:
+        raise SystemExit(str(e))
 
 
-def _copy_project_source(pipeline):
-    copied = set()
-    for path in vcs_util.iter_source_files(pipeline.project_dir):
-        src = os.path.join(pipeline.project_dir, path)
-        if not os.path.exists(src):
-            continue
-        dest = os.path.join(pipeline.run_dir, path)
-        if os.path.exists(dest):
-            continue
-        log.debug("copying %s to %s", src, dest)
-        util.ensure_dir(os.path.dirname(dest))
-        util.copyfile(src, dest)
-        copied.add(path)
-    return copied
+def _copy_dvc_yaml(pipeline):
+    src = os.path.join(pipeline.project_dir, "dvc.yaml")
+    if not os.path.exists(src):
+        raise SystemExit("missing dvc.yaml - cannot run DvC stage")
+    dest = os.path.join(pipeline.run_dir, "dvc.yaml")
+    util.copyfile(src, dest)
 
 
-def _link_to_dvc_cache(pipeline):
-    dvc_src = os.path.join(pipeline.project_dir, ".dvc")
-    dvc_dest = os.path.join(pipeline.run_dir, ".dvc")
-    for name in ("tmp", "cache"):
-        src = os.path.join(dvc_src, name)
-        if not os.path.exists(src):
-            continue
-        util.ensure_dir(dvc_dest)
-        rel_target = os.path.relpath(src, dvc_dest)
-        link = os.path.join(dvc_dest, name)
-        if os.path.exists(link):
-            util.safe_rmtree(link)
-        util.symlink(rel_target, link)
-
-
-def _resolve_deps(pipeline, copied):
+def _resolve_deps(pipeline, copied=None):
+    copied = copied or set()
     for dep_stage, deps in _target_stage_deps(pipeline):
         deps = _filter_not_in(deps, copied)
         if dep_stage:
@@ -351,7 +290,7 @@ def _filter_not_in(xs, excluded):
 
 
 def _resolve_stage_deps(stage, deps, pipeline):
-    stage_run = dvc_util.marked_or_latest_run_for_stage(pipeline.project_dir, stage)
+    stage_run = dvc_util.marked_or_latest_run_for_stage(stage)
     if not stage_run:
         _no_suitable_run_for_stage_error(stage, deps)
     log.info("Using %s for '%s' DvC stage dependency", stage_run.id, stage)
@@ -414,14 +353,11 @@ def _link_project_file(src, dep, pipeline):
 
 
 def _pull_dep(dep, pipeline):
-    cmd = ["dvc", "pull", dep]
     log.info("Fetching %s", dep)
-    p = subprocess.Popen(cmd, cwd=pipeline.run_dir)
-    returncode = p.wait()
-    if returncode != 0:
-        raise SystemExit(
-            "'dvc pull' failed (exit code %i) - see above for details" % returncode
-        )
+    try:
+        dvc_util.pull_dvc_dep(dep, pipeline.run_dir, pipeline.project_dir)
+    except dvc_util.DvcPullError as e:
+        raise SystemExit(str(e))
 
 
 def _copy_params_with_flags(pipeline):
