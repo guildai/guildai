@@ -16,6 +16,8 @@ This project is used as a template for a working DvC repo. We run
 
     >>> cd(tmp)
 
+Operations supported by the project:
+
     >>> run("guild ops")  # doctest: +REPORT_UDIFF
     eval-models-dvc-stage      Use Guild DvC plugin to run eval-models stage
     hello-dvc-dep              Uses DvC dependency to fetch required file if needed
@@ -24,6 +26,7 @@ This project is used as a template for a working DvC repo. We run
     hello-guild-dep            Standard Guild dependency example without DvC support
     prepare-data-dvc-stage     Use Guild DvC plugin to run prepare-data stage
     train-models-dvc-stage     Use Guild DvC plugin to run train-models stage
+    train-models-guild-op      Use Guild to run the train models operation
     <exit 0>
 
 ## DvC resource sources
@@ -278,3 +281,8 @@ Guild reads the values and writes them summaries.
       modle-3-score: 0... (step 0)
       modle-4-score: 0... (step 0)
     <exit 0>
+
+## Guild simulated stage with param flags
+
+The operation 'train-models-guild-op' uses a standard Guild operation
+without DvC to run the training operation. This uses 'params.json.in' to

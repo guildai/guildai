@@ -424,7 +424,7 @@ class ConfigResolver(FileResolver):
 
     @classmethod
     def _decoder_for_path(cls, path):
-        ext = os.path.splitext(path)[1].lower()
+        ext = _config_file_ext(path)
         if ext in cls.YAML_EXT:
             return cls._yaml_load
         elif ext in cls.JSON_EXT:
@@ -528,7 +528,7 @@ class ConfigResolver(FileResolver):
 
     @classmethod
     def _encoder_for_path(cls, path):
-        ext = os.path.splitext(path)[1].lower()
+        ext = _config_file_ext(path)
         if ext in cls.YAML_EXT:
             return yaml_util.encode_yaml
         elif ext in cls.JSON_EXT:
@@ -545,6 +545,13 @@ class ConfigResolver(FileResolver):
     @staticmethod
     def _cfg_encode(config_data):
         return util.encode_cfg(config_data)
+
+
+def _config_file_ext(path):
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".in":
+        return _config_file_ext(path[:-3])
+    return ext
 
 
 ###################################################################

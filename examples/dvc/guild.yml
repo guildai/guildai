@@ -85,6 +85,20 @@
       description: Use Guild DvC plugin to run train-models stage
       main: guild.plugins.dvc_stage_main train-models
 
+
+    train-models-guild-op:
+      description: Use Guild to run the train models operation
+      main: train_models
+      flags-dest: config:params.json.in
+      flags-import: all
+      requires:
+        - config: params.json.in
+          rename: params.json.in params.json
+        - operation: prepare-data-.*
+          name: prepare-data
+          select:
+            - iris.npy
+
     eval-models-dvc-stage:
       description: Use Guild DvC plugin to run eval-models stage
       main: guild.plugins.dvc_stage_main eval-models

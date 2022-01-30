@@ -34,6 +34,14 @@
           type: auto
           default: BB
 
+    json-in:
+      main: config_json flags.json
+      flags-dest: config:flags.json.in
+      flags-import: all
+      requires:
+        - config: flags.json.in
+          rename: flags.json.in flags.json
+
     cfg:
       main: config_cfg flags.cfg
       flags-dest: config:flags.cfg
