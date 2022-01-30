@@ -31,7 +31,7 @@ from guild import op_util
 ##from guild import steps_util
 from guild import run as runlib
 
-##from guild import summary
+from guild import summary
 from guild import util
 
 ##from guild.commands import run_impl
@@ -223,6 +223,7 @@ def _handle_stage(pipeline):
     log.info("Running DvC stage %s", pipeline.target_stage)
     _init_run_dir(pipeline)
     _repro_run(pipeline)
+    _log_metrics_as_summaries(pipeline)
     _cleanup_run_dir(pipeline)
 
     # Old...
@@ -455,67 +456,24 @@ def _rm_vcs_repo(dir):
 #     return stage_data.get("outs", [])
 
 
-# def _copy_metrics_to_run_dir(pipeline):
-#     source_dir = pipeline.project_dir
-#     metrics = _target_stage_metrics(pipeline)
-#     run_dir = _required_run_dir()
-#     with summary.SummaryWriter(run_dir) as events:
-#         for name in metrics:
-#             _copy_stage_file(name, source_dir, run_dir, "metrics")
-#             _write_metrics_as_scalars(name, run_dir, events)
+def _log_metrics_as_summaries(pipeline):
+    with summary.SummaryWriter(pipeline.run_dir) as events:
+        for metrics_name, metrics_data in dvc_util.iter_stage_metrics_data(
+            pipeline.target_stage,
+            pipeline.run_dir,
+        ):
+            log.info("Logging metrics from %s", metrics_name)
+            for tag, val in _iter_metrics_scalars(metrics_data):
+                events.add_scalar(tag, val)
 
 
-# def _target_stage_metrics(pipeline):
-#     stage_data = pipeline.dvc_yaml.get("stages", {}).get(pipeline.target_stage, {})
-#     for x in stage_data.get("metrics", []):
-#         if isinstance(x, str):
-#             yield x
-#         elif isinstance(x, dict):
-#             for name in x:
-#                 yield name
-#         else:
-#             log.warning(
-#                 "unexpected metrics value %r for stage '%s', skipping",
-#                 x,
-#                 pipeline.target_stage,
-#             )
-
-
-# def _write_metrics_as_scalars(metrics_name, run_dir, events):
-#     try:
-#         data = _load_metrics(os.path.join(run_dir, metrics_name))
-#     except Exception as e:
-#         log.warning("error reading metrics from %s: %s", metrics_name, e)
-#     else:
-#         for tag, val in _iter_metrics_scalars(data):
-#             events.add_scalar(tag, val)
-
-
-# def _load_metrics(path):
-#     ext = os.path.splitext(path)[1]
-#     if ext in (".yml", "yaml"):
-#         return _load_yaml(path)
-#     elif ext in (".json",):
-#         return _load_json(path)
-#     else:
-#         raise ValueError("unsupported metrics type in %s" % os.path.basename(path))
-
-
-# def _load_yaml(path):
-#     return yaml.safe_load(open(path))
-
-
-# def _load_json(path):
-#     return json.load(open(path))
-
-
-# def _iter_metrics_scalars(data):
-#     if not isinstance(data, dict):
-#         return
-#     flattened_data = util.encode_nested_config(data)
-#     for name, val in flattened_data.items():
-#         if isinstance(val, (int, float)):
-#             yield name, val
+def _iter_metrics_scalars(data):
+    if not isinstance(data, dict):
+        return
+    flattened_data = util.encode_nested_config(data)
+    for name, val in flattened_data.items():
+        if isinstance(val, (int, float)):
+            yield name, val
 
 
 if __name__ == "__main__":

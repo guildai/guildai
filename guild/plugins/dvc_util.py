@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import json
 import logging
 import os
 import subprocess
@@ -246,3 +247,48 @@ def _pull_dep(dep, run_dir):
                 % dep
             )
         return dep_path
+
+
+def iter_stage_metrics_data(stage, run_dir):
+    dvc_config = load_dvc_config(run_dir)
+    for name in _iter_stage_metrics_names(stage, dvc_config):
+        data = _load_metrics(os.path.join(run_dir, name))
+        yield name, data
+
+
+def _iter_stage_metrics_names(stage, dvc_config):
+    stage_metrics = _stage_metrics(_stage_config(stage, dvc_config))
+    for x in stage_metrics:
+        if isinstance(x, str):
+            yield x
+        elif isinstance(x, dict):
+            for name in x:
+                yield name
+        else:
+            log.warning(
+                "unexpected metrics value %r for stage '%s', skipping",
+                x,
+                stage,
+            )
+
+
+def _stage_metrics(stage_config):
+    return stage_config.get("metrics", [])
+
+
+def _load_metrics(path):
+    ext = os.path.splitext(path)[1]
+    if ext in (".yml", "yaml"):
+        return _load_yaml(path)
+    elif ext in (".json",):
+        return _load_json(path)
+    else:
+        raise ValueError("unsupported metrics type in %s" % path)
+
+
+def _load_yaml(path):
+    return yaml.safe_load(open(path))
+
+
+def _load_json(path):
+    return json.load(open(path))

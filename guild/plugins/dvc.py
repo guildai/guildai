@@ -14,9 +14,7 @@
 
 """TODO:
 
-- Complete correct implementatiom of run support
 - Do we care about pipelines vs not?
-- Reinstate summaries from metrics
 - Flags
   - Import flags from params config
   - Copy + modify config files
