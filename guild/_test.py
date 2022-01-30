@@ -111,6 +111,9 @@ def _run_test(name):
     sys.stdout.write("  %s: " % name)
     sys.stdout.flush()
     filename = _filename_for_test(name)
+    if not os.path.exists(filename):
+        _log_test_not_found(name)
+        return False
     if os.getenv("FORCE_TEST") != "1" and front_matter_skip_test(filename):
         _log_skipped_test(name)
         return True
@@ -214,7 +217,7 @@ def _log_skipped_test(name):
 
 def _log_test_not_found(name):
     sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
-    sys.stdout.write("TEST NOT FOUND\n")
+    sys.stdout.write(cli.style("TEST NOT FOUND\n", fg="red"))
     sys.stdout.flush()
 
 
@@ -226,7 +229,7 @@ def _log_test_ok(name):
 
 def _log_general_error(name, error):
     sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
-    sys.stdout.write("ERROR (%s)\n" % error)
+    sys.stdout.write(cli.style("ERROR (%s)\n" % error, fg="red"))
     sys.stdout.flush()
 
 
