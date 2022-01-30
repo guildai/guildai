@@ -61,10 +61,17 @@
           help: Missing hello.in - run 'dvc pull hello.in' to fetch it
 
     hello-dvc-dep:
-      description: Uses DvC dependency to fetch required file
+      description: Uses DvC dependency to fetch required file if needed
       main: hello
       requires:
         - dvc: hello.in
+
+    hello-dvc-dep-always-pull:
+      description: Uses DvC dependency to always fetch required file
+      main: hello
+      requires:
+        - dvc: hello.in
+          always-pull: yes
 
     hello-dvc-stage:
       description: Uses Guild DvC plugin to run hello stage

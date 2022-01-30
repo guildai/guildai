@@ -17,12 +17,13 @@ This project is used as a template for a working DvC repo. We run
     >>> cd(tmp)
 
     >>> run("guild ops")  # doctest: +REPORT_UDIFF
-    eval-models-dvc-stage   Use Guild DvC plugin to run eval-models stage
-    hello-dvc-dep           Uses DvC dependency to fetch required file
-    hello-dvc-stage         Uses Guild DvC plugin to run hello stage
-    hello-guild-dep         Standard Guild dependency example without DvC support
-    prepare-data-dvc-stage  Use Guild DvC plugin to run prepare-data stage
-    train-models-dvc-stage  Use Guild DvC plugin to run train-models stage
+    eval-models-dvc-stage      Use Guild DvC plugin to run eval-models stage
+    hello-dvc-dep              Uses DvC dependency to fetch required file if needed
+    hello-dvc-dep-always-pull  Uses DvC dependency to always fetch required file
+    hello-dvc-stage            Uses Guild DvC plugin to run hello stage
+    hello-guild-dep            Standard Guild dependency example without DvC support
+    prepare-data-dvc-stage     Use Guild DvC plugin to run prepare-data stage
+    train-models-dvc-stage     Use Guild DvC plugin to run train-models stage
     <exit 0>
 
 ## DvC resource sources

@@ -15,7 +15,6 @@
 """TODO:
 
 - Complete correct implementatiom of run support
-- 'always-pull' attr in DvC source def
 - Do we care about pipelines vs not?
 - Reinstate summaries from metrics
 - Flags
@@ -142,7 +141,10 @@ class DvcPlugin(pluginlib.Plugin):
             raise resourcedef.ResourceFormatError(
                 "missing spec for 'dvc' source attribute"
             )
-        return resourcedef.ResourceSource(resdef, "dvc:%s" % dep_spec, **data_copy)
+        always_pull = data_copy.pop("always-pull", False)
+        source = resourcedef.ResourceSource(resdef, "dvc:%s" % dep_spec, **data_copy)
+        source.always_pull = always_pull
+        return source
 
     @staticmethod
     def resolver_class_for_source(source):
@@ -153,11 +155,26 @@ class DvcPlugin(pluginlib.Plugin):
 
 class _DvcResolver(resolverlib.FileResolver):
     def resolve(self, resolve_context):
+        return util.find_apply(
+            [
+                self._maybe_always_pull,
+                self._try_default_resolve,
+                self._pull_dep,
+            ],
+            resolve_context,
+        )
+
+    def _maybe_always_pull(self, resolve_context):
+        if self.source.always_pull:
+            return self._pull_dep(resolve_context)
+        return None
+
+    def _try_default_resolve(self, resolve_context):
         try:
             return super(_DvcResolver, self).resolve(resolve_context)
         except resolverlib.ResolutionError as e:
             log.debug("error trying default file resolution: %s", e)
-            return self._pull_dep(resolve_context)
+            return None
 
     def _pull_dep(self, resolve_context):
         dep = self.source.parsed_uri.path
