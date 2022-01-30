@@ -85,6 +85,21 @@ a special file that Guild uses to initialize the DvC repo.
         url = s3://guild-pub/dvc-store
     <exit 0>
 
+A DvC dependency can always be pulled by setting 'always-pull' to true
+in the Guild file. The operation 'hello-dvc-dep-always-pull'
+illustrates this.
+
+Provide 'hello.in' in the project directory.
+
+    >>> write("hello.in", "Ignored Local File")
+    >>> run("guild run hello-dvc-dep-always-pull -y")
+    Resolving dvc:hello.in dependency
+    Fetching DvC resource hello.in
+    A       hello.in
+    1 file added and 1 file fetched
+    Hello World!
+    <exit 0>
+
 ## Use of `guild.plugins.dvc_stage_main`
 
 The module `guild.plugins.dvc_stage_main` can be used to run a stage
