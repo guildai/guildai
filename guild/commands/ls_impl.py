@@ -80,33 +80,33 @@ def _print_file_listing(dir, args):
 
 
 def _list(dir, args):
+    is_args_path_dir = (
+        os.path.isdir(os.path.join(dir, args.path)) if args.path else False
+    )
     for root, dirs, files in os.walk(dir, followlinks=args.follow_links):
-        if not args.all:
-            _maybe_rm_dot_names(dirs, args, root==dir)
-            _maybe_rm_dot_names(files, args, root==dir)
         for name in dirs + files:
             full_path = os.path.join(root, name)
             rel_path = os.path.relpath(full_path, dir)
-            if not _match_path(rel_path, args.path):
-                continue
-            yield _list_path(full_path, rel_path, args)
+            if args.all:
+                if not args.path or _match_path(rel_path, args.path, is_args_path_dir):
+                    yield _list_path(full_path, rel_path, args)
+            elif name[:1] == ".":
+                if args.path and fnmatch.fnmatch(rel_path, args.path):
+                    yield _list_path(full_path, rel_path, args)
+                else:
+                    util.safe_list_remove(name, dirs)
+            elif not args.path or _match_path(rel_path, args.path, is_args_path_dir):
+                yield _list_path(full_path, rel_path, args)
 
 
-def _maybe_rm_dot_names(names, args, force_path):
-    for name in list(names):
-        if name[:1] != ".":
-            continue
-        if force_path and args.path and name.startswith(args.path):
-            continue
-        names.remove(name)
-
-
-def _match_path(filename, pattern):
-    return (
-        not pattern
-        or filename.startswith(pattern)
-        or fnmatch.fnmatch(filename, pattern)
-    )
+def _match_path(filename, pattern, is_args_path_dir):
+    if pattern.endswith(os.path.sep):
+        pattern = pattern[:-1]
+        return (
+            filename.startswith(pattern)
+            if is_args_path_dir
+            else fnmatch.fnmatch(filename, pattern)
+        )
 
 
 def _list_path(full_path, rel_path, args):
