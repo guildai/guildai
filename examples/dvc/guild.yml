@@ -1,48 +1,3 @@
-# - model: ''
-#   extra:
-#     dvc-stages-import: hello
-#   operations:
-#     hello-dvc-stage:
-#       main: guild.plugins.dvc_stage_main hello --project-dir ${project_dir}
-#       description: DvC hello stage
-#     hello-dvc-pipeline:
-#       main: guild.plugins.dvc_stage_main hello --pipeline
-#       description: DvC hello pipeline
-#     hello-guild-op:
-#       main: hello
-#       description: Guild hello operation
-#       requires:
-#         - file: hello.in
-#           pre-process: dvc pull hello.in
-#     hello-guild-pipeline:
-#       description: Sample Guild pipeline (contrast to DvC hello pipeline)
-#       steps:
-#         - hello-op
-#         - hello-op
-#         - hello-op
-
-# - model: iris
-#   extra:
-#     dvc-stages-import:
-#       - prepare-data
-#       - train-models
-#       - eval-models
-#   operations:
-#     prepare-data:
-#       description: Prepare Iris data for model training
-#     train-models:
-#       description: Train Iris models
-#     eval-models:
-#       description: Evaluate trained Iris models
-
-# - model: all-dvc
-#   extra:
-#     dvc-stages-import: all
-
-# hello:
-#   main: guild.plugins.dvc_stage_main hello
-#   sourcecode: no
-
 - model: ''
   extra:
     dvc-stages-import:
@@ -51,9 +6,11 @@
       #- train-models
       #- eval-models
 
-
   operations:
-    hello-guild-dep:
+
+    # === hello variations =============================================
+
+    hello-guild-op:
       description: Standard Guild dependency example without DvC support
       main: hello
       requires:
@@ -77,20 +34,63 @@
       description: Uses Guild DvC plugin to run hello stage
       main: guild.plugins.dvc_stage_main hello
 
+    # === faketrain ====================================================
+
+    faketrain-guild-op:
+      description: Run a training simulator for hyparam optimization
+      main: faketrain
+      run-attrs:
+        dvc:stage: faketrain
+      flags-dest: config:params.json.in
+      flags-import:
+        - x
+        - noise
+
+    faketrain-dvc-stage:
+      description: Use Guild DvC plugin to run faketrain stage
+      main: guild.plugins.dvc_stage_main faketrain
+      run-attrs:
+        dvc:stage: faketrain
+      flags-dest: config:params.json.in
+      flags-import:
+        - x
+        - noise
+
+    # === prepare-data variations ======================================
+
+    prepare-data-guild-op:
+      description: Use Guild to run prepare-data operation
+      main: prepare_data
+      run-attrs:
+          dvc:stage: prepare-data
+      requires:
+        - file: iris.csv
+          help: Missing iris.csv - run 'dvc pull iris.csv' to fetch it
+
+    prepare-data-dvc-dep:
+      description: Use DvC dependency to fetch required file if needed
+      main: prepare_data
+      run-attrs:
+          dvc:stage: prepare-data
+      requires:
+        - dvc: iris.csv
+
     prepare-data-dvc-stage:
       description: Use Guild DvC plugin to run prepare-data stage
       main: guild.plugins.dvc_stage_main prepare-data
 
-    train-models-dvc-stage:
-      description: Use Guild DvC plugin to run train-models stage
-      main: guild.plugins.dvc_stage_main train-models
-
+    # === train-models variations ======================================
 
     train-models-guild-op:
       description: Use Guild to run the train models operation
       main: train_models
       flags-dest: config:params.json.in
-      flags-import: all
+      flags-import:
+        - train.C
+        - train.max-iters
+        - train.gamma
+      run-attrs:
+          dvc:stage: train-models
       requires:
         - config: params.json.in
           rename: params.json.in params.json
@@ -99,35 +99,28 @@
           select:
             - iris.npy
 
+    train-models-dvc-stage:
+      description: Use Guild DvC plugin to run train-models stage
+      main: guild.plugins.dvc_stage_main train-models
+
+    # === eval-models variations =======================================
+
+    eval-models-guild-op:
+      description: Use Guild to run the eval models operation
+      main: eval_models
+      flags-dest: config:params.json.in
+      flags-import:
+        - eval.plot-spacing
+      run-attrs:
+        dvc:stage: eval-models
+      requires:
+        - operation: prepare-data-.*
+          select: iris.npy
+          name: prepare-data
+        - operation: train-models-.*
+          select: model-.*\.joblib
+          name: train-models
+
     eval-models-dvc-stage:
       description: Use Guild DvC plugin to run eval-models stage
       main: guild.plugins.dvc_stage_main eval-models
-
-    # prepare-data:
-    #   main: guild.plugins.dvc_stage_main prepare-data
-    #   requires:
-    #     file: iris.csv.dvc
-    #   sourcecode:
-    #     select: []
-    #     dest: .
-    # train-models:
-    #   main: guild.plugins.dvc_stage_main train-models
-    #   requires:
-    #     - operation: prepare-data
-    #       select:
-    #         - iris.npy
-    #   sourcecode:
-    #     select: []
-    #     dest: .
-    # eval-models:
-    #   main: guild.plugins.dvc_stage_main eval-models
-    #   requires:
-    #     - operation: prepare-data
-    #       select:
-    #         - iris.npy
-    #     - operation: train-models
-    #       select:
-    #         - model-.*\.joblib
-    #   sourcecode:
-    #     select: []
-    #     dest: .

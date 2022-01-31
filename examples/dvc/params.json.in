@@ -1,5 +1,12 @@
 {
+  "x": 0.1,
+  "noise": 0.1,
   "train": {
-    "C": 1.0
+    "C": 1.0,
+    "max-iters": 10000,
+    "gamma": 0.7
+  },
+  "eval": {
+    "plot-spacing": 0.4
   }
 }

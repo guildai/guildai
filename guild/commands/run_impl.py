@@ -1114,6 +1114,7 @@ def _op_init_run_attrs(args, op):
     attrs["op"] = _op_config_data(op)
     _apply_system_attrs(op, attrs)
     attrs.update(op._op_cmd_run_attrs)
+    _apply_opdef_run_attrs(op, attrs)
 
 
 def _init_comments(comment):
@@ -1159,6 +1160,20 @@ def _pip_freeze():
     from guild import pip_util
 
     return pip_util.freeze()
+
+
+def _apply_opdef_run_attrs(op, attrs):
+    if not op._opdef or not op._opdef.run_attrs:
+        return
+    for name, val in op._opdef.run_attrs.items():
+        if ":" not in name:
+            log.warning(
+                "Invalid run attribute name '%s' - custom attributes "
+                "must contain ':'",
+                name,
+            )
+            continue
+        attrs[name] = val
 
 
 # =================================================================

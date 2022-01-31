@@ -1032,6 +1032,7 @@ class OpDef(object):
         self.pip_freeze = data.get("pip-freeze")
         self.delete_on_success = data.get("delete-on-success") or False
         self.can_stage_trials = data.get("can-stage-trials") or False
+        self.run_attrs = data.get("run-attrs")
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname

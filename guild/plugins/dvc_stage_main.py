@@ -243,7 +243,7 @@ def _init_run_dir(pipeline):
 
 
 def _write_run_attrs(pipeline):
-    pipeline.run.write_attr("dvc-stage", pipeline.target_stage)
+    pipeline.run.write_attr("dvc:stage", pipeline.target_stage)
 
 
 def _init_dvc_repo(pipeline):
@@ -261,10 +261,11 @@ def _copy_dvc_yaml(pipeline):
     util.copyfile(src, dest)
 
 
-def _resolve_deps(pipeline, copied=None):
-    copied = copied or set()
+def _resolve_deps(pipeline):
     for dep_stage, deps in _target_stage_deps(pipeline):
-        deps = _filter_not_in(deps, copied)
+        deps = _filter_unresolved_deps(deps, pipeline)
+        if not deps:
+            continue
         if dep_stage:
             _resolve_stage_deps(dep_stage, deps, pipeline)
         else:
@@ -286,8 +287,10 @@ def _str_or_none_key(x):
     return x
 
 
-def _filter_not_in(xs, excluded):
-    return [x for x in xs if not x in excluded]
+def _filter_unresolved_deps(deps, pipeline):
+    return [
+        dep for dep in deps if not os.path.exists(os.path.join(pipeline.run_dir, dep))
+    ]
 
 
 def _resolve_stage_deps(stage, deps, pipeline):
@@ -363,9 +366,16 @@ def _pull_dep(dep, pipeline):
 
 def _copy_params_with_flags(pipeline):
     for name in _iter_stage_param_files(pipeline):
-        log.info("Copying %s", name)
-        src = os.path.join(pipeline.project_dir, name)
         dest = os.path.join(pipeline.run_dir, name)
+        if os.path.exists(dest):
+            continue
+        src = os.path.join(pipeline.project_dir, name)
+        if not os.path.exists(src):
+            raise SystemExit(
+                "cannot find config file '%s' in project directory %s"
+                % (name, pipeline.project_dir)
+            )
+        log.info("Copying %s", name)
         util.copyfile(src, dest)
 
 

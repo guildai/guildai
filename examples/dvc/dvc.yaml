@@ -6,8 +6,20 @@ stages:
     - prepare_data.py
     outs:
     - iris.npy
+  faketrain:
+    cmd: python faketrain.py
+    params:
+      - params.json.in:
+          - x
+    deps:
+    - faketrain.py
   train-models:
     cmd: python train_models.py
+    params:
+      - params.json.in:
+          - train.C
+          - train.gamma
+          - train.max-iters
     deps:
     - iris.npy
     - train_models.py
@@ -16,11 +28,11 @@ stages:
     - model-2.joblib
     - model-3.joblib
     - model-4.joblib
-    params:
-      - params.json.in:
-          - train.C
   eval-models:
     cmd: python eval_models.py
+    params:
+      - params.json.in:
+          - eval.plot-spacing
     deps:
     - iris.npy
     - model-1.joblib

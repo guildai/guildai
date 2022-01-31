@@ -102,11 +102,11 @@ def _list(dir, args):
 def _match_path(filename, pattern, is_args_path_dir):
     if pattern.endswith(os.path.sep):
         pattern = pattern[:-1]
-        return (
-            filename.startswith(pattern)
-            if is_args_path_dir
-            else fnmatch.fnmatch(filename, pattern)
-        )
+    return (
+        filename.startswith(pattern)
+        if is_args_path_dir
+        else fnmatch.fnmatch(filename, pattern)
+    )
 
 
 def _list_path(full_path, rel_path, args):

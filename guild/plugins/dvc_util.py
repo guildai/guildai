@@ -129,9 +129,13 @@ def runs_for_stage(stage):
 
 def _dvc_stage_op_filter(stage):
     def f(run):
-        return run.get("dvc-stage") == stage and run.status == "completed"
+        return _dvc_stage_for_run(run) == stage and run.status == "completed"
 
     return f
+
+
+def _dvc_stage_for_run(run):
+    return run.get("dvc:stage")
 
 
 def ensure_dvc_repo(run_dir, project_dir):

@@ -14,16 +14,9 @@
 
 """TODO:
 
+- Complete stage import (should function like dvc example prototypes)
 - Do we care about pipelines vs not?
-- Flags
-  - Import flags from params config
-  - Copy + modify config files
-- Scenario: drive batches, hyperparam search
-- How to handle big files or directories?
 - Cleanup / lint (remove unused or commented out code)
-- Test concurrency using parallel runs in DvC
-- Scenario: run op with specific/multiple data versions (used in pull)
-
 """
 
 from __future__ import absolute_import

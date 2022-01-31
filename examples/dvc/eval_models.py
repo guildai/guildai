@@ -1,6 +1,7 @@
 # Credit: https://scikit-learn.org/stable/auto_examples/svm/plot_iris_svc.html
 
 import json
+import os
 
 import numpy as np
 import joblib
@@ -8,6 +9,15 @@ import joblib
 import matplotlib.pyplot as plt
 
 from data_util import load_data
+
+if os.path.exists("params.json"):
+    params = json.load(open("params.json"))
+else:
+    params = json.load(open("params.json.in"))
+
+plot_spacing = params["eval"].get("plot-spacing", 0.4)
+
+print("plot_spacing=%f" % plot_spacing)
 
 
 def make_meshgrid(x, y, h=0.02):
@@ -54,7 +64,7 @@ titles = (
 print("Saving models-eval.png")
 
 fig, sub = plt.subplots(2, 2)
-plt.subplots_adjust(wspace=0.4, hspace=0.4)
+plt.subplots_adjust(wspace=plot_spacing, hspace=plot_spacing)
 
 X0, X1 = X[:, 0], X[:, 1]
 xx, yy = make_meshgrid(X0, X1)
