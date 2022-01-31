@@ -39,10 +39,10 @@ class ConfigFlagsPlugin(pluginlib.Plugin):
     def guildfile_loaded(self, gf):
         for m in gf.models.values():
             for opdef in m.operations:
-                _maybe_apply_flags(opdef)
+                apply_config_flags(opdef)
 
 
-def _maybe_apply_flags(opdef):
+def apply_config_flags(opdef):
     config_src = _config_src(opdef)
     if not config_src:
         return

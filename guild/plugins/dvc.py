@@ -57,33 +57,60 @@ def _init_dvc_modeldef(model_name, stage_name, project_dir):
             },
         }
     ]
-    gf = guildfile.Guildfile(data, src="<guild.plugins._DvcModelProxy>")
+    log.debug("data for DvC stage '%s':\n%s", stage_name, _lazy_pformat(data))
+    gf = guildfile.Guildfile(
+        data,
+        src="<guild.plugins._DvcModelProxy>",
+        dir=project_dir,
+    )
+    _apply_config_flags(gf, model_name, stage_name)
     return gf.models[model_name]
 
 
+def _lazy_pformat(x):
+    import pprint
+
+    return util.lazy_str(lambda: pprint.pformat(x))
+
+
 def _stage_op_data(stage_name, project_dir):
-    return {
+    dvc_config = dvc_util.load_dvc_config(project_dir)
+    op_data = {
         "main": "guild.plugins.dvc_stage_main --project-dir %s %s"
         % (
             util.shlex_quote(project_dir),
             util.shlex_quote(stage_name),
         ),
         "description": "Stage '%s' imported from dvc.yaml" % stage_name,
-        "flags": {
-            #     "pipeline": {
-            #         "description": (
-            #             "Run stage as pipeline. This runs stage dependencies first."
-            #         ),
-            #         "type": "boolean",
-            #         "arg-switch": True,
-            #         "default": False,
-            #     }
-        },
-        "sourcecode": {
-            "dest": ".",
-            "select": [],
-        },
     }
+    _apply_stage_flags_data(stage_name, dvc_config, op_data)
+    return op_data
+
+
+def _apply_stage_flags_data(stage, dvc_config, data):
+    applied_flags_dest = None
+    imports = set()
+    for param_name, config_name in dvc_util.iter_stage_params(stage, dvc_config):
+        if applied_flags_dest is None:
+            data["flags-dest"] = "config:%s" % config_name
+            imports.add(param_name)
+            applied_flags_dest = config_name
+        elif applied_flags_dest != config_name:
+            log.warning(
+                "DvC stage '%s' uses multiple param files, ignoring "
+                "subsequent file %s for flags import",
+                stage, config_name,
+            )
+        else:
+            imports.add(param_name)
+    data["flags-import"] = sorted(imports)
+
+
+def _apply_config_flags(gf, model_name, op_name):
+    from . import config_flags
+
+    stage_opdef = gf.models[model_name].get_operation(op_name)
+    config_flags.apply_config_flags(stage_opdef)
 
 
 def _init_dvc_model_reference(project_dir):

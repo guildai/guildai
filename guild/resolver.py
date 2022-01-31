@@ -151,6 +151,7 @@ class FileResolver(Resolver):
         return resolve_source_files(source_path, self.source, unpack_dir)
 
     def _source_location_paths(self):
+        assert self.resource.location, self.resource
         yield self.resource.location
         try:
             modeldef = self.resource.resdef.modeldef

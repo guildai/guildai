@@ -50,6 +50,7 @@ class OpDependencyError(Exception):
 
 class OpDependency(object):
     def __init__(self, resdef, res_location, config):
+        assert res_location
         self.resdef = resdef
         self.res_location = res_location
         self.config = config
@@ -284,6 +285,7 @@ class ResourceProxy(object):
     """
 
     def __init__(self, location, config):
+        assert location
         self.location = location
         self.config = config
 

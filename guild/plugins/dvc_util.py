@@ -101,7 +101,13 @@ def iter_stage_params(stage, dvc_config):
             yield item, "params.yaml"
         elif isinstance(item, dict):
             for key, val in item.items():
-                yield val, key
+                if isinstance(val, str):
+                    yield val, key
+                elif isinstance(val, list):
+                    for val_item in val:
+                        yield val_item, key
+                else:
+                    assert False, (val, item)
         else:
             assert False, item
 

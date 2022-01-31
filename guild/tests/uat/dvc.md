@@ -435,3 +435,54 @@ The DvC train stage can use this run to satisfy its dependency.
     Updating lock file 'dvc.lock'
     ...
     <exit 0>
+
+## Run DvC stage directly
+
+Guild supports running a stage defined in dvc.yaml directly using the
+operation name syntax 'dvc.yaml:<stage>'.
+
+Here's the op help for the 'faketrain' stage.
+
+    >>> run("guild run dvc.yaml:faketrain --help-op")
+    Usage: guild run [OPTIONS] dvc.yaml:faketrain [FLAG]...
+    <BLANKLINE>
+    Stage 'faketrain' imported from dvc.yaml
+    <BLANKLINE>
+    Use 'guild run --help' for a list of options.
+    <BLANKLINE>
+    Flags:
+      x  (default is 0.1)
+    <exit 0>
+
+Note that Guild imports the required stage params as flags.
+
+We can run the stage as an operation, including as a batch.
+
+    >>> run("guild run dvc.yaml:faketrain x=[0.2,0.3] -y")
+    INFO: [guild] Running trial ...: dvc.yaml:faketrain (x=0.2)
+    INFO: [guild] Resolving config:params.json.in dependency
+    INFO: [guild] Running DvC stage faketrain
+    INFO: [guild] Initializing run
+    INFO: [guild] Copying faketrain.py
+    Running stage 'faketrain':
+    > python faketrain.py
+    x: 0.200000
+    noise: 0.100000
+    loss: ...
+    Generating lock file 'dvc.lock'
+    Updating lock file 'dvc.lock'
+    ...
+    INFO: [guild] Running trial ...: dvc.yaml:faketrain (x=0.3)
+    INFO: [guild] Resolving config:params.json.in dependency
+    INFO: [guild] Running DvC stage faketrain
+    INFO: [guild] Initializing run
+    INFO: [guild] Copying faketrain.py
+    Running stage 'faketrain':
+    > python faketrain.py
+    x: 0.300000
+    noise: 0.100000
+    loss: ...
+    Generating lock file 'dvc.lock'
+    Updating lock file 'dvc.lock'
+    ...
+    <exit 0>

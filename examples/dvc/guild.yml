@@ -1,10 +1,13 @@
 - model: ''
   extra:
-    dvc-stages-import:
-      #- hello
-      #- prepare-data
-      #- train-models
-      #- eval-models
+    dvc-stages-import: []
+      # - stage: hello
+      #   operation: hello-stage-import
+      # - hello as hello-stage-import
+      # - faketrain as faketrain-stage-import
+      # - prepare-data
+      # - train-models
+      # - eval-models
 
   operations:
 
