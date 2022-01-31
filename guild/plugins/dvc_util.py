@@ -54,6 +54,11 @@ def dvc_yaml_path(dir):
 
 
 def iter_stage_deps(stage, dvc_config):
+    """Returns an iteration of dep, parent_stage tuples for a stage.
+
+    If a dependency doesn't have a parent (i.e. it relies on a local
+    file) the parent stage in the tuple is None.
+    """
     out_stages_lookup = None  # lazy init of stages lookup
     stage_config = _stage_config(stage, dvc_config)
     for dep in _stage_deps(stage_config):
@@ -94,7 +99,16 @@ def _stage_deps(stage_config):
     return stage_config.get("deps", [])
 
 
+def iter_stage_deps_by_parent(stage, dvc_config):
+    deps = {}
+    for dep, parent_stage in iter_stage_deps(stage, dvc_config):
+        deps.setdefault(parent_stage, []).append(dep)
+    for parent_stage in sorted(deps, key=lambda x: x if x is not None else ""):
+        yield parent_stage, deps[parent_stage]
+
+
 def iter_stage_params(stage, dvc_config):
+    """Returns an iteration of param_name and filename containing param."""
     stage_config = _stage_config(stage, dvc_config)
     for item in _stage_params(stage_config):
         if isinstance(item, str):

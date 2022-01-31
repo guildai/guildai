@@ -84,6 +84,7 @@ def _stage_op_data(stage_name, project_dir):
         "description": "Stage '%s' imported from dvc.yaml" % stage_name,
     }
     _apply_stage_flags_data(stage_name, dvc_config, op_data)
+    _apply_stage_deps_data(stage_name, dvc_config, op_data)
     return op_data
 
 
@@ -99,11 +100,47 @@ def _apply_stage_flags_data(stage, dvc_config, data):
             log.warning(
                 "DvC stage '%s' uses multiple param files, ignoring "
                 "subsequent file %s for flags import",
-                stage, config_name,
+                stage,
+                config_name,
             )
         else:
             imports.add(param_name)
     data["flags-import"] = sorted(imports)
+
+
+def _apply_stage_deps_data(stage, dvc_config, opdef_data):
+    requires_data = opdef_data.setdefault("requires", [])
+    if not isinstance(requires_data, list):
+        log.warning(
+            "unexpected value for 'requires' - expected a list, " "skipping DvC deps"
+        )
+        return
+    for parent_stage, deps in dvc_util.iter_stage_deps_by_parent(stage, dvc_config):
+        _apply_stage_dep_data(parent_stage, deps, requires_data)
+
+
+def _apply_stage_dep_data(parent_stage, deps, requires_data):
+    if parent_stage is not None:
+        _apply_operation_dep(parent_stage, deps, requires_data)
+    else:
+        _apply_dvc_file_deps(deps, requires_data)
+
+
+def _apply_operation_dep(parent_stage, deps, requires_data):
+    requires_data.append(
+        {
+            "operation": _dvc_stage_op_name(parent_stage),
+            "select": deps,
+        }
+    )
+
+
+def _dvc_stage_op_name(stage):
+    return "dvc.yaml:%s" % stage
+
+
+def _apply_dvc_file_deps(deps, requires_data):
+    requires_data.extend([{"dvc": dep} for dep in deps])
 
 
 def _apply_config_flags(gf, model_name, op_name):
