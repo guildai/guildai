@@ -166,7 +166,6 @@ You can use a wildcard to match partial paths.
 
     >>> guild_run("ls --path .fo* -n")
     .foo/
-    .foo/.bar
     .foo/baz
     <exit 0>
 
@@ -273,7 +272,7 @@ Results can be filtered using a `--path` option.
 
 Paths can use wildcard patterns.
 
-    >>> guild_run("ls -p '*.txt'")
+    >>> guild_run("ls -p '*/*.txt'")
     ???/runs/aaaa:
       c/d.txt
       c/e.txt
@@ -281,7 +280,7 @@ Paths can use wildcard patterns.
 
 Patterns apply through to following links.
 
-    >>> guild_run("ls -p '*.bin' -L")
+    >>> guild_run("ls -p '*/*.bin' -L")
     ???/runs/aaaa:
       c/f.bin
       l/f.bin

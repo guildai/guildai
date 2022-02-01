@@ -39,7 +39,7 @@ def main(args, ctx):
 
 def _check_ignored_remote_opts(args):
     if args.full_path:
-        log.warning("--full-path is not supported for remote " "file lists - ignoring")
+        log.warning("--full-path is not supported for remote file lists - ignoring")
 
 
 def _main(args, ctx):
@@ -80,36 +80,116 @@ def _print_file_listing(dir, args):
 
 
 def _list(dir, args):
-    is_args_path_dir = (
-        os.path.isdir(os.path.join(dir, args.path)) if args.path else False
-    )
+    path_filter = _path_filter_for_args(args)
     for root, dirs, files in os.walk(dir, followlinks=args.follow_links):
         for name in dirs + files:
             full_path = os.path.join(root, name)
             rel_path = os.path.relpath(full_path, dir)
-            if args.all:
-                if not args.path or _match_path(rel_path, args.path, is_args_path_dir):
-                    yield _list_path(full_path, rel_path, args)
-            elif name[:1] == ".":
-                if args.path and fnmatch.fnmatch(rel_path, args.path):
-                    yield _list_path(full_path, rel_path, args)
-                else:
-                    util.safe_list_remove(name, dirs)
-            elif not args.path or _match_path(rel_path, args.path, is_args_path_dir):
-                yield _list_path(full_path, rel_path, args)
+            if path_filter.match(rel_path):
+                yield _format_list_path(full_path, rel_path, args)
+            else:
+                if name in dirs:
+                    path_filter.maybe_delete_dir(name, rel_path, dirs)
 
 
-def _match_path(filename, pattern, is_args_path_dir):
-    if pattern.endswith(os.path.sep):
-        pattern = pattern[:-1]
-    return (
-        filename.startswith(pattern)
-        if is_args_path_dir
-        else fnmatch.fnmatch(filename, pattern)
-    )
+def _path_filter_for_args(args):
+    if not args.path:
+        return _NoPathFilter(args.all)
+    elif _is_pattern(args.path):
+        return _PatternFilter(args.path, args.all)
+    else:
+        return _PathFilter(args.path, args.all)
 
 
-def _list_path(full_path, rel_path, args):
+class _NoPathFilter:
+    def __init__(self, all):
+        self.all = all
+
+    def match(self, path):
+        if self.all:
+            return True
+        parts = _split_path(path)
+        return not _is_hidden(parts[-1])
+
+    def maybe_delete_dir(self, name, _path, dirs):
+        if self.all:
+            return
+        if _is_hidden(name):
+            dirs.remove(name)
+
+
+def _is_hidden(name):
+    return name[:1] == "."
+
+
+def _is_pattern(s):
+    return "*" in s or "?" in s
+
+
+class _PatternFilter:
+    def __init__(self, pattern, all):
+        self.pattern_parts = _split_path(pattern)
+        self.all = all
+
+    def match(self, path):
+        path_parts = _split_path(path)
+        return _match_path_parts(path_parts, self.pattern_parts, self.all)
+
+    def maybe_delete_dir(self, name, path, dirs):
+        path_parts = _split_path(path)
+        if self.all or not _is_hidden(name):
+            return
+        if len(self.pattern_parts) >= len(path_parts):
+            if not _is_hidden(self.pattern_parts[len(path_parts) - 1]):
+                dirs.remove(name)
+
+
+def _match_path_parts(path_parts, pattern_parts, all):
+    if len(path_parts) < len(pattern_parts):
+        return False
+    for i, pattern_part in enumerate(pattern_parts):
+        if not fnmatch.fnmatch(path_parts[i], pattern_part):
+            return False
+    if not all:
+        for i, path_part in enumerate(path_parts):
+            if _is_hidden(path_part):
+                maybe_pattern = pattern_parts[i] if i < len(pattern_parts) else None
+                if not maybe_pattern or not _is_hidden(maybe_pattern):
+                    return False
+    return True
+
+
+class _PathFilter:
+    def __init__(self, path, all):
+        self.match_parts = _split_path(path)
+        self.all = all
+
+    def match(self, path):
+        path_parts = _split_path(path)
+        if not self.all and _is_hidden(path_parts[-1]):
+            return path_parts == self.match_parts
+        return _is_subpath(self.match_parts, path_parts)
+
+    def maybe_delete_dir(self, name, path, dirs):
+        path_parts = _split_path(path)
+        if not _is_subpath(path_parts, self.match_parts):
+            dirs.remove(name)
+
+
+def _is_subpath(maybe_subpath, path):
+    if len(path) < len(maybe_subpath):
+        return False
+    for i, subpath_part in enumerate(maybe_subpath):
+        if subpath_part != path[i]:
+            return False
+    return True
+
+
+def _split_path(path):
+    return path.split(os.path.sep)
+
+
+def _format_list_path(full_path, rel_path, args):
     path = full_path if args.full_path else rel_path
     return _ensure_trailing_slash_for_dir(path, full_path)
 
