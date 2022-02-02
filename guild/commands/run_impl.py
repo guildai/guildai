@@ -75,6 +75,29 @@ RESPECIFIABLE_RUN_PARAMS = {
     "tags",
 }
 
+CORE_RUN_ATTRS = {
+    "cmd",
+    "deps",
+    "env",
+    "exit_status",
+    "flags",
+    "host",
+    "id",
+    "initialized",
+    "label",
+    "op",
+    "pip_freeze",
+    "platform",
+    "random_seed",
+    "run_params",
+    "sourcecode_digest",
+    "started",
+    "stopped",
+    "user",
+    "user_flags",
+    "vcs_commit",
+}
+
 
 ###################################################################
 # State
@@ -1165,11 +1188,10 @@ def _pip_freeze():
 def _apply_opdef_run_attrs(op, attrs):
     if not op._opdef or not op._opdef.run_attrs:
         return
-    for name, val in op._opdef.run_attrs.items():
-        if ":" not in name:
+    for name, val in sorted(op._opdef.run_attrs.items()):
+        if name in CORE_RUN_ATTRS:
             log.warning(
-                "Invalid run attribute name '%s' - custom attributes "
-                "must contain ':'",
+                "Invalid run attribute '%s' (reserved attribute) - ignoring",
                 name,
             )
             continue

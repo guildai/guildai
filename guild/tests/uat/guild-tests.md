@@ -108,6 +108,7 @@ tests).
       resource-flag-refs:          ok
       resource-flags:              ok
       restart-runs:                ok
+      run-attrs:                   ok
       run-files:                   ok
       run-impl:                    ok
       run-labels:                  ok
