@@ -130,8 +130,9 @@ def _stage_params(stage_config):
     return stage_config.get("params", [])
 
 
-def marked_or_latest_run_for_stage(stage):
-    runs = runs_for_stage(stage)
+def marked_or_latest_run_for_stage(stage, run_id_prefix=None, status=None):
+    status = status or ("completed",)
+    runs = runs_for_stage(stage, run_id_prefix, status)
     if not runs:
         return None
     for run in runs:
@@ -140,22 +141,42 @@ def marked_or_latest_run_for_stage(stage):
     return runs[0]
 
 
-def runs_for_stage(stage):
+def runs_for_stage(stage, run_id_prefix=None, status=None):
     return var.runs(
         sort=["-started"],
-        filter=_dvc_stage_op_filter(stage),
+        filter=_dvc_stage_op_filter(stage, run_id_prefix, status),
     )
 
 
-def _dvc_stage_op_filter(stage):
+def _dvc_stage_op_filter(stage, run_id_prefix, status):
+    assert stage
+    assert status
+
+    # If full run ID specified, select matching run regardless of
+    # stage and status.
+    if run_id_prefix and len(run_id_prefix) == 32:
+        return lambda run: run.id == run_id_prefix
+
     def f(run):
-        return _dvc_stage_for_run(run) == stage and run.status == "completed"
+        return (
+            _filter_run_id(run, run_id_prefix)
+            and _filter_run_dvc_stage(run, stage)
+            and _filter_run_status(run, status)
+        )
 
     return f
 
 
-def _dvc_stage_for_run(run):
-    return run.get("dvc:stage")
+def _filter_run_id(run, run_id_prefix):
+    return not run_id_prefix or run.id.startswith(run_id_prefix)
+
+
+def _filter_run_dvc_stage(run, stage):
+    return run.get("dvc-stage") == stage
+
+
+def _filter_run_status(run, status):
+    return run.status in status
 
 
 def ensure_dvc_repo(run_dir, project_dir):

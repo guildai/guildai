@@ -1,9 +1,11 @@
 dask[distributed]
+dvc[s3]
 ipython
 hiplot
 jinja2
 jupyter
 jupyter_contrib_nbextensions
+matplotlib
 pandas<1.2
 tensorboardX
 twine

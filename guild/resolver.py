@@ -71,13 +71,13 @@ class Resolver(object):
 
 
 def for_resdef_source(source, resource):
-    cls = _resolver_class_for_source(source) or _try_plugins_for_resolver_class(source)
+    cls = resolver_class_for_source(source)
     if not cls:
         return None
     return cls(source, resource)
 
 
-def _resolver_class_for_source(source):
+def resolver_class_for_source(source):
     scheme = source.parsed_uri.scheme
     if scheme == "file":
         return FileResolver
@@ -86,21 +86,11 @@ def _resolver_class_for_source(source):
     elif scheme == "module":
         return ModuleResolver
     elif scheme == "operation":
-        return _operation_resolver_cls(source.resdef)
+        return OperationResolver
     elif scheme == "config":
         return ConfigResolver
     else:
-        return None
-
-
-def _operation_resolver_cls(resdef):
-    if not hasattr(resdef, "modeldef"):
-        return None
-
-    def cls(source, resource):
-        return OperationResolver(source, resource, resdef.modeldef)
-
-    return cls
+        return _try_plugins_for_resolver_class(source)
 
 
 def _try_plugins_for_resolver_class(source):
@@ -212,10 +202,6 @@ def _url_unpack_dir(source_path, explicit_unpack_dir):
 
 
 class OperationResolver(FileResolver):
-    def __init__(self, source, resource, modeldef):
-        super(OperationResolver, self).__init__(source, resource)
-        self.modeldef = modeldef
-
     def resolve(self, resolve_context):
         source_path = self._source_path()
         unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)

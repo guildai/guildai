@@ -1348,7 +1348,7 @@ def iter_opdef_resources(opdef, flag_vals=None):
 
 def _required_operation_name(resdef):
     for source in resdef.sources:
-        if source.uri.startswith("operation:"):
+        if op_dep.is_operation_source(source):
             return resdef.name
     return None
 

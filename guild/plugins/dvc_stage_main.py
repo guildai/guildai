@@ -115,7 +115,7 @@ def _init_run_dir(state):
 
 
 def _write_run_attrs(state):
-    state.run.write_attr("dvc:stage", state.target_stage)
+    state.run.write_attr("dvc-stage", state.target_stage)
 
 
 def _init_dvc_repo(state):

@@ -59,7 +59,8 @@ class Plugin(object):
         the Guild file, use `guildfile_data`.
         """
 
-    def enabled_for_op(self, op):  # pylint: disable=unused-argument,no-self-use
+    def enabled_for_op(self, op):
+        # pylint: disable=unused-argument,no-self-use
         """Returns a tuple of boolean and reason.
 
         The boolean indicates whether or not the plugin is enabled for
@@ -70,7 +71,8 @@ class Plugin(object):
     def patch_env(self):
         """Called to let the plugin patch the Python environment."""
 
-    def resolve_model_op(self, opspec):  # pylint: disable=unused-argument,no-self-use
+    def resolve_model_op(self, opspec):
+        # pylint: disable=unused-argument,no-self-use
         """Return a tuple of model, op_name for opspec.
 
         If opspec cannot be resolved to a model, the function should
@@ -78,18 +80,16 @@ class Plugin(object):
         """
         return None
 
-    def resource_source_for_data(
-        self, data, resdef
-    ):  # pylint: disable=unused-argument,no-self-use
+    def resource_source_for_data(self, data, resdef):
+        # pylint: disable=unused-argument,no-self-use
         """Return an instance of `guild.resourcedef.ResourceSource` for data.
 
         Return None if data is not supported as a resource source.
         """
         return None
 
-    def resolver_class_for_source(
-        self, source
-    ):  # pylint: disable=unused-argument,no-self-use
+    def resolver_class_for_source(self, source):
+        # pylint: disable=unused-argument,no-self-use
         """Return a class (or factory) for a resolver suitable for `source`.
 
         `source` is an instance of `guild.resourcedef.ResourceSource`.

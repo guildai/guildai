@@ -68,9 +68,9 @@ def _init_dvc_modeldef(model_name, stage_name, project_dir):
 
 
 def _lazy_pformat(x):
-    import pprint
+    from guild import yaml_util
 
-    return util.lazy_str(lambda: pprint.pformat(x))
+    return yaml_util.encode_yaml(x)
 
 
 def _stage_op_data(stage_name, project_dir):
@@ -123,24 +123,20 @@ def _apply_stage_dep_data(parent_stage, deps, requires_data):
     if parent_stage is not None:
         _apply_operation_dep(parent_stage, deps, requires_data)
     else:
-        _apply_dvc_file_deps(deps, requires_data)
+        _apply_dvcfile_deps(deps, requires_data)
 
 
 def _apply_operation_dep(parent_stage, deps, requires_data):
     requires_data.append(
         {
-            "operation": _dvc_stage_op_name(parent_stage),
+            "dvcstage": parent_stage,
             "select": deps,
         }
     )
 
 
-def _dvc_stage_op_name(stage):
-    return "dvc.yaml:%s" % stage
-
-
-def _apply_dvc_file_deps(deps, requires_data):
-    requires_data.extend([{"dvc": dep} for dep in deps])
+def _apply_dvcfile_deps(deps, requires_data):
+    requires_data.extend([{"dvcfile": dep} for dep in deps])
 
 
 def _apply_config_flags(gf, model_name, op_name):
@@ -181,34 +177,49 @@ class DvcPlugin(pluginlib.Plugin):
         return None
 
     @staticmethod
-    def resolver_class_for_url_scheme(scheme):
-        if scheme == "dvc":
-            return _DvcResolver
-        return None
-
-    @staticmethod
     def resource_source_for_data(data, resdef):
-        if "dvc" not in data:
+        if "dvcfile" in data:
+            return _dvcfile_source(data, resdef)
+        elif "dvcstage" in data:
+            return _dvcstage_source(data, resdef)
+        else:
             return None
-        data_copy = copy.copy(data)
-        dep_spec = data_copy.pop("dvc")
-        if not dep_spec:
-            raise resourcedef.ResourceFormatError(
-                "missing spec for 'dvc' source attribute"
-            )
-        always_pull = data_copy.pop("always-pull", False)
-        source = resourcedef.ResourceSource(resdef, "dvc:%s" % dep_spec, **data_copy)
-        source.always_pull = always_pull
-        return source
 
     @staticmethod
     def resolver_class_for_source(source):
-        if not source.parsed_uri.scheme == "dvc":
+        if source.parsed_uri.scheme == "dvcfile":
+            return _DvcFileResolver
+        elif source.parsed_uri.scheme == "dvcstage":
+            return _DvcStageResolver
+        else:
             return None
-        return _DvcResolver
 
 
-class _DvcResolver(resolverlib.FileResolver):
+def _dvcfile_source(data, resdef):
+    data_copy = copy.copy(data)
+    dep_spec = data_copy.pop("dvcfile")
+    if not dep_spec:
+        raise resourcedef.ResourceFormatError(
+            "missing spec for 'dvcfile' source attribute"
+        )
+    always_pull = data_copy.pop("always-pull", False)
+    source = resourcedef.ResourceSource(resdef, "dvcfile:%s" % dep_spec, **data_copy)
+    source.always_pull = always_pull
+    return source
+
+
+def _dvcstage_source(data, resdef):
+    data_copy = copy.copy(data)
+    dep_spec = data_copy.pop("dvcstage")
+    if not dep_spec:
+        raise resourcedef.ResourceFormatError(
+            "missing spec for 'dvcstage' source attribute"
+        )
+    source = resourcedef.ResourceSource(resdef, "dvcstage:%s" % dep_spec, **data_copy)
+    return source
+
+
+class _DvcFileResolver(resolverlib.FileResolver):
     def resolve(self, resolve_context):
         return util.find_apply(
             [
@@ -226,7 +237,7 @@ class _DvcResolver(resolverlib.FileResolver):
 
     def _try_default_resolve(self, resolve_context):
         try:
-            return super(_DvcResolver, self).resolve(resolve_context)
+            return super(_DvcFileResolver, self).resolve(resolve_context)
         except resolverlib.ResolutionError as e:
             log.debug("error trying default file resolution: %s", e)
             return None
@@ -252,6 +263,16 @@ def _pull_dvc_dep(dep, run_dir, project_dir):
         return dvc_util.pull_dvc_dep(dep, run_dir, project_dir)
     except dvc_util.DvcPullError as e:
         raise resolverlib.ResolutionError(str(e))
+
+
+class _DvcStageResolver(resolverlib.OperationResolver):
+    def resolve_op_run(self, run_id_prefix=None, include_staged=False):
+        stage = self.source.parsed_uri.path
+        status = ("completed", "staged") if include_staged else ("completed",)
+        run = dvc_util.marked_or_latest_run_for_stage(stage, run_id_prefix, status)
+        if not run:
+            raise resolverlib.ResolutionError("no suitable run for '%s' stage" % stage)
+        return run
 
 
 def _maybe_apply_dvc_stages(model_config, model):

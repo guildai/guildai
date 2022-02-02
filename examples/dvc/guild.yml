@@ -1,14 +1,4 @@
 - model: ''
-  extra:
-    dvc-stages-import: []
-      # - stage: hello
-      #   operation: hello-stage-import
-      # - hello as hello-stage-import
-      # - faketrain as faketrain-stage-import
-      # - prepare-data
-      # - train-models
-      # - eval-models
-
   operations:
 
     # === hello variations =============================================
@@ -24,13 +14,13 @@
       description: Uses DvC dependency to fetch required file if needed
       main: hello
       requires:
-        - dvc: hello.in
+        - dvcfile: hello.in
 
     hello-dvc-dep-always-pull:
       description: Uses DvC dependency to always fetch required file
       main: hello
       requires:
-        - dvc: hello.in
+        - dvcfile: hello.in
           always-pull: yes
 
     hello-dvc-stage:
@@ -39,21 +29,9 @@
 
     # === faketrain ====================================================
 
-    faketrain-guild-op:
-      description: Run a training simulator for hyparam optimization
-      main: faketrain
-      run-attrs:
-        dvc:stage: faketrain
-      flags-dest: config:params.json.in
-      flags-import:
-        - x
-        - noise
-
     faketrain-dvc-stage:
       description: Use Guild DvC plugin to run faketrain stage
       main: guild.plugins.dvc_stage_main faketrain
-      run-attrs:
-        dvc:stage: faketrain
       flags-dest: config:params.json.in
       flags-import:
         - x
@@ -61,22 +39,13 @@
 
     # === prepare-data variations ======================================
 
-    prepare-data-guild-op:
-      description: Use Guild to run prepare-data operation
-      main: prepare_data
-      run-attrs:
-          dvc:stage: prepare-data
-      requires:
-        - file: iris.csv
-          help: Missing iris.csv - run 'dvc pull iris.csv' to fetch it
-
     prepare-data-dvc-dep:
       description: Use DvC dependency to fetch required file if needed
       main: prepare_data
       run-attrs:
-          dvc:stage: prepare-data
+        dvc-stage: prepare-data
       requires:
-        - dvc: iris.csv
+        - dvcfile: iris.csv
 
     prepare-data-dvc-stage:
       description: Use Guild DvC plugin to run prepare-data stage
@@ -84,7 +53,7 @@
 
     # === train-models variations ======================================
 
-    train-models-guild-op:
+    train-models-dvc-dep:
       description: Use Guild to run the train models operation
       main: train_models
       flags-dest: config:params.json.in
@@ -93,14 +62,11 @@
         - train.max-iters
         - train.gamma
       run-attrs:
-          dvc:stage: train-models
+          dvc-stage: train-models
       requires:
         - config: params.json.in
           rename: params.json.in params.json
-        - operation: prepare-data-.*
-          name: prepare-data
-          select:
-            - iris.npy
+        - dvcstage: prepare-data
 
     train-models-dvc-stage:
       description: Use Guild DvC plugin to run train-models stage
@@ -108,21 +74,17 @@
 
     # === eval-models variations =======================================
 
-    eval-models-guild-op:
+    eval-models-dvc-dep:
       description: Use Guild to run the eval models operation
       main: eval_models
       flags-dest: config:params.json.in
       flags-import:
         - eval.plot-spacing
       run-attrs:
-        dvc:stage: eval-models
+        dvc-stage: eval-models
       requires:
-        - operation: prepare-data-.*
-          select: iris.npy
-          name: prepare-data
-        - operation: train-models-.*
-          select: model-.*\.joblib
-          name: train-models
+        - dvcstage: prepare-data
+        - dvcstage: train-models
 
     eval-models-dvc-stage:
       description: Use Guild DvC plugin to run eval-models stage
