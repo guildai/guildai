@@ -673,8 +673,7 @@ def _remote_resolver_for_source_f(remote):
         scheme = source.parsed_uri.scheme
         assert scheme == "operation", source
         resource = op_dep.ResourceProxy(dep.res_location, dep.config)
-        modeldef = source.resdef.modeldef
-        return _RemoteOperationResolver(remote, source, resource, modeldef)
+        return _RemoteOperationResolver(remote, source, resource)
 
     return f
 
@@ -686,8 +685,8 @@ class _RemoteOperationResolver(resolverlib.OperationResolver):
     default resolver's lookup of local runs.
     """
 
-    def __init__(self, remote, source, resource, modeldef):
-        super(_RemoteOperationResolver, self).__init__(source, resource, modeldef)
+    def __init__(self, remote, source, resource):
+        super(_RemoteOperationResolver, self).__init__(source, resource)
         self.remote = remote
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
