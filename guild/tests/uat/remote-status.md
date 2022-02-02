@@ -119,7 +119,7 @@ Get the runs.
 
 The remote running status is signified by a remote lock.
 
-    >>> run("guild ls -nap '*LOCK*'")
+    >>> run("guild ls -np '.guild/LOCK*'")
     .guild/LOCK.remote
     <exit 0>
 
@@ -214,7 +214,7 @@ Wait a moment for the remote run to terminate.
 
 The remote `LOCK` file still exists, even though the process terminated.
 
-    >>> run("guild ls -nap '*LOCK*' -r guild-uat")
+    >>> run("guild ls -np '.guild/LOCK*' -r guild-uat")
     .guild/LOCK
     <exit 0>
 
@@ -238,6 +238,6 @@ Copy the runs from the remote.
 
 Remote runs do not copy `LOCK` files.
 
-    >>> run("guild ls -nap '*LOCK*'")
+    >>> run("guild ls -np '.guild/LOCK*'")
     <BLANKLINE>
     <exit 0>

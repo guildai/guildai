@@ -77,6 +77,7 @@ tests).
       logging:                     ok
       long-run-names:              ok
       ls-cmd:                      ok
+      ls-impl:                     ok
       marked-runs:                 ok
       memory-plugin:               ok
       model-proxies:               ok

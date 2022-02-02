@@ -27,12 +27,9 @@ Then pull:
 
 The latest runs:
 
-    >>> run("guild runs -a")
+    >>> run("guild runs -n2")
     [1:...]  gpkg.hello/hello-op    ...  completed  remote-run-123
     [2:...]  gpkg.hello/hello-file  ...  completed  file=hello.txt
-    [3:...]  test.py (...)          ...  completed  x=1
-    [4:...]  op-2 (...)             ...  completed
-    [5:...]  op-1 (...)             ...  completed
     <exit 0>
 
 Sync the latest run:
