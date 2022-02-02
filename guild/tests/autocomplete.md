@@ -47,6 +47,7 @@ markdown and text files.
 Providing a prefix limits the tests shown.
 
     >>> ac_check_tests("run")
+    run-attrs
     run-files
     run-impl
     run-labels
@@ -575,7 +576,7 @@ Guild version or path:
     >>> ac_init(init._ac_guild_version_or_path)
     0.1.0
     ...
-    0.7.0
+    0.7.4
     ...
     !!file:*.@(whl)
 
