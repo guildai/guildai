@@ -7,6 +7,7 @@
 Use a temp diretory for a Git repo.
 
     >>> repo = mkdtemp()
+    >>> cd(repo)
 
 Helper to print source files in repo.
 
@@ -21,9 +22,25 @@ An empty repo isn't supported.
     Traceback (most recent call last):
     UnsupportedRepo: ...
 
+Pre-configure repo to suppress warning/error messages. We do this
+manually before init to avoid init warnings.
+
+    >>> mkdir(".git")
+    >>> write(path(".git", "config"), """
+    ... [core]
+    ... repositoryformatversion = 0
+    ... filemode = true
+    ... bare = false
+    ... logallrefupdates = true
+    ... [user]
+    ... name = test
+    ... email = test@localhost
+    ... [init]
+    ... defaultBranch = master
+    ... """)
+
 Initialize a sample repo.
 
-    >>> cd(repo)
     >>> run("git init")
     Initialized empty Git repository in ...
     <exit 0>
