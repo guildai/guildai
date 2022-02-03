@@ -37,6 +37,7 @@
       flags-import:
         - x
         - noise
+      output-scalars: no
 
     # === prepare-data variations ======================================
 
