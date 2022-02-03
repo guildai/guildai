@@ -7,12 +7,13 @@
 Create a repo:
 
     >>> repo = mkdtemp()
+    >>> cd(repo)
 
 Pre-configure repo to suppress warning/error messages. We do this
 manually before init to avoid init warnings.
 
-    >>> mkdir(path(repo, ".git"))
-    >>> write(path(repo, ".git", "config"), """
+    >>> mkdir(".git")
+    >>> write(path(".git", "config"), """
     ... [core]
     ... repositoryformatversion = 0
     ... filemode = true
@@ -27,7 +28,6 @@ manually before init to avoid init warnings.
 
 Init repo:
 
-    >>> cd(repo)
     >>> run("git init")
     Initialized empty Git repository in ...
     <exit 0>
