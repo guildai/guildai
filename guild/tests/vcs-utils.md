@@ -32,13 +32,8 @@ Init repo:
     Initialized empty Git repository in ...
     <exit 0>
 
-    >>> dir(repo)
+    >>> dir()
     ['.git']
-
-Configure user info to avoid errors on commit:
-
-    >>> quiet("git config user.name test")
-    >>> quiet("git config user.email test@localhost")
 
 Initially the repo doesn't have any commits:
 
@@ -49,7 +44,7 @@ Initially the repo doesn't have any commits:
 Add a new file and commit:
 
     >>> touch("hello")
-    >>> dir(repo)
+    >>> dir()
     ['.git', 'hello']
 
     >>> quiet("git add .")
