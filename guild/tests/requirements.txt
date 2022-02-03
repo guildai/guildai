@@ -1,6 +1,7 @@
+click<8
 dask[distributed]
 dvc[s3]
-ipython
+ipython<8
 hiplot
 jinja2
 jupyter
