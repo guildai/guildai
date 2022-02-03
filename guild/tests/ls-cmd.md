@@ -1,3 +1,7 @@
+---
+doctest: -WINDOWS
+---
+
 # ls command
 
 The `ls` command is used to list run files. We use the `ls` project to

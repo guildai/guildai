@@ -1,3 +1,7 @@
+---
+doctest: -WINDOWS
+---
+
 # ls command impl
 
 These tests show the behavior of the list run file implementation.
