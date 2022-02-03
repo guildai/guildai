@@ -48,7 +48,7 @@ Initially the repo doesn't have any commits:
 
 Add a new file and commit:
 
-    >>> touch(path(repo, "hello"))
+    >>> touch("hello")
     >>> dir(repo)
     ['.git', 'hello']
 
@@ -73,7 +73,7 @@ The working directory is not changed:
 
 Let's modify the working directory:
 
-    >>> touch(path(repo, "hello-2"))
+    >>> touch("hello-2")
 
 And get the commit:
 
@@ -119,6 +119,7 @@ A directory must be part of a repository commit history to get a commit.
 
     >>> subdir = path(repo, "subdir")
     >>> mkdir(subdir)
+    >>> cd(subdir)
 
     >>> vcs_util.commit_for_dir(subdir)
     Traceback (most recent call last):
@@ -126,7 +127,7 @@ A directory must be part of a repository commit history to get a commit.
 
 Let's add a file to the subdirectory.
 
-    >>> touch(path(subdir, "hello-3"))
+    >>> touch("hello-3")
 
 The file is not yet part of a commit, so we still get `NoCommit` for
 the subdir.
@@ -137,8 +138,8 @@ the subdir.
 
 Let's add the subdir file and commit.
 
-    >>> run("git add .", subdir)
-    >>> run("git commit -m 'third commit'", subdir)
+    >>> quiet("git add .")
+    >>> quiet("git commit -m 'third commit'")
     >>> sleep(0.1)
 
 And the latest commit:
