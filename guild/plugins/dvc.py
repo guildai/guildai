@@ -203,8 +203,10 @@ def _dvcfile_source(data, resdef):
             "missing spec for 'dvcfile' source attribute"
         )
     always_pull = data_copy.pop("always-pull", False)
+    remote = data_copy.pop("remote", None)
     source = resourcedef.ResourceSource(resdef, "dvcfile:%s" % dep_spec, **data_copy)
     source.always_pull = always_pull
+    source.remote = remote
     return source
 
 
@@ -247,7 +249,8 @@ class _DvcFileResolver(resolverlib.FileResolver):
         run_dir = resolve_context.run.dir
         project_dir = self.resource.location
         _ensure_dvc_repo(run_dir, project_dir)
-        pulled_dep_path = _pull_dvc_dep(dep, run_dir, project_dir)
+        remote = self.source.remote
+        pulled_dep_path = _pull_dvc_dep(dep, run_dir, project_dir, remote=remote)
         return [pulled_dep_path]
 
 
@@ -258,9 +261,9 @@ def _ensure_dvc_repo(run_dir, project_dir):
         raise resolverlib.ResolutionError(str(e))
 
 
-def _pull_dvc_dep(dep, run_dir, project_dir):
+def _pull_dvc_dep(dep, run_dir, project_dir, remote=None):
     try:
-        return dvc_util.pull_dvc_dep(dep, run_dir, project_dir)
+        return dvc_util.pull_dvc_dep(dep, run_dir, project_dir, remote=remote)
     except dvc_util.DvcPullError as e:
         raise resolverlib.ResolutionError(str(e))
 

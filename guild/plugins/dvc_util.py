@@ -252,9 +252,9 @@ def _ensure_shared_dvc_cache(run_dir, project_dir):
     util.symlink(src, dest)
 
 
-def pull_dvc_dep(dep, run_dir, project_dir):
+def pull_dvc_dep(dep, run_dir, project_dir, remote=None):
     _ensure_dvc_file(dep, run_dir, project_dir)
-    return _pull_dep(dep, run_dir)
+    return _pull_dep(dep, run_dir, remote)
 
 
 def _ensure_dvc_file(dep, run_dir, project_dir):
@@ -272,9 +272,12 @@ def _ensure_dvc_file(dep, run_dir, project_dir):
     util.copyfile(src, dest)
 
 
-def _pull_dep(dep, run_dir):
+def _pull_dep(dep, run_dir, remote=None):
     cmd = ["dvc", "pull", dep]
+    if remote:
+        cmd.extend(["--remote", remote])
     log.info("Fetching DvC resource %s", dep)
+    log.debug("dvc pull cmd: %s", cmd)
     try:
         subprocess.check_call(["dvc", "pull", dep], cwd=run_dir)
     except subprocess.CalledProcessError as e:

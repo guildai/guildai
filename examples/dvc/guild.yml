@@ -22,6 +22,7 @@
       requires:
         - dvcfile: hello.in
           always-pull: yes
+          remote: guild-pub
 
     hello-dvc-stage:
       description: Uses Guild DvC plugin to run hello stage
