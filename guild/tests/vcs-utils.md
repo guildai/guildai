@@ -2,13 +2,6 @@
 
     >>> from guild import vcs_util
 
-Helper to run VCS commands:
-
-    >>> import subprocess
-    >>> from guild import util
-    >>> def run(cmd, cwd):
-    ...     subprocess.check_output(util.shlex_split(cmd), cwd=cwd)
-
 ## Git
 
 Create a repo:
@@ -34,14 +27,18 @@ manually before init to avoid init warnings.
 
 Init repo:
 
-    >>> run("git init", repo)
+    >>> cd(repo)
+    >>> run("git init")
+    Initialized empty Git repository in ...
+    <exit 0>
+
     >>> dir(repo)
     ['.git']
 
 Configure user info to avoid errors on commit:
 
-    >>> run("git config user.name test", repo)
-    >>> run("git config user.email test@localhost", repo)
+    >>> quiet("git config user.name test")
+    >>> quiet("git config user.email test@localhost")
 
 Initially the repo doesn't have any commits:
 
@@ -55,8 +52,8 @@ Add a new file and commit:
     >>> dir(repo)
     ['.git', 'hello']
 
-    >>> run("git add .", repo)
-    >>> run("git commit -m 'first commit'", repo)
+    >>> quiet("git add .")
+    >>> quiet("git commit -m 'first commit'")
     >>> sleep(0.1)  # needed before reading commit log below
 
 And get the commit:
@@ -94,8 +91,8 @@ However, the working directory status is now flagged as changed:
 
 Let's commit again:
 
-    >>> run("git add .", repo)
-    >>> run("git commit -m 'second commit'", repo)
+    >>> quiet("git add .")
+    >>> quiet("git commit -m 'second commit'")
     >>> sleep(0.1)
 
 The latest commit:
