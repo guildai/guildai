@@ -257,6 +257,8 @@ def _base_op_desc(opref, nowarn):
         return _format_test_op(opref)
     elif opref.pkg_type == "func":
         return _format_func_op(opref)
+    elif opref.pkg_type == "import":
+        return _format_import_op(opref)
     else:
         if not nowarn:
             log.warning(
@@ -301,6 +303,10 @@ def _format_test_op(opref):
 
 def _format_func_op(opref):
     return "%s()" % opref.op_name
+
+
+def _format_import_op(opref):
+    return _full_op_name(opref)
 
 
 def _apply_batch_desc(base_desc, run, seen_protos):

@@ -173,6 +173,9 @@
     guild.plugins.dask
     guild.plugins.dask_scheduler_main
     guild.plugins.disk
+    guild.plugins.dvc
+    guild.plugins.dvc_stage_main
+    guild.plugins.dvc_util
     guild.plugins.exec_script
     guild.plugins.flags_import_util
     guild.plugins.gen_queue
@@ -223,6 +226,7 @@
     guild.service
     guild.serving_util
     guild.steps_main
+    guild.steps_util
     guild.summary
     guild.tabview
     guild.tensorboard

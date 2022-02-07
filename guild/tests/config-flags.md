@@ -41,7 +41,7 @@ commands.
 
 Help for project contains imported flags.
 
-    >>> guild("help")
+    >>> guild("help")  # doctest: +REPORT_UDIFF
     ???
     BASE OPERATIONS
     <BLANKLINE>
@@ -73,6 +73,16 @@ Help for project contains imported flags.
           Flags:
             aa  (default is A)
             bb  (default is BB)
+        json-in
+          Flags:
+            b    (default is yes)
+            d.a  (default is A)
+            d.b  (default is B)
+            f    (default is 2.234)
+            i    (default is 456)
+            l    (default is 1 2 abc)
+            s    (default is flu flam)
+    <BLANKLINE>
     <BLANKLINE>
         test-args-1
     <BLANKLINE>
@@ -333,9 +343,78 @@ The `cfg-2` operation maps alternative flag names to various INI entries.
     s = bye
     <exit 0>
 
-## Implicit Dependency
+### Dot-in files
 
-## Defined Dependency
+Guild supports all of the above extensions when named with a `.in`
+extension.
+
+We use the `json-in` operation as an example.
+
+The json input 'flags.json.in':
+
+    >>> cat("flags.json.in")
+    {
+      "i": 456,
+      "f": 2.234,
+      "s": "flu flam",
+      "b": true,
+      "l": [1, 2, "abc"],
+      "d": {
+        "a": "A",
+        "b": "B"
+      }
+    }
+
+Results with default flags:
+
+    >>> guild("run json-in -y")
+    Resolving config:flags.json.in dependency
+    {'b': True,
+     'd': {'a': 'A', 'b': 'B'},
+     'f': 2.234,
+     'i': 456,
+     'l': [1, 2, 'abc'],
+     's': 'flu flam'}
+    <exit 0>
+
+Results with modified flags:
+
+    >>> guild("run json-in s=abc l=\"2 1 'a b' d\" -y")
+    Resolving config:flags.json.in dependency
+    {'b': True,
+     'd': {'a': 'A', 'b': 'B'},
+     'f': 2.234,
+     'i': 456,
+     'l': [2, 1, 'a b', 'd'],
+     's': 'abc'}
+    <exit 0>
+
+Guild generates a run specific config file.
+
+    >>> guild("ls -n")
+    flags.json
+    <exit 0>
+
+    >>> guild("cat -p flags.json")
+    {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456, "l": [2, 1, "a b", "d"], "s": "abc"}
+    <exit 0>
+
+## Invalid extensions
+
+To illustrate how Guild handles invalid extensions, we create a new project.
+
+    >>> tmp = mkdtemp()
+    >>> write(join_path(tmp, "guild.yml"), """
+    ... invalid-config:
+    ...   main: guild.pass
+    ...   flags-dest: config:params.badext
+    ...   flags-import: all
+    ... """)
+
+    >>> run("guild ops", cwd=tmp)
+    WARNING: config type for params.badext not supported
+    invalid-config
+    <exit 0>
 
 ## Includes
 

@@ -2,24 +2,18 @@
 
     >>> from guild import vcs_util
 
-Helper to run VCS commands:
-
-    >>> import subprocess
-    >>> from guild import util
-    >>> def run(cmd, cwd):
-    ...     subprocess.check_output(util.shlex_split(cmd), cwd=cwd)
-
 ## Git
 
 Create a repo:
 
     >>> repo = mkdtemp()
+    >>> cd(repo)
 
 Pre-configure repo to suppress warning/error messages. We do this
 manually before init to avoid init warnings.
 
-    >>> mkdir(path(repo, ".git"))
-    >>> write(path(repo, ".git", "config"), """
+    >>> mkdir(".git")
+    >>> write(path(".git", "config"), """
     ... [core]
     ... repositoryformatversion = 0
     ... filemode = true
@@ -34,14 +28,12 @@ manually before init to avoid init warnings.
 
 Init repo:
 
-    >>> run("git init", repo)
-    >>> dir(repo)
+    >>> run("git init")
+    Initialized empty Git repository in ...
+    <exit 0>
+
+    >>> dir()
     ['.git']
-
-Configure user info to avoid errors on commit:
-
-    >>> run("git config user.name test", repo)
-    >>> run("git config user.email test@localhost", repo)
 
 Initially the repo doesn't have any commits:
 
@@ -51,12 +43,12 @@ Initially the repo doesn't have any commits:
 
 Add a new file and commit:
 
-    >>> touch(path(repo, "hello"))
-    >>> dir(repo)
+    >>> touch("hello")
+    >>> dir()
     ['.git', 'hello']
 
-    >>> run("git add .", repo)
-    >>> run("git commit -m 'first commit'", repo)
+    >>> quiet("git add .")
+    >>> quiet("git commit -m 'first commit'")
     >>> sleep(0.1)  # needed before reading commit log below
 
 And get the commit:
@@ -76,7 +68,7 @@ The working directory is not changed:
 
 Let's modify the working directory:
 
-    >>> touch(path(repo, "hello-2"))
+    >>> touch("hello-2")
 
 And get the commit:
 
@@ -94,8 +86,8 @@ However, the working directory status is now flagged as changed:
 
 Let's commit again:
 
-    >>> run("git add .", repo)
-    >>> run("git commit -m 'second commit'", repo)
+    >>> quiet("git add .")
+    >>> quiet("git commit -m 'second commit'")
     >>> sleep(0.1)
 
 The latest commit:
@@ -122,6 +114,7 @@ A directory must be part of a repository commit history to get a commit.
 
     >>> subdir = path(repo, "subdir")
     >>> mkdir(subdir)
+    >>> cd(subdir)
 
     >>> vcs_util.commit_for_dir(subdir)
     Traceback (most recent call last):
@@ -129,7 +122,7 @@ A directory must be part of a repository commit history to get a commit.
 
 Let's add a file to the subdirectory.
 
-    >>> touch(path(subdir, "hello-3"))
+    >>> touch("hello-3")
 
 The file is not yet part of a commit, so we still get `NoCommit` for
 the subdir.
@@ -140,8 +133,8 @@ the subdir.
 
 Let's add the subdir file and commit.
 
-    >>> run("git add .", subdir)
-    >>> run("git commit -m 'third commit'", subdir)
+    >>> quiet("git add .")
+    >>> quiet("git commit -m 'third commit'")
     >>> sleep(0.1)
 
 And the latest commit:

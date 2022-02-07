@@ -75,6 +75,29 @@ RESPECIFIABLE_RUN_PARAMS = {
     "tags",
 }
 
+CORE_RUN_ATTRS = {
+    "cmd",
+    "deps",
+    "env",
+    "exit_status",
+    "flags",
+    "host",
+    "id",
+    "initialized",
+    "label",
+    "op",
+    "pip_freeze",
+    "platform",
+    "random_seed",
+    "run_params",
+    "sourcecode_digest",
+    "started",
+    "stopped",
+    "user",
+    "user_flags",
+    "vcs_commit",
+}
+
 
 ###################################################################
 # State
@@ -650,8 +673,7 @@ def _remote_resolver_for_source_f(remote):
         scheme = source.parsed_uri.scheme
         assert scheme == "operation", source
         resource = op_dep.ResourceProxy(dep.res_location, dep.config)
-        modeldef = source.resdef.modeldef
-        return _RemoteOperationResolver(remote, source, resource, modeldef)
+        return _RemoteOperationResolver(remote, source, resource)
 
     return f
 
@@ -663,8 +685,8 @@ class _RemoteOperationResolver(resolverlib.OperationResolver):
     default resolver's lookup of local runs.
     """
 
-    def __init__(self, remote, source, resource, modeldef):
-        super(_RemoteOperationResolver, self).__init__(source, resource, modeldef)
+    def __init__(self, remote, source, resource):
+        super(_RemoteOperationResolver, self).__init__(source, resource)
         self.remote = remote
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
@@ -1114,6 +1136,7 @@ def _op_init_run_attrs(args, op):
     attrs["op"] = _op_config_data(op)
     _apply_system_attrs(op, attrs)
     attrs.update(op._op_cmd_run_attrs)
+    _apply_opdef_run_attrs(op, attrs)
 
 
 def _init_comments(comment):
@@ -1159,6 +1182,19 @@ def _pip_freeze():
     from guild import pip_util
 
     return pip_util.freeze()
+
+
+def _apply_opdef_run_attrs(op, attrs):
+    if not op._opdef or not op._opdef.run_attrs:
+        return
+    for name, val in sorted(op._opdef.run_attrs.items()):
+        if name in CORE_RUN_ATTRS:
+            log.warning(
+                "Invalid run attribute '%s' (reserved attribute) - ignoring",
+                name,
+            )
+            continue
+        attrs[name] = val
 
 
 # =================================================================

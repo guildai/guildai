@@ -50,6 +50,7 @@ class OpDependencyError(Exception):
 
 class OpDependency(object):
     def __init__(self, resdef, res_location, config):
+        assert res_location
         self.resdef = resdef
         self.res_location = res_location
         self.config = config
@@ -284,6 +285,7 @@ class ResourceProxy(object):
     """
 
     def __init__(self, location, config):
+        assert location
         self.location = location
         self.config = config
 
@@ -310,6 +312,9 @@ def _resolve_source_for_path(source_path, source_location, source, target_dir):
     target_path = _target_path_for_source(
         source_path, source_location, source, target_dir
     )
+    if util.compare_paths(source_path, target_path):
+        # Source was resolved directly to run dir - nothing to do.
+        return
     if target_type == "link":
         _link_to_source(source_path, target_path, source.replace_existing)
     elif target_type == "copy":
@@ -448,7 +453,7 @@ def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
     resolver_factory = resolver_factory or resolver_for_source
     for dep in deps:
         for source in dep.resdef.sources:
-            if not source.uri.startswith("operation:"):
+            if not is_operation_source(source):
                 continue
             resolver = resolver_factory(source, dep)
             assert isinstance(resolver, resolverlib.OperationResolver), resolver
@@ -457,11 +462,16 @@ def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
                     run = resolver.resolve_op_run(run_id_prefix, include_staged=True)
                 except resolverlib.ResolutionError:
                     log.warning(
-                        "cannot find a suitable run for required " "resource '%s'",
+                        "cannot find a suitable run for required resource '%s'",
                         dep.resdef.name,
                     )
                 else:
                     yield run, dep
+
+
+def is_operation_source(source):
+    cls = resolverlib.resolver_class_for_source(source)
+    return cls is not None and issubclass(cls, resolverlib.OperationResolver)
 
 
 def _iter_flag_val_items(val):

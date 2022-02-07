@@ -1,9 +1,12 @@
+click<8
 dask[distributed]
-ipython
+dvc[s3]
+ipython<8
 hiplot
 jinja2
 jupyter
 jupyter_contrib_nbextensions
+matplotlib
 pandas<1.2
 tensorboardX
 twine

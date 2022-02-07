@@ -85,31 +85,33 @@ class ResourceDef(object):
 
     def _init_resource_source(self, data):
         if isinstance(data, dict):
-            data_copy = copy.copy(data)
-            type_vals = [data_copy.pop(attr, None) for attr in self.source_types]
-            type_items = zip(self.source_types, type_vals)
-            type_count = sum([bool(val) for val in type_vals])
-            if type_count == 0:
-                raise ResourceFormatError(
-                    "invalid source %s in resource '%s': missing required "
-                    "attribute (one of %s)"
-                    % (data, self.fullname, ", ".join(self.source_types))
-                )
-            if type_count > 1:
-                conflicting = ", ".join([item[0] for item in type_items if item[1]])
-                raise ResourceFormatError(
-                    "invalid source %s in resource '%s': conflicting "
-                    "attributes (%s)"
-                    % (pprint.pformat(data), self.fullname, conflicting)
-                )
-            type_name, type_val = next(item for item in type_items if item[1])
-            return self._source_for_type(type_name, type_val, data_copy)
+            return self._resource_source_for_data(data)
         elif isinstance(data, str):
             return self._source_for_type(self.default_source_type, data, {})
         else:
             raise ResourceFormatError(
                 "invalid source for resource '%s': %s" % (self.fullname, data)
             )
+
+    def _resource_source_for_data(self, data):
+        data_copy = copy.copy(data)
+        type_vals = [data_copy.pop(attr, None) for attr in self.source_types]
+        type_items = zip(self.source_types, type_vals)
+        type_count = sum([bool(val) for val in type_vals])
+        if type_count == 0:
+            raise ResourceFormatError(
+                "invalid source %s in resource '%s': missing required "
+                "attribute (one of %s)"
+                % (data, self.fullname, ", ".join(self.source_types))
+            )
+        if type_count > 1:
+            conflicting = ", ".join([item[0] for item in type_items if item[1]])
+            raise ResourceFormatError(
+                "invalid source %s in resource '%s': conflicting "
+                "attributes (%s)" % (pprint.pformat(data), self.fullname, conflicting)
+            )
+        type_name, type_val = next(item for item in type_items if item[1])
+        return self._source_for_type(type_name, type_val, data_copy)
 
     def _source_for_type(self, type, val, data):
         data = self._coerce_source_data(data)

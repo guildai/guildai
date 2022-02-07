@@ -77,6 +77,7 @@ tests).
       logging:                     ok
       long-run-names:              ok
       ls-cmd:                      ok
+      ls-impl:                     ok
       marked-runs:                 ok
       memory-plugin:               ok
       model-proxies:               ok
@@ -108,6 +109,7 @@ tests).
       resource-flag-refs:          ok
       resource-flags:              ok
       restart-runs:                ok
+      run-attrs:                   ok
       run-files:                   ok
       run-impl:                    ok
       run-labels:                  ok
@@ -144,6 +146,7 @@ tests).
       timerange:                   ok
       utils:                       ok
       var:                         ok
+      vcs-source:                  ok
       vcs-utils:                   ok
       view:                        ok
       yaml-utils:                  ok

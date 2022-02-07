@@ -30,17 +30,19 @@ log = logging.getLogger("guild")
 
 
 class _ConfigNotSupported(Exception):
-    pass
+    def __str__(self):
+        assert len(self.args) == 1
+        return "config type for %s not supported" % self.args[0]
 
 
 class ConfigFlagsPlugin(pluginlib.Plugin):
     def guildfile_loaded(self, gf):
         for m in gf.models.values():
             for opdef in m.operations:
-                _maybe_apply_flags(opdef)
+                apply_config_flags(opdef)
 
 
-def _maybe_apply_flags(opdef):
+def apply_config_flags(opdef):
     config_src = _config_src(opdef)
     if not config_src:
         return
@@ -67,7 +69,7 @@ def _flags_data(src):
 
 
 def _load_flags(src):
-    ext = os.path.splitext(src)[1].lower()
+    ext = _flags_src_ext(src)
     if ext in (".yaml", ".yml"):
         return _load_flags_yaml(src)
     elif ext in (".json",):
@@ -76,6 +78,13 @@ def _load_flags(src):
         return _load_flags_cfg(src)
     else:
         raise _ConfigNotSupported(src)
+
+
+def _flags_src_ext(src):
+    ext = os.path.splitext(src)[1].lower()
+    if ext == ".in":
+        return _flags_src_ext(src[:-3])
+    return ext
 
 
 def _load_flags_yaml(src):

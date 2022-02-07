@@ -17,7 +17,6 @@ from __future__ import division
 
 import logging
 import os
-import re
 import subprocess
 import sys
 
@@ -31,7 +30,7 @@ from guild import exit_code
 from guild import flag_util
 from guild import op_util
 from guild import opref as opreflib
-from guild import run as runlib
+from guild import steps_util
 from guild import run_check
 from guild import util
 
@@ -285,31 +284,14 @@ def _init_logging():
 
 
 def _run_steps():
-    run = _init_run()
-    steps = _init_steps(run)
+    parent_run = op_util.current_run()
+    steps = _init_steps(parent_run)
     if not steps:
-        log.warning("no steps defined for run %s", run.id)
+        log.warning("no steps defined for run %s", parent_run.id)
         return
     for step in steps:
-        step_run = _run_step(step, run)
+        step_run = _run_step(step, parent_run)
         _maybe_check_step_run(step, step_run)
-
-
-# =================================================================
-# Init
-# =================================================================
-
-
-def _init_run():
-    run_id, run_dir = _run_environ()
-    return runlib.Run(run_id, run_dir)
-
-
-def _run_environ():
-    try:
-        return os.environ["RUN_ID"], os.environ["RUN_DIR"]
-    except KeyError as e:
-        _internal_error("missing required env %s" % e.args[0])
 
 
 def _init_steps(run):
@@ -330,14 +312,11 @@ def _init_steps(run):
 
 
 def _run_step(step, parent_run):
-    step_run = _init_step_run(parent_run)
-    cmd = _init_step_cmd(step, step_run.path, parent_run)
-    _link_to_step_run(step, step_run.path, parent_run.path)
-    env = dict(os.environ)
-    env["NO_WARN_RUNDIR"] = "1"
-    if step.isolate_runs:
-        env["GUILD_RUNS_PARENT"] = parent_run.id
-    cwd = os.getenv("PROJECT_DIR") or os.getenv("CMD_DIR")
+    step_run = steps_util.init_step_run(parent_run.dir)
+    steps_util.link_to_step_run(step, step_run.dir, parent_run.dir)
+    cmd = _step_run_cmd(step, step_run.dir, parent_run)
+    env = _step_run_env(step, parent_run)
+    cwd = _step_run_cwd()
     log.info("running %s: %s", step, _format_step_cmd(cmd))
     log.debug("step cwd %s", cwd)
     log.debug("step command: %s", cmd)
@@ -348,18 +327,7 @@ def _run_step(step, parent_run):
     return step_run
 
 
-def _init_step_run(parent_run):
-    """Returns the run dir for a step run.
-
-    Directory is based on a new, unique run ID but is not created.
-    """
-    runs_dir = os.path.dirname(parent_run.path)
-    step_run_id = runlib.mkid()
-    step_run_dir = os.path.join(runs_dir, step_run_id)
-    return runlib.Run(step_run_id, step_run_dir)
-
-
-def _init_step_cmd(step, step_run_dir, parent_run):
+def _step_run_cmd(step, step_run_dir, parent_run):
     base_args = [
         config.python_exe(),
         "-um",
@@ -435,27 +403,17 @@ def _step_flag_args(step):
     return flag_util.flag_assigns(step.flags)
 
 
-def _link_to_step_run(step, step_run_dir, parent_run_dir):
-    link_name = _step_link_name(step)
-    link_path_base = os.path.join(parent_run_dir, link_name)
-    link_path = _ensure_unique_link(link_path_base)
-    rel_step_run_dir = os.path.relpath(step_run_dir, os.path.dirname(link_path))
-    os.symlink(rel_step_run_dir, link_path)
+def _step_run_env(step, parent_run):
+    env = dict(os.environ)
+    env["NO_WARN_RUNDIR"] = "1"
+    if step.isolate_runs:
+        env["GUILD_RUNS_PARENT"] = parent_run.id
+    return env
 
 
-def _step_link_name(step):
-    return re.sub(r"[ :/\\]", "_", str(step))
-
-
-def _ensure_unique_link(path_base):
-    v = 2
-    path = path_base
-    while True:
-        assert v < 1e6
-        if not os.path.lexists(path):
-            return path
-        path = "%s_%i" % (path_base, v)
-        v += 1
+def _step_run_cwd():
+    # We're running from parent dir.
+    return os.getenv("PROJECT_DIR") or os.getenv("CMD_DIR")
 
 
 def _format_step_cmd(cmd):
@@ -492,7 +450,7 @@ def _run_skipped(run):
     creates the specified run directory only when the run is not
     skipped.
     """
-    return not os.path.exists(run.path)
+    return not os.path.exists(run.dir)
 
 
 def _check_step_run(step, run):

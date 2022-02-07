@@ -1759,3 +1759,11 @@ def natsorted(*args, **kw):
     from natsort import natsorted as ns
 
     return ns(*args, **kw)
+
+
+class lazy_str:
+    def __init__(self, f):
+        self.f = f
+
+    def __str__(self):
+        return self.f()

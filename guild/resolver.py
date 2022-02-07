@@ -71,13 +71,13 @@ class Resolver(object):
 
 
 def for_resdef_source(source, resource):
-    cls = _resolver_class_for_source(source)
+    cls = resolver_class_for_source(source)
     if not cls:
         return None
     return cls(source, resource)
 
 
-def _resolver_class_for_source(source):
+def resolver_class_for_source(source):
     scheme = source.parsed_uri.scheme
     if scheme == "file":
         return FileResolver
@@ -86,21 +86,21 @@ def _resolver_class_for_source(source):
     elif scheme == "module":
         return ModuleResolver
     elif scheme == "operation":
-        return _operation_resolver_cls(source.resdef)
+        return OperationResolver
     elif scheme == "config":
         return ConfigResolver
     else:
-        return None
+        return _try_plugins_for_resolver_class(source)
 
 
-def _operation_resolver_cls(resdef):
-    if not hasattr(resdef, "modeldef"):
-        return None
+def _try_plugins_for_resolver_class(source):
+    from guild import plugin as pluginlib
 
-    def cls(source, resource):
-        return OperationResolver(source, resource, resdef.modeldef)
-
-    return cls
+    for _name, plugin in pluginlib.iter_plugins():
+        cls = plugin.resolver_class_for_source(source)
+        if cls:
+            return cls
+    return None
 
 
 ###################################################################
@@ -141,6 +141,7 @@ class FileResolver(Resolver):
         return resolve_source_files(source_path, self.source, unpack_dir)
 
     def _source_location_paths(self):
+        assert self.resource.location, self.resource
         yield self.resource.location
         try:
             modeldef = self.resource.resdef.modeldef
@@ -201,10 +202,6 @@ def _url_unpack_dir(source_path, explicit_unpack_dir):
 
 
 class OperationResolver(FileResolver):
-    def __init__(self, source, resource, modeldef):
-        super(OperationResolver, self).__init__(source, resource)
-        self.modeldef = modeldef
-
     def resolve(self, resolve_context):
         source_path = self._source_path()
         unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)
@@ -414,7 +411,7 @@ class ConfigResolver(FileResolver):
 
     @classmethod
     def _decoder_for_path(cls, path):
-        ext = os.path.splitext(path)[1].lower()
+        ext = _config_file_ext(path)
         if ext in cls.YAML_EXT:
             return cls._yaml_load
         elif ext in cls.JSON_EXT:
@@ -518,7 +515,7 @@ class ConfigResolver(FileResolver):
 
     @classmethod
     def _encoder_for_path(cls, path):
-        ext = os.path.splitext(path)[1].lower()
+        ext = _config_file_ext(path)
         if ext in cls.YAML_EXT:
             return yaml_util.encode_yaml
         elif ext in cls.JSON_EXT:
@@ -535,6 +532,13 @@ class ConfigResolver(FileResolver):
     @staticmethod
     def _cfg_encode(config_data):
         return util.encode_cfg(config_data)
+
+
+def _config_file_ext(path):
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".in":
+        return _config_file_ext(path[:-3])
+    return ext
 
 
 ###################################################################

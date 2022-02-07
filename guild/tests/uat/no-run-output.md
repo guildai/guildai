@@ -18,7 +18,7 @@ First, the case when `NO_RUN_OUTPUT` is not set.
 
 Output files generated:
 
-    >>> run("guild ls -a -p .guild/output")
+    >>> run("guild ls -a -p .guild/output*")
     ???/.guild/runs/...:
       .guild/output
       .guild/output.index

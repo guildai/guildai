@@ -1,0 +1,57 @@
+stages:
+  prepare-data:
+    cmd: python prepare_data.py
+    deps:
+    - iris.csv
+    - prepare_data.py
+    outs:
+    - iris.npy
+  faketrain:
+    cmd: python faketrain.py
+    params:
+      - params.json.in:
+          - x
+    deps:
+    - faketrain.py
+    metrics:
+    - summary.json:
+        cache: false
+  train-models:
+    cmd: python train_models.py
+    params:
+      - params.json.in:
+          - train.C
+          - train.gamma
+          - train.max-iters
+    deps:
+    - iris.npy
+    - train_models.py
+    outs:
+    - model-1.joblib
+    - model-2.joblib
+    - model-3.joblib
+    - model-4.joblib
+  eval-models:
+    cmd: python eval_models.py
+    params:
+      - params.json.in:
+          - eval.plot-spacing
+    deps:
+    - iris.npy
+    - model-1.joblib
+    - model-2.joblib
+    - model-3.joblib
+    - model-4.joblib
+    - eval_models.py
+    metrics:
+    - models-eval.json:
+        cache: false
+    outs:
+    - models-eval.png
+  hello:
+    deps:
+    - hello.in
+    - hello.py
+    cmd: python hello.py
+    outs:
+    - hello.out

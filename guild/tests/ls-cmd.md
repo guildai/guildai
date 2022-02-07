@@ -1,3 +1,7 @@
+---
+doctest: -WINDOWS
+---
+
 # ls command
 
 The `ls` command is used to list run files. We use the `ls` project to
@@ -77,6 +81,9 @@ List all files with `--all`.
 
     >>> guild_run("ls --all")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
+      .foo/
+      .foo/.bar
+      .foo/baz
       .guild/
       .guild/attrs/
       .guild/attrs/cmd
@@ -114,7 +121,7 @@ List all files with `--all`.
       l/
     <exit 0>
 
-If `--path` wants Guild files, `--all` is implied.
+If `--path` wants a hidden file, it's included.
 
     >>> guild_run("ls --path .guild")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
@@ -148,10 +155,35 @@ If `--path` wants Guild files, `--all` is implied.
       .guild/sourcecode/make_fs.py
     <exit 0>
 
+    >>> guild_run("ls --path .foo -n")
+    .foo/
+    .foo/baz
+    <exit 0>
+
+A path must match a directory or fully match the name.
+
+    >>> guild_run("ls --path .fo -n")
+    <BLANKLINE>
+    <exit 0>
+
+You can use a wildcard to match partial paths.
+
+    >>> guild_run("ls --path .fo* -n")
+    .foo/
+    .foo/baz
+    <exit 0>
+
+Note that the wildcard matches hidden files in this case. This is
+different from bash directory listings, which would not list hidden
+files unless the pattern started with a dot.
+
 Follow links applies to `--all`.
 
     >>> guild_run("ls --all -L")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
+      .foo/
+      .foo/.bar
+      .foo/baz
       .guild/
       .guild/attrs/
       .guild/attrs/cmd
@@ -244,7 +276,7 @@ Results can be filtered using a `--path` option.
 
 Paths can use wildcard patterns.
 
-    >>> guild_run("ls -p '*.txt'")
+    >>> guild_run("ls -p '*/*.txt'")
     ???/runs/aaaa:
       c/d.txt
       c/e.txt
@@ -252,7 +284,7 @@ Paths can use wildcard patterns.
 
 Patterns apply through to following links.
 
-    >>> guild_run("ls -p '*.bin' -L")
+    >>> guild_run("ls -p '*/*.bin' -L")
     ???/runs/aaaa:
       c/f.bin
       l/f.bin
@@ -260,12 +292,12 @@ Patterns apply through to following links.
 
 Paths are applied to the source code location.
 
-    >>> guild_run("ls --sourcecode -p README")
+    >>> guild_run("ls --sourcecode -p README.md")
     ???/runs/aaaa/.guild/sourcecode:
       README.md
     <exit 0>
 
-    >>> guild_run("ls --sourcecode -p README -f")
+    >>> guild_run("ls --sourcecode -p README.md -f")
     ???/runs/aaaa/.guild/sourcecode/README.md
     <exit 0>
 

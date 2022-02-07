@@ -192,7 +192,7 @@ class Build(object):
                 ),
                 (
                     "WORKSPACE={workspace} "
-                    "UAT_SKIP={uat_skip},remote-*,hiplot-* "
+                    "UAT_SKIP={uat_skip},remote-*,hiplot-*,dvc "
                     "COLUMNS=999 "
                     "EXAMPLES={examples} "
                     "GUILD_START_THRESHOLD=2.0 "

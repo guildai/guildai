@@ -1,0 +1,93 @@
+- model: ''
+  operations:
+
+    # === hello variations =============================================
+
+    hello-guild-op:
+      description: Standard Guild dependency example without DvC support
+      main: hello
+      requires:
+        - file: hello.in
+          help: Missing hello.in - run 'dvc pull hello.in' to fetch it
+
+    hello-dvc-dep:
+      description: Uses DvC dependency to fetch required file if needed
+      main: hello
+      requires:
+        - dvcfile: hello.in
+
+    hello-dvc-dep-always-pull:
+      description: Uses DvC dependency to always fetch required file
+      main: hello
+      requires:
+        - dvcfile: hello.in
+          always-pull: yes
+          remote: guild-pub
+
+    hello-dvc-stage:
+      description: Uses Guild DvC plugin to run hello stage
+      main: guild.plugins.dvc_stage_main hello
+
+    # === faketrain ====================================================
+
+    faketrain-dvc-stage:
+      description: Use Guild DvC plugin to run faketrain stage
+      main: guild.plugins.dvc_stage_main faketrain
+      flags-dest: config:params.json.in
+      flags-import:
+        - x
+        - noise
+      output-scalars: no
+
+    # === prepare-data variations ======================================
+
+    prepare-data-dvc-dep:
+      description: Use DvC dependency to fetch required file if needed
+      main: prepare_data
+      run-attrs:
+        dvc-stage: prepare-data
+      requires:
+        - dvcfile: iris.csv
+
+    prepare-data-dvc-stage:
+      description: Use Guild DvC plugin to run prepare-data stage
+      main: guild.plugins.dvc_stage_main prepare-data
+
+    # === train-models variations ======================================
+
+    train-models-dvc-dep:
+      description: Use Guild to run the train models operation
+      main: train_models
+      flags-dest: config:params.json.in
+      flags-import:
+        - train.C
+        - train.max-iters
+        - train.gamma
+      run-attrs:
+          dvc-stage: train-models
+      requires:
+        - config: params.json.in
+          rename: params.json.in params.json
+        - dvcstage: prepare-data
+
+    train-models-dvc-stage:
+      description: Use Guild DvC plugin to run train-models stage
+      main: guild.plugins.dvc_stage_main train-models
+
+    # === eval-models variations =======================================
+
+    eval-models-dvc-dep:
+      description: Use Guild to run the eval models operation
+      main: eval_models
+      flags-dest: config:params.json.in
+      flags-import:
+        - eval.plot-spacing
+      run-attrs:
+        dvc-stage: eval-models
+      requires:
+        - dvcstage: prepare-data
+        - dvcstage: train-models
+
+    eval-models-dvc-stage:
+      description: Use Guild DvC plugin to run eval-models stage
+      main: guild.plugins.dvc_stage_main eval-models
