@@ -333,6 +333,7 @@ class SSHRemote(remotelib.Remote):
             host_dest,
             user=self.user,
             private_key=remote_util.config_path(self.private_key),
+            connect_timeout=self.connect_timeout,
             port=self.port,
             proxy=self.proxy,
         )
