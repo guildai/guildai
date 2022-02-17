@@ -9,6 +9,7 @@ tests).
       additional-deps:             ok
       anonymous-models:            ok
       api:                         ok
+      api-cmd:                     ok
       autocomplete:                ok
       batch-basics:                ok
       batch-custom-optimizer:      ok

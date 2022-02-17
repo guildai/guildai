@@ -24,6 +24,7 @@ from guild import click_util
 from guild import config
 from guild import util
 
+from .api import api
 from .cat import cat
 from .check import check
 from .comment import comment
@@ -105,6 +106,7 @@ def main(args):
     main_impl.main(args)
 
 
+main.add_command(api)
 main.add_command(cat)
 main.add_command(check)
 main.add_command(comment)

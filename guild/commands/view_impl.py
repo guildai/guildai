@@ -123,7 +123,7 @@ class ViewDataImpl(view.ViewData):
             "tags": self._format_tags(run.get("tags") or []),
             "comments": run.get("comments") or [],
             "status": run.status,
-            "exitStatus": formatted["exit_status"] or None,
+            "exitStatus": formatted["exit_status"],
             "command": formatted["command"],
             "otherAttrs": self._other_attrs(run),
             "flags": run.get("flags", {}),
