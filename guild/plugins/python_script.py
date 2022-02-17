@@ -358,7 +358,11 @@ def _argparse_flags_data(script, base_args, log):
             if details and log.getEffectiveLevel() > logging.DEBUG:
                 error += " (run with guild --debug for details)"
             if os.getenv("NO_WARN_FLAGS_IMPORT") != "1":
-                log.warning("cannot import flags from %s: %s", script.src, error)
+                log.warning(
+                    "cannot import flags from %s: %s",
+                    os.path.relpath(script.src),
+                    error,
+                )
             if details and log.getEffectiveLevel() <= logging.DEBUG:
                 log.error(details)
             raise DataLoadError()
