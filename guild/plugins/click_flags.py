@@ -69,7 +69,7 @@ class ClickFlags(python_script.PythonFlagsImporter):
             except subprocess.CalledProcessError as e:
                 log.warning(
                     "cannot import flags from %s: %s",
-                    script.src,
+                    os.path.relpath(script.src),
                     e.output.decode().strip(),
                 )
                 raise python_script.DataLoadError()
