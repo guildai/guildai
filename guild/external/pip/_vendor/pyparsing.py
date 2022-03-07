@@ -90,6 +90,11 @@ except ImportError:
     except ImportError:
         _OrderedDict = None
 
+try:
+    from collections.abc import MutableMapping, Iterable
+except ImportError:
+    from collections import MutableMapping, Iterable
+
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 __all__ = [
@@ -940,7 +945,7 @@ class ParseResults(object):
     def __dir__(self):
         return (dir(type(self)) + list(self.keys()))
 
-collections.MutableMapping.register(ParseResults)
+MutableMapping.register(ParseResults)
 
 def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
@@ -3242,7 +3247,7 @@ class ParseExpression(ParserElement):
 
         if isinstance( exprs, basestring ):
             self.exprs = [ ParserElement._literalStringClass( exprs ) ]
-        elif isinstance( exprs, collections.Iterable ):
+        elif isinstance( exprs, Iterable ):
             exprs = list(exprs)
             # if sequence of strings provided, wrap with Literal
             if all(isinstance(expr, basestring) for expr in exprs):
@@ -4583,7 +4588,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
     symbols = []
     if isinstance(strs,basestring):
         symbols = strs.split()
-    elif isinstance(strs, collections.Iterable):
+    elif isinstance(strs, Iterable):
         symbols = list(strs)
     else:
         warnings.warn("Invalid argument to oneOf, expected string or iterable",
