@@ -26,8 +26,13 @@ import copy
 import logging
 import operator
 import pprint
+from typing import (
+    Dict, List, Optional, Union
+)
+from enum import Enum
 
 import six
+from pydantic import BaseModel, EmailStr, FilePath, DirectoryPath, SecretStr, Field
 
 from guild import util
 
@@ -41,18 +46,34 @@ class ResourceFormatError(ValueError):
 class ResourceDefValueError(ValueError):
     pass
 
-
-class ResourceDef(object):
-
-    source_types = [
+SourceTypes = [
         "config",
         "file",
         "module",
         "url",
-    ]
-    default_source_type = "file"
+]
+
+class ResourceDef(BaseModel):
+    _data: Optional[Dict]
+    name: Optional[str]
+    fullname: Optional[str]
+    flag_name: Optional[str]
+    description: Optional[str]
+    target_path: Optional[str]
+    preserve_path: Optional[str]
+    target_type: Optional[str]
+    default_unpack: Optional[str]
+    private: Optional[bool]
+    references: Optional[List[str]]
+    sources: Optional[List[str]]
+    source_types: List[str] = SourceTypes
+    default_source_type: str = "file"
+
+    class Config:
+        underscore_attrs_are_private = True
 
     def __init__(self, name, data, fullname=None):
+        super().__init__()
         self.name = name
         self._data = data = _coerce_resdef(data)
         self.fullname = fullname or name

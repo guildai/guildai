@@ -17,13 +17,16 @@ from __future__ import division
 
 import copy
 import errno
+from importlib.resources import Resource
 import logging
 import os
 import re
 import sys
-
-import six
+from typing import (
+    Dict, List, Optional, Union
+)
 import yaml
+from pydantic import BaseModel, EmailStr, FilePath, DirectoryPath, SecretStr, Field
 
 from guild import config
 from guild import opref
@@ -130,8 +133,19 @@ def _string_source(src):
 ###################################################################
 
 
-class Guildfile(object):
+class Guildfile(BaseModel):
+    src: Optional[FilePath]
+    dir: Optional[DirectoryPath]
+    models: Optional[Dict[str, 'ModelDef']]
+    package: Optional[str]
+    coerced: Optional[Dict]
+    data: Optional[Dict]
+
+    class Config:
+        arbitrary_types_allowed = True
+
     def __init__(self, data, src=None, dir=None, included=None, extends_seen=None):
+        super().__init__()
         if not dir and src and not _string_source(src):
             dir = os.path.dirname(src)
         if src is None and dir is None:
@@ -698,8 +712,26 @@ def _apply_missing_vals(target, source):
 ###################################################################
 
 
-class ModelDef(object):
+class ModelDef(BaseModel):
+    default: Optional[bool]
+    description: Optional[str] = ""
+    extra: Dict[str, str] = {}
+    guildfile: Optional[str]
+    name: Optional[str]
+    op_default_config: Optional['OpDef']
+    operations: Optional[List['OpDef']]
+    parents: Optional[List[str]] = []
+    plugins: Optional[List[str]]
+    python_requires: Optional[str]
+    references: Optional[List[str]]
+    resources: Optional[List['ResourceDef']]
+    sourcecode: Optional['FileSelectDef']
+
+    class Config:
+        arbitrary_types_allowed = True
+
     def __init__(self, name, data, guildfile, extends_seen=None):
+        super().__init__()
         data = _extended_data(data, guildfile, extends_seen or [])
         self.guildfile = guildfile
         self.name = name
@@ -980,8 +1012,53 @@ def _init_sourcecode(data, gf):
 ###################################################################
 
 
-class OpDef(object):
+class OpDef(BaseModel):
+    _data: Optional[Dict]
+    _flag_vals: Optional[Dict]
+    _modelref: Optional['ModelDef']
+    can_stage_trials: Optional[bool]
+    compare: Optional[str]
+    default: Optional[bool]
+    default_flag_arg_skip: Optional[bool]
+    default_max_trials: Optional[int]
+    delete_on_success: Optional[bool]
+    dependencies: Optional[List[str]] = []
+    description: Optional[str]
+    env: Optional[Dict[str, str]] = {}
+    env_secrets: Optional[Dict[str, SecretStr]] = {}
+    exec_: Optional[str]
+    flag_encoder: Optional[str]
+    flags: Optional[List['FlagDef']] = []
+    flags_dest: Optional[str]
+    flags_import: Optional[str]
+    flags_import_skip: Optional[str]
+    guildfile: Optional[str]
+    handle_keyboard_interrupt: Optional[bool]
+    label: Optional[str]
+    main: Optional[str]
+    modeldef: Optional['ModelDef']
+    name: Optional[str]
+    objective: Optional[str]
+    optimizers: Optional[List['OptimizerDef']] = []
+    output_scalars: Optional[str]
+    pip_freeze: Optional[str]
+    plugins: Optional[List[str]]
+    publish: Optional[str]
+    python_path: Optional[str]
+    python_requires: Optional[str]
+    run_attrs: Optional[str]
+    set_trace: Optional[bool]
+    sourcecode: Optional['FileSelectDef']
+    steps: Optional[str]
+    stoppable: Optional[bool]
+    tags: Optional[List[str]] = []
+
+    class Config:
+        arbitrary_types_allowed = True
+        underscore_attrs_are_private = True
+
     def __init__(self, name, data, modeldef):
+        super().__init__()
         if not isinstance(data, dict):
             raise GuildfileError(
                 modeldef.guildfile,
@@ -1036,6 +1113,11 @@ class OpDef(object):
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname
+
+    def __eq__(self, other):
+        if other:
+            return self.name == other.name
+        return False
 
     def as_data(self):
         return self._data
@@ -1154,8 +1236,9 @@ def _new_merged_flag(src_flag, opdef):
 def _apply_flag_attrs(src_flag, dest_flag):
     # Use a baseline flag def to get default values for empty data.
     baseline_flag = FlagDef("", {}, None)
-    for name in dir(src_flag):
-        if name[:1] == "_":
+    reserved_pydantic_flags = dir(BaseModel)
+    for name in set(dir(src_flag)) - set(reserved_pydantic_flags):
+        if name.startswith("_"):
             continue
         dest_val = getattr(dest_flag, name, None)
         baseline_val = getattr(baseline_flag, name, None)
@@ -1163,8 +1246,31 @@ def _apply_flag_attrs(src_flag, dest_flag):
             setattr(dest_flag, name, getattr(src_flag, name))
 
 
-class FlagDef(object):
+class FlagDef(BaseModel):
+    allow_other: Optional[bool]
+    arg_name: Optional[str]
+    arg_skip: Optional[str]
+    arg_split: Optional[str]
+    arg_switch: Optional[str]
+    choices: Optional[List[str]] = []
+    default: Optional[Dict] = {}
+    description: Optional[str] = ""
+    distribution: Optional[str]
+    env_name: Optional[str]
+    extra: Optional[Dict]
+    max: Optional[str]
+    min: Optional[str]
+    name: Optional[str]
+    null_label: Optional[str]
+    opdef: Optional['OpDef']
+    required: Optional[bool]
+    type: Optional[str]
+
+    class Config:
+        arbitrary_types_allowed = True
+
     def __init__(self, name, data, opdef):
+        super().__init__()
         if not isinstance(data, dict):
             raise GuildfileError(
                 opdef.guildfile, "invalid flag data %r: expected a mapping" % data
@@ -1208,8 +1314,18 @@ def _init_flag_choices(data, flagdef):
     return [FlagChoice(choice_data, flagdef) for choice_data in data]
 
 
-class FlagChoice(object):
+class FlagChoice(BaseModel):
+    alias: Optional[str]
+    description: Optional[str]
+    flagdef: Optional[FlagDef]
+    flags: Optional[Dict[str, str]]
+    value: Optional[str]
+
+    class Config:
+        arbitrary_types_allowed = True
+
     def __init__(self, data, flagdef):
+        super().__init__()
         self.flagdef = flagdef
         if isinstance(data, dict):
             self.value = _required("value", data, flagdef.opdef.guildfile)
@@ -1298,13 +1414,19 @@ def _init_dependencies(requires, opdef):
     return [OpDependencyDef(data, opdef) for data in requires]
 
 
-class OpDependencyDef(object):
+class OpDependencyDef(BaseModel):
 
-    spec = None
-    description = None
-    inline_resource = None
+    spec: Optional[Dict]
+    description: Optional[str] = ""
+    inline_resource: Optional['ResourceDef'] = None
+    opdef: Optional['OpDef']
+    modeldef: Optional['ModelDef']
+
+    class Config:
+        arbitrary_types_allowed = True
 
     def __init__(self, data, opdef):
+        super().__init__()
         self.opdef = opdef
         self.modeldef = opdef.modeldef
         if isinstance(data, six.string_types):
@@ -1417,8 +1539,18 @@ def _coerce_opt_data_item(data):
     return data
 
 
-class OptimizerDef(object):
+class OptimizerDef(BaseModel):
+    name: Optional[str]
+    opdef: Optional['OpDef']
+    opspec: Optional[str]
+    default: Optional[bool] = False
+    flags: Optional[List[FlagDef]]
+
+    class Config:
+        arbitrary_types_allowed = True
+
     def __init__(self, name, data, opdef):
+        super().__init__()
         data = dict(data)
         self.name = name
         self.opdef = opdef
@@ -1436,8 +1568,13 @@ class OptimizerDef(object):
         return "<guild.guildfile.OptimizerDef '%s'>" % self.name
 
 
-class PublishDef(object):
+class PublishDef(BaseModel):
+    opdef: Optional[OpDef]
+    files: Optional['FileSelectDef']
+    template: Optional[str]
+
     def __init__(self, data, opdef):
+        super().__init__()
         self.opdef = opdef
         if data is None:
             data = {}
@@ -1453,9 +1590,19 @@ def _init_publish(data, opdef):
 # File select def
 ###################################################################
 
+class FileSelectDef(BaseModel):
+    root: Optional[DirectoryPath]
+    specs: Optional[List['FileSelectSpec']]
+    digest: Optional[str]
+    dest: Optional[DirectoryPath]
+    empty_def: Optional[str]
+    disabled: Optional[bool]
 
-class FileSelectDef(object):
+    class Config:
+        arbitrary_types_allowed = True
+
     def __init__(self, data, gf):
+        super().__init__()
         if isinstance(data, dict):
             self._dict_init(data, gf)
         else:
@@ -1488,8 +1635,13 @@ class FileSelectDef(object):
         self.dest = dest
 
 
-class FileSelectSpec(object):
+class FileSelectSpec(BaseModel):
+    patterns: Optional[List[str]]
+    patterns_type: Optional[str]
+    type: Optional[str]
+
     def __init__(self, data, gf):
+        super().__init__()
         if not isinstance(data, dict):
             raise GuildfileError(
                 gf, "invalid file select spec %r: expected a mapping" % data
@@ -1541,12 +1693,17 @@ class FileSelectSpec(object):
 
 class ResourceDef(resourcedef.ResourceDef):
 
-    source_types = resourcedef.ResourceDef.source_types + ["operation"]
+    source_types: List[str] = resourcedef.SourceTypes + ["operation"]
+    modeldef: Optional['ModelDef']
+
+    class Config:
+        arbitrary_types_allowed = True
+
 
     def __init__(self, name, data, modeldef):
         try:
             super(ResourceDef, self).__init__(
-                name, data, _resdef_fullname(name, modeldef)
+                name=name, data=data, fullname=_resdef_fullname(name, modeldef)
             )
         except resourcedef.ResourceDefValueError:
             raise GuildfileError(
@@ -1608,8 +1765,24 @@ def _resdef_name_part_for_source(s):
 ###################################################################
 
 
-class PackageDef(object):
+class PackageDef(BaseModel):
+    author: Optional[str]
+    author_email: Optional[EmailStr]
+    data_files: Optional[List[str]] = []
+    description: Optional[str]
+    guildfile: Optional[str]
+    license: Optional[str]
+    name: Optional[str]
+    packages: Optional[List[str]]
+    python_requires: Optional[str]
+    python_tag: Optional[str]
+    requires: Optional[List[str]]
+    tags: Optional[List[str]]
+    url: Optional[str]
+    version: Optional[str]
+
     def __init__(self, name, data, guildfile):
+        super().__init__()
         self.name = name
         self.guildfile = guildfile
         self.description = (data.get("description") or "").strip()
