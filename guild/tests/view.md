@@ -59,6 +59,7 @@ Available run data:
      'path',
      'scalars',
      'shortId',
+     'sourcecode',
      'started',
      'status',
      'stopped',

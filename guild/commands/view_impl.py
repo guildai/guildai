@@ -131,6 +131,7 @@ class ViewDataImpl(view.ViewData):
             "env": run.get("env", {}),
             "deps": self._format_deps(run.get("deps", {})),
             "files": self._format_files(run.iter_files(), run.path),
+            "sourcecode": _sourcecode_data(run),
         }
 
     @staticmethod
@@ -327,6 +328,27 @@ class ViewDataImpl(view.ViewData):
 
     def compare_data(self):
         return compare_impl.get_data(self._compare_args, format_cells=False)
+
+
+def _sourcecode_data(run):
+    rel_root = _sourcecode_root(run)
+    root = os.path.join(run.dir, rel_root)
+    files = sorted(_iter_sourcecode_files(root))
+    return {
+        "root": rel_root,
+        "files": files,
+    }
+
+
+def _sourcecode_root(run):
+    op = run.get("op")
+    return (op and op.get("sourcecode-root")) or ".guild/sourcecode"
+
+
+def _iter_sourcecode_files(path):
+    for root, _dirs, files in os.walk(path):
+        for name in files:
+            yield os.path.relpath(os.path.join(root, name), path)
 
 
 def main(args):

@@ -14,7 +14,7 @@ Generate some sample runs.
 
 ## `api runs`
 
-    >>> run("guild -H {} api runs -f".format(project.guild_home))  # doctest_: +REPORT_UDIFF
+    >>> run("guild -H {} api runs -f".format(project.guild_home))  # doctest: +REPORT_UDIFF
     [
       {
         "command": "... -um guild.op_main cat -- --file hello.txt",
@@ -60,11 +60,22 @@ Generate some sample runs.
         "path": "...",
         "scalars": [],
         "shortId": "...",
+        "sourcecode": {
+          "files": [
+            "README.md",
+            "cat.py",
+            "guild.yml",
+            "hello.txt",
+            "repeat.py",
+            "say.py"
+          ],
+          "root": ".guild/sourcecode"
+        },
         "started": "...",
         "status": "completed",
         "stopped": "...",
         "tags": "",
-        "time": "0:00:00"
+        "time": "0:00:..."
       }
     ]
     <exit 0>
