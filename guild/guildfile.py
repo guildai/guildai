@@ -25,6 +25,8 @@ import sys
 from typing import (
     Dict, List, Optional, Union
 )
+
+import six
 import yaml
 from pydantic import BaseModel, EmailStr, FilePath, DirectoryPath, SecretStr, Field
 
@@ -455,7 +457,7 @@ def _coerce_op_python_path(data, guildfile):
     return _coerce_str_to_list(data, guildfile, "python-path")
 
 
-def _coerce_output_scalars(data, guildfile):
+def _coerce_output_scalars(data:Optional[Union[bool,str,Dict,List]], guildfile: str) -> Optional[List[Union[str,dict]]]:
     if data is None:
         return None
     elif data is False:
@@ -474,12 +476,9 @@ def _coerce_output_scalars(data, guildfile):
         )
 
 
-def _coerce_publish(data, guildfile):
-    try:
-        files = data["files"]
-    except KeyError:
-        pass
-    else:
+def _coerce_publish(data: Dict, guildfile: str):
+    files = data.get("files")
+    if files:
         data = dict(data)
         data["files"] = _coerce_select_files(files, guildfile)
     return data
@@ -513,21 +512,20 @@ def _coerce_select_files_disabled():
     return False
 
 
-def _coerce_select_files_one_include(data):
+def _coerce_select_files_one_include(data: str) -> List[Dict[str, str]]:
     return [{"exclude": "*"}, {"include": data}]
 
 
-def _coerce_select_files_dict(data, gf):
-    assert isinstance(data, dict)
+def _coerce_select_files_dict(data: Dict, guildfile: str) -> Dict[str, Optional[str]]:
     return {
-        "select": _coerce_select_files(data.get("select"), gf),
+        "select": _coerce_select_files(data.get("select"), guildfile),
         "root": data.get("root"),
         "digest": data.get("digest"),
         "dest": data.get("dest"),
     }
 
 
-def _coerce_select_files_list(data, guildfile):
+def _coerce_select_files_list(data: List[Union[str,Dict[str, str]]], guildfile: str) -> List[Dict[str, str]]:
     assert isinstance(data, list), data
     all_strings = True
     items = []
@@ -546,19 +544,7 @@ def _coerce_select_files_list(data, guildfile):
     return items
 
 
-def _coerce_select_files_item(item, guildfile):
-    if isinstance(item, six.string_types):
-        return {"include": item}
-    elif isinstance(item, dict):
-        return item
-    else:
-        raise GuildfileError(
-            guildfile,
-            "invalid sourcecode item %r: expected a string or mapping" % item,
-        )
-
-
-def _coerce_str_to_list(val, guildfile, name):
+def _coerce_str_to_list(val: Optional[Union[str, List[str]]], guildfile: str, name: str) -> List[str]:
     if isinstance(val, six.string_types):
         return [val]
     elif isinstance(val, list):
@@ -652,7 +638,7 @@ def _split_include_ref(ref, src):
     )
 
 
-def _find_include_data(model_name, op_name, section_name, gf_path):
+def _find_include_data(model_name: str, op_name: str, section_name: str, gf_path: List[Guildfile]) -> Optional[Dict]:
     for guildfile in gf_path:
         for top_level_data in guildfile.data:
             if _item_name(top_level_data, MODEL_TYPES) == model_name:
@@ -683,8 +669,7 @@ def _filter_data(data, attrs):
     return {name: data[name] for name in data if name in attrs}
 
 
-def _apply_data(name, data, resolved):
-    assert isinstance(resolved, dict), resolved
+def _apply_data(name: str, data: Union[Dict, str], resolved: Dict):
     if isinstance(data, dict):
         # Safe to merge data items into resolved
         try:
@@ -700,9 +685,7 @@ def _apply_data(name, data, resolved):
         resolved[name] = data
 
 
-def _apply_missing_vals(target, source):
-    assert isinstance(target, dict), target
-    assert isinstance(source, dict), source
+def _apply_missing_vals(target: Dict, source: Dict):
     for name in source:
         target[name] = source[name]
 
