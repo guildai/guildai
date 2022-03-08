@@ -16,6 +16,7 @@ numpy>=1.16
 pkginfo
 psutil>=5.6.3;python_version>"3.5"
 psutil>=5.6.3,<5.8;python_version<="3.5"
+pydantic[email]
 requests>=2
 scikit-learn>=0.19.1;python_version>="3.5"
 scikit-learn>=0.19.1,<0.21;python_version<"3.5"
