@@ -27,12 +27,12 @@ import logging
 import operator
 import pprint
 from typing import (
-    Dict, List, Optional, Union
+    Dict, List, Optional, Union, Any
 )
 from enum import Enum
 
 import six
-from pydantic import BaseModel, EmailStr, FilePath, DirectoryPath, SecretStr, Field
+from pydantic import BaseModel
 
 from guild import util
 
@@ -65,7 +65,7 @@ class ResourceDef(BaseModel):
     default_unpack: Optional[str]
     private: Optional[bool]
     references: Optional[List[str]]
-    sources: Optional[List[str]]
+    sources: List['ResourceSource'] = []
     source_types: List[str] = SourceTypes
     default_source_type: str = "file"
 
@@ -156,7 +156,7 @@ class ResourceDef(BaseModel):
         return key.replace("_", "-")
 
 
-def _coerce_resdef(data):
+def _coerce_resdef(data) -> Dict[str, Any]:
     if isinstance(data, dict):
         return data
     elif isinstance(data, list):
