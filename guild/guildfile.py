@@ -30,10 +30,8 @@ from typing import (
     Optional,
     Union,
     Any,
-    Collection,
     Tuple,
 )
-from pathlib import Path
 
 import six
 import yaml
@@ -157,7 +155,7 @@ class Guildfile(BaseModel):
 
     def __init__(
         self,
-        data: Dict,
+        data: Union[dict, List[dict]],
         src: Optional[str] = None,
         dir: Optional[str] = None,
         included=None,
@@ -174,6 +172,7 @@ class Guildfile(BaseModel):
         self.package = None
         coerced = _coerce_guildfile_data(data, self)
         self.data = self._expand_data_includes(coerced, included or [])
+
         try:
             self._apply_data(extends_seen or [])
         except (GuildfileError, resourcedef.ResourceFormatError):
@@ -317,7 +316,7 @@ class Guildfile(BaseModel):
 
 
 def _coerce_guildfile_data(
-    data: Optional[Union[Dict, List]], guildfile: Guildfile
+    data: Optional[Union[dict, List]], guildfile: Guildfile
 ) -> List[Dict[str, Any]]:
     if data is None:
         return []
@@ -397,7 +396,7 @@ def _coerce_operations(data, guildfile) -> Dict[str, Any]:
 
 
 def _coerce_operation(
-    name, data: Union[str, Dict], guildfile
+    name, data: Union[str, dict], guildfile
 ) -> Union[str, Dict[str, Any]]:
     if name == "$include":
         return data
@@ -423,7 +422,7 @@ def _coerce_operation_attr(
     bool,
 
     Optional[List[str]], # _coerce_op_python_path
-    Optional[List[Union[str, Dict]]],  # coerce_output_scalars
+    Optional[List[Union[str, dict]]],  # coerce_output_scalars
     Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]], # _coerce_select_files, List is overly broad because of recursion
     Dict[str, Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]]] # _coerce_publish, result encompasses _coerce_select_files call
 ]:
@@ -454,7 +453,7 @@ def _coerce_flags(
 
 
 def coerce_flag_data(
-    name, data: Optional[Union[Dict, str, int, float, bool, List]], guildfile
+    name, data: Optional[Union[dict, str, int, float, bool, List]], guildfile
 ) -> Union[str, Dict[str, Optional[Union[str, int, float, bool, List]]]]:
     if name == "$include":
         return str(data)
@@ -494,7 +493,7 @@ def _coerce_op_python_path(data, guildfile) -> Optional[List[str]]:
 
 
 def _coerce_output_scalars(
-    data: Optional[Union[bool, str, Dict, List]], guildfile: str
+    data: Optional[Union[bool, str, dict, List]], guildfile: str
 ) -> Optional[List[Union[str, dict]]]:
     if data is None:
         return None
@@ -514,7 +513,7 @@ def _coerce_output_scalars(
         )
 
 
-def _coerce_publish(data: Dict, guildfile: str) -> Dict[str, Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]]]:
+def _coerce_publish(data: dict, guildfile: str) -> Dict[str, Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]]]:
     files = data.get("files")
     if files:
         data = dict(data)
@@ -557,7 +556,7 @@ def _coerce_select_files_one_include(data: str) -> List[Dict[str, str]]:
 
 
 def _coerce_select_files_dict(
-    data: Dict, guildfile: str
+    data: dict, guildfile: str
 ) -> Dict[str, Any]:
     return {
         "select": _coerce_select_files(data.get("select"), guildfile),
@@ -700,7 +699,7 @@ def _find_include_data(
     op_name: Optional[str],
     section_name: str,
     guildfile_path: List[Guildfile],
-) -> Optional[Dict]:
+) -> Optional[dict]:
     for guildfile in guildfile_path:
         for top_level_data in guildfile.data:
             if _item_name(top_level_data, MODEL_TYPES) == model_name:
@@ -714,7 +713,7 @@ def _find_include_data(
     return None
 
 
-def _item_name(data: Dict, types: Iterable[Hashable]):
+def _item_name(data: dict, types: Iterable[Hashable]):
     for attr in types:
         try:
             return data[attr]
@@ -723,7 +722,7 @@ def _item_name(data: Dict, types: Iterable[Hashable]):
     return None
 
 
-def _op_data(model_data: Dict, op_name: Hashable):
+def _op_data(model_data: dict, op_name: Hashable):
     return model_data.get("operations", {}).get(op_name)
 
 
@@ -731,7 +730,7 @@ def _filter_data(data, attrs):
     return {name: data[name] for name in data if name in attrs}
 
 
-def _apply_data(name: str, data: Union[Dict, str], resolved: Dict):
+def _apply_data(name: str, data: Union[dict, str], resolved: dict):
     if isinstance(data, dict):
         # Safe to merge data items into resolved
         try:
@@ -747,7 +746,7 @@ def _apply_data(name: str, data: Union[Dict, str], resolved: Dict):
         resolved[name] = data
 
 
-def _apply_missing_vals(target: Dict, source: Dict):
+def _apply_missing_vals(target: dict, source: dict):
     for name in source:
         target[name] = source[name]
 
@@ -1067,8 +1066,8 @@ def _init_sourcecode(data, guildfile) -> 'FileSelectDef':
 
 
 class OpDef(BaseModel):
-    _data: Dict = {}
-    _flag_vals: Dict = {}
+    _data: dict = {}
+    _flag_vals: dict = {}
     _modelref: Optional['ModelDef']
     can_stage_trials: bool = False
     compare: Optional[str]
@@ -1308,11 +1307,11 @@ class FlagDef(BaseModel):
     arg_split: Optional[str]
     arg_switch: Optional[str]
     choices: Optional[List['FlagChoice']]
-    default: Optional[Dict]
+    default: Optional[dict]
     description: Optional[str]
     distribution: Optional[str]
     env_name: Optional[str]
-    extra: Optional[Dict]
+    extra: Optional[dict]
     max: Optional[str]
     min: Optional[str]
     name: Optional[str]
@@ -1763,28 +1762,23 @@ class FileSelectSpec(BaseModel):
 class ResourceDef(resourcedef.ResourceDef):
 
     source_types: List[str] = resourcedef.SourceTypes + ["operation"]
-    modeldef: Optional['ModelDef']
 
-    class Config:
-        arbitrary_types_allowed = True
-
-    def __init__(self, name, data, modeldef):
+    def __init__(self, name, data, guildfile, model_name):
         try:
             super(ResourceDef, self).__init__(
-                name=name, data=data, fullname=_resdef_fullname(name, modeldef)
+                name=name, data=data, fullname=_resdef_fullname(name, model_name)
             )
         except resourcedef.ResourceDefValueError:
             raise GuildfileError(
-                modeldef.guildfile,
+                guildfile,
                 "invalid resource value %r: expected a mapping or a list" % data,
             )
         except resourcedef.ResourceFormatError as e:
-            raise GuildfileError(modeldef.guildfile, e)
+            raise GuildfileError(guildfile, e)
         if not self.name:
             self.name = self.flag_name or _resdef_name_for_sources(self.sources)
-        self.fullname = "%s:%s" % (modeldef.name, self.name)
+        self.fullname = "%s:%s" % (model_name, self.name)
         self.private = self.private
-        self.modeldef = modeldef
 
     def _resource_source_for_data(self, data):
         try:
@@ -1795,7 +1789,7 @@ class ResourceDef(resourcedef.ResourceDef):
                 raise
             return source
 
-    def _source_for_type(self, type, val, data):
+    def _source_for_type(self, type, val, data) -> resourcedef.ResourceSource:
         data = self._coerce_source_data(data)
         if type == "operation":
             return resourcedef.ResourceSource(self, "operation:%s" % val, **data)
@@ -1813,9 +1807,9 @@ def _try_plugins_for_resource_source_data(data, resdef):
     return None
 
 
-def _resdef_fullname(config_name, modeldef):
+def _resdef_fullname(config_name, model_name):
     res_name = config_name if config_name else "<inline>"
-    return "%s:%s" % (modeldef.name, res_name)
+    return "%s:%s" % (model_name, res_name)
 
 
 def _resdef_name_for_sources(sources):
@@ -2002,3 +1996,15 @@ def _maybe_apply_anonymous_model(data):
         if name in data:
             return
     data["model"] = ""
+
+
+# See https://github.com/samuelcolvin/pydantic/issues/1298
+FileSelectDef.update_forward_refs()
+Guildfile.update_forward_refs()
+ModelDef.update_forward_refs()
+OpDef.update_forward_refs()
+OpDependencyDef.update_forward_refs()
+OptimizerDef.update_forward_refs()
+FlagChoice.update_forward_refs()
+FlagDef.update_forward_refs()
+PublishDef.update_forward_refs()
