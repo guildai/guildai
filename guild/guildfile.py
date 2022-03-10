@@ -589,18 +589,24 @@ def _coerce_select_files_list(
 
 
 def _coerce_str_to_list(
-    val: Optional[Union[str, List[str]]], guildfile: str, name: str
+    val: Optional[Union[List[str], str]], guildfile: str, name: str
 ) -> List[str]:
     if isinstance(val, six.string_types):
-        return [val]
+        if val.startswith("[") and val.endswith("]"):
+            val = eval(val)
+        else:
+            val = [val]
     elif isinstance(val, list):
-        return val
+        val = val
     elif val is None:
-        return []
+        val = []
     else:
         raise GuildfileError(
             guildfile, "invalid %s value %r: expected a string or list" % (name, val)
         )
+    # type hint for type checking, or else the eval above is ambiguous
+    assert isinstance(val, list)
+    return val
 
 
 ###################################################################
