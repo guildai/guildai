@@ -255,7 +255,7 @@ def resolve_source(source, dep, resolve_context):
 
 def _dep_resource_locations(dep):
     yield dep.res_location
-    if hasattr(dep.resdef, "modeldef"):
+    if hasattr(dep.resdef, "modeldef") and dep.resdef.modeldef:
         for parent in dep.resdef.modeldef.parents:
             yield parent.dir
 

@@ -167,7 +167,7 @@ def _coerce_resdef(data) -> Dict[str, Any]:
 class ResourceSource(BaseModel):
     resdef: Optional[ResourceDef]
     uri: str = ""
-    _parsed_uri: Optional[ParseResult]
+    _parsed_uri: Optional[ParseResult] = None
     name: str = ""
     sha256: Optional[str]
     unpack: Optional[bool]
@@ -183,6 +183,9 @@ class ResourceSource(BaseModel):
     preserve_path: bool = False
     params: dict = {}
     help: Optional[str]
+
+    class Config:
+        underscore_attrs_are_private = True
 
     def __init__(
         self,

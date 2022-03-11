@@ -1762,23 +1762,25 @@ class FileSelectSpec(BaseModel):
 class ResourceDef(resourcedef.ResourceDef):
 
     source_types: List[str] = resourcedef.SourceTypes + ["operation"]
+    modeldef: Optional['ModelDef']
 
-    def __init__(self, name, data, guildfile, model_name):
+    def __init__(self, name, data, modeldef):
         try:
             super(ResourceDef, self).__init__(
-                name=name, data=data, fullname=_resdef_fullname(name, model_name)
+                name=name, data=data, fullname=_resdef_fullname(name, modeldef.name)
             )
         except resourcedef.ResourceDefValueError:
             raise GuildfileError(
-                guildfile,
+                modeldef.guildfile,
                 "invalid resource value %r: expected a mapping or a list" % data,
             )
         except resourcedef.ResourceFormatError as e:
-            raise GuildfileError(guildfile, e)
+            raise GuildfileError(modeldef.guildfile, e)
         if not self.name:
             self.name = self.flag_name or _resdef_name_for_sources(self.sources)
-        self.fullname = "%s:%s" % (model_name, self.name)
+        self.fullname = "%s:%s" % (modeldef.name, self.name)
         self.private = self.private
+        self.modeldef = modeldef
 
     def _resource_source_for_data(self, data):
         try:
