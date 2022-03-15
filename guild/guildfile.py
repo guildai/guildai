@@ -35,7 +35,7 @@ from typing import (
 
 import six
 import yaml
-from pydantic import BaseModel, EmailStr, SecretStr
+from pydantic import BaseModel, EmailStr, SecretStr, Field
 
 from guild import config
 from guild import opref
@@ -65,6 +65,11 @@ PARAM_P = re.compile(r"({{.*?}})")
 DEFAULT_PKG_VERSION = "0.0.0"
 
 _cache = {}
+
+def underscore_to_dash(string: str) -> str:
+    return string.replace("_", "-")
+
+optional_bool_type = Optional[Union[bool, Literal["yes"], Literal["no"]]]
 
 ###################################################################
 # Exceptions
@@ -140,7 +145,6 @@ def _string_source(src):
 ###################################################################
 # Guildfile
 ###################################################################
-
 
 class Guildfile(BaseModel):
     src: Optional[str]
@@ -757,11 +761,11 @@ def _apply_missing_vals(target: dict, source: dict):
 
 
 class ModelDef(BaseModel):
-    default: bool = False
+    default: optional_bool_type
     description: str = ""
     extra: Dict[str, str] = {}
     guildfile: str = ""
-    name: str = ""
+    name: str = Field("", alias="model")
     op_default_config: Optional[Union[str, Dict[str, Any]]]
     operations: List['OpDef'] = []
     parents: List[str] = []
@@ -773,6 +777,8 @@ class ModelDef(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+        extra = 'forbid'
+        alias_generator = underscore_to_dash
 
     def __init__(self, name, data, guildfile, extends_seen=None):
         super().__init__()
@@ -1069,30 +1075,30 @@ class OpDef(BaseModel):
     _data: dict = {}
     _flag_vals: dict = {}
     _modelref: Optional['ModelDef']
-    can_stage_trials: bool = False
+    can_stage_trials: optional_bool_type
     compare: Optional[str]
-    default: bool = False
-    default_flag_arg_skip: bool = False
+    default: optional_bool_type
+    default_flag_arg_skip: optional_bool_type
     default_max_trials: Optional[int]
-    delete_on_success: bool = False
-    dependencies: List['OpDependencyDef'] = []
+    delete_on_success: optional_bool_type
+    dependencies: List['OpDependencyDef'] = Field([], alias="requires")
     description: Optional[str]
     env: Dict[str, str] = {}
     env_secrets: Optional[Dict[str, SecretStr]]
     exec_: Optional[str]
     flag_encoder: Optional[str]
-    flags: List['FlagDef'] = []
-    flags_dest: Optional[str]
-    flags_import: Optional[str]
-    flags_import_skip: Optional[str]
+    flags: Dict[str, 'FlagDef'] = {}
+    flags_dest: Optional[List[str]]
+    flags_import: Optional[Union[str,List[str]]]
+    flags_import_skip: Optional[List[str]]
     guildfile: Optional[str]
-    handle_keyboard_interrupt: bool = True
+    handle_keyboard_interrupt: optional_bool_type = True
     label: Optional[str]
     main: Optional[str]
     modeldef: Optional['ModelDef']
     name: str = ""
     objective: Optional[str]
-    optimizers: List['OptimizerDef'] = []
+    optimizers: Dict[str, 'OptimizerDef'] = {}
     output_scalars: Optional[str]
     pip_freeze: Optional[str]
     plugins: Optional[Union[List[str], Literal[False]]]
@@ -1100,15 +1106,17 @@ class OpDef(BaseModel):
     python_path: Optional[str]
     python_requires: Optional[str]
     run_attrs: Optional[str]
-    set_trace: Optional[bool]
+    set_trace: optional_bool_type
     sourcecode: Optional['FileSelectDef']
     steps: Optional[List[Dict[str, Any]]]
-    stoppable: Optional[bool]
+    stoppable: optional_bool_type
     tags: List[str] = []
 
     class Config:
         arbitrary_types_allowed = True
         underscore_attrs_are_private = True
+        extra = 'forbid'
+        alias_generator = underscore_to_dash
 
     def __init__(self, name, data, modeldef):
         if not isinstance(data, dict):
@@ -1207,6 +1215,7 @@ class OpDef(BaseModel):
                 yield name, val
 
     # TODO: remove on op2 promote
+    # Not sure where this is being used. It's ugly because it means mutating the guildfile in place, which is not sane
     def set_flag_value(self, name, val):
         self._flag_vals[name] = val
 
@@ -1279,7 +1288,7 @@ def _apply_op_default_config(modeldef, data):
 
 def _init_flags(data, opdef):
     data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_search_path)
-    return [FlagDef(name, data[name], opdef) for name in sorted(data)]
+    return {name: FlagDef(name, data[name], opdef) for name in sorted(data)}
 
 
 def _new_merged_flag(src_flag, opdef):
@@ -1301,13 +1310,13 @@ def _apply_flag_attrs(src_flag, dest_flag):
 
 
 class FlagDef(BaseModel):
-    allow_other: Optional[bool]
+    allow_other: Optional[Union[bool, Literal["yes"], Literal["no"]]]
     arg_name: Optional[str]
     arg_skip: Optional[str]
     arg_split: Optional[str]
     arg_switch: Optional[str]
-    choices: Optional[List['FlagChoice']]
-    default: Optional[dict]
+    choices: List[Union[str, 'FlagChoice']]
+    default: Optional[str]
     description: Optional[str]
     distribution: Optional[str]
     env_name: Optional[str]
@@ -1317,11 +1326,13 @@ class FlagDef(BaseModel):
     name: Optional[str]
     null_label: Optional[str]
     opdef: Optional['OpDef']
-    required: Optional[bool]
+    required: Optional[Union[bool, Literal["yes"], Literal["no"]]]
     type: Optional[str]
 
     class Config:
         arbitrary_types_allowed = True
+        extra = 'forbid'
+        alias_generator = underscore_to_dash
 
     def __init__(self, name, data, opdef):
         super().__init__()
@@ -1359,7 +1370,7 @@ def _init_flag_values(flagdefs):
     return {flag.name: flag.default for flag in flagdefs}
 
 
-def _init_flag_choices(data, flagdef):
+def _init_flag_choices(data, flagdef) -> List[Union[str, 'FlagChoice']]:
     if not data:
         return []
     if not isinstance(data, list):
@@ -1379,6 +1390,7 @@ class FlagChoice(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+        extra = 'forbid'
 
     def __init__(self, data, flagdef):
         super().__init__()
@@ -1551,10 +1563,10 @@ class NoSuchResourceError(ValueError):
 
 def _init_optimizers(data, opdef):
     opts_data = _coerce_opts_data(data, opdef)
-    return [
-        OptimizerDef(name, opt_data, opdef)
+    return {
+        name: OptimizerDef(name, opt_data, opdef)
         for name, opt_data in sorted(opts_data.items())
-    ]
+    }
 
 
 def _coerce_opts_data(data, opdef):
@@ -1603,7 +1615,7 @@ class OptimizerDef(BaseModel):
     name: Optional[str]
     opdef: Optional['OpDef']
     opspec: Optional[str]
-    default: bool = False
+    default: optional_bool_type = False
     flags: Optional[Dict[str, Any]]
 
     class Config:
@@ -1660,8 +1672,8 @@ class FileSelectDef(BaseModel):
     specs: Optional[List['FileSelectSpec']]
     digest: Optional[str]
     dest: Optional[str]
-    empty_def: bool = True
-    disabled: Optional[bool]
+    empty_def: Optional[Union[bool, Literal["yes"], Literal["no"]]] = True
+    disabled: Optional[Union[bool, Literal["yes"], Literal["no"]]]
 
     class Config:
         arbitrary_types_allowed = True
@@ -1832,18 +1844,23 @@ def _resdef_name_part_for_source(s):
 class PackageDef(BaseModel):
     author: Optional[str]
     author_email: Optional[EmailStr]
-    data_files: Optional[List[str]] = []
+    data_files: Optional[List[str]]
     description: Optional[str]
     guildfile: Optional[str]
     license: Optional[str]
-    name: Optional[str]
+    name: Optional[str] = Field("", alias="package")
     packages: Optional[List[str]]
     python_requires: Optional[str]
     python_tag: Optional[str]
     requires: Optional[List[str]]
     tags: Optional[List[str]]
     url: Optional[str]
-    version: Optional[str]
+    # These are coerced to strings, but we are lenient in the type here to allow the generated schema to not require quotes around versions in YAML.
+    version: Optional[Union[str, int, float]]
+
+    class Config:
+        extra = 'forbid'
+        alias_generator = underscore_to_dash
 
     def __init__(self, name, data, guildfile):
         super().__init__()
