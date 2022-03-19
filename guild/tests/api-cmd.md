@@ -20,6 +20,7 @@ Generate some sample runs.
         "command": "... -um guild.op_main cat -- --file hello.txt",
         "comments": [],
         "deps": [],
+        "dir": "...",
         "env": {
           ...
         },
@@ -57,7 +58,6 @@ Generate some sample runs.
         "opName": "hello-file",
         "operation": "hello-file",
         "otherAttrs": {},
-        "path": "...",
         "scalars": [],
         "shortId": "...",
         "sourcecode": {

@@ -112,7 +112,7 @@ class ViewDataImpl(view.ViewData):
         return {
             "id": run.id,
             "shortId": run.short_id,
-            "path": run.path,
+            "dir": run.dir,
             "operation": formatted["operation"],
             "opModel": run.opref.model_name,
             "opName": run.opref.op_name,
