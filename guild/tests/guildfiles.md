@@ -1991,3 +1991,17 @@ string.
 
 NOTE: Using a single flag above to avoid inconsistencies in dict key
 ordering across platforms.
+
+## Validation
+
+### sourcecode
+
+    >>> with LogCapture() as log:
+    ...     _ = guildfile.for_string("""
+    ... op:
+    ...   sourcecode:
+    ...     -exclude: '*.json'
+    ... """)
+
+    >>> log.print_all()
+    WARNING: unexpected sourcecode attribute(s) in <string>: -exclude

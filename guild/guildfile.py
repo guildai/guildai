@@ -569,13 +569,23 @@ def _coerce_select_files_one_include(data: str) -> List[Dict[str, str]]:
     return [{"exclude": "*"}, {"include": data}]
 
 
-def _coerce_select_files_dict(data: dict, guildfile: str) -> Dict[str, Any]:
-    return {
-        "select": _coerce_select_files(data.get("select"), guildfile),
-        "root": data.get("root"),
-        "digest": data.get("digest"),
-        "dest": data.get("dest"),
+def _coerce_select_files_dict(data: dict, gf: str) -> Dict[str, Any]:
+    assert isinstance(data, dict)
+    _data = dict(data)  # used for pop/validation
+    coerced = {
+        "select": _coerce_select_files(_data.pop("select", None), gf),
+        "root": _data.pop("root", None),
+        "digest": _data.pop("digest", None),
+        "dest": _data.pop("dest", None),
     }
+    if _data:
+        gf_path = os.path.relpath(gf.src or gf.dir)
+        log.warning(
+            "unexpected sourcecode attribute(s) in %s: %s",
+            gf_path,
+            ", ".join(sorted(_data)),
+        )
+    return coerced
 
 
 def _coerce_select_files_list(
