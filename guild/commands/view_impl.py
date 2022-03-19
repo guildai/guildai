@@ -342,6 +342,7 @@ def _sourcecode_data(run):
 
 def _sourcecode_root(run):
     op = run.get("op")
+    # pylint: disable=consider-using-ternary
     return (op and op.get("sourcecode-root")) or ".guild/sourcecode"
 
 
