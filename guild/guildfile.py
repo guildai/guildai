@@ -1075,6 +1075,12 @@ class OpDef(BaseModel):
     _data: dict = {}
     _flag_vals: dict = {}
     _modelref: Optional['ModelDef']
+    # _flags and _optimizers were originally coded here as lists, which did not match
+    #    the guild.yml file. We represent them internally as dicts so that we match
+    #    the guild.yml file, and then we define properties below to access them as lists
+    #    so that we minimize internal code changes.
+    _flags: Dict[str, 'FlagDef'] = Field({}, alias="flags")
+    _optimizers: Dict[str, 'OptimizerDef'] = Field({}, alias="optimizers")
     can_stage_trials: optional_bool_type
     compare: Optional[str]
     default: optional_bool_type
@@ -1087,7 +1093,6 @@ class OpDef(BaseModel):
     env_secrets: Optional[Dict[str, SecretStr]]
     exec_: Optional[str]
     flag_encoder: Optional[str]
-    flags: Dict[str, 'FlagDef'] = {}
     flags_dest: Optional[List[str]]
     flags_import: Optional[Union[str,List[str]]]
     flags_import_skip: Optional[List[str]]
@@ -1098,7 +1103,6 @@ class OpDef(BaseModel):
     modeldef: Optional['ModelDef']
     name: str = ""
     objective: Optional[str]
-    optimizers: Dict[str, 'OptimizerDef'] = {}
     output_scalars: Optional[str]
     pip_freeze: Optional[str]
     plugins: Optional[Union[List[str], Literal[False]]]
@@ -1138,7 +1142,7 @@ class OpDef(BaseModel):
         self.modeldef = modeldef
         self.guildfile = modeldef.guildfile
         self.default = bool(data.get("default"))
-        self.flags = _init_flags(data, self)
+        self._flags = _init_flags(data, self)
         self.flags_dest = data.get("flags-dest")
         self.flags_import = data.get("flags-import")
         self.flags_import_skip = data.get("flags-import-skip")
@@ -1165,7 +1169,7 @@ class OpDef(BaseModel):
         self.default_max_trials = data.get("default-max-trials")
         self.output_scalars = data.get("output-scalars")
         self.objective = data.get("objective")
-        self.optimizers = _init_optimizers(data, self)
+        self._optimizers = _init_optimizers(data, self)
         self.publish = _init_publish(data.get("publish"), self)
         self.sourcecode = _init_sourcecode(data.get("sourcecode"), self.guildfile)
         self.default_flag_arg_skip = data.get("default-flag-arg-skip") or False
@@ -1184,6 +1188,14 @@ class OpDef(BaseModel):
 
     def as_data(self):
         return self._data
+
+    @property
+    def flags(self):
+        return list(self._flags.values()) if self._flags else []
+
+    @property
+    def optimizers(self):
+        return list(self._optimizers.values()) if self._optimizers else []
 
     @property
     def fullname(self):
@@ -1241,7 +1253,7 @@ class OpDef(BaseModel):
         for self_flag in self.flags:
             if self_flag.name not in merged:
                 merged[self_flag.name] = self_flag
-        self.flags = [merged[name] for name in sorted(merged)]
+        self._flags = {name: merged[name] for name in sorted(merged)}
         self._flag_vals = _init_flag_values(self.flags)
 
     def _mergeable_flagdef(self, name):
@@ -1315,7 +1327,7 @@ class FlagDef(BaseModel):
     arg_skip: Optional[str]
     arg_split: Optional[str]
     arg_switch: Optional[str]
-    choices: List[Union[str, 'FlagChoice']]
+    choices: List['FlagChoice'] = []
     default: Optional[str]
     description: Optional[str]
     distribution: Optional[str]
@@ -1370,7 +1382,7 @@ def _init_flag_values(flagdefs):
     return {flag.name: flag.default for flag in flagdefs}
 
 
-def _init_flag_choices(data, flagdef) -> List[Union[str, 'FlagChoice']]:
+def _init_flag_choices(data, flagdef) -> List['FlagChoice']:
     if not data:
         return []
     if not isinstance(data, list):
@@ -1408,7 +1420,6 @@ class FlagChoice(BaseModel):
 
     def __repr__(self):
         return "<guild.guildfile.FlagChoice %r>" % self.value
-
 
 def _init_op_main(data):
     return data.get("main") or _maybe_nbexec_main(data)
