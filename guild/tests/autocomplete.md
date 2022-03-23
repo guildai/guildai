@@ -478,7 +478,7 @@ Default:
     >>> cmd_ac(operations.operations, "filters", [])
     echo
     fail
-    flags
+    flags...
     noisy
     noisy-flubber
     opt-test-1

@@ -695,7 +695,10 @@ class StderrCapture(object):
     def write(self, b):
         self._captured.append(b)
         if self._autoprint:
-            sys.stdout.write(b.decode("utf-8"))
+            if hasattr(b, "decode"):
+                sys.stdout.write(b.decode("utf-8"))
+            else:
+                sys.stdout.write(b)
             sys.stdout.flush()
 
     def flush(self):
@@ -703,7 +706,10 @@ class StderrCapture(object):
 
     def print(self):
         for part in self._captured:
-            sys.stdout.write(part.decode("utf-8"))
+            if hasattr(part, "decode"):
+                sys.stdout.write(part.decode("utf-8"))
+            else:
+                sys.stdout.write(part)
         sys.stdout.flush()
 
 

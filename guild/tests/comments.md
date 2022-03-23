@@ -184,7 +184,7 @@ A user can include a host in the form `USER@HOST`.
       maude@place ...-...-... ...:...:...
     <BLANKLINE>
         comment with user
-    <BLANKLINE>
+    ???
     <exit 0>
 
 ## Comments run attribute
