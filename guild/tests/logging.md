@@ -26,7 +26,7 @@ and our logging function:
 
 ## Initializing logging
 
-We use the `init_loggin` function to initialize the logging
+We use the `init_logging` function to initialize the logging
 facility. First, let's save the current settings so we can restore
 them at the end of our tests.
 
@@ -108,4 +108,4 @@ Here we'll define the WARN and ERROR formats:
 
 We need to restore logging to its defaults:
 
-    >>> guild.log.init_logging(**original_log_settings)
+    >>> guild.log.init_logging(**original_log_settings)  # doctest: -PYTEST_ONLY

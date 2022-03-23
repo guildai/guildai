@@ -22,7 +22,7 @@ Use an isolated Guild home.
 Start a batch of two runs in the background.
 
     >>> run("guild run sleep.py seconds=[99,99] --background --yes")
-    + started in background as ... (pidfile ...)
+    ???+ started in background as ... (pidfile ...)
     <exit 0>
 
 Wait for the batch to stage and start a run.

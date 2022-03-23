@@ -4,6 +4,7 @@ from subprocess import check_output
 import re
 import platform
 
+import pytest
 from textwrap import dedent
 from sybil import Sybil, Example
 from sybil.parsers.codeblock import CodeBlockParser
@@ -12,14 +13,16 @@ from sybil.parsers.doctest import DocTestParser, DocTest
 from guild import _test as gt
 
 THIS_DIR = os.path.dirname(__file__)
+os.environ["PYTEST_ONLY"] = "true"
 
 def sybil_setup(namespace):
     for k, v in gt.test_globals().items():
         namespace[k] = v
     namespace["NORMALIZE_PATHS"] = gt.NORMALIZE_PATHS
-    
+    namespace["PYTEST_ONLY"] = gt.PYTEST_ONLY
 
-class ResetDocTestParser(DocTestParser):
+
+class GuildDocTestParser(DocTestParser):
     def __init__(self, optionflags=0):
         super().__init__(optionflags)
         self.runner = gt.TestRunner(optionflags=optionflags)
@@ -34,12 +37,13 @@ class ResetDocTestParser(DocTestParser):
 
         output = []
         with gt.StderrCapture(autoprint=False):
-            self.runner.run(
-                DocTest([example], namespace, name=None,
-                        filename=None, lineno=example.lineno, docstring=None),
-                clear_globs=False,
-                out=output.append,
-                )
+            with gt.SysPath(prepend=[os.path.join(gt.tests_dir(), "external")]):
+                self.runner.run(
+                    DocTest([example], namespace, name=None,
+                            filename=None, lineno=example.lineno, docstring=None),
+                    clear_globs=False,
+                    out=output.append,
+                    )
         return ''.join(output)
 
 
@@ -59,6 +63,7 @@ optionflags = (gt._report_first_flag()
             | gt.STRIP_ANSI_FMT
             | gt.PY3
             | gt.ANNOTATIONS
+            | gt.PYTEST_ONLY
 )
 
 if platform.system() == "Windows":
@@ -70,7 +75,7 @@ pytest_collect_file = Sybil(
     path=".",
     excludes=["*/tests/samples/*", "*/tests/uat/*"],
     parsers=[
-        ResetDocTestParser(optionflags=optionflags),
+        GuildDocTestParser(optionflags=optionflags),
         CodeBlockParser(language="bash", evaluator=evaluate_bash),
     ],
     pattern='*.md',

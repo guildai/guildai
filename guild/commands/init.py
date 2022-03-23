@@ -34,7 +34,7 @@ def _guild_versions(ctx):
 
     # We want to import pip._vendor.requests but pip has an import
     # cycle so we get to it via pip._internal.index.
-    from pip._internal.index import requests
+    import requests
 
     def f():
         resp = requests.get("https://pypi.org/pypi/guildai/json")

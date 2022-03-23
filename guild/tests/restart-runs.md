@@ -158,7 +158,7 @@ Isolate our runs.
 Run the script.
 
     >>> run("guild run hello.py -y")
-    hello-1
+    ???hello-1
     <exit 0>
 
 Source code for the run:
@@ -175,7 +175,7 @@ Confirm the message by running the script a second time (without
 restarting).
 
     >>> run("guild run hello.py -y")
-    hello-2
+    ???hello-2
     <exit 0>
 
 Source code for the second run:

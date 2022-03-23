@@ -172,7 +172,7 @@ def _pip_get_entrypoints_patch(filename):
 
 
 def get_installed():
-    from pip._internal.utils.misc import get_installed_distributions
+    from .external.pip._internal.utils.misc import get_installed_distributions
 
     user_only = not running_under_virtualenv()
     return get_installed_distributions(local_only=False, user_only=user_only)

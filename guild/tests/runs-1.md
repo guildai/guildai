@@ -301,4 +301,4 @@ Runs with exit_status equal to "0" or "1":
     ...    guild.var.run_filter("attr", "exit_status", 1)])
     >>> [(run.short_id, run.get("exit_status"))
     ...  for run in runs(filter=filter, sort=["id"])]
-    [... ('42803252', 0), ...('7d145216', 1)...]
+    ???('42803252', 0), ...('7d145216', 1)...

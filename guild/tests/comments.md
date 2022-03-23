@@ -31,7 +31,7 @@ The `-c, --comments` option is used to inlude comments in the runs
 list.
 
     >>> run("guild -H '%s' runs -c" % project.guild_home)
-    [1:...]  simple (samples/projects/simple)  ...  completed  x=1.0
+    [1:...]  simple (.../projects/simple)  ...  completed  x=1.0
       ...@... ...-...-... ...:...:...
     <BLANKLINE>
         This is a simple op.
@@ -68,7 +68,7 @@ Runs can be selected using comment filters.
     [<guild.run.Run '...'>]
 
     >>> run("guild -H '%s' runs -Fc 'a simple op'" % project.guild_home)
-    [1:...]  simple (samples/projects/simple)  ...  completed  x=1.0
+    [1:...]  simple (.../projects/simple)  ...  completed  x=1.0
     <exit 0>
 
     >>> run("guild -H '%s' runs -Fc 'not a simple op'" % project.guild_home)
@@ -94,26 +94,25 @@ available for the project API via the `batch_comment` keyword arg.
     ...     batch_comment="my cool batch",
     ...     keep_batch=True)
     INFO: [guild] Running trial ...: simple (x=2.0)
-    x: 2.0
-    y: 3.0
-    INFO: [guild] Running trial ...: simple (x=3.0)
+    x: 2.0...
+    y: 3.0...
     x: 3.0
     y: 4.0
 
 Show comments for the lasts three runs (two trials and one batch).
 
     >>> run("guild -H '%s' comment -l 1:3" % project.guild_home)
-    ???  simple (samples/projects/simple)   ...  completed  x=3.0
+    ???  simple (.../projects/simple)   ...  completed  x=3.0
     [1] ...
     <BLANKLINE>
       a trial comment
     <BLANKLINE>
-    ...  simple (samples/projects/simple)   ...  completed  x=2.0
+    ...  simple (.../projects/simple)   ...  completed  x=2.0
     [1] ...
     <BLANKLINE>
       a trial comment
     <BLANKLINE>
-    ...  simple+ (samples/projects/simple)  ...  completed
+    ...  simple+ (.../projects/simple)  ...  completed
     [1] ...
     <BLANKLINE>
       my cool batch
@@ -129,7 +128,7 @@ Add a comment using the `comment` command with the `-a` option.
     <exit 0>
 
     >>> run("guild -H '%s' comment --list" % project.guild_home)
-    ???  simple (samples/projects/simple)  ...  completed  x=3.0
+    ???  simple (.../projects/simple)  ...  completed  x=3.0
     [1] ...
     <BLANKLINE>
       a trial comment
@@ -146,7 +145,7 @@ Delete a comment using the `-d` option with the applicable comment index.
     <exit 0>
 
     >>> run("guild -H '%s' comment --list" % project.guild_home)
-    ???  simple (samples/projects/simple)  ...  completed  x=3.0
+    ???  simple (.../projects/simple)  ...  completed  x=3.0
     [1] ...
     <BLANKLINE>
       a second comment
@@ -159,7 +158,7 @@ Clear comments using the `-c` option.
     <exit 0>
 
     >>> run("guild -H '%s' comment --list" % project.guild_home)
-    ???  simple (samples/projects/simple)  ...  completed  x=3.0
+    ???  simple (.../projects/simple)  ...  completed  x=3.0
       <no comments>
     <exit 0>
 
@@ -176,15 +175,14 @@ A user can include a host in the form `USER@HOST`.
     <exit 0>
 
     >>> run("guild -H '%s' runs --comments -n1" % project.guild_home)
-    [1:...]  simple (samples/projects/simple)   ...  completed  x=3.0
+    [1:...]  simple (.../projects/simple)   ...  completed  x=3.0
       harold@... ...-...-... ...:...:...
     <BLANKLINE>
         comment with user
     <BLANKLINE>
       maude@place ...-...-... ...:...:...
     <BLANKLINE>
-        comment with user
-    ???
+        comment with user...
     <exit 0>
 
 ## Comments run attribute

@@ -21,16 +21,14 @@ A helper to print runs:
 Runs list:
 
     >>> print_runs(runs_list())
-    ???
-    42803252 mnist:evaluate completed
+    ???42803252 mnist:evaluate completed
     7d145216 mnist:train error
     360192fd mnist:train pending
 
 Filtered by 'train' operation:
 
     >>> print_runs(runs_list(ops=["train"]))
-    ???
-    7d145216 mnist:train error
+    ???7d145216 mnist:train error
     360192fd mnist:train pending
 
 Filter by partial op name 'ain' does not match:
@@ -42,13 +40,11 @@ Filter by partial op name 'ain' does not match:
 We can use a wildcard pattern however:
 
     >>> print_runs(runs_list(ops=["*ain"]))
-    ???
-    7d145216 mnist:train error
+    ???7d145216 mnist:train error
     360192fd mnist:train pending
 
     >>> print_runs(runs_list(ops=["tra*"]))
-    ???
-    7d145216 mnist:train error
+    ???7d145216 mnist:train error
     360192fd mnist:train pending
 
 Use a spec containing model:
@@ -71,8 +67,7 @@ Match the wrong model:
 Use a wildcard to match everything:
 
     >>> print_runs(runs_list(ops=["*"]))
-    ???
-    42803252 mnist:evaluate completed
+    ???42803252 mnist:evaluate completed
     7d145216 mnist:train error
     360192fd mnist:train pending
 
@@ -114,19 +109,16 @@ Filtered by 'evaluate' operation:
 Filtered by completed various status:
 
     >>> print_runs(runs_list(completed=True))
-    ???
-    42803252 mnist:evaluate completed
+    ???42803252 mnist:evaluate completed
 
     >>> print_runs(runs_list(error=True))
-    ???
-    7d145216 mnist:train error
+    ???7d145216 mnist:train error
 
     >>> print_runs(runs_list(pending=True))
     360192fd mnist:train pending
 
     >>> print_runs(runs_list(pending=True, error=True))
-    ???
-    7d145216 mnist:train error
+    ???7d145216 mnist:train error
     360192fd mnist:train pending
 
     >>> runs_list(foobar=True)

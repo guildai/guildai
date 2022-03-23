@@ -34,7 +34,7 @@ runs.
     >>> cd(project_dir)
 
     >>> run("guild ops")
-    downstream
+    ???downstream
     upstream
     <exit 0>
 
@@ -75,7 +75,7 @@ Generate dowstream runs using various run ID references, each of which
 is a YAML encoded number.
 
     >>> run("guild run downstream upstream=1 -y")
-    Resolving upstream dependency
+    ???Resolving upstream dependency
     Using run 1e123 for upstream resource
     <exit 0>
 
