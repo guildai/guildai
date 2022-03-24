@@ -126,7 +126,7 @@ Verify that 'sourcecode' method does not see these runs.
 
     >>> run("guild run train.py x=[-1.0:1.0] -o gp -Fo prev-trials=sourcecode "
     ...     "-Fo random-starts=0 -m 1 -l delme -bl delme -y")
-    INFO: [guild] Random start for optimization (missing previous trials)
+    ???INFO: [guild] Random start for optimization (missing previous trials)
     ...
     <exit 0>
 

@@ -13,7 +13,7 @@ Isolate runs:
 Generate some runs.
 
     >>> run("guild run echo2.py f=1.0 --run-id=1 -y")
-    i: 3
+    ???i: 3
     f: 1.000000
     b: True
     s: hello

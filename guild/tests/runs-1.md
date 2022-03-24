@@ -228,15 +228,15 @@ the file system). We can can sort by various run attributes using the
 `sort` argument. Here we order by id in reverse order:
 
     >>> [run.id for run in runs(sort=["-id"])]
-    ['7d145216ae874020b735f001a7bfd27d',
-     '42803252919c495cbd65f292f1f156a0',
+    [...'7d145216ae874020b735f001a7bfd27d',...
+     '42803252919c495cbd65f292f1f156a0',...
      '360192fdf9b74f2fad5f514e9f2fdadb']
 
 Sort by operation, then date:
 
     >>> [(run.short_id, str(run.opref), run["started"])
     ...  for run in runs(sort=["opref", "started"])]
-    [('42803252', "test:'' '' mnist evaluate", 1506790419000000),
+    [...('42803252', "test:'' '' mnist evaluate", 1506790419000000),
      ('360192fd', "test:'' '' mnist train", 1506790385000000),
      ('7d145216', "test:'' '' mnist train", 1506790401000000)]
 
@@ -244,7 +244,7 @@ Sort by date, latest first:
 
     >>> [(run.short_id, run["started"])
     ...  for run in runs(sort=["-started"])]
-    [('42803252', 1506790419000000),
+    [...('42803252', 1506790419000000),
      ('7d145216', 1506790401000000),
      ('360192fd', 1506790385000000)]
 
@@ -260,7 +260,7 @@ successfully to completion):
 
     >>> [(run.short_id, run["exit_status"])
     ...  for run in runs(filter=lambda r: r.get("exit_status") == 0)]
-    [('42803252', 0)]
+    [('42803252', 0)...]
 
 `guild.var` provides a helper function that returns various named
 filters:
@@ -275,14 +275,14 @@ Here is the same filter as above, but using `run_filter`:
 
     >>> filter = guild.var.run_filter("attr", "exit_status", 0)
     >>> [(run.short_id, run["exit_status"]) for run in runs(filter=filter)]
-    [('42803252', 0)]
+    [('42803252', 0)...]
 
 Here's a list of runs with an exit_status not equals to "0":
 
     >>> filter = guild.var.run_filter("!attr", "exit_status", 0)
     >>> [(run.short_id, run.get("exit_status"))
     ...  for run in runs(filter=filter, sort=["id"])]
-    [('360192fd', None), ('7d145216', 1)]
+    [('360192fd', None), ('7d145216', 1)...]
 
 Runs with op equal to "mnist:evaluate" and exit_status equal to "0"
 (i.e. successful evaluate operations):
@@ -291,14 +291,14 @@ Runs with op equal to "mnist:evaluate" and exit_status equal to "0"
     ...   "all",
     ...   [guild.var.run_filter("attr", "exit_status", 0)])
     >>> [(run.short_id, run.get("exit_status")) for run in runs(filter=filter)]
-    [('42803252', 0)]
+    [('42803252', 0)...]
 
 Runs with exit_status equal to "0" or "1":
 
-    >>> filter = guild.var.run_filter(
+    >>> filter = guild.var.run_filter(   # doctest: +ELLIPSIS
     ...   "any",
     ...   [guild.var.run_filter("attr", "exit_status", 0),
     ...    guild.var.run_filter("attr", "exit_status", 1)])
     >>> [(run.short_id, run.get("exit_status"))
     ...  for run in runs(filter=filter, sort=["id"])]
-    [('42803252', 0), ('7d145216', 1)]
+    ???('42803252', 0), ...('7d145216', 1)...

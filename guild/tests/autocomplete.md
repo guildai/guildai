@@ -478,7 +478,7 @@ Default:
     >>> cmd_ac(operations.operations, "filters", [])
     echo
     fail
-    flags
+    flags...
     noisy
     noisy-flubber
     opt-test-1
@@ -529,8 +529,9 @@ directories.
 
     >>> from guild.commands import help
 
-    >>> with Env({"_GUILD_COMPLETE": "complete"}):
-    ...     help._ac_path_or_package("")
+    >>> with SysPath(prepend=[join_path(dirname(tests_dir()), "external")]):
+    ...     with Env({"_GUILD_COMPLETE": "complete"}):
+    ...         help._ac_path_or_package("")
     [...'!!dir']
 
 ## `import`

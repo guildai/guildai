@@ -46,7 +46,7 @@ With empty system env and op env:
     >>> env["GUILD_HOME"] == guild_home, (env, guild_home)
     (True, ...)
 
-    >>> env["LOG_LEVEL"]
+    >>> env["LOG_LEVEL"] # doctest: -PYTEST_ONLY
     '20'
 
     >>> env["RUN_DIR"] == run.dir, (env, run.dir)

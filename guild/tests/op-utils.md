@@ -463,7 +463,7 @@ Confirm that `path` types are coerced to an absolute path.
 
     >>> split_paths = paths.split(" ")
     >>> split_paths
-    ['.../guild/tests/foo', '.../guild/tests/bar']
+    ['.../foo', '.../bar']
 
     >>> os.path.isabs(split_paths[0]), split_paths
     (True, ...)

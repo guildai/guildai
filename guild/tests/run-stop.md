@@ -17,7 +17,7 @@ Run `test.py` in the background. We use a label to identify the run in
 steps below.
 
     >>> run("guild run test.py -l run-stop-test --background -y")
-    test.py started in background as ... (pidfile ...)
+    ???test.py started in background as ... (pidfile ...)
     <exit 0>
 
 The script prints associated OS pids associated. Wait a moment and

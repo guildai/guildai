@@ -14,7 +14,7 @@ Use an isolated Guild env.
 Verify project operations.
 
     >>> run("guild ops")
-    no-replace-dep-copy
+    ???no-replace-dep-copy
     no-replace-dep-link
     replace-dep-copy
     replace-dep-link

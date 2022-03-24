@@ -41,7 +41,7 @@ The correct behavior is supported in Python 3:
 
     >>> run("guild run breakable_lines.py --break 1 -y",
     ...     timeout=2, guild_home=gh)  # doctest: -PY2
-    Breakpoint 1 at .../.guild/sourcecode/breakable_lines.py:5
+    ???Breakpoint 1 at .../.guild/sourcecode/breakable_lines.py:5
     > .../.guild/sourcecode/breakable_lines.py(5)<module>()
     -> def foo():
     (Pdb)
@@ -83,7 +83,7 @@ their containing module.
 Use `--break-on-error` to start a post mortem session on script error.
 
     >>> run("guild run error.py --break-on-error -y", timeout=2, guild_home=gh)
-    Traceback (most recent call last):
+    ???Traceback (most recent call last):
       File ".../.guild/sourcecode/error.py", line 1, in <module>
         1 / 0
     ZeroDivisionError: ...

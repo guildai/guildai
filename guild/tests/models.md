@@ -127,7 +127,7 @@ guildfile. This value can be unescaped using
     >>> intro_pkg_path = guild.model.unescape_project_name(
     ...                    intro.dist.project_name[11:])
     >>> intro_pkg_path
-    '.../samples/projects/mnist-pkg'
+    '.???/...mnist-pkg'
 
 Guildfile distribution package paths always start with '.':
 
@@ -154,7 +154,7 @@ model name. Paths in these names are always relative to the current
 working directory.
 
     >>> intro.fullname
-    './samples/projects/mnist-pkg/intro'
+    '.???/...mnist-pkg/intro'
 
 Models from installed packages are named with their Guild package
 names (i.e. after namespaces are applied) and do not start with a '.'.

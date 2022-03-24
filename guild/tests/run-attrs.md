@@ -8,7 +8,7 @@ Custom attributes can be defined for an operation using the
 Guild prohibits use of 'core' attributes.
 
     >>> run("guild run op -y")  # doctest: +REPORT_UDIFF
-    WARNING: Invalid run attribute 'cmd' (reserved attribute) - ignoring
+    ???WARNING: Invalid run attribute 'cmd' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'deps' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'env' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'exit_status' (reserved attribute) - ignoring
@@ -42,7 +42,7 @@ Non-core attributes, however, are written.
     marked: no
     label:
     sourcecode_digest: ...
-    vcs_commit:
+    vcs_commit: ...
     run_dir: ...
     command: ...
     exit_status: 0

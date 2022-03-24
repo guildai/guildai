@@ -59,11 +59,10 @@ When we run this notebook, the defaults are used.
 
     >>> project.run("flags.ipynb")
     INFO: [guild] Initializing flags.ipynb for run
-    INFO: [guild] Executing flags.ipynb
-    z: 3
-    c: 1.100000
-    hello
-    INFO: [guild] Saving HTML
+    INFO: [guild] Executing flags.ipynb...
+    z: 3...
+    c: 1.100000...
+    hello...
 
     >>> run = project.list_runs()[0]
     >>> nb_source(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
