@@ -26,8 +26,13 @@ import copy
 import logging
 import operator
 import pprint
+from typing import (
+    Dict, List, Optional, Any
+)
+from urllib.parse import ParseResult
 
 import six
+from pydantic import BaseModel
 
 from guild import util
 
@@ -41,18 +46,34 @@ class ResourceFormatError(ValueError):
 class ResourceDefValueError(ValueError):
     pass
 
-
-class ResourceDef(object):
-
-    source_types = [
+SourceTypes = [
         "config",
         "file",
         "module",
         "url",
-    ]
-    default_source_type = "file"
+]
+
+class ResourceDef(BaseModel):
+    _data: Optional[dict]
+    name: Optional[str]
+    fullname: Optional[str]
+    flag_name: Optional[str]
+    description: Optional[str]
+    target_path: Optional[str]
+    preserve_path: Optional[str]
+    target_type: Optional[str]
+    default_unpack: Optional[str]
+    private: Optional[bool]
+    references: Optional[List[str]]
+    sources: List['ResourceSource'] = []
+    source_types: List[str] = SourceTypes
+    default_source_type: str = "file"
+
+    class Config:
+        underscore_attrs_are_private = True
 
     def __init__(self, name, data, fullname=None):
+        super().__init__()
         self.name = name
         self._data = data = _coerce_resdef(data)
         self.fullname = fullname or name
@@ -135,7 +156,7 @@ class ResourceDef(object):
         return key.replace("_", "-")
 
 
-def _coerce_resdef(data):
+def _coerce_resdef(data) -> Dict[str, Any]:
     if isinstance(data, dict):
         return data
     elif isinstance(data, list):
@@ -143,7 +164,29 @@ def _coerce_resdef(data):
     raise ResourceDefValueError()
 
 
-class ResourceSource(object):
+class ResourceSource(BaseModel):
+    resdef: Optional[ResourceDef]
+    uri: str = ""
+    _parsed_uri: Optional[ParseResult] = None
+    name: str = ""
+    sha256: Optional[str]
+    unpack: Optional[bool]
+    type: Optional[str]
+    select: Optional[List[str]]
+    warn_if_empty: bool = True
+    fail_if_empty: bool = False
+    rename: Optional[List['RenameSpec']]
+    post_process: Optional[str]
+    target_path: Optional[str]
+    target_type: Optional[str]
+    replace_existing: bool = False
+    preserve_path: bool = False
+    params: dict = {}
+    help: Optional[str]
+
+    class Config:
+        underscore_attrs_are_private = True
+
     def __init__(
         self,
         resdef,
@@ -168,9 +211,9 @@ class ResourceSource(object):
         params=None,
         **kw
     ):
+        super().__init__()
         self.resdef = resdef
         self.uri = uri
-        self._parsed_uri = None
         self.name = name or uri
         self.sha256 = sha256
         if unpack is not None:
@@ -187,7 +230,7 @@ class ResourceSource(object):
         self.target_type = target_type
         self.replace_existing = replace_existing
         self.preserve_path = preserve_path
-        self.params = params or {}
+        self.params = params
         self.help = help
         for key in sorted(kw):
             log.warning(
@@ -197,9 +240,11 @@ class ResourceSource(object):
             )
 
     @property
-    def parsed_uri(self):
+    def parsed_uri(self) -> ParseResult:
         if self._parsed_uri is None:
             self._parsed_uri = util.parse_url(self.uri)
+            # type hint that it is not None
+            assert self._parsed_uri
         return self._parsed_uri
 
     @property
@@ -320,3 +365,7 @@ def _coerce_list(val, desc):
         return val
     else:
         raise ResourceFormatError("invalid %s val: %s" % (desc, val))
+
+# See https://github.com/samuelcolvin/pydantic/issues/1298
+ResourceDef.update_forward_refs()
+ResourceSource.update_forward_refs()

@@ -143,6 +143,7 @@
     guild.fail
     guild.file_util
     guild.flag_util
+    guild.generate_schema
     guild.guildfile
     guild.help
     guild.index
