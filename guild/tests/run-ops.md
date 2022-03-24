@@ -51,7 +51,8 @@ specify it as the op spec.
 
 We'll resolve the operation, capturing any warnings:
 
-    >>> with LogCapture() as log:
+    >>> from logging import WARN
+    >>> with LogCapture(log_level=WARN) as log:
     ...     opdef = resolve_model_op("train.py", cwd)
     >>> opdef.opref
     OpRef(pkg_type='script',

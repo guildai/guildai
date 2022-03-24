@@ -22,7 +22,7 @@ Run command to isolate runs.
 No GPU spec:
 
     >>> run("guild run test.py -y")
-    None
+    ???None
     <exit 0>
 
 Explicitly disable GPUs with `--no-gpus`:

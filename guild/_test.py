@@ -70,6 +70,7 @@ PY37 = doctest.register_optionflag("PY37")
 PY38 = doctest.register_optionflag("PY38")
 PY39 = doctest.register_optionflag("PY39")
 ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
+PYTEST_ONLY = doctest.register_optionflag("PYTEST_ONLY")
 
 _ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
@@ -165,10 +166,9 @@ def _parse_doctest_options(encoded_options, filename):
 
 
 def _skip_for_doctest_options(options):
-    skip = _skip_platform_for_doctest_options(options)
-    if skip is True:
-        return skip
-    return _skip_version_for_doctest_options(options)
+    return (_skip_platform_for_doctest_options(options) or
+            _skip_version_for_doctest_options(options) or
+            _skip_for_pytest(options))
 
 
 def _skip_platform_for_doctest_options(options):
@@ -205,6 +205,11 @@ def _skip_version_for_doctest_options(options):
             skip = not opt
     return skip
 
+def _skip_for_pytest(options):
+    skip = None
+    if options.get(PYTEST_ONLY) is not None and os.getenv("PYTEST_ONLY"):
+        skip = not options.get(PYTEST_ONLY)
+    return skip
 
 def _log_skipped_test(name):
     sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
@@ -695,7 +700,10 @@ class StderrCapture(object):
     def write(self, b):
         self._captured.append(b)
         if self._autoprint:
-            sys.stdout.write(b.decode("utf-8"))
+            if hasattr(b, "decode"):
+                sys.stdout.write(b.decode("utf-8"))
+            else:
+                sys.stdout.write(b)
             sys.stdout.flush()
 
     def flush(self):
@@ -703,7 +711,10 @@ class StderrCapture(object):
 
     def print(self):
         for part in self._captured:
-            sys.stdout.write(part.decode("utf-8"))
+            if hasattr(part, "decode"):
+                sys.stdout.write(part.decode("utf-8"))
+            else:
+                sys.stdout.write(part)
         sys.stdout.flush()
 
 

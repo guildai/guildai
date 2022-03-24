@@ -103,7 +103,7 @@ List all files with `--all`.
       .guild/attrs/started
       .guild/attrs/stopped
       .guild/attrs/user
-      .guild/attrs/user_flags
+      .guild/attrs/user_flags...
       .guild/opref
       .guild/output
       .guild/output.index
@@ -144,7 +144,7 @@ If `--path` wants a hidden file, it's included.
       .guild/attrs/started
       .guild/attrs/stopped
       .guild/attrs/user
-      .guild/attrs/user_flags
+      .guild/attrs/user_flags...
       .guild/opref
       .guild/output
       .guild/output.index
@@ -203,7 +203,7 @@ Follow links applies to `--all`.
       .guild/attrs/started
       .guild/attrs/stopped
       .guild/attrs/user
-      .guild/attrs/user_flags
+      .guild/attrs/user_flags...
       .guild/opref
       .guild/output
       .guild/output.index

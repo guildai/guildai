@@ -252,7 +252,8 @@ An example containing multiple line-spanning assignments:
 If source contains a syntax error, it is returned unmodified. Guild
 logs a warning.
 
-    >>> with LogCapture() as logs:
+    >>> from logging import WARN  # +doctest: +PYTEST_ONLY
+    >>> with LogCapture(log_level=WARN) as logs:
     ...     apply_flags("'unterminated string")
     'unterminated string
 
@@ -368,7 +369,8 @@ handles this.
 Note that the lower level function `_replace_flag_assign_vals` does
 not.
 
-    >>> with LogCapture() as logs:
+    >>> from logging import WARN  # +doctest: +PYTEST_ONLY
+    >>> with LogCapture(log_level=WARN) as logs:
     ...     _replace_flag_assign_vals("%cd\n%pwd", _ApplyFlagsStateProxy({}, {})) # doctest: -NORMALIZE_PATHS
     '%cd\n%pwd'
 

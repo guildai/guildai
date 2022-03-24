@@ -6,7 +6,7 @@ Generate a run for HiPlot. We use the `noisy.py` script in the
     >>> cd(sample("projects", "optimizers"))  # doctest: -PY2 -PY35
     >>> gh = mkdtemp()  # doctest: -PY2 -PY35
     >>> run("guild -H %s run noisy.py x=[0.1,0.2] -y" % gh)  # doctest: -PY2 -PY35
-    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=0.1)
+    ???INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=0.1)
     x: 0.100000
     noise: 0.1
     loss: ...

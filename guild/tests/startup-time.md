@@ -28,7 +28,7 @@ Run `guild.main_bootstrap` module with no arguments to test startup time.
     ...     print("<exit %i>" % e.returncode)
     >>> time1 = time.time()
 
-Expected output (Guidl help):
+Expected output (Guild help):
 
     >>> print(out.decode())
     Usage: main_bootstrap.py [OPTIONS] COMMAND [ARGS]...
@@ -88,7 +88,7 @@ Expected output (Guidl help):
 Our run time for the `guild` command:
 
     >>> run_time = time1 - time0
-    >>> run_time <= START_THRESHOLD, (run_time, START_THRESHOLD)
+    >>> run_time <= START_THRESHOLD, (run_time, START_THRESHOLD) # doctest: -PYTEST_ONLY
     (True, ...)
 
 If this test fails, look at the following:

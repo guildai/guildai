@@ -12,7 +12,7 @@ Use an isolated env to test runs.
 Run the operation with label `run-1`.
 
     >>> run("guild run op -l run-1 -y")
-    Deleting interim run ... ('op' is configured for deletion on success)
+    ???Deleting interim run ... ('op' is configured for deletion on success)
     <exit 0>
 
 The run is automatically deleted on success.
