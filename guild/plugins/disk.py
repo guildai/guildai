@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
 import platform
 import re
 import sys
@@ -80,8 +81,7 @@ def _zip_physical_disk_stats(all_last, all_cur):
             assert re.match(r"[A-Z]:\\$", fullname), fullname
             name = fullname[0]
         else:
-            assert fullname.startswith('/dev/'), fullname
-            name = fullname[5:]
+            name = os.path.split(fullname)[1]
         dev_last = all_last.get(name)
         dev_cur = all_cur.get(name)
         if dev_last and dev_cur:
