@@ -348,13 +348,13 @@ def _split_anonymous_function(s):
         except Exception:
             return None, s[1:-1]
         else:
-            if len(l) == 1 and isinstance(l[0], (six.string_types, int)):
+            if len(l) == 1 and isinstance(l[0], (str, int)):
                 return None, s[1:-1]
     return None
 
 
 def is_flag_function(val):
-    if not isinstance(val, six.string_types):
+    if not isinstance(val, str):
         return False
     try:
         _split_flag_function(val)
