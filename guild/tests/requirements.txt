@@ -11,5 +11,6 @@ pandas<1.2
 pytest
 pytest-xdist
 pytest-cov
+sybil
 tensorboardX
 twine
