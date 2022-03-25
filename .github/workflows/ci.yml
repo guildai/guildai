@@ -25,7 +25,7 @@ jobs:
           python -m pip install flake8 pytest
           python -m pip install -r requirements.txt
           python -m pip install -r guild/tests/requirements.txt
-          python -m pip install .
+          python -m pip install -e .
       - name: Test with pytest
         run: |
           pytest --cov guild
