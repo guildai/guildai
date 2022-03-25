@@ -71,6 +71,7 @@ PY38 = doctest.register_optionflag("PY38")
 PY39 = doctest.register_optionflag("PY39")
 ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
 PYTEST_ONLY = doctest.register_optionflag("PYTEST_ONLY")
+NON_INTERACTIVE_CI = doctest.register_optionflag("NON_INTERACTIVE_CI")
 
 _ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
@@ -168,7 +169,9 @@ def _parse_doctest_options(encoded_options, filename):
 def _skip_for_doctest_options(options):
     return (_skip_platform_for_doctest_options(options) or
             _skip_version_for_doctest_options(options) or
-            _skip_for_pytest(options))
+            _skip_for_pytest(options) or
+            _skip_for_non_interactive_ci(options)
+            )
 
 
 def _skip_platform_for_doctest_options(options):
@@ -209,6 +212,13 @@ def _skip_for_pytest(options):
     skip = None
     if options.get(PYTEST_ONLY) is not None and os.getenv("PYTEST_ONLY"):
         skip = not options.get(PYTEST_ONLY)
+    return skip
+
+def _skip_for_non_interactive_ci(options):
+    """CI runs without interactive prompts can't show correct pdb prompts, so we skip those tests"""
+    skip = None
+    if options.get(NON_INTERACTIVE_CI) is not None and os.getenv("NON_INTERACTIVE_CI"):
+        skip = not options.get(NON_INTERACTIVE_CI)
     return skip
 
 def _log_skipped_test(name):

@@ -412,7 +412,7 @@ To illustrate how Guild handles invalid extensions, we create a new project.
     ... """)
 
     >>> run("guild ops", cwd=tmp)
-    WARNING: config type for params.badext not supported
+    WARNING: config type for params.badext not supported...
     invalid-config
     <exit 0>
 

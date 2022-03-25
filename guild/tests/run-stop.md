@@ -30,13 +30,13 @@ read these from the run output.
 
 Get the list of pids from the output.
 
-    >>> pids = [int(s) for s in out.strip().split("\n")]
+    >>> pids = [int(s) for s in out.strip().split("\n")] # doctest: -NON_INTERACTIVE_CI
 
 Verify that the pids are alive.
 
     >>> import psutil
 
-    >>> [(psutil.pid_exists(pid), pid) for pid in pids]
+    >>> [(psutil.pid_exists(pid), pid) for pid in pids]  # doctest: -NON_INTERACTIVE_CI
     [(True, ...), (True, ...), (True, ...), (True, ...)]
 
 Stop the run.
@@ -50,5 +50,5 @@ longer running.
 
     >>> sleep(1)
 
-    >>> [(psutil.pid_exists(pid), pid) for pid in pids]
+    >>> [(psutil.pid_exists(pid), pid) for pid in pids] # doctest: -NON_INTERACTIVE_CI
     [(False, ...), (False, ...), (False, ...), (False, ...)]

@@ -173,7 +173,7 @@ We use the `package` sample to illustrate.
 
     >>> with Env({"CAPTURE_OUTPUT": "1"}):
     ...     gapi.package(cwd=sample("projects/package"))
-    running bdist_wheel
+    ???running bdist_wheel
     running build
     running build_py
     ...

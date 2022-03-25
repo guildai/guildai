@@ -5,6 +5,9 @@ name: Run tests for CI
 
 on: [push, pull_request]
 
+env:
+  NON_INTERACTIVE_CI: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
