@@ -11,8 +11,9 @@
 
 Helper function to compile and print patterns from config:
 
+    >>> import logging
     >>> def compiled(config):
-    ...     with LogCapture() as logs:
+    ...     with LogCapture(log_level=logging.INFO) as logs:
     ...         out = summary.OutputScalars(config, None)
     ...     logs.print_all()
     ...     out.print_patterns()
