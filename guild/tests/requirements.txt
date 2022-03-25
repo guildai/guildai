@@ -8,5 +8,8 @@ jupyter
 jupyter_contrib_nbextensions
 matplotlib
 pandas<1.2
+pytest
+pytest-xdist
+pytest-cov
 tensorboardX
 twine

@@ -36,6 +36,9 @@ Helpers:
 
 Stage Python op:
 
+    >>> import logging # doctest: +PYTEST_ONLY
+    >>> logging.basicConfig() # doctest: +PYTEST_ONLY
+    >>> logging.getLogger().setLevel(logging.INFO) # doctest: +PYTEST_ONLY
     >>> cwd = mkdtemp()
     >>> python_script = path(cwd, "run.py")
     >>> touch(python_script)
@@ -446,8 +449,7 @@ Let's try to stage upstream - the operation fails because other
 resources are resolved during stage.
 
     >>> run(cwd, gh, opspec="upstream", stage=True)
-    Resolving file:src.txt dependency
-    run failed because a dependency was not met: could not resolve
+    ???run failed because a dependency was not met: could not resolve
     'file:src.txt' in file:src.txt resource: cannot find source file 'src.txt'
     <exit 1>
 
@@ -458,9 +460,8 @@ Let's create the required `src.txt` file:
 And stage upstream again.
 
     >>> run(cwd, gh, opspec="upstream", stage=True)
-    Resolving file:src.txt dependency
-    upstream staged as ...
-    To start the operation, use 'guild run --start ...'
+    ???upstream staged as ...
+    ???To start the operation, use 'guild run --start ...'
 
 Let's stage downstream again.
 

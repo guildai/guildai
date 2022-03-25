@@ -239,7 +239,9 @@ def _package_data(pkgdef):
 
 def _pkg_data_files(pkgdef):
     matches = []
-    for pattern in pkgdef.data_files:
+    patterns = pkgdef.data_files
+    patterns.extend(_op_sourcecode_patterns(pkgdef.guildfile))
+    for pattern in patterns:
         files = _match_data_files_pattern(pattern)
         if not files:
             log.warning("Nothing matched data file pattern '%s'", pattern)
@@ -247,6 +249,15 @@ def _pkg_data_files(pkgdef):
             log.debug("files matching '%s': %s", pattern, files)
         matches.extend(files)
     return matches
+
+def _op_sourcecode_patterns(guildfile: guildfile.Guildfile):
+    patterns = []
+    for model in guildfile.models.values():
+        for operation in model.operations:
+            patterns.extend([p for spec in operation.sourcecode.specs for p in spec.patterns])
+            for resource in operation.dependencies:
+                patterns.append(resource.spec)
+    return patterns
 
 
 def _match_data_files_pattern(pattern):

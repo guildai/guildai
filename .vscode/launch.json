@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "guild run",
+            "type": "python",
+            "request": "launch",
+            "module": "guild.main_bootstrap",
+            "args": [
+                "run",
+                "select-patterns-2",
+            ],
+            "cwd": "${workspaceFolder}/examples/sourcecode"
+        },
+        {
+            "name": "guild package",
+            "type": "python",
+            "request": "launch",
+            "module": "guild.main_bootstrap",
+            "args": [
+                "package",
+            ],
+            "cwd": "${workspaceFolder}/examples/sourcecode"
+        }
+    ]
+}
