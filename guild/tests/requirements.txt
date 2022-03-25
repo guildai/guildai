@@ -3,7 +3,7 @@ dask[distributed]
 dvc[s3]
 ipython<8
 hiplot
-jinja2
+jinja2==3.0.3
 jupyter
 jupyter_contrib_nbextensions
 matplotlib
