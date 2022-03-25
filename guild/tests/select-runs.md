@@ -33,13 +33,13 @@ selection below.
     b: True
     s: hello
     loss: 0.000000
-    INFO: [guild] Running trial ...: echo2.py (b=yes, f=2.0, i=3, s=hello)
+    INFO: [guild] Running trial ...: echo2.py (b=yes, f=2.0, i=3, s=hello)...
     i: 3
     f: 2.000000
     b: True
     s: hello
     loss: 1.000000
-    INFO: [guild] Running trial ...: echo2.py (b=yes, f=3.0, i=3, s=hello)
+    INFO: [guild] Running trial ...: echo2.py (b=yes, f=3.0, i=3, s=hello)...
     i: 3
     f: 3.000000
     b: True

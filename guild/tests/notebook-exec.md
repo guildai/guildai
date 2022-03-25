@@ -136,9 +136,8 @@ While we can run the Notebook directly, we cannot affect the behavior.
 
     >>> project.run("add.ipynb")
     INFO: [guild] Initializing add.ipynb for run
-    INFO: [guild] Executing add.ipynb
-    3
-    INFO: [guild] Saving HTML
+    INFO: [guild] Executing add.ipynb...
+    3...
 
     >>> run = project.list_runs()[0]
     >>> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
