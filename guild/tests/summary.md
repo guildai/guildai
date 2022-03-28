@@ -38,13 +38,13 @@ Maps:
     loss: loss: (\S+)
 
     >>> compiled([{"step": "step=(\d+)", "loss": "loss=(\d+\.\d+)"}]) # doctest: -NORMALIZE_PATHS
-    loss: loss=(\d+\.\d+)
+    ???loss: loss=(\d+\.\d+)
     step: step=(\d+)
 
 Two group (key and value):
 
     >>> compiled(["(\S+): ([+-]?\d+\.\d+)"]) # doctest: -NORMALIZE_PATHS
-    None: (\S+): ([+-]?\d+\.\d+)
+    ???None: (\S+): ([+-]?\d+\.\d+)
 
 Named groups:
 
@@ -88,7 +88,7 @@ Typical map config:
     ...  "loss: 1.123 - acc: 0.134",
     ...  "step 2:",
     ...  "loss: 0.132 - acc: 0.456"])
-    acc 0.13400... 1
+    ???acc 0.13400... 1
     loss 1.12300... 1
     acc 0.45600... 2
     loss 0.13... 2
@@ -105,7 +105,7 @@ Alternative map config:
     ... ["Epoch 1: loss=1.0 s_val=2 x=3 mAP=4.123",
     ...  "Epoch 2: loss=2.0 s_val=3 x=4 mAP=5.234",
     ...  "Epoch 3: loss=3.0 s_val=4 x=4 mAP=6.4567890123456"])
-    loss 1.0 1
+    ???loss 1.0 1
     mAP 4.123000... 1
     s_val 2.0 1
     x 3.0 1
@@ -128,7 +128,7 @@ Named groups:
     ... ["Epoch 1: loss=1.0 s_val=2 x=3 mAP=4.123",
     ...  "Epoch 2: loss=2.0 s_val=3 x=4 mAP=5.234",
     ...  "Epoch 3: loss=3.0 s_val=4 x=4 mAP=6.4567890123456"])
-    loss 1.0 1
+    ???loss 1.0 1
     mAP 4.123000... 1
     s_val 2.0 1
     x 3.0 1
@@ -149,7 +149,7 @@ as OR):
     ... ["iter 0 | loss: 0.6",
     ...  "iter 1 | loss: 0.4",
     ...  "Total loss: 1.1"])
-    loss 0.600... 0
+    ???loss 0.600... 0
     loss 0.400... 1
     loss 1.100... 1
     score 1.100... 1
@@ -161,7 +161,7 @@ With correction:
     ... ["iter 0 | loss: 0.6",
     ...  "iter 1 | loss: 0.4",
     ...  "Total loss: 1.1"])
-    loss 0.600... 0
+    ???loss 0.600... 0
     loss 0.400... 1
     score 1.100... 1
 
@@ -172,7 +172,7 @@ Two group patterns:
     ...   "acc: 0.456",
     ...   "val_acc: 1.1e-3",
     ...   "foo: bar"])
-    loss 1.12300... 0
+    ???loss 1.12300... 0
     acc 0.45600... 0
     val_acc 0.001... 0
 
@@ -182,7 +182,7 @@ Special groupdict convention for controlling order of key and value:
     ...  ["1.123 (loss)",
     ...   "0.456 (acc)",
     ...   "0.567 (val_acc)"])
-    loss 1.12300... 0
+    ???loss 1.12300... 0
     acc 0.45600... 0
     val_acc 0.56... 0
 
@@ -190,16 +190,16 @@ Multiple matches per line:
 
     >>> match([{"x": "x=(\d+)"}],
     ...  ["x=1 y=1 - x=2 y=2 - x=3 y=3"])
-    x 3.0 0
+    ???x 3.0 0
 
     >>> match(["(\w+)=(\d+)"],
     ...  ["x=1 y=1 - x=2 y=2 - x=3 y=3"])
-    x 3.0 0
+    ???x 3.0 0
     y 3.0 0
 
     >>> match([r"x=(?P<x2>\d+)", "y=(?P<y2>\d+)"],
     ...  ["x=1 y=1 - x=2 y=2 - x=3 y=3"])
-    x2 3.0 0
+    ???x2 3.0 0
     y2 3.0 0
 
 ## Logging scalars
