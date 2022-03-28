@@ -31,6 +31,8 @@ jobs:
           python -m pip install -e .
       - name: Test with pytest
         run: |
-          pytest --cov guild --cov-report html
+          pytest --cov guild
       - name: upload coverage to Codecov
         uses: codecov/codecov-action@v2
+        with:
+          files: .coverage
