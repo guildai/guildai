@@ -258,8 +258,7 @@ logs a warning.
     'unterminated string
 
     >>> logs.print_all()
-    WARNING: error parsing Python source "'unterminated string": EOL
-    while scanning string literal (<unknown>, line 1)
+    WARNING: error parsing Python source "'unterminated string":...
 
 ### Replace Regular Expression Matches
 
