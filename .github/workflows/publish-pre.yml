@@ -9,8 +9,10 @@
 name: Upload Python Package to TestPyPI
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      # pre-releases only. Releases will have only numbers.
+      - "[0-9]+.[0-9]+.[0-9]+[a-z]+.*"
 
 jobs:
   deploy:
@@ -28,11 +30,17 @@ jobs:
       - name: Build package
         run: |
           python setup.py bdist_wheel
-      - name: Publish package to PyPI
+      - name: Publish package to TestPyPI
         uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
         with:
           user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
+      - name: Add GitHub Release entry
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dist/*
 
   validate:
     runs-on: ${{ matrix.os }}
