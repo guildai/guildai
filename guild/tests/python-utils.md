@@ -334,7 +334,7 @@ function:
     2
     >>> calc.incr(1, 2)
     Traceback (most recent call last):
-    TypeError: incr() takes ...
+    TypeError: ...incr() takes ...
 
 What happens when we add two listeners that both provide results? The
 behavior is as follows:

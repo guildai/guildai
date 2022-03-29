@@ -154,9 +154,8 @@ Run the operation with default values.
 
     >>> project.run("add")
     INFO: [guild] Initializing add.ipynb for run
-    INFO: [guild] Executing add.ipynb
-    30
-    INFO: [guild] Saving HTML
+    INFO: [guild] Executing add.ipynb...
+    30...
 
 The run Notebook reflects the default flag values.
 
@@ -227,9 +226,8 @@ omits input cells from the generates HTML.
 
     >>> project.run("add2")
     INFO: [guild] Initializing add.ipynb for run
-    INFO: [guild] Executing add.ipynb
-    3
-    INFO: [guild] Saving HTML (omitting input cells)
+    INFO: [guild] Executing add.ipynb...
+    3...
 
 ## Regression tests
 
@@ -239,5 +237,4 @@ Fix for comments appearning on the last line of a cell.
 
     >>> project.run("reg_301.ipynb")
     INFO: [guild] Initializing reg_301.ipynb for run
-    INFO: [guild] Executing reg_301.ipynb
-    INFO: [guild] Saving HTML
+    INFO: [guild] Executing reg_301.ipynb...
