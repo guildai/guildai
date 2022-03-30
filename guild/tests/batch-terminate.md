@@ -53,13 +53,13 @@ Show the runs after stopping the batch.
     >>> (out, exit_code)
     (..., 0)
 
-    >>> re.search(r"sleep.py   .*?  terminated  seconds=99", out, re.MULTILINE) is not None, out
+    >>> re.search(r"sleep.py   .*?  (?:terminated|completed)  seconds=99", out, re.MULTILINE) is not None, out
     (True, ...)
 
     >>> re.search(r"sleep.py   .*?  pending     seconds=99", out, re.MULTILINE) is not None, out
     (True, ...)
 
-    >>> re.search(r"sleep.py\+  .*?  terminated", out, re.MULTILINE) is not None, out
+    >>> re.search(r"sleep.py\+  .*?  (?:terminated|completed)", out, re.MULTILINE) is not None, out
     (True, ...)
 
 Show output for the batch.
