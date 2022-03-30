@@ -4,7 +4,7 @@ Tests require additional packages that are not included in the Guild
 distribution or requirements.txt. They are defined in
 requirements-test.txt.
 
-    >>> quiet("pip install -r $GUILD_PKGDIR/guild/tests/requirements.txt", timeout=180)
+    >>> quiet("pip install -r $GUILD_PKGDIR/guild/tests/requirements.txt", timeout=300)
 
 Run Guild check with verbose to show various module versions. We need
 different tests for different versions of Python.
