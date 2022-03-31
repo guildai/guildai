@@ -18,11 +18,7 @@ from __future__ import division
 import os
 import subprocess
 
-<<<<<<< HEAD
-__version__ = "0.7.5"
-=======
-__version__ = "0.8.0.pre2"
->>>>>>> 6e194e82 (bump version to 0.8.0.pre2)
+__version__ = "0.8.0"
 
 __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 
