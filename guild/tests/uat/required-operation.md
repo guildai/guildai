@@ -50,14 +50,14 @@ Show runs:
 
 List files for latest runs:
 
-    >>> run("guild ls -o prepare-data")
+    >>> run("guild ls -Fo prepare-data")
     ???:
       data1.txt
       subdir/
       subdir/data2.txt
     <exit 0>
 
-    >>> run("guild ls -o train -L")
+    >>> run("guild ls -Fo train -L")
     ???:
       checkpoint.h5
       data/
