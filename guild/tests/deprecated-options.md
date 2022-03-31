@@ -13,66 +13,53 @@ Test commands are run in a temporary Guild home location.
 Deprecation warnings:
 
     >>> test("guild ls -o xxx")
-    WARNING: option -o is deprecated and will be removed in version 0.8 - use -Fo instead
-    guild: no matching runs
+    guild: option -o is deprecated and was removed in version 0.8 - use -Fo instead
     <exit 1>
 
     >>> test("guild ls -l xxx")
-    WARNING: option -l is deprecated and will be removed in version 0.8 - use -Fl instead
-    guild: no matching runs
+    guild: option -l is deprecated and was removed in version 0.8 - use -Fl instead
     <exit 1>
 
     >>> test("guild ls -U")
-    WARNING: option -U is deprecated and will be removed in version 0.8 - use '-Fl -' instead
-    guild: no matching runs
+    guild: option -U is deprecated and was removed in version 0.8 - use '-Fl -' instead
     <exit 1>
 
     >>> test("guild ls --unlabeled")
-    WARNING: option --unlabeled is deprecated and will be removed in version 0.8 - use '--label -' instead
-    guild: no matching runs
+    guild: option --unlabeled is deprecated and was removed in version 0.8 - use '--label -' instead
     <exit 1>
 
     >>> test("guild ls -M")
-    WARNING: option -M is deprecated and will be removed in version 0.8 - use -Fm instead
-    guild: no matching runs
+    guild: option -M is deprecated and was removed in version 0.8 - use -Fm instead
     <exit 1>
 
     >>> test("guild ls -N")
-    WARNING: option -N is deprecated and will be removed in version 0.8 - use -Fn instead
-    guild: no matching runs
+    guild: option -N is deprecated and was removed in version 0.8 - use -Fn instead
     <exit 1>
 
     >>> test("guild ls -D xxx")
-    WARNING: option -D is deprecated and will be removed in version 0.8 - use -Fd instead
-    guild: no matching runs
+    guild: option -D is deprecated and was removed in version 0.8 - use -Fd instead
     <exit 1>
 
     >>> test("guild ls -R")
-    WARNING: option -R is deprecated and will be removed in version 0.8 - use -Sr instead
-    guild: no matching runs
+    guild: option -R is deprecated and was removed in version 0.8 - use -Sr instead
     <exit 1>
 
     >>> test("guild ls -C")
-    WARNING: option -C is deprecated and will be removed in version 0.8 - use -Sc instead
-    guild: no matching runs
+    guild: option -C is deprecated and was removed in version 0.8 - use -Sc instead
     <exit 1>
 
     >>> test("guild ls -E")
-    WARNING: option -E is deprecated and will be removed in version 0.8 - use -Se instead
-    guild: no matching runs
+    guild: option -E is deprecated and was removed in version 0.8 - use -Se instead
     <exit 1>
 
     >>> test("guild ls -T")
-    WARNING: option -T is deprecated and will be removed in version 0.8 - use -St instead
-    guild: no matching runs
+    guild: option -T is deprecated and was removed in version 0.8 - use -St instead
     <exit 1>
 
     >>> test("guild ls -P")
-    WARNING: option -P is deprecated and will be removed in version 0.8 - use -Sp instead
-    guild: no matching runs
+    guild: option -P is deprecated and was removed in version 0.8 - use -Sp instead
     <exit 1>
 
     >>> test("guild ls -G")
-    WARNING: option -G is deprecated and will be removed in version 0.8 - use -Sg instead
-    guild: no matching runs
+    guild: option -G is deprecated and was removed in version 0.8 - use -Sg instead
     <exit 1>
