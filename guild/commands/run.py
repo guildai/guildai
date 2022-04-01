@@ -653,4 +653,5 @@ def run(args):
     """
     from . import run_impl
 
-    run_impl.main(args)
+    with click_util.CmdContext("guild.run", args):
+        run_impl.main(args)

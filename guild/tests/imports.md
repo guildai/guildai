@@ -35,6 +35,7 @@
     guild.cli
     guild.click_util
     guild.cmd_impl_support
+    guild.cmd_notify
     guild.commands.__init__
     guild.commands.api
     guild.commands.api_ops

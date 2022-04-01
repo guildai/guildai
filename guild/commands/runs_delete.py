@@ -81,4 +81,5 @@ def delete_runs(ctx, args):
 
     from . import runs_impl
 
-    runs_impl.delete_runs(args, ctx)
+    with click_util.CmdContext("guild.runs.delete", args, ctx):
+        runs_impl.delete_runs(args, ctx)

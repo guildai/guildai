@@ -208,6 +208,28 @@ class JSONHelpFormatter(object):
         return json.dumps(self._val)
 
 
+class CmdContext:
+
+    _handlers = []
+
+    def __init__(self, id, args, ctx=None):
+        self.id = id
+        self.args = args
+        self.ctx = ctx
+
+    def __enter__(self):
+        for on_enter, _on_exit in self._handlers:
+            on_enter(self)
+
+    def __exit__(self, *exc):
+        for _on_enter, on_exit in self._handlers:
+            on_exit(self, *exc)
+
+
+def add_cmd_context_handler(on_enter, on_exit):
+    CmdContext._handlers.append((on_enter, on_exit))
+
+
 def use_args(fn0):
     def fn(*args, **kw):
         return fn0(*(args + (Args(**kw),)))
