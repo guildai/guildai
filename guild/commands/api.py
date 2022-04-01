@@ -19,6 +19,7 @@ import click
 
 from guild import click_util
 
+from .api_ops import ops
 from .api_runs import runs
 
 
@@ -27,3 +28,4 @@ def api(**_kw):
     """CLI based API calls."""
 
 api.add_command(runs)
+api.add_command(ops)
