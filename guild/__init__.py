@@ -18,8 +18,6 @@ from __future__ import division
 import os
 import subprocess
 
-__version__ = "0.8.1rc1"
-
 __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 
 __git_commit__ = None
@@ -84,3 +82,4 @@ def test_version(req):
 
 
 _try_init_git_attrs()
+from ._version import __version__

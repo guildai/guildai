@@ -24,8 +24,6 @@ from pkg_resources import PathMetadata
 from setuptools import find_packages, setup
 from setuptools.command.build_py import build_py
 
-import guild
-
 from guild import log
 
 log.init_logging()
@@ -36,6 +34,23 @@ if platform.system() == "Windows":
     NPM_CMD = "npm.cmd"
 else:
     NPM_CMD = "npm"
+
+
+def get_version_and_cmdclass(pkg_path):
+    """Load version.py module without importing the whole package.
+
+    Template code from miniver
+    """
+    import os
+    from importlib.util import module_from_spec, spec_from_file_location
+
+    spec = spec_from_file_location("version", os.path.join(pkg_path, "_version.py"))
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.__version__, module.get_cmdclass(pkg_path)
+
+
+version, cmdclass = get_version_and_cmdclass(r"guild")
 
 
 def guild_dist_info():
@@ -70,6 +85,7 @@ class Build(build_py):
     """
 
     def run(self):
+        self.run_command("build_version")
         if os.getenv("BUILD_GUILD_VIEW") == "1":
             _check_npm()
             _build_view_dist()
@@ -91,10 +107,14 @@ def _build_view_dist():
 
 setup(
     # Setup class config
-    cmdclass={"build_py": Build},
+    cmdclass={
+        "sdist": cmdclass["sdist"],
+        "build_version": cmdclass["build_py"],
+        "build_py": Build,
+    },
     # Attributes from dist-info
     name="guildai",
-    version=guild.__version__,
+    version=version,
     description=PKG_INFO.get("Summary"),
     install_requires=PKG_INFO.get_all("Requires-Dist"),
     long_description=PKG_INFO.get_payload(),
