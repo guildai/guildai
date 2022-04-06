@@ -162,10 +162,12 @@ def default_flag_attrs_for_argparse_action(
         attrs["type"] = _flag_type_for_action(
             action.type, flag_name, ignore_unknown_type
         )
+    # store_true means that the default value is False. That's what arg-switch
+    #    represents - the default value
     if isinstance(action, argparse._StoreTrueAction):
-        attrs["arg-switch"] = True
-    elif isinstance(action, argparse._StoreFalseAction):
         attrs["arg-switch"] = False
+    elif isinstance(action, argparse._StoreFalseAction):
+        attrs["arg-switch"] = True
     if _multi_arg(action):
         attrs["arg-split"] = True
         _maybe_encode_splittable_default(attrs)

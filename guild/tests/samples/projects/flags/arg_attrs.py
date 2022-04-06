@@ -61,9 +61,9 @@ print(p.parse_args())
     if action.type:
         attrs["type"] = _flag_type_for_action(action.type, flag_name)
     if isinstance(action, argparse._StoreTrueAction):
-        attrs["arg-switch"] = True
-    elif isinstance(action, argparse._StoreFalseAction):
         attrs["arg-switch"] = False
+    elif isinstance(action, argparse._StoreFalseAction):
+        attrs["arg-switch"] = True
     if _multi_arg(action):
         attrs["arg-split"] = True
 
