@@ -109,7 +109,9 @@ def _args_for_flag(name, val, cmd_flag, flag_dest, cmd_args):
         )
         return []
     elif cmd_flag.arg_switch is not None:
-        if cmd_flag.arg_switch == val:
+        # does the specified value match the default value? If not, pass the
+        #    flag to toggle the state to opposite of the default
+        if cmd_flag.arg_switch != val:
             return ["--%s" % arg_name]
         else:
             return []
