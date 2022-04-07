@@ -268,6 +268,7 @@ def _apply_restart_run_state(S):
 def _state_init_user_op(S):
     """Initialize state for user op."""
     _user_op_init_run(S)
+    S.args.force_sourcecode = S.args.force_sourcecode or (S.restart_run is not None and S.restart_run.opref.pkg_type == "script")
     _op_init_force_sourcecode(S.args.force_sourcecode, S.user_op)
     _op_init_opdef(S.args.opspec, S.user_op, S.args)
     _op_init_user_flags(S.args.flags, S.user_op)
@@ -797,9 +798,10 @@ def _op_init_config_for_run(run, label_template, tags, comment, keep_run, op):
     config = run.get("op")
     if not config:
         _missing_op_config_for_restart_error(run)
-    if not config.get("op-cmd"):
-        _invalid_op_config_for_restart_error(run)
-    _apply_op_config_data(config, op)
+    if not op._op_cmd:
+        if not config.get("op-cmd"):
+            _invalid_op_config_for_restart_error(run)
+        _apply_op_config_data(config, op)
     if label_template is not None:
         op._label_template = label_template
     if tags:
