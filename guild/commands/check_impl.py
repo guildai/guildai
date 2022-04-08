@@ -361,7 +361,7 @@ def _cuda_version_nvcc():
     try:
         out = subprocess.check_output([nvcc, "--version"])
     except subprocess.CalledProcessError as e:
-        return _warn("ERROR: %s" % e.output.strip())
+        return _warn("ERROR: %s" % e.output.strip().decode("utf-8"))
     else:
         out = out.decode("utf-8")
         m = re.search(r"V([0-9\.]+)", out, re.MULTILINE)
@@ -379,7 +379,7 @@ def _cuda_version_nvidia_smi():
     try:
         out = subprocess.check_output([nvidia_smi, "--query"])
     except subprocess.CalledProcessError as e:
-        return _warn("ERROR: %s" % e.output.strip())
+        return _warn("ERROR: %s" % e.output.strip().decode("utf-8"))
     else:
         out = out.decode("utf-8")
         m = re.search(r"CUDA Version\s+: ([0-9\.]+)", out, re.MULTILINE)
@@ -401,7 +401,7 @@ def _nvidia_smi_version():
     try:
         out = subprocess.check_output(cmd)
     except subprocess.CalledProcessError as e:
-        return _warn("ERROR: %s" % e.output.strip())
+        return _warn("ERROR: %s" % e.output.strip().decode("utf-8"))
     else:
         out = out.decode("utf-8")
         m = re.search(r"NVIDIA-SMI ([0-9\.]+)", out)
