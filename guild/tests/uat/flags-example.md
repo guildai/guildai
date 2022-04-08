@@ -24,11 +24,19 @@
 
 ## Click Args
 
-    >>> run("guild run args-click-default -y")
-    Flags: 1 1.1 True hello red
+    >>> run("guild run args_click.py -y")
+    Flags: 1 1.1 False hello red
     <exit 0>
 
-    >>> run("guild run args-click-default i=9 f=9.9 s=hola c=green -y")
+    >>> run("guild run args-click-default -y")
+    Flags: 1 1.1 False hello red
+    <exit 0>
+
+    >>> run("guild run args-click-default i=9 f=9.9 s=hola c=green b=yes -y")
+    Flags: 9 9.9 True hola green
+    <exit 0>
+
+    >>> run("guild run args_click.py i=9 f=9.9 s=hola c=green b=yes -y")
     Flags: 9 9.9 True hola green
     <exit 0>
 
