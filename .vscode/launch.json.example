@@ -1,7 +1,9 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    // Example run configurations for Guild commands. These are useful when setting
+    //   breakpoints in Guild's code, i.e. when developing or debugging Guild itself,
+    //   not for debugging your scripts that you are running with guild. Rename this file
+    //   to launch.json for VS Code to use it. Adapt the arguments and cwd below to match
+    //   your desired command.
     "version": "0.2.0",
     "configurations": [
         {
@@ -11,9 +13,10 @@
             "module": "guild.main_bootstrap",
             "args": [
                 "run",
-                "select-patterns-2",
+                "say-with-label",
+                "msg=[hi 1,hi 2]"
             ],
-            "cwd": "${workspaceFolder}/examples/sourcecode"
+            "cwd": "${workspaceFolder}/guild/tests/samples/projects/batch"
         },
         {
             "name": "guild package",
