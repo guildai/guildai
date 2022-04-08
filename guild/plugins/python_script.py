@@ -319,6 +319,11 @@ def _script_flags_dest(script):
             "%s imports argparse - assuming args", (_script_desc, script)
         )
         return "args"
+    elif _imports_click(script):
+        flags_import_util.log_flags_info(
+            "%s imports click - assuming args:click", (_script_desc, script)
+        )
+        return "args:click"
     else:
         flags_import_util.log_flags_info(
             "%s does not import argparse - assuming globals", (_script_desc, script)
@@ -328,6 +333,10 @@ def _script_flags_dest(script):
 
 def _imports_argparse(script):
     return "argparse" in script.imports
+
+
+def _imports_click(script):
+    return "click" in script.imports
 
 
 def _argparse_flags_data(script, base_args, log):

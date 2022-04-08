@@ -154,7 +154,7 @@ def _maybe_apply_flag(param, flags):
     if param.required:
         attrs["required"] = True
     if param.is_flag:
-        attrs["arg-switch"] = param.default
+        attrs["arg-switch"] = not param.default
     log.debug("added flag %r: %r", flag_name, attrs)
 
 
