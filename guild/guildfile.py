@@ -26,12 +26,12 @@ from typing import (
     Hashable,
     Iterable,
     List,
-    Literal,
     Optional,
     Union,
     Any,
     Tuple,
 )
+from typing_extensions import Literal
 
 import six
 import yaml
