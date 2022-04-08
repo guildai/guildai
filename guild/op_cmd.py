@@ -108,22 +108,19 @@ def _args_for_flag(name, val, cmd_flag, flag_dest, cmd_args):
             arg_name,
         )
         return []
-    elif cmd_flag.arg_switch is not None:
+    if cmd_flag.arg_switch is not None:
         if cmd_flag.arg_switch == val:
             return ["--%s" % arg_name]
-        else:
-            return []
-    elif val is not None:
+        return []
+    if val is not None:
         if _splittable(val, cmd_flag):
             encoded = _encode_split_args(val, flag_dest, cmd_flag.arg_split)
             return ["--%s" % arg_name] + encoded if encoded else []
-        else:
-            return [
-                "--%s" % arg_name,
-                _encode_flag_arg(val, flag_dest, cmd_flag.arg_split),
-            ]
-    else:
-        return []
+        return [
+            "--%s" % arg_name,
+            _encode_flag_arg(val, flag_dest, cmd_flag.arg_split),
+        ]
+    return []
 
 
 def _splittable(val, cmd_flag):
