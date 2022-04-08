@@ -66,8 +66,10 @@ DEFAULT_PKG_VERSION = "0.0.0"
 
 _cache = {}
 
+
 def underscore_to_dash(string: str) -> str:
     return string.replace("_", "-")
+
 
 optional_bool_type = Optional[Union[bool, Literal["yes"], Literal["no"]]]
 
@@ -145,6 +147,7 @@ def _string_source(src):
 ###################################################################
 # Guildfile
 ###################################################################
+
 
 class Guildfile(BaseModel):
     src: Optional[str]
@@ -424,11 +427,14 @@ def _coerce_operation_attr(
 ) -> Union[
     Dict[str, Union[str, Dict[str, Optional[Union[str, int, float, bool, List]]]]],
     bool,
-
-    Optional[List[str]], # _coerce_op_python_path
+    Optional[List[str]],  # _coerce_op_python_path
     Optional[List[Union[str, dict]]],  # coerce_output_scalars
-    Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]], # _coerce_select_files, List is overly broad because of recursion
-    Dict[str, Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]]] # _coerce_publish, result encompasses _coerce_select_files call
+    Union[
+        List, Literal[False], Union[List[Dict[str, str]], Literal[False]]
+    ],  # _coerce_select_files, List is overly broad because of recursion
+    Dict[
+        str, Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]]
+    ],  # _coerce_publish, result encompasses _coerce_select_files call
 ]:
     if name == "flags":
         return _coerce_flags(val, guildfile)
@@ -517,7 +523,11 @@ def _coerce_output_scalars(
         )
 
 
-def _coerce_publish(data: dict, guildfile: str) -> Dict[str, Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]]]:
+def _coerce_publish(
+    data: dict, guildfile: str
+) -> Dict[
+    str, Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]]
+]:
     files = data.get("files")
     if files:
         data = dict(data)
@@ -559,9 +569,7 @@ def _coerce_select_files_one_include(data: str) -> List[Dict[str, str]]:
     return [{"exclude": "*"}, {"include": data}]
 
 
-def _coerce_select_files_dict(
-    data: dict, guildfile: str
-) -> Dict[str, Any]:
+def _coerce_select_files_dict(data: dict, guildfile: str) -> Dict[str, Any]:
     return {
         "select": _coerce_select_files(data.get("select"), guildfile),
         "root": data.get("root"),
@@ -1094,7 +1102,7 @@ class OpDef(BaseModel):
     exec_: Optional[str]
     flag_encoder: Optional[str]
     flags_dest: Optional[List[str]]
-    flags_import: Optional[Union[str,List[str]]]
+    flags_import: Optional[Union[str, List[str]]]
     flags_import_skip: Optional[List[str]]
     guildfile: Optional[str]
     handle_keyboard_interrupt: optional_bool_type = True
@@ -1133,9 +1141,9 @@ class OpDef(BaseModel):
                 modeldef.guildfile,
                 "invalid operation name %r: expected a string" % name,
             )
-        
+
         super().__init__()
-        
+
         _apply_op_default_config(modeldef, data)
         self.name = name
         self._data = data
@@ -1378,6 +1386,7 @@ class FlagDef(BaseModel):
     def __dir__(self) -> Iterable[str]:
         return sorted(set(self.__dict__.keys()) - set(dir(BaseModel())))
 
+
 def _init_flag_values(flagdefs):
     return {flag.name: flag.default for flag in flagdefs}
 
@@ -1420,6 +1429,7 @@ class FlagChoice(BaseModel):
 
     def __repr__(self):
         return "<guild.guildfile.FlagChoice %r>" % self.value
+
 
 def _init_op_main(data):
     return data.get("main") or _maybe_nbexec_main(data)
