@@ -63,7 +63,7 @@ clean:
 	rm -rf guild/view/node_modules
 	rm -rf .coverage coverage
 
-UAT_PYTHON = python3.6
+UAT_PYTHON ?= python3.6
 
 uat:
 	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(guild-uat) -y
