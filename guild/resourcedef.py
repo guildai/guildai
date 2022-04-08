@@ -26,9 +26,7 @@ import copy
 import logging
 import operator
 import pprint
-from typing import (
-    Dict, List, Optional, Any
-)
+from typing import Dict, List, Optional, Any
 from urllib.parse import ParseResult
 
 import six
@@ -46,12 +44,14 @@ class ResourceFormatError(ValueError):
 class ResourceDefValueError(ValueError):
     pass
 
+
 SourceTypes = [
-        "config",
-        "file",
-        "module",
-        "url",
+    "config",
+    "file",
+    "module",
+    "url",
 ]
+
 
 class ResourceDef(BaseModel):
     _data: Optional[dict]
@@ -365,6 +365,7 @@ def _coerce_list(val, desc):
         return val
     else:
         raise ResourceFormatError("invalid %s val: %s" % (desc, val))
+
 
 # See https://github.com/samuelcolvin/pydantic/issues/1298
 ResourceDef.update_forward_refs()

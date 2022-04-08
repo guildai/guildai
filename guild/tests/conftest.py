@@ -15,6 +15,7 @@ from guild import _test as gt
 THIS_DIR = os.path.dirname(__file__)
 os.environ["PYTEST_ONLY"] = "true"
 
+
 def sybil_setup(namespace):
     for k, v in gt.test_globals().items():
         namespace[k] = v
@@ -34,36 +35,47 @@ class GuildDocTestParser(DocTestParser):
         example.want = example.want.replace("???", "...")
         example.want = example.want.replace(":<pathsep>", os.path.pathsep)
 
-
         output = []
         with gt.StderrCapture(autoprint=False):
             with gt.SysPath(prepend=[os.path.join(gt.tests_dir(), "external")]):
                 self.runner.run(
-                    DocTest([example], namespace, name=None,
-                            filename=None, lineno=example.lineno, docstring=None),
+                    DocTest(
+                        [example],
+                        namespace,
+                        name=None,
+                        filename=None,
+                        lineno=example.lineno,
+                        docstring=None,
+                    ),
                     clear_globs=False,
                     out=output.append,
-                    )
+                )
         return ''.join(output)
 
 
 def evaluate_bash(example: Example):
     command, expected = dedent(str(example.parsed)).strip().split('\n')
-    actual = check_output(command[2:].split(), cwd=os.path.dirname(example.path)).strip().decode('ascii')
+    actual = (
+        check_output(command[2:].split(), cwd=os.path.dirname(example.path))
+        .strip()
+        .decode('ascii')
+    )
     if expected.startswith("???"):
         actual = re.sub(".+[:]?\n", actual, "???:\n")
     assert actual == expected, repr(actual) + ' != ' + repr(expected)
 
-optionflags = (gt._report_first_flag()
-            | ELLIPSIS
-            | NORMALIZE_WHITESPACE
-            | gt.NORMALIZE_PATHS
-            | gt.STRIP_U
-            | gt.STRIP_L
-            | gt.STRIP_ANSI_FMT
-            | gt.PY3
-            | gt.ANNOTATIONS
-            | gt.PYTEST_ONLY
+
+optionflags = (
+    gt._report_first_flag()
+    | ELLIPSIS
+    | NORMALIZE_WHITESPACE
+    | gt.NORMALIZE_PATHS
+    | gt.STRIP_U
+    | gt.STRIP_L
+    | gt.STRIP_ANSI_FMT
+    | gt.PY3
+    | gt.ANNOTATIONS
+    | gt.PYTEST_ONLY
 )
 
 if platform.system() == "Windows":

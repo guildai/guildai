@@ -250,11 +250,14 @@ def _pkg_data_files(pkgdef):
         matches.extend(files)
     return matches
 
+
 def _op_sourcecode_patterns(guildfile: guildfile.Guildfile):
     patterns = []
     for model in guildfile.models.values():
         for operation in model.operations:
-            patterns.extend([p for spec in operation.sourcecode.specs for p in spec.patterns])
+            patterns.extend(
+                [p for spec in operation.sourcecode.specs for p in spec.patterns]
+            )
             for resource in operation.dependencies:
                 patterns.append(resource.spec)
     return patterns
