@@ -31,12 +31,17 @@ from . import runs_support
 @click_util.use_args
 @click.option("--include-batch", is_flag=True, help="Include batch runs.")
 @click_util.render_doc
-def runs(args):
-    """Return runs as JSON."""
+def main(args):
+    """Show runs as JSON."""
+    print(_encode_data(_runs_data(args), args))
 
+
+def _runs_data(args):
     from .view_impl import ViewDataImpl
 
-    data = ViewDataImpl(args)
+    return ViewDataImpl(args).runs_data()
+
+
+def _encode_data(data, args):
     json_opts = {"indent": 2, "sort_keys": True} if args.format else {}
-    out = json.dumps(data.runs_data(), **json_opts)
-    print(out)
+    return json.dumps(data, **json_opts)

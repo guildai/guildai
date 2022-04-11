@@ -26,8 +26,8 @@ from guild import click_util
 @click.option("-f", "--format", is_flag=True, help="Format the JSON outout.")
 @click_util.use_args
 @click_util.render_doc
-def ops(args):
-    """Return operations as JSON."""
+def main(args):
+    """Show operations as JSON."""
 
     ops_data = _ops_data()
     json_opts = {"indent": 2, "sort_keys": True} if args.format else {}

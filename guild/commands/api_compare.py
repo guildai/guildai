@@ -15,20 +15,33 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import json
+
 import click
 
 from guild import click_util
 
-from .api_compare import main as compare
-from .api_ops import main as ops
-from .api_runs import main as runs
+from . import runs_support
 
 
-@click.group(cls=click_util.Group)
-def api(**_kw):
-    """CLI based API calls."""
+@click.command("compare")
+@click.option("-f", "--format", is_flag=True, help="Format the JSON outout.")
+@runs_support.runs_arg
+@click.option("--include-batch", is_flag=True, help="Include batch runs.")
+@runs_support.all_filters
+@click_util.use_args
+@click_util.render_doc
+def main(args):
+    """Show comparison matric as JSON."""
+    print(_encode_data(_compare_data(args), args))
 
 
-api.add_command(compare)
-api.add_command(runs)
-api.add_command(ops)
+def _compare_data(args):
+    from .view_impl import ViewDataImpl
+
+    return ViewDataImpl(args).compare_data()
+
+
+def _encode_data(data, args):
+    json_opts = {"indent": 2, "sort_keys": True} if args.format else {}
+    return json.dumps(data, **json_opts)
