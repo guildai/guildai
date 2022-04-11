@@ -267,7 +267,7 @@ def _test_symlinks():
 
 
 def _init_guild_env(config):
-    cli.out("Initializing Guild environment in {}".format(config.env_dir))
+    cli.out("Initializing Guild environment in {}".format(util.format_dir(config.env_dir)))
     try:
         init.init_env(config.env_dir, config.guild_home, config.isolate_resources)
     except init.PermissionError as e:
@@ -585,7 +585,7 @@ def _initialized_msg(config):
         "\n".format(util.format_dir(config.env_dir))
     )
     cli.out("To activate it " "run:\n")
-    cli.out("  %s" % _source_cmd(config.env_dir))
+    cli.out("  %s" % _source_cmd(util.format_dir(config.env_dir)))
     cli.out()
 
 
