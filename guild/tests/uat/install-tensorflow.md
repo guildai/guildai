@@ -1,5 +1,5 @@
 ---
-doctest: -PY3
+doctest: +FIXME
 ---
 
 # Install TensorFlow
