@@ -6,11 +6,14 @@ else
     pip_plat_name_args = ""
 endif
 
-TMP ?= /tmp
-unixpath=$(subst \,/,$(subst C:\,/c/,$(TMP)))
+ifneq ($(wildcard /tmp/.*),)
+    TMP = /tmp
+else
+    TMP = /c/tmp
+endif
 
 guild = ./guild/scripts/guild
-guild-uat = $(unixpath)/guild-uat
+guild-uat = $($TMP)/guild-uat
 
 .PHONY: build
 
@@ -69,6 +72,7 @@ clean:
 UAT_PYTHON ?= python3.6
 
 uat:
+	mkdir -p $(TMP)
 	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(guild-uat) -y
 	@. $(guild-uat)/bin/activate && WORKSPACE=$(guild-uat) EXAMPLES=examples $(guild) check --uat --notify
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
