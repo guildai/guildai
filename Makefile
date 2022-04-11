@@ -7,11 +7,11 @@ else
 endif
 
 TMP ?= /tmp
-TMP = $(shell echo '$(TMP)' | \
+FIXED_TMP = $(shell echo '$(TMP)' | \
            sed -E 's_\<(.):_/\l\1_g; s_\\_/_g')
 
 guild = ./guild/scripts/guild
-guild-uat = ${TMP}/guild-uat
+guild-uat = ${FIXED_TMP}/guild-uat
 
 .PHONY: build
 
