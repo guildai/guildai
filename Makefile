@@ -7,13 +7,17 @@ else
 endif
 
 ifneq ($(wildcard /tmp/.*),)
-    TMP = /tmp
+	TMP = /tmp
+	UNIX_TMP = /tmp
+	native-guild-uat = /tmp/guild-uat
 else
-    TMP = /c/tmp
+	TMP = "C:\\tmp"
+	UNIX_TMP = /c/tmp
+	native-guild-uat = $(TMP)\\guild-uat
 endif
 
 guild = ./guild/scripts/guild
-guild-uat = $($TMP)/guild-uat
+guild-uat = $(UNIX_TMP)/guild-uat
 
 .PHONY: build
 
@@ -72,9 +76,9 @@ clean:
 UAT_PYTHON ?= python3.6
 
 uat:
-	mkdir -p $(TMP)
-	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(guild-uat) -y
-	@. $(guild-uat)/bin/activate && WORKSPACE=$(guild-uat) EXAMPLES=examples $(guild) check --uat --notify
+	mkdir -p $(guild-uat)
+	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(native-guild-uat) -y
+	@. $(guild-uat)/bin/activate && WORKSPACE=$(native-guild-uat) EXAMPLES=examples $(guild) check --uat --notify
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
 
 clean-uat:
