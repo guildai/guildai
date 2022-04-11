@@ -85,4 +85,4 @@ The same holds for `say2.py` and `say.py`:
     echo hello from guild file
 
     >>> print_cmd("say.py") # doctest: -WINDOWS
-    python -um guild.op_main say
+    ???python -um guild.op_main say

@@ -461,7 +461,7 @@ And stage upstream again.
 
     >>> run(cwd, gh, opspec="upstream", stage=True)
     ???upstream staged as ...
-    ???To start the operation, use 'guild run --start ...'
+    To start the operation, use 'guild run --start ...'
 
 Let's stage downstream again.
 
