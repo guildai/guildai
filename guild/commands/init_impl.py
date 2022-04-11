@@ -464,6 +464,8 @@ def _check_call_with_empty_env(args):
     we set it to the value of the current PATH env.
     """
     env = {"PATH": os.getenv("PATH")}
+    if 'SYSTEMROOT' in os.environ:  # Windows http://bugs.python.org/issue20614
+        env['SYSTEMROOT'] = os.environ['SYSTEMROOT']
     subprocess.check_call(args, env=env)
 
 
