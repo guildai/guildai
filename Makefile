@@ -6,8 +6,10 @@ else
     pip_plat_name_args = ""
 endif
 
+TMP ?= /tmp
+
 guild = ./guild/scripts/guild
-guild-uat = /tmp/guild-uat
+guild-uat = ${TMP}/guild-uat
 
 .PHONY: build
 
@@ -92,7 +94,7 @@ format-code:
 
 coverage-check:
 	@if [ -z "$(TESTS)" ]; then \
-	  tests="-T"; \
+	  tests="-St"; \
 	else \
 	  for test in $(TESTS); do \
 	    tests="$$tests -t $$test"; \
