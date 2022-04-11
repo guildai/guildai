@@ -7,13 +7,13 @@ else
 endif
 
 ifneq ($(wildcard /tmp/.*),)
-	TMP = /tmp
+	NATIVE_TMP = /tmp
 	UNIX_TMP = /tmp
 	native-guild-uat = /tmp/guild-uat
 else
-	TMP = "C:\\tmp"
+	NATIVE_TMP = "C:\\tmp"
 	UNIX_TMP = /c/tmp
-	native-guild-uat = $(TMP)\\guild-uat
+	native-guild-uat = $(NATIVE_TMP)\\guild-uat
 endif
 
 guild = ./guild/scripts/guild
@@ -76,7 +76,7 @@ clean:
 UAT_PYTHON ?= python3.6
 
 uat:
-	mkdir -p $(guild-uat)
+	mkdir -p $(UNIX_TMP)
 	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(native-guild-uat) -y
 	@. $(guild-uat)/bin/activate && WORKSPACE=$(native-guild-uat) EXAMPLES=examples $(guild) check --uat --notify
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
