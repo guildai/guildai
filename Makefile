@@ -11,9 +11,9 @@ ifneq ($(wildcard /tmp/.*),)
 	UNIX_TMP = /tmp
 	native-guild-uat = /tmp/guild-uat
 else
-	NATIVE_TMP = "C:\\tmp"
+	NATIVE_TMP = "C:\tmp"
 	UNIX_TMP = /c/tmp
-	native-guild-uat = $(NATIVE_TMP)\\guild-uat
+	native-guild-uat = "$(NATIVE_TMP)\guild-uat"
 endif
 
 guild = ./guild/scripts/guild
