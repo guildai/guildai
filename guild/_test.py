@@ -72,6 +72,7 @@ PY39 = doctest.register_optionflag("PY39")
 ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
 PYTEST_ONLY = doctest.register_optionflag("PYTEST_ONLY")
 NON_INTERACTIVE_CI = doctest.register_optionflag("NON_INTERACTIVE_CI")
+FIXME = doctest.register_optionflag("FIXME")
 
 _ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
@@ -172,7 +173,12 @@ def _skip_for_doctest_options(options):
         or _skip_version_for_doctest_options(options)
         or _skip_for_pytest(options)
         or _skip_for_non_interactive_ci(options)
+        or _skip_fixme(options)
     )
+
+
+def _skip_fixme(options):
+    return options.get(FIXME) is True
 
 
 def _skip_platform_for_doctest_options(options):
