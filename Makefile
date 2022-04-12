@@ -78,7 +78,7 @@ UAT_PYTHON ?= python3.6
 uat:
 	mkdir -p $(UNIX_TMP)
 	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(native-guild-uat) -y
-	@. $(guild-uat)/bin/activate && WORKSPACE=$(native-guild-uat) EXAMPLES=examples $(guild) check --uat --notify
+	@. $(guild-uat)/bin/activate && WORKSPACE=$(native-guild-uat) EXAMPLES=examples $(guild-uat)/bin/guild check --uat --notify
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
 
 clean-uat:
