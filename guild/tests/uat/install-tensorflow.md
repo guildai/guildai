@@ -1,7 +1,3 @@
----
-doctest: +FIXME
----
-
 # Install TensorFlow
 
     >>> quiet("pip install tensorflow==1.14.0", timeout=120)
