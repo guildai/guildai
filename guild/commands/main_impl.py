@@ -29,6 +29,7 @@ def main(args):
     config.set_cwd(_cwd(args))
     config.set_guild_home(_guild_home(args))
     _apply_guild_patch()
+    _register_cmd_context_handlers()
 
 
 def _init_logging(args):
@@ -68,3 +69,38 @@ def _apply_guild_patch():
         from guild import python_util
 
         python_util.exec_script(patch_path)
+
+
+def _register_cmd_context_handlers():
+    """Register command context handlers.
+
+    Command context handlers can be used to respond to start and stop
+    of Guild commands.
+
+    Currently Guild supports one handler type - socket notification of
+    command info. This can be used to monitor Guild commands by
+    setting the `GUILD_CMD_NOTIFY_PORT` env var to a port of a socket
+    server. See `guild.cmd_notify` for details.
+    """
+    _maybe_register_cmd_notify()
+
+
+def _maybe_register_cmd_notify():
+    port = _try_cmd_notify_port()
+    if port:
+        from guild import cmd_notify
+
+        cmd_notify.init_cmd_context_handler(port)
+
+
+def _try_cmd_notify_port():
+    port = os.getenv("GUILD_CMD_NOTIFY_PORT")
+    if not port:
+        return None
+    try:
+        return int(port)
+    except ValueError:
+        raise SystemExit(
+            "invalid value for GUILD_CMD_NOTIFY_PORT %r: must "
+            "be a valid numeric port" % port
+        )

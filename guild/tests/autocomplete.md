@@ -35,6 +35,7 @@ markdown and text files.
     additional-deps
     anonymous-models
     api
+    api-cmd
     autocomplete
     ...
     var

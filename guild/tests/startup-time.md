@@ -48,6 +48,7 @@ Expected output (Guild help):
       --help     Show this message and exit.
     <BLANKLINE>
     Commands:
+      api              CLI based API calls.
       cat              Show contents of a run file.
       check            Check the Guild setup.
       comment          Add or remove run comments.
