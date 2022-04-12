@@ -1,6 +1,9 @@
 import os
 from typing import List, Union, Dict, Any
-from typing_extensions import Literal
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 import pydantic
 from pydantic import BaseModel

@@ -31,7 +31,7 @@ jobs:
           SKIP_NPM=1 pip install .
       - name: Run UAT tests
         run: |
-          guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
+          guild init -y --no-progress --name guild-test test-env
           TERM=xterm-256color source guild-env test-env
           test-env/bin/guild check -v --offline
           WORKSPACE=test-env UAT_SKIP=remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat
