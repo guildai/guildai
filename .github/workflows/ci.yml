@@ -28,8 +28,7 @@ jobs:
           python -m pip install --upgrade pip wheel
       - name: Install dependencies
         run: |
-          SKIP_NPM=1 python setup.py bdist_wheel
-          python -m pip install --upgrade dist/*.whl
+          SKIP_NPM=1 pip install .
       - name: Run UAT tests
         run: |
           guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
