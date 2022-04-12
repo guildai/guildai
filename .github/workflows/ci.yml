@@ -32,6 +32,6 @@ jobs:
           python -m pip install -e .
       - name: Run UAT tests
         run: |
-          make uat UAT_PYTHON=python${{ matrix.python-version }}
+          UAT_SKIP=,remote-*,hiplot-* make uat UAT_PYTHON=python${{ matrix.python-version }}
       - name: upload coverage to Codecov
         uses: codecov/codecov-action@v2
