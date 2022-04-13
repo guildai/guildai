@@ -24,9 +24,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install pip, build wheel, install wheel
+      - name: Install/update pip, wheel and virtualenv, build wheel, install wheel
         run: |
-          python -m pip install --upgrade pip wheel
+          python -m pip install --upgrade pip wheel virtualenv
           python setup.py bdist_wheel
           python -m pip install --upgrade dist/*.whl
       - name: Run UAT tests
