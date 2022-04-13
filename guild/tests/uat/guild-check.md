@@ -84,7 +84,7 @@ Show with disk usage:
 
 We should also see Guild environment files in our workspace:
 
-    >>> run("python -c \"import os; [print(f) for f in sorted(os.listdir(os.getenv('WORKSPACE')))]\"")
+    >>> run("python -c \"import os; [print('\n'.join(sorted(os.listdir(os.path.join(os.getenv('WORKSPACE'), ".guild")))))\"")
     .guild
     .guild/.guild-nocopy
     .guild/cache
