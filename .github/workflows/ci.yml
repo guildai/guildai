@@ -7,6 +7,7 @@ on: [push, pull_request]
 
 env:
   NON_INTERACTIVE_CI: true
+  SKIP_NPM: true
 
 jobs:
   build:
@@ -23,12 +24,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Install pip, build wheel, install wheel
         run: |
           python -m pip install --upgrade pip wheel
-      - name: Install dependencies
-        run: |
-          SKIP_NPM=1 python setup.py bdist_wheel
+          python setup.py bdist_wheel
           python -m pip install --upgrade dist/*.whl
       - name: Run UAT tests
         run: |

@@ -31,7 +31,7 @@ When running, staged runs are selected.
     You are about to run file-op
       file: ...
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 Stage downstream op.
 
