@@ -8,6 +8,13 @@ on: [push, pull_request]
 env:
   NON_INTERACTIVE_CI: true
   SKIP_NPM: "1"
+  TERM: xterm-256color 
+  WORKSPACE: test-env 
+  UAT_SKIP: remote-*,hiplot-*
+  COLUMNS: 999 
+  EXAMPLES: examples 
+  GUILD_START_THRESHOLD: 2.0 
+  DASK_SPEEDUP_THRESHOLD: 1.2 
 
 jobs:
   build:
@@ -32,8 +39,8 @@ jobs:
       - name: Run UAT tests
         run: |
           bash -c "guild init -y --no-progress --name guild-test --guild dist/*.whl test-env"
-          TERM=xterm-256color source guild-env test-env
+          source guild-env test-env
           test-env/bin/guild check -v --offline
-          WORKSPACE=test-env UAT_SKIP=remote-*,hiplot-* COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat
+          test-env/bin/guild check --uat
       - name: upload coverage to Codecov
         uses: codecov/codecov-action@v2
