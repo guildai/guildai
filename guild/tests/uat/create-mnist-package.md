@@ -15,6 +15,6 @@ directory:
     >>> run("guild package", ignore=[
     ...     'Normalizing', 'normalized_version,',
     ...     'FutureWarning', 'Refreshing'])
-    running bdist_wheel
+    ???running bdist_wheel
     ...
     <exit 0>
