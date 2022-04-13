@@ -39,8 +39,8 @@ jobs:
       - name: Run UAT tests
         shell: bash
         run: |
-          guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
-          source guild-env test-env
+          guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
+          source guild-env ./test-env
           test-env/bin/guild check -v --offline
           test-env/bin/guild check --uat
       - name: upload coverage to Codecov
