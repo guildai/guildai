@@ -92,3 +92,4 @@ We should also see Guild environment files in our workspace:
     .guild/cache/runs
     .guild/runs
     .guild/trash
+    <exit 0>
