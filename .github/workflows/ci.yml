@@ -7,7 +7,7 @@ on: [push, pull_request]
 
 env:
   NON_INTERACTIVE_CI: true
-  SKIP_NPM: true
+  SKIP_NPM: "1"
 
 jobs:
   build:
