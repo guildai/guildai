@@ -1,12 +1,21 @@
 # -*-shell-script-*-
 
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     BIN_DIR=bin;;
+    Darwin*)    BIN_DIR=bin;;
+    *)          BIN_DIR=Scripts
+esac
+
 _guild_env="$1"
 if [ -z "$_guild_env" ]; then
-    if [ -e "bin/activate" ]; then
+    if [ -e "${BIN_DIR}/activate" ]; then
         _guild_env=.
-    elif [ -e "venv/bin/activate" ]; then
+    elif [ -e "venv/${BIN_DIR}/activate" ]; then
         _guild_env=./venv
-    elif [ -e "env/bin/activate" ]; then
+    elif [ -e "env/${BIN_DIR}/activate" ]; then
+        _guild_env=./env
+    elif [ -e "env/Scripts/activate" ]; then
         _guild_env=./env
     else
         echo "guild-env: cannot find a Guild environment in the current directory"
@@ -20,12 +29,12 @@ if [ ! -e "$_guild_env" ]; then
     return 1
 fi
 
-if [ ! -e "$_guild_env/bin/activate" -a -e "$_guild_env/venv" ]; then
+if [ ! -e "$_guild_env/${BIN_DIR}/activate" -a -e "$_guild_env/venv" ]; then
     _guild_env="$_guild_env/venv"
 fi
 
-if [ -e "$_guild_env/bin/activate" ]; then
-    . "$_guild_env/bin/activate"
+if [ -e "$_guild_env/${BIN_DIR}/activate" ]; then
+    . "$_guild_env/${BIN_DIR}/activate"
     if [ -z "$QUIET" ]; then
         clear 2> /dev/null || true
         echo "$VIRTUAL_ENV is active."
