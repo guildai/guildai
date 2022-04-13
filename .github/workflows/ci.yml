@@ -40,8 +40,8 @@ jobs:
         shell: bash
         run: |
           guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
-          source $(pwd)/test-env/bin/guild-env $(pwd)/test-env
-          $(pwd)/test-env/bin/guild check -v --offline
-          $(pwd)/test-env/bin/guild check --uat
+          source guild-env $(pwd)/test-env
+          guild check -v --offline
+          guild check --uat
       - name: upload coverage to Codecov
         uses: codecov/codecov-action@v2
