@@ -35,6 +35,14 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Set up msys2 for unix commands on windows
+        uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows'
+        with:
+          update: true
+          install: >-
+            base-devel
+            bash
       - name: Install/update pip, wheel and virtualenv, build wheel, install wheel
         run: |
           python -m pip install --upgrade pip wheel virtualenv setuptools
