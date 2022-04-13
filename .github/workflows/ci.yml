@@ -43,6 +43,10 @@ jobs:
           install: >-
             base-devel
             bash
+            findutils
+      - name: Remove bash.exe from WSL that causes problems  # https://github.com/actions/virtual-environments/pull/1081#issuecomment-664045248
+        if: runner.os == 'Windows'
+        run: del C:\Windows\System32\bash.exe
       - name: Install/update pip, wheel and virtualenv, build wheel, install wheel
         run: |
           python -m pip install --upgrade pip wheel virtualenv setuptools
