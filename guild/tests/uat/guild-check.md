@@ -84,7 +84,7 @@ Show with disk usage:
 
 We should also see Guild environment files in our workspace:
 
-    >>> run("cd $WORKSPACE && bash -c 'find .guild | LC_ALL=C sort'")
+    >>> run("python -c \"import os; [print(f) for f in sorted(os.listdir($WORKSPACE))]\"")
     .guild
     .guild/.guild-nocopy
     .guild/cache
