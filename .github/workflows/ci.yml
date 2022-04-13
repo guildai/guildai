@@ -32,9 +32,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install/update pip, wheel and virtualenv, build wheel, install wheel
-        shell: bash
         run: |
-          python -m pip install --upgrade pip wheel virtualenv
+          python -m pip install --upgrade pip wheel virtualenv setuptools
           python setup.py bdist_wheel
           bash -c "python -m pip install --upgrade dist/*.whl"
       - name: Run UAT tests
