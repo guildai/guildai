@@ -5,6 +5,10 @@ name: Run tests for CI
 
 on: [push, pull_request]
 
+concurrency: 
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 env:
   NON_INTERACTIVE_CI: true
   SKIP_NPM: "1"
