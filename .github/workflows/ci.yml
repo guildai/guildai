@@ -45,9 +45,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name:  "add msys64 to PATH to pick up different bash.exe"
         # https://github.com/actions/runner/issues/497
-        shell: cmd
+        # https://github.com/actions/toolkit/blob/main/docs/commands.md#environment-files
         if: runner.os == 'Windows'
-        run: "echo ::add-path::C:\\msys64\\usr\\bin"
+        run: echo "C:\\msys64\\usr\\bin" >> $GITHUB_PATH
       - name: Setup git user
         run: |
           git config --global user.name "$(git --no-pager log --format=format:'%an' -n 1)"
