@@ -84,7 +84,7 @@ Show with disk usage:
 
 We should also see Guild environment files in our workspace:
 
-    >>> run("bash -c \"cd $WORKSPACE && find .guild | LC_ALL=C sort\"")
+    >>> run("cd $WORKSPACE && find .guild | LC_ALL=C sort")
     .guild
     .guild/.guild-nocopy
     .guild/cache
