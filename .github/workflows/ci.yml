@@ -28,8 +28,8 @@ jobs:
       matrix:
        sys:
          - { os: windows-latest, shell: 'msys2 {0}' }
-         - { os: ubuntu-latest,  shell: 'bash -l {0}' }
-         - { os: macos-latest,   shell: 'bash -l {0}' }
+         - { os: ubuntu-latest,  shell: bash }
+         - { os: macos-latest,   shell: bash }
        # 3.10 is blocked because we can't install a pandas wheel for our pinned version on py3.10
        python-version: ["3.6", "3.7", "3.8", "3.9"] 
 
