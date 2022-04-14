@@ -62,7 +62,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel setuptools
           python setup.py bdist_wheel
-          bash -c "python -m pip install --upgrade dist/*.whl"
+          python -m pip install --upgrade dist/*.whl
       - name: Run UAT tests
         run: |
           guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
