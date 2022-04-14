@@ -292,19 +292,17 @@ def _init_venv(config):
 def _venv_cmd_args(config):
     args = _venv_cmd_base_args() + [config.env_dir]
     args.extend(["--prompt", config.env_name])
-    if config.venv_python:
-        args.extend(["--python", config.venv_python])
     if config.system_site_packages:
         args.append("--system-site-packages")
     return args
 
 
 def _venv_cmd_base_args():
-    return util.find_apply([_virtualenv_cmd, _virtualenv_missing_error])
+    return util.find_apply([_virtualenv_cmd])
 
 
 def _virtualenv_cmd():
-    return util.find_apply([_virtualenv_module_cmd, _virtualenv_script_cmd])
+    return util.find_apply([_virtualenv_module_cmd])
 
 
 def _virtualenv_module_cmd():
@@ -313,20 +311,7 @@ def _virtualenv_module_cmd():
     except ImportError:
         return None
     else:
-        return [sys.executable, "-m", "virtualenv"]
-
-
-def _virtualenv_script_cmd():
-    cmd = util.which("virtualenv")
-    if not cmd:
-        return None
-    return [cmd]
-
-
-def _virtualenv_missing_error():
-    cli.error(
-        "cannot find virtualenv\n" "Try installing it with 'pip install virtualenv'."
-    )
+        return [sys.executable, "-m", "venv"]
 
 
 def _upgrade_pip(config):
