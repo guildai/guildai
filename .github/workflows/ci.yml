@@ -31,6 +31,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - name: Setup git user
+        run: |
+          git config --global user.name "$(git --no-pager log --format=format:'%an' -n 1)"
+          git config --global user.email "$(git --no-pager log --format=format:'%ae' -n 1)"
+          git config --global init.defaultBranch main
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
