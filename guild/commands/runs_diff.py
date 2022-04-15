@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import sys
+
 import click
 
 from guild import click_util
@@ -23,10 +25,10 @@ from . import remote_support
 from . import runs_support
 
 
-def _ac_cmd(ctx, param, incomplete, **_kw):
+def _ac_cmd(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
-    return click_util.completion_command()
+    return click_util.completion_command(incomplete=incomplete)
 
 
 def _ac_path(ctx, param, incomplete, **_kw):
@@ -34,15 +36,18 @@ def _ac_path(ctx, param, incomplete, **_kw):
         return []
     if _has_non_path_options(ctx.params):
         return []
-    if not ctx.params["runs"]:
+    if not ctx.params["run"]:
+        ctx.params["run"] = "1"
         if ctx.args:
-            ctx.params["run"] = ctx.args[0]
-        else:
-            ctx.params["runs"] = ("1",)
+            if len(ctx.args) >= 2:
+                ctx.params["run"] = ctx.args[0]
+                ctx.params["other_run"] = ctx.args[1]
+            else:
+                ctx.params["other_run"] = ctx.args[0]
     dir_base = _diff_dir_base(ctx)
     if not dir_base:
         return []
-    return click_util.completion_run_filepath(dir_base)
+    return click_util.completion_run_filepath(dir_base, incomplete)
 
 
 def _has_non_path_options(params):
@@ -78,7 +83,7 @@ def _run_to_diff(ctx):
 
 
 def _ac_dir(ctx, param, incomplete):
-    return click_util.completion_dir()
+    return click_util.completion_dir(incomplete=incomplete)
 
 
 def diff_params(fn):
@@ -86,9 +91,15 @@ def diff_params(fn):
         fn,
         [
             click.Argument(
-                ("runs",),
-                metavar="[RUN1 [RUN2]]",
-                nargs=-1,
+                ("run",),
+                metavar="[RUN [RUN]]",
+                required=False,
+                shell_complete=runs_support.ac_run,
+            ),
+            click.Argument(
+                ("other_run",),
+                metavar="",
+                required=False,
                 shell_complete=runs_support.ac_run,
             ),
             click.Option(("-O", "--output"), is_flag=True, help="Diff run output."),
@@ -121,7 +132,7 @@ def diff_params(fn):
             click.Option(
                 ("-d", "--dir"),
                 metavar="PATH",
-                help="Diff run to the specified directory.",
+                help="Diff run to the specified directory, relative to cwd.",
                 shell_complete=_ac_dir,
             ),
             click.Option(
@@ -145,13 +156,13 @@ def diff_params(fn):
 def diff_runs(ctx, args):
     """Diff two runs.
 
-    If `RUN1` and `RUN2` are omitted, the latest two filtered runs are
+    If no RUN arguments are provided, the latest two filtered runs are
     diffed. See FILTERING topics below for details on filtering runs
     to diff.
 
-    If `RUN1` or `RUN2` is specified, both must be specified. An
-    exception to this is when `--working` or `--working-dir` is
-    specified, in which case `RUN2` cannot be specified (see below).
+    If one RUN is specified, both must be specified, except when
+    `--working` or `--working-dir` is specified, in which case the second
+    RUN argument cannot be specified (see below).
 
     {{ runs_support.all_filters }}
 
@@ -163,7 +174,7 @@ def diff_runs(ctx, args):
     root directory. Use `--working-dir` to specify an alternative
     source code directory. Both `--working` and `--working-dir` imply
     `--sourcecode`. When either `--working` or `--working-dir` are
-    used, `RUN2` cannot also be specified.
+    used, a second RUN argument cannot also be specified.
 
     ### Diff Command
 

@@ -14,17 +14,20 @@
 
 from __future__ import absolute_import
 from __future__ import division
+import sys
 
 import click
 
 from guild import click_util
 
 
-def _ac_path_or_package(incomplete, **_kw):
+def _ac_path_or_package(ctx, param, incomplete):
     from . import packages_impl
 
     packages = [pkg.project_name for pkg in packages_impl.packages(False)]
-    return sorted([pkg for pkg in packages if pkg.startswith(incomplete)]) + ["!!dir"]
+    return sorted(
+        [pkg for pkg in packages if pkg.startswith(incomplete)]
+    ) + click_util.completion_dir(incomplete=incomplete)
 
 
 @click.command()

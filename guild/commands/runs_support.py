@@ -25,38 +25,12 @@ from guild import click_util
 log = logging.getLogger("guild")
 
 
-def fix_ac_ctx_for_args(ctx, args):
-    """Fixes ctx to ensure ctx.params reflects provided args."""
-    cmd_args = _cmd_args(args, ctx)
-    fixed_args = _fix_args_for_resilient_parsing(cmd_args)
-    fixed_ctx = ctx.command.make_context("", fixed_args, resilient_parsing=True)
-    fixed_ctx.parent = ctx.parent
-    return fixed_ctx
-
-
-def _cmd_args(args, ctx):
-    cmd_path = ctx.command_path.split(" ")
-    assert cmd_path and cmd_path[0] == "guild", cmd_path
-    assert args[: len(cmd_path) - 1] == cmd_path[1:], (args, cmd_path)
-    return args[len(cmd_path) - 1 :]
-
-
-def _fix_args_for_resilient_parsing(args):
-    """Fixes args for use by Click's resilient parsing.
-
-    If the last argument is missing a value, the Click command does
-    not properly parse arguments. In this case we append a dummy
-    argument that serves as a placeholder for the parser. As resilient
-    parsing is assumed, the dummy option is not validated.
-    """
-    if args and args[-1][0] == "-":
-        return args + ["dummy"]
-    return args
-
-
 def ac_run(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
+    # ensure that other_run follows the same logic as run, without needing to make that logic know about other_run
+    if param.name == "other_run":
+        ctx.params["run"] = ctx.params["other_run"]
     runs = runs_for_ctx(ctx)
     return sorted([run.id for run in runs if run.id.startswith(incomplete)])
 
@@ -130,7 +104,7 @@ def _all_tags_sorted(runs):
     return sorted(tags)
 
 
-def ac_digest(ctx, param, incomplete, **_kw):
+def ac_digest(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
@@ -138,8 +112,10 @@ def ac_digest(ctx, param, incomplete, **_kw):
     return sorted([d for d in digests if d and d.startswith(incomplete)])
 
 
-def ac_archive(**_kw):
-    return click_util.completion_dir() + click_util.completion_filename(ext=["zip"])
+def ac_archive(ctx, param, incomplete):
+    return click_util.completion_dir(
+        incomplete=incomplete
+    ) + click_util.completion_filename(ext=["zip"], incomplete=incomplete)
 
 
 def runs_arg(fn):

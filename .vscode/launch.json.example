@@ -28,6 +28,27 @@
                 "package",
             ],
             "cwd": "${workspaceFolder}/examples/sourcecode"
+        },
+        {
+            "name": "guild ls",
+            "type": "python",
+            "request": "launch",
+            "module": "guild.main_bootstrap",
+            "args": [
+                "ls",
+            ],
+        },
+        {
+            "name": "guild diff",
+            "type": "python",
+            "request": "launch",
+            "module": "guild.main_bootstrap",
+            "args": [
+                "diff",
+                "-f",
+                "-c",
+                "diff"
+            ],
         }
     ]
 }

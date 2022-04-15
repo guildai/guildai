@@ -14,16 +14,23 @@
 
 from __future__ import absolute_import
 from __future__ import division
+from asyncio import subprocess
 
 import contextlib
 import functools
 import json
 import os
 import re
+from glob import glob
+from pathlib import Path
+import subprocess
+import sys
 
 import click
+from click import shell_completion
 
 import guild
+from .util import natsorted
 
 CMD_SPLIT_P = re.compile(r", ?")
 
@@ -323,70 +330,110 @@ def _maybe_render_doc(s, vars):
     return fn.__doc__
 
 
-def completion_filename(ext=None, **_kw):
-    if os.getenv("_GUILD_COMPLETE") == "complete":
-        return _compgen_filenames("file", ext)
+def _list_dir(dir, incomplete, filters=None, ext=None):
+    if ext:
+        ext = ["." + _ if not _.startswith(".") else _ for _ in ext]
+    leading_dir = ""
+    if incomplete and os.path.sep in incomplete:
+        leading_dir, incomplete = os.path.split(incomplete)
+
+    results = set()
+    tested = set()
+    if os.path.isdir(os.path.join(dir, leading_dir)):
+        for path in Path(os.path.join(dir, leading_dir)).iterdir():
+            key = str(path.relative_to(dir)) + ("/" if path.is_dir() else "")
+            if key not in tested:
+                tested.add(key)
+                if (
+                    (not ext or path.suffix in set(ext))
+                    and path.name not in {".guild", "__pycache__"}
+                    and (not incomplete or path.name.startswith(incomplete))
+                    and (not filters or all(filter(str(path)) for filter in filters))
+                ):
+                    results.add(key)
+    return natsorted(results)
+
+
+def completion_filename(ext=None, incomplete=None):
+    if os.getenv("_GUILD_COMPLETE", "") != "":
+        return _list_dir(os.getcwd(), incomplete, ext=ext)
     else:
         return []
 
 
-def completion_dir(*args, **_kw):
-    if os.getenv("_GUILD_COMPLETE") == "complete":
-        return ["!!dir"]
+def completion_dir(ctx=None, param=None, incomplete=None):
+    if os.getenv("_GUILD_COMPLETE", "") != "":
+        return _list_dir(os.getcwd(), incomplete, filters=[os.path.isdir])
     else:
         return []
 
 
 def completion_opnames(names):
-    if os.getenv("_GUILD_COMPLETE") == "complete":
+    if os.getenv("_GUILD_COMPLETE", "") != "":
         return ["!!no-colon-wordbreak"] + names
     else:
         return []
 
 
-def _compgen_filenames(type, ext):
-    if not ext:
-        return ["!!%s:*" % type]
-    return ["!!%s:*.@(%s)" % (type, "|".join(ext))]
+# def _compgen_filenames(type, ext):
+#     if not ext:
+#         return ["!!%s:*" % type]
+#     return ["!!%s:*.@(%s)" % (type, "|".join(ext))]
 
 
 def completion_nospace():
-    if os.getenv("_GUILD_COMPLETE") == "complete":
+    if os.getenv("_GUILD_COMPLETE", "") != "":
         return ["!!nospace"]
     else:
         return []
 
 
-def completion_batchfile(ext=None):
-    if os.getenv("_GUILD_COMPLETE") == "complete":
-        return _compgen_filenames("batchfile", ext)
+def completion_batchfile(ext=None, incomplete=None):
+    if os.getenv("_GUILD_COMPLETE", "") != "":
+        return ["@" + str(item) for item in _list_dir(os.getcwd(), incomplete, ext=ext)]
     else:
         return []
 
 
-def completion_command(filter=None):
-    if os.getenv("_GUILD_COMPLETE") == "complete":
+def completion_command(filter=None, incomplete=None):
+    if os.getenv("_GUILD_COMPLETE", "") != "":
+        # TODO: how should we handle this on windows? call out to bash explicitly? better to avoid explicitly calling bash.
+        available_commands = subprocess.check_output(
+            [
+                "sh",
+                "-c",
+                "ls $(echo $PATH | tr ':' ' ') | grep -v '/' | grep . | sort | uniq",
+            ],
+            stderr=subprocess.DEVNULL,
+        )
+        available_commands = [_.decode() for _ in available_commands.strip().split()]
         if filter:
-            return ["!!command:%s" % filter]
-        else:
-            return ["!!command"]
+            filter_re = re.compile(filter)
+            available_commands = [
+                cmd for cmd in available_commands if filter_re.match(cmd)
+            ]
+        if incomplete:
+            available_commands = [
+                cmd for cmd in available_commands if cmd.startswith(incomplete)
+            ]
+        return available_commands
     else:
         return []
 
 
-def completion_run_dirpath(run_dir, all=False):
-    if os.getenv("_GUILD_COMPLETE") == "complete":
+def completion_run_dirpath(run_dir, all=False, incomplete=None):
+    if os.getenv("_GUILD_COMPLETE", "") != "":
+        filters = [os.path.isdir, lambda x: os.path.isdir(os.path.join(x, ".guild"))]
         if all:
-            return ["!!allrundirs:%s" % run_dir]
-        else:
-            return ["!!rundirs:%s" % run_dir]
+            filters.pop()
+        return _list_dir(dir=run_dir, incomplete=incomplete, filters=filters)
     else:
         return []
 
 
-def completion_run_filepath(run_dir):
-    if os.getenv("_GUILD_COMPLETE") == "complete":
-        return ["!!runfiles:%s" % run_dir]
+def completion_run_filepath(run_dir, incomplete):
+    if os.getenv("_GUILD_COMPLETE", "") != "":
+        return _list_dir(run_dir, incomplete)
     else:
         return []
 
@@ -404,17 +451,11 @@ def completion_safe_apply(ctx, f, args):
 
 
 def patch_click():
-    try:
-        from click import _bashcomplete
-    except ImportError:
-        from click import shell_completion
-
-        shell_completion._is_incomplete_option = _patched_is_incomplete_option
-    else:
-        _bashcomplete.is_incomplete_option = _patched_is_incomplete_option
+    global shell_completion
+    shell_completion._is_incomplete_option = _patched_is_incomplete_option
 
 
-def _patched_is_incomplete_option(all_args, cmd_param):
+def _patched_is_incomplete_option(ctx, all_args, cmd_param):
     """Patched version of is_complete_option.
 
     Fixes issue testing a cmd param against the current list of
@@ -423,19 +464,16 @@ def _patched_is_incomplete_option(all_args, cmd_param):
     patched version considers that `t` above is the current param
     option.
     """
-    from click import _bashcomplete
 
-    if not isinstance(cmd_param, _bashcomplete.Option):
+    if not isinstance(cmd_param, shell_completion.Option):
         return False
     if cmd_param.is_flag:
         return False
     last_option = None
-    for index, arg_str in enumerate(
-        reversed([arg for arg in all_args if arg != _bashcomplete.WORDBREAK])
-    ):
+    for index, arg_str in enumerate(reversed([arg for arg in all_args if arg != " "])):
         if index + 1 > cmd_param.nargs:
             break
-        if _bashcomplete.start_of_option(arg_str):
+        if shell_completion._start_of_option(ctx, arg_str):
             last_option = arg_str
 
     if not last_option:

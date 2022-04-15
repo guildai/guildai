@@ -59,7 +59,8 @@ def _path(run, args):
         cli.error(
             "PATH must be relative\n" "Try 'guild cat --help' for more information."
         )
-    return os.path.join(_path_root(args, run), args.path)
+    path_root = _path_root(args, run)
+    return os.path.join(path_root, args.path)
 
 
 def _check_non_output_args(args):

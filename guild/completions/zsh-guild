@@ -1,4 +1,4 @@
-#-*-shell-script-*-
+#compdef guild
 
 _guild_completion() {
     local -a completions
@@ -6,17 +6,20 @@ _guild_completion() {
     local -a response
     (( ! $+commands[guild] )) && return 1
 
-    response=("${(@f)$( env COMP_WORDS="${words[*]}" \
-                        COMP_CWORD=$((CURRENT-1)) \
-                        _GUILD_COMPLETE="complete_zsh" \
-                        guild )}")
+    response=("${(@f)$(env COMP_WORDS="${words[*]}" COMP_CWORD=$((CURRENT-1)) _GUILD_COMPLETE=zsh_complete guild)}")
 
-    for key descr in ${(kv)response}; do
-      if [[ "$descr" == "_" ]]; then
-          completions+=("$key")
-      else
-          completions_with_descriptions+=("$key":"$descr")
-      fi
+    for type key descr in ${response}; do
+        if [[ "$type" == "plain" ]]; then
+            if [[ "$descr" == "_" ]]; then
+                completions+=("$key")
+            else
+                completions_with_descriptions+=("$key":"$descr")
+            fi
+        elif [[ "$type" == "dir" ]]; then
+            _path_files -/
+        elif [[ "$type" == "file" ]]; then
+            _path_files -f
+        fi
     done
 
     if [ -n "$completions_with_descriptions" ]; then
@@ -26,7 +29,6 @@ _guild_completion() {
     if [ -n "$completions" ]; then
         compadd -U -V unsorted -a completions
     fi
-    compstate[insert]="automenu"
 }
 
 compdef _guild_completion guild;

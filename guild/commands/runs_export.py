@@ -22,7 +22,9 @@ from . import runs_support
 
 
 def _ac_location(ctx, param, incomplete):
-    return click_util.completion_dir() + click_util.completion_filename(ext=["zip"])
+    return click_util.completion_dir(
+        incomplete=incomplete
+    ) + click_util.completion_filename(ext=["zip"], incomplete=incomplete)
 
 
 def export_params(fn):

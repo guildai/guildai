@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import sys
+
 import click
 
 from guild import click_util
@@ -35,7 +37,7 @@ def _ac_run_path(ctx, param, incomplete):
     if not run:
         return []
     base_dir = _run_base_dir(run, ctx)
-    return click_util.completion_run_filepath(base_dir)
+    return click_util.completion_run_filepath(base_dir, incomplete)
 
 
 def _run_base_dir(run, ctx):
