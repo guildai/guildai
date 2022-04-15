@@ -26,7 +26,7 @@ from guild import click_util
     metavar="PACKAGE...",
     nargs=-1,
     required=True,
-    autocompletion=click_util.completion_filename,
+    shell_complete=click_util.completion_filename,
 )
 @click.option(
     "-U",
@@ -47,7 +47,7 @@ from guild import click_util
     "--target",
     metavar="DIR",
     help="Install package and requirements in DIR.",
-    autocompletion=click_util.completion_dir,
+    shell_complete=click_util.completion_dir,
 )
 @click_util.use_args
 def install(args):

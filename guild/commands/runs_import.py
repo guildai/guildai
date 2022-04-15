@@ -21,7 +21,7 @@ from guild import click_util
 from . import runs_support
 
 
-def _ac_archive(**_kw):
+def _ac_archive(ctx, param, incomplete):
     return click_util.completion_dir() + click_util.completion_filename(ext=["zip"])
 
 
@@ -29,7 +29,7 @@ def import_params(fn):
     click_util.append_params(
         fn,
         [
-            click.Argument(("archive",), autocompletion=_ac_archive),
+            click.Argument(("archive",), shell_complete=_ac_archive),
             runs_support.runs_arg,
             click.Option(
                 ("-m", "--move"),

@@ -50,7 +50,7 @@ def _ac_builtin_tests(incomplete, ctx, **_kw):
     metavar="TEST",
     help="Run `TEST` (may be used multiple times).",
     multiple=True,
-    autocompletion=_ac_all_tests,
+    shell_complete=_ac_all_tests,
 )
 @click.option(
     "-n",
@@ -64,7 +64,7 @@ def _ac_builtin_tests(incomplete, ctx, **_kw):
     metavar="TEST",
     help="Skip `TEST` when running Guild test suite. Ignored otherwise.",
     multiple=True,
-    autocompletion=_ac_builtin_tests,
+    shell_complete=_ac_builtin_tests,
 )
 @click.option("-v", "--verbose", help="Show more information.", is_flag=True)
 @click.option("--space", help="Show disk space usage for Guild files.", is_flag=True)

@@ -54,14 +54,14 @@ def _fix_args_for_resilient_parsing(args):
     return args
 
 
-def ac_run(ctx, incomplete, **_kw):
+def ac_run(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
     return sorted([run.id for run in runs if run.id.startswith(incomplete)])
 
 
-def ac_local_run(ctx, incomplete, **_kw):
+def ac_local_run(ctx, param, incomplete):
     runs = runs_for_ctx(ctx)
     return sorted([run.id for run in runs if run.id.startswith(incomplete)])
 
@@ -102,7 +102,7 @@ def ac_operation(ctx, incomplete, **_kw):
     return sorted([op for op in ops if op.startswith(incomplete)])
 
 
-def ac_label(ctx, incomplete, **_kw):
+def ac_label(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
@@ -130,7 +130,7 @@ def _all_tags_sorted(runs):
     return sorted(tags)
 
 
-def ac_digest(ctx, incomplete, **_kw):
+def ac_digest(ctx, param, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
@@ -166,7 +166,7 @@ def runs_arg(fn):
                 ("runs",),
                 metavar="[RUN...]",
                 nargs=-1,
-                autocompletion=ac_run,
+                shell_complete=ac_run,
             )
         ],
     )
@@ -188,7 +188,7 @@ def run_arg(fn):
                 ("run",),
                 metavar="[RUN]",
                 required=False,
-                autocompletion=ac_run,
+                shell_complete=ac_run,
             )
         ],
     )
@@ -289,7 +289,7 @@ def common_filters(fn):
                 metavar="VAL",
                 help="Filter runs with operations matching `VAL`.",
                 multiple=True,
-                autocompletion=ac_operation,
+                shell_complete=ac_operation,
             ),
             click.Option(
                 ("-Fl", "--label", "filter_labels"),
@@ -299,7 +299,7 @@ def common_filters(fn):
                     "runs, use --unlabeled."
                 ),
                 multiple=True,
-                autocompletion=ac_label,
+                shell_complete=ac_label,
             ),
             click.Option(
                 ("-Fu", "--unlabeled", "filter_unlabeled"),
@@ -311,7 +311,7 @@ def common_filters(fn):
                 metavar="TAG",
                 help="Filter runs with TAG.",
                 multiple=True,
-                autocompletion=ac_tag,
+                shell_complete=ac_tag,
             ),
             click.Option(
                 ("-Fc", "--comment", "filter_comments"),
@@ -341,7 +341,7 @@ def common_filters(fn):
                 ("-Fd", "--digest", "filter_digest"),
                 metavar="VAL",
                 help=("Filter only runs with a matching source code digest."),
-                autocompletion=ac_digest,
+                shell_complete=ac_digest,
             ),
         ],
     )
@@ -498,7 +498,7 @@ def archive_option(help):
                     ("-A", "--archive"),
                     metavar="PATH",
                     help=help,
-                    autocompletion=ac_archive,
+                    shell_complete=ac_archive,
                 )
             ],
         )

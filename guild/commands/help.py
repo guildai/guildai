@@ -28,7 +28,7 @@ def _ac_path_or_package(incomplete, **_kw):
 
 
 @click.command()
-@click.argument("path-or-package", required=False, autocompletion=_ac_path_or_package)
+@click.argument("path-or-package", required=False, shell_complete=_ac_path_or_package)
 @click.option(
     "--package-description", help="Show the package description.", is_flag=True
 )

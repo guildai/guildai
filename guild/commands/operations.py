@@ -20,7 +20,7 @@ import click
 from guild import click_util
 
 
-def _ac_operation(ctx, incomplete, **_kw):
+def _ac_operation(ctx, param, incomplete, **_kw):
     from guild import cmd_impl_support
     from . import operations_impl
 
@@ -37,7 +37,7 @@ def _ac_operation(ctx, incomplete, **_kw):
     metavar="[FILTER]...",
     required=False,
     nargs=-1,
-    autocompletion=_ac_operation,
+    shell_complete=_ac_operation,
 )
 @click.option(
     "-a",

@@ -5,10 +5,13 @@ Helper functions:
     >>> def ac_f(cmd, param_name):
     ...     for param in cmd.params:
     ...         if param.name == param_name:
-    ...             assert param.autocompletion, (param, cmd)
+    ...             assert param.shell_complete, (param, cmd)
     ...             def f(**kw):
     ...                 with Env({"_GUILD_COMPLETE": "complete"}):
-    ...                     return param.autocompletion(**kw)
+    ...                     completion_result = param.shell_complete(param, "")
+    ...                     if completion_result and hasattr(completion_result, "value"):
+    ...                         completion_result = [_.value for _ in completion_result]
+    ...                     return completion_result
     ...             return f
     ...     assert False, (param_name, cmd.params)
 
@@ -86,8 +89,8 @@ A helper to show completions:
     ...     param_opt = None
     ...     for param in cmd.params:
     ...         if param.name == param_name:
-    ...             assert param.autocompletion, param.name
-    ...             ac_f = param.autocompletion
+    ...             assert param.shell_complete, param.name
+    ...             ac_f = param.shell_complete
     ...             param_opt = param.opts[0]
     ...             break
     ...     assert ac_f, param_name
@@ -99,8 +102,8 @@ A helper to show completions:
     ...         ac_args.append(param_opt)  # simulate the actual partial args for ac
     ...     empty = True
     ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         for val in ac_f(args=ac_args, ctx=ctx, incomplete=incomplete):
-    ...             print(val)
+    ...         for val in ac_f(ctx, incomplete):
+    ...             print(val.value if hasattr(val, "value") else val)
     ...             empty = False
     ...     if empty:
     ...         print("<empty>")
@@ -520,7 +523,7 @@ The first param to export is the export location.
 Locations may be directories or zip files.
 
     >>> with Env({"_GUILD_COMPLETE": "complete"}):
-    ...     runs_export.export_runs.params[0].autocompletion()
+    ...     [_.value for _ in runs_export.export_runs.params[0].shell_complete(runs_export.export_runs.params[0], "")]
     ['!!dir', '!!file:*.@(zip)']
 
 ## `help`
@@ -546,7 +549,7 @@ directories.
 The archive location for import is a directory.
 
     >>> with Env({"_GUILD_COMPLETE": "complete"}):
-    ...     runs_import.import_runs.params[0].autocompletion()
+    ...     [_.value for _ in runs_import.import_runs.params[0].shell_complete(runs_import.import_runs.params[0], "")]
     ['!!dir', '!!file:*.@(zip)']
 
 ## `init`
@@ -560,17 +563,17 @@ Helper to print completions.
     ...     ctx = init.init.make_context("", [])
     ...     ctx.parent = main.main.make_context("", ["-H", project.guild_home])
     ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         for val in f(ctx=ctx, incomplete=incomplete):
+    ...         for val in f(ctx, None, incomplete):
     ...             print(val)
 
 Python versions:
 
-    >>> ac_f(init.init, "python")()
+    >>> [_.value for _ in ac_f(init.init, "python")()]
     ['!!command:python*[^-config]']
 
 Target dir:
 
-    >>> ac_f(init.init, "dir")()
+    >>> [_.value for _ in ac_f(init.init, "dir")()]
     ['!!dir']
 
 Guild version or path:

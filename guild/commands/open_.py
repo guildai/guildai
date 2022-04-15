@@ -28,7 +28,7 @@ def _ac_cmd(ctx, **_kw):
     return click_util.completion_command()
 
 
-def _ac_path(ctx, **_kw):
+def _ac_path(ctx, param, incomplete, **_kw):
     from . import runs_impl
 
     open_args = click_util.Args(**ctx.params)
@@ -46,7 +46,7 @@ def _ac_path(ctx, **_kw):
     "-p",
     "--path",
     metavar="PATH",
-    autocompletion=_ac_path,
+    shell_complete=_ac_path,
     help="Path to open under run directory.",
 )
 @click.option(
@@ -63,7 +63,7 @@ def _ac_path(ctx, **_kw):
     "--cmd",
     metavar="CMD",
     help="Command used to open run.",
-    autocompletion=_ac_cmd,
+    shell_complete=_ac_cmd,
 )
 @click.option(
     "--shell", is_flag=True, help="Open a new shell in run directory or PATH."

@@ -1,13 +1,12 @@
-click<8
 dask[distributed]
 dvc[s3]
-ipython<8
+ipython
 hiplot
-jinja2==3.0.3
+jinja2
 jupyter
 jupyter_contrib_nbextensions
 matplotlib
-pandas<1.2
+pandas
 pytest
 pytest-xdist
 pytest-cov

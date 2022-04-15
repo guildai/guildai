@@ -37,7 +37,7 @@ def remote_arg(fn):
 
     """
     click_util.append_params(
-        fn, [click.Argument(("remote",), autocompletion=_ac_remote)]
+        fn, [click.Argument(("remote",), shell_complete=_ac_remote)]
     )
     return fn
 
@@ -60,7 +60,7 @@ def remote_option(help):
                     ("-r", "--remote"),
                     metavar="REMOTE",
                     help=help,
-                    autocompletion=_ac_remote,
+                    shell_complete=_ac_remote,
                 )
             ],
         )

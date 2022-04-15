@@ -23,14 +23,15 @@ from . import remote_support
 from . import runs_support
 
 
-def _ac_cmd(ctx, **_kw):
+def _ac_cmd(ctx, param, incomplete, **_kw):
     if ctx.params.get("remote"):
         return []
     return click_util.completion_command()
 
 
-def _ac_path(args, ctx, **_kw):
-    ctx = runs_support.fix_ac_ctx_for_args(ctx, args)
+def _ac_path(ctx, param, incomplete, **_kw):
+    # TODO: disabled when updating to click 8. Does it still work ok?
+    # ctx = runs_support.fix_ac_ctx_for_args(ctx, args)
     if ctx.params.get("remote"):
         return []
     if _has_non_path_options(ctx.params):
@@ -75,7 +76,7 @@ def _run_to_diff(ctx):
     return runs[0] if runs else None
 
 
-def _ac_dir(**_kw):
+def _ac_dir(ctx, param, incomplete):
     return click_util.completion_dir()
 
 
@@ -87,7 +88,7 @@ def diff_params(fn):
                 ("runs",),
                 metavar="[RUN1 [RUN2]]",
                 nargs=-1,
-                autocompletion=runs_support.ac_run,
+                shell_complete=runs_support.ac_run,
             ),
             click.Option(("-O", "--output"), is_flag=True, help="Diff run output."),
             click.Option(
@@ -109,7 +110,7 @@ def diff_params(fn):
                 metavar="PATH",
                 multiple=True,
                 help="Diff specified path. May be used more than once.",
-                autocompletion=_ac_path,
+                shell_complete=_ac_path,
             ),
             click.Option(
                 ("-w", "--working"),
@@ -120,13 +121,13 @@ def diff_params(fn):
                 ("-d", "--dir"),
                 metavar="PATH",
                 help="Diff run to the specified directory.",
-                autocompletion=_ac_dir,
+                shell_complete=_ac_dir,
             ),
             click.Option(
                 ("-c", "--cmd"),
                 metavar="CMD",
                 help="Command used to diff runs.",
-                autocompletion=_ac_cmd,
+                shell_complete=_ac_cmd,
             ),
             runs_support.all_filters,
             remote_support.remote_option("Diff remote runs."),
