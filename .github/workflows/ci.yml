@@ -33,7 +33,7 @@ jobs:
         # 3.10 is blocked because we can't install a pandas wheel for our pinned version on py3.10
         python-version: ["3.6", "3.7", "3.8", "3.9"]
         exclude:
-          - os: macos-latest
+          - sys.os: macos-latest
             python-version: 3.7  # there's a strange distutils error about missing distutils.sysconfig. We're punting and ignoring it for now.
 
     defaults:
