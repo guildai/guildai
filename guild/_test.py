@@ -69,6 +69,7 @@ PY36 = doctest.register_optionflag("PY36")
 PY37 = doctest.register_optionflag("PY37")
 PY38 = doctest.register_optionflag("PY38")
 PY39 = doctest.register_optionflag("PY39")
+PY310 = doctest.register_optionflag("PY310")
 ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
 PYTEST_ONLY = doctest.register_optionflag("PYTEST_ONLY")
 NON_INTERACTIVE_CI = doctest.register_optionflag("NON_INTERACTIVE_CI")
@@ -210,6 +211,7 @@ def _skip_version_for_doctest_options(options):
         (options.get(PY37), 3, 7),
         (options.get(PY38), 3, 8),
         (options.get(PY39), 3, 9),
+        (options.get(PY310), 3, 10),
     ]:
         if opt in (True, False) and py_major_ver == maj_ver and py_minor_ver == min_ver:
             skip = not opt
