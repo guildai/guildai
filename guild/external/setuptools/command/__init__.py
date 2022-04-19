@@ -5,6 +5,12 @@ __all__ = [
     'bdist_wininst', 'upload_docs', 'build_clib', 'dist_info',
 ]
 
+# HACK: macos has some issue with sysconfig not being present on some OS/python combinations.
+#    the next couple of lines should fix it.
+import distutils
+from distutils.sysconfig import get_python_lib
+get_python_lib()
+
 from distutils.command.bdist import bdist
 import sys
 

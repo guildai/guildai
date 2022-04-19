@@ -237,14 +237,14 @@ message related to syncing labels.
     Labels are not updated - use --sync-labels to apply changes run labels.
       [...]  hello  ...  completed  example hello run
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
     >>> run("guild tag -c -s", timeout=2)
     You are about to modify tags for the following runs:
     Labels are updated to reflect the latest tags.
       [...]  hello  ...  completed  example hello run
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 List all tags:
 

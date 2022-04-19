@@ -23,7 +23,7 @@ Preview a normal batch.
       x: [1, 2]
       y: [2, 3]
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 Specify max trials with a normal batch - max trials less than full
 trial count.
@@ -33,7 +33,7 @@ trial count.
       x: [1, 2]
       y: [2, 3]
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 Specify max trials with a normal batch - max trials greater than full
 trial count.
@@ -43,7 +43,7 @@ trial count.
       x: [1, 2]
       y: [2, 3]
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 Random batch:
 
@@ -52,7 +52,7 @@ Random batch:
       x: [1:100]
       y: 2
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 Optimizer with default objective:
 
@@ -68,7 +68,7 @@ Optimizer with default objective:
       random-starts: 3
       xi: 0.05
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 Optimizer with explict objective:
 
@@ -82,7 +82,7 @@ Optimizer with explict objective:
       random-starts: 3
       xi: 0.05
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 Preview batch files:
 
@@ -98,7 +98,7 @@ Preview batch files:
       x: 1
       y: 2
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 Preview with batch file and flag list:
 
@@ -108,7 +108,7 @@ Preview with batch file and flag list:
       x: 1
       y: [4, 5]
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 Preview with two batch files:
 
@@ -123,4 +123,4 @@ Preview with two batch files:
       x: 1
       y: 2
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>

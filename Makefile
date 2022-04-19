@@ -1,4 +1,5 @@
 OS = $(shell uname -s)
+SKIP_NPM ?= "1"
 
 ifeq ($(OS),Linux)
     pip_plat_name_args = "-p manylinux_x86_64"
@@ -22,8 +23,7 @@ guild-uat = $(UNIX_TMP)/guild-uat
 .PHONY: build
 
 build:
-	python2 setup.py build
-	python3 setup.py build
+	SKIP_NPM=$(SKIP_NPM) python3 setup.py build
 
 install-reqs:
 	 pip install --user -r requirements.txt
@@ -31,8 +31,7 @@ install-reqs:
 
 pip-package:
 	rm -rf build
-	python2 setup.py bdist_wheel -p manylinux1_x86_64
-	python3 setup.py bdist_wheel -p manylinux1_x86_64
+	SKIP_NPM=$(SKIP_NPM) python3 setup.py bdist_wheel -p manylinux1_x86_64
 
 pip-upload:
 	make pip-package
@@ -75,10 +74,12 @@ clean:
 
 UAT_PYTHON ?= python3.6
 
-uat:
+uat: build
 	mkdir -p $(UNIX_TMP)
 	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(native-guild-uat) -y
-	@. $(guild-uat)/bin/activate && WORKSPACE=$(native-guild-uat) EXAMPLES=examples $(guild) check --uat --notify
+	@. $(guild-uat)/bin/activate
+	@$(guild-uat)/bin/python -m pip install dist/`ls -Art dist | tail -n 1`
+	@WORKSPACE=$(native-guild-uat) EXAMPLES=examples $(guild-uat)/bin/guild check --uat --notify
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
 
 clean-uat:

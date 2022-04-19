@@ -25,6 +25,7 @@ from __future__ import division
 import copy
 import logging
 import os
+from typing import Optional
 
 from guild import config
 from guild import guildfile
@@ -195,6 +196,16 @@ class DvcPlugin(pluginlib.Plugin):
             return None
 
 
+class DvcResourceSource(resourcedef.ResourceSource):
+    always_pull: bool = False
+    remote: Optional[str]
+
+    def __init__(self, resdef, uri, always_pull=False, remote="", **kw):
+        super().__init__(resdef, uri, **kw)
+        self.always_pull = always_pull
+        self.remote = remote
+
+
 def _dvcfile_source(data, resdef):
     data_copy = copy.copy(data)
     dep_spec = data_copy.pop("dvcfile")
@@ -204,7 +215,7 @@ def _dvcfile_source(data, resdef):
         )
     always_pull = data_copy.pop("always-pull", False)
     remote = data_copy.pop("remote", None)
-    source = resourcedef.ResourceSource(resdef, "dvcfile:%s" % dep_spec, **data_copy)
+    source = DvcResourceSource(resdef, "dvcfile:%s" % dep_spec, **data_copy)
     source.always_pull = always_pull
     source.remote = remote
     return source
