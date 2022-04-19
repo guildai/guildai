@@ -267,7 +267,9 @@ def _test_symlinks():
 
 
 def _init_guild_env(config):
-    cli.out("Initializing Guild environment in {}".format(util.format_dir(config.env_dir)))
+    cli.out(
+        "Initializing Guild environment in {}".format(util.format_dir(config.env_dir))
+    )
     try:
         init.init_env(config.env_dir, config.guild_home, config.isolate_resources)
     except init.PermissionError as e:
