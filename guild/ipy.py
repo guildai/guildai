@@ -189,7 +189,11 @@ class RunsSeries(pd.Series):
     def scalars_detail(self):
         return _runs_scalars_detail([self[0].value])
 
+<<<<<<< HEAD
     def guild_flags(self):
+=======
+    def get_flags(self):
+>>>>>>> 7ff27ce1 (rename runs func 'flags' to avoid conflict with pandas)
         return _runs_flags([self[0].value])
 
     def compare(self):
@@ -230,7 +234,11 @@ class RunsDataFrame(pd.DataFrame):
     def scalars_detail(self):
         return _runs_scalars_detail(self._runs())
 
+<<<<<<< HEAD
     def guild_flags(self):
+=======
+    def get_flags(self):
+>>>>>>> 7ff27ce1 (rename runs func 'flags' to avoid conflict with pandas)
         return _runs_flags(self._runs())
 
     def compare(self):

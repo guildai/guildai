@@ -172,12 +172,16 @@ Info with scalars (no scalars for this run, so list is empty):
 
 ## Flags
 
-Flags can be read as a data frame using the `flags()` function on runs.
+Flags can be read as a data frame using the `get_flags()` function on runs.
 
     >>> with guild_home:
     ...     runs = ipy.runs()
 
+<<<<<<< HEAD
     >>> flags = runs.guild_flags()
+=======
+    >>> flags = runs.get_flags()
+>>>>>>> 7ff27ce1 (rename runs func 'flags' to avoid conflict with pandas)
 
     >>> flags
          msg  n  run
