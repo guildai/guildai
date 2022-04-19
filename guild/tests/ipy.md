@@ -177,7 +177,7 @@ Flags can be read as a data frame using the `flags()` function on runs.
     >>> with guild_home:
     ...     runs = ipy.runs()
 
-    >>> flags = runs.flags()
+    >>> flags = runs.guild_flags()
 
     >>> flags
          msg  n  run

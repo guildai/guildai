@@ -179,6 +179,7 @@ class RunsSeries(pd.Series):
     def delete(self, **kw):
         self.to_frame().delete(**kw)
 
+    # pylint: disable=arguments-differ
     def info(self, **kw):
         _print_run_info(self[0], **kw)
 
@@ -188,11 +189,10 @@ class RunsSeries(pd.Series):
     def scalars_detail(self):
         return _runs_scalars_detail([self[0].value])
 
-    def flags(self):
+    def guild_flags(self):
         return _runs_flags([self[0].value])
 
     def compare(self):
-        # pylint: disable=arguments-differ
         return _runs_compare([self[0]])
 
 
@@ -230,7 +230,7 @@ class RunsDataFrame(pd.DataFrame):
     def scalars_detail(self):
         return _runs_scalars_detail(self._runs())
 
-    def flags(self):
+    def guild_flags(self):
         return _runs_flags(self._runs())
 
     def compare(self):
