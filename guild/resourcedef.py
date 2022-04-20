@@ -29,8 +29,8 @@ import pprint
 from typing import Dict, List, Optional, Any
 from urllib.parse import ParseResult
 
+import pydantic as schema
 import six
-from pydantic import BaseModel
 
 from guild import util
 
@@ -53,7 +53,7 @@ SourceTypes = [
 ]
 
 
-class ResourceDef(BaseModel):
+class ResourceDef(schema.BaseModel):
     _data: Optional[dict]
     name: Optional[str]
     fullname: Optional[str]
@@ -164,7 +164,7 @@ def _coerce_resdef(data) -> Dict[str, Any]:
     raise ResourceDefValueError()
 
 
-class ResourceSource(BaseModel):
+class ResourceSource(schema.BaseModel):
     resdef: Optional[ResourceDef]
     uri: str = ""
     _parsed_uri: Optional[ParseResult] = None
