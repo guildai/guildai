@@ -36,9 +36,9 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
+import pydantic as schema
 import six
 import yaml
-from pydantic import BaseModel, EmailStr, SecretStr, Field
 
 from guild import config
 from guild import opref
@@ -152,7 +152,7 @@ def _string_source(src):
 ###################################################################
 
 
-class Guildfile(BaseModel):
+class Guildfile(schema.BaseModel):
     src: Optional[str]
     dir: Optional[str]
     models: Dict[str, 'ModelDef'] = {}
@@ -781,12 +781,12 @@ def _apply_missing_vals(target: dict, source: dict):
 ###################################################################
 
 
-class ModelDef(BaseModel):
+class ModelDef(schema.BaseModel):
     default: optional_bool_type
     description: str = ""
     extra: Dict[str, str] = {}
     guildfile: str = ""
-    name: str = Field("", alias="model")
+    name: str = schema.Field("", alias="model")
     op_default_config: Optional[Union[str, Dict[str, Any]]]
     operations: List['OpDef'] = []
     parents: List[str] = []
@@ -1092,7 +1092,7 @@ def _init_sourcecode(data, guildfile) -> 'FileSelectDef':
 ###################################################################
 
 
-class OpDef(BaseModel):
+class OpDef(schema.BaseModel):
     _data: dict = {}
     _flag_vals: dict = {}
     _modelref: Optional['ModelDef']
@@ -1100,18 +1100,18 @@ class OpDef(BaseModel):
     #    the guild.yml file. We represent them internally as dicts so that we match
     #    the guild.yml file, and then we define properties below to access them as lists
     #    so that we minimize internal code changes.
-    _flags: Dict[str, 'FlagDef'] = Field({}, alias="flags")
-    _optimizers: Dict[str, 'OptimizerDef'] = Field({}, alias="optimizers")
+    _flags: Dict[str, 'FlagDef'] = schema.Field({}, alias="flags")
+    _optimizers: Dict[str, 'OptimizerDef'] = schema.Field({}, alias="optimizers")
     can_stage_trials: optional_bool_type
     compare: Optional[str]
     default: optional_bool_type
     default_flag_arg_skip: optional_bool_type
     default_max_trials: Optional[int]
     delete_on_success: optional_bool_type
-    dependencies: List['OpDependencyDef'] = Field([], alias="requires")
+    dependencies: List['OpDependencyDef'] = schema.Field([], alias="requires")
     description: Optional[str]
     env: Dict[str, str] = {}
-    env_secrets: Optional[Dict[str, SecretStr]]
+    env_secrets: Optional[str]
     exec_: Optional[str]
     flag_encoder: Optional[str]
     flags_dest: Optional[List[str]]
@@ -1343,7 +1343,7 @@ def _apply_flag_attrs(src_flag, dest_flag):
             setattr(dest_flag, name, getattr(src_flag, name))
 
 
-class FlagDef(BaseModel):
+class FlagDef(schema.BaseModel):
     allow_other: Optional[Union[bool, Literal["yes"], Literal["no"]]]
     arg_name: Optional[str]
     arg_skip: Optional[str]
@@ -1398,7 +1398,7 @@ class FlagDef(BaseModel):
         return "<guild.guildfile.FlagDef '%s'>" % self.name
 
     def __dir__(self) -> Iterable[str]:
-        return sorted(set(self.__dict__.keys()) - set(dir(BaseModel())))
+        return sorted(set(self.__dict__.keys()) - set(dir(schema.BaseModel())))
 
 
 def _init_flag_values(flagdefs):
@@ -1416,7 +1416,7 @@ def _init_flag_choices(data, flagdef) -> List['FlagChoice']:
     return [FlagChoice(choice_data, flagdef) for choice_data in data]
 
 
-class FlagChoice(BaseModel):
+class FlagChoice(schema.BaseModel):
     alias: Optional[str]
     description: Optional[str]
     flagdef: Optional[FlagDef]
@@ -1517,7 +1517,7 @@ def _init_dependencies(requires, opdef):
     return [OpDependencyDef(data, opdef) for data in requires]
 
 
-class OpDependencyDef(BaseModel):
+class OpDependencyDef(schema.BaseModel):
 
     spec: Optional[str]
     description: Optional[str]
@@ -1646,7 +1646,7 @@ def _coerce_opt_data_item(data):
     return data
 
 
-class OptimizerDef(BaseModel):
+class OptimizerDef(schema.BaseModel):
     name: Optional[str]
     opdef: Optional['OpDef']
     opspec: Optional[str]
@@ -1679,7 +1679,7 @@ class OptimizerDef(BaseModel):
         return self.__repr__()
 
 
-class PublishDef(BaseModel):
+class PublishDef(schema.BaseModel):
     opdef: Optional[OpDef]
     files: Optional['FileSelectDef']
     template: Optional[str]
@@ -1702,7 +1702,7 @@ def _init_publish(data, opdef):
 ###################################################################
 
 
-class FileSelectDef(BaseModel):
+class FileSelectDef(schema.BaseModel):
     root: Optional[str]
     specs: Optional[List['FileSelectSpec']]
     digest: Optional[str]
@@ -1748,7 +1748,7 @@ class FileSelectDef(BaseModel):
         self.dest = dest
 
 
-class FileSelectSpec(BaseModel):
+class FileSelectSpec(schema.BaseModel):
     patterns: List[str] = []
     patterns_type: Optional[str]
     type: Optional[str]
@@ -1876,14 +1876,14 @@ def _resdef_name_part_for_source(s):
 ###################################################################
 
 
-class PackageDef(BaseModel):
+class PackageDef(schema.BaseModel):
     author: Optional[str]
-    author_email: Optional[EmailStr]
+    author_email: Optional[str]
     data_files: Optional[List[str]]
     description: Optional[str]
     guildfile: Optional[str]
     license: Optional[str]
-    name: Optional[str] = Field("", alias="package")
+    name: Optional[str] = schema.Field("", alias="package")
     packages: Optional[List[str]]
     python_requires: Optional[str]
     python_tag: Optional[str]

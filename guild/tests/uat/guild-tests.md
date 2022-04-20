@@ -59,6 +59,7 @@ tests).
       flags-sub-commands:          ok
       gpus:                        ok
       guild-home:                  ok
+      guildfile-schema:            ok
       guildfiles:                  ok
       help:                        ok
       help-op:                     ok
