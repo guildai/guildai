@@ -621,7 +621,7 @@ def _coerce_str_to_list(
         else:
             val = [val]
     elif isinstance(val, list):
-        val = val
+        pass
     elif val is None:
         val = []
     else:
@@ -1248,7 +1248,8 @@ class OpDef(BaseModel):
                 yield name, val
 
     # TODO: remove on op2 promote
-    # Not sure where this is being used. It's ugly because it means mutating the guildfile in place, which is not sane
+    # Not sure where this is being used. It's ugly because it means mutating
+    # the guildfile in place, which is not sane
     def set_flag_value(self, name, val):
         self._flag_vals[name] = val
 
@@ -1889,7 +1890,8 @@ class PackageDef(BaseModel):
     requires: Optional[List[str]]
     tags: Optional[List[str]]
     url: Optional[str]
-    # These are coerced to strings, but we are lenient in the type here to allow the generated schema to not require quotes around versions in YAML.
+    # These are coerced to strings, but we are lenient in the type here to allow
+    # the generated schema to not require quotes around versions in YAML.
     version: Optional[Union[str, int, float]]
 
     class Config:
