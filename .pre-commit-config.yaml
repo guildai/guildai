@@ -1,3 +1,8 @@
+exclude: |
+  (guild/external
+   | guild/tests/samples/projects/flags
+   | guild/tests/samples/scripts
+   | test/lib)
 default_language_version:
   python: python3
 repos:
