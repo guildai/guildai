@@ -28,6 +28,7 @@ jobs:
       - uses: pre-commit/action@v2.0.3
   build:
     runs-on: ${{ matrix.sys.os }}
+    needs: [lint]
     strategy:
       fail-fast: false
       matrix:
