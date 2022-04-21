@@ -15,7 +15,6 @@ repos:
   - id: check-merge-conflict
   - id: debug-statements
   - id: end-of-file-fixer
-  - id: requirements-txt-fixer
   - id: trailing-whitespace
 - repo: https://github.com/asottile/blacken-docs
   rev: v1.12.1
