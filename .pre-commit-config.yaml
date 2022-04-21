@@ -1,8 +1,10 @@
 exclude: |
-  (guild/external
-   | guild/tests/samples/projects/flags
-   | guild/tests/samples/scripts
-   | test/lib)
+    (?x)(
+        ^guild/external/|
+        ^guild/tests/samples/|
+        ^guild/view/
+        ^test/lib/
+    )
 default_language_version:
   python: python3
 repos:
@@ -19,6 +21,7 @@ repos:
   hooks:
   - id: check-merge-conflict
   - id: debug-statements
+    exclude: ^guild/op_main.py
   - id: end-of-file-fixer
   - id: trailing-whitespace
 - repo: https://github.com/asottile/blacken-docs
