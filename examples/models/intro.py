@@ -5,6 +5,7 @@ import tensorflow as tf
 
 from tensorflow.examples.tutorials.mnist import input_data
 
+
 def init_flags():
     global FLAGS
     parser = argparse.ArgumentParser()
@@ -17,9 +18,11 @@ def init_flags():
     parser.add_argument("--test", action="store_true")
     FLAGS, _ = parser.parse_known_args()
 
+
 def init_data():
     global mnist
     mnist = input_data.read_data_sets(FLAGS.datadir, one_hot=True)
+
 
 def init_train():
     init_model()
@@ -29,6 +32,7 @@ def init_train():
     init_collections()
     init_session()
 
+
 def init_model():
     global x, y, W, b
     x = tf.placeholder(tf.float32, [None, 784])
@@ -36,19 +40,19 @@ def init_model():
     b = tf.Variable(tf.zeros([10]))
     y = tf.nn.softmax(tf.matmul(x, W) + b)
 
+
 def init_train_op():
     global y_, loss, train_op
     y_ = tf.placeholder(tf.float32, [None, 10])
-    loss = tf.reduce_mean(
-             -tf.reduce_sum(
-               y_ * tf.log(y),
-               reduction_indices=[1]))
+    loss = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
     train_op = tf.train.GradientDescentOptimizer(FLAGS.lr).minimize(loss)
+
 
 def init_eval_op():
     global accuracy
     correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
 
 def init_summaries():
     init_inputs_summary()
@@ -57,8 +61,10 @@ def init_summaries():
     init_op_summaries()
     init_summary_writers()
 
+
 def init_inputs_summary():
     tf.summary.image("inputs", tf.reshape(x, [-1, 28, 28, 1]), 10)
+
 
 def init_variable_summaries(var, name):
     with tf.name_scope(name):
@@ -70,18 +76,20 @@ def init_variable_summaries(var, name):
         tf.summary.scalar("min", tf.reduce_min(var))
         tf.summary.histogram(name, var)
 
+
 def init_op_summaries():
     tf.summary.scalar("loss", loss)
     tf.summary.scalar("acc", accuracy)
+
 
 def init_summary_writers():
     global summaries, train_writer, validate_writer
     summaries = tf.summary.merge_all()
     train_writer = tf.summary.FileWriter(
-        FLAGS.rundir + "/train",
-        tf.get_default_graph())
-    validate_writer = tf.summary.FileWriter(
-        FLAGS.rundir + "/validate")
+        FLAGS.rundir + "/train", tf.get_default_graph()
+    )
+    validate_writer = tf.summary.FileWriter(FLAGS.rundir + "/validate")
+
 
 def init_collections():
     tf.add_to_collection("inputs", json.dumps({"image": x.name}))
@@ -90,10 +98,12 @@ def init_collections():
     tf.add_to_collection("y_", y_.name)
     tf.add_to_collection("acc", accuracy.name)
 
+
 def init_session():
     global sess
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
+
 
 def train():
     steps = (mnist.train.num_examples // FLAGS.batch_size) * FLAGS.epochs
@@ -105,14 +115,13 @@ def train():
         maybe_save_model(step)
     save_model()
 
+
 def maybe_log_accuracy(step, last_training_batch):
     if step % 20 == 0:
         evaluate(step, last_training_batch, train_writer, "training")
-        validate_data = {
-            x: mnist.validation.images,
-            y_: mnist.validation.labels
-        }
+        validate_data = {x: mnist.validation.images, y_: mnist.validation.labels}
         evaluate(step, validate_data, validate_writer, "validate")
+
 
 def evaluate(step, data, writer, name):
     accuracy_val, summary = sess.run([accuracy, summaries], data)
@@ -120,20 +129,24 @@ def evaluate(step, data, writer, name):
     writer.flush()
     print("Step %i: %s=%f" % (step, name, accuracy_val))
 
+
 def maybe_save_model(step):
     epoch_step = mnist.train.num_examples / FLAGS.batch_size
     if step != 0 and step % epoch_step == 0:
         save_model()
+
 
 def save_model():
     print("Saving trained model")
     tf.gfile.MakeDirs(FLAGS.rundir + "/model")
     tf.train.Saver().save(sess, FLAGS.rundir + "/model/export")
 
+
 def init_test():
     init_session()
     init_exported_collections()
     init_test_writer()
+
 
 def init_exported_collections():
     global x, y_, accuracy
@@ -143,14 +156,17 @@ def init_exported_collections():
     y_ = tensor_by_collection_name("y_")
     accuracy = tensor_by_collection_name("acc")
 
+
 def tensor_by_collection_name(name):
     tensor_name = tf.get_collection(name)[0].decode("UTF-8")
     return sess.graph.get_tensor_by_name(tensor_name)
+
 
 def init_test_writer():
     global summaries, writer
     summaries = tf.summary.merge_all()
     writer = tf.summary.FileWriter(FLAGS.rundir)
+
 
 def test():
     data = {x: mnist.test.images, y_: mnist.test.labels}
@@ -158,6 +174,7 @@ def test():
     writer.add_summary(summary)
     writer.flush()
     print("Test accuracy=%f" % test_accuracy)
+
 
 if __name__ == "__main__":
     init_flags()

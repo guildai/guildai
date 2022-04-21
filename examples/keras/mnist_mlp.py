@@ -42,20 +42,23 @@ model.add(Dense(num_classes, activation='softmax'))
 
 model.summary()
 
-model.compile(loss='categorical_crossentropy',
-              optimizer=RMSprop(),
-              metrics=['accuracy'])
+model.compile(
+    loss='categorical_crossentropy', optimizer=RMSprop(), metrics=['accuracy']
+)
 
 checkpoints = keras.callbacks.ModelCheckpoint(
-    filepath="weights.{epoch:02d}-{val_accuracy:.4f}.hdf5",
-    save_weights_only=True)
+    filepath="weights.{epoch:02d}-{val_accuracy:.4f}.hdf5", save_weights_only=True
+)
 
-history = model.fit(x_train, y_train,
-                    batch_size=batch_size,
-                    epochs=epochs,
-                    verbose=1,
-                    validation_data=(x_test, y_test),
-                    callbacks=[checkpoints])
+history = model.fit(
+    x_train,
+    y_train,
+    batch_size=batch_size,
+    epochs=epochs,
+    verbose=1,
+    validation_data=(x_test, y_test),
+    callbacks=[checkpoints],
+)
 score = model.evaluate(x_test, y_test, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])

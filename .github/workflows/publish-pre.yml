@@ -55,7 +55,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run test suite
         run: |
-          python -m pip install --index-url https://test.pypi.org/simple/ guildai 
+          python -m pip install --index-url https://test.pypi.org/simple/ guildai
           guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
           TERM=xterm-256color source guild-env test-env
           test-env/bin/guild check -v --offline

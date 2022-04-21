@@ -12,10 +12,10 @@ repos:
   rev: 22.3.0
   hooks:
   - id: black
-- repo: https://gitlab.com/pycqa/flake8
-  rev: 3.9.2
-  hooks:
-  - id: flake8
+# - repo: https://gitlab.com/pycqa/flake8
+#   rev: 3.9.2
+#   hooks:
+#   - id: flake8
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.2.0
   hooks:

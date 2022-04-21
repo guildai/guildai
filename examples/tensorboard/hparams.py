@@ -25,7 +25,9 @@ model = tf.keras.models.Sequential(
     ]
 )
 model.compile(
-    optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'],
+    optimizer=optimizer,
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy'],
 )
 
 logdir = os.getenv("LOGDIR") or "logs/image/" + datetime.now().strftime("%Y%m%d-%H%M%S")

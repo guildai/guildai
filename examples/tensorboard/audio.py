@@ -34,7 +34,9 @@ tf.compat.v1.disable_eager_execution()
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string(
-    "logdir", "/tmp/audio_demo", "Directory into which to write TensorBoard data.",
+    "logdir",
+    "/tmp/audio_demo",
+    "Directory into which to write TensorBoard data.",
 )
 
 flags.DEFINE_integer("steps", 50, "Number of frequencies of each waveform to generate.")
@@ -122,7 +124,10 @@ def run(logdir, run_name, wave_name, wave_constructor):
     source = "\n".join(
         "    %s" % line.rstrip() for line in inspect.getsourcelines(wave_constructor)[0]
     )
-    description = "A wave of type `%r`, generated via:\n\n%s" % (wave_name, source,)
+    description = "A wave of type `%r`, generated via:\n\n%s" % (
+        wave_name,
+        source,
+    )
 
     # Here's the crucial piece: we interpret this result as audio.
     summary.op(
@@ -244,7 +249,7 @@ def bisine_wahwah_wave(frequency):
     #
     # Alternately, we can make the effect more pronounced by exaggerating
     # the sample data. Let's emit both variations.
-    exaggerated_wave = wave ** 3.0
+    exaggerated_wave = wave**3.0
     return tf.concat([wave, exaggerated_wave], axis=0)
 
 

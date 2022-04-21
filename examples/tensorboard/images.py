@@ -73,7 +73,7 @@ file_writer = tf.summary.create_file_writer(logdir)
 
 def plot_to_image(figure):
     """Converts the matplotlib plot specified by 'figure' to a PNG image and
-  returns it. The supplied figure is closed and inaccessible after this call."""
+    returns it. The supplied figure is closed and inaccessible after this call."""
     # Save the plot to a PNG in memory.
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
@@ -125,12 +125,12 @@ model.compile(
 
 def plot_confusion_matrix(cm, class_names):
     """
-  Returns a matplotlib figure containing the plotted confusion matrix.
+    Returns a matplotlib figure containing the plotted confusion matrix.
 
-  Args:
-    cm (array, shape = [n, n]): a confusion matrix of integer classes
-    class_names (array, shape = [n]): String names of the integer classes
-  """
+    Args:
+      cm (array, shape = [n, n]): a confusion matrix of integer classes
+      class_names (array, shape = [n]): String names of the integer classes
+    """
     figure = plt.figure(figsize=(8, 8))
     plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
     plt.title("Confusion matrix")
