@@ -4,25 +4,25 @@ guild = guild.main_bootstrap:main
 
 [guild.plugins]
 
+config_flags = guild.plugins.config_flags:ConfigFlagsPlugin
 cpu = guild.plugins.cpu:CPUPlugin
 dask = guild.plugins.dask:DaskPlugin
 disk = guild.plugins.disk:DiskPlugin
 dvc = guild.plugins.dvc:DvcPlugin
 exec_script = guild.plugins.exec_script:ExecScriptPlugin
 gpu = guild.plugins.gpu:GPUPlugin
+ipynb = guild.plugins.ipynb:NotebookPlugin
 keras = guild.plugins.keras:KerasPlugin
 memory = guild.plugins.memory:MemoryPlugin
 perf = guild.plugins.perf:PerfPlugin
 python_script = guild.plugins.python_script:PythonScriptPlugin
-ipynb = guild.plugins.ipynb:NotebookPlugin
 queue = guild.plugins.queue:QueuePlugin
 skopt = guild.plugins.skopt:SkoptPlugin
-config_flags = guild.plugins.config_flags:ConfigFlagsPlugin
 
 [guild.namespaces]
 
-pypi = guild.namespace:PypiNamespace
 guildfile = guild.model:GuildfileNamespace
+pypi = guild.namespace:PypiNamespace
 
 [guild.python.flags]
 
@@ -34,9 +34,9 @@ pytorch = guild.plugins.pytorch_flags:PytorchArgparseActions
 
 [guild.remotetypes]
 
-ssh = guild.remotes.ssh:SSHRemoteType
-ec2 = guild.remotes.ec2:EC2RemoteType
-s3 = guild.remotes.s3:S3RemoteType
-azure-vm = guild.remotes.azure_vm:AzureVMRemoteType
 azure-blob = guild.remotes.azure_blob:AzureBlobStorageRemoteType
+azure-vm = guild.remotes.azure_vm:AzureVMRemoteType
+ec2 = guild.remotes.ec2:EC2RemoteType
 gist = guild.remotes.gist:GistRemoteType
+s3 = guild.remotes.s3:S3RemoteType
+ssh = guild.remotes.ssh:SSHRemoteType
