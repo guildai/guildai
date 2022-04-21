@@ -28,7 +28,10 @@ def _ac_run_path(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
     if not ctx.params["run"]:
-        ctx.params["run"] = "1"
+        if ctx.args:
+            ctx.params["run"] = ctx.args[0]
+        else:
+            ctx.params["run"] = "1"
     run = runs_support.run_for_ctx(ctx)
     if not run:
         return []

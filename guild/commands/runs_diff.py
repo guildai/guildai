@@ -37,7 +37,10 @@ def _ac_path(ctx, param, incomplete, **_kw):
     if _has_non_path_options(ctx.params):
         return []
     if not ctx.params["runs"]:
-        ctx.params["runs"] = ("1",)
+        if ctx.args:
+            ctx.params["run"] = ctx.args[0]
+        else:
+            ctx.params["runs"] = ("1",)
     dir_base = _diff_dir_base(ctx)
     if not dir_base:
         return []
