@@ -16,7 +16,7 @@ print("x: %f" % x)
 print("noise: %f" % noise)
 
 # Simulated training loss
-loss = (np.sin(5 * x) * (1 - np.tanh(x ** 2)) + np.random.randn() * noise)
+loss = np.sin(5 * x) * (1 - np.tanh(x**2)) + np.random.randn() * noise
 
 print("loss: %f" % loss)
 with open("summary.json", "w") as f:

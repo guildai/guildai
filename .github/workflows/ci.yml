@@ -5,24 +5,30 @@ name: Run tests for CI
 
 on: [push, pull_request]
 
-concurrency: 
+concurrency:
   group: ${{ github.head_ref }}
   cancel-in-progress: true
 
 env:
   NON_INTERACTIVE_CI: true
   SKIP_NPM: "1"
-  TERM: xterm-256color 
-  WORKSPACE: test-env 
+  TERM: xterm-256color
+  WORKSPACE: test-env
   UAT_SKIP: remote-*,hiplot-*
-  COLUMNS: 999 
-  EXAMPLES: examples 
-  GUILD_START_THRESHOLD: 2.0 
-  DASK_SPEEDUP_THRESHOLD: 1.2 
+  COLUMNS: 999
+  EXAMPLES: examples
+  GUILD_START_THRESHOLD: 2.0
+  DASK_SPEEDUP_THRESHOLD: 1.2
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pre-commit/action@v2.0.3
   build:
     runs-on: ${{ matrix.sys.os }}
+    needs: [lint]
     strategy:
       fail-fast: false
       matrix:
@@ -33,7 +39,7 @@ jobs:
         # 3.10 is blocked because we can't install a pandas wheel for our pinned version on py3.10
         python-version: ["3.6", "3.7", "3.8", "3.9"]
         exclude:
-          - sys: 
+          - sys:
               os: macos-latest
             python-version: 3.7  # there's a strange distutils error about missing distutils.sysconfig. We're punting and ignoring it for now.
 

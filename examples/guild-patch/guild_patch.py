@@ -2,6 +2,7 @@ import sys
 
 import guild
 
+
 def _patch():
     from guild import op
     from guild import python_util

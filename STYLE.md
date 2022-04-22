@@ -29,7 +29,6 @@ Example of instance and static method use:
 
 ``` python
 class Foo(object):
-
     def __init__(self, args):
         self.a = self._init_a(args)
 
@@ -39,7 +38,6 @@ class Foo(object):
     @staticmethod
     def _a_from_args(args):
         return args.a
-
 ```
 
 Pros:
@@ -62,12 +60,13 @@ Example of external functions:
 
 ``` python
 class Foo(object):
-
     def __init__(self, args):
         self.a = _foo_init_a(args)
 
+
 def _foo_init_a(args):
     return _a_from_args(args)
+
 
 def _a_from_args(args):
     return args.a
@@ -77,12 +76,13 @@ Alternatively:
 
 ``` python
 class Foo(object):
-
     def __init__(self, args):
         _Foo_init(self, args)
 
+
 def _Foo_init(foo, args):
     foo.a = _a_from_args(args)
+
 
 def _a_from_args(args):
     return args.a
@@ -131,12 +131,13 @@ The example above becomes:
 
 ``` python
 class Foo(object):
-
     def __init__(self, a):
         self.a = a
 
+
 def init_foo(args):
     return Foo(_foo_init_a(args))
+
 
 def _foo_init_a(args):
     return args.a
@@ -170,9 +171,9 @@ tempting to move init logic into a class constructor like this:
 
 ``` python
 class Foo(object):
-
     def __init__(self, args):
         self.a = _init_a(args)
+
 
 def _init_a(args):
     return args.a
@@ -182,9 +183,9 @@ Instead, use this:
 
 ``` python
 class Foo(object):
-
     def __init__(self, a):
         self.a = a
+
 
 def _foo_init(args):
     return Foo(args.a)
@@ -216,7 +217,6 @@ Avoid:
 
 ``` python
 class Foo(object):
-
     def __init__(self):
         self.a = None
 
@@ -224,18 +224,18 @@ class Foo(object):
         self.a = a
 
     def run(self):
-         if self.a is None:
-             raise RuntimeError("a must be set first - use init")
-         print(self.a)
+        if self.a is None:
+            raise RuntimeError("a must be set first - use init")
+        print(self.a)
 ```
 
 Instead:
 
 ``` python
 class Foo(object):
-
     def __init__(self, a):
         self.a = a
+
 
 def run_foo(foo):
     if foo.a is None:

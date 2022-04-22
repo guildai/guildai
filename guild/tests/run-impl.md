@@ -609,7 +609,7 @@ With `--background` flag:
     >>> _ = run_gh(cwd, opspec="pass.py", background=True)  # doctest: +WINDOWS_ONLY
     Run in background is not supported on Windows.
     <exit 1>
-    
+
 With `--pidfile` option:
 
     >>> _ = run_gh(cwd, opspec="pass.py", pidfile="not-used")  # doctest: +WINDOWS_ONLY

@@ -46,8 +46,8 @@ file_writer.set_as_default()
 
 def lr_schedule(epoch):
     """
-  Returns a custom learning rate that decreases as epochs progress.
-  """
+    Returns a custom learning rate that decreases as epochs progress.
+    """
     learning_rate = 0.2
     if epoch > 10:
         learning_rate = 0.02
@@ -64,11 +64,15 @@ lr_callback = keras.callbacks.LearningRateScheduler(lr_schedule)
 tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 
 model = keras.models.Sequential(
-    [keras.layers.Dense(16, input_dim=1), keras.layers.Dense(1),]
+    [
+        keras.layers.Dense(16, input_dim=1),
+        keras.layers.Dense(1),
+    ]
 )
 
 model.compile(
-    loss='mse', optimizer=keras.optimizers.SGD(),  # keras.losses.mean_squared_error
+    loss='mse',
+    optimizer=keras.optimizers.SGD(),  # keras.losses.mean_squared_error
 )
 
 training_history = model.fit(

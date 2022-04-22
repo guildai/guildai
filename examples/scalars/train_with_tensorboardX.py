@@ -4,7 +4,8 @@ except ImportError:
     raise SystemExit(
         "This script uses tensorboardX to log scalars "
         "- install it by running 'pip install "
-        "--user tensorboardX'")
+        "--user tensorboardX'"
+    )
 
 # Use summary writer to write scalars with steps.
 #

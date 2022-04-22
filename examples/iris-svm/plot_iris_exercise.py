@@ -8,6 +8,7 @@ https://scikit-learn.org/stable/auto_examples/exercises/plot_iris_exercise.html
 import numpy as np
 
 import matplotlib
+
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
@@ -48,12 +49,12 @@ print("Test accuracy: %f" % clf.score(X_test, y_test))
 
 plt.figure()
 plt.clf()
-plt.scatter(X[:, 0], X[:, 1], c=y, zorder=10, cmap=plt.cm.Paired,
-            edgecolor='k', s=20)
+plt.scatter(X[:, 0], X[:, 1], c=y, zorder=10, cmap=plt.cm.Paired, edgecolor='k', s=20)
 
 # Circle out the test data
-plt.scatter(X_test[:, 0], X_test[:, 1], s=80, facecolors='none',
-            zorder=10, edgecolor='k')
+plt.scatter(
+    X_test[:, 0], X_test[:, 1], s=80, facecolors='none', zorder=10, edgecolor='k'
+)
 
 plt.axis('tight')
 x_min = X[:, 0].min()
@@ -67,8 +68,14 @@ Z = clf.decision_function(np.c_[XX.ravel(), YY.ravel()])
 # Put the result into a color plot
 Z = Z.reshape(XX.shape)
 plt.pcolormesh(XX, YY, Z > 0, cmap=plt.cm.Paired)
-plt.contour(XX, YY, Z, colors=['k', 'k', 'k'],
-            linestyles=['--', '-', '--'], levels=[-.5, 0, .5])
+plt.contour(
+    XX,
+    YY,
+    Z,
+    colors=['k', 'k', 'k'],
+    linestyles=['--', '-', '--'],
+    levels=[-0.5, 0, 0.5],
+)
 
 plt.title(kernel)
 plt.savefig("plot.png")

@@ -17,14 +17,18 @@
 import os
 import sys
 
+
 def main():
     sys.path.insert(0, _guild_import_path())
     import guild.main_bootstrap
+
     guild.main_bootstrap.main()
+
 
 def _guild_import_path():
     script_home = os.path.abspath(os.path.dirname(__file__))
     return os.path.dirname(os.path.dirname(script_home))
+
 
 if __name__ == '__main__':
     main()

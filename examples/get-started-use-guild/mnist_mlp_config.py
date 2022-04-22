@@ -14,9 +14,11 @@ from keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import RMSprop
 from keras.utils import np_utils
 
+
 class Config(object):
     def __init__(self, filename):
         self.__dict__.update(json.load(open(filename)))
+
 
 config = Config("config.json")
 
@@ -46,8 +48,13 @@ y_train = np_utils.to_categorical(y_train, num_classes)
 y_test = np_utils.to_categorical(y_test, num_classes)
 
 model = Sequential()
-model.add(Dense(config.layer_size, activation=config.activation,
-                input_shape=(config.reshape_size,)))
+model.add(
+    Dense(
+        config.layer_size,
+        activation=config.activation,
+        input_shape=(config.reshape_size,),
+    )
+)
 model.add(Dropout(config.dropout))
 for _ in range(config.inner_layers):
     model.add(Dense(config.layer_size, activation=config.activation))
@@ -56,15 +63,20 @@ model.add(Dense(config.num_classes, activation=config.output_activation))
 
 model.summary()
 
-model.compile(loss='categorical_crossentropy',
-              optimizer=RMSprop(learning_rate=config.learning_rate),
-              metrics=['accuracy'])
+model.compile(
+    loss='categorical_crossentropy',
+    optimizer=RMSprop(learning_rate=config.learning_rate),
+    metrics=['accuracy'],
+)
 
-history = model.fit(x_train, y_train,
-                    batch_size=config.batch_size,
-                    epochs=config.epochs,
-                    verbose=1,
-                    validation_data=(x_test, y_test))
+history = model.fit(
+    x_train,
+    y_train,
+    batch_size=config.batch_size,
+    epochs=config.epochs,
+    verbose=1,
+    validation_data=(x_test, y_test),
+)
 score = model.evaluate(x_test, y_test, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])

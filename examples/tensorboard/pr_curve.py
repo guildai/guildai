@@ -48,14 +48,10 @@ flags.DEFINE_string(
     "Directory into which to write TensorBoard data.",
 )
 
-flags.DEFINE_integer(
-    "steps", 10, "Number of steps to generate for each PR curve."
-)
+flags.DEFINE_integer("steps", 10, "Number of steps to generate for each PR curve.")
 
 
-def start_runs(
-    logdir, steps, run_name, thresholds, mask_every_other_prediction=False
-):
+def start_runs(logdir, steps, run_name, thresholds, mask_every_other_prediction=False):
     """Generate a PR curve with precision and recall evenly weighted.
 
     Arguments:
@@ -104,8 +100,7 @@ def start_runs(
         tf.concat(
             [
                 tf.abs(distribution.sample([number_of_greens, 1], seed=61)),
-                255
-                - tf.abs(distribution.sample([number_of_greens, 1], seed=82)),
+                255 - tf.abs(distribution.sample([number_of_greens, 1], seed=82)),
                 tf.abs(distribution.sample([number_of_greens, 1], seed=105)),
             ],
             axis=1,
@@ -120,8 +115,7 @@ def start_runs(
         tf.concat(
             [
                 tf.abs(distribution.sample([number_of_blues, 2], seed=132)),
-                255
-                - tf.abs(distribution.sample([number_of_blues, 1], seed=153)),
+                255 - tf.abs(distribution.sample([number_of_blues, 1], seed=153)),
             ],
             axis=1,
         ),
@@ -147,21 +141,15 @@ def start_runs(
     iteration = tf.compat.v1.placeholder(tf.int32, shape=[])
     red_predictor = tf.compat.v1.distributions.Normal(
         loc=0.0,
-        scale=tf.cast(
-            initial_standard_deviations[0] - iteration, dtype=tf.float32
-        ),
+        scale=tf.cast(initial_standard_deviations[0] - iteration, dtype=tf.float32),
     )
     green_predictor = tf.compat.v1.distributions.Normal(
         loc=0.0,
-        scale=tf.cast(
-            initial_standard_deviations[1] - iteration, dtype=tf.float32
-        ),
+        scale=tf.cast(initial_standard_deviations[1] - iteration, dtype=tf.float32),
     )
     blue_predictor = tf.compat.v1.distributions.Normal(
         loc=0.0,
-        scale=tf.cast(
-            initial_standard_deviations[2] - iteration, dtype=tf.float32
-        ),
+        scale=tf.cast(initial_standard_deviations[2] - iteration, dtype=tf.float32),
     )
 
     # Make predictions (assign 3 probabilities to each color based on each color's
@@ -251,9 +239,7 @@ def run_all(logdir, steps, thresholds, verbose=False):
     run_name = "colors"
     if verbose:
         print("--- Running: %s" % run_name)
-    start_runs(
-        logdir=logdir, steps=steps, run_name=run_name, thresholds=thresholds
-    )
+    start_runs(logdir=logdir, steps=steps, run_name=run_name, thresholds=thresholds)
 
     # Next, we generate data for a PR curve that assigns arbitrary weights to
     # predictions.
