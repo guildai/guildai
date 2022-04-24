@@ -1,5 +1,5 @@
 OS = $(shell uname -s)
-SKIP_NPM ?= "1"
+BUILD_GUILD_VIEW ?= ""
 
 ifeq ($(OS),Linux)
     pip_plat_name_args = "-p manylinux_x86_64"
@@ -23,7 +23,7 @@ guild-uat = $(UNIX_TMP)/guild-uat
 .PHONY: build
 
 build:
-	SKIP_NPM=$(SKIP_NPM) python3 setup.py build
+	BUILD_GUILD_VIEW=$(BUILD_GUILD_VIEW) python3 setup.py build
 
 install-reqs:
 	 pip install --user -r requirements.txt
@@ -31,7 +31,7 @@ install-reqs:
 
 pip-package:
 	rm -rf build
-	SKIP_NPM=$(SKIP_NPM) python3 setup.py bdist_wheel -p manylinux1_x86_64
+	BUILD_GUILD_VIEW=$(BUILD_GUILD_VIEW) python3 setup.py bdist_wheel -p manylinux1_x86_64
 
 pip-upload:
 	make pip-package

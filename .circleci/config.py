@@ -162,7 +162,7 @@ class Build(object):
             "Build",
             [
                 ". %s/bin/activate" % self.build_dir,
-                "SKIP_NPM=1 %s/bin/python setup.py bdist_wheel" % self.build_dir,
+                "%s/bin/python setup.py bdist_wheel" % self.build_dir,
             ],
         )
 

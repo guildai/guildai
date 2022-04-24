@@ -9,7 +9,6 @@ branches:
 environment:
   COLUMNS: 999
   GUILD_START_THRESHOLD: 0.5
-  SKIP_NPM: 1
   matrix:
      - PYTHON: "C:\\Python36-x64"
      - PYTHON: "C:\\Python37-x64"
