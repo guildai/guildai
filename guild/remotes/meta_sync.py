@@ -40,7 +40,7 @@ class MetaSyncRemote(remotelib.Remote):
         deleted = opts.pop("deleted", False)
         if deleted and not self._deleted_runs_dir:
             raise remotelib.OperationNotSupported(
-                "remote '%s' does not support '--delete' option" % self.name
+                "remote '%s' does not support '--deleted' option" % self.name
             )
         self._sync_runs_meta()
         runs_dir = self._deleted_runs_dir if deleted else self._runs_dir
