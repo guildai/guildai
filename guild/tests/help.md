@@ -201,22 +201,22 @@ Guild supports console help rendering via `guildfile_console_help`.
 We strip ansi formatting for test output.
 
     >>> from guild.ansi_util import strip_ansi_format
-    >>> print(strip_ansi_format(console_help))  # doctest: +REPORT_UDIFF -NORMALIZE_WHITESPACE -PYTEST_ONLY
+    >>> print(strip_ansi_format(console_help))  # doctest: +REPORT_UDIFF -PYTEST_ONLY -NORMALIZE_WHITESPACE
     OVERVIEW
     <BLANKLINE>
-        You are viewing help for operations defined in...
-        .../mnist-pkg'.
+        You are viewing help for operations defined in...mnist-...pkg...
     <BLANKLINE>
-        To run an operation use 'guild run OPERATION' where OPERATION is one
-        of options listed below. If an operation is associated with a model,
-        include the model name as MODEL:OPERATION.
+        To run an operation use 'guild run OPERATION' where OPERATION is one of
+        options listed below. If an operation is associated with a model, include
+        the model name as MODEL:OPERATION.
     <BLANKLINE>
         To list available operations, run 'guild operations'.
     <BLANKLINE>
-        Set operation flags using 'FLAG=VALUE' arguments to the run command.
-        Refer to the operations below for a list of supported flags.
+        Set operation flags using 'FLAG=VALUE' arguments to the run command. Refer
+        to the operations below for a list of supported flags.
     <BLANKLINE>
         For more information on running operations, try 'guild run --help'.
+    <BLANKLINE>
         For general information, try 'guild --help'.
     <BLANKLINE>
     MODELS

@@ -273,7 +273,9 @@ def _write_console_help_overview(guildfile, model_desc, out):
         flags.
 
         For more information on running operations, try 'guild run
-        --help'. For general information, try 'guild --help'.
+        --help'.
+
+        For general information, try 'guild --help'.
         """
             % model_desc
         )

@@ -70,7 +70,7 @@ def _default_terminal_width():
 
 
 def terminal_width():
-    return shutil.get_terminal_size()[0]
+    return shutil.get_terminal_size().columns
 
 
 def _echo(s, err=False, **kw):

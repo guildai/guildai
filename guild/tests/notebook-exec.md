@@ -74,7 +74,7 @@ When we run this notebook, the defaults are used.
     c = b - a
     print("c: %f" % c)
     f = 1
-    s = "hello"
+    s = 'hello'
     <BLANKLINE>
     if f:
         print(s)
