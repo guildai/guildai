@@ -90,6 +90,6 @@ Init script mod:
 ## Unsupported Shell
 
     >>> run("guild completion --shell other")
-    guild: Invalid value for '-s' / '--shell': invalid choice: other. (choose from bash, zsh, fish)
+    guild: Invalid value for '-s' / '--shell': 'other' is not one of 'bash', 'zsh', 'fish'.
     Try 'guild completion --help' for more information.
     <exit 2>
