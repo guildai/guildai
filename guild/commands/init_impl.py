@@ -292,28 +292,55 @@ def _init_venv(config):
 
 
 def _venv_cmd_args(config):
-    args = _venv_cmd_base_args() + [config.env_dir]
-    args.extend(["--prompt", config.env_name])
-    if config.system_site_packages:
-        args.append("--system-site-packages")
+    args = util.find_apply([_virtual_env_cmd, _venv_module_cmd], config)
+    if not args:
+        cli.error(
+            "Cannot create virtual environment: missing virtualenv or Python env module"
+        )
     return args
+
+
+def _virtual_env_cmd(config):
+    virtualenv_exe = util.which("virtualenv")
+    if not virtualenv_exe:
+        return None
+    return (
+        [virtualenv_exe]
+        + _python_version_args(config)
+        + _prompt_args(config)
+        + _system_site_packages_args(config)
+        + [config.env_dir]
+    )
+
+
+def _python_version_args(config):
+    return ["--python", config.venv_python] if config.venv_python else []
+
+
+def _prompt_args(config):
+    return ["--prompt", config.env_name]
+
+
+def _system_site_packages_args(config):
+    return ["--system-site-packages"] if config.system_site_packages else []
 
 
 def _venv_cmd_base_args():
     return util.find_apply([_virtualenv_cmd])
 
 
-def _virtualenv_cmd():
-    return util.find_apply([_virtualenv_module_cmd])
-
-
-def _virtualenv_module_cmd():
+def _venv_module_cmd(config):
     try:
-        import virtualenv as _
+        import venv as _
     except ImportError:
         return None
     else:
-        return [sys.executable, "-m", "venv"]
+        return (
+            [sys.executable, "-m", "venv"]
+            + _prompt_args(config)
+            + _system_site_packages_args(config)
+            + [config.env_dir]
+        )
 
 
 def _upgrade_pip(config):
