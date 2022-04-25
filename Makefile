@@ -1,5 +1,7 @@
 OS = $(shell uname -s)
 BUILD_GUILD_VIEW ?= ""
+PYTHON := python
+PIP := pip
 
 ifeq ($(OS),Linux)
     pip_plat_name_args = "-p manylinux_x86_64"
@@ -23,7 +25,7 @@ guild-uat = $(UNIX_TMP)/guild-uat
 .PHONY: build
 
 build:
-	BUILD_GUILD_VIEW=$(BUILD_GUILD_VIEW) python3 setup.py build
+	BUILD_GUILD_VIEW=$(BUILD_GUILD_VIEW) $(PYTHON) setup.py build
 
 install-reqs:
 	 pip install --user -r requirements.txt
@@ -31,11 +33,11 @@ install-reqs:
 
 pip-package:
 	rm -rf build
-	BUILD_GUILD_VIEW=$(BUILD_GUILD_VIEW) python3 setup.py bdist_wheel -p manylinux1_x86_64
+	BUILD_GUILD_VIEW=$(BUILD_GUILD_VIEW) $(PYTHON) setup.py bdist_wheel -p manylinux1_x86_64
 
 pip-upload:
 	make pip-package
-	export VER=`python -c 'import guild; print(guild.__version__)'`; \
+	export VER=`$(PYTHON) -c 'import guild; print(guild.__version__)'`; \
 	export TWINE_PASSWORD=`gpg --quiet --batch -d .pypi-creds.gpg`; \
 	twine upload -si packages@guild.ai -u guildai dist/guildai-$$VER*.whl
 
@@ -72,14 +74,17 @@ clean:
 	rm -rf guild/view/node_modules
 	rm -rf .coverage coverage
 
-UAT_PYTHON ?= python3.6
-
-uat: build
+ci-uat: build
 	mkdir -p $(UNIX_TMP)
-	@test -e $(guild-uat) || $(guild) init -p $(UAT_PYTHON) $(native-guild-uat) -y
+	@test -e $(guild-uat) || $(guild) init -p $(PYTHON) $(native-guild-uat) -y
 	@. $(guild-uat)/bin/activate
 	@$(guild-uat)/bin/python -m pip install dist/`ls -Art dist | tail -n 1`
 	@WORKSPACE=$(native-guild-uat) EXAMPLES=examples $(guild-uat)/bin/guild check --uat --notify
+	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
+
+uat:
+	@test -e $(guild-uat) || $(guild) init -p $(PYTHON) $(guild-uat) -y
+	@. $(guild-uat)/bin/activate && WORKSPACE=$(guild-uat) EXAMPLES=examples $(guild) check --uat --notify
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
 
 clean-uat:
@@ -93,7 +98,7 @@ commit-check:
 	make check
 	make uat
 	make timing-test
-	@echo "Commit check passed on `python --version 2>&1`"
+	@echo "Commit check passed on `$(PYTHON) --version 2>&1`"
 
 README.html: README.md
 	markdown_py README.md > README.html
