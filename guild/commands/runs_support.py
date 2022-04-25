@@ -142,17 +142,6 @@ def ac_archive(**_kw):
     return click_util.completion_dir() + click_util.completion_filename(ext=["zip"])
 
 
-def acquire_deprecated_option(fn, opt, param_name):
-    """Remove deprecated option from command param fn."""
-    for param in fn.__click_params__:
-        if opt in param.opts:
-            param.opts.remove("-l")
-            param.callback = None
-        if param.name == param_name:
-            if opt not in param.opts:
-                param.opts.insert(0, opt)
-
-
 def runs_arg(fn):
     """### Specify Runs
 
@@ -296,31 +285,26 @@ def common_filters(fn):
         fn,
         [
             click.Option(
-                ("-Fo", "-o", "--operation", "filter_ops"),
+                ("-Fo", "--operation", "filter_ops"),
                 metavar="VAL",
                 help="Filter runs with operations matching `VAL`.",
                 multiple=True,
                 autocompletion=ac_operation,
-                callback=_deprecated("-o", "-Fo"),
             ),
             click.Option(
-                ("-Fl", "-l", "--label", "filter_labels"),
+                ("-Fl", "--label", "filter_labels"),
                 metavar="VAL",
-                help="Filter runs with labels matching VAL.",
+                help=(
+                    "Filter runs with labels matching VAL. To show unlabeled "
+                    "runs, use --unlabeled."
+                ),
                 multiple=True,
                 autocompletion=ac_label,
-                callback=_deprecated("-l", "-Fl"),
             ),
             click.Option(
-                ("-U", "--unlabeled", "filter_unlabeled"),
-                help="Filter only runs without labels (deprecated - use '-Fl -').",
+                ("-Fu", "--unlabeled", "filter_unlabeled"),
+                help="Filter only runs without labels.",
                 is_flag=True,
-                callback=_deprecated(
-                    "-U",
-                    "'-Fl -'",
-                    "--unlabeled",
-                    "'--label -'",
-                ),
             ),
             click.Option(
                 ("-Ft", "--tag", "filter_tags"),
@@ -336,16 +320,14 @@ def common_filters(fn):
                 multiple=True,
             ),
             click.Option(
-                ("-Fm", "-M", "--marked", "filter_marked"),
+                ("-Fm", "--marked", "filter_marked"),
                 help="Filter only marked runs.",
                 is_flag=True,
-                callback=_deprecated("-M", "-Fm"),
             ),
             click.Option(
-                ("-Fn", "-N", "--unmarked", "filter_unmarked"),
+                ("-Fn", "--unmarked", "filter_unmarked"),
                 help="Filter only unmarked runs.",
                 is_flag=True,
-                callback=_deprecated("-N", "-Fn"),
             ),
             click.Option(
                 ("-Fs", "--started", "filter_started"),
@@ -356,11 +338,10 @@ def common_filters(fn):
                 ),
             ),
             click.Option(
-                ("-Fd", "-D", "--digest", "filter_digest"),
+                ("-Fd", "--digest", "filter_digest"),
                 metavar="VAL",
                 help=("Filter only runs with a matching source code digest."),
                 autocompletion=ac_digest,
-                callback=_deprecated("-D", "-Fd"),
             ),
         ],
     )
@@ -371,21 +352,6 @@ def _callbacks(*cbs):
     def f(ctx, param, value):
         for cb in cbs:
             value = cb(ctx, param, value)
-        return value
-
-    return f
-
-
-def _deprecated(old_option, new_option, *rest):
-    def f(ctx, param, value):
-        if old_option in _command_args():
-            raise SystemExit(
-                f"option {old_option} is deprecated and was removed in version "
-                f"0.8 - use {new_option} instead",
-            )
-        if rest:
-            # pylint: disable=no-value-for-parameter
-            _deprecated(*rest)(ctx, param, value)
         return value
 
     return f
@@ -420,58 +386,40 @@ def status_filters(fn):
         fn,
         [
             click.Option(
-                ("-Sr", "-R", "--running", "status_running"),
+                ("-Sr", "--running", "status_running"),
                 help="Filter only runs that are still running.",
                 is_flag=True,
-                callback=_callbacks(
-                    _deprecated("-R", "-Sr"),
-                    _apply_status_chars,
-                ),
+                callback=_apply_status_chars,
             ),
             click.Option(
-                ("-Sc", "-C", "--completed", "status_completed"),
+                ("-Sc", "--completed", "status_completed"),
                 help="Filter only completed runs.",
                 is_flag=True,
-                callback=_callbacks(
-                    _deprecated("-C", "-Sc"),
-                    _apply_status_chars,
-                ),
+                callback=_apply_status_chars,
             ),
             click.Option(
-                ("-Se", "-E", "--error", "status_error"),
+                ("-Se", "--error", "status_error"),
                 help="Filter only runs that exited with an error.",
                 is_flag=True,
-                callback=_callbacks(
-                    _deprecated("-E", "-Se"),
-                    _apply_status_chars,
-                ),
+                callback=_apply_status_chars,
             ),
             click.Option(
-                ("-St", "-T", "--terminated", "status_terminated"),
+                ("-St", "--terminated", "status_terminated"),
                 help="Filter only runs terminated by the user.",
                 is_flag=True,
-                callback=_callbacks(
-                    _deprecated("-T", "-St"),
-                    _apply_status_chars,
-                ),
+                callback=_apply_status_chars,
             ),
             click.Option(
-                ("-Sp", "-P", "--pending", "status_pending"),
+                ("-Sp", "--pending", "status_pending"),
                 help="Filter only pending runs.",
                 is_flag=True,
-                callback=_callbacks(
-                    _deprecated("-P", "-Sp"),
-                    _apply_status_chars,
-                ),
+                callback=_apply_status_chars,
             ),
             click.Option(
-                ("-Ss", "-G", "--staged", "status_staged"),
+                ("-Ss", "--staged", "status_staged"),
                 help="Filter only staged runs.",
                 is_flag=True,
-                callback=_callbacks(
-                    _deprecated("-G", "-Sg"),
-                    _apply_status_chars,
-                ),
+                callback=_apply_status_chars,
             ),
             click.Option(
                 # Used by _apply_status_chars to implicitly set status

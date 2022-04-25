@@ -94,7 +94,6 @@ def comment_params(fn):
             ),
         ],
     )
-    runs_support.acquire_deprecated_option(fn, "-l", "list")
     return fn
 
 

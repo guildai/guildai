@@ -46,7 +46,6 @@ tests).
       dependencies:                ok
       dependencies-2:              ok
       dependencies-3:              ok
-      deprecated-options:          ok
       disk-plugin:                 ok
       entry-points:                ok
       file-utils:                  ok
