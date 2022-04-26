@@ -444,7 +444,7 @@ def _pop_value_tokens(tokens):
 
 
 def _is_python_expr(tokens):
-    s = tokenize.untokenize(tokens).strip()
+    s = "".join(tokenize.untokenize(tokens).strip().split(" "))
     try:
         m = ast.parse(s)
     except SyntaxError:
