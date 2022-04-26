@@ -225,7 +225,7 @@ def _error_if_active_env():
     active_env = os.getenv("VIRTUAL_ENV")
     if active_env:
         cli.error(
-            "cannot run init from an activate environment (%s)\n"
+            "cannot run init from an activated environment (%s)\n"
             "Deactivate the environment by running 'deactivate' "
             "and try again." % active_env
         )
