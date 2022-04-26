@@ -30,8 +30,6 @@ def _ac_cmd(ctx, param, incomplete, **_kw):
 
 
 def _ac_path(ctx, param, incomplete, **_kw):
-    # TODO: disabled when updating to click 8. Does it still work ok?
-    # ctx = runs_support.fix_ac_ctx_for_args(ctx, args)
     if ctx.params.get("remote"):
         return []
     if _has_non_path_options(ctx.params):

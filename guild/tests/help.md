@@ -201,7 +201,7 @@ Guild supports console help rendering via `guildfile_console_help`.
 We strip ansi formatting for test output.
 
     >>> from guild.ansi_util import strip_ansi_format
-    >>> print(strip_ansi_format(console_help))  # doctest: +REPORT_UDIFF -PYTEST_ONLY -NORMALIZE_WHITESPACE
+    >>> print(strip_ansi_format(console_help))  # doctest: +REPORT_UDIFF -NORMALIZE_WHITESPACE -PYTEST_ONLY
     OVERVIEW
     <BLANKLINE>
         You are viewing help for operations defined in...mnist-...pkg...

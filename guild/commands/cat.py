@@ -24,8 +24,6 @@ from . import runs_support
 
 
 def _ac_run_path(ctx, param, incomplete, **_kw):
-    # TODO: make sure that this is working. we removed args frome the parameters to comply with click's expected interface
-    # ctx = runs_support.fix_ac_ctx_for_args(ctx, args)
     if ctx.params["remote"]:
         return []
     if ctx.params["output"]:

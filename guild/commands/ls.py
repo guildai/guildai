@@ -24,7 +24,6 @@ from . import runs_support
 
 
 def _ac_run_path(ctx, param, incomplete):
-    # ctx = runs_support.fix_ac_ctx_for_args(ctx, args)
     if ctx.params.get("remote"):
         return []
     if not ctx.params["run"]:
