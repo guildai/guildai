@@ -57,8 +57,8 @@ the `b` command, which is a Click group.
 
     >>> run("guild run click-b -y")
     base-foo=4
-    Usage: ...args_click... b [OPTIONS] COMMAND [ARGS]...
-    Try '...args_click... b --help' for help.
+    Usage: args_click.py b [OPTIONS] COMMAND [ARGS]...
+    Try 'args_click.py b --help' for help.
     <BLANKLINE>
     Error: Missing command.
     <exit 2>

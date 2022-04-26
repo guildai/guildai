@@ -426,6 +426,19 @@ def scripts_for_dir(dir, exclude=None):
     ]
 
 
+class MainModulePretender:
+    def __init__(self, main_module_globals):
+        self.backup = {}
+        self.new_globals = main_module_globals
+
+    def __enter__(self):
+        self.backup = sys.modules["__main__"]
+        sys.modules["__main__"] = self.new_globals
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        sys.modules["__main__"] = self.backup
+
+
 def exec_script(filename, globals=None, mod_name="__main__"):
     """Execute a Python script.
 
@@ -456,7 +469,8 @@ def exec_script(filename, globals=None, mod_name="__main__"):
             "__file__": filename,
         }
     )
-    exec(code, script_globals)
+    with MainModulePretender(script_globals):
+        exec(code, script_globals)
     return script_globals
 
 
