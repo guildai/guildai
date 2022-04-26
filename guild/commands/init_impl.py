@@ -325,10 +325,6 @@ def _system_site_packages_args(config):
     return ["--system-site-packages"] if config.system_site_packages else []
 
 
-def _venv_cmd_base_args():
-    return util.find_apply([_virtualenv_cmd])
-
-
 def _venv_module_cmd(config):
     try:
         import venv as _
