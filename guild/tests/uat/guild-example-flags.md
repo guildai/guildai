@@ -151,3 +151,51 @@ Globals support:
       l  (default is 1 2 foo)
       s  (default is hello)
     <exit 0>
+
+## BooleanOptionalAction support
+
+    >>> run("guild run python39_boolean.py --help-op")
+    Usage: guild run [OPTIONS] python39_boolean.py [FLAG]...
+    <BLANKLINE>
+    Use 'guild run --help' for a list of options.
+    <BLANKLINE>
+    Flags:
+      bar  (default is no)
+    <BLANKLINE>
+           Choices:  yes, no
+    <BLANKLINE>
+      foo  (default is yes)
+    <BLANKLINE>
+           Choices:  yes, no
+    <exit 0>
+
+    >>> run("guild run python39_boolean.py -y")
+    bar=False foo=True
+    <exit 0>
+
+    >>> run("guild run python39_boolean.py --print-cmd")
+    ??? -um guild.op_main python39_boolean
+    <exit 0>
+
+    >>> run("guild run python39_boolean.py foo=no bar=true -y")
+    bar=True foo=False
+    <exit 0>
+
+    >>> run("guild run python39_boolean.py foo=no bar=true --print-cmd")
+    ??? -um guild.op_main python39_boolean --bar --no-foo
+    <exit 0>
+
+    >>> run("guild run python39_boolean.py bar=false foo=yes -y")
+    bar=False foo=True
+    <exit 0>
+
+    >>> run("guild run python39_boolean.py bar=false foo=yes --print-cmd")
+    ??? -um guild.op_main python39_boolean
+    <exit 0>
+
+    >>> run("guild run python39_boolean.py foo=123 -y")
+    Unsupported value for 'foo' - supported values are:
+      yes
+      no
+    Run the command again using one of these options.
+    <exit 1>

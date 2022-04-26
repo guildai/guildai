@@ -41,11 +41,16 @@ class ArgparseActionFlagsImporter(object):
         raise NotImplementedError()
 
 
-action_types = (
-    argparse._StoreAction,
-    argparse._StoreTrueAction,
-    argparse._StoreFalseAction,
-)
+flag_action_class_names = [
+    "_StoreAction",
+    "_StoreTrueAction",
+    "_StoreFalseAction",
+    "BooleanOptionalAction",
+]
+
+ignore_flag_action_class_names = [
+    "_HelpAction",
+]
 
 
 loglib.init_logging()
@@ -119,10 +124,11 @@ def _closure_parser(closure):
 def _maybe_apply_flag(action, flags):
     flag_name = _flag_name(action)
     if not flag_name:
-        log.debug("skipping %s - not a flag option", action)
+        log.debug("skipping %s - not a flag action", action)
         return
-    if not isinstance(action, action_types):
-        log.debug("skipping %s - not an action type", action)
+    if action.__class__.__name__ not in flag_action_class_names:
+        if action.__class__.__name__ not in ignore_flag_action_class_names:
+            log.debug("skipping %s - not an action type", action)
         return
     attrs = _flag_attrs_for_action(action, flag_name)
     if attrs is not None:
@@ -160,12 +166,16 @@ def default_flag_attrs_for_argparse_action(
         attrs["required"] = True
     if action.type:
         attrs["type"] = _flag_type_for_action(
-            action.type, flag_name, ignore_unknown_type
+            action.type,
+            flag_name,
+            ignore_unknown_type,
         )
-    if isinstance(action, argparse._StoreTrueAction):
-        attrs["arg-switch"] = True
-    elif isinstance(action, argparse._StoreFalseAction):
-        attrs["arg-switch"] = False
+    if action.__class__.__name__ == "_StoreTrueAction":
+        _apply_store_true_flag_attrs(attrs)
+    elif action.__class__.__name__ == "_StoreFalseAction":
+        _apply_store_false_flag_attrs(attrs)
+    elif action.__class__.__name__ == "BooleanOptionalAction":
+        _apply_boolean_option_flag_attrs(action, attrs)
     if _multi_arg(action):
         attrs["arg-split"] = True
         _maybe_encode_splittable_default(attrs)
@@ -203,6 +213,33 @@ def _flag_type_for_action(action_type, flag_name, ignore_unknown_type):
                 flag_name,
             )
         return None
+
+
+def _apply_store_true_flag_attrs(attrs):
+    attrs["arg-switch"] = True
+    attrs["choices"] = [True, False]
+
+
+def _apply_store_false_flag_attrs(attrs):
+    attrs["arg-switch"] = False
+    attrs["choices"] = [True, False]
+
+
+def _apply_boolean_option_flag_attrs(action, attrs):
+    if (
+        len(action.option_strings) != 2
+        or action.option_strings[0][:2] != "--"
+        or action.option_strings[1][:2] != "--"
+    ):
+        log.debug(f"unexpected option_strings for action: {action}")
+        return
+    attrs["choices"] = [True, False]
+    if action.default:
+        attrs["arg-name"] = action.option_strings[1][2:]
+        attrs["arg-switch"] = False
+    else:
+        attrs["arg-name"] = action.option_strings[0][2:]
+        attrs["arg-switch"] = True
 
 
 def _multi_arg(action):

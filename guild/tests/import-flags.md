@@ -649,4 +649,5 @@ flagged above when `project_import_logs` is printed.
     [<guild.guildfile.FlagDef 'foo'>]
 
     >>> flag_info("store-true", "foo")
+    choices: [True, False]
     default: False

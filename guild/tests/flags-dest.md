@@ -401,6 +401,7 @@ the `--help-op` option.
     <BLANKLINE>
     Flags:
       b  (default is no)
+         Choices:  yes, no
       f  (default is 2.345)
       i  (default is 2)
       s  (default is hi)
