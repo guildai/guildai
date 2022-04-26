@@ -47,7 +47,7 @@ Try to list deleted remote runs - the gist remote type doesn't support
 this.
 
     >>> run("guild runs -d -r guild-uat-gist")
-    guild: remote 'guild-uat-gist' does not support '--delete' option
+    guild: remote 'guild-uat-gist' does not support '--deleted' option
     <exit 1>
 
 ## Generate local runs in push
