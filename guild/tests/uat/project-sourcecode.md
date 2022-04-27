@@ -31,8 +31,7 @@ Test source code:
       ./subproject/d.py
       ./subproject/e.csv
       ./subproject/guild.yml
-    Skipped:
-      ...
+    Skipped:...
       ./logo.png...
     <exit 0>
 
@@ -147,8 +146,7 @@ Test source code:
       ./subproject/__init__.py
       ./subproject/d.py
       ./subproject/guild.yml
-    Skipped:
-      ...
+    Skipped:...
       ./README.md
       ./d.csv
       ./logo.png...
@@ -510,8 +508,7 @@ Test source code:
       ./c.py
       ./d.csv
       ./guild.yml
-    Skipped:
-      ...
+    Skipped:...
       ./subproject
       ./logo.png
     <exit 0>
@@ -566,8 +563,7 @@ Test source code:
       ../subproject/d.py
       ../subproject/e.csv
       ../subproject/guild.yml
-    Skipped:
-      ...
+    Skipped:...
       ../logo.png
     <exit 0>
 
@@ -621,8 +617,7 @@ Test source code:
       ../c.py
       ../d.csv
       ../guild.yml
-    Skipped:
-      ...
+    Skipped:...
       ../logo.png
       ../subproject/__init__.py
       ../subproject/d.py
