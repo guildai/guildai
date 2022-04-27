@@ -86,6 +86,7 @@ Rules:
   exclude dir '*' with '.guild-nocopy'
   exclude dir '*' with 'bin/activate'
   exclude dir 'build'
+  exclude dir 'dist'
   exclude dir '*.egg-info'
   include text '*' size < 1048577, max match 100
 Selected for copy:
