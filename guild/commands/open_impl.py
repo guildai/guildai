@@ -18,6 +18,7 @@ from __future__ import division
 import logging
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 
@@ -147,7 +148,7 @@ def _fix_shell_columns():
 
     # pty seems to use COLUMNS=80 and LINES=24 by default so we define
     # here to work around wrapping wrapping issues.
-    cols, lines = click.get_terminal_size()
+    cols, lines = shutil.get_terminal_size()
     return util.Env(
         {
             "COLUMNS": str(cols),

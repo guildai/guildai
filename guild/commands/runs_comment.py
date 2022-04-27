@@ -70,7 +70,7 @@ def comment_params(fn):
                     "to show available indexes."
                 ),
                 type=click.INT,
-                autocompletion=_ac_comment_index,
+                shell_complete=_ac_comment_index,
             ),
             click.Option(
                 ("-c", "--clear"),

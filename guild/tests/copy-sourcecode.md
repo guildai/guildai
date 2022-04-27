@@ -123,6 +123,7 @@ Here's a preview of the copy, which shows the rules that are applied:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
     Selected for copy:
@@ -171,6 +172,7 @@ Specify `root` to change the directory that files are copied from.
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
     Selected for copy:
@@ -201,6 +203,7 @@ This rule is applied after the default rules:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       include '*.png'
@@ -253,6 +256,7 @@ ensures that only those files matching the specified patterns are selected.
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude '*'
@@ -324,6 +328,7 @@ exclude specs.
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude '*.py'
@@ -370,6 +375,7 @@ In the preview, 'subdir' is not mentioned:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude dir 'subdir'
@@ -415,6 +421,7 @@ The preview:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude '*'
@@ -459,6 +466,7 @@ The preview shows that Guild modified the pattern with the glob:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude '*'
@@ -504,6 +512,7 @@ included.
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       include dir '.dotdir'
@@ -578,6 +587,7 @@ Using an exclude spec:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude '*'
@@ -613,6 +623,7 @@ Model adds png and operation excludes `*.py` and `a.*` files:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       include 'subdir/logo.png'
@@ -671,6 +682,7 @@ only py and yml files.
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude '*'
@@ -709,6 +721,7 @@ Model enables all files to copy:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude '*'
@@ -778,6 +791,7 @@ Here's the preview:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
     Selected for copy:

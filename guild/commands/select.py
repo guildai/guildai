@@ -81,7 +81,7 @@ def _ac_attr(incomplete, ctx, **_kw):
     "--attr",
     metavar="ATTR",
     help="Show specified run attribute rather than run ID.",
-    autocompletion=_ac_attr,
+    shell_complete=_ac_attr,
 )
 @click.option("-p", "--path", help="Show run path.", is_flag=True)
 @runs_support.all_filters

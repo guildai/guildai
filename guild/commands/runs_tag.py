@@ -56,7 +56,7 @@ def tag_params(fn):
                 metavar="TAG",
                 help="Delete TAG from specified runs. May be used multiple times.",
                 multiple=True,
-                autocompletion=_ac_tag,
+                shell_complete=_ac_tag,
             ),
             click.Option(
                 ("-c", "--clear"),

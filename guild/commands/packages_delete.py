@@ -41,7 +41,7 @@ def delete_params(fn):
                 metavar="PACKAGE...",
                 nargs=-1,
                 required=True,
-                autocompletion=_ac_package,
+                shell_complete=_ac_package,
             ),
             click.Option(
                 ("-y", "--yes"),

@@ -17,6 +17,7 @@ Test source code:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
     Selected for copy:
@@ -30,8 +31,8 @@ Test source code:
       ./subproject/d.py
       ./subproject/e.csv
       ./subproject/guild.yml
-    Skipped:
-      ./logo.png
+    Skipped:...
+      ./logo.png...
     <exit 0>
 
 Run op:
@@ -73,6 +74,7 @@ Test source code:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       include '*.png'
@@ -88,7 +90,7 @@ Test source code:
       ./subproject/d.py
       ./subproject/e.csv
       ./subproject/guild.yml
-    Skipped:
+    Skipped:...
     <exit 0>
 
 Run op:
@@ -131,6 +133,7 @@ Test source code:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude 'README.md'
@@ -143,11 +146,11 @@ Test source code:
       ./subproject/__init__.py
       ./subproject/d.py
       ./subproject/guild.yml
-    Skipped:
+    Skipped:...
       ./README.md
       ./d.csv
-      ./logo.png
-      ./subproject/e.csv
+      ./logo.png...
+      ./subproject/e.csv...
     <exit 0>
 
 Run op:
@@ -209,6 +212,7 @@ Test source code:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       include '*'
@@ -224,7 +228,7 @@ Test source code:
       ./subproject/d.py
       ./subproject/e.csv
       ./subproject/guild.yml
-    Skipped:
+    Skipped:...
     <exit 0>
 
 Run op:
@@ -267,6 +271,7 @@ Test source code:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude '*'
@@ -280,7 +285,7 @@ Test source code:
       ./subproject/__init__.py
       ./subproject/d.py
       ./subproject/guild.yml
-    Skipped:
+    Skipped:...
       ./README.md
       ./d.csv
       ./logo.png
@@ -321,6 +326,7 @@ The alternative version selects only the root guild.yml:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude '*'
@@ -333,7 +339,7 @@ The alternative version selects only the root guild.yml:
       ./guild.yml
       ./subproject/__init__.py
       ./subproject/d.py
-    Skipped:
+    Skipped:...
       ./README.md
       ./d.csv
       ./logo.png
@@ -354,6 +360,7 @@ Test source code:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
     Selected for copy:
@@ -367,7 +374,7 @@ Test source code:
       ./subproject/d.py
       ./subproject/e.csv
       ./subproject/guild.yml
-    Skipped:
+    Skipped:...
       ./logo.png
     <exit 0>
 
@@ -430,6 +437,7 @@ Test source code:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude '*'
@@ -446,7 +454,7 @@ Test source code:
       ./subproject/d.py
       ./subproject/e.csv
       ./subproject/guild.yml
-    Skipped:
+    Skipped:...
     <exit 0>
 
 Run op:
@@ -489,6 +497,7 @@ Test source code:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude dir 'subproject'
@@ -499,7 +508,7 @@ Test source code:
       ./c.py
       ./d.csv
       ./guild.yml
-    Skipped:
+    Skipped:...
       ./subproject
       ./logo.png
     <exit 0>
@@ -540,6 +549,7 @@ Test source code:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
     Selected for copy:
@@ -553,7 +563,7 @@ Test source code:
       ../subproject/d.py
       ../subproject/e.csv
       ../subproject/guild.yml
-    Skipped:
+    Skipped:...
       ../logo.png
     <exit 0>
 
@@ -596,6 +606,7 @@ Test source code:
       exclude dir '*' with 'bin/activate'
       exclude dir '*' with 'Scripts/activate'
       exclude dir 'build'
+      exclude dir 'dist'
       exclude dir '*.egg-info'
       include text '*' size < 1048577, max match 100
       exclude 'subproject/*'
@@ -606,7 +617,7 @@ Test source code:
       ../c.py
       ../d.csv
       ../guild.yml
-    Skipped:
+    Skipped:...
       ../logo.png
       ../subproject/__init__.py
       ../subproject/d.py

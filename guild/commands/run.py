@@ -24,7 +24,7 @@ from . import remote_support
 AC_EXTENSIONS = ["py", "ipynb"]
 
 
-def _ac_opspec(incomplete, ctx, **_kw):
+def _ac_opspec(ctx, param, incomplete, **_kw):
     ops = _ac_operations(incomplete, ctx)
     if not incomplete and ops:
         return ops
@@ -50,7 +50,7 @@ def _ac_operations(incomplete, ctx, **_kw):
     return click_util.completion_opnames(names)
 
 
-def _ac_flag(incomplete, ctx, **_kw):
+def _ac_flag(ctx, param, incomplete):
     if incomplete[:1] == "@":
         return _ac_batch_files()
 
@@ -123,7 +123,7 @@ def _ac_used_flags(flag_args, opdef):
     return flag_vals
 
 
-def _ac_run(incomplete, ctx, **_kw):
+def _ac_run(ctx, param, incomplete):
     from guild import config
     from guild import var
 
@@ -140,7 +140,7 @@ def run_params(fn):
         fn,
         [
             click.Argument(
-                ("flags",), metavar="[FLAG=VAL...]", nargs=-1, autocompletion=_ac_flag
+                ("flags",), metavar="[FLAG=VAL...]", nargs=-1, shell_complete=_ac_flag
             ),
             click.Option(
                 ("-l", "--label"), metavar="LABEL", help="Set a label for the run."
@@ -169,7 +169,7 @@ def run_params(fn):
             click.Option(
                 ("-d", "--run-dir"),
                 metavar="DIR",
-                autocompletion=click_util.completion_dir,
+                shell_complete=click_util.completion_dir,
                 help=(
                     "Use alternative run directory DIR. Cannot be used with --stage."
                 ),
@@ -182,7 +182,7 @@ def run_params(fn):
                     "Start a staged run or restart an existing run. Cannot be "
                     "used with --proto or --run-dir."
                 ),
-                autocompletion=_ac_run,
+                shell_complete=_ac_run,
             ),
             click.Option(
                 ("--proto",),
@@ -192,7 +192,7 @@ def run_params(fn):
                     "be added or redefined in this operation. Cannot "
                     "be used with --restart."
                 ),
-                autocompletion=_ac_run,
+                shell_complete=_ac_run,
             ),
             click.Option(
                 ("--force-sourcecode",),
@@ -373,7 +373,7 @@ def run_params(fn):
                     "Saves generated trials to a CSV batch file. See BATCH FILES "
                     "for more information."
                 ),
-                autocompletion=click_util.completion_filename,
+                shell_complete=click_util.completion_filename,
             ),
             click.Option(
                 ("--keep-run",),
@@ -390,7 +390,7 @@ def run_params(fn):
                 metavar="PATH",
                 help=("Include PATH as a dependency."),
                 multiple=True,
-                autocompletion=click_util.completion_filename,
+                shell_complete=click_util.completion_filename,
             ),
             click.Option(
                 ("--break", "break_"),
@@ -453,7 +453,7 @@ def run_params(fn):
 
 @click.command()
 @click.argument(
-    "opspec", metavar="[[MODEL:]OPERATION]", required=False, autocompletion=_ac_opspec
+    "opspec", metavar="[[MODEL:]OPERATION]", required=False, shell_complete=_ac_opspec
 )
 @run_params
 @click_util.use_args

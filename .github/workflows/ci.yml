@@ -6,7 +6,7 @@ name: Run tests for CI
 on: [push, pull_request]
 
 concurrency:
-  group: ${{ github.head_ref }}
+  group: "${{ github.head_ref }}"
   cancel-in-progress: true
 
 env:
@@ -32,11 +32,10 @@ jobs:
       fail-fast: false
       matrix:
         sys:
-         - { os: windows-latest, shell: 'bash' }
+         # - { os: windows-latest, shell: 'bash' }
          - { os: ubuntu-latest,  shell: bash }
          - { os: macos-latest,   shell: bash }
-        # 3.10 is blocked because we can't install a pandas wheel for our pinned version on py3.10
-        python-version: ["3.6", "3.7", "3.8", "3.9"]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"] # 3.11 doesn't have many wheels available yet. Disable for now until it has broader support.
         exclude:
           - sys:
               os: macos-latest

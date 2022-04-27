@@ -22,6 +22,9 @@
         default: .
       use-marked:
         arg-switch: true
+        choices:
+        - true
+        - false
         default: false
     flags-dest: globals
     flags-import: [x]
@@ -63,6 +66,9 @@
         default: .
       use-marked:
         arg-switch: true
+        choices:
+        - true
+        - false
         default: false
     flags-dest: args
     flags-import: [use-marked, min-loss]
@@ -91,7 +97,7 @@
         arg-switch: yes
         arg-split:
         env-name:
-        choices: []
+        choices: ['yes', 'no']
         allow-other: no
         distribution:
         max:

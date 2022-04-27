@@ -79,7 +79,7 @@ DEFAULT_GUILD_HOME = config.default_guild_home()
     metavar="PATH",
     help=("Use PATH as current directory for referencing guild " "files (guild.yml)."),
     default=".",
-    autocompletion=click_util.completion_dir,
+    shell_complete=click_util.completion_dir,
 )
 @click.option(
     "-H",
@@ -90,7 +90,7 @@ DEFAULT_GUILD_HOME = config.default_guild_home()
     ),
     default=DEFAULT_GUILD_HOME,
     envvar="GUILD_HOME",
-    autocompletion=click_util.completion_dir,
+    shell_complete=click_util.completion_dir,
 )
 @click.option(
     "--debug",

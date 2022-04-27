@@ -19,6 +19,7 @@ import functools
 import logging
 import os
 import sys
+import shutil
 
 import click
 import six
@@ -37,7 +38,7 @@ def _max_width():
     try:
         return int(os.environ["COLUMNS"])
     except (KeyError, ValueError):
-        return click.get_terminal_size()[0]
+        return shutil.get_terminal_size()[0]
 
 
 try:
@@ -69,7 +70,7 @@ def _default_terminal_width():
 
 
 def terminal_width():
-    return click.get_terminal_size()[0]
+    return shutil.get_terminal_size().columns
 
 
 def _echo(s, err=False, **kw):
@@ -236,7 +237,7 @@ def _table_item_out(
             break
         click.echo(style(val, **style_kw), file=file, nl=False, err=err)
     click.echo(file=file, err=err)
-    terminal_width = click.get_terminal_size()[0]
+    terminal_width = shutil.get_terminal_size()[0]
     if detail_cb:
         detail_cb(data_item)
     else:

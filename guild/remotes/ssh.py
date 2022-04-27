@@ -20,6 +20,7 @@ import json
 import os
 import logging
 import re
+import shutil
 import subprocess
 import sys
 
@@ -488,7 +489,7 @@ class SSHRemote(remotelib.Remote):
 
     @staticmethod
     def _set_columns():
-        w, _h = click.get_terminal_size()
+        w, _h = shutil.get_terminal_size()
         return ["export COLUMNS=%i" % w]
 
     @staticmethod

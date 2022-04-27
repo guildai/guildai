@@ -27,6 +27,9 @@ doctest: -PY3 +PY36 +PY37 # 2022-04-11 these tests fail on github actions becaus
     mnist_mlp_args.py flags imported for dest 'args':
       10sec:
         arg-switch: true
+        choices:
+        - true
+        - false
         default: false
       activation:
         choices:
@@ -125,6 +128,9 @@ doctest: -PY3 +PY36 +PY37 # 2022-04-11 these tests fail on github actions becaus
     mnist_mlp_args.py flags imported for dest 'args':
       10sec:
         arg-switch: true
+        choices:
+        - true
+        - false
         default: false
       activation:
         choices:
@@ -164,7 +170,7 @@ doctest: -PY3 +PY36 +PY37 # 2022-04-11 these tests fail on github actions becaus
         arg-switch: yes
         arg-split:
         env-name:
-        choices: []
+        choices: ['yes', 'no']
         allow-other: no
         distribution:
         max:

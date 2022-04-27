@@ -23,7 +23,10 @@
     ???
     Flags:
       b  (default is no)
-      f  (default is 1.1)
+    <BLANKLINE>
+         Choices:  yes, no
+    <BLANKLINE>
+       f  (default is 1.1)
       s  (default is hola)
     <exit 0>
 
@@ -44,7 +47,10 @@
     ???
     Flags:
       b  (default is no)
-      f  (default is 1.1)
+    <BLANKLINE>
+         Choices:  yes, no
+    <BLANKLINE>
+       f  (default is 1.1)
       i  (default is 1)
       s  (default is hello)
     <exit 0>

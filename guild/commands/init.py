@@ -20,11 +20,11 @@ import click
 from guild import click_util
 
 
-def _ac_python(**_kw):
+def _ac_python(ctx, param, incomplete):
     return click_util.completion_command("python*[^-config]")
 
 
-def _ac_guild_version_or_path(incomplete, ctx, **_kw):
+def _ac_guild_version_or_path(ctx, param, incomplete):
     versions = [ver for ver in _guild_versions(ctx) if ver.startswith(incomplete)]
     return versions + click_util.completion_filename(ext=["whl"])
 
@@ -44,20 +44,20 @@ def _guild_versions(ctx):
     return click_util.completion_safe_apply(ctx, f, []) or []
 
 
-def _ac_guild_home(**_kw):
+def _ac_guild_home(ctx, param, incomplete):
     return click_util.completion_dir()
 
 
-def _ac_requirement(**_kw):
+def _ac_requirement(ctx, param, incomplete):
     return click_util.completion_filename(ext=["txt"])
 
 
-def _ac_path(**_kw):
+def _ac_path(ctx, param, incomplete):
     return click_util.completion_dir()
 
 
 @click.command()
-@click.argument("dir", default="venv", autocompletion=click_util.completion_dir)
+@click.argument("dir", default="venv", shell_complete=click_util.completion_dir)
 @click.option(
     "-n",
     "--name",
@@ -69,7 +69,7 @@ def _ac_path(**_kw):
     "--python",
     metavar="VERSION",
     help="Version of Python to use for the environment.",
-    autocompletion=_ac_python,
+    shell_complete=_ac_python,
 )
 @click.option(
     "-g",
@@ -80,7 +80,7 @@ def _ac_path(**_kw):
         "By default, the active version of Guild is installed. This "
         "value may alternatively be a path to a Guild wheel distribution."
     ),
-    autocompletion=_ac_guild_version_or_path,
+    shell_complete=_ac_guild_version_or_path,
 )
 @click.option(
     "-s",
@@ -105,7 +105,7 @@ def _ac_path(**_kw):
         "Alternative Guild home location associated with the environment. "
         "By default, Guild home is '.guild' in the environment directory."
     ),
-    autocompletion=_ac_guild_home,
+    shell_complete=_ac_guild_home,
 )
 @click.option(
     "-r",
@@ -116,7 +116,7 @@ def _ac_path(**_kw):
         "Install required package or packages defined in a file. May be "
         "used multiple times."
     ),
-    autocompletion=_ac_requirement,
+    shell_complete=_ac_requirement,
 )
 @click.option(
     "-P",
@@ -124,7 +124,7 @@ def _ac_path(**_kw):
     metavar="DIR",
     multiple=True,
     help="Include DIR as a Python path in the environment.",
-    autocompletion=_ac_path,
+    shell_complete=_ac_path,
 )
 @click.option(
     "--no-reqs",

@@ -896,6 +896,7 @@ def _base_sourcecode_select_rules():
         _rule_exclude_venv_dirs(),
         _rule_exclude_venv_dirs_win(),
         _rule_exclude_build_dirs(),
+        _rule_exclude_dist_dirs(),
         _rule_exclude_egg_info_dirs(),
         _rule_include_limited_text_files(),
     ]
@@ -923,6 +924,10 @@ def _rule_exclude_venv_dirs_win():
 
 def _rule_exclude_build_dirs():
     return file_util.exclude("build", type="dir")
+
+
+def _rule_exclude_dist_dirs():
+    return file_util.exclude("dist", type="dir")
 
 
 def _rule_exclude_egg_info_dirs():

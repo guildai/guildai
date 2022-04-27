@@ -5,15 +5,17 @@ try:
 except AttributeError:
     # Copy from argparse to support python<3.9
     class BooleanOptionalAction(argparse.Action):
-        def __init__(self,
-                     option_strings,
-                     dest,
-                     default=None,
-                     type=None,
-                     choices=None,
-                     required=False,
-                     help=None,
-                     metavar=None):
+        def __init__(
+            self,
+            option_strings,
+            dest,
+            default=None,
+            type=None,
+            choices=None,
+            required=False,
+            help=None,
+            metavar=None,
+        ):
 
             _option_strings = []
             for option_string in option_strings:
@@ -35,7 +37,8 @@ except AttributeError:
                 choices=choices,
                 required=required,
                 help=help,
-                metavar=metavar)
+                metavar=metavar,
+            )
 
         def __call__(self, parser, namespace, values, option_string=None):
             if option_string in self.option_strings:
@@ -43,6 +46,7 @@ except AttributeError:
 
         def format_usage(self):
             return ' | '.join(self.option_strings)
+
 
 p = argparse.ArgumentParser()
 p.add_argument("--foo", action=BooleanOptionalAction, default=True)

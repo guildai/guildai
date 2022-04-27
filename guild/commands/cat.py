@@ -23,14 +23,16 @@ from . import remote_support
 from . import runs_support
 
 
-def _ac_run_path(args, ctx, **_kw):
-    ctx = runs_support.fix_ac_ctx_for_args(ctx, args)
+def _ac_run_path(ctx, param, incomplete, **_kw):
     if ctx.params["remote"]:
         return []
     if ctx.params["output"]:
         return []
     if not ctx.params["run"]:
-        ctx.params["run"] = "1"
+        if ctx.args:
+            ctx.params["run"] = ctx.args[0]
+        else:
+            ctx.params["run"] = "1"
     run = runs_support.run_for_ctx(ctx)
     if not run:
         return []
@@ -52,7 +54,7 @@ def _run_base_dir(run, ctx):
     "--path",
     metavar="PATH",
     help="Path of file to show. Require unless --output is used.",
-    autocompletion=_ac_run_path,
+    shell_complete=_ac_run_path,
 )
 @click.option(
     "-s", "--sourcecode", is_flag=True, help="Apply PATH to source code files."
