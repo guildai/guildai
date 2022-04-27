@@ -1,3 +1,7 @@
+---
+doctest: -PY2 -PY310 # 2022-04-26 torch 1.10 is not available for python 3.10. We should bump the constraint to 1.11 when time allows.
+---
+
 # PyTorch Lightning Example
 
 Use the `pytorch-lightning` example.

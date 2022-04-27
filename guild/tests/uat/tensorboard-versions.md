@@ -39,7 +39,7 @@ TensorBoard versions.
 
 ## 2.0.0
 
-    >>> check("tensorboard==2.0.0")
+    >>> check("tensorboard==2.0.0") # doctest: -PY310
     venv: ...
     python_path: ...
     internal tests:
@@ -48,7 +48,7 @@ TensorBoard versions.
 
 ## 2.1.0
 
-    >>> check("tensorboard==2.1.0")
+    >>> check("tensorboard==2.1.0") # doctest: -PY310
     venv: ...
     python_path: ...
     internal tests:
@@ -57,9 +57,18 @@ TensorBoard versions.
 
 ## 2.2.0
 
-    >>> check("tensorboard==2.2.0")  # doctest: -PY2
+    >>> check("tensorboard==2.2.0")  # doctest: -PY2 -PY310
     venv: ...
     python_path: ...
     internal tests:
       tensorboard==2.2.0.md:       ok
+    <exit 0>
+
+## 2.3.0
+
+    >>> check("tensorboard==2.3.0")  # doctest: -PY2 -PY310
+    venv: ...
+    python_path: ...
+    internal tests:
+      tensorboard==2.3.0.md:       ok
     <exit 0>
