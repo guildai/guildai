@@ -6,6 +6,13 @@ exclude = '''
       guild/external
     | guild/tests/samples/projects/flags
     | guild/tests/samples/scripts
+    | guild/view
     | test/lib
 )/
 '''
+
+# Placeing this exclude in extend-exclude because there seems to be a
+# bug - when it appears in exclude above we get a notice to install
+# black[jupyter]. When it's here we don't get this message.
+#
+extend-exclude = '\.ipynb'
