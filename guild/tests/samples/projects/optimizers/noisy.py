@@ -8,7 +8,7 @@ print("noise: %s" % noise)
 
 
 def f(x):
-    return np.sin(5 * x) * (1 - np.tanh(x ** 2)) + np.random.randn() * noise
+    return np.sin(5 * x) * (1 - np.tanh(x**2)) + np.random.randn() * noise
 
 
 loss = f(x)
