@@ -14,19 +14,30 @@ on:
       # pre-releases only. Releases will have only numbers.
       - "[0-9]+.[0-9]+.[0-9]+[a-z]+.*"
 
+env:
+  PIP_INDEX_URL: https://test.pypi.org/simple/
+  NON_INTERACTIVE_CI: true
+  TERM: xterm-256color
+  WORKSPACE: test-env
+  UAT_SKIP: remote-*,hiplot-*
+  COLUMNS: 999
+  EXAMPLES: examples
+  GUILD_START_THRESHOLD: 2.0
+  DASK_SPEEDUP_THRESHOLD: 1.2
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: "3.x"
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip wheel setuptools
       - name: Build package
         run: |
           python setup.py bdist_wheel
@@ -43,20 +54,31 @@ jobs:
           files: dist/*
 
   validate:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.sys.os }}
+    needs:
+      - deploy
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-        python-version: ["3.8", "3.9", "3.10"]
+        sys:
+         # - { os: windows-latest, shell: 'bash' }
+         - { os: ubuntu-latest,  shell: bash }
+         - { os: macos-latest,   shell: bash }
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"] # 3.11 doesn't have many wheels available yet. Disable for now until it has broader support.
+        exclude:
+          - sys:
+              os: macos-latest
+            python-version: 3.7  # there's a strange distutils error about missing distutils.sysconfig. We're punting and ignoring it for now.
     steps:
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Run test suite
+      - name: Install from test PyPI
         run: |
-          python -m pip install --index-url https://test.pypi.org/simple/ guildai
-          guild init -y --no-progress --name guild-test --no-reqs --guild dist/*.whl test-env
-          TERM=xterm-256color source guild-env test-env
-          test-env/bin/guild check -v --offline
-          WORKSPACE=test-env UAT_SKIP=,remote-*,hiplot-*,dvc COLUMNS=999 EXAMPLES=examples GUILD_START_THRESHOLD=2.0 DASK_SPEEDUP_THRESHOLD=1.2 test-env/bin/guild check --uat
+          python -m pip install --pre --upgrade guildai
+      - name: Run UAT tests
+        run: |
+          guild init -y --no-progress --name guild-test --pre --guild dist/*.whl ./test-env
+          source "$(find test-env -iname activate | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n 1)"
+          guild check -v --offline
+          guild check --uat
