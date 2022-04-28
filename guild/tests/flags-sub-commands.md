@@ -94,7 +94,7 @@ Run with modified flag vals.
 
 View the runs.
 
-    >>> run("guild runs")
+    >>> run("guild runs") # doctest: -PY36
     [1:...]  click-b-sub  ...  completed  b-sub-foo=77
     [2:...]  click-a      ...  completed  a-foo=55
     [3:...]  argparse-b   ...  completed  b-foo=33
