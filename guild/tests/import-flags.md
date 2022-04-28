@@ -1,5 +1,11 @@
 # Import flags
 
+NOTE: This tests takes several seconds because it processes Python
+scripts in the sample project multiple times to avoid issues related
+to caching (see use of `NO_IMPORT_FLAGS_CACHE` below when loading the
+sample project Guild file. This does not indicate a performance
+problem with Guild.
+
 Flags can be imported from a main module by using the special
 `$import` attribute of the operation flags.
 
@@ -649,5 +655,24 @@ flagged above when `project_import_logs` is printed.
     [<guild.guildfile.FlagDef 'foo'>]
 
     >>> flag_info("store-true", "foo")
+    choices: [True, False]
+    default: False
+
+## Boolean option
+
+Python 3.9 introduces `argparse.BooleanOptionalAction`, which is
+cleaner interface for setting boolean values. Guild supports this type
+by smartly applying the `--<name>` or `--no-<name>` command line args
+depending on the specified flag values.
+
+    >>> flags("boolean-option")
+    [<guild.guildfile.FlagDef 'bar'>,
+     <guild.guildfile.FlagDef 'foo'>]
+
+    >>> flag_info("boolean-option", "foo")
+    choices: [True, False]
+    default: True
+
+    >>> flag_info("boolean-option", "bar")
     choices: [True, False]
     default: False

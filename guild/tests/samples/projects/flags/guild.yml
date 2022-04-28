@@ -142,3 +142,7 @@ args-with-base:
 store-true:
   main: store_true --foo
   flags-import: all
+
+boolean-option:
+  main: boolean_option
+  flags-import: all
