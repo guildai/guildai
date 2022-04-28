@@ -84,7 +84,7 @@ When we run this notebook, the defaults are used.
     c: 1.100000
     hello
 
-Guild generates saves a copy of the generated notebook and generates an HTML report.
+Guild saves a copy of the generated notebook and generates an HTML report.
 
     >>> project.ls()
     ['flags.html', 'flags.ipynb']
