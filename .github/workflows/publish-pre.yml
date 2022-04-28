@@ -12,7 +12,7 @@ on:
   push:
     tags:
       # pre-releases only. Releases will have only numbers.
-      - "[0-9]+.[0-9]+.[0-9]+[a-z]+.*"
+      - "[0-9]+.[0-9]+.[0-9]+[.]?[a-z]+.*"
 
 env:
   PIP_INDEX_URL: https://test.pypi.org/simple/
