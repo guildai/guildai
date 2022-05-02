@@ -1,0 +1,14 @@
+# Basic dependabot.yml file with
+# minimum configuration for two package managers
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/guild/view/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "python"
+    directory: "/"
+    schedule:
+      interval: "weekly"
