@@ -3,10 +3,11 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/guild/view/"
-    schedule:
-      interval: "weekly"
+  # npm is for guild view, which is effectively unmaintained. Disable these updates for now.
+  # - package-ecosystem: "npm"
+  #   directory: "/guild/view/"
+  #   schedule:
+  #     interval: "weekly"
 
   - package-ecosystem: "pip"
     directory: "/"
