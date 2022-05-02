@@ -1,3 +1,4 @@
+#-*-shell-script-*-
 function _guild_completion;
     set -l response;
 

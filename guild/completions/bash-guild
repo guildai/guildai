@@ -1,3 +1,4 @@
+#-*-shell-script-*-
 _guild_completion() {
     local IFS=$'\n'
     local response

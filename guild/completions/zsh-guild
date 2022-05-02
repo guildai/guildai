@@ -1,3 +1,4 @@
+#-*-shell-script-*-
 #compdef guild
 
 _guild_completion() {
