@@ -40,8 +40,7 @@ DEFAULT_DIFF_CMD = "diff -ru"
 class OneRunArgs(click_util.Args):
     def __init__(self, base_args, run):
         kw = base_args.as_kw()
-        kw.pop("runs")
-        kw["run"] = run
+        kw['run'] = run
         super(OneRunArgs, self).__init__(**kw)
 
 
@@ -72,32 +71,26 @@ def _validate_args(args, ctx):
 
 
 def _apply_default_runs(args):
-    if len(args.runs) == 0:
+    if not args.run:
         if args.dir or args.working:
-            args.runs = ("1", None)
+            args.run = "1"
         else:
-            args.runs = ("2", "1")
-    elif len(args.runs) == 1:
+            args.run, args.other_run = ("2", "1")
+    elif not args.other_run:
         if args.dir or args.working:
-            args.runs = (args.runs[0], None)
+            args.run, args.other_run = (args.run, None)
         else:
             cli.error(
                 "diff requires two runs\n"
-                "Try specifying a second run or 'guild diff --help' "
+                "Try specifying a second RUN or 'guild diff --help' "
                 "for more information."
             )
-    elif len(args.runs) > 2:
-        cli.error(
-            "cannot compare more than two runs\n"
-            "Try specifying just two runs or 'guild diff --help' for "
-            "more information."
-        )
     else:
-        assert len(args.runs) == 2, args
+        assert args.other_run, args
         if args.dir:
-            cli.error("cannot specify RUN2 and --dir")
+            cli.error("cannot specify second RUN and --dir")
         if args.working:
-            cli.error("cannot specify RUN2 and --working")
+            cli.error("cannot specify second RUN and --working")
 
 
 def _diff_dir(args, ctx):
@@ -106,17 +99,15 @@ def _diff_dir(args, ctx):
 
 
 def _one_run_for_args(args, ctx):
-    assert len(args.runs) == 2, args
-    assert args.runs[0] is not None and args.runs[1] is None, args
-    return runs_impl.one_run(OneRunArgs(args, args.runs[0]), ctx)
+    return runs_impl.one_run(OneRunArgs(args, args.run), ctx)
 
 
-def _diff_dirs(dir1, dir2, args):
+def _diff_dirs(dir, other_dir, args):
     if args.paths:
         for path in args.paths:
-            _diff(os.path.join(dir1, path), os.path.join(dir2, path), args)
+            _diff(os.path.join(dir, path), os.path.join(other_dir, path), args)
     else:
-        _diff(dir1, dir2, args)
+        _diff(dir, other_dir, args)
 
 
 def _diff_working(args, ctx):
@@ -159,17 +150,16 @@ def _script_source(run):
 
 
 def _diff_runs(args, ctx):
-    assert len(args.runs) == 2, args
-    assert args.runs[0] is not None and args.runs[1] is not None, args
-    run1 = runs_impl.one_run(OneRunArgs(args, args.runs[0]), ctx)
-    run2 = runs_impl.one_run(OneRunArgs(args, args.runs[1]), ctx)
-    for path1, path2 in _diff_paths(run1, run2, args):
-        _diff(path1, path2, args)
+    assert args.run and args.other_run, args
+    run = runs_impl.one_run(OneRunArgs(args, args.run), ctx)
+    other_run = runs_impl.one_run(OneRunArgs(args, args.other_run), ctx)
+    for path, other_path in _diff_paths(run, other_run, args):
+        _diff(path, other_path, args)
 
 
-def _diff(path1, path2, args):
-    cmd_base = util.shlex_split(_diff_cmd(args, path1))
-    cmd = cmd_base + [path1, path2]
+def _diff(path, other_path, args):
+    cmd_base = util.shlex_split(_diff_cmd(args, path))
+    cmd = cmd_base + [path, other_path]
     log.debug("diff cmd: %r", cmd)
     try:
         subprocess.call(cmd)
@@ -177,25 +167,25 @@ def _diff(path1, path2, args):
         cli.error("error running '%s': %s" % (" ".join(cmd), e))
 
 
-def _diff_cmd(args, path1):
-    return args.cmd or _config_diff_cmd(path1) or _default_diff_cmd(path1)
+def _diff_cmd(args, path):
+    return args.cmd or _config_diff_cmd(path) or _default_diff_cmd(path)
 
 
-def _config_diff_cmd(path1):
+def _config_diff_cmd(path):
     cmd_map = _coerce_config_diff_command(_diff_command_config())
     if not cmd_map:
         return None
-    if not path1:
+    if not path:
         return cmd_map.get("default")
-    return _config_diff_cmd_for_path(path1, cmd_map)
+    return _config_diff_cmd_for_path(path, cmd_map)
 
 
 def _diff_command_config():
     return config.user_config().get("diff", {}).get("command")
 
 
-def _config_diff_cmd_for_path(path1, cmd_map):
-    _, path_ext = os.path.splitext(path1)
+def _config_diff_cmd_for_path(path, cmd_map):
+    _, path_ext = os.path.splitext(path)
     for pattern in cmd_map:
         if pattern == "default":
             continue
@@ -227,14 +217,14 @@ def _coerce_config_diff_command(data):
         return None
 
 
-def _default_diff_cmd(path1):
-    return _default_diff_cmd_for_path(path1) or _default_diff_cmd_()
+def _default_diff_cmd(path):
+    return _default_diff_cmd_for_path(path) or _default_diff_cmd_()
 
 
-def _default_diff_cmd_for_path(path1):
-    if not path1:
+def _default_diff_cmd_for_path(path):
+    if not path:
         return None
-    _, ext = os.path.splitext(path1)
+    _, ext = os.path.splitext(path)
     if ext == ".ipynb":
         return _find_cmd(["nbdiff-web -M"])
 
@@ -255,26 +245,26 @@ def _find_cmd(cmds):
     return DEFAULT_DIFF_CMD
 
 
-def _diff_paths(run1, run2, args):
+def _diff_paths(run, other_run, args):
     paths = []
     if args.attrs:
         _warn_redundant_attr_options(args)
-        paths.extend(_attrs_paths(run1, run2))
+        paths.extend(_attrs_paths(run, other_run))
     else:
         if args.env:
-            paths.extend(_env_paths(run1, run2))
+            paths.extend(_env_paths(run, other_run))
         if args.flags:
-            paths.extend(_flags_paths(run1, run2))
+            paths.extend(_flags_paths(run, other_run))
         if args.deps:
-            paths.extend(_deps_paths(run1, run2))
+            paths.extend(_deps_paths(run, other_run))
     if args.output:
-        paths.extend(_output_paths(run1, run2))
+        paths.extend(_output_paths(run, other_run))
     if args.sourcecode:
-        paths.extend(_sourcecode_paths(run1, run2, args))
+        paths.extend(_sourcecode_paths(run, other_run, args))
     else:
-        paths.extend(_base_paths(run1, run2, args))
+        paths.extend(_base_paths(run, other_run, args))
     if not paths:
-        paths.append((run1.dir, run2.dir))
+        paths.append((run.dir, other_run.dir))
     return paths
 
 
@@ -287,43 +277,43 @@ def _warn_redundant_attr_options(args):
         log.warning("ignoring --deps (already included in --attrs)")
 
 
-def _attrs_paths(run1, run2):
-    return [(run1.guild_path("attrs"), run2.guild_path("attrs"))]
+def _attrs_paths(run, other_run):
+    return [(run.guild_path("attrs"), other_run.guild_path("attrs"))]
 
 
-def _env_paths(run1, run2):
-    return [(run1.guild_path("attrs", "env"), run2.guild_path("attrs", "env"))]
+def _env_paths(run, other_run):
+    return [(run.guild_path("attrs", "env"), other_run.guild_path("attrs", "env"))]
 
 
-def _flags_paths(run1, run2):
-    return [(run1.guild_path("attrs", "flags"), run2.guild_path("attrs", "flags"))]
+def _flags_paths(run, other_run):
+    return [(run.guild_path("attrs", "flags"), other_run.guild_path("attrs", "flags"))]
 
 
-def _deps_paths(run1, run2):
-    return [(run1.guild_path("attrs", "deps"), run2.guild_path("attrs", "deps"))]
+def _deps_paths(run, other_run):
+    return [(run.guild_path("attrs", "deps"), other_run.guild_path("attrs", "deps"))]
 
 
-def _output_paths(run1, run2):
-    return [(run1.guild_path("output"), run2.guild_path("output"))]
+def _output_paths(run, other_run):
+    return [(run.guild_path("output"), other_run.guild_path("output"))]
 
 
-def _sourcecode_paths(run1, run2, args):
-    run1_sourcecode_dir = run_util.sourcecode_dir(run1)
-    run2_sourcecode_dir = run_util.sourcecode_dir(run2)
+def _sourcecode_paths(run, other_run, args):
+    run_sourcecode_dir = run_util.sourcecode_dir(run)
+    other_run_sourcecode_dir = run_util.sourcecode_dir(other_run)
     if args.paths:
         return [
             (
-                os.path.join(run1_sourcecode_dir, path),
-                os.path.join(run2_sourcecode_dir, path),
+                os.path.join(run_sourcecode_dir, path),
+                os.path.join(other_run_sourcecode_dir, path),
             )
             for path in args.paths
         ]
     else:
-        return [(run1_sourcecode_dir, run2_sourcecode_dir)]
+        return [(run_sourcecode_dir, other_run_sourcecode_dir)]
 
 
-def _base_paths(run1, run2, args):
+def _base_paths(run, other_run, args):
     return [
-        (os.path.join(run1.dir, path), os.path.join(run2.dir, path))
+        (os.path.join(run.dir, path), os.path.join(other_run.dir, path))
         for path in args.paths
     ]

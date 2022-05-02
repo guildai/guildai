@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 import click
 
 from guild import click_util
@@ -23,7 +25,14 @@ from . import remote_support
 from . import runs_support
 
 
-def _ac_run_path(ctx, param, incomplete, **_kw):
+def _run_base_dir(run, ctx):
+    from . import cat_impl
+
+    args = click_util.Args(**ctx.params)
+    return cat_impl._path_root(args, run)
+
+
+def _ac_run_path(ctx, param, incomplete):
     if ctx.params["remote"]:
         return []
     if ctx.params["output"]:
@@ -33,18 +42,12 @@ def _ac_run_path(ctx, param, incomplete, **_kw):
             ctx.params["run"] = ctx.args[0]
         else:
             ctx.params["run"] = "1"
+
     run = runs_support.run_for_ctx(ctx)
     if not run:
         return []
     base_dir = _run_base_dir(run, ctx)
-    return click_util.completion_run_filepath(base_dir)
-
-
-def _run_base_dir(run, ctx):
-    from . import cat_impl
-
-    args = click_util.Args(**ctx.params)
-    return cat_impl._path_root(args, run)
+    return click_util.completion_run_filepath(base_dir, incomplete)
 
 
 @click.command("cat")

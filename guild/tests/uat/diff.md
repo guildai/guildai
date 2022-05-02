@@ -101,7 +101,7 @@ If only one run arg is provided, Guild exits with an error message.
 
     >>> run("guild diff -c echo 1")
     guild: diff requires two runs
-    Try specifying a second run or 'guild diff --help' for more information.
+    Try specifying a second RUN or 'guild diff --help' for more information.
     <exit 1>
 
 ## Paths
@@ -144,7 +144,7 @@ Paths are applied to the specified dir.
 A second run cannot be specified when using `--dir`.
 
     >>> run("guild diff -c echo bbbb cccc --dir ./foo")
-    guild: cannot specify RUN2 and --dir
+    guild: cannot specify second RUN and --dir
     <exit 1>
 
 ## Source Code
@@ -193,13 +193,13 @@ Source code to project subdir with `--dir` option:
 Working with two run args is not allowed.
 
     >>> run("guild diff -c echo 1 2 --working")
-    guild: cannot specify RUN2 and --working
+    guild: cannot specify second RUN and --working
     <exit 1>
 
 Dir with two run args is not allowed.
 
     >>> run("guild diff -c echo 1 2 --dir foobar")
-    guild: cannot specify RUN2 and --dir
+    guild: cannot specify second RUN and --dir
     <exit 1>
 
 ## Other Paths

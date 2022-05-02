@@ -21,7 +21,9 @@ from guild import click_util
 
 
 def _ac_python(ctx, param, incomplete):
-    return click_util.completion_command("python*[^-config]")
+    return click_util.completion_command(
+        filter="^python[^-]*(?!-config)$", incomplete=incomplete
+    )
 
 
 def _ac_guild_version_or_path(ctx, param, incomplete):
@@ -45,15 +47,15 @@ def _guild_versions(ctx):
 
 
 def _ac_guild_home(ctx, param, incomplete):
-    return click_util.completion_dir()
+    return click_util.completion_dir(incomplete=incomplete)
 
 
 def _ac_requirement(ctx, param, incomplete):
-    return click_util.completion_filename(ext=["txt"])
+    return click_util.completion_filename(ext=["txt"], incomplete=incomplete)
 
 
 def _ac_path(ctx, param, incomplete):
-    return click_util.completion_dir()
+    return click_util.completion_dir(incomplete=incomplete)
 
 
 @click.command()

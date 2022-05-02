@@ -22,13 +22,13 @@ from guild import click_util
 from . import runs_support
 
 
-def _ac_cmd(ctx, **_kw):
+def _ac_cmd(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
-    return click_util.completion_command()
+    return click_util.completion_command(incomplete=incomplete)
 
 
-def _ac_path(ctx, param, incomplete, **_kw):
+def _ac_path(ctx, param, incomplete):
     from . import runs_impl
 
     open_args = click_util.Args(**ctx.params)
@@ -37,7 +37,7 @@ def _ac_path(ctx, param, incomplete, **_kw):
         dir_base = run.guild_path("sourcecode")
     else:
         dir_base = run.dir
-    return click_util.completion_run_filepath(dir_base)
+    return click_util.completion_run_filepath(dir_base, incomplete)
 
 
 @click.command("open")
