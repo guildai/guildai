@@ -430,7 +430,7 @@ Completed folders that do not have inner folders will not expand further (won't 
 
     >>> cmd_ac(diff.diff, "cmd", [], "guil")
     guild
-    guild-env
+    guild-env...
 
 ## Completions for `run`
 
