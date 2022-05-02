@@ -1,5 +1,24 @@
 # Changes
 
+## 0.8.1
+
+### NOTE: if you use guild's autocomplete functionality, you will need to re-install the completion scripts, as they have changed. It should be sufficient to run `guild completion --install`.
+
+- Add Pydantic typing information to the core data structure
+  classes. This is used to generate a schema for the guildfile.
+- Shift autocompletion implementation into Python so that bash,
+  zsh and fish all work equivalently
+- Add support for BooleanOptionalAction from argparse in Python 3.9+
+- Removes deprecated flags support
+- Update click dependency to >=8.1
+
+Fixes:
+
+- Get tests working with Python 3.10
+- Fix issue with guild init where python version was ignored
+- Rename flags() attribute of Run class to guild_flags(), to avoid
+  conflict with pandas >=1.2
+
 ## 0.6.5
 
 - Remove TensorFlow requirement
