@@ -8,7 +8,12 @@ updates:
     schedule:
       interval: "weekly"
 
-  - package-ecosystem: "python"
+  - package-ecosystem: "pip"
     directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/guild/tests"
     schedule:
       interval: "weekly"
