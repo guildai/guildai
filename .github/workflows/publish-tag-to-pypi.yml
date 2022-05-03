@@ -62,6 +62,7 @@ jobs:
               os: macos-latest
             python-version: 3.7  # there's a strange distutils error about missing distutils.sysconfig. We're punting and ignoring it for now.
     steps:
+      - uses: actions/checkout@v3
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
