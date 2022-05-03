@@ -80,7 +80,7 @@ jobs:
   deploy-to-test-pypi:
     runs-on: ubuntu-latest
     needs: [validate]
-    if: ${{ contains(github.ref, "dev") || contains(github.ref, "rc" ) }}
+    if: contains(github.ref, 'dev') || contains(github.ref, 'rc' )
     steps:
       - name: Use built wheel
         uses: actions/cache@v2
@@ -102,7 +102,7 @@ jobs:
   deploy-to-pypi:
     runs-on: ubuntu-latest
     needs: [validate]
-    if: ${{ ! (contains(github.ref, "dev") || contains(github.ref, "rc" )) }}
+    if: ! (contains(github.ref, 'dev') || contains(github.ref, 'rc' ))
     steps:
       - name: Use built wheel
         uses: actions/cache@v2
