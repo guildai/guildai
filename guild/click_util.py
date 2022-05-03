@@ -29,8 +29,10 @@ import sys
 import click
 from click import shell_completion
 
+
 import guild
 from .util import natsorted
+from .commands.completion_impl import _current_shell
 
 CMD_SPLIT_P = re.compile(r", ?")
 
@@ -370,19 +372,15 @@ def completion_dir(ctx=None, param=None, incomplete=None):
 
 def completion_opnames(names):
     if os.getenv("_GUILD_COMPLETE", "") != "":
-        return ["!!no-colon-wordbreak"] + names
+        if _current_shell() == "bash":
+            names = ["!!no-colon-wordbreak"] + names
+        return names
     else:
         return []
 
 
-# def _compgen_filenames(type, ext):
-#     if not ext:
-#         return ["!!%s:*" % type]
-#     return ["!!%s:*.@(%s)" % (type, "|".join(ext))]
-
-
 def completion_nospace():
-    if os.getenv("_GUILD_COMPLETE", "") != "":
+    if os.getenv("_GUILD_COMPLETE", "") != "" and _current_shell() == "bash":
         return ["!!nospace"]
     else:
         return []

@@ -21,6 +21,7 @@ import os
 import shutil
 import sys
 
+import psutil
 import guild
 
 from guild import cli
@@ -45,16 +46,15 @@ def main(args):
 
 
 def _current_shell():
-    shell_env = os.getenv("SHELL")
-    if not shell_env or "bash" in shell_env:
-        return DEFAULT_SHELL
-    elif "zsh" in shell_env:
+    parent_shell = psutil.Process().parent().exe()
+    if "bash" in parent_shell:
+        return "bash"
+    elif "zsh" in parent_shell:
         return "zsh"
-    elif "fish" in shell_env:
+    elif "fish" in parent_shell:
         return "fish"
-    else:
-        log.warning("unknown shell '%s', assuming %s", shell_env, DEFAULT_SHELL)
-        return DEFAULT_SHELL
+    log.warning("unknown shell '%s', assuming %s", parent_shell, DEFAULT_SHELL)
+    return DEFAULT_SHELL
 
 
 def _completion_script(shell):

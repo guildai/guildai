@@ -28,7 +28,7 @@ def _ac_opspec(ctx, param, incomplete, **_kw):
     ops = _ac_operations(incomplete, ctx)
     if not incomplete and ops:
         return ops
-    return ops + click_util.completion_filename(AC_EXTENSIONS)
+    return ops + click_util.completion_filename(AC_EXTENSIONS, incomplete=incomplete)
 
 
 def _ac_operations(incomplete, ctx, **_kw):

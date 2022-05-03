@@ -5,9 +5,19 @@ _guild_completion() {
 
     response=$(env COMP_WORDS="${COMP_WORDS[*]}" COMP_CWORD=$COMP_CWORD _GUILD_COMPLETE=bash_complete $1)
 
+    COMP_WORDBREAKS='"'"'"'><=;|&(: '  # Reset as can be modified below.
     for completion in $response; do
         IFS=',' read type value <<< "$completion"
-
+        if [ "$value" = "!!nospace" ]; then
+            compopt -o nospace
+            continue
+        elif [ "$value" = "!!no-colon-wordbreak" ]; then
+            # Dangerous as this effects other completions. The damage
+            # is mitigated by resetting COMP_WORDBREAKS above but this
+            # is still not ideal.
+            COMP_WORDBREAKS='"'"'"'><=;|&( '
+            continue
+        fi
         if [[ $type == 'dir' ]]; then
             COMPREPLY=()
             compopt -o dirnames
