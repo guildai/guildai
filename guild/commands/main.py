@@ -19,7 +19,7 @@ import logging
 
 import click
 
-from guild import version as guild_version
+from guild import __version__ as guild_version
 from guild import click_util
 from guild import config
 from guild import util
@@ -71,7 +71,7 @@ DEFAULT_GUILD_HOME = config.default_guild_home()
 
 @click.group(cls=click_util.Group)
 @click.version_option(
-    version=guild_version(), prog_name="guild", message="%(prog)s %(version)s"
+    version=guild_version, prog_name="guild", message="%(prog)s %(version)s"
 )
 @click.option(
     "-C",

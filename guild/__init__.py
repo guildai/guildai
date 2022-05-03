@@ -12,74 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-
 import os
-import subprocess
 
 __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
-
-__git_commit__ = None
-__git_status__ = None
-
-
-def _try_init_git_attrs():
-    try:
-        _init_git_commit()
-    except (OSError, subprocess.CalledProcessError):
-        pass
-    else:
-        try:
-            _init_git_status()
-        except (OSError, subprocess.CalledProcessError):
-            pass
-
-
-def _init_git_commit():
-    repo = _guild_repo()
-    if repo:
-        commit = _cmd_out("git --work-tree \"%s\" log -1 --format=\"%%h\"" % repo)
-    else:
-        commit = None
-    globals()["__git_commit__"] = commit
-
-
-def _guild_repo():
-    repo = os.path.dirname(os.path.dirname(__file__))
-    if os.path.isdir(os.path.join(repo, ".git")):
-        return repo
-    return None
-
-
-def _init_git_status():
-    repo = _guild_repo()
-    if repo:
-        raw = _cmd_out("git -C \"%s\" status -s" % repo)
-    else:
-        raw = None
-    globals()["__git_status__"] = raw.split("\n") if raw else []
-
-
-def _cmd_out(cmd):
-    with open(os.devnull, "w") as null:
-        out = subprocess.check_output(cmd, stderr=null, shell=True)
-        return out.decode("utf-8").strip()
-
-
-def version():
-    if __git_commit__:
-        workspace_changed_marker = "*" if __git_status__ else ""
-        return "%s (dev %s%s)" % (__version__, __git_commit__, workspace_changed_marker)
-    else:
-        return __version__
 
 
 def test_version(req):
     from guild import python_util
+    import re
 
-    return python_util.test_package_version(__version__, req)
+    version_without_dev = re.match("(\d+\.\d+\.\d+).*", __version__).groups()[0]
+    return python_util.test_package_version(version_without_dev, req)
 
 
-_try_init_git_attrs()
 from ._version import __version__
