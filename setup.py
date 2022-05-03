@@ -85,7 +85,6 @@ class Build(build_py):
     """
 
     def run(self):
-        self.run_command("build_version")
         if os.getenv("BUILD_GUILD_VIEW") == "1":
             _check_npm()
             _build_view_dist()
@@ -109,7 +108,6 @@ setup(
     # Setup class config
     cmdclass={
         "sdist": cmdclass["sdist"],
-        "build_version": cmdclass["build_py"],
         "build_py": Build,
     },
     # Attributes from dist-info
