@@ -46,7 +46,7 @@ log = logging.getLogger("guild")
 CHECK_MODS = [
     ("click", True),
     ("dask", False),
-    ("distutils", True),
+    ("distutils", False),
     ("numpy", True),
     ("pandas", False),
     ("pip", True),

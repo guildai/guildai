@@ -24,6 +24,8 @@ env:
   EXAMPLES: examples
   GUILD_START_THRESHOLD: 2.0
   DASK_SPEEDUP_THRESHOLD: 1.2
+  # The following line is a temporary workaround for this issue: https://github.com/pypa/setuptools/issues/2230
+  SETUPTOOLS_USE_DISTUTILS: stdlib
 
 jobs:
   lint:

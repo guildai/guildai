@@ -1074,9 +1074,7 @@ def is_executable_file(path):
 
 
 def copytree(src, dest, preserve_links=True):
-    from distutils import dir_util
-
-    dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
+    shutil.copytree(src, dest, symlinks=preserve_links)
 
 
 def select_copytree(src, dest, config, copy_filter=None):
