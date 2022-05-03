@@ -104,6 +104,7 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
       - name: Add GitHub Release entry
         uses: softprops/action-gh-release@v1
         with:
