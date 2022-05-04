@@ -1,4 +1,3 @@
--r ../../requirements.txt
 dask[distributed]
 dvc[s3]
 ipython
