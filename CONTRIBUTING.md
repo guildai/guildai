@@ -37,6 +37,8 @@ You can run tests a few ways:
 
 # Releasing
 
-Release automation is done with Github Actions. All you need to do is make an annotated tag and push it to the guild repo. An annotated tag is done with `git tag -a <version>`. In the annotation, copy/paste the changelog for your release.
+Versioning is done solely using git tags. All you need to do is make an annotated tag and push it to the guild repo. An annotated tag is done with `git tag -a <version>`. In the annotation, copy/paste the changelog for your release. Note that any markdown text may not get recorded properly because the leading `#` character denotes a comment line in git.
+
+Release automation is done with Github Actions. The pipeline is defined in .github/workflows/publish-tag-to-pypi.yml. This pipeline gets triggered by tags matching the basic "X.Y.Z*" format.
 
 There are two places that packages may be sent. If a tag has "dev" or "rc" in it, it will be uploaded to test PyPI, https://test.pypi.org/project/guildai/. You can use the --extra-index-url flag for pip to install from test PyPI. If the tag does not contain "dev" or "rc", it will be uploaded to PyPI, https://pypi.org/project/guildai/

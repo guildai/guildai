@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 import datetime
-import distutils
 import errno
 import fnmatch
 import os
@@ -1075,7 +1074,9 @@ def is_executable_file(path):
 
 
 def copytree(src, dest, preserve_links=True):
-    distutils.dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
+    from distutils import dir_util
+
+    dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
 
 
 def select_copytree(src, dest, config, copy_filter=None):
