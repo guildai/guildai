@@ -17,13 +17,13 @@ import click
 from guild import click_util
 
 
-def _ac_python(ctx, param, incomplete):
+def _ac_python(_, __, incomplete):
     return click_util.completion_command(
         filter="^python[^-]*(?!-config)$", incomplete=incomplete
     )
 
 
-def _ac_guild_version_or_path(ctx, param, incomplete):
+def _ac_guild_version_or_path(ctx, _, incomplete):
     versions = [ver for ver in _guild_versions(ctx) if ver.startswith(incomplete)]
     return versions + click_util.completion_filename(ext=["whl"])
 
@@ -43,15 +43,15 @@ def _guild_versions(ctx):
     return click_util.completion_safe_apply(ctx, f, []) or []
 
 
-def _ac_guild_home(ctx, param, incomplete):
+def _ac_guild_home(_, __, incomplete):
     return click_util.completion_dir(incomplete=incomplete)
 
 
-def _ac_requirement(ctx, param, incomplete):
+def _ac_requirement(_, __, incomplete):
     return click_util.completion_filename(ext=["txt"], incomplete=incomplete)
 
 
-def _ac_path(ctx, param, incomplete):
+def _ac_path(_, __, incomplete):
     return click_util.completion_dir(incomplete=incomplete)
 
 

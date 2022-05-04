@@ -21,14 +21,14 @@ from . import remote_support
 AC_EXTENSIONS = ["py", "ipynb"]
 
 
-def _ac_opspec(ctx, param, incomplete, **_kw):
+def _ac_opspec(ctx, _, incomplete):
     ops = _ac_operations(incomplete, ctx)
     if not incomplete and ops:
         return ops
     return ops + click_util.completion_filename(AC_EXTENSIONS, incomplete=incomplete)
 
 
-def _ac_operations(incomplete, ctx, **_kw):
+def _ac_operations(incomplete, ctx):
     from guild import cmd_impl_support
     from guild import _test
     from . import operations_impl
@@ -47,7 +47,7 @@ def _ac_operations(incomplete, ctx, **_kw):
     return click_util.completion_opnames(names)
 
 
-def _ac_flag(ctx, param, incomplete):
+def _ac_flag(ctx, _, incomplete):
     if incomplete[:1] == "@":
         return _ac_batch_files()
 
@@ -120,7 +120,7 @@ def _ac_used_flags(flag_args, opdef):
     return flag_vals
 
 
-def _ac_run(ctx, param, incomplete):
+def _ac_run(ctx, _, incomplete):
     from guild import config
     from guild import var
 

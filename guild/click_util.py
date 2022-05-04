@@ -12,17 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asyncio import subprocess
-
 import contextlib
 import functools
 import json
 import os
 import re
-from glob import glob
 from pathlib import Path
 import subprocess
-import sys
 
 import click
 from click import shell_completion
@@ -344,6 +340,7 @@ def _list_dir(dir, incomplete, filters=None, ext=None):
             key = str(path.relative_to(dir)) + ("/" if path.is_dir() else "")
             if key not in tested:
                 tested.add(key)
+                # pylint: disable=too-many-boolean-expressions
                 if (
                     (not ext or path.suffix in set(ext))
                     and path.name not in {".guild", "__pycache__"}
@@ -361,7 +358,7 @@ def completion_filename(ext=None, incomplete=None):
         return []
 
 
-def completion_dir(ctx=None, param=None, incomplete=None):
+def completion_dir(_=None, __=None, incomplete=None):
     if os.getenv("_GUILD_COMPLETE", "") != "":
         return _list_dir(os.getcwd(), incomplete, filters=[os.path.isdir])
     else:
@@ -393,7 +390,8 @@ def completion_batchfile(ext=None, incomplete=None):
 
 def completion_command(filter=None, incomplete=None):
     if os.getenv("_GUILD_COMPLETE", "") != "":
-        # TODO: how should we handle this on windows? call out to bash explicitly? better to avoid explicitly calling bash.
+        # TODO: how should we handle this on windows? call out to bash explicitly? better
+        #    to avoid explicitly calling sh.
         available_commands = subprocess.check_output(
             [
                 "sh",
@@ -447,7 +445,6 @@ def completion_safe_apply(ctx, f, args):
 
 
 def patch_click():
-    global shell_completion
     shell_completion._is_incomplete_option = _patched_is_incomplete_option
 
 

@@ -20,7 +20,7 @@ from . import remote_support
 from . import runs_support
 
 
-def _ac_run_path(ctx, param, incomplete):
+def _ac_run_path(ctx, _, incomplete):
     if ctx.params.get("remote"):
         return []
     if not ctx.params["run"]:

@@ -41,7 +41,6 @@ def get_version_and_cmdclass(pkg_path):
 
     Template code from miniver
     """
-    import os
     from importlib.util import module_from_spec, spec_from_file_location
 
     spec = spec_from_file_location("version", os.path.join(pkg_path, "_version.py"))

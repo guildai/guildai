@@ -21,8 +21,6 @@ import shutil
 import subprocess
 import sys
 
-import click
-
 from guild import click_util
 from guild import config
 from guild import op_util
