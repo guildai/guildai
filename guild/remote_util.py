@@ -17,13 +17,13 @@ from __future__ import division
 
 import logging
 import os
+import subprocess
 import sys
 
 from guild import config
 from guild import file_util
 from guild import log as loglib
 from guild import remote as remotelib
-from guild import subprocess
 from guild import util
 from guild import var
 
