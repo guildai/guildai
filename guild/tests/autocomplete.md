@@ -481,14 +481,8 @@ used by the bash completion handlers to find matching files.
     >>> run_ac("opspec", [], "echo")
     !!no-colon-wordbreak
     echo
-    batch_fail.py
     echo2.py
     echo.py
-    fail.py
-    noisy.py
-    noisy_flubber.py
-    poly.py
-    trial_fail.py
 
 ### Flags
 
