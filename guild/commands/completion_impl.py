@@ -31,7 +31,6 @@ from guild import util
 log = logging.getLogger("guild")
 
 
-DEFAULT_SHELL = "bash"
 SHELL_INIT_BACKUP_SUFFIX_PATTERN = ".guild-backup.{n}"
 
 
@@ -47,14 +46,7 @@ def main(args):
 
 def _current_shell():
     parent_shell = psutil.Process().parent().exe()
-    if "bash" in parent_shell:
-        return "bash"
-    elif "zsh" in parent_shell:
-        return "zsh"
-    elif "fish" in parent_shell:
-        return "fish"
-    log.warning("unknown shell '%s', assuming %s", parent_shell, DEFAULT_SHELL)
-    return DEFAULT_SHELL
+    return os.path.basename(parent_shell)
 
 
 def _completion_script(shell):
