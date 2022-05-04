@@ -26,6 +26,7 @@ env:
   DASK_SPEEDUP_THRESHOLD: 1.2
   # The following line is a temporary workaround for this issue: https://github.com/pypa/setuptools/issues/2230
   SETUPTOOLS_USE_DISTUTILS: stdlib
+  GUILD_SHELL: bash
 
 jobs:
   lint:
