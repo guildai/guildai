@@ -250,8 +250,7 @@ def _encode_function(flagdef, val):
 
 
 class SkoptPlugin(pluginlib.Plugin):
-    @staticmethod
-    def resolve_model_op(opspec):
+    def resolve_model_op(self, opspec):
         if opspec in ("random", "skopt:random"):
             model = RandomOptimizerModelProxy()
             return model, model.op_name

@@ -5,11 +5,12 @@
 
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
-#init-hook=
+init-hook="import os, sys; sys.path.insert(0, os.path.join(os.getcwd(), 'guild', 'external'))"
 
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
 ignore=CVS
+ignore-paths=examples/.*
 
 # Pickle collected data for later comparisons.
 persistent=yes
@@ -19,7 +20,7 @@ persistent=yes
 load-plugins=
 
 # Use multiple processes to speed up Pylint.
-jobs=1
+jobs=0
 
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.

@@ -135,7 +135,7 @@ def _maybe_apply_flag(action, flags):
         flags[flag_name] = attrs
         log.debug("added flag %r: %r", flag_name, attrs)
     else:
-        log.debug("unable to import %s flag for action %r" % (flag_name, action))
+        log.debug("unable to import %s flag for action %r", flag_name, action)
 
 
 def _flag_attrs_for_action(action, flag_name):
@@ -231,7 +231,7 @@ def _apply_boolean_option_flag_attrs(action, attrs):
         or action.option_strings[0][:2] != "--"
         or action.option_strings[1][:2] != "--"
     ):
-        log.debug(f"unexpected option_strings for action: {action}")
+        log.debug("unexpected option_strings for action: %s", action)
         return
     attrs["choices"] = [True, False]
     if action.default:

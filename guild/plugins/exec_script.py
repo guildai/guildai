@@ -45,8 +45,7 @@ class ExecScriptPlugin(plugin.Plugin):
 
     resolve_model_op_priority = 100
 
-    @staticmethod
-    def resolve_model_op(opspec):
+    def resolve_model_op(self, opspec):
         path = os.path.join(config.cwd(), opspec)
         if not os.path.exists(path):
             return None

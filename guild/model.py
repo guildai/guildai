@@ -351,7 +351,7 @@ class GuildfileNamespace(namespace.PrefixNamespace):
     prefix = ".guildfile."
 
     @staticmethod
-    def pip_info(_name):
+    def pip_info(*_):
         raise TypeError("guildfiles cannot be installed using pip")
 
     def package_name(self, project_name):

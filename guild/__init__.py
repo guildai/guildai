@@ -18,6 +18,7 @@ __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 
 
 def test_version(req):
+    import re
     from guild import python_util
     import re
 

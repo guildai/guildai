@@ -150,7 +150,7 @@ class DaskModelProxy(object):
 
 class DaskPlugin(pluginlib.Plugin):
     @staticmethod
-    def resolve_model_op(opspec):
+    def resolve_model_op(opspec, *_):
         if opspec in ("dask:scheduler",):
             model = DaskModelProxy()
             return model, "scheduler"
