@@ -77,18 +77,12 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           python setup.py bdist_wheel
           python -m pip install --upgrade dist/*.whl
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-        with:
-          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
-          limit-access-to-actor: true
-          ## limits ssh access and adds the ssh public keys of the listed GitHub users
-          limit-access-to-users: msarahan
       - name: Run UAT tests
+        env:
+          GUILD_CHECK_TIMEOUT: ${{ fromJSON('{"Linux":1800,"macOS":3600,"Windows":3600}')[runner.os] }}
         run: |
           guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
           source "$(find test-env -iname activate | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n 1)"
-          guild check -v --offline
-          guild check --uat
+          guild check --uat --offline
       - name: upload coverage to Codecov
         uses: codecov/codecov-action@v2

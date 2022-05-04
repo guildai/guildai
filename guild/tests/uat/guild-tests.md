@@ -4,7 +4,7 @@ Guild tests can be run with the `check` command using the `-T` option
 (`-n` here skips the general check info as we're just interested in
 tests).
 
-    >>> run("NO_SKIPPED_MSG=1 guild check -nT", timeout=1800) # doctest: +REPORT_UDIFF
+    >>> run("NO_SKIPPED_MSG=1 guild check -nT", timeout=int(os.getenv("GUILD_CHECK_TIMEOUT", 1800))) # doctest: +REPORT_UDIFF
     internal tests:
       additional-deps:             ok
       anonymous-models:            ok
