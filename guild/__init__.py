@@ -20,7 +20,6 @@ __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 def test_version(req):
     import re
     from guild import python_util
-    import re
 
     version_without_dev = re.match(r"(\d+\.\d+\.\d+).*", __version__).groups()[0]
     return python_util.test_package_version(version_without_dev, req)

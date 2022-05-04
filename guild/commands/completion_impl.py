@@ -52,6 +52,8 @@ def _current_shell():
         return "fish"
     elif "dash" in parent_shell:
         return "dash"
+    elif parent_shell == "sh":
+        return "sh"
     log.warning("unknown shell '%s', assuming %s", parent_shell, DEFAULT_SHELL)
     return DEFAULT_SHELL
 
