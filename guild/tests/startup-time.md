@@ -1,7 +1,3 @@
----
-doctest: +FIXME # Skipped on CI because those machines are slower than we care about
----
-
 # Startup Time
 
 Guild should start within an acceptable amount of time. This test
