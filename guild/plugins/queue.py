@@ -99,7 +99,7 @@ class QueueModelProxy(object):
 
 class QueuePlugin(pluginlib.Plugin):
     @staticmethod
-    def resolve_model_op(opspec):
+    def resolve_model_op(opspec, *_):
         if opspec in ("queue"):
             model = QueueModelProxy()
             return model, "queue"

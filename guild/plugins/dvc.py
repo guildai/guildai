@@ -161,21 +161,18 @@ class _Stage:
 
 
 class DvcPlugin(pluginlib.Plugin):
-    @staticmethod
-    def guildfile_loaded(gf):
+    def guildfile_loaded(self, gf):
         for m in gf.models.values():
             _maybe_apply_dvc_stages(m.extra, m)
 
-    @staticmethod
-    def resolve_model_op(opspec):
+    def resolve_model_op(self, opspec):
         if opspec.startswith("dvc.yaml:"):
             target_stage = opspec[9:]
             model = _DvcModelProxy(target_stage, os.path.abspath(config.cwd()))
             return model, target_stage
         return None
 
-    @staticmethod
-    def resource_source_for_data(data, resdef):
+    def resource_source_for_data(self, data, resdef):
         if "dvcfile" in data:
             return _dvcfile_source(data, resdef)
         elif "dvcstage" in data:
@@ -183,8 +180,7 @@ class DvcPlugin(pluginlib.Plugin):
         else:
             return None
 
-    @staticmethod
-    def resolver_class_for_source(source):
+    def resolver_class_for_source(self, source):
         if source.parsed_uri.scheme == "dvcfile":
             return _DvcFileResolver
         elif source.parsed_uri.scheme == "dvcstage":

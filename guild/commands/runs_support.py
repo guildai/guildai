@@ -25,14 +25,15 @@ log = logging.getLogger("guild")
 def ac_run(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
-    # ensure that other_run follows the same logic as run, without needing to make that logic know about other_run
+    # ensure that other_run follows the same logic as run, without needing to make
+    #    that logic know about other_run
     if param.name == "other_run":
         ctx.params["run"] = ctx.params["other_run"]
     runs = runs_for_ctx(ctx)
     return sorted([run.id for run in runs if run.id.startswith(incomplete)])
 
 
-def ac_local_run(ctx, param, incomplete):
+def ac_local_run(ctx, _, incomplete):
     runs = runs_for_ctx(ctx)
     return sorted([run.id for run in runs if run.id.startswith(incomplete)])
 
@@ -63,7 +64,7 @@ def run_for_ctx(ctx):
     return runs[0] if runs else None
 
 
-def ac_operation(ctx, incomplete, **_kw):
+def ac_operation(ctx, incomplete):
     from guild import run_util
 
     if ctx.params.get("remote"):
@@ -73,7 +74,7 @@ def ac_operation(ctx, incomplete, **_kw):
     return sorted([op for op in ops if op.startswith(incomplete)])
 
 
-def ac_label(ctx, param, incomplete):
+def ac_label(ctx, _, incomplete):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
@@ -85,7 +86,7 @@ def _quote_label(l):
     return "\"%s\"" % l
 
 
-def ac_tag(ctx, incomplete, **_kw):
+def ac_tag(ctx, _, incomplete):
     if ctx.params.get("remote"):
         return []
     # Reset tags to avoid limiting results based on selected tags.
@@ -101,7 +102,7 @@ def _all_tags_sorted(runs):
     return sorted(tags)
 
 
-def ac_digest(ctx, param, incomplete):
+def ac_digest(ctx, _, incomplete):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
@@ -109,7 +110,7 @@ def ac_digest(ctx, param, incomplete):
     return sorted([d for d in digests if d and d.startswith(incomplete)])
 
 
-def ac_archive(ctx, param, incomplete):
+def ac_archive(_, __, incomplete):
     return click_util.completion_dir(
         incomplete=incomplete
     ) + click_util.completion_filename(ext=["zip"], incomplete=incomplete)

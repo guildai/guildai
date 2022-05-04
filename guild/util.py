@@ -353,8 +353,7 @@ class TempBase(object):
     def keep(self):
         self._keep = True
 
-    @staticmethod
-    def delete():
+    def delete(self):
         raise NotImplementedError()
 
 
@@ -1071,9 +1070,16 @@ def is_executable_file(path):
 
 
 def copytree(src, dest, preserve_links=True):
-    from distutils import dir_util
+    try:
+        # dirs_exist_ok was added in python 3.8:
+        # https://docs.python.org/3/library/shutil.html#shutil.copytree
+        shutil.copytree(src, dest, symlinks=preserve_links, dirs_exist_ok=True)
+    except:
+        # distutils is deprecated, so we should move off of this where possible
+        # pylint: disable=deprecated-module
+        from distutils import dir_util
 
-    dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
+        dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
 
 
 def select_copytree(src, dest, config, copy_filter=None):

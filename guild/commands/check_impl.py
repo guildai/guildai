@@ -477,10 +477,10 @@ def _latest_version(check):
         return None
     else:
         if resp.status_code == 404:
-            log.debug("error reading latest version: %s not found" % url)
+            log.debug("error reading latest version: %s not found", url)
             return None
         if resp.status_code != 200:
-            log.debug("error reading latest version: %s" % resp.text)
+            log.debug("error reading latest version: %s", resp.text)
             return None
         return _parse_latest_version(resp.text)
 

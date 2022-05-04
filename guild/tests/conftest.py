@@ -4,7 +4,6 @@ from subprocess import check_output
 import re
 import platform
 
-import pytest
 from textwrap import dedent
 from sybil import Sybil, Example
 from sybil.parsers.codeblock import CodeBlockParser

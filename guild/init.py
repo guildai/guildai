@@ -139,7 +139,7 @@ def _try_guild_meta(src):
     except IOError:
         return None
     else:
-        return yaml.load(f)
+        return yaml.load(f, Loader=yaml.SafeLoader)
 
 
 def _validate_params(params, meta):

@@ -43,7 +43,7 @@ def main(args):
 
 
 def _current_shell():
-    parent_shell = os.getenv("GUILD_SHELL", psutil.Process().parent().exe())
+    parent_shell = os.getenv("GUILD_SHELL", psutil.Process().parent().name())
     if "bash" in parent_shell:
         return "bash"
     elif "zsh" in parent_shell:
@@ -52,6 +52,8 @@ def _current_shell():
         return "fish"
     elif "dash" in parent_shell:
         return "dash"
+    elif parent_shell == "sh":
+        return "sh"
     log.warning("unknown shell '%s', assuming %s", parent_shell, DEFAULT_SHELL)
     return DEFAULT_SHELL
 

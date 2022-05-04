@@ -15,7 +15,6 @@
 import fnmatch
 import logging
 import os
-import sys
 
 from guild import cli
 from guild import run_util

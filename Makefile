@@ -1,6 +1,6 @@
 OS = $(shell uname -s)
 BUILD_GUILD_VIEW ?= ""
-PYTHON := python
+PYTHON ?= python
 PIP := pip
 
 ifeq ($(OS),Linux)

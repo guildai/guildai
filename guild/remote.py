@@ -162,8 +162,7 @@ class Remote(object):
     def stop(self):
         raise OperationNotSupported()
 
-    @staticmethod
-    def stop_details():
+    def stop_details(self):
         return None
 
     def run_op(self, opspec, flags, restart, no_wait, stage, **opts):

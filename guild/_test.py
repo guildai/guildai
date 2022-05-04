@@ -70,6 +70,7 @@ ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
 PYTEST_ONLY = doctest.register_optionflag("PYTEST_ONLY")
 NON_INTERACTIVE_CI = doctest.register_optionflag("NON_INTERACTIVE_CI")
 FIXME = doctest.register_optionflag("FIXME")
+BASH_SHELL = doctest.register_optionflag("BASH_SHELL")
 
 _ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
@@ -486,7 +487,7 @@ class BashDocTestParser(doctest.DocTestParser):
         return "run(\"%s\")" % source
 
     @staticmethod
-    def _check_prompt_blank(lines, indent, name, lineno):
+    def _check_prompt_blank(lines, indent, name, lineno, *_):
         for i, line in enumerate(lines):
             if len(line) >= indent + 2 and line[indent + 1] != " ":
                 raise ValueError(

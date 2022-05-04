@@ -27,7 +27,7 @@ def _run_base_dir(run, ctx):
     return cat_impl._path_root(args, run)
 
 
-def _ac_run_path(ctx, param, incomplete):
+def _ac_run_path(ctx, _, incomplete):
     if ctx.params["remote"]:
         return []
     if ctx.params["output"]:

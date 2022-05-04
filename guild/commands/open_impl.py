@@ -141,8 +141,6 @@ def _shell_f(shell_cmd):
 
 
 def _fix_shell_columns():
-    import click
-
     # pty seems to use COLUMNS=80 and LINES=24 by default so we define
     # here to work around wrapping wrapping issues.
     cols, lines = shutil.get_terminal_size()

@@ -428,6 +428,7 @@ def _run(op, flag_vals, opts, extra_attrs=None):
     run = _init_run()
     _init_run_attrs(run, op, flag_vals, opts, extra_attrs)
     summary = _init_output_scalars(run, opts)
+    exit_status = 0
     try:
         with RunOutput(run, summary):
             _write_proc_lock(run)
@@ -440,7 +441,6 @@ def _run(op, flag_vals, opts, extra_attrs=None):
         exit_status = exit_code.DEFAULT_ERROR
         util.raise_from(RunError(run, e), e)
     else:
-        exit_status = 0
         return run, result
     finally:
         _finalize_run(run, exit_status)

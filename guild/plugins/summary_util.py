@@ -219,9 +219,9 @@ class SummaryPlugin(Plugin):
                 if val is not None:
                     wrapped_scalar_f(tag, val, step=step)
 
-    @staticmethod
-    def read_summary_values(_global_step):
+    def read_summary_values(self, _global_step):
         """Overridden by subclasses."""
+        # pylint: disable=no-self-use
         return {}
 
 

@@ -17,7 +17,7 @@ import click
 from guild import click_util
 
 
-def _ac_path_or_package(ctx, param, incomplete):
+def _ac_path_or_package(_, __, incomplete):
     from . import packages_impl
 
     packages = [pkg.project_name for pkg in packages_impl.packages(False)]
