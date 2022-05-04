@@ -18,9 +18,6 @@ This is in a separate module because resources can show up in
 guildfiles and in packages, which are otherwise unrelated.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-
 import collections
 import copy
 import logging

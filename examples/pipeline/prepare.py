@@ -2,8 +2,6 @@
 # Author: Sasank Chilamkurthy
 # Ref: https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html
 
-from __future__ import print_function, division
-
 import os
 
 import matplotlib

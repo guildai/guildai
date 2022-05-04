@@ -32,7 +32,6 @@ Write a Guild file that defines flags and requirements.
 The other project files:
 
     >>> write(path(project.cwd, "test.py"), """
-    ... from __future__ import print_function
     ... a = 1
     ... b = 2
     ... print(a, b)

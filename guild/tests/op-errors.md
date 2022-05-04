@@ -14,15 +14,15 @@ associated with Guild.
     Exception: big time fail
     <exit 1>
 
-    >>> project.run("stack.py")  # doctest: +REPORT_UDIFF
+    >>> project.run("stack.py")
     Traceback (most recent call last):
-      File ".../.guild/sourcecode/stack.py", line 16, in <module>
+      File ".../.guild/sourcecode/stack.py", line 13, in <module>
         fail()
-      File ".../.guild/sourcecode/stack.py", line 5, in fail
+      File ".../.guild/sourcecode/stack.py", line 2, in fail
         c1()
-      File ".../.guild/sourcecode/stack.py", line 9, in c1
+      File ".../.guild/sourcecode/stack.py", line 6, in c1
         c2()
-      File ".../.guild/sourcecode/stack.py", line 13, in c2
+      File ".../.guild/sourcecode/stack.py", line 10, in c2
         import exception
       File ".../.guild/sourcecode/exception.py", line 1, in <module>
         raise Exception("big time fail")

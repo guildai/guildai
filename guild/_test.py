@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import codecs
 import doctest
 import fnmatch
@@ -424,11 +420,7 @@ def _gen_run_doctest(filename, globs, optionflags, parser=None, checker=None):
     checker = checker or Py23DocChecker()
     runner = TestRunner(checker=checker, verbose=None, optionflags=optionflags)
     test = parser.get_doctest(text, globs, name, filename, 0)
-    flags = (
-        print_function.compiler_flag
-        | absolute_import.compiler_flag
-        | division.compiler_flag
-    )
+    flags = 0
     runner.run(test, flags)
     results = runner.summarize()
     if doctest.master is None:

@@ -2,8 +2,6 @@
 # should support setting the initial value but not change any of the
 # subsequent modification behavior.
 
-from __future__ import print_function
-
 i = 1
 j = i + 1  # not treated as a flag
 

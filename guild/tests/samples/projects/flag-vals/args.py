@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import sys
 
 to_print = sys.argv[1:]

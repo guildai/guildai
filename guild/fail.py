@@ -24,8 +24,6 @@ E.g.
 This is useful during development or to simply print a message.
 """
 
-from __future__ import print_function
-
 import sys
 
 if __name__ == "__main__":

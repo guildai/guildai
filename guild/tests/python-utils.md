@@ -54,9 +54,7 @@ We can enumerate various script declarations.
 Imports:
 
     >>> mnist_mlp.imports
-    ['__future__',
-     'print_function',
-     'keras',
+    ['keras',
      'keras.datasets',
      'mnist',
      'keras.models',

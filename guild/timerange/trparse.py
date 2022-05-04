@@ -45,9 +45,6 @@ explicit-range : BETWEEN range AND range
 range : unit-range | operator-range | datetime
 """
 
-from __future__ import absolute_import
-from __future__ import division
-
 from datetime import datetime, date, time, timedelta
 
 from guild import _yacc

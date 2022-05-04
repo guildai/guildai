@@ -18,9 +18,6 @@ It's safe to import this module even when TensorFlow isn't installed
 as all required external modules are lazily loaded.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-
 import glob
 import hashlib
 import logging

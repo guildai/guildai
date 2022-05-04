@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-
 # IMPORTANT: This module must remain trivial to import as it's used by
 # several fundamental modules including guild.log, guild.cli, and
 # guild.util.

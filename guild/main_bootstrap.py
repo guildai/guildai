@@ -26,9 +26,6 @@ As the bootstrap process is used for every Guild command, it must
 execute as quickly as possible.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-
 import os
 import sys
 
