@@ -77,6 +77,13 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           python setup.py bdist_wheel
           python -m pip install --upgrade dist/*.whl
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
+          limit-access-to-actor: true
+          ## limits ssh access and adds the ssh public keys of the listed GitHub users
+          limit-access-to-users: msarahan
       - name: Run UAT tests
         run: |
           guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
