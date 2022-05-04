@@ -43,7 +43,7 @@ log = logging.getLogger("guild")
 CHECK_MODS = [
     ("click", True),
     ("dask", False),
-    ("distutils", True),
+    ("distutils", False),
     ("numpy", True),
     ("pandas", False),
     ("pip", True),
@@ -192,7 +192,7 @@ def _print_info(check):
 
 
 def _print_guild_info(check):
-    _attr("guild_version", _safe_apply(check, guild.version))
+    _attr("guild_version", guild.__version__)
     _attr("guild_install_location", _safe_apply(check, _guild_install_location))
     _attr("guild_home", _safe_apply(check, config.guild_home))
     _attr("guild_resource_cache", _safe_apply(check, _guild_resource_cache))

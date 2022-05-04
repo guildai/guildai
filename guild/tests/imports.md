@@ -27,7 +27,9 @@
     guild.__init__
     guild._api
     guild._lex
+    guild._static_version
     guild._test
+    guild._version
     guild._yacc
     guild.ansi_util
     guild.batch_main

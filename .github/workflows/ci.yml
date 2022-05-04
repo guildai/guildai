@@ -24,6 +24,9 @@ env:
   EXAMPLES: examples
   GUILD_START_THRESHOLD: 2.0
   DASK_SPEEDUP_THRESHOLD: 1.2
+  # The following line is a temporary workaround for this issue: https://github.com/pypa/setuptools/issues/2230
+  SETUPTOOLS_USE_DISTUTILS: stdlib
+  GUILD_SHELL: bash
 
 jobs:
   lint:
@@ -53,6 +56,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Get Git tags
+        run: git fetch --prune --unshallow --tags
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
@@ -73,10 +78,11 @@ jobs:
           python setup.py bdist_wheel
           python -m pip install --upgrade dist/*.whl
       - name: Run UAT tests
+        env:
+          GUILD_CHECK_TIMEOUT: ${{ fromJSON('{"Linux":1800,"macOS":3600,"Windows":3600}')[runner.os] }}
         run: |
           guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
           source "$(find test-env -iname activate | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n 1)"
-          guild check -v --offline
-          guild check --uat
+          guild check --uat --offline
       - name: upload coverage to Codecov
         uses: codecov/codecov-action@v2
