@@ -30,8 +30,8 @@ Run `guild.main_bootstrap` module with no arguments to test startup time.
 
 Expected output (Guild help):
 
-    >>> print(out.decode())
-    Usage: main_bootstrap.py [OPTIONS] COMMAND [ARGS]...
+    >>> print(out.decode())  # doctest: +REPORT_UDIFF
+    Usage: python -m guild.main_bootstrap [OPTIONS] COMMAND [ARGS]...
     <BLANKLINE>
       Guild AI command line interface.
     <BLANKLINE>
