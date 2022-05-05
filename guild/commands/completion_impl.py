@@ -28,7 +28,7 @@ from guild import util
 log = logging.getLogger("guild")
 
 
-DEFAULT_SHELL = "bash"
+DEFAULT_SHELL = "sh"
 SHELL_INIT_BACKUP_SUFFIX_PATTERN = ".guild-backup.{n}"
 
 
@@ -44,20 +44,18 @@ def main(args):
 
 def _current_shell():
     parent_shell = os.getenv("GUILD_SHELL")
+    known_shells = {"bash", "zsh", "fish", "dash", "sh"}
     if not parent_shell:
-        parent_shell = psutil.Process().parent().exe()
-    if "bash" in parent_shell:
-        return "bash"
-    elif "zsh" in parent_shell:
-        return "zsh"
-    elif "fish" in parent_shell:
-        return "fish"
-    elif "dash" in parent_shell:
-        return "dash"
-    elif parent_shell == "sh":
-        return "sh"
-    log.warning("unknown shell '%s', assuming %s", parent_shell, DEFAULT_SHELL)
-    return DEFAULT_SHELL
+        parent_shell = os.path.basename(psutil.Process().parent().exe())
+    if parent_shell not in known_shells:
+        # if we use something like make to launch guild, we may need to look one level higher.
+        parent_of_parent = os.path.basename(psutil.Process().parent().parent().exe())
+        if parent_of_parent in known_shells:
+            parent_shell = parent_of_parent
+        else:
+            log.warning("unknown shell '%s', assuming %s", parent_shell, DEFAULT_SHELL)
+            parent_shell = DEFAULT_SHELL
+    return parent_shell
 
 
 def _completion_script(shell):
