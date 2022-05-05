@@ -43,7 +43,9 @@ def main(args):
 
 
 def _current_shell():
-    parent_shell = os.getenv("GUILD_SHELL", psutil.Process().parent().name())
+    parent_shell = os.getenv("GUILD_SHELL")
+    if not parent_shell:
+        parent_shell = psutil.Process().parent().exe()
     if "bash" in parent_shell:
         return "bash"
     elif "zsh" in parent_shell:

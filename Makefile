@@ -2,6 +2,7 @@ OS = $(shell uname -s)
 BUILD_GUILD_VIEW ?= ""
 PYTHON ?= python
 PIP := pip
+SHELL := bash
 
 ifeq ($(OS),Linux)
     pip_plat_name_args = "-p manylinux_x86_64"
