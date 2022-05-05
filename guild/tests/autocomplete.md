@@ -28,7 +28,7 @@ A helper to show completions.
     >>> def ac_check_tests(incomplete, subdir=""):
     ...     ctx = check.check.make_context("", [])
     ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         for val in check._ac_all_tests(incomplete, ctx):
+    ...         for val in check._ac_all_tests(ctx, None, incomplete):
     ...             print(val)
 
 Default list includes all built-in tests and a directive to include

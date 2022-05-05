@@ -44,7 +44,7 @@ _RUN_UTIL_FORMAT_ATTRS = [
 ]
 
 
-def _ac_attr(incomplete, ctx, **_kw):
+def _ac_attr(ctx, _, incomplete):
     attrs = set(_RUN_UTIL_FORMAT_ATTRS)
     runs = runs_support.runs_for_ctx(ctx)
     if runs:

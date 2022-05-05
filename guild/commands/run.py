@@ -22,13 +22,13 @@ AC_EXTENSIONS = ["py", "ipynb"]
 
 
 def _ac_opspec(ctx, _, incomplete):
-    ops = _ac_operations(incomplete, ctx)
+    ops = _ac_operations(ctx, _, incomplete)
     if not incomplete and ops:
         return ops
     return ops + click_util.completion_filename(AC_EXTENSIONS, incomplete=incomplete)
 
 
-def _ac_operations(incomplete, ctx):
+def _ac_operations(ctx, _, incomplete):
     from guild import cmd_impl_support
     from guild import _test
     from . import operations_impl
@@ -49,7 +49,7 @@ def _ac_operations(incomplete, ctx):
 
 def _ac_flag(ctx, _, incomplete):
     if incomplete[:1] == "@":
-        return _ac_batch_files()
+        return _ac_batch_files(ctx, _, incomplete)
 
     run_args = click_util.Args(**ctx.params)
     _ensure_log_init()
@@ -57,10 +57,16 @@ def _ac_flag(ctx, _, incomplete):
     if not opdef:
         return []
 
+    # completed flags come in 3's - the name, the equals sign, the value.
+    # If we have a even division, we have no incomplete flag. Otherwise, take
+    # the end element as the incomplete flag.
+    if len(run_args.flags) % 3:
+        incomplete = run_args.flags[-1]
+
     if "=" in incomplete:
         return _ac_flag_choices(incomplete, opdef)
 
-    used_flags = _ac_used_flags(run_args.flags, opdef)
+    used_flags = run_args.flags[::3]
     unused_flags = sorted([f.name for f in opdef.flags if f.name not in used_flags])
     flags_ac = [f for f in unused_flags if f.startswith(incomplete)]
     return ["%s=" % f for f in flags_ac] + click_util.completion_nospace()
@@ -72,8 +78,10 @@ def _ensure_log_init():
     log.init_logging()
 
 
-def _ac_batch_files():
-    return click_util.completion_batchfile(ext=["csv", "yaml", "yml", "json"])
+def _ac_batch_files(_, __, incomplete):
+    return click_util.completion_batchfile(
+        ext=["csv", "yaml", "yml", "json"], incomplete=incomplete
+    )
 
 
 def _ac_opdef(opspec):
@@ -113,10 +121,12 @@ def _flagdef_choices(flagdef):
         return []
 
 
-def _ac_used_flags(flag_args, opdef):
+def _ac_used_flags(flag_args, opdef, incomplete):
     from . import run_impl
 
-    flag_vals, _batch_files = run_impl.split_flag_args(flag_args, opdef)
+    flag_vals, _batch_files = run_impl.split_flag_args(
+        flag_args, opdef, incomplete=incomplete, raise_parse_errors=False
+    )
     return flag_vals
 
 

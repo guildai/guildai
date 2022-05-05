@@ -316,17 +316,20 @@ def _op_init_user_flags(flag_args, op):
             op._batch_trials = trials
 
 
-def split_flag_args(flag_args, opdef):
+def split_flag_args(flag_args, opdef, incomplete=None, raise_parse_errors=True):
     batch_files, rest_args = op_util.split_batch_files(flag_args)
-    assigns = _parse_assigns(rest_args, opdef)
+    assigns = _parse_assigns(rest_args, opdef, raise_parse_errors)
+    if incomplete:
+        print(incomplete, file=sys.stderr)
+        assigns = {k: v for k, v in assigns.items() if incomplete in k}
     return assigns, batch_files
 
 
-def _parse_assigns(assign_args, opdef):
-    try:
-        return op_util.parse_flag_assigns(assign_args, opdef)
-    except op_util.ArgValueError as e:
-        _invalid_flag_arg_error(e.arg)
+def _parse_assigns(assign_args, opdef, raise_parse_errors):
+    assigns, errors = op_util.parse_flag_assigns(assign_args, opdef)
+    if errors and raise_parse_errors:
+        _invalid_flag_arg_error(errors)
+    return assigns
 
 
 def _trials_for_batch_files(batch_files):
@@ -2472,7 +2475,10 @@ def _no_such_opdef_error(model, op_name):
 
 
 def _invalid_flag_arg_error(arg):
-    cli.error("invalid argument '%s' - expected NAME=VAL" % arg)
+    cli.error(
+        "invalid argument(s):\n%s\nexpected NAME=VAL"
+        % "\n".join(e.arg for e in arg.values())
+    )
 
 
 def _no_such_flag_error(name, opdef):

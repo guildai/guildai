@@ -382,8 +382,12 @@ def completion_nospace():
 
 
 def completion_batchfile(ext=None, incomplete=None):
+    incomplete = incomplete or ""
     if os.getenv("_GUILD_COMPLETE", "") != "":
-        return ["@" + str(item) for item in _list_dir(os.getcwd(), incomplete, ext=ext)]
+        return [
+            "@" + str(item)
+            for item in _list_dir(os.getcwd(), incomplete.replace("@", ""), ext=ext)
+        ]
     else:
         return []
 

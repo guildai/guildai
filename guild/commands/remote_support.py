@@ -18,7 +18,7 @@ from guild import cli
 from guild import click_util
 
 
-def _ac_remote(incomplete, **_kw):
+def _ac_remote(_, __, incomplete):
     from guild import config
 
     remotes = config.user_config().get("remotes", {})

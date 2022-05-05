@@ -177,7 +177,7 @@ def _apply_batch_params_to_trial(batch_params, trial_params):
 
 
 def _init_step_flags(flag_args, parent_flag_vals, step):
-    flag_vals = _parse_flag_assigns(flag_args)
+    flag_vals, _errors = _parse_flag_assigns(flag_args)
     _apply_parent_flags(parent_flag_vals, step, flag_vals)
     resolved = _resolve_flag_vals(flag_vals, parent_flag_vals)
     return _remove_undefined_flags(resolved)
@@ -185,10 +185,13 @@ def _init_step_flags(flag_args, parent_flag_vals, step):
 
 def _parse_flag_assigns(assigns):
     assert isinstance(assigns, list), assigns
-    try:
-        return op_util.parse_flag_assigns(assigns)
-    except op_util.ArgValueError as e:
-        _error("invalid argument '%s' - expected NAME=VAL" % e.arg)
+    assigns, errors = op_util.parse_flag_assigns(assigns)
+    if errors:
+        _error(
+            "invalid argument(s):\n%s\nexpected NAME=VAL"
+            % "\n".join(e.arg for e in errors.values())
+        )
+    return assigns, errors
 
 
 def _apply_parent_flags(parent_flag_vals, step, flag_vals):

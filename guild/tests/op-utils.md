@@ -132,82 +132,81 @@ Use `op_util.parse_flags` to parse a list of `NAME=VAL` args.
 Empty arg list:
 
     >>> p_flags([])
-    {}
+    ({}, {})
 
 Integers:
 
     >>> p_flags(["a=1"])
-    {'a': 1}
+    ({'a': 1}, {})
 
 Floats:
 
     >>> p_flags(["a=1.1", "b=.1", "c=1.", "d=1.e1", "e=1.2e2"])
-    {'a': 1.1, 'b': 0.1, 'c': 1.0, 'd': 10.0, 'e': 120.0}
+    ({'a': 1.1, 'b': 0.1, 'c': 1.0, 'd': 10.0, 'e': 120.0}, {})
 
 Floats with exponent notation:
 
     >>> p_flags(["a=1e1", "b=12e2", "c=123e3", "d=123456e7"])
-    {'a': 10.0, 'b': 1200.0, 'c': 123000.0, 'd': 1234560000000.0}
+    ({'a': 10.0, 'b': 1200.0, 'c': 123000.0, 'd': 1234560000000.0}, {})
 
     >>> p_flags(["lr=1e-06"])
-    {'lr': 1e-06}
+    ({'lr': 1e-06}, {})
 
     >>> p_flags(["run=1234567e1"])
-    {'run': 12345670.0}
+    ({'run': 12345670.0}, {})
 
     >>> p_flags(["run=1e2345671"])
-    {'run': inf}
+    ({'run': inf}, {})
 
     >>> p_flags(["lr=1.0e-06"])
-    {'lr': 1e-06}
+    ({'lr': 1e-06}, {})
 
 Note that a float can be forced by adding a decimal:
 
     >>> p_flags(["num=1234567.0e1"])
-    {'num': 12345670.0}
+    ({'num': 12345670.0}, {})
 
     >>> p_flags(["num=1.0e2345671"])
-    {'num': inf}
+    ({'num': inf}, {})
 
 Strings:
 
     >>> p_flags(["a=A"])
-    {'a': 'A'}
+    ({'a': 'A'}, {})
 
 Quoted numbers:
 
     >>> p_flags(["a='1'", "b=\"2\"", "c='1e3'"])
-    {'a': '1', 'b': '2', 'c': '1e3'}
+    ({'a': '1', 'b': '2', 'c': '1e3'}, {})
 
     >>> p_flags(["run='1234567e1'"])
-    {'run': '1234567e1'}
+    ({'run': '1234567e1'}, {})
 
     >>> p_flags(["run='1e2345671'"])
-    {'run': '1e2345671'}
+    ({'run': '1e2345671'}, {})
 
 Booleans:
 
     >>> p_flags(["a=True", "b=true", "c=yes"])
-    {'a': True, 'b': True, 'c': True}
+    ({'a': True, 'b': True, 'c': True}, {})
 
     >>> p_flags(["a=False", "b=false", "c=no"])
-    {'a': False, 'b': False, 'c': False}
+    ({'a': False, 'b': False, 'c': False}, {})
 
 Empty values:
 
     >>> p_flags(["a="])
-    {'a': ''}
+    ({'a': ''}, {})
 
 Lists:
 
     >>> p_flags(["a=[1,2,3,a,b,1.,1.2]"])
-    {'a': [1, 2, 3, 'a', 'b', 1.0, 1.2]}
+    ({'a': [1, 2, 3, 'a', 'b', 1.0, 1.2]}, {})
 
 Missing '=':
 
     >>> p_flags(["a"])
-    Traceback (most recent call last):
-    ArgValueError: a
+    ({}, {'a': ArgValueError('a')})
 
 Various values:
 
@@ -217,11 +216,11 @@ Various values:
     ...   "d-e=",
     ...   "f={'a':456,'b':'C'}",
     ...   "g=null"])
-    {'a': ['A', 'B'],
+    ({'a': ['A', 'B'],
      'c': 123,
      'd-e': '',
      'f': {'a': 456, 'b': 'C'},
-     'g': None}
+     'g': None}, {})
 
 ## Encoding flag assignments
 
@@ -232,7 +231,7 @@ Helper function to print assignments:
 
     >>> def assigns(flags):
     ...     assigns = op_util.flag_assigns(flags)
-    ...     parsed = op_util.parse_flag_assigns(assigns)
+    ...     parsed, errors = op_util.parse_flag_assigns(assigns)
     ...     if parsed != flags:
     ...         print("ERROR parsing assignments")
     ...         print("Original flags:")

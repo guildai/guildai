@@ -1502,8 +1502,15 @@ def flag_assign(name, val):
 def parse_flag_assigns(args, opdef=None):
     flag_types = _flag_types_for_opdef(opdef) if opdef else None
     expanded_args = [os.path.expanduser(arg) for arg in args]
-    parsed_flags = [parse_flag_arg(arg, flag_types) for arg in expanded_args]
-    return dict(parsed_flags)
+    parsed_flags = {}
+    parse_errors = {}
+    for arg in expanded_args:
+        try:
+            name, val = parse_flag_arg(arg, flag_types)
+            parsed_flags[name] = val
+        except ArgValueError as e:
+            parse_errors[arg.split("=")[0]] = e
+    return parsed_flags, parse_errors
 
 
 def _flag_types_for_opdef(opdef):
