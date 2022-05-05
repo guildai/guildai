@@ -206,7 +206,7 @@ Lists:
 Missing '=':
 
     >>> p_flags(["a"])
-    ({}, {'a': ArgValueError('a')})
+    ({}, {'a': ArgValueError('a', )})
 
 Various values:
 

@@ -320,7 +320,6 @@ def split_flag_args(flag_args, opdef, incomplete=None, raise_parse_errors=True):
     batch_files, rest_args = op_util.split_batch_files(flag_args)
     assigns = _parse_assigns(rest_args, opdef, raise_parse_errors)
     if incomplete:
-        print(incomplete, file=sys.stderr)
         assigns = {k: v for k, v in assigns.items() if incomplete in k}
     return assigns, batch_files
 
