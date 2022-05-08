@@ -1,0 +1,9 @@
+default:
+  sourcecode:
+    - guild.yml
+    - '*.py'
+  main: op
+  requires:
+    - file: dep-1
+    - file: dep-subdir/dep-2
+      target-path: dep-subdir

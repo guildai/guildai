@@ -583,6 +583,7 @@ def test_globals():
         "not_used": object(),  # an uncooperative value
         "os": os,
         "path": os.path.join,
+        "printl": _printl,
         "pprint": pprint.pprint,
         "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
         "re": re,
@@ -1091,6 +1092,11 @@ def _strip_class_module(class_name):
 
 def _normlf(s):
     return s.replace("\r", "")
+
+
+def _printl(l):
+    for x in l:
+        print(x)
 
 
 def _rm(path, force=False):

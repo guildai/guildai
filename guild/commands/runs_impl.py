@@ -2020,3 +2020,11 @@ def _split_comment_user(user):
     if len(parts) == 2:
         return parts
     return parts[0], None
+
+
+def merge(args, ctx):
+    from guild import run_merge
+
+    run = one_run(args, ctx)
+    merge = run_merge.RunMerge(run)
+    print(f"TODO: copy {merge.files} to {merge.dest}")
