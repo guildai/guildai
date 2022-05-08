@@ -235,6 +235,7 @@
     guild.run_manifest
     guild.run_merge
     guild.run_manifest
+    guild.run_merge
     guild.run_util
     guild.run_zip_proxy
     guild.service
