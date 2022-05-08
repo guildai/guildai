@@ -65,13 +65,23 @@ class Args:
 
 
 class Group(click.Group):
+    """click.Group subclass that supports commands with aliases.
+
+    E.g. `guild runs rm` and `guild runs `delete` are both supported
+    as the same command. This subclass enables this for the parent
+    group (i.e. `guild runs`).
+    """
+
     def get_command(self, ctx, cmd_name):
-        for cmd in self.commands.values():
-            names = CMD_SPLIT_P.split(cmd.name)
-            if cmd_name in names:
-                cmd_name = cmd.name
-                break
+        cmd_name = _group_cmd_name(self.commands.values(), cmd_name)
         return super(Group, self).get_command(ctx, cmd_name)
+
+
+def _group_cmd_name(group_command_names, default_name):
+    for cmd in group_command_names:
+        if default_name in CMD_SPLIT_P.split(cmd.name):
+            return cmd.name
+    return default_name
 
 
 class ClickBaseHelpFormatter(click.formatting.HelpFormatter):
