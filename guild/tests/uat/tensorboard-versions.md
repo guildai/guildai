@@ -10,10 +10,7 @@ TensorBoard versions.
     >>> def mkenv():
     ...     venv = mkdtemp()
     ...     print("venv: %s" % venv)
-    ...     if sys.version_info[0] == 2:
-    ...         quiet("virtualenv --python python2 %s" % venv)
-    ...     else:
-    ...         quiet("python -m venv %s" % venv)
+    ...     quiet("python -m venv %s" % venv)
     ...     return venv
 
     >>> def pip_install(req, venv_dir):
