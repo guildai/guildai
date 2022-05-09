@@ -11,7 +11,6 @@ Helper functions:
     ...                     completion_result = param.shell_complete(param, "")
     ...                     if completion_result and hasattr(completion_result, "value"):
     ...                         completion_result = [_.value for _ in completion_result]
-    ...                     return completion_result
     ...             return f
     ...     assert False, (param_name, cmd.params)
 
@@ -38,7 +37,6 @@ markdown and text files.
     additional-deps
     anonymous-models
     api
-    api-cmd
     autocomplete
     ...
     var
@@ -46,13 +44,7 @@ markdown and text files.
     vcs-utils
     view
     yaml-utils
-    additional-deps.md
-    anonymous-models.md
-    ...
-    requirements.txt
-    ...
-    view.md
-    yaml-utils.md
+    !!file:*.@(md|txt)
 
 Providing a prefix limits the tests shown.
 
@@ -71,20 +63,7 @@ Providing a prefix limits the tests shown.
     run-with-proto
     runs-1
     runs-2
-    run-attrs.md
-    run-files.md
-    run-impl.md
-    run-labels.md
-    run-ops.md
-    run-output.md
-    run-scripts.md
-    run-status.md
-    run-stop-after.md
-    run-stop.md
-    run-utils.md
-    run-with-proto.md
-    runs-1.md
-    runs-2.md
+    !!file:*.@(md|txt)
 
 ## Runs Init
 
@@ -99,23 +78,6 @@ number of runs.
     b
     >>> project.run("c", run_dir=path(project.guild_home, "runs", "ccc"))
     c
-
-We also add a few files manually to validate that the directory listing
-is working correctly
-
-    >>> for run in project.list_runs():
-    ...     run_dir = os.path.dirname(run.guild_path())
-    ...     fname = os.path.basename(run_dir) + "-file"
-    ...     os.makedirs(os.path.join(run_dir, "foo"), exist_ok=True)
-    ...     with open(os.path.join(run_dir, fname), "w") as f:
-    ...         _ = f.write("something")
-    ...     with open(os.path.join(run_dir, ".guild", "sourcecode", fname+".py"), "w") as f:
-    ...         _ = f.write("something")
-    ...     os.makedirs(os.path.join(run_dir, ".guild", "sourcecode", "inner_source"))
-    ...     with open(os.path.join(run_dir, ".guild", "sourcecode", "inner_source", "inner_"+fname+".py"), "w") as f:
-    ...         _ = f.write("something")
-    ...     with open(os.path.join(run_dir, "foo", fname+".py"), "w") as f:
-    ...         _ = f.write("something")
 
 A helper to show completions:
 
@@ -133,15 +95,13 @@ A helper to show completions:
     ...     assert param_opt, param_name
     ...     ctx = cmd.make_context(cmd.name, list(args), resilient_parsing=True)
     ...     ctx.parent = main.main.make_context("guild", ["-H", project.guild_home])
-    ...     # set this so that our paths are absolute, which we use to verify correctness
-    ...     ctx.params["abspath"] = True
     ...     ac_args = [cmd.name] + args
     ...     if param_opt[0] == "-":
     ...         ac_args.append(param_opt)  # simulate the actual partial args for ac
     ...     empty = True
     ...     with Env({"_GUILD_COMPLETE": "complete"}):
     ...         for val in ac_f(ctx, incomplete):
-    ...             print(val.value if hasattr(val, "value") else val)
+    ...             print(val)
     ...             empty = False
     ...     if empty:
     ...         print("<empty>")
@@ -185,28 +145,22 @@ Run completion with no possible matching runs:
 Path completions for no args:
 
     >>> cmd_ac(cat.cat, "path", [])
-    ccc-file
-    foo/
+    !!runfiles:.../runs/ccc
 
 Path completions for a run arg:
 
     >>> cmd_ac(cat.cat, "path", ["bbb"])
-    bbb-file
-    foo/
+    !!runfiles:.../runs/bbb
 
 Path completions using an operation filter:
 
     >>> cmd_ac(cat.cat, "path", ["-Fo", "a"])
-    aaa-file
-    foo/
+    !!runfiles:.../runs/aaa
 
 Path completion with `--sourcecode` option:
 
     >>> cmd_ac(cat.cat, "path", ["-Fo", "b", "--sourcecode"])
-    bbb-file.py
-    echo.py
-    guild.yml
-    inner_source/
+    !!runfiles:.../runs/bbb/.guild/sourcecode
 
 
 ### `cat` label
@@ -274,42 +228,25 @@ Run completion for no matching runs:
 Path completion for no args:
 
     >>> cmd_ac(ls.ls, "path", [])
-    ccc-file
-    foo/
+    !!runfiles:.../runs/ccc
 
 Path completion for valid run arg:
 
     >>> cmd_ac(ls.ls, "path", ["2"])
-    bbb-file
-    foo/
+    !!runfiles:.../runs/bbb
 
 Path completion for `--sourcecode` option.
 
     >>> cmd_ac(ls.ls, "path", ["--sourcecode"])
-    ccc-file.py
-    echo.py
-    guild.yml
-    inner_source/
-
-Path completion for subfolder
-
-    >>> cmd_ac(ls.ls, "path", [], "foo/")
-    foo/ccc-file.py
+    !!runfiles:.../runs/ccc/.guild/sourcecode
 
 ## Completions for `diff`
 
     >>> from guild.commands import diff
 
-### `run1` arg
+### `runs` arg
 
-    >>> cmd_ac(diff.diff, "run", [])
-    aaa
-    bbb
-    ccc
-
-### `run2` arg
-
-    >>> cmd_ac(diff.diff, "other_run", [])
+    >>> cmd_ac(diff.diff, "runs", [])
     aaa
     bbb
     ccc
@@ -319,72 +256,47 @@ Path completion for subfolder
 No args - completes paths for latest run:
 
     >>> cmd_ac(diff.diff, "paths", [])
-    ccc-file
-    foo/
+    !!runfiles:.../runs/ccc
 
-A run is specified (run 2 is b):
+A run is specified:
 
     >>> cmd_ac(diff.diff, "paths", ["2"])
-    bbb-file
-    foo/
+    !!runfiles:.../runs/bbb
 
 The first run is used for completions when two runs are specified.
 
     >>> cmd_ac(diff.diff, "paths", ["aaa", "bbb"])
-    aaa-file
-    foo/
+    !!runfiles:.../runs/aaa
 
 Source code paths:
 
     >>> cmd_ac(diff.diff, "paths", ["--sourcecode"])
-    ccc-file.py
-    echo.py
-    guild.yml
-    inner_source/
+    !!runfiles:.../runs/ccc/.guild/sourcecode
 
     >>> cmd_ac(diff.diff, "paths", ["b", "--sourcecode"])
-    bbb-file.py
-    echo.py
-    guild.yml
-    inner_source/
+    !!runfiles:.../bbb/.guild/sourcecode
 
     >>> cmd_ac(diff.diff, "paths", ["--sourcecode", "b"])
-    bbb-file.py
-    echo.py
-    guild.yml
-    inner_source/
+    !!runfiles:.../bbb/.guild/sourcecode
 
     >>> cmd_ac(diff.diff, "paths", ["aaa", "bbb", "--sourcecode"])
-    aaa-file.py
-    echo.py
-    guild.yml
-    inner_source/
+    !!runfiles:.../runs/aaa/.guild/sourcecode
 
-    >>> cmd_ac(diff.diff, "paths", ["aaa", "bbb", "--sourcecode"], "inner_source/")
-    inner_source/inner_aaa-file.py
-
-Completions with `--path` can be passed multiple times. validate that completion
-works independently at each specification.
-
-    >>> cmd_ac(diff.diff, "paths", ["--path"], "c")
-    ccc-file
-
-    >>> cmd_ac(diff.diff, "paths", ["--path", "ccc", "--path"], "foo/")
-    foo/ccc-file.py
-
-Path completion with `--working` refers to project path. We shouldn't have the foo folders here.
+Path completion with `--working` refers to project path:
 
     >>> cmd_ac(diff.diff, "paths", ["--working"])
-    echo.py
-    guild.yml
+    !!runfiles:.../samples/projects/autocomplete/
 
     >>> cmd_ac(diff.diff, "paths", ["--working", "-Fo", "a"])
-    echo.py
-    guild.yml
+    !!runfiles:.../samples/projects/autocomplete/
 
     >>> cmd_ac(diff.diff, "paths", ["--working", "aaa", "bbb"])
-    echo.py
-    guild.yml
+    !!runfiles:.../samples/projects/autocomplete/
+
+Completions with `--dir` refer to the specified dir:
+
+    >>> cmd_ac(diff.diff, "paths", ["--dir", "foo"])
+    !!runfiles:foo
 
 Various other options that don't work with path:
 
@@ -403,34 +315,12 @@ Various other options that don't work with path:
 ### `dir` arg
 
     >>> cmd_ac(diff.diff, "dir", [])
-    ???samples/
-    uat/
-
-    >>> cmd_ac(diff.diff, "dir", [], "s")
-    samples/
-
-
-Completed folders that do not have inner folders will not expand further (won't show files)
-
-    >>> cmd_ac(diff.diff, "dir", [], "uat/")
-    <empty>
+    !!dir
 
 ### `cmd` arg
 
     >>> cmd_ac(diff.diff, "cmd", [])
-    ???2to3
-    ...
-    guild
-    guild-env
-    ...
-    python...
-    python3
-    ...
-    tar...
-
-    >>> cmd_ac(diff.diff, "cmd", [], "guil")
-    guild
-    guild-env...
+    !!command
 
 ## Completions for `run`
 
@@ -481,8 +371,7 @@ used by the bash completion handlers to find matching files.
     >>> run_ac("opspec", [], "echo")
     !!no-colon-wordbreak
     echo
-    echo2.py
-    echo.py
+    !!file:*.@(py|ipynb)
 
 ### Flags
 
@@ -537,16 +426,7 @@ If flag type is not defined and choices aren't available, file path
 completion is used.
 
     >>> run_ac("flags", ["flags"], "nt=")
-    batch_fail.py
-    echo2.py
-    echo.py
-    fail.py
-    guild.yml
-    noisy.py
-    noisy_flubber.py
-    poly.py
-    trial_fail.py
-    tune-echo
+    !!file:*
 
 Flag type is otherwise used to provide possible completions.
 
@@ -573,25 +453,19 @@ Boolean flags support 'yes' and 'no'.
 String types including paths support file name completions.
 
     >>> run_ac("flags", ["flags"], "s=")
-    batch_fail.py
-    echo...
-    poly.py...
+    !!file:*
 
     >>> run_ac("flags", ["flags"], "p=")
-    batch_fail.py
-    echo...
-    poly.py...
+    !!file:*
 
     >>> run_ac("flags", ["flags"], "ep=")
-    batch_fail.py
-    echo...
-    poly.py...
+    !!file:*
 
 If a flag starts with '@' it's considered a batch file. In this case
 completion is handled by the `!!batchfile` directive.
 
     >>> run_ac("flags", ["echo"], "@")
-    @guild.yml
+    !!batchfile:*.@(csv|yaml|yml|json)
 
 Flag type
 
@@ -606,7 +480,7 @@ Default:
     >>> cmd_ac(operations.operations, "filters", [])
     echo
     fail
-    flags...
+    flags
     noisy
     noisy-flubber
     opt-test-1
@@ -625,7 +499,7 @@ Filters limit ops:
     opt-test-3
     opt-test-4
 
-As do incompletes:
+As do incomplets:
 
     >>> cmd_ac(operations.operations, "filters", [], "opt-")
     opt-test-1
@@ -647,34 +521,19 @@ The first param to export is the export location.
 Locations may be directories or zip files.
 
     >>> with Env({"_GUILD_COMPLETE": "complete"}):
-    ...     [_.value for _ in runs_export.export_runs.params[0].shell_complete(runs_export.export_runs.params[0], "")]
-    [...'samples/', 'uat/'...'autcomplete_dummy_archive.zip']
+    ...     runs_export.export_runs.params[0].shell_complete(None, "")
+    ['!!dir', '!!file:*.@(zip)']
 
 ## `help`
-
-TODO: These tests should install a guild package (gpkg) somewhere so that it can be detected.
 
 Help completion supports lookup of installed Guild packages and
 directories.
 
     >>> from guild.commands import help
 
-    >>> with SysPath(prepend=[join_path(dirname(tests_dir()), "external")]):
-    ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         help._ac_path_or_package(None, None, "")
-    [...'samples/'...'uat/']
-
-Filtering completion results should work on both the installed packages and the folders
-
-    >>> with SysPath(prepend=[join_path(dirname(tests_dir()), "external")]):
-    ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         help._ac_path_or_package(None, None, "sam")
-    ['samples/']
-
-    >>> with SysPath(prepend=[join_path(dirname(tests_dir()), "external")]): # doctest: -PY3
-    ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         help._ac_path_or_package(None, None, "gp")
-    ['gpkg.hello']
+    >>> with Env({"_GUILD_COMPLETE": "complete"}):
+    ...     help._ac_path_or_package(None, None, "")
+    [...'!!dir']
 
 ## `import`
 
@@ -687,8 +546,8 @@ Filtering completion results should work on both the installed packages and the 
 The archive location for import is a directory.
 
     >>> with Env({"_GUILD_COMPLETE": "complete"}):
-    ...     [_.value for _ in runs_import.import_runs.params[0].shell_complete(runs_import.import_runs.params[0], "")]
-    [...'samples/', 'uat/'...'autcomplete_dummy_archive.zip']
+    ...     runs_import.import_runs.params[0].shell_complete(None, "")
+    ['!!dir', '!!file:*.@(zip)']
 
 ## `init`
 
@@ -706,36 +565,34 @@ Helper to print completions.
 
 Python versions:
 
-    >>> [_.value for _ in ac_f(init.init, "python")()]
-    ['python'...'python3'...]
+    >>> ac_f(init.init, "python")()
+    ['!!command:python*[^-config]']
 
-Target dir - folder list in cwd:
+Target dir:
 
-    >>> [_.value for _ in ac_f(init.init, "dir")()]
-    [...'samples/', 'uat/']
+    >>> ac_f(init.init, "dir")()
+    ['!!dir']
 
 Guild version or path:
 
-    # TODO: this should check for a guild wheel file somehow
     >>> ac_init(init._ac_guild_version_or_path)
     0.1.0
     ...
     0.7.4
     ...
+    !!file:*.@(whl)
 
-Guild home - folder list in cwd:
+Guild home:
 
     >>> ac_init(init._ac_guild_home)
-    ???samples/
-    uat/
+    !!dir
 
 Requirements:
 
     >>> ac_init(init._ac_requirement)
-    requirements.txt
+    !!file:*.@(txt)
 
-Additional Python path - folder list in cwd:
+Additional Python path:
 
     >>> ac_init(init._ac_path)
-    ???samples/
-    uat/
+    !!dir

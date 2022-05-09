@@ -58,6 +58,11 @@ def _current_shell():
     return parent_shell
 
 
+def _current_shell_supports_directives():
+    # TODO: we should maybe register this support in a more dynamic way instead of hard-coding it
+    return _current_shell() in {"bash", "zsh"}
+
+
 def _completion_script(shell):
     path = os.path.join(_completions_dir(), "%s-guild" % shell)
     if log.getEffectiveLevel() <= logging.DEBUG:

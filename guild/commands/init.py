@@ -44,7 +44,7 @@ def _guild_versions(ctx):
 
 
 def _ac_guild_home(_, __, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return click_util.completion_dir(_, __, incomplete=incomplete)
 
 
 def _ac_requirement(_, __, incomplete):
@@ -52,7 +52,7 @@ def _ac_requirement(_, __, incomplete):
 
 
 def _ac_path(_, __, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return click_util.completion_dir(_, __, incomplete=incomplete)
 
 
 @click.command()
