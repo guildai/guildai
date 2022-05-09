@@ -23,7 +23,7 @@
     ...             yield importlib.import_module(mod_name)
 
     >>> for name in sorted([m.__name__ for m in iter_mods()]):
-    ...   print(name) # doctest: +REPORT_UDIFF
+    ...     print(name) # doctest: +REPORT_UDIFF
     guild.__init__
     guild._api
     guild._lex
