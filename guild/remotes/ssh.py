@@ -1014,7 +1014,8 @@ def _ls_args(
 
 
 def _diff_args(
-    runs,
+    run,
+    other_run,
     output,
     sourcecode,
     env,
@@ -1047,7 +1048,10 @@ def _diff_args(
         args.append("--working")
     if dir:
         args.extend(["--dir", dir])
-    args.extend(runs)
+    if run:
+        args.append(run)
+    if other_run:
+        args.append(other_run)
     return args
 
 

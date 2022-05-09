@@ -513,7 +513,8 @@ def _diff_kw(args):
         "flags",
         "output",
         "paths",
-        "runs",
+        "run",
+        "other_run",
         "sourcecode",
         "working",
     ]
