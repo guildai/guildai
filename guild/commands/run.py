@@ -58,19 +58,51 @@ def _ac_flag(ctx, _, incomplete):
     if not opdef:
         return []
 
+    # bash breaks up expressions, but zsh does not. With bash, the args list includes both
+    #     completed flag sets and any incomplete entries. The "incomplete" parameter is not set.
+    #     Zsh includes completed flag sets as a list of strings, where each string is a completed
+    #     flag set. Anything incomplete is passed in as a string in "incomplete"
+
+    flags = []
+    flags_are_complete_sets = all("=" in item for item in flags)
+    if flags_are_complete_sets:
+        for f in run_args.flags:
+            name, value = f.split("=")
+            flags.extend([name, "=", value])
+    else:
+        flags = run_args.flags
+
+    if incomplete and incomplete[-1] == "=":
+        incomplete = incomplete[:-1]
+        flags.append(incomplete)
+
     # completed flags come in 3's - the name, the equals sign, the value.
     # If we have a even division, we have no incomplete flag. Otherwise, take
     # the end element as the incomplete flag.
-    if len(run_args.flags) % 3:
-        incomplete = run_args.flags[-1]
+    if flags and len(flags) % 3:
+        incomplete = flags[-1]
 
-    if "=" in incomplete:
+    if (incomplete and "=" in incomplete) or (
+        any(incomplete == flag.name for flag in opdef.flags)
+        and sum([flag.name.startswith(incomplete) for flag in opdef.flags]) == 1
+    ):
+        if "=" not in incomplete:
+            incomplete += "="
         return _ac_flag_choices(incomplete, opdef)
 
-    used_flags = run_args.flags[::3]
+    existing_text = " ".join(["".join(flag_group) for flag_group in flags[::3]])
+    existing_text = ""
+
+    # every third element is a flag name. The value may or may not be there for the last flag.
+    used_flags = flags[::3]
     unused_flags = sorted([f.name for f in opdef.flags if f.name not in used_flags])
-    flags_ac = [f for f in unused_flags if f.startswith(incomplete)]
-    return ["%s=" % f for f in flags_ac] + click_util.completion_nospace()
+    flags_ac = [f for f in unused_flags if (not incomplete or f.startswith(incomplete))]
+    names = click_util.completion_opnames(["%s=" % f for f in flags_ac])
+    if existing_text:
+        names = [existing_text + " " + name for name in names]
+    result = names + click_util.completion_nospace()
+
+    return result
 
 
 def _ensure_log_init():
@@ -120,15 +152,6 @@ def _flagdef_choices(flagdef):
         return ["true", "false"]
     else:
         return []
-
-
-def _ac_used_flags(flag_args, opdef, incomplete):
-    from . import run_impl
-
-    flag_vals, _batch_files = run_impl.split_flag_args(
-        flag_args, opdef, incomplete=incomplete, raise_parse_errors=False
-    )
-    return flag_vals
 
 
 def _ac_run(ctx, _, incomplete):

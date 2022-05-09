@@ -26,7 +26,7 @@ from click import shell_completion
 
 import guild
 from .util import natsorted
-from .commands.completion_impl import current_shell_supports_directives
+from .commands.completion_impl import current_shell_supports_directives, _current_shell
 
 CMD_SPLIT_P = re.compile(r", ?")
 
@@ -390,7 +390,13 @@ def _compgen_filenames(type, ext):
 
 
 def completion_nospace():
-    if os.getenv("_GUILD_COMPLETE") and current_shell_supports_directives():
+    # TODO: zsh supports this directive, but not the others.
+    # We should add proper support for all of them at some point.
+    if (
+        os.getenv("_GUILD_COMPLETE")
+        and current_shell_supports_directives()
+        or _current_shell() == "zsh"
+    ):
         return ["!!nospace"]
     return []
 

@@ -61,7 +61,9 @@ def _current_shell():
 
 def current_shell_supports_directives():
     # TODO: we should maybe register this support in a more dynamic way instead of hard-coding it
-    return _current_shell() in {"bash", "zsh"}
+    return _current_shell() in {
+        "bash",
+    }
 
 
 def _completion_script(shell):
