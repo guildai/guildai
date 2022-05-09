@@ -15,6 +15,7 @@
 import click
 
 from guild import click_util
+from .completion_impl import _current_shell
 
 from . import remote_support
 
@@ -67,41 +68,30 @@ def _ac_flag(ctx, _, incomplete):
     flags_are_complete_sets = all("=" in item for item in flags)
     if flags_are_complete_sets:
         for f in run_args.flags:
-            name, value = f.split("=")
+            parts = f.split("=")
+            name = parts[0]
+            if len(parts) == 1:
+                value = ""
+            else:
+                value = parts[1]
             flags.extend([name, "=", value])
     else:
         flags = run_args.flags
-
-    if incomplete and incomplete[-1] == "=":
-        incomplete = incomplete[:-1]
-        flags.append(incomplete)
 
     # completed flags come in 3's - the name, the equals sign, the value.
     # If we have a even division, we have no incomplete flag. Otherwise, take
     # the end element as the incomplete flag.
     if flags and len(flags) % 3:
-        incomplete = flags[-1]
+        incomplete = "".join(flags[: -len(flags) % 3])
 
-    if (incomplete and "=" in incomplete) or (
-        any(incomplete == flag.name for flag in opdef.flags)
-        and sum([flag.name.startswith(incomplete) for flag in opdef.flags]) == 1
-    ):
-        if "=" not in incomplete:
-            incomplete += "="
+    if incomplete and "=" in incomplete:
         return _ac_flag_choices(incomplete, opdef)
-
-    existing_text = " ".join(["".join(flag_group) for flag_group in flags[::3]])
-    existing_text = ""
 
     # every third element is a flag name. The value may or may not be there for the last flag.
     used_flags = flags[::3]
     unused_flags = sorted([f.name for f in opdef.flags if f.name not in used_flags])
     flags_ac = [f for f in unused_flags if (not incomplete or f.startswith(incomplete))]
-    names = click_util.completion_opnames(["%s=" % f for f in flags_ac])
-    if existing_text:
-        names = [existing_text + " " + name for name in names]
-    result = names + click_util.completion_nospace()
-
+    result = ["%s=" % f for f in flags_ac] + click_util.completion_nospace()
     return result
 
 
@@ -132,15 +122,41 @@ def _ac_opdef(opspec):
 def _ac_flag_choices(incomplete, opdef):
     flag_name, flag_val_incomplete = incomplete.split("=", 1)
     flagdef = opdef.get_flagdef(flag_name)
+
     if not flagdef or (not flagdef.choices and _maybe_filename_type(flagdef)):
-        return click_util.completion_filename()
+        values = click_util.completion_filename()
+        if _current_shell() == "bash":
+            return values
+        values = [flag_name + "=" + value for value in values]
+        return values
     choices = _flagdef_choices(flagdef)
-    return [val for val in choices if val.startswith(flag_val_incomplete)]
+    values = [
+        val
+        for val in choices
+        if (not flag_val_incomplete or val.startswith(flag_val_incomplete))
+    ]
+    if _current_shell() == "bash":
+        # bash wants only the completed value here, whereas zsh wants the flag name also
+        return values
+    else:
+        values = [flag_name + "=" + value for value in values]
+        if not values:
+            values = (
+                [flag_name + "=" + flag_val_incomplete]
+                if flag_val_incomplete
+                else [flag_name + "="] + click_util.completion_nospace()
+            )
+    return values
 
 
 def _maybe_filename_type(flagdef):
     assert flagdef
-    return flagdef.type not in ("int", "float", "number", "boolean")
+    if flagdef.type and flagdef.type not in ("int", "float", "number", "boolean"):
+        return True
+    parsed_type = type(flagdef.default)
+    if parsed_type not in {int, float, bool}:
+        return True
+    return False
 
 
 def _flagdef_choices(flagdef):
