@@ -151,8 +151,8 @@ def _ac_flag_choices(incomplete, opdef):
 
 def _maybe_filename_type(flagdef):
     assert flagdef
-    if flagdef.type and flagdef.type not in ("int", "float", "number", "boolean"):
-        return True
+    if flagdef.type:
+        return flagdef.type not in {"int", "float", "number", "boolean"}
     parsed_type = type(flagdef.default)
     if parsed_type not in {int, float, bool}:
         return True
