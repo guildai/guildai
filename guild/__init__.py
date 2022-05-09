@@ -20,6 +20,11 @@ __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 from ._version import __version__
 
 
+def version():
+    # Maintained for backward compatibility (for now)
+    return __version__
+
+
 def test_version(req):
     import re
     from guild import python_util
