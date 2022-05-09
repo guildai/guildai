@@ -20,7 +20,7 @@ from . import runs_support
 
 def _ac_location(_, __, incomplete):
     return click_util.completion_dir(
-        incomplete=incomplete
+        _, __, incomplete=incomplete
     ) + click_util.completion_filename(ext=["zip"], incomplete=incomplete)
 
 

@@ -18,9 +18,11 @@ from guild import click_util
 
 
 def _ac_python(_, __, incomplete):
-    return click_util.completion_command(
-        filter="^python[^-]*(?!-config)$", incomplete=incomplete
-    )
+    filter = r"^python[^-]*(?!-config)$"
+    if click_util.current_shell_supports_directives():
+        # shell matching is a bit different than regex
+        filter = "python*[^-config]"
+    return click_util.completion_command(filter=filter, incomplete=incomplete)
 
 
 def _ac_guild_version_or_path(ctx, _, incomplete):
@@ -44,7 +46,7 @@ def _guild_versions(ctx):
 
 
 def _ac_guild_home(_, __, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return click_util.completion_dir(_, __, incomplete=incomplete)
 
 
 def _ac_requirement(_, __, incomplete):
@@ -52,7 +54,7 @@ def _ac_requirement(_, __, incomplete):
 
 
 def _ac_path(_, __, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return click_util.completion_dir(_, __, incomplete=incomplete)
 
 
 @click.command()

@@ -78,7 +78,7 @@ def _run_to_diff(ctx):
 
 
 def _ac_dir(_, __, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return click_util.completion_dir(_, __, incomplete=incomplete)
 
 
 def diff_params(fn):

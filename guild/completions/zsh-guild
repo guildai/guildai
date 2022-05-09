@@ -5,12 +5,15 @@ _guild_completion() {
     local -a completions
     local -a completions_with_descriptions
     local -a response
+    nospace_suffix=" "
     (( ! $+commands[guild] )) && return 1
 
     response=("${(@f)$(env COMP_WORDS="${words[*]}" COMP_CWORD=$((CURRENT-1)) _GUILD_COMPLETE=zsh_complete guild)}")
 
     for type key descr in ${response}; do
-        if [[ "$type" == "plain" ]]; then
+        if [[ "$key" == "!!nospace" ]]; then
+            nospace_suffix=""
+        elif [[ "$type" == "plain" ]]; then
             if [[ "$descr" == "_" ]]; then
                 completions+=("$key")
             else
@@ -28,7 +31,7 @@ _guild_completion() {
     fi
 
     if [ -n "$completions" ]; then
-        compadd -U -V unsorted -a completions
+        compadd -S "$nospace_suffix" -U -V unsorted -a completions
     fi
 }
 

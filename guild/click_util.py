@@ -26,7 +26,7 @@ from click import shell_completion
 
 import guild
 from .util import natsorted
-from .commands.completion_impl import _current_shell
+from .commands.completion_impl import current_shell_supports_directives, _current_shell
 
 CMD_SPLIT_P = re.compile(r", ?")
 
@@ -326,6 +326,11 @@ def _maybe_render_doc(s, vars):
     return fn.__doc__
 
 
+# we use shell functions where possible to provide listing. This is for the sake
+#    of speed as well as making the behavior as close as possible to the user's
+#    native shell. However, supporting new shells means implementing behavior for
+#    our !! directives. We provide native Python implementation as a fallback where
+#    we have not yet implemented handling for our directives.
 def _list_dir(dir, incomplete, filters=None, ext=None):
     if ext:
         ext = ["." + _ if not _.startswith(".") else _ for _ in ext]
@@ -352,48 +357,69 @@ def _list_dir(dir, incomplete, filters=None, ext=None):
 
 
 def completion_filename(ext=None, incomplete=None):
-    if os.getenv("_GUILD_COMPLETE", "") != "":
+    if os.getenv("_GUILD_COMPLETE"):
+        if current_shell_supports_directives():
+            return _compgen_filenames("file", ext)
         return _list_dir(os.getcwd(), incomplete, ext=ext)
-    else:
-        return []
+    return []
 
 
-def completion_dir(_=None, __=None, incomplete=None):
-    if os.getenv("_GUILD_COMPLETE", "") != "":
+# we have to have the weird placeholders here because we call this directly as
+#   an autocomplete function, while also sometimes using it as a helper function
+#   for another autocomplete function
+def completion_dir(_, __, incomplete=None):
+    if os.getenv("_GUILD_COMPLETE"):
+        if current_shell_supports_directives():
+            return ["!!dir"]
         return _list_dir(os.getcwd(), incomplete, filters=[os.path.isdir])
-    else:
-        return []
+    return []
 
 
 def completion_opnames(names):
-    if os.getenv("_GUILD_COMPLETE", "") != "":
-        if _current_shell() == "bash":
+    if os.getenv("_GUILD_COMPLETE"):
+        if current_shell_supports_directives():
             names = ["!!no-colon-wordbreak"] + names
         return names
-    else:
-        return []
+    return []
+
+
+def _compgen_filenames(type, ext):
+    if not ext:
+        return ["!!%s:*" % type]
+    return ["!!%s:*.@(%s)" % (type, "|".join(ext))]
 
 
 def completion_nospace():
-    if os.getenv("_GUILD_COMPLETE", "") != "" and _current_shell() == "bash":
+    # TODO: zsh supports this directive, but not the others.
+    # We should add proper support for all of them at some point.
+    if (
+        os.getenv("_GUILD_COMPLETE")
+        and current_shell_supports_directives()
+        or _current_shell() == "zsh"
+    ):
         return ["!!nospace"]
-    else:
-        return []
+    return []
 
 
 def completion_batchfile(ext=None, incomplete=None):
     incomplete = incomplete or ""
-    if os.getenv("_GUILD_COMPLETE", "") != "":
+    if os.getenv("_GUILD_COMPLETE"):
+        if current_shell_supports_directives():
+            return _compgen_filenames("batchfile", ext)
         return [
             "@" + str(item)
             for item in _list_dir(os.getcwd(), incomplete.replace("@", ""), ext=ext)
         ]
-    else:
-        return []
+    return []
 
 
 def completion_command(filter=None, incomplete=None):
-    if os.getenv("_GUILD_COMPLETE", "") != "":
+    if os.getenv("_GUILD_COMPLETE"):
+        if current_shell_supports_directives():
+            if filter:
+                return ["!!command:%s" % filter]
+            return ["!!command"]
+
         # TODO: how should we handle this on windows? call out to bash explicitly? better
         #    to avoid explicitly calling sh.
         available_commands = subprocess.check_output(
@@ -415,25 +441,28 @@ def completion_command(filter=None, incomplete=None):
                 cmd for cmd in available_commands if cmd.startswith(incomplete)
             ]
         return available_commands
-    else:
-        return []
+    return []
 
 
 def completion_run_dirpath(run_dir, all=False, incomplete=None):
-    if os.getenv("_GUILD_COMPLETE", "") != "":
+    if os.getenv("_GUILD_COMPLETE"):
+        if current_shell_supports_directives():
+            if all:
+                return ["!!allrundirs:%s" % run_dir]
+            return ["!!rundirs:%s" % run_dir]
         filters = [os.path.isdir, lambda x: os.path.isdir(os.path.join(x, ".guild"))]
         if all:
             filters.pop()
         return _list_dir(dir=run_dir, incomplete=incomplete, filters=filters)
-    else:
-        return []
+    return []
 
 
 def completion_run_filepath(run_dir, incomplete):
-    if os.getenv("_GUILD_COMPLETE", "") != "":
+    if os.getenv("_GUILD_COMPLETE"):
+        if current_shell_supports_directives():
+            return ["!!runfiles:%s" % run_dir]
         return _list_dir(run_dir, incomplete)
-    else:
-        return []
+    return []
 
 
 def completion_safe_apply(ctx, f, args):
