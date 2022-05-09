@@ -19,7 +19,7 @@ from guild import click_util
 
 def _ac_python(_, __, incomplete):
     filter = r"^python[^-]*(?!-config)$"
-    if click_util._current_shell_supports_directives():
+    if click_util.current_shell_supports_directives():
         # shell matching is a bit different than regex
         filter = "python*[^-config]"
     return click_util.completion_command(filter=filter, incomplete=incomplete)

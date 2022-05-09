@@ -53,12 +53,16 @@ _guild_completion() {
     local IFS=$'\n'
     local reply=($(COMP_WORDS="${words[*]}" \
                    COMP_CWORD=$cword \
-                   _GUILD_COMPLETE=complete $1))
+                   _GUILD_COMPLETE=bash_complete $1))
 
     COMP_WORDBREAKS='"'"'"'><=;|&(: '  # Reset as can be modified below.
     COMPREPLY=()
     local item alt_cwd
     for item in "${reply[@]}"; do
+        # Click 8 introduced a notion of type here. We strip it off before our normal directive handling
+        if [ "${item:0:6}" = "plain," ]; then
+            item="${item:6}"
+        fi
         if [ "${item:0:7}" = '!!file:' ]; then
             COMPREPLY+=($(compgen -f -X '!'"${item:7}" -o plusdirs -- $2))
             compopt -o filenames
@@ -91,6 +95,7 @@ _guild_completion() {
             # is mitigated by resetting COMP_WORDBREAKS above but this
             # is still not ideal.
             COMP_WORDBREAKS='"'"'"'><=;|&( '
+            continue
         else
             COMPREPLY+=($item)
         fi

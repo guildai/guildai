@@ -45,6 +45,7 @@ def main(args):
 def _current_shell():
     parent_shell = os.getenv("GUILD_SHELL")
     known_shells = {"bash", "zsh", "fish", "dash", "sh"}
+
     if not parent_shell:
         parent_shell = os.path.basename(psutil.Process().parent().exe())
     if parent_shell not in known_shells:
@@ -58,7 +59,7 @@ def _current_shell():
     return parent_shell
 
 
-def _current_shell_supports_directives():
+def current_shell_supports_directives():
     # TODO: we should maybe register this support in a more dynamic way instead of hard-coding it
     return _current_shell() in {"bash", "zsh"}
 
