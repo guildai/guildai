@@ -16,9 +16,17 @@ import click
 
 from guild import click_util
 
+from .packages_delete import _ac_package
+
 
 @click.command("info")
-@click.argument("packages", metavar="PACKAGE...", nargs=-1, required=True)
+@click.argument(
+    "packages",
+    metavar="PACKAGE...",
+    nargs=-1,
+    required=True,
+    shell_complete=_ac_package,
+)
 @click.option("-v", "--verbose", help="Show more information.", is_flag=True)
 @click.option("-f", "--files", help="Show packages files.", is_flag=True)
 @click_util.use_args
