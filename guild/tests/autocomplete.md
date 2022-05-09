@@ -9,8 +9,8 @@ Helper functions:
     ...             def f(**kw):
     ...                 with Env({"_GUILD_COMPLETE": "complete"}):
     ...                     completion_result = param.shell_complete(param, "")
-    ...                     if completion_result and hasattr(completion_result, "value"):
-    ...                         completion_result = [_.value for _ in completion_result]
+    ...                     completion_result = [_.value if hasattr(_, "value") else _ for _ in completion_result]
+    ...                     return completion_result
     ...             return f
     ...     assert False, (param_name, cmd.params)
 
@@ -37,6 +37,7 @@ markdown and text files.
     additional-deps
     anonymous-models
     api
+    api-cmd
     autocomplete
     ...
     var
@@ -101,7 +102,7 @@ A helper to show completions:
     ...     empty = True
     ...     with Env({"_GUILD_COMPLETE": "complete"}):
     ...         for val in ac_f(ctx, incomplete):
-    ...             print(val)
+    ...             print(val.value if hasattr(val, "value") else val)
     ...             empty = False
     ...     if empty:
     ...         print("<empty>")
@@ -244,9 +245,16 @@ Path completion for `--sourcecode` option.
 
     >>> from guild.commands import diff
 
-### `runs` arg
+### `run` arg
 
-    >>> cmd_ac(diff.diff, "runs", [])
+    >>> cmd_ac(diff.diff, "run", [])
+    aaa
+    bbb
+    ccc
+
+### `other_run` arg
+
+    >>> cmd_ac(diff.diff, "other_run", [])
     aaa
     bbb
     ccc
@@ -521,7 +529,7 @@ The first param to export is the export location.
 Locations may be directories or zip files.
 
     >>> with Env({"_GUILD_COMPLETE": "complete"}):
-    ...     runs_export.export_runs.params[0].shell_complete(None, "")
+    ...     [_.value for _ in runs_export.export_runs.params[0].shell_complete(None, "")]
     ['!!dir', '!!file:*.@(zip)']
 
 ## `help`
@@ -546,7 +554,7 @@ directories.
 The archive location for import is a directory.
 
     >>> with Env({"_GUILD_COMPLETE": "complete"}):
-    ...     runs_import.import_runs.params[0].shell_complete(None, "")
+    ...     [_.value for _ in runs_import.import_runs.params[0].shell_complete(None, "")]
     ['!!dir', '!!file:*.@(zip)']
 
 ## `init`
@@ -561,7 +569,7 @@ Helper to print completions.
     ...     ctx.parent = main.main.make_context("", ["-H", project.guild_home])
     ...     with Env({"_GUILD_COMPLETE": "complete"}):
     ...         for val in f(ctx, None, incomplete):
-    ...             print(val)
+    ...             print(val.value if hasattr(val, "value") else val)
 
 Python versions:
 
