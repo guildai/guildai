@@ -3,10 +3,6 @@
 #
 from collections import namedtuple
 import os
-import subprocess
-
-from setuptools.command.build_py import build_py as build_py_orig
-from setuptools.command.sdist import sdist as sdist_orig
 
 Version = namedtuple("Version", ("release", "dev", "labels"))
 
@@ -29,8 +25,7 @@ def get_version(version_file=STATIC_VERSION_FILE):
         if not version:
             version = Version("unknown", None, None)
         return pep440_format(version)
-    else:
-        return version
+    return version
 
 
 def get_static_version_info(version_file=STATIC_VERSION_FILE):
@@ -62,6 +57,8 @@ def pep440_format(version_info):
 
 
 def get_version_from_git():
+    import subprocess
+
     # git describe --first-parent does not take into account tags from branches
     # that were merged-in. The '--long' flag gets us the 'dev' version and
     # git hash, '--always' returns the git hash even if there are no tags.
@@ -137,8 +134,7 @@ def get_version_from_git_archive(version_info):
     if version_tags:
         release, *_ = sorted(version_tags)  # prefer e.g. "2.0" over "2.0rc1"
         return Version(release, dev=None, labels=None)
-    else:
-        return Version("unknown", dev=None, labels=["g{}".format(git_hash)])
+    return Version("unknown", dev=None, labels=["g{}".format(git_hash)])
 
 
 __version__ = get_version()
@@ -164,6 +160,9 @@ def _write_version(fname):
 
 
 def get_cmdclass(pkg_source_path):
+    from setuptools.command.build_py import build_py as build_py_orig
+    from setuptools.command.sdist import sdist as sdist_orig
+
     class _build_py(build_py_orig):
         def run(self):
             super().run()
