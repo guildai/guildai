@@ -273,16 +273,14 @@ def _decode_dask_resources(encoded, quiet=False):
     from guild import op_util
 
     args = util.shlex_split(encoded)
-    try:
-        return op_util.parse_flag_assigns(args)
-    except op_util.ArgValueError:
-        if not quiet:
-            log.warning(
-                "Ignoring invalid dask resources spec %r: parts must be in "
-                "format KEY=VAL",
-                encoded,
-            )
-        return {}
+    flags, errors = op_util.parse_flag_assigns(args)
+    if errors and not quiet:
+        log.warning(
+            "Ignoring invalid dask resources spec %r: parts must be in "
+            "format KEY=VAL",
+            encoded,
+        )
+    return flags
 
 
 def _log_scheduling(run, resources):
