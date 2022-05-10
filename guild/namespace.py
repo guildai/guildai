@@ -120,7 +120,7 @@ def for_name(name):
 
 def for_project_name(project_name):
     ns = None
-    for _, maybe_ns in iter_namespaces():
+    for _name, maybe_ns in iter_namespaces():
         membership = maybe_ns.project_name_membership(project_name)
         if membership == Membership.yes:
             ns = maybe_ns

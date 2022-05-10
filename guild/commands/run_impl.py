@@ -1966,7 +1966,7 @@ def _save_trials_path(save_trials_arg):
 
 
 def _check_trials_path(path):
-    _, ext = os.path.splitext(path)
+    _root, ext = os.path.splitext(path)
     if ext.lower() not in (".csv", ".json", ""):
         cli.error(
             "Unsupported extension '%s' - use '.csv', '.json', or no extension" % ext

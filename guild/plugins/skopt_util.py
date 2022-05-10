@@ -269,7 +269,7 @@ def _iter_seq_trials(
 ):
     names, dims, initial_x = _flag_dims_for_search(proto_flag_vals)
     runs_count = 0
-    for _ in range(max_trials):
+    for _trial in range(max_trials):
         prev_trials = prev_trials_cb()
         x0, y0 = _trials_xy_for_prev_trials(prev_trials, names, objective_negate)
         is_random_start = _is_random_start(x0, runs_count, random_starts)

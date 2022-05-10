@@ -22,7 +22,7 @@ class CPUPlugin(SummaryPlugin):
 
     def enabled_for_op(self, _op):
         try:
-            import psutil as _
+            import psutil as _unused
         except ImportError as e:
             self.log.warning(
                 "cpu stats disabled because psutil " "cannot be imported (%s)", e

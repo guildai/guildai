@@ -184,7 +184,7 @@ def ensure_dvc_repo(run_dir, project_dir):
 
 def _ensure_git_repo(run_dir):
     try:
-        _ = subprocess.check_output(["git", "init"], cwd=run_dir)
+        subprocess.check_call(["git", "init"], cwd=run_dir)
     except FileNotFoundError:
         raise DvcInitError(
             "cannot initialize Git in run directory %s "

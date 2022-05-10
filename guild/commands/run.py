@@ -22,14 +22,14 @@ from . import remote_support
 AC_EXTENSIONS = ["py", "ipynb"]
 
 
-def _ac_opspec(ctx, _, incomplete):
-    ops = _ac_operations(ctx, _, incomplete)
+def _ac_opspec(ctx, param, incomplete):
+    ops = _ac_operations(ctx, param, incomplete)
     if not incomplete and ops:
         return ops
     return ops + click_util.completion_filename(AC_EXTENSIONS, incomplete=incomplete)
 
 
-def _ac_operations(ctx, _, incomplete):
+def _ac_operations(ctx, _param, incomplete):
     from guild import cmd_impl_support
     from guild import _test
     from . import operations_impl
@@ -49,9 +49,9 @@ def _ac_operations(ctx, _, incomplete):
     return click_util.completion_opnames(names)
 
 
-def _ac_flag(ctx, _, incomplete):
+def _ac_flag(ctx, param, incomplete):
     if incomplete[:1] == "@":
-        return _ac_batch_files(ctx, _, incomplete)
+        return _ac_batch_files(ctx, param, incomplete)
 
     run_args = click_util.Args(**ctx.params)
     _ensure_log_init()
@@ -101,7 +101,7 @@ def _ensure_log_init():
     log.init_logging()
 
 
-def _ac_batch_files(_, __, incomplete):
+def _ac_batch_files(_ctx, _param, incomplete):
     return click_util.completion_batchfile(
         ext=["csv", "yaml", "yml", "json"], incomplete=incomplete
     )
@@ -170,7 +170,7 @@ def _flagdef_choices(flagdef):
         return []
 
 
-def _ac_run(ctx, _, incomplete):
+def _ac_run(ctx, _param, incomplete):
     from guild import config
     from guild import var
 

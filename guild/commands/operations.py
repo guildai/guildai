@@ -17,7 +17,7 @@ import click
 from guild import click_util
 
 
-def _ac_operation(ctx, _, incomplete):
+def _ac_operation(ctx, _param, incomplete):
     from guild import cmd_impl_support
     from . import operations_impl
 

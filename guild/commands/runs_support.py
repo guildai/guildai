@@ -33,7 +33,7 @@ def ac_run(ctx, param, incomplete):
     return sorted([run.id for run in runs if run.id.startswith(incomplete)])
 
 
-def ac_local_run(ctx, _, incomplete):
+def ac_local_run(ctx, _param, incomplete):
     runs = runs_for_ctx(ctx)
     return sorted([run.id for run in runs if run.id.startswith(incomplete)])
 
@@ -74,7 +74,7 @@ def ac_operation(ctx, incomplete):
     return sorted([op for op in ops if op.startswith(incomplete)])
 
 
-def ac_label(ctx, _, incomplete):
+def ac_label(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
@@ -86,7 +86,7 @@ def _quote_label(l):
     return "\"%s\"" % l
 
 
-def ac_tag(ctx, _, incomplete):
+def ac_tag(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
     # Reset tags to avoid limiting results based on selected tags.
@@ -102,7 +102,7 @@ def _all_tags_sorted(runs):
     return sorted(tags)
 
 
-def ac_digest(ctx, _, incomplete):
+def ac_digest(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
     runs = runs_for_ctx(ctx)
@@ -110,9 +110,9 @@ def ac_digest(ctx, _, incomplete):
     return sorted([d for d in digests if d and d.startswith(incomplete)])
 
 
-def ac_archive(_, __, incomplete):
+def ac_archive(_ctx, _param, incomplete):
     return click_util.completion_dir(
-        _, __, incomplete=incomplete
+        incomplete=incomplete
     ) + click_util.completion_filename(ext=["zip"], incomplete=incomplete)
 
 

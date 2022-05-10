@@ -36,7 +36,7 @@ def compare_runs(get_data_cb):
 
 def _check_hiplot_install():
     try:
-        import hiplot as _
+        import hiplot as _unused
     except ImportError:
         raise SystemExit(
             "HiPlot is not available\nInstall it by running 'pip install hiplot'"

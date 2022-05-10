@@ -89,7 +89,7 @@ def tests_dir():
 
 
 def _test_name_for_path(path):
-    name, _ = os.path.splitext(os.path.basename(path))
+    name, _ext = os.path.splitext(os.path.basename(path))
     return name
 
 

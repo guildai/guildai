@@ -18,9 +18,9 @@ from guild import click_util
 from . import runs_support
 
 
-def _ac_archive(_, __, incomplete):
+def _ac_archive(_ctx, _param, incomplete):
     return click_util.completion_dir(
-        _, __, incomplete=incomplete
+        incomplete=incomplete
     ) + click_util.completion_filename(ext=["zip"], incomplete=incomplete)
 
 

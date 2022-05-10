@@ -17,7 +17,7 @@ import click
 from guild import click_util
 
 
-def _ac_python(_, __, incomplete):
+def _ac_python(_ctx, _param, incomplete):
     filter = r"^python[^-]*(?!-config)$"
     if click_util.current_shell_supports_directives():
         # shell matching is a bit different than regex
@@ -25,7 +25,7 @@ def _ac_python(_, __, incomplete):
     return click_util.completion_command(filter=filter, incomplete=incomplete)
 
 
-def _ac_guild_version_or_path(ctx, _, incomplete):
+def _ac_guild_version_or_path(ctx, _param, incomplete):
     versions = [ver for ver in _guild_versions(ctx) if ver.startswith(incomplete)]
     return versions + click_util.completion_filename(ext=["whl"])
 
@@ -45,20 +45,20 @@ def _guild_versions(ctx):
     return click_util.completion_safe_apply(ctx, f, []) or []
 
 
-def _ac_guild_home(_, __, incomplete):
-    return click_util.completion_dir(_, __, incomplete=incomplete)
+def _ac_guild_home(_ctx, _param, incomplete):
+    return click_util.completion_dir(incomplete=incomplete)
 
 
-def _ac_requirement(_, __, incomplete):
+def _ac_requirement(_ctx, _param, incomplete):
     return click_util.completion_filename(ext=["txt"], incomplete=incomplete)
 
 
-def _ac_path(_, __, incomplete):
-    return click_util.completion_dir(_, __, incomplete=incomplete)
+def _ac_dir(_ctx, _param, incomplete):
+    return click_util.completion_dir(incomplete=incomplete)
 
 
 @click.command()
-@click.argument("dir", default="venv", shell_complete=click_util.completion_dir)
+@click.argument("dir", default="venv", shell_complete=_ac_dir)
 @click.option(
     "-n",
     "--name",
@@ -125,7 +125,7 @@ def _ac_path(_, __, incomplete):
     metavar="DIR",
     multiple=True,
     help="Include DIR as a Python path in the environment.",
-    shell_complete=_ac_path,
+    shell_complete=_ac_dir,
 )
 @click.option(
     "--no-reqs",

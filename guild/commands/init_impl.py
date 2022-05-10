@@ -324,7 +324,7 @@ def _system_site_packages_args(config):
 
 def _venv_module_cmd(config):
     try:
-        import venv as _
+        import venv as _unused
     except ImportError:
         return None
     else:

@@ -280,7 +280,7 @@ def _month_range(ref, shift=0):
 
 def _shift_months_back(date, shift):
     assert date.day == 1, date
-    for _ in range(shift):
+    for _day in range(shift):
         date = (date - timedelta(days=1)).replace(day=1)
     return date
 

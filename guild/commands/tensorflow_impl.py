@@ -27,7 +27,7 @@ def inspect_checkpoint(args):
 
 def _check_tensorflow():
     try:
-        import tensorflow as _
+        import tensorflow as _unused
     except ImportError as e:
         _handle_tensorflow_import_error(e)
 

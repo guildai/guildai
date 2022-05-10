@@ -19,13 +19,13 @@ from guild import click_util
 from . import runs_support
 
 
-def _ac_cmd(ctx, _, incomplete):
+def _ac_cmd(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
     return click_util.completion_command(incomplete=incomplete)
 
 
-def _ac_path(ctx, _, incomplete):
+def _ac_path(ctx, _param, incomplete):
     from . import runs_impl
 
     open_args = click_util.Args(**ctx.params)

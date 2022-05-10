@@ -75,7 +75,7 @@ def _profile_main():
         _main()
     finally:
         p.disable()
-        _, tmp = tempfile.mkstemp(prefix="guild-op-profile-")
+        _fd, tmp = tempfile.mkstemp(prefix="guild-op-profile-")
         sys.stderr.write("Writing guild.op_main profile stats to %s\n" % tmp)
         p.dump_stats(tmp)
         sys.stderr.write(
@@ -261,7 +261,7 @@ def _global_dict_dest(args, global_name):
 
 
 def _global_simple_namespace_dest(args, global_name):
-    _, base_args, global_dest = _global_dict_dest(args, global_name)
+    _dest, base_args, global_dest = _global_dict_dest(args, global_name)
     _convert_global_dict_to_namespace(global_dest)
     return "globals", base_args, global_dest
 

@@ -115,7 +115,7 @@ def _check_nbconvert():
 
 def _check_nbextensions():
     try:
-        import jupyter_contrib_nbextensions as _
+        import jupyter_contrib_nbextensions as _unused
     except ImportError:
         log.error(
             "jupyter_contrib_nbextensions is required to run Notebooks - "

@@ -62,7 +62,7 @@ def _check_upload_support(package_file):
 
 def _check_twine_installed():
     try:
-        import twine as _
+        import twine as _unused
     except ImportError:
         cli.error(
             "Twine is required to upload packages. Install it by running "

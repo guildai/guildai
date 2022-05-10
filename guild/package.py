@@ -98,7 +98,7 @@ def create_package(
     log.debug("package env: %s", env)
     log.debug("package cwd: %s", cwd)
     p = subprocess.Popen(cmd, env=env, cwd=cwd, stdout=stdout, stderr=stderr)
-    out, _ = p.communicate()
+    out, _err = p.communicate()
     if p.returncode != 0:
         if capture_output:
             raise SystemExit(p.returncode, out.decode())

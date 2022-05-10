@@ -120,9 +120,9 @@ def _workaround_multiprocessing_cycle():
     # See https://github.com/dask/distributed/issues/4168#issuecomment-722049470
     try:
         if util.get_platform() == "Windows":
-            import multiprocessing.popen_spawn_win32 as _
+            import multiprocessing.popen_spawn_win32 as _unused
         else:
-            import multiprocessing.popen_spawn_posix as _
+            import multiprocessing.popen_spawn_posix as _unused
     except ImportError:
         pass
 

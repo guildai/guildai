@@ -66,7 +66,7 @@ class SummaryPlugin(Plugin):
 
     def _try_patch_tensorflow(self):
         try:
-            import tensorflow as _
+            import tensorflow as _unused
         except ImportError:
             pass
         else:

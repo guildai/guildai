@@ -17,7 +17,7 @@ import click
 from guild import click_util
 
 
-def _ac_package(_, __, incomplete):
+def _ac_package(_ctx, _param, incomplete):
     from . import packages_impl
 
     return sorted(

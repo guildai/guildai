@@ -250,7 +250,7 @@ class Call(object):
 
 def _script_name(src):
     basename = os.path.basename(src)
-    name, _ = os.path.splitext(basename)
+    name, _ext = os.path.splitext(basename)
     return name
 
 

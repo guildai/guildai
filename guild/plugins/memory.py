@@ -18,7 +18,7 @@ from guild.plugins.summary_util import SummaryPlugin
 class MemoryPlugin(SummaryPlugin):
     def enabled_for_op(self, _op):
         try:
-            import psutil as _
+            import psutil as _unused
         except ImportError as e:
             self.log.warning(
                 "memory stats disabled because psutil " "cannot be imported (%s)", e

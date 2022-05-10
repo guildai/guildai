@@ -20,13 +20,13 @@ from . import remote_support
 from . import runs_support
 
 
-def _ac_cmd(ctx, _, incomplete):
+def _ac_cmd(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
     return click_util.completion_command(incomplete=incomplete)
 
 
-def _ac_path(ctx, _, incomplete):
+def _ac_path(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
     if _has_non_path_options(ctx.params):
@@ -77,8 +77,8 @@ def _run_to_diff(ctx):
     return runs[0] if runs else None
 
 
-def _ac_dir(_, __, incomplete):
-    return click_util.completion_dir(_, __, incomplete=incomplete)
+def _ac_dir(_ctx, _param, incomplete):
+    return click_util.completion_dir(incomplete=incomplete)
 
 
 def diff_params(fn):

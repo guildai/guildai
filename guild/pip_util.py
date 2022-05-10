@@ -194,7 +194,9 @@ class QuietLogger(logging.Logger):
 
 def _ensure_search_logger():
     try:
-        from pip._internal import download as _  # Avoid circular import (see #313)
+        from pip._internal import (
+            download as _unused,
+        )  # Avoid circular import (see #313)
         from pip._vendor.requests.packages.urllib3 import connectionpool
     except ImportError:
         pass
@@ -302,9 +304,9 @@ def _pip_download(link, download_dir):
     from pip._internal.download import _download_http_url
 
     cmd = _pip_cmd(DownloadCommand)
-    options, _ = cmd.parse_args(["--no-cache-dir"])
+    options, _args = cmd.parse_args(["--no-cache-dir"])
     session = cmd._build_session(options)
-    orig_path, _ = _download_http_url(
+    orig_path, _content_type = _download_http_url(
         link, session, download_dir, hashes=None, progress_bar="on"
     )
     return orig_path

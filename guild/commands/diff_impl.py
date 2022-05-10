@@ -182,7 +182,7 @@ def _diff_command_config():
 
 
 def _config_diff_cmd_for_path(path, cmd_map):
-    _, path_ext = os.path.splitext(path)
+    _root, path_ext = os.path.splitext(path)
     for pattern in cmd_map:
         if pattern == "default":
             continue
@@ -221,7 +221,7 @@ def _default_diff_cmd(path):
 def _default_diff_cmd_for_path(path):
     if not path:
         return None
-    _, ext = os.path.splitext(path)
+    _root, ext = os.path.splitext(path)
     if ext == ".ipynb":
         return _find_cmd(["nbdiff-web -M"])
 

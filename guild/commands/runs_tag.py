@@ -20,7 +20,7 @@ from . import remote_support
 from . import runs_support
 
 
-def _ac_tag(ctx, _, incomplete):
+def _ac_tag(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
 

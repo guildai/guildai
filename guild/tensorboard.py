@@ -367,7 +367,7 @@ def _refresh_image_summaries(run, run_logdir, state):
 def _iter_images(top):
     for root, _dir, names in os.walk(top):
         for name in sorted(names):
-            _, ext = os.path.splitext(name)
+            _root, ext = os.path.splitext(name)
             if ext.lower() not in IMG_EXT:
                 continue
             path = os.path.join(root, name)
@@ -603,7 +603,7 @@ def _silent_logger(log0):
 def run_simple_server(tb_app, host, port, ready_cb):
     from guild.plugins import tensorboard
 
-    server, _ = make_simple_server(tb_app, host, port)
+    server, _url = make_simple_server(tb_app, host, port)
     url = util.local_server_url(host, port)
     sys.stderr.write(
         "Running TensorBoard %s at %s (Type Ctrl+C to quit)\n"
