@@ -9,7 +9,10 @@ Helper functions:
     ...             def f(**kw):
     ...                 with Env({"_GUILD_COMPLETE": "complete"}):
     ...                     completion_result = param.shell_complete(param, "")
-    ...                     completion_result = [_.value if hasattr(_, "value") else _ for _ in completion_result]
+    ...                     completion_result = [
+    ...                         result.value if hasattr(result, "value") else result
+    ...                         for result in completion_result
+    ...                     ]
     ...                     return completion_result
     ...             return f
     ...     assert False, (param_name, cmd.params)
@@ -101,9 +104,10 @@ A helper to show completions:
     ...         ac_args.append(param_opt)  # simulate the actual partial args for ac
     ...     empty = True
     ...     with Env({"_GUILD_COMPLETE": "complete"}):
-    ...         for val in ac_f(ctx, incomplete):
-    ...             print(val.value if hasattr(val, "value") else val)
-    ...             empty = False
+    ...         with Chdir(project.cwd):
+    ...             for val in ac_f(ctx, incomplete):
+    ...                 print(val.value if hasattr(val, "value") else val)
+    ...                 empty = False
     ...     if empty:
     ...         print("<empty>")
 
@@ -162,7 +166,6 @@ Path completion with `--sourcecode` option:
 
     >>> cmd_ac(cat.cat, "path", ["-Fo", "b", "--sourcecode"])
     !!runfiles:.../runs/bbb/.guild/sourcecode
-
 
 ### `cat` label
 
@@ -602,5 +605,5 @@ Requirements:
 
 Additional Python path:
 
-    >>> ac_init(init._ac_path)
+    >>> ac_init(init._ac_dir)
     !!dir
