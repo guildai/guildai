@@ -6,8 +6,8 @@
 
 - Add Pydantic typing information to the core data structure
   classes. This is used to generate a schema for the guildfile.
-- Shift autocompletion implementation into Python so that bash,
-  zsh and fish all work equivalently
+- Add python-based autocompletion implementation. Bash behavior has not changed,
+  but more completions should now work on zsh and fish.
 - Add support for BooleanOptionalAction from argparse in Python 3.9+
 - Removes deprecated flags support
 - Update click dependency to >=8.1
