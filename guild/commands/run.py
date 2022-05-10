@@ -31,13 +31,12 @@ def _ac_opspec(ctx, param, incomplete):
 
 def _ac_operations(ctx, _param, incomplete):
     from guild import cmd_impl_support
-    from guild import _test
     from . import operations_impl
 
     ops_args = click_util.Args(installed=False, all=False, filters=[])
 
     def f():
-        with _test.StderrCapture():
+        with _hide_warnings():
             cmd_impl_support.init_model_path()
             return [op["fullname"] for op in operations_impl.filtered_ops(ops_args)]
 
@@ -47,6 +46,12 @@ def _ac_operations(ctx, _param, incomplete):
         return []
     names = [op for op in ops if (not incomplete or op.startswith(incomplete))]
     return click_util.completion_opnames(names)
+
+
+def _hide_warnings():
+    from guild import _test
+
+    return _test.StderrCapture()
 
 
 def _ac_flag(ctx, param, incomplete):
