@@ -583,7 +583,7 @@ def _maybe_notify(args, error=None):
         return
     summary, body, urgency = _notify_cmd_params(error)
     cmd = ["notify-send", "-u", urgency, summary, body]
-    subprocess.check_call(cmd)
+    _ignored = subprocess.check_output(cmd)
 
 
 def _notify_cmd_params(error):
