@@ -22,7 +22,6 @@ sys.path.insert(0, "./guild/external")
 from pkg_resources import Distribution as PkgDist
 from pkg_resources import PathMetadata
 from setuptools import find_packages, setup
-from setuptools.command.build_py import build_py
 
 from guild import log
 
@@ -70,7 +69,7 @@ def guild_packages():
 PKG_INFO, ENTRY_POINTS = guild_dist_info()
 
 
-class Build(build_py):
+class Build(cmdclass["build_py"]):
     """Extension of default build with additional pre-processing.
 
     In preparation for setuptool's default build, we perform these
@@ -84,10 +83,10 @@ class Build(build_py):
     """
 
     def run(self):
+        super().run()
         if os.getenv("BUILD_GUILD_VIEW") == "1":
             _check_npm()
             _build_view_dist()
-        build_py.run(self)
 
 
 def _check_npm():
