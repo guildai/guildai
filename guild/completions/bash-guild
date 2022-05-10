@@ -35,13 +35,33 @@ __reassemble_comp_words_by_ref() {
 }
 
 __apply_alt_cwd() {
-    # Applies alt current working directory to COMPREPLY.
+    # Applies alt current working directory to COMPREPLY. See applied
+    # rules below.
     for i in "${!COMPREPLY[@]}"; do
+        # If item is a directory, append '/' and nospace.
         if [[ -d $1/${COMPREPLY[i]} ]]; then
             COMPREPLY[i]+=/
             compopt -o nospace
         fi
     done
+}
+
+__strip_click_directive() {
+    # Strips click directive from the variable specified by $1.
+    #
+    # Click uses their own directive style with `plain,`, `file,`, and
+    # `dir,` preceding the list of completions. As we munge together
+    # both plain entries and directives, we ignore their directive by
+    # stripping it off.
+    local name=$1
+    local val=${!name}
+    if [ "${val:0:6}" = "plain," ]; then
+        declare -ag $name="${val:6}"
+    elif [ "${val:0:4}" = "dir," ]; then
+        declare -ag $name="${val:4}"
+    elif [ "${1:0:5}" = "file," ]; then
+        declare -ag $name="${val:5}"
+    fi
 }
 
 _guild_completion() {
@@ -59,10 +79,7 @@ _guild_completion() {
     COMPREPLY=()
     local item alt_cwd
     for item in "${reply[@]}"; do
-        # Click 8 introduced a notion of type here. We strip it off before our normal directive handling
-        if [ "${item:0:6}" = "plain," ]; then
-            item="${item:6}"
-        fi
+        __strip_click_directive item
         if [ "${item:0:7}" = '!!file:' ]; then
             COMPREPLY+=($(compgen -f -X '!'"${item:7}" -o plusdirs -- $2))
             compopt -o filenames
