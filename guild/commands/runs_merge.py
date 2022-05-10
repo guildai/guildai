@@ -29,11 +29,6 @@ def merge_params(fn):
             runs_support.run_arg,
             runs_support.all_filters,
             click.Option(
-                ("-y", "--yes"),
-                help="Do not prompt before merging.",
-                is_flag=True,
-            ),
-            click.Option(
                 ("-s", "--skip-sourcecode"),
                 help="Don't copy run source code.",
                 is_flag=True,
@@ -51,6 +46,7 @@ def merge_params(fn):
             click.Option(
                 ("-x", "--exclude"),
                 help="Exclude a file or pattern (may be used multiple times).",
+                metavar="PATTERN",
                 multiple=True,
             ),
             click.Option(
@@ -59,6 +55,7 @@ def merge_params(fn):
                     "Directory to merge run files to (required if project directory "
                     "cannot be determined for the run)."
                 ),
+                metavar="PATH",
             ),
             click.Option(
                 ("-m", "--skip-summary"),
@@ -71,6 +68,7 @@ def merge_params(fn):
                     "Name used for the run summary. Use '${run_id}' in the name to "
                     "include the run ID."
                 ),
+                metavar="NAME",
             ),
             click.Option(
                 ("-y", "--yes"),
