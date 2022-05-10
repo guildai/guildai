@@ -182,6 +182,10 @@ def _ac_run(ctx, _param, incomplete):
     return [run.id for run in runs]
 
 
+def _ac_dir(_ctx, _param, incomplete):
+    return click_util.completion_dir(incomplete=incomplete)
+
+
 def run_params(fn):
     click_util.append_params(
         fn,
@@ -216,7 +220,7 @@ def run_params(fn):
             click.Option(
                 ("-d", "--run-dir"),
                 metavar="DIR",
-                shell_complete=click_util.completion_dir,
+                shell_complete=_ac_dir,
                 help=(
                     "Use alternative run directory DIR. Cannot be used with --stage."
                 ),

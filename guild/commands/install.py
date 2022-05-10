@@ -17,6 +17,10 @@ import click
 from guild import click_util
 
 
+def _ac_dir(_ctx, _param, incomplete):
+    return click_util.completion_dir(incomplete=incomplete)
+
+
 @click.command()
 @click.argument(
     "packages",
@@ -44,7 +48,7 @@ from guild import click_util
     "--target",
     metavar="DIR",
     help="Install package and requirements in DIR.",
-    shell_complete=click_util.completion_dir,
+    shell_complete=_ac_dir,
 )
 @click_util.use_args
 def install(args):

@@ -326,12 +326,17 @@ def _maybe_render_doc(s, vars):
     return fn.__doc__
 
 
-# we use shell functions where possible to provide listing. This is for the sake
-#    of speed as well as making the behavior as close as possible to the user's
-#    native shell. However, supporting new shells means implementing behavior for
-#    our !! directives. We provide native Python implementation as a fallback where
-#    we have not yet implemented handling for our directives.
 def _list_dir(dir, incomplete, filters=None, ext=None):
+    """Python based directory listing for completions.
+
+    We use shell functions (e.g. compgen on bash) where possible to
+    provide listing. This is for the sake of speed as well as making
+    the behavior as close as possible to the user's native
+    shell. However, supporting new shells means implementing behavior
+    for our !! directives. We provide native Python implementation as
+    a fallback where we have not yet implemented handling for our
+    directives.
+    """
     if ext:
         ext = ["." + _ if not _.startswith(".") else _ for _ in ext]
     leading_dir = ""
@@ -364,10 +369,7 @@ def completion_filename(ext=None, incomplete=None):
     return []
 
 
-# we have to have the weird placeholders here because we call this directly as
-#   an autocomplete function, while also sometimes using it as a helper function
-#   for another autocomplete function
-def completion_dir(_, __, incomplete=None):
+def completion_dir(incomplete=None):
     if os.getenv("_GUILD_COMPLETE"):
         if current_shell_supports_directives():
             return ["!!dir"]

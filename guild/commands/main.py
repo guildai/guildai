@@ -66,6 +66,10 @@ from .watch import watch
 DEFAULT_GUILD_HOME = config.default_guild_home()
 
 
+def _ac_dir(_ctx, _param, incomplete):
+    return click_util.completion_dir(incomplete=incomplete)
+
+
 @click.group(cls=click_util.Group)
 @click.version_option(
     version=guild_version, prog_name="guild", message="%(prog)s %(version)s"
@@ -76,7 +80,7 @@ DEFAULT_GUILD_HOME = config.default_guild_home()
     metavar="PATH",
     help=("Use PATH as current directory for referencing guild " "files (guild.yml)."),
     default=".",
-    shell_complete=click_util.completion_dir,
+    shell_complete=_ac_dir,
 )
 @click.option(
     "-H",
@@ -87,7 +91,7 @@ DEFAULT_GUILD_HOME = config.default_guild_home()
     ),
     default=DEFAULT_GUILD_HOME,
     envvar="GUILD_HOME",
-    shell_complete=click_util.completion_dir,
+    shell_complete=_ac_dir,
 )
 @click.option(
     "--debug",
