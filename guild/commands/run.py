@@ -507,7 +507,10 @@ def run_params(fn):
 
 @click.command()
 @click.argument(
-    "opspec", metavar="[[MODEL:]OPERATION]", required=False, shell_complete=_ac_opspec
+    "opspec",
+    metavar="[[MODEL:]OPERATION]",
+    required=False,
+    shell_complete=_ac_opspec,
 )
 @run_params
 @click_util.use_args
