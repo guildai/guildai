@@ -160,6 +160,7 @@
     guild.log
     guild.main
     guild.main_bootstrap
+    guild.manifest
     guild.model
     guild.model_proxy
     guild.namespace
