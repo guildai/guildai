@@ -41,6 +41,7 @@ jobs:
       - name: Build package
         run: |
           python setup.py bdist_wheel
+          python setup.py sdist
       - name: Cache built wheel
         uses: actions/cache@v2
         env:
