@@ -281,7 +281,18 @@ def file_sha256(path, use_cache=True):
             return cached_sha
     import hashlib
 
-    hash = hashlib.sha256()
+    return _gen_file_hash(path, hashlib.sha256)
+
+
+def file_sha1(path):
+    import hashlib
+
+    return _gen_file_hash(path, hashlib.sha1)
+
+
+def _gen_file_hash(path, hash_f):
+
+    hash = hash_f()
     with open(path, "rb") as f:
         while True:
             data = f.read(102400)

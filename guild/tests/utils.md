@@ -704,3 +704,13 @@ with underscore.
     >>> print(encode_cfg({"foo.bar.baz": [1, 2, 3]}))
     [DEFAULT]
     foo.bar.baz = [1, 2, 3]
+
+## File hashes
+
+    >>> from guild.util import file_sha1, file_sha256
+
+    >>> file_sha1(sample("textorbinary", "lena.jpg"))
+    'af17f9c0a80505922933edb713bf30ec25916fbf'
+
+    >>> file_sha256(sample("textorbinary", "lena.jpg"), use_cache=False)
+    '54e97bc5e2a8744022f3c57c08d2a36566067866d9cabfbdde131e99a485134a'
