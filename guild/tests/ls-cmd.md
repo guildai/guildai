@@ -155,6 +155,61 @@ If `--path` wants a hidden file, it's included.
       .guild/sourcecode/make_fs.py
     <exit 0>
 
+    >>> guild_run("ls --path .guild/")  # doctest: +REPORT_UDIFF
+    ???/runs/aaaa:
+      .guild/
+      .guild/attrs/
+      .guild/attrs/cmd
+      .guild/attrs/deps
+      .guild/attrs/env
+      .guild/attrs/exit_status
+      .guild/attrs/flags
+      .guild/attrs/host
+      .guild/attrs/id
+      .guild/attrs/initialized
+      .guild/attrs/op
+      .guild/attrs/pip_freeze
+      .guild/attrs/platform
+      .guild/attrs/random_seed
+      .guild/attrs/run_params
+      .guild/attrs/sourcecode_digest
+      .guild/attrs/started
+      .guild/attrs/stopped
+      .guild/attrs/user
+      .guild/attrs/user_flags...
+      .guild/opref
+      .guild/output
+      .guild/output.index
+      .guild/some-guild-file
+      .guild/sourcecode/
+      .guild/sourcecode/README.md
+      .guild/sourcecode/guild.yml
+      .guild/sourcecode/make_fs.py
+    <exit 0>
+
+    >>> guild_run("ls -p .guild/attrs/")  # doctest: +REPORT_UDIFF
+    ???/runs/aaaa:
+      .guild/attrs/
+      .guild/attrs/cmd
+      .guild/attrs/deps
+      .guild/attrs/env
+      .guild/attrs/exit_status
+      .guild/attrs/flags
+      .guild/attrs/host
+      .guild/attrs/id
+      .guild/attrs/initialized
+      .guild/attrs/op
+      .guild/attrs/pip_freeze
+      .guild/attrs/platform
+      .guild/attrs/random_seed
+      .guild/attrs/run_params
+      .guild/attrs/sourcecode_digest
+      .guild/attrs/started
+      .guild/attrs/stopped
+      .guild/attrs/user
+      .guild/attrs/user_flags
+    <exit 0>
+
     >>> guild_run("ls --path .foo -n")
     .foo/
     .foo/baz
