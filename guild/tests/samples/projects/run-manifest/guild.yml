@@ -1,0 +1,7 @@
+file-deps:
+  main: guild.pass
+  requires:
+    - file: file1.txt
+    - file: file2.txt
+    - file: files.zip
+      target-path: zip

@@ -21,7 +21,7 @@ class Manifest:
         self._f = open(path, mode + "b")
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, *_exc):
         self.close()

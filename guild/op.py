@@ -73,9 +73,15 @@ class Operation(object):
 
 
 class OperationCallbacks(object):
-    def __init__(self, init_output_summary=None, run_initialized=None):
+    def __init__(
+        self,
+        init_output_summary=None,
+        run_initialized=None,
+        dep_source_resolved=None,
+    ):
         self.init_output_summary = init_output_summary
         self.run_initialized = run_initialized
+        self.dep_source_resolved = dep_source_resolved
 
 
 def _callback(name, op, *rest_args):
@@ -480,7 +486,12 @@ def _resolve_deps(op, run, for_stage=False, continue_on_error=False):
         resolved_sources = deps_attr.setdefault(dep.resdef.name, {})
         try:
             _apply_resolve_dep_sources(
-                dep, resolve_context, run, for_stage, resolved_sources
+                op,
+                dep,
+                resolve_context,
+                run,
+                for_stage,
+                resolved_sources,
             )
         except op_dep.OpDependencyError as e:
             if not continue_on_error:
@@ -489,7 +500,7 @@ def _resolve_deps(op, run, for_stage=False, continue_on_error=False):
     run.write_attr("deps", deps_attr)
 
 
-def _apply_resolve_dep_sources(dep, resolve_context, run, for_stage, resolved):
+def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolved):
     log.info(loglib.dim("Resolving %s dependency"), dep.resdef.name)
     for source in dep.resdef.sources:
         if source.name in resolved:
@@ -500,7 +511,9 @@ def _apply_resolve_dep_sources(dep, resolve_context, run, for_stage, resolved):
         if for_stage and _is_operation_source(source):
             log.info("Skipping resolution of %s because it's being staged", source.name)
             continue
-        run_rel_resolved_paths = _resolve_dep_source(source, dep, resolve_context, run)
+        run_rel_resolved_paths = _resolve_dep_source(
+            op, source, dep, resolve_context, run
+        )
         resolved[source.name] = source_info = {
             "uri": source.uri,
             "paths": run_rel_resolved_paths,
@@ -509,9 +522,21 @@ def _apply_resolve_dep_sources(dep, resolve_context, run, for_stage, resolved):
             source_info["config"] = dep.config
 
 
-def _resolve_dep_source(source, dep, resolve_context, run):
-    resolved_abs_paths = op_dep.resolve_source(source, dep, resolve_context)
+def _resolve_dep_source(op, source, dep, resolve_context, run):
+    resolved_abs_paths = op_dep.resolve_source(
+        source,
+        dep,
+        resolve_context,
+        resolve_cb=_resolve_source_cb(op),
+    )
     return [os.path.relpath(path, run.dir) for path in resolved_abs_paths]
+
+
+def _resolve_source_cb(op):
+    def f(*args):
+        _callback("dep_source_resolved", op, *args)
+
+    return f
 
 
 def _is_operation_source(source):

@@ -229,7 +229,7 @@ def ResolveContext(run):
     return resolverlib.ResolveContext(run=run, unpack_dir=None)
 
 
-def resolve_source(source, dep, resolve_context):
+def resolve_source(source, dep, resolve_context, resolve_cb=None):
     last_resolution_error = None
     for location in _dep_resource_locations(dep):
         try:
@@ -242,12 +242,20 @@ def resolve_source(source, dep, resolve_context):
             _unknown_source_resolution_error(source, dep, e)
         else:
             for path in source_paths:
-                _resolve_source_for_path(
-                    path, location, source, resolve_context.run.dir
+                _handle_resolve_source(
+                    resolve_cb,
+                    *_resolve_source_for_path(
+                        path, location, source, resolve_context.run.dir
+                    )
                 )
             return source_paths
     assert last_resolution_error
     _source_resolution_error(source, dep, last_resolution_error)
+
+
+def _handle_resolve_source(resolve_cb, target_file, target_dir, src_file, src_root):
+    if resolve_cb:
+        resolve_cb(target_file, target_dir, src_file, src_root)
 
 
 def _dep_resource_locations(dep):
@@ -318,6 +326,7 @@ def _resolve_source_for_path(source_path, source_location, source, target_dir):
         _copy_source(source_path, target_path, source.replace_existing)
     else:
         assert False, (target_type, source, source.resdef)
+    return target_path, target_dir, source_path, source_location
 
 
 def _target_type_for_source(source):
