@@ -57,6 +57,7 @@ The files generated for our run:
     .guild/attrs/stopped
     .guild/attrs/user
     .guild/attrs/user_flags
+    .guild/manifest
     .guild/opref
     .guild/output
     .guild/output.index
@@ -162,6 +163,7 @@ The latest run is the trial:
     .guild/attrs/stopped
     .guild/attrs/user
     .guild/attrs/user_flags
+    .guild/manifest
     .guild/opref
     .guild/output
     .guild/output.index
@@ -230,6 +232,7 @@ Its files:
     .guild/proto/.guild/attrs/sourcecode_digest
     .guild/proto/.guild/attrs/user
     .guild/proto/.guild/attrs/user_flags
+    .guild/proto/.guild/manifest
     .guild/proto/.guild/opref
     .guild/proto/.guild/sourcecode/add.py
     .guild/proto/.guild/sourcecode/batch-2.csv
