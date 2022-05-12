@@ -1246,7 +1246,12 @@ def _op_init_callbacks_for_opdef(opdef, op):
     op.callbacks = oplib.OperationCallbacks(
         init_output_summary=_init_output_summary,
         run_initialized=_run_init_cb_for_opdef(opdef),
+        dep_source_resolved=_dep_source_resolved,
     )
+
+
+def _dep_source_resolved(_op, run_file, run_dir, src_file, src_root):
+    op_util.log_manifest_dep_source(run_file, run_dir, src_file, src_root)
 
 
 def _run_init_cb_for_opdef(opdef):
@@ -1277,7 +1282,12 @@ def _copy_opdef_sourcecode(opdef, op, run):
         sourcecode_src,
         dest,
     )
-    op_util.copy_sourcecode(sourcecode_src, sourcecode_select, dest)
+    op_util.copy_sourcecode(
+        sourcecode_src,
+        sourcecode_select,
+        dest,
+        op_util.sourcecode_manifest_logger_cls(run.dir),
+    )
 
 
 def _sourcecode_dest(run, op):
@@ -1304,16 +1314,14 @@ def _op_init_callbacks_for_run_with_proto(op):
     else:
         op.callbacks = oplib.OperationCallbacks(
             init_output_summary=_init_output_summary,
-            run_initialized=_run_init_cb_for_run_with_proto(op),
+            run_initialized=_run_init_cb_for_run_with_proto,
+            dep_source_resolved=_dep_source_resolved,
         )
 
 
-def _run_init_cb_for_run_with_proto(op):
-    def f(_op, run):
-        _copy_run_proto_sourcecode(op._run, op, run)
-        _copy_run_proto_attrs(op._run, run)
-
-    return f
+def _run_init_cb_for_run_with_proto(op, run):
+    _copy_run_proto_sourcecode(op._run, op, run)
+    _copy_run_proto_attrs(op._run, run)
 
 
 def _copy_run_proto_sourcecode(proto_run, proto_op, dest_run):

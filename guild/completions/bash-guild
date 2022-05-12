@@ -91,7 +91,7 @@ _guild_completion() {
             compopt -o filenames
         elif [ "${item:0:10}" = '!!rundirs:' ]; then
             alt_cwd="${item:10}"
-            COMPREPLY+=($(cd "$alt_cwd" && compgen -d -X .guild -- $2))
+            COMPREPLY+=($(cd "$alt_cwd" && compgen -d -- $2))
             __apply_alt_cwd "$alt_cwd"
         elif [ "${item:0:13}" = '!!allrundirs:' ]; then
             alt_cwd="${item:13}"
@@ -99,7 +99,7 @@ _guild_completion() {
             __apply_alt_cwd "$alt_cwd"
         elif [ "${item:0:11}" = '!!runfiles:' ]; then
             alt_cwd="${item:11}"
-            COMPREPLY+=($(cd "$alt_cwd" && compgen -f -X .guild -- $2))
+            COMPREPLY+=($(cd "$alt_cwd" && compgen -f -- $2))
             __apply_alt_cwd "$alt_cwd"
         elif [ "$item" = "!!nospace" ]; then
             compopt -o nospace
