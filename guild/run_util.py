@@ -55,7 +55,12 @@ class RunsMonitor(util.LoopingThread):
     STOP_TIMEOUT = 5
 
     def __init__(
-        self, logdir, list_runs_cb, refresh_run_cb, interval=None, run_name_cb=None
+        self,
+        logdir,
+        list_runs_cb,
+        refresh_run_cb,
+        interval=None,
+        run_name_cb=None,
     ):
         """Create a RunsMonitor.
 
