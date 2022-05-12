@@ -33,6 +33,7 @@ from guild import file_util
 from guild import flag_util
 from guild import log as loglib
 from guild import main
+from guild import manifest
 from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import run as runlib
@@ -1927,3 +1928,25 @@ def current_run():
 
 def handle_system_exit(e):
     main.handle_system_exit(e)
+
+
+def sourcecode_manifest_logger_cls(run):
+    m = manifest.Manifest(_run_manifest_path(run), "a")
+
+    class _Handler(SourceCodeCopyHandler):
+        def _try_copy_file(self, src, dest):
+            super(_Handler, self)._try_copy_file(src, dest)
+            m.write(_sourcecode_manifest_args(dest, run.dir, src, self.src_root))
+
+    return _Handler
+
+
+def _sourcecode_manifest_args(run_file, run_dir, project_file, project_dir):
+    dest_relpath = os.path.relpath(run_file, run_dir)
+    src_relpath = os.path.relpath(project_file, project_dir)
+    hash = util.file_sha1(project_file)
+    return ["s", dest_relpath, hash, src_relpath]
+
+
+def _run_manifest_path(run):
+    return run.guild_path("manifest")

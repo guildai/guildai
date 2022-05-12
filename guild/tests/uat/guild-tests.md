@@ -79,6 +79,7 @@ tests).
       long-run-names:              ok
       ls-cmd:                      ok
       ls-impl:                     ok
+      manifest:                    ok
       marked-runs:                 ok
       memory-plugin:               ok
       model-proxies:               ok
@@ -114,6 +115,7 @@ tests).
       run-files:                   ok
       run-impl:                    ok
       run-labels:                  ok
+      run-manifest:                ok
       run-ops:                     ok
       run-output:                  ok
       run-scripts:                 ok
