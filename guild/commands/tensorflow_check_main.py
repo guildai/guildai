@@ -20,7 +20,7 @@ import sys
 import click
 
 
-class State(object):
+class State:
     errors = False
 
 

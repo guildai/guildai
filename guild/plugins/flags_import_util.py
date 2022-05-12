@@ -25,7 +25,7 @@ from guild import yaml_util
 log = logging.getLogger("guild")
 
 
-class _ImportedFlagsOpDefProxy(object):
+class _ImportedFlagsOpDefProxy:
     def __init__(self, flags_data, wrapped_opdef):
         self.guildfile = wrapped_opdef.guildfile
         self.flags = self._init_flags(flags_data, wrapped_opdef.main)

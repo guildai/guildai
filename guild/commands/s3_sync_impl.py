@@ -26,7 +26,7 @@ NAME = "s3-sync"
 TITLE = "S3 sync service"
 
 
-class State(object):
+class State:
     def __init__(self, runs_dir, s3_uri, log):
         self.runs_dir = runs_dir
         self.s3_uri = s3_uri

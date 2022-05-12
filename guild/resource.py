@@ -18,7 +18,7 @@ from guild import namespace
 _resources = entry_point_util.EntryPointResources("guild.resources", "resource")
 
 
-class Resource(object):
+class Resource:
     def __init__(self, ep):
         self.name = ep.name
         self.dist = ep.dist

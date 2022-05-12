@@ -37,7 +37,7 @@ from . import ipynb
 log = None  # initialized in _init_logging
 
 
-class ApplyFlagsState(object):
+class ApplyFlagsState:
     def __init__(self, notebook_path, flags, run):
         self.notebook_path = notebook_path
         self.flags = flags
@@ -319,7 +319,7 @@ def _tokenize_source(source):
     return list(tokenize.generate_tokens(io.StringIO(six.text_type(source)).readline))
 
 
-class _ReplaceAssignsState(object):
+class _ReplaceAssignsState:
     def __init__(self, assigns):
         self.assigns = assigns
         self.repl_tokens = []

@@ -198,7 +198,7 @@ class ProcessError(Exception):
 ###################################################################
 
 
-class RunOutput(object):
+class RunOutput:
     def __init__(self, run, quiet=False, output_cb=None):
         """Creates a run output object.
 
@@ -726,7 +726,7 @@ def _render_template_formatted_vals(flag_vals, default_label):
     return formatted_vals
 
 
-class FormattedValue(object):
+class FormattedValue:
     def __init__(self, value):
         self._value = value
         self._str = None
@@ -1660,7 +1660,7 @@ def _resdef_from_data(data):
     return guildfile.ResourceDef(name, data, _ModelDefProxy())
 
 
-class _ModelDefProxy(object):
+class _ModelDefProxy:
     name = ""
     guildfile = None
     parents = []

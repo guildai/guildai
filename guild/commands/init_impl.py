@@ -37,7 +37,7 @@ log = logging.getLogger("guild")
 PYTHON_REQ_P = re.compile(r"^\s*#\s*python(\S+?)\s*$", re.MULTILINE)
 
 
-class Config(object):
+class Config:
     def __init__(self, args):
         self.env_dir = os.path.abspath(args.dir)
         self.env_name = self._init_env_name(args.name, self.env_dir)

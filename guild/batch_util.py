@@ -341,7 +341,7 @@ def _flag_function_or_val(val, flag_name):
         return _FlagFunction(name, args, flag_name, val)
 
 
-class _FlagFunction(object):
+class _FlagFunction:
     def __init__(self, name, args, flag_name, flag_value):
         from guild.plugins import skopt_util
 

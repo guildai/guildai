@@ -50,7 +50,7 @@ class DataLoadError(Exception):
     pass
 
 
-class PythonScriptOpdefSupport(object):
+class PythonScriptOpdefSupport:
     """Interface for Python script opdef support.
 
     `python_script_opdef_loaded` is called to potentially update
@@ -64,7 +64,7 @@ class PythonScriptOpdefSupport(object):
         """
 
 
-class PythonFlagsImporter(object):
+class PythonFlagsImporter:
     """Interface for Python flags importer."""
 
     def __init__(self, ep):
@@ -75,7 +75,7 @@ class PythonFlagsImporter(object):
         raise NotImplementedError()
 
 
-class PythonScriptModelProxy(object):
+class PythonScriptModelProxy:
 
     name = ""
     fullname = ""

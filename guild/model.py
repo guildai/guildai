@@ -36,7 +36,7 @@ ModelRef = collections.namedtuple(
 )
 
 
-class Model(object):
+class Model:
     def __init__(self, ep):
         self.name = self._ep_model_name(ep)
         self.dist = ep.dist
@@ -297,7 +297,7 @@ class BadGuildfileDistribution(pkg_resources.Distribution):
         return {}
 
 
-class ModelImporter(object):
+class ModelImporter:
 
     undef = object()
 
@@ -384,7 +384,7 @@ def set_path(path, clear_cache=False):
     _models.set_path(path, clear_cache)
 
 
-class SetPath(object):
+class SetPath:
     def __init__(self, path, clear_cache=False):
         self._path = path
         self._clear_cache = clear_cache

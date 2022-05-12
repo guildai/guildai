@@ -187,7 +187,7 @@ class Viewer(ViewerBase):
         self.resize()
 
 
-class StatusWin(object):
+class StatusWin:
     def __init__(self, msg):
         self.msg = msg
 

@@ -28,7 +28,7 @@ log = logging.getLogger("guild")
 GPKG_PREFIX = "gpkg."
 
 
-class Package(object):
+class Package:
     def __init__(self, ns, name, version):
         self.ns = ns
         self.name = name

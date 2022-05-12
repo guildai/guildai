@@ -91,7 +91,7 @@ class RunTerminated(RunException):
     pass
 
 
-class OutputTee(object):
+class OutputTee:
     def __init__(self, fs, lock):
         self._fs = fs
         self._lock = lock
@@ -107,7 +107,7 @@ class OutputTee(object):
                 f.flush()
 
 
-class RunOutput(object):
+class RunOutput:
     def __init__(self, run, summary=None):
         self.run = run
         self.summary = summary
@@ -140,7 +140,7 @@ class RunOutput(object):
 
 
 @functools.total_ordering
-class RunIndex(object):
+class RunIndex:
     def __init__(self, run, fmt):
         self.value = run
         self.run = run  # backward compatible alias
@@ -234,7 +234,7 @@ class RunsDataFrame(pd.DataFrame):
         return _runs_compare(self._items())
 
 
-class Batch(object):
+class Batch:
     def __init__(self, gen_trials, op, flag_vals, opts):
         self.gen_trials = gen_trials
         self.op = op
@@ -275,7 +275,7 @@ def _coerce_range_function(val):
     return val
 
 
-class RangeFunction(object):
+class RangeFunction:
     def __init__(self, name, *args):
         self.name = name
         self.args = args

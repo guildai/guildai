@@ -332,7 +332,7 @@ def parse_url(url):
     return urlparse(url)
 
 
-class TempBase(object):
+class TempBase:
     def __init__(self, prefix="guild-", suffix="", keep=False):
         self._prefix = prefix
         self._suffix = suffix
@@ -418,7 +418,7 @@ def _top_level_dir(path):
     return len(parts) <= 1
 
 
-class LogCapture(object):
+class LogCapture:
     def __init__(
         self,
         use_root_handler=False,
@@ -923,7 +923,7 @@ def wait_forever(sleep_interval=0.1):
         time.sleep(sleep_interval)
 
 
-class RunOutputReader(object):
+class RunOutputReader:
     def __init__(self, run_dir):
         self.run_dir = run_dir
         self._lines = []
@@ -1241,7 +1241,7 @@ def format_bytes(n):
     return "%.1f%s" % (n, units[-1])
 
 
-class Chdir(object):
+class Chdir:
 
     _cwd = None
 
@@ -1264,7 +1264,7 @@ def log_apply(f, *args, **kw):
     return f(*args, **kw)
 
 
-class _log_apply_msg(object):
+class _log_apply_msg:
     def __init__(self, f, args, kw):
         self.f = f
         self.args = args
@@ -1461,7 +1461,7 @@ def _shorten_path_split_path(path, sep):
     return packed
 
 
-class HTTPResponse(object):
+class HTTPResponse:
     def __init__(self, resp):
         self.status_code = resp.status
         self.text = resp.read()
@@ -1512,7 +1512,7 @@ def _HTTPConnection(scheme, netloc, timeout):
         raise ValueError("unsupported scheme '%s' - must be 'http' or 'https'" % scheme)
 
 
-class StdIOContextManager(object):
+class StdIOContextManager:
     def __init__(self, stream):
         self.stream = stream
 
@@ -1531,7 +1531,7 @@ def check_env(env):
             raise ValueError("non-string env value for '%s': %r" % (name, val))
 
 
-class SysArgv(object):
+class SysArgv:
     def __init__(self, args):
         self._args = args
         self._save = None
@@ -1547,7 +1547,7 @@ class SysArgv(object):
         self._save = None
 
 
-class Env(object):
+class Env:
     def __init__(self, vals, replace=False):
         self._vals = vals
         self._replace = replace
@@ -1609,7 +1609,7 @@ class Env(object):
             op()
 
 
-class StdinReader(object):
+class StdinReader:
     def __init__(self, stop_on_blank_line=False):
         self.stop_on_blank_line = stop_on_blank_line
 
@@ -1722,7 +1722,7 @@ def raise_from(raise_exc, from_exc):
         exec("raise raise_exc_type, raise_exc, tb")
 
 
-class PropertyCache(object):
+class PropertyCache:
     def __init__(self, properties):
         self._vals = {
             name: default for name, default, _callback, _timeout in properties

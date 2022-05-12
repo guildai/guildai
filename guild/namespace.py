@@ -24,7 +24,7 @@ _namespaces = EntryPointResources("guild.namespaces", "namespace")
 DEFAULT_NAMESPACE = "pypi"
 
 
-class Membership(object):
+class Membership:
     yes = "yes"
     no = "no"
     maybe = "maybe"
@@ -41,7 +41,7 @@ class NamespaceError(LookupError):
         self.value = value
 
 
-class Namespace(object):
+class Namespace:
 
     # pylint: disable=no-self-use
 

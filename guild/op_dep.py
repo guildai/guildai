@@ -45,7 +45,7 @@ class OpDependencyError(Exception):
 ###################################################################
 
 
-class OpDependency(object):
+class OpDependency:
     def __init__(self, resdef, res_location, config):
         assert res_location
         self.resdef = resdef
@@ -272,7 +272,7 @@ def resolver_for_source(source, dep):
     return resolverlib.for_resdef_source(source, res_proxy)
 
 
-class ResourceProxy(object):
+class ResourceProxy:
     """Proxy for guild.deps.Resource, used by resolver API.
 
     The APIs in guild.deps and guild.resolver are to be replaced by

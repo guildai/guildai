@@ -109,7 +109,7 @@ MAXINT = sys.maxsize
 # it into PLY.
 
 
-class PlyLogger(object):
+class PlyLogger:
     def __init__(self, f):
         self.f = f
 
@@ -128,7 +128,7 @@ class PlyLogger(object):
 
 
 # Null logger is used when no output is generated. Does nothing.
-class NullLogger(object):
+class NullLogger:
     def __getattribute__(self, name):
         return self
 
@@ -1394,7 +1394,7 @@ _is_identifier = re.compile(r'^[a-zA-Z0-9_-]+$')
 # -----------------------------------------------------------------------------
 
 
-class Production(object):
+class Production:
     reduced = 0
 
     def __init__(
@@ -1470,7 +1470,7 @@ class Production(object):
 # reading table data from files.   It only contains information
 # actually used by the LR parsing engine, plus some additional
 # debugging information.
-class MiniProduction(object):
+class MiniProduction:
     def __init__(self, str, name, len, func, file, line):
         self.name = name
         self.len = len
@@ -1517,7 +1517,7 @@ class MiniProduction(object):
 # -----------------------------------------------------------------------------
 
 
-class LRItem(object):
+class LRItem:
     def __init__(self, p, n):
         self.name = p.name
         self.prod = list(p.prod)
@@ -1567,7 +1567,7 @@ class GrammarError(YaccError):
     pass
 
 
-class Grammar(object):
+class Grammar:
     def __init__(self, terminals):
         self.Productions = [None]  # A list of all of the productions.  The first
         # entry is always reserved for the purpose of
@@ -2095,7 +2095,7 @@ class VersionError(YaccError):
     pass
 
 
-class LRTable(object):
+class LRTable:
     def __init__(self):
         self.lr_action = None
         self.lr_goto = None
@@ -3121,7 +3121,7 @@ def parse_grammar(doc, file, line):
 # start symbol, error function, tokens, precedence list, action functions,
 # etc.
 # -----------------------------------------------------------------------------
-class ParserReflect(object):
+class ParserReflect:
     def __init__(self, pdict, log=None):
         self.pdict = pdict
         self.start = None

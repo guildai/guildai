@@ -59,7 +59,7 @@ class ProcessError(Exception):
 ###################################################################
 
 
-class Operation(object):
+class Operation:
     def __init__(self):
         self.opref = None
         self.cmd_args = []
@@ -72,7 +72,7 @@ class Operation(object):
         self.callbacks = None
 
 
-class OperationCallbacks(object):
+class OperationCallbacks:
     def __init__(self, init_output_summary=None, run_initialized=None):
         self.init_output_summary = init_output_summary
         self.run_initialized = run_initialized
@@ -307,7 +307,7 @@ def _proc_wait_with_run_output(proc, run, quiet, output_summary, stop_after):
         return _proc_wait(proc, stop_after)
 
 
-class _RunOutput(object):
+class _RunOutput:
     def __init__(self, run, proc, quiet, output_summary):
         self._output = None
         self._run = run

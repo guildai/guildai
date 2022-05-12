@@ -28,7 +28,7 @@ DEFAULT_POLL_INTERVAL = 10
 DEFAULT_RUN_STATUS_LOCK_TIMEOUT = 30
 
 
-class StateBase(object):
+class StateBase:
     def __init__(
         self,
         start_run_cb,

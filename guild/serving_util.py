@@ -31,7 +31,7 @@ class QuietRequestHandler(serving.WSGIRequestHandler):
             super(QuietRequestHandler, self).log(type, message, *args)
 
 
-class StaticBase(object):
+class StaticBase:
     def __init__(self, exports):
         self._app = SharedDataMiddleware(self._not_found, exports)
 

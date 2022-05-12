@@ -38,7 +38,7 @@ def set_cwd(cwd):
     globals()["_cwd"] = cwd
 
 
-class SetCwd(object):
+class SetCwd:
 
     _save = None
 
@@ -55,7 +55,7 @@ class SetCwd(object):
         _cwd_lock.release()
 
 
-class SetGuildHome(object):
+class SetGuildHome:
 
     _save = None
 
@@ -118,7 +118,7 @@ def log_output():
     return _log_output
 
 
-class _Config(object):
+class _Config:
     def __init__(self, path):
         self.path = path
         self._data = None

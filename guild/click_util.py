@@ -41,7 +41,7 @@ def NUMBER(s):
             raise ValueError("%s is not a valid number")
 
 
-class Args(object):
+class Args:
     def __init__(self, **kw):
         self.__names = set()
         for name in kw:
@@ -147,7 +147,7 @@ class HelpFormatter(ClickBaseHelpFormatter):
         )
 
 
-class JSONHelpFormatter(object):
+class JSONHelpFormatter:
 
     _finalized = object()
 

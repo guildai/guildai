@@ -55,7 +55,7 @@ class OrphanedProcess(ServiceError):
         self.pidfile = pidfile
 
 
-class Status(object):
+class Status:
     def __init__(self, running, pid=None):
         self.running = running
         self.pid = pid

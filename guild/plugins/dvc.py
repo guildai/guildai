@@ -37,7 +37,7 @@ from . import dvc_util
 log = logging.getLogger("guild")
 
 
-class _DvcModelProxy(object):
+class _DvcModelProxy:
 
     name = "dvc.yaml"
 

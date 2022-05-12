@@ -155,7 +155,7 @@ def p_error(t):
     )
 
 
-class parser(object):
+class parser:
     def __init__(self):
         self._l = qlex.lexer()
         self._p = _yacc.yacc(debug=False, write_tables=False)

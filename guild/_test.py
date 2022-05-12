@@ -354,7 +354,7 @@ def _leading_wildcard_want(want):
     return re.sub(r"^\?\?\?", "...", want)
 
 
-class TestRunner(doctest.DocTestRunner, object):
+class TestRunner(doctest.DocTestRunner):
     def __init__(self, checker=None, verbose=None, optionflags=0):
         super(TestRunner, self).__init__(checker, verbose, optionflags)
         self.skipped = 0
@@ -380,7 +380,7 @@ def run_test_file_with_config(filename, globs, optionflags):
 def _safe_chdir(dir):
     if not os.path.exists(dir):
 
-        class NoOp(object):
+        class NoOp:
             def __enter__(self):
                 pass
 
@@ -691,7 +691,7 @@ def copyfile(*args, **kw):
     shutil.copy2(*args, **kw)
 
 
-class StderrCapture(object):
+class StderrCapture:
 
     closed = False
     _stderr = None
@@ -747,7 +747,7 @@ def write(filename, contents, append=False):
         f.write(contents)
 
 
-class SysPath(object):
+class SysPath:
 
     _sys_path0 = None
 
@@ -768,7 +768,7 @@ class SysPath(object):
         sys.path = self._sys_path0
 
 
-class ModelPath(object):
+class ModelPath:
 
     _model_path0 = None
 
@@ -788,7 +788,7 @@ class ModelPath(object):
         model.set_path(self._model_path0)
 
 
-class Project(object):
+class Project:
     def __init__(self, cwd, guild_home=None, env=None):
         from guild import index as indexlib  # expensive
 
@@ -1034,7 +1034,7 @@ def _is_compiled_source(path):
     return _is_run_sourcecode(path) and path.endswith(".pyc")
 
 
-class _MockConfig(object):
+class _MockConfig:
     def __init__(self, data):
         self.path = configlib.user_config_path()
         self.data = data
@@ -1043,7 +1043,7 @@ class _MockConfig(object):
         return self.data
 
 
-class UserConfig(object):
+class UserConfig:
     def __init__(self, config):
         self._config = _MockConfig(config)
 
@@ -1056,7 +1056,7 @@ class UserConfig(object):
         configlib._user_config = None
 
 
-class Proxy(object):
+class Proxy:
     """Empty object for use as proxy."""
 
 
@@ -1236,7 +1236,7 @@ def _popen_posix(cmd, env, cwd):
     )
 
 
-class _kill_after(object):
+class _kill_after:
     def __init__(self, p, timeout):
         self._p = p
         self._timer = threading.Timer(timeout, self._kill)

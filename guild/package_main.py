@@ -39,7 +39,7 @@ log = logging.getLogger("guild")
 MULTI_ARCH_PACKAGES = ("tensorflow-any",)
 
 
-class Pkg(object):
+class Pkg:
     def __init__(self, src, data):
         self.src = src
         self.data = data

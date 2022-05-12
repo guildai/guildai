@@ -26,7 +26,7 @@ class UnsupportedRepo(Exception):
     pass
 
 
-class Scheme(object):
+class Scheme:
     def __init__(
         self,
         name,

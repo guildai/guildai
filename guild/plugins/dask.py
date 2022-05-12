@@ -116,7 +116,7 @@ resources:
 )
 
 
-class DaskModelProxy(object):
+class DaskModelProxy:
 
     name = "dask"
 

@@ -51,7 +51,7 @@ class Debugger(pdb.Pdb):
         return module_name != "__main__"
 
 
-class ModuleInfo(object):
+class ModuleInfo:
     def __init__(self, mod_path, package):
         self.mod_path = mod_path
         self.package = package

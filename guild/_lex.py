@@ -64,7 +64,7 @@ class LexError(Exception):
 
 
 # Token class.  This class is used to represent the tokens produced.
-class LexToken(object):
+class LexToken:
     def __str__(self):
         return 'LexToken(%s,%r,%d,%d)' % (
             self.type,
@@ -81,7 +81,7 @@ class LexToken(object):
 # logging module.
 
 
-class PlyLogger(object):
+class PlyLogger:
     def __init__(self, f):
         self.f = f
 
@@ -99,7 +99,7 @@ class PlyLogger(object):
 
 
 # Null logger is used when no output is generated. Does nothing.
-class NullLogger(object):
+class NullLogger:
     def __getattribute__(self, name):
         return self
 
@@ -598,7 +598,7 @@ def _statetoken(s, names):
 # This class represents information needed to build a lexer as extracted from a
 # user's input file.
 # -----------------------------------------------------------------------------
-class LexerReflect(object):
+class LexerReflect:
     def __init__(self, ldict, log=None, reflags=0):
         self.ldict = ldict
         self.error_func = None

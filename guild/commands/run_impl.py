@@ -101,7 +101,7 @@ CORE_RUN_ATTRS = {
 ###################################################################
 
 
-class State(object):
+class State:
     def __init__(self, args):
         self.args = args
         self.restart_run = None
@@ -1812,7 +1812,7 @@ def _test_sourcecode(S):
             cli.out(cli.style("  %s" % path, dim=True))
 
 
-class _CopyLogger(object):
+class _CopyLogger:
 
     root = None
     select = None

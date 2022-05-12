@@ -243,7 +243,7 @@ def tf_scalar_summary(vals):
     )
 
 
-class SummaryCache(object):
+class SummaryCache:
     def __init__(self, timeout, log):
         self._timeout = timeout
         self._expires = None

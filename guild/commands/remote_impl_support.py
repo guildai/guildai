@@ -20,7 +20,7 @@ from guild import remote as remotelib
 from . import remote_support
 
 
-class op_handler(object):
+class op_handler:
     def __init__(self, remote):
         self.remote = remote
 

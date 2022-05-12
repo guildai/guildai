@@ -27,7 +27,7 @@ class RunError(Exception):
         self.output = output
 
 
-class Env(object):
+class Env:
     def __init__(self, cwd, guild_home=None):
         from guild import config
 

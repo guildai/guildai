@@ -28,7 +28,7 @@ class ModelOpResolutionError(Exception):
     pass
 
 
-class Plugin(object):
+class Plugin:
     """Abstract interface for a Guild plugin."""
 
     name = None

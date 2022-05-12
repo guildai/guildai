@@ -87,7 +87,7 @@ class RemoteConfig(dict):
             raise MissingRequiredConfig(key)
 
 
-class RunProxy(object):
+class RunProxy:
     def __init__(self, data):
         self.id = data["id"]
         self.short_id = self.id[:8]
@@ -130,7 +130,7 @@ class RunProxy(object):
         raise TypeError("guild_path not supported by %s" % self)
 
 
-class RemoteType(object):
+class RemoteType:
     def remote_for_config(self, name, config):
         raise NotImplementedError()
 
@@ -138,7 +138,7 @@ class RemoteType(object):
         raise NotImplementedError()
 
 
-class Remote(object):
+class Remote:
 
     # pylint: disable=unused-argument,no-self-use
 

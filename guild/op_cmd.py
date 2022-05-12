@@ -28,7 +28,7 @@ log = logging.getLogger("guild")
 ###################################################################
 
 
-class OpCmd(object):
+class OpCmd:
     def __init__(self, cmd_args, cmd_env, cmd_flags, flags_dest):
         self.cmd_args = cmd_args
         self.cmd_env = cmd_env
@@ -36,7 +36,7 @@ class OpCmd(object):
         self.flags_dest = flags_dest
 
 
-class CmdFlag(object):
+class CmdFlag:
     def __init__(
         self,
         arg_name=None,

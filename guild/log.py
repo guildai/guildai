@@ -30,7 +30,7 @@ NOISY_LOGGERS = (
 )
 
 
-class _FakeTTY(object):
+class _FakeTTY:
     """Context manager for forcing _isatty to True - used for tests."""
 
     _saved = None
@@ -44,7 +44,7 @@ class _FakeTTY(object):
         globals()["_isatty"] = self._saved
 
 
-class _FakeShell(object):
+class _FakeShell:
     """Context manager for defining _shell as 'fake' - used for tests."""
 
     _saved = None

@@ -19,7 +19,7 @@ from guild import cmd_impl_support
 from guild import help as helplib
 
 
-class Pkg(object):
+class Pkg:
     """Local structure representing a model package."""
 
     def __init__(self, name, guildfile):

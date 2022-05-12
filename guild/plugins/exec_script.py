@@ -21,7 +21,7 @@ from guild import plugin
 from guild import util
 
 
-class ExecScriptModelProxy(object):
+class ExecScriptModelProxy:
     def __init__(self, script_path, op_name):
         assert script_path.endswith(op_name), (script_path, op_name)
         self.script_path = script_path

@@ -71,7 +71,7 @@ INHERITED_PARAMS = (
 ###################################################################
 
 
-class Step(object):
+class Step:
     def __init__(self, data, parent_flags, parent_opref, parent_run_params):
         data = _coerce_step_data(data)
         params = _run_params_for_step_data(data)

@@ -29,7 +29,7 @@ _action_importers = entry_point_util.EntryPointResources(
 )
 
 
-class ArgparseActionFlagsImporter(object):
+class ArgparseActionFlagsImporter:
 
     priority = 50
 

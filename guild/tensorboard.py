@@ -57,7 +57,7 @@ class TensorboardError(Exception):
     pass
 
 
-class _RunsMonitorState(object):
+class _RunsMonitorState:
     def __init__(self, logdir, log_images, log_hparams):
         self.logdir = logdir
         self.log_images = log_images

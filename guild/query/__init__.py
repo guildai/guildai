@@ -19,7 +19,7 @@ class ParseError(Exception):
     pass
 
 
-class Select(object):
+class Select:
     def __init__(self, cols):
         self.cols = cols
 
@@ -27,7 +27,7 @@ class Select(object):
         return "<guild.query.Select %s>" % [str(c) for c in self.cols]
 
 
-class Col(object):
+class Col:
 
     named_as = None
 

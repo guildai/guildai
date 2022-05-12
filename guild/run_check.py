@@ -27,7 +27,7 @@ class Failed(Exception):
     pass
 
 
-class FileCheck(object):
+class FileCheck:
 
     type_attr = "file"
 
@@ -62,7 +62,7 @@ class FileCheck(object):
                 )
 
 
-class OutputCheck(object):
+class OutputCheck:
 
     type_attr = "output"
 

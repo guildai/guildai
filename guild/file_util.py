@@ -27,7 +27,7 @@ from guild import util
 log = logging.getLogger("guild")
 
 
-class FileSelect(object):
+class FileSelect:
     def __init__(self, root, rules):
         self.root = root
         self.rules = rules
@@ -101,7 +101,7 @@ def reduce_file_select_results(results):
     return None, None
 
 
-class FileSelectRule(object):
+class FileSelectRule:
     def __init__(
         self,
         result,
@@ -241,7 +241,7 @@ def _strip_leading_path_sep(pattern):
     return pattern
 
 
-class FileSelectTest(object):
+class FileSelectTest:
     def __init__(self, name, test_f, *test_args):
         self.name = name
         self.test_f = test_f
@@ -259,7 +259,7 @@ def exclude(patterns, **kw):
     return FileSelectRule(False, patterns, **kw)
 
 
-class FileCopyHandler(object):
+class FileCopyHandler:
     def __init__(self, src_root, dest_root, select):
         self.src_root = src_root
         self.dest_root = dest_root

@@ -76,7 +76,7 @@ def _nbexec_notebook_path(opdef):
     return None
 
 
-class NotebookModelProxy(object):
+class NotebookModelProxy:
 
     name = ""
 

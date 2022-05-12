@@ -38,7 +38,7 @@ TB_REFRESH_INTERVAL = 5
 TB_DISABLED_PLUGINS = ["WhatIfToolPluginLoader"]
 
 
-class ViewData(object):
+class ViewData:
     """Interface for providing View related data."""
 
     def runs(self):
@@ -131,7 +131,7 @@ class DevServer(threading.Thread):
         return os.path.join(MODULE_DIR, "view/build/webpack.dev.conf.js")
 
 
-class TBServer(object):
+class TBServer:
     def __init__(self, tensorboard_mod, key, data):
         self._tb_mod = tensorboard_mod
         self._key = key
@@ -187,7 +187,7 @@ class TBServer(object):
         util.rmtempdir(self.log_dir)
 
 
-class TBServers(object):
+class TBServers:
     def __init__(self, data):
         self._lock = threading.Lock()
         self._servers = {}
@@ -253,7 +253,7 @@ class RunFiles(serving_util.StaticBase):
         return app
 
 
-class RunOutput(object):
+class RunOutput:
     def __init__(self):
         self._output_run_id = None
         self._output = None

@@ -31,7 +31,7 @@ try:
     from ast import NameConstant
 except ImportError:
 
-    class FakeType(object):
+    class FakeType:
         pass
 
     NameConstant = FakeType
@@ -39,7 +39,7 @@ except ImportError:
 log = logging.getLogger("guild")
 
 
-class Script(object):
+class Script:
     def __init__(self, src, mod_package=None, sys_path=None):
         self.src = src
         self.name = _script_name(src)
@@ -203,7 +203,7 @@ def _SimpleNamespace(kw):
         return BuiltinSimpleNamespace(**kw)
 
 
-class SimpleNamespace(object):
+class SimpleNamespace:
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
@@ -221,7 +221,7 @@ class SimpleNamespace(object):
         return NotImplemented
 
 
-class Call(object):
+class Call:
     def __init__(self, node):
         self.node = node
         self.name = self._func_name(node.func)
@@ -260,7 +260,7 @@ class Result(Exception):
         self.value = value
 
 
-class MethodWrapper(object):
+class MethodWrapper:
     @staticmethod
     def for_method(method):
         return getattr(method, "__wrapper__", None)
@@ -342,7 +342,7 @@ def remove_method_listeners(method):
         wrapper.unwrap()
 
 
-class FunctionWrapper(object):
+class FunctionWrapper:
     @staticmethod
     def for_function(function):
         return getattr(function, "__wrapper__", None)

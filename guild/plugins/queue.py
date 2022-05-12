@@ -66,7 +66,7 @@ gpus:
 )
 
 
-class QueueModelProxy(object):
+class QueueModelProxy:
 
     name = ""
 

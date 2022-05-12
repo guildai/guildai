@@ -26,7 +26,7 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 
-class State(object):
+class State:
     def __init__(self, args):
         self.ran_once = False
         self.watch = args.watch

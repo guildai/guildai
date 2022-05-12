@@ -27,7 +27,7 @@ VERSION = 1
 DB_NAME = "index_v%i.db" % VERSION
 
 
-class AttrReader(object):
+class AttrReader:
     def __init__(self):
         self._data = {}
 
@@ -66,7 +66,7 @@ def _run_attr_data(run):
     }
 
 
-class FlagReader(object):
+class FlagReader:
     def __init__(self):
         self._data = {}
 
@@ -77,7 +77,7 @@ class FlagReader(object):
         return self._data.get(run.id, {}).get(flag)
 
 
-class ScalarReader(object):
+class ScalarReader:
 
     _col_index_map = {
         ("first", False): 3,
@@ -253,7 +253,7 @@ class ScalarReader(object):
             yield {col[0]: row[i] for i, col in enumerate(cur.description)}
 
 
-class TagSummary(object):
+class TagSummary:
     def __init__(self):
         self.first_val = None
         self.first_step = None
@@ -297,7 +297,7 @@ class TagSummary(object):
             self.max_step = step
 
 
-class RunIndex(object):
+class RunIndex:
     """Interface for using a run index."""
 
     def __init__(self, path=None):

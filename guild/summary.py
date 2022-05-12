@@ -39,7 +39,7 @@ HPARAM_TYPE_STRING = "string"
 HPARAM_TYPE_NONE = "none"
 
 
-class EventFileWriter(object):
+class EventFileWriter:
     def __init__(
         self,
         logdir,
@@ -71,7 +71,7 @@ class EventFileWriter(object):
         self._writer.close()
 
 
-class _HParamState(object):
+class _HParamState:
     def __init__(self):
         self._numeric = set()
         self._discrete = {}
@@ -83,7 +83,7 @@ class _HParamState(object):
         self._discrete[name] = vals
 
 
-class SummaryWriter(object):
+class SummaryWriter:
     def __init__(self, logdir, filename_base=None, filename_suffix=""):
         self.logdir = logdir
         self._writer_init = lambda: EventFileWriter(
@@ -305,7 +305,7 @@ def _Status(status):
         return api.Status.Value("STATUS_UNKNOWN")
 
 
-class OutputScalars(object):
+class OutputScalars:
     def __init__(self, config, output_dir, ignore=None):
         self._patterns = _init_patterns(config)
         self._writer = SummaryWriter(output_dir)
@@ -439,7 +439,7 @@ def _try_apply_float(s, key, vals):
         vals[key] = f
 
 
-class TestOutputLogger(object):
+class TestOutputLogger:
     @staticmethod
     def line(line):
         sys.stdout.write(line)

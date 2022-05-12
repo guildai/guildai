@@ -355,7 +355,7 @@ def _sorted_table_rows(table, header, args):
     return _table_rows(table, header)
 
 
-class _SortKey(object):
+class _SortKey:
     def __init__(self, val, max=False):
         self.val = val
         self.max = max

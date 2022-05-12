@@ -47,13 +47,13 @@ class ResolutionError(Exception):
     pass
 
 
-class ResolveContext(object):
+class ResolveContext:
     def __init__(self, run=None, unpack_dir=None):
         self.run = run
         self.unpack_dir = unpack_dir
 
 
-class Resolver(object):
+class Resolver:
     def __init__(self, source, resource):
         self.source = source
         self.resource = resource
@@ -327,7 +327,7 @@ def _run_opref_filter(oprefs):
     return var.run_filter("any", [opref_match_filter(opref) for opref in oprefs])
 
 
-class opref_match_filter(object):
+class opref_match_filter:
     def __init__(self, opref):
         self.opref = opref
 

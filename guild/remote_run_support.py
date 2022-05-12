@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-class RemoteLock(object):
+class RemoteLock:
     def __init__(self, remote_name, config):
         self.remote_name = remote_name
         self.config = config

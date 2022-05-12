@@ -80,7 +80,7 @@ def _format_template_files(t):
     return os.path.join(t.path, basename)
 
 
-class RunFilters(object):
+class RunFilters:
 
     IMG_PATTERN = re.compile(r"\.(png|gif|jpe?g|tiff?|bmp|webp)", re.IGNORECASE)
 
@@ -185,7 +185,7 @@ class RunFilters(object):
         return s.replace("-", "&#8209;")
 
 
-class Template(object):
+class Template:
     def __init__(self, path, run_dest=None, filters=None):
         if not os.path.exists(path):
             raise RuntimeError("invalid template source: %s" % path)
@@ -616,7 +616,7 @@ def _copy_sourcecode(state):
     shutil.copytree(src, dest)
 
 
-class PublishRunVars(object):
+class PublishRunVars:
     def __init__(self, state):
         self._state = state
         self._cache = {}
@@ -662,7 +662,7 @@ class PublishRunVars(object):
         return open(path, "r").read()
 
 
-class CopyRunFilesFilter(object):
+class CopyRunFilesFilter:
     def __init__(self, state):
         self._run_dir = state.run.dir
         self._include_links = state.include_links

@@ -25,7 +25,7 @@ from guild import util
 from guild import yaml_util
 
 
-class Run(object):
+class Run:
 
     __properties__ = [
         "id",

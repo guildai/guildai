@@ -26,7 +26,7 @@ import os
 log = logging.getLogger("guild")
 
 
-class EventReader(object):
+class EventReader:
     def __init__(self, dir, all_events=False):
         self.dir = dir
         self.all_events = all_events
@@ -55,7 +55,7 @@ def _log_tfevent_iter_error(dir, e):
         log.warning("error reading TF event from %s: %s", dir, e)
 
 
-class ScalarReader(object):
+class ScalarReader:
     def __init__(self, dir):
         self.dir = dir
 

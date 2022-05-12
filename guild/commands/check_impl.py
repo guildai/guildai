@@ -58,7 +58,7 @@ CHECK_MODS = [
 ATTR_COL_WIDTH = 26
 
 
-class Check(object):
+class Check:
     def __init__(self, args):
         self.args = args
         self._errors = False

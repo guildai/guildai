@@ -35,7 +35,7 @@ class OpSpecError(Exception):
     pass
 
 
-class BatchModelProxy(object):
+class BatchModelProxy:
 
     name = ""
     op_name = "+"

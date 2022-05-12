@@ -333,7 +333,7 @@ def print_package_info(pkg, verbose=False, show_files=False):
     return cmd.run(*cmd.parse_args(args))
 
 
-class PrintPackageLogger(object):
+class PrintPackageLogger:
     def info(self, msg, args=None):
         args = args or []
         out = self._normalize_attr_case(msg % args)

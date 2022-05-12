@@ -541,7 +541,7 @@ def _join_args(args):
         assert False, args
 
 
-class _noquote(object):
+class _noquote:
     """Wraper to signify that a value must not be quoted."""
 
     def __init__(self, val):
