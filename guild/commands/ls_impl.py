@@ -183,7 +183,7 @@ def _is_subpath(maybe_subpath, path):
 
 
 def _split_path(path):
-    return path.split(os.path.sep)
+    return [part for part in path.split(os.path.sep) if part]
 
 
 def _format_list_path(full_path, rel_path, args):
