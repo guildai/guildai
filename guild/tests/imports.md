@@ -230,6 +230,7 @@
     guild.resourcedef
     guild.run
     guild.run_check
+    guild.run_manifest
     guild.run_util
     guild.run_zip_proxy
     guild.service

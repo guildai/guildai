@@ -242,20 +242,21 @@ def resolve_source(source, dep, resolve_context, resolve_cb=None):
             _unknown_source_resolution_error(source, dep, e)
         else:
             for path in source_paths:
-                _handle_resolve_source(
-                    resolve_cb,
-                    *_resolve_source_for_path(
-                        path, location, source, resolve_context.run.dir
-                    )
+                resolved = _resolve_source_for_path(
+                    path,
+                    location,
+                    source,
+                    resolve_context.run.dir,
                 )
+                _handle_resolved_source(resolved, resolve_cb)
             return source_paths
     assert last_resolution_error
     _source_resolution_error(source, dep, last_resolution_error)
 
 
-def _handle_resolve_source(resolve_cb, target_file, target_dir, src_file, src_root):
-    if resolve_cb:
-        resolve_cb(target_file, target_dir, src_file, src_root)
+def _handle_resolved_source(resolved, resolve_cb):
+    if resolved and resolve_cb:
+        resolve_cb(resolved)
 
 
 def _dep_resource_locations(dep):
@@ -312,21 +313,43 @@ def _unknown_source_resolution_error(source, dep, e):
     )
 
 
-def _resolve_source_for_path(source_path, source_location, source, target_dir):
+class ResolvedSource:
+    def __init__(
+        self,
+        source,
+        target_path,
+        target_root,
+        source_path,
+        source_origin,
+    ):
+        self.source = source
+        self.target_path = target_path
+        self.target_root = target_root
+        self.source_path = source_path
+        self.source_origin = source_origin
+
+
+def _resolve_source_for_path(source_path, source_origin, source, target_dir):
     target_type = _target_type_for_source(source)
     target_path = _target_path_for_source(
-        source_path, source_location, source, target_dir
+        source_path, source_origin, source, target_dir
     )
     if util.compare_paths(source_path, target_path):
         # Source was resolved directly to run dir - nothing to do.
-        return
+        return None
     if target_type == "link":
         _link_to_source(source_path, target_path, source.replace_existing)
     elif target_type == "copy":
         _copy_source(source_path, target_path, source.replace_existing)
     else:
         assert False, (target_type, source, source.resdef)
-    return target_path, target_dir, source_path, source_location
+    return ResolvedSource(
+        source,
+        target_path,
+        target_dir,
+        source_path,
+        source_origin,
+    )
 
 
 def _target_type_for_source(source):
@@ -347,13 +370,13 @@ def _validate_target_type(val, desc):
     )
 
 
-def _target_path_for_source(source_path, source_location, source, target_dir):
+def _target_path_for_source(source_path, source_origin, source, target_dir):
     """Returns target path for source.
 
     If target path is defined for the source, it redefines any value
     defined for the resource parent.
     """
-    target_path = _source_target_path(source, source_path, source_location)
+    target_path = _source_target_path(source, source_path, source_origin)
     if os.path.isabs(target_path):
         raise OpDependencyError(
             "invalid path '%s' in %s resource (path must be relative)"
@@ -365,7 +388,7 @@ def _target_path_for_source(source_path, source_location, source, target_dir):
     return os.path.join(target_dir, target_path, basename)
 
 
-def _source_target_path(source, source_path, source_location):
+def _source_target_path(source, source_path, source_origin):
     target_path_attr = source.target_path or source.resdef.target_path
     if source.preserve_path:
         if target_path_attr:
@@ -373,7 +396,7 @@ def _source_target_path(source, source_path, source_location):
                 "target-path '%s' specified with preserve-path - ignoring",
                 target_path_attr,
             )
-        return os.path.relpath(os.path.dirname(source_path), source_location)
+        return os.path.relpath(os.path.dirname(source_path), source_origin)
     else:
         return target_path_attr or source.resdef.target_path or ""
 

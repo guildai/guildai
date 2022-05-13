@@ -43,15 +43,11 @@ Manifests also contain resolved dependencies.
     >>> cat(run.guild_path("manifest"))
     s .guild/sourcecode/file1.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file1.txt
     s .guild/sourcecode/file2.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file2.txt
-    s .guild/sourcecode/guild.yml fb3e58a20c75a0873f7e2ef42e3085d4fc91ce0b guild.yml
+    s .guild/sourcecode/guild.yml 3b884a437e6606986b1cac978e14e77fd243cba8 guild.yml
+    s .guild/sourcecode/subdir/eee da39a3ee5e6b4b0d3255bfef95601890afd80709 subdir/eee
+    s .guild/sourcecode/subdir/fff da39a3ee5e6b4b0d3255bfef95601890afd80709 subdir/fff
     d file1.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file1.txt
     d file2.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file2.txt
-    d zip/file1.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 .../file1.txt
-    d zip/file2.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 .../file2.txt
+    d zip/file1.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 files.zip file1.txt
+    d zip/file2.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 files.zip file2.txt
     <BLANKLINE>
-
-TODO: 'd' entries for unpacked sources (i.e. `zip/file1.txt` and
-`zip.file2.txt`) need to refer to the archive parent within the
-project - e.g. `files.zip:file1.txt` and `files.zip:file2.txt`. Use a
-different entry type if need be. E.g. `pf` for project file or `pa`
-for project archive file, etc.
