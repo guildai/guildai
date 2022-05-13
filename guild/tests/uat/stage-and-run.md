@@ -81,6 +81,7 @@ List files for latest run:
       .guild/attrs/user
       .guild/attrs/user_flags
       .guild/attrs/vcs_commit
+      .guild/manifest
       .guild/opref
       .guild/sourcecode/
       .guild/sourcecode/README.md
