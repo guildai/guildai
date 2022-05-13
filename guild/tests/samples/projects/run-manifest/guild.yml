@@ -5,3 +5,21 @@ file-deps:
     - file: file2.txt
     - file: files.zip
       target-path: zip
+
+zip-dep:
+  main: guild.pass
+  requires:
+    - file: files.zip
+
+zip-dep-2:
+  main: guild.pass
+  requires:
+    - file: files2.zip
+      select:
+        - aaa/bbb
+        - aaa/bbb/ccc
+
+dir-dep:
+  main: guild.pass
+  requires:
+    - file: subdir

@@ -533,8 +533,8 @@ def _resolve_dep_source(op, source, dep, resolve_context, run):
 
 
 def _resolve_source_cb(op):
-    def f(*args):
-        _callback("dep_source_resolved", op, *args)
+    def f(resolved_source):
+        _callback("dep_source_resolved", op, resolved_source)
 
     return f
 

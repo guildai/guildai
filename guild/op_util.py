@@ -37,6 +37,7 @@ from guild import manifest
 from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import run as runlib
+from guild import run_manifest
 from guild import util
 from guild import var
 from guild import vcs_util
@@ -1936,7 +1937,7 @@ def sourcecode_manifest_logger_cls(run_dir):
     class _Handler(SourceCodeCopyHandler):
         def _try_copy_file(self, src, dest):
             super(_Handler, self)._try_copy_file(src, dest)
-            m.write(_sourcecode_manifest_args(dest, run_dir, src, self.src_root))
+            m.write(run_manifest.sourcecode_args(dest, run_dir, src, self.src_root))
 
     return _Handler
 
@@ -1945,22 +1946,7 @@ def _run_manifest_path(run_dir):
     return os.path.join(run_dir, ".guild", "manifest")
 
 
-def _sourcecode_manifest_args(run_file, run_dir, project_file, project_dir):
-    dest_relpath = os.path.relpath(run_file, run_dir)
-    src_relpath = os.path.relpath(project_file, project_dir)
-    hash = util.file_sha1(run_file)
-    return ["s", dest_relpath, hash, src_relpath]
-
-
-def log_manifest_dep_source(run_file, run_dir, src_file, src_root):
-    # TODO: handle both project-local and
-    # resource-extracted/downloaded files here.
+def log_manifest_resolved_source(resolved_source):
+    run_dir = resolved_source.target_root
     with manifest.Manifest(_run_manifest_path(run_dir), "a") as m:
-        m.write(_dep_source_manifest_args(run_file, run_dir, src_file, src_root))
-
-
-def _dep_source_manifest_args(run_file, run_dir, src_file, src_root):
-    dest_relpath = os.path.relpath(run_file, run_dir)
-    src_relpath = os.path.relpath(src_file, src_root)
-    hash = util.file_sha1(run_file)
-    return ["d", dest_relpath, hash, src_relpath]
+        m.write(run_manifest.resolved_source_args(resolved_source))

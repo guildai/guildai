@@ -1250,8 +1250,8 @@ def _op_init_callbacks_for_opdef(opdef, op):
     )
 
 
-def _dep_source_resolved(_op, run_file, run_dir, src_file, src_root):
-    op_util.log_manifest_dep_source(run_file, run_dir, src_file, src_root)
+def _dep_source_resolved(_op, resolved_source):
+    op_util.log_manifest_resolved_source(resolved_source)
 
 
 def _run_init_cb_for_opdef(opdef):
