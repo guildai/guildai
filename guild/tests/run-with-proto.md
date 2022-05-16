@@ -101,7 +101,8 @@ Files that are different:
 Files that couldn't be compare because they exist in one run but not the other:
 
     >>> errors
-    ['.guild/events.out.tfevents...',
+    ['.guild/manifest',
+     '.guild/events.out.tfevents...',
      '.guild/events.out.tfevents...']
 
 ## Modify flags
