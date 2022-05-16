@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glob
 import logging
 import os
+import re
 
 import six
 
+from guild import file_util
 from guild import guildfile
 from guild import op_util
 from guild import plugin as pluginlib
@@ -40,24 +43,79 @@ class ConfigFlagsPlugin(pluginlib.Plugin):
 
 
 def apply_config_flags(opdef):
-    config_src = _config_src(opdef)
-    if not config_src:
+    config_spec = _config_spec(opdef)
+    if not config_spec:
         return
-    flags_import_util.apply_flags(
-        opdef,
-        lambda: _flags_data(config_src),
-        lambda _data: _ensure_config_dep(config_src, opdef),
-    )
+    for src in _iter_config_src(config_spec, opdef):
+        _apply_config_src(src, opdef)
 
 
-def _config_src(opdef):
-    if opdef.flags_dest and opdef.flags_dest.startswith("config:"):
-        return opdef.flags_dest[7:]
+class _ConfigSpec:
+    def __init__(self, type, val):
+        self.type = type
+        self.val = val
+
+
+def _config_spec(opdef):
+    if not opdef.flags_dest:
+        return None
+    if opdef.flags_dest.startswith("config:"):
+        return _single_config(opdef.flags_dest[7:])
+    if opdef.flags_dest.startswith("multi-config:"):
+        return _multi_config(opdef.flags_dest[13:])
     return None
 
 
-def _flags_data(src):
-    data = _load_flags(src)
+def _single_config(spec):
+    return _ConfigSpec("single", spec)
+
+
+def _multi_config(spec):
+    if spec.startswith("!regex!"):
+        return _ConfigSpec("regex", spec[7:])
+    return _ConfigSpec("glob", spec)
+
+
+def _iter_config_src(spec, opdef):
+    if spec.type == "single":
+        yield spec.val
+    elif spec.type == "regex":
+        for src in _iter_config_regex(spec.val, opdef):
+            yield src
+    elif spec.type == "glob":
+        for src in _iter_config_glob(spec.val, opdef):
+            yield src
+    else:
+        assert False, spec.type
+
+
+def _opdef_path(src, opdef):
+    return os.path.relpath(os.path.join(opdef.guildfile.dir, src))
+
+
+def _iter_config_regex(pattern, opdef):
+    p = re.compile(pattern)
+    for src in file_util.find(opdef.guildfile.dir, followlinks=True, includedirs=True):
+        if p.match(src):
+            yield src
+
+
+def _iter_config_glob(pattern, opdef):
+    gf_dir = opdef.guildfile.dir
+    for src in glob.glob(os.path.join(gf_dir, pattern), recursive=True):
+        yield os.path.relpath(src, gf_dir)
+
+
+def _apply_config_src(config_src, opdef):
+    flags_import_util.apply_flags(
+        opdef,
+        import_flags_data_cb=lambda: _flags_data(config_src, opdef),
+        apply_flags_data_cb=lambda _data: _ensure_config_dep(config_src, opdef),
+    )
+
+
+def _flags_data(src, opdef):
+    data = _load_flags(_opdef_path(src, opdef))
     return {
         name: flags_import_util.flag_data_for_val(val)
         for name, val in data.items()

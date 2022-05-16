@@ -72,3 +72,13 @@
       main: test_args foo bar baz
       flags-dest: config:empty.json
       flags-import: all
+
+    multi-glob:
+      main: config_multi
+      flags-dest: multi-config:flags.*
+      flags-import: all
+
+    multi-regex:
+      main: config_multi
+      flags-dest: multi-config:!regex!flags.[json|yml]
+      flags-import: all

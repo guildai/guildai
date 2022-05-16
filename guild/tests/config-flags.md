@@ -83,6 +83,29 @@ Help for project contains imported flags.
             l    (default is 1 2 abc)
             s    (default is flu flam)
     <BLANKLINE>
+        multi-glob
+          Flags:
+            b      (default is yes)
+            d.a    (default is A)
+            d.b    (default is B)
+            f      (default is 2.234)
+            foo.b  (default is 0)
+            foo.f  (default is 2.234)
+            foo.i  (default is 456)
+            foo.s  (default is bye)
+            i      (default is 456)
+            l      (default is 1 2 abc)
+            s      (default is flu flam)
+    <BLANKLINE>
+        multi-regex
+          Flags:
+            b    (default is yes)
+            d.a  (default is A)
+            d.b  (default is B)
+            f    (default is 2.234)
+            i    (default is 456)
+            l    (default is 1 2 abc)
+            s    (default is flu flam)
     <BLANKLINE>
         test-args-1
     <BLANKLINE>
@@ -457,4 +480,91 @@ The `test-args-2` operation defines three base args in `guild.yml`.
     >>> guild("run test-args-2 -y")
     Resolving config:empty.json dependency
     ['foo', 'bar', 'baz']
+    <exit 0>
+
+## Multi-config file support
+
+Mutiple config files are supported using the `multi-config` flags-dest
+type.
+
+Multi config specs are patterns that are resolved relative to the
+Guild file.
+
+    >>> guild("run multi-glob foo.f=777.77 i=777 -y")
+    Resolving config:flags.json dependency
+    Resolving config:flags.json.in dependency
+    Resolving config:flags.cfg dependency
+    Resolving config:flags.yml dependency
+    flags.cfg
+    ---------
+    [DEFAULT]
+    b = True
+    f = 2.234
+    i = 777
+    l = [1, 2, 'abc']
+    s = flu flam
+    <BLANKLINE>
+    [d]
+    a = A
+    b = B
+    <BLANKLINE>
+    [foo]
+    b = 0
+    f = 777.77
+    i = 456
+    s = bye
+    <BLANKLINE>
+    flags.json
+    ----------
+    {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "foo": {"b": 0, "f": 777.77, "i": 456, "s": "bye"}, "i": 777, "l": [1, 2, "abc"], "s": "flu flam"}
+    <BLANKLINE>
+    flags.json.in
+    -------------
+    {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "foo": {"b": 0, "f": 777.77, "i": 456, "s": "bye"}, "i": 777, "l": [1, 2, "abc"], "s": "flu flam"}
+    <BLANKLINE>
+    flags.yml
+    ---------
+    b: true
+    d:
+      a: A
+      b: B
+    f: 2.234
+    foo:
+      b: 0
+      f: 777.77
+      i: 456
+      s: bye
+    i: 777
+    l:
+    - 1
+    - 2
+    - abc
+    s: flu flam
+    <exit 0>
+
+    >>> guild("run multi-regex i=888 d.a=AAA -y")
+    Resolving config:flags.json dependency
+    Resolving config:flags.json.in dependency
+    Resolving config:flags.yml dependency
+    flags.json
+    ----------
+    {"b": true, "d": {"a": "AAA", "b": "B"}, "f": 2.234, "i": 888, "l": [1, 2, "abc"], "s": "flu flam"}
+    <BLANKLINE>
+    flags.json.in
+    -------------
+    {"b": true, "d": {"a": "AAA", "b": "B"}, "f": 2.234, "i": 888, "l": [1, 2, "abc"], "s": "flu flam"}
+    <BLANKLINE>
+    flags.yml
+    ---------
+    b: true
+    d:
+      a: AAA
+      b: B
+    f: 2.234
+    i: 888
+    l:
+    - 1
+    - 2
+    - abc
+    s: flu flam
     <exit 0>
