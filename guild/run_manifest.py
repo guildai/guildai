@@ -34,7 +34,7 @@ def sourcecode_args(run_file, run_dir, project_file, project_dir):
 
 
 def resolved_source_args(resolved):
-    """Returns manigest args for a resolved resource source (dependency).
+    """Returns manifest args for a resolved resource source (dependency).
 
     Args:
 
