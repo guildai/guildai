@@ -2066,4 +2066,5 @@ def merge(args, ctx):
 
     run = one_run(args, ctx)
     merge = run_merge.RunMerge(run)
-    print(f"TODO: copy {merge.files} to {merge.dest}")
+    for merge_file in merge.files:
+        print(f"TODO: copy {merge_file.run_path} to {merge_file.project_path}")

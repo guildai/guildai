@@ -79,14 +79,14 @@ Create a run merge object.
 
 The files to be copied:
 
-    >>> printl(sorted(merge.files))
-    a
-    b
-    dep-1
-    dep-2
-    guild.yml
-    op.py
-    subdir/c
+    >>> printl(sorted(merge.files, key=lambda mf: mf.run_path))
+    <MergeFile type='s' run_path='.guild/sourcecode/guild.yml' project_path='guild.yml'>
+    <MergeFile type='s' run_path='.guild/sourcecode/op.py' project_path='op.py'>
+    <MergeFile type='g' run_path='a' project_path='a'>
+    <MergeFile type='g' run_path='b' project_path='b'>
+    <MergeFile type='d' run_path='dep-1' project_path='dep-1'>
+    <MergeFile type='d' run_path='dep-subdir/dep-2' project_path='dep-subdir/dep-2'>
+    <MergeFile type='g' run_path='subdir/c' project_path='subdir/c'>
 
 ## TODO / Notes
 
