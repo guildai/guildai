@@ -14,6 +14,7 @@
 
 import os
 
+from guild import manifest
 from guild import util
 from guild import var
 
@@ -133,3 +134,11 @@ def _strip_resource_hash(relpath):
     # the hash algorithm changed, etc.)
     assert parts and len(parts[0]) == 56, parts
     return os.path.sep.join(parts[1:])
+
+
+def run_manifest_path(run_dir):
+    return os.path.join(run_dir, ".guild", "manifest")
+
+
+def manfiest_for_run(run, mode="r"):
+    return manifest.Manifest(run_manifest_path(run.dir), mode)

@@ -1932,7 +1932,7 @@ def handle_system_exit(e):
 
 
 def sourcecode_manifest_logger_cls(run_dir):
-    m = manifest.Manifest(_run_manifest_path(run_dir), "a")
+    m = manifest.Manifest(run_manifest.run_manifest_path(run_dir), "a")
 
     class _Handler(SourceCodeCopyHandler):
         def _try_copy_file(self, src, dest):
@@ -1942,11 +1942,7 @@ def sourcecode_manifest_logger_cls(run_dir):
     return _Handler
 
 
-def _run_manifest_path(run_dir):
-    return os.path.join(run_dir, ".guild", "manifest")
-
-
 def log_manifest_resolved_source(resolved_source):
     run_dir = resolved_source.target_root
-    with manifest.Manifest(_run_manifest_path(run_dir), "a") as m:
+    with manifest.Manifest(run_manifest.run_manifest_path(run_dir), "a") as m:
         m.write(run_manifest.resolved_source_args(resolved_source))
