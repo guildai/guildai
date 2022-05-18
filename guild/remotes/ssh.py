@@ -874,7 +874,7 @@ def _delete_runs_args(runs, permanent, yes, **filters):
     return args
 
 
-def _run_info_args(run, env, deps, all_scalars, json, comments, **filters):
+def _run_info_args(run, env, deps, all_scalars, json, comments, manifest, **filters):
     args = _filter_and_status_args(**filters)
     if env:
         args.append("--env")
@@ -886,6 +886,8 @@ def _run_info_args(run, env, deps, all_scalars, json, comments, **filters):
         args.append("--json")
     if comments:
         args.append("--comments")
+    if manifest:
+        args.append("--manifest")
     if run:
         args.append(run)
     return args

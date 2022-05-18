@@ -280,6 +280,7 @@ def _run_info_kw(args):
         "deps",
         "env",
         "json",
+        "manifest",
     ]
     ignore = [
         "private_attrs",

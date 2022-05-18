@@ -824,6 +824,8 @@ def _run_info_data(run, args):
         data.append(("comments", _format_comments_for_run_info(run)))
     if args.env:
         data.append(("environment", run.get("env") or {}))
+    if args.manifest:
+        data.append(("manifest", _format_run_manifest(run)))
     if args.deps:
         data.append(("dependencies", run.get("deps") or {}))
     if args.private_attrs and args.json:
@@ -960,6 +962,43 @@ def _res_sources_paths(sources):
     for source_paths in sources.values():
         paths.extend(source_paths)
     return sorted(paths)
+
+
+def _format_run_manifest(run):
+    from guild import run_manifest
+
+    try:
+        m = run_manifest.manfiest_for_run(run)
+    except Exception as e:
+        log.error("cannot read run manifest: %s", e)
+        return {}
+    else:
+        return _formatted_run_manifest_items(m)
+
+
+def _formatted_run_manifest_items(m):
+    formatted = {}
+    for args in m:
+        _apply_formatted_manifest_args(args, formatted)
+    return {name: sorted(items) for name, items in formatted.items()}
+
+
+def _apply_formatted_manifest_args(args, formatted):
+    type = args[0]
+    if type == "s":
+        _apply_formatted_manifest_sourcecode_file(args[1:], formatted)
+    elif type == "d":
+        _apply_formatted_manifest_dep(args[1:], formatted)
+
+
+def _apply_formatted_manifest_sourcecode_file(args, formatted):
+    section = formatted.setdefault("sourcecode", [])
+    section.append(args[0])
+
+
+def _apply_formatted_manifest_dep(args, formatted):
+    section = formatted.setdefault("dependencies", [])
+    section.append(args[0])
 
 
 def _maybe_append_proto_data(run, data):
