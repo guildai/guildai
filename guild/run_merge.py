@@ -129,6 +129,7 @@ def _is_guild_path(path):
 
 
 def _merge_file_excluded(merge_file, merge):
+    type = merge_file.type
     return (
         (type == "s" and merge.skip_sourcecode)
         or (type == "d" and merge.skip_deps)
