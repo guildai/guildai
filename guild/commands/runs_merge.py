@@ -29,12 +29,20 @@ def merge_params(fn):
             runs_support.run_arg,
             runs_support.all_filters,
             click.Option(
+                ("-t", "--target-dir"),
+                help=(
+                    "Directory to merge run files to (required if project directory "
+                    "cannot be determined for the run)."
+                ),
+                metavar="DIR",
+            ),
+            click.Option(
                 ("-s", "--skip-sourcecode"),
                 help="Don't copy run source code.",
                 is_flag=True,
             ),
             click.Option(
-                ("-d", "--skip-dependencies"),
+                ("-d", "--skip-deps"),
                 help="Don't copy project-local dependencies.",
                 is_flag=True,
             ),
@@ -48,14 +56,6 @@ def merge_params(fn):
                 help="Exclude a file or pattern (may be used multiple times).",
                 metavar="PATTERN",
                 multiple=True,
-            ),
-            click.Option(
-                ("-t", "--target-dir"),
-                help=(
-                    "Directory to merge run files to (required if project directory "
-                    "cannot be determined for the run)."
-                ),
-                metavar="PATH",
             ),
             click.Option(
                 ("-m", "--skip-summary"),
@@ -86,7 +86,17 @@ def merge_params(fn):
 @click_util.use_args
 @click_util.render_doc
 def merge_runs(ctx, args):
-    """Merge run files into a project."""
-    from . import runs_impl
+    """Copy run files to a project directory.
 
-    runs_impl.merge(args, ctx)
+    By default, Guild copies run files into the current directory. To
+    copy files to a different directory, use ``--target-dir DIR``.
+
+    Guild checks that the run originated from the current directory
+    before copying files. If the run is associated with a project from
+    a different directory, or is from a package, Guild exits with an
+    error message. In this case, use `--target-dir` to override the
+    check with an explicit path.
+    """
+    from . import merge_impl
+
+    merge_impl.main(args, ctx)

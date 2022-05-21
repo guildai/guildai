@@ -2015,7 +2015,7 @@ def for_run(run):
 
 def _for_guildfile_ref(run):
     guildfile_path = os.path.join(run.dir, run.opref.pkg_name)
-    if not os.path.exists(guildfile_path):
+    if not os.path.isfile(guildfile_path):
         raise GuildfileMissing(guildfile_path)
     return for_file(guildfile_path)
 

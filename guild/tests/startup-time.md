@@ -60,7 +60,7 @@ Expected output (Guild help):
       label            Set run labels.
       ls               List run files.
       mark             Mark a run.
-      merge            Merge run files into a project.
+      merge            Copy run files to a project directory.
       models           Show available models.
       open             Open a run path or output.
       operations, ops  Show model operations.

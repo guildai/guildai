@@ -26,6 +26,6 @@ from . import runs_merge
 def merge(ctx, args):
     """{{ runs_merge.merge_runs }}"""
 
-    from . import runs_impl
+    from . import merge_impl
 
-    runs_impl.merge(args, ctx)
+    merge_impl.main(args, ctx)

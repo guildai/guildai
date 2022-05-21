@@ -533,7 +533,7 @@ def _list_runs_(runs, args):
         "label",
     ]
     detail = RUN_DETAIL if args.verbose else None
-    cli.table(formatted, cols=cols, detail=detail, max_width_adj=STYLE_TABLE_WIDTH_ADJ)
+    cli.table(formatted, cols, detail=detail, max_width_adj=STYLE_TABLE_WIDTH_ADJ)
 
 
 def _limit_runs(runs, args):
@@ -647,8 +647,8 @@ def runs_op(
         _no_selected_runs_exit(no_runs_help)
     formatted = None  # expensive, lazily init as needed
     if not args.yes:
-        formatted = formatted = format_runs(selected)
         cli.out(preview_msg, err=True)
+        formatted = format_runs(selected)
         cols = [
             "short_index",
             "op_desc",
@@ -656,13 +656,18 @@ def runs_op(
             "status_with_remote",
             "label",
         ]
-        cli.table(formatted, cols=cols, indent=2, err=True)
-    fmt_confirm_prompt = confirm_prompt.format(count=len(selected))
-    if not args.yes and not cli.confirm(fmt_confirm_prompt, confirm_default):
-        raise SystemExit(exit_code.ABORTED)
+        cli.table(formatted, cols, indent=2, err=True)
+        fmt_confirm_prompt = confirm_prompt.format(count=len(selected))
+        if not cli.confirm(fmt_confirm_prompt, confirm_default):
+            raise SystemExit(exit_code.ABORTED)
+    _apply_runs_op_callback(op_callback, selected, formatted)
+
+
+def _apply_runs_op_callback(op_callback, selected, formatted):
     # pylint: disable=deprecated-method
     if len(inspect.getargspec(op_callback).args) == 2:
-        formatted = formatted = format_runs(selected)
+        if formatted is None:
+            formatted = format_runs(selected)
         op_callback(selected, formatted)
     else:
         op_callback(selected)
@@ -2028,7 +2033,7 @@ def _format_runs_for_comment_msg(runs):
         "status_with_remote",
         "label",
     ]
-    cli.table(formatted, cols=cols, indent=2, file=out)
+    cli.table(formatted, cols, indent=2, file=out)
     return out.getvalue().strip()
 
 
@@ -2059,12 +2064,3 @@ def _split_comment_user(user):
     if len(parts) == 2:
         return parts
     return parts[0], None
-
-
-def merge(args, ctx):
-    from guild import run_merge
-
-    run = one_run(args, ctx)
-    merge = run_merge.RunMerge(run)
-    for merge_file in merge.files:
-        print(f"TODO: copy {merge_file.run_path} to {merge_file.project_path}")

@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import errno
 import fnmatch
 import os
+import shutil
 
 from guild import file_util
 from guild import run_manifest
@@ -23,16 +25,25 @@ class MergeError(Exception):
     pass
 
 
+class StopMerge(Exception):
+    """Raised during a merge to indicate the operation stopped early."""
+
+    def __init__(self, target_file, msg=None):
+        super(StopMerge, self).__init__([target_file, msg])
+        self.target_file = target_file
+        self.msg = msg
+
+
 class MergeFile:
-    def __init__(self, type, run_path, project_path):
+    def __init__(self, type, run_path, target_path):
         self.type = type
         self.run_path = run_path
-        self.project_path = project_path
+        self.target_path = target_path
 
     def __repr__(self):
         return (
             f"<{self.__class__.__name__} type='{self.type}' "
-            f"run_path='{self.run_path}' project_path='{self.project_path}'>"
+            f"run_path='{self.run_path}' target_path='{self.target_path}'>"
         )
 
 
@@ -40,7 +51,6 @@ class RunMerge:
     def __init__(
         self,
         run,
-        dest=None,
         skip_sourcecode=False,
         skip_deps=False,
         skip_generated=False,
@@ -52,7 +62,6 @@ class RunMerge:
         self.skip_generated = skip_generated
         self.exclude = exclude
         self.files = _init_merge_files(self)
-        self.dest = dest or _run_guildfile_project_dir(run)
 
 
 def _init_merge_files(merge):
@@ -67,7 +76,7 @@ def _manifest_index(run):
     try:
         m = run_manifest.manfiest_for_run(run)
     except FileNotFoundError:
-        raise MergeError(f"run manifest does not exist for {run.id}")
+        raise MergeError(f"run manifest does not exist for run {run.id}")
     else:
         return _index_for_manifest(m)
 
@@ -87,15 +96,15 @@ def _apply_manifest_entry_to_index(args, index):
 
 
 def _apply_sourcecode_entry_to_index(args, index):
-    run_path, _hash_arg, project_path = args[1:]
-    index[run_path] = MergeFile("s", run_path, project_path)
+    run_path, _hash_arg, target_path = args[1:]
+    index[run_path] = MergeFile("s", run_path, target_path)
 
 
 def _apply_dep_entry_to_index(args, index):
     if not _is_project_local_dep_entry(args):
         return
-    run_path, _hash_arg, project_path = args[1:]
-    index[run_path] = MergeFile("d", run_path, project_path)
+    run_path, _hash_arg, target_path = args[1:]
+    index[run_path] = MergeFile("d", run_path, target_path)
 
 
 def _is_project_local_dep_entry(args):
@@ -134,7 +143,7 @@ def _merge_file_excluded(merge_file, merge):
         (type == "s" and merge.skip_sourcecode)
         or (type == "d" and merge.skip_deps)
         or (type == "g" and merge.skip_generated)
-        or _path_excluded(merge_file.project_path, merge.exclude)
+        or _path_excluded(merge_file.target_path, merge.exclude)
     )
 
 
@@ -144,15 +153,27 @@ def _path_excluded(path, exclude_patterns):
     return any(fnmatch.fnmatch(path, pattern) for pattern in exclude_patterns)
 
 
-def _run_guildfile_project_dir(run):
-    if not run.opref.pkg_type == "guildfile":
-        raise MergeError(
-            f"cannot determine project directory for run {run.id} - run not "
-            f"generated from a Guild file (package type '{run.opref.pkg_type}')"
-        )
-    project_dir = os.path.dirname(run.opref.pkg_name)
-    if not os.path.exists(project_dir):
-        raise MergeError(
-            "project directory '{project_dir}' for run {run.id} does not exist"
-        )
-    return project_dir
+def apply_run_merge(merge, target_dir, pre_copy=None):
+    run_dir = merge.run.dir
+    for f in merge.files:
+        src = os.path.join(run_dir, f.run_path)
+        dest = os.path.join(target_dir, f.target_path)
+        if not _can_copy(dest, src, pre_copy):
+            continue
+        _copy_file(src, dest)
+
+
+def _can_copy(dest, _src, _pre_copy):
+    if not os.path.exists(dest):
+        return True
+    raise StopMerge(dest)
+
+
+def _copy_file(src, dest):
+    try:
+        shutil.copy(src, dest)
+    except IOError as e:
+        if e.errno != errno.ENOENT:
+            raise
+        os.makedirs(os.path.dirname(dest))
+        shutil.copy(src, dest)
