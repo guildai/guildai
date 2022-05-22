@@ -75,6 +75,11 @@ def merge_params(fn):
                 help="Don't prompt before copying files.",
                 is_flag=True,
             ),
+            click.Option(
+                ("--replace",),
+                help="Allow replacement of existing files.",
+                is_flag=True,
+            ),
         ],
     )
     return fn

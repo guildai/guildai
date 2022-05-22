@@ -155,18 +155,15 @@ def _path_excluded(path, exclude_patterns):
 
 def apply_run_merge(merge, target_dir, pre_copy=None):
     run_dir = merge.run.dir
-    for f in merge.files:
-        src = os.path.join(run_dir, f.run_path)
-        dest = os.path.join(target_dir, f.target_path)
-        if not _can_copy(dest, src, pre_copy):
-            continue
-        _copy_file(src, dest)
-
-
-def _can_copy(dest, _src, _pre_copy):
-    if not os.path.exists(dest):
-        return True
-    raise StopMerge(dest)
+    for mf in merge.files:
+        src = os.path.join(run_dir, mf.run_path)
+        dest = os.path.join(target_dir, mf.target_path)
+        try:
+            pre_copy(merge, mf, src, dest)
+        except StopMerge:
+            break
+        else:
+            _copy_file(src, dest)
 
 
 def _copy_file(src, dest):

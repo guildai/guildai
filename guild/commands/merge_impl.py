@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 
 from guild import cli
@@ -24,15 +25,16 @@ from guild import util
 from . import runs_impl
 
 
+log = logging.getLogger("guild")
+
+
 def main(args, ctx):
     run = runs_impl.one_run(args, ctx)
     merge = _init_run_merge(run, args)
     target_dir = args.target_dir or _checked_cwd(run, ctx)
-    if not args.yes:
-        _preview_merge(merge, target_dir)
-        if not cli.confirm("Continue (y/N)?", False):
-            raise SystemExit(exit_code.ABORTED)
-    run_merge.apply_run_merge(merge, target_dir)
+    _check_replace(merge, target_dir, args)
+    _maybe_preview_merge(merge, target_dir, args)
+    run_merge.apply_run_merge(merge, target_dir, _on_merge_copy)
 
 
 def _init_run_merge(run, args):
@@ -94,6 +96,58 @@ def _checked_cwd_matches_project_dir(cwd, project_dir, run, ctx):
         )
 
 
+def _check_replace(merge, target_dir, args):
+    if args.replace:
+        return
+    if _dir_under_vcs(target_dir):
+        _check_vcs_status(merge, target_dir, args)
+    else:
+        _check_existing(merge, target_dir)
+
+
+def _dir_under_vcs(target_dir):
+    assert False
+
+
+def _check_vcs_status(merge, target_dir, args):
+    pass
+
+
+def _check_existing(merge, target_dir):
+    existing = _existing_files(merge, target_dir)
+    if existing:
+        _replace_existing_error(existing, target_dir)
+
+
+def _existing_files(merge, target_dir):
+    return [
+        mf.target_path
+        for mf in merge.files
+        if os.path.exists(os.path.join(target_dir, mf.target_path))
+    ]
+
+
+def _replace_existing_error(target_paths, target_dir):
+    target_dir_desc = cmd_impl_support.cwd_desc(target_dir)
+    cli.out(
+        f"guild: the following files in {target_dir_desc} would be replaced "
+        "by this command:",
+        err=True,
+    )
+    data = [{"path": path} for path in sorted(target_paths)]
+    cli.table(data, ["path"], indent=2, err=True)
+    cli.out("Specify --replace to skip this check.", err=True)
+    raise SystemExit()
+
+
+def _maybe_preview_merge(merge, target_dir, args):
+    if args.yes:
+        return
+    _preview_merge(merge, target_dir)
+    if not cli.confirm("Continue (y/N)?", False):
+        raise SystemExit(exit_code.ABORTED)
+
+
 def _preview_merge(merge, target_dir):
     target_dir_desc = cmd_impl_support.cwd_desc(target_dir)
     cli.out(f"You are about to copy files from the following run to {target_dir_desc}:")
@@ -134,3 +188,7 @@ def _format_merge_files(merge_files):
         }
         for f in sorted(merge_files, key=lambda f: f.run_path)
     ]
+
+
+def _on_merge_copy(merge, merge_file, src, dest):
+    log.info(f"Copying {merge_file.target_path}")
