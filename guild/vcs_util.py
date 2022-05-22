@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 import logging
 import re
 import os
 import subprocess
-
-import six
 
 from guild import util
 
@@ -57,6 +56,9 @@ SCHEMES = [
         status_ok_errors=[],
     )
 ]
+
+FileStatus = collections.namedtuple("FileStatus", ["status", "path", "renamed_from"])
+
 
 log = logging.getLogger("guild")
 
@@ -128,39 +130,87 @@ def _format_status(status):
 
 def iter_source_files(dir):
     try:
-        return util.try_apply([_TryGitSourceIter], dir)
+        return util.try_apply([_try_git_source_iter], dir)
     except util.TryFailed:
-        six.raise_from(UnsupportedRepo(dir), None)
+        raise UnsupportedRepo(dir) from None
 
 
-class _TryGitSourceIter:
+def _try_git_source_iter(dir):
     """Class that conforms to the util.try_apply scheme for iterating source.
 
-    Raises `util.TryFailed` in the contructor
+    Raises `util.TryFailed` if git does not provide a list of files.
     """
-
-    def __init__(self, dir):
-        self._dir = dir
-        self._ls_files = _try_ls_files(dir)
-
-    def __iter__(self):
-        for path in self._ls_files:
-            if path:
-                yield path
-        for path in _try_ls_files(self._dir, untracked=True):
-            if path:
-                yield path
+    tracked = _try_git_ls_files(dir, untracked=False)
+    untracked = _try_git_ls_files(dir, untracked=True)
+    return tracked + untracked
 
 
-def _try_ls_files(dir, untracked=False):
+def _try_git_ls_files(dir, untracked=False):
     cmd = ["git", "ls-files"]
     if untracked:
         cmd.extend(["--other", "--exclude-standard"])
-    p = subprocess.Popen(cmd, cwd=dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    out, _err = p.communicate()
-    if p.returncode != 0:
+    try:
+        out = subprocess.check_output(cmd, cwd=dir, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
-            log.error("error listing git files (%i)", p.returncode)
-            log.error(out)
-        raise util.TryFailed()
-    return out.decode("utf-8", errors="ignore").rstrip().split("\n")
+            log.error("error listing git files (%i)", e.returncode)
+            log.error(e.stdout)
+        raise util.TryFailed() from None
+    else:
+        return _parse_git_ls_files(out)
+
+
+def _parse_git_ls_files(out):
+    lines = out.decode("utf-8", errors="ignore").rstrip().split("\n")
+    return [path for path in lines if path]
+
+
+def dir_status(dir):
+    try:
+        return util.try_apply([_try_git_status], dir)
+    except util.TryFailed:
+        raise UnsupportedRepo(dir) from None
+
+
+def _try_git_status(dir):
+    cmd = ["git", "status", "-s", "."]
+    try:
+        out = subprocess.check_output(cmd, cwd=dir, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.error("error listing git files (%i)", e.returncode)
+            log.error(e.stdout)
+        raise util.TryFailed() from None
+    else:
+        return _parse_git_status(out)
+
+
+def _parse_git_status(out):
+    lines = out.decode("utf-8", errors="ignore").rstrip().split("\n")
+    return [_decode_git_status_line(line) for line in lines if line]
+
+
+def _decode_git_status_line(status_line):
+    status = _normalize_git_file_status(status_line[:2].strip())
+    rest = status_line[3:]
+    path, renamed_from = _split_git_file_status_path(status, rest)
+    return FileStatus(status, path, renamed_from)
+
+
+def _normalize_git_file_status(status):
+    if status == "??":
+        return "?"
+    return status
+
+
+def _split_git_file_status_path(status, rest):
+    if status == "R":
+        return _parse_git_rename(rest)
+    else:
+        return rest, None
+
+
+def _parse_git_rename(rest):
+    parts = rest.split(" -> ", 1)
+    assert len(parts) == 2, parts
+    return parts[1], parts[0]
