@@ -1125,7 +1125,7 @@ def _run(
     if env:
         proc_env.update(env)
     proc_env["SYNC_RUN_OUTPUT"] = "1"
-    proc_env["GUILD_HOME"] = guild_home or configlib.guild_home()
+    _apply_guild_home_to_env(guild_home, proc_env)
     p = _popen(cmd, proc_env, cwd)
     with _kill_after(p, timeout):
         out, err = p.communicate()
@@ -1141,6 +1141,13 @@ def _run(
             return out, exit_code
         print(out)
         print("<exit %i>" % exit_code)
+
+
+def _apply_guild_home_to_env(guild_home, env):
+    if guild_home:
+        env["GUILD_HOME"] = guild_home
+    elif "GUILD_HOME" not in env:
+        env["GUILD_HOME"] = configlib.guild_home()
 
 
 def _run_shell_cmd(cmd):

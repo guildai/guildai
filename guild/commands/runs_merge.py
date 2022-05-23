@@ -37,17 +37,25 @@ def merge_params(fn):
                 metavar="DIR",
             ),
             click.Option(
-                ("-s", "--skip-sourcecode"),
+                ("-s", "--sourcecode"),
+                help=(
+                    "Only copy run source code. Implies use of `--skip-deps` "
+                    "and `--skip-generated`. Cannot be used with `--skip-sourcecode`."
+                ),
+                is_flag=True,
+            ),
+            click.Option(
+                ("-S", "--skip-sourcecode"),
                 help="Don't copy run source code.",
                 is_flag=True,
             ),
             click.Option(
-                ("-d", "--skip-deps"),
+                ("-D", "--skip-deps"),
                 help="Don't copy project-local dependencies.",
                 is_flag=True,
             ),
             click.Option(
-                ("-g", "--skip-generated"),
+                ("-G", "--skip-generated"),
                 help="Don't copy run-generated files,",
                 is_flag=True,
             ),
@@ -77,7 +85,18 @@ def merge_params(fn):
             ),
             click.Option(
                 ("--replace",),
-                help="Allow replacement of existing files.",
+                help=(
+                    "Allow replacement of existing files. Cannot be used with "
+                    "--no-replace"
+                ),
+                is_flag=True,
+            ),
+            click.Option(
+                ("--no-replace",),
+                help=(
+                    "Fail if any target file would be replaced, even if that file "
+                    "is committed to the project VCS. Cannot be used with `--replace`."
+                ),
                 is_flag=True,
             ),
         ],
@@ -101,6 +120,12 @@ def merge_runs(ctx, args):
     a different directory, or is from a package, Guild exits with an
     error message. In this case, use `--target-dir` to override the
     check with an explicit path.
+
+    The command fails if any file would be replaced, unless a) the
+    `--replace` option is specified or b) the replaced file is
+    committed to the project VCS and unchanged. To prevent replacement
+    even when a file is committed to VCS and unchanged, specify
+    `--no-replace`.
     """
     from . import merge_impl
 

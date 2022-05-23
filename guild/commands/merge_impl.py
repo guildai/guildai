@@ -17,10 +17,12 @@ import os
 
 from guild import cli
 from guild import cmd_impl_support
+from guild import config
 from guild import exit_code
 from guild import run_merge
 from guild import run_util
 from guild import util
+from guild import vcs_util
 
 from . import runs_impl
 
@@ -29,12 +31,31 @@ log = logging.getLogger("guild")
 
 
 def main(args, ctx):
+    _check_args(args, ctx)
+    _apply_sourcecode_arg(args)
     run = runs_impl.one_run(args, ctx)
     merge = _init_run_merge(run, args)
     target_dir = args.target_dir or _checked_cwd(run, ctx)
     _check_replace(merge, target_dir, args)
     _maybe_preview_merge(merge, target_dir, args)
     run_merge.apply_run_merge(merge, target_dir, _on_merge_copy)
+
+
+def _check_args(args, ctx):
+    cmd_impl_support.check_incompatible_args(
+        [
+            ("replace", "no_replace"),
+            ("sourcecode", "skip_sourcecode"),
+        ],
+        args,
+        ctx,
+    )
+
+
+def _apply_sourcecode_arg(args):
+    if args.sourcecode:
+        args.skip_deps = True
+        args.skip_generated = True
 
 
 def _init_run_merge(run, args):
@@ -55,11 +76,11 @@ def _checked_cwd(run, ctx):
 
     This serves as a safeguard to prevent accidentally merging into an
     unintended target directory. The user is asked to skip this
-    check by specifying --target-dir in the command.
+    check by including --target-dir in the command.
     """
     _checked_cwd_run_pkg_type(run, ctx)
     project_dir = _run_project_dir(run)
-    cwd = os.getcwd()
+    cwd = config.cwd()
     _checked_cwd_matches_project_dir(cwd, project_dir, run, ctx)
     return cwd
 
@@ -68,7 +89,7 @@ def _checked_cwd_run_pkg_type(run, ctx):
     if run.opref.pkg_type not in ("guildfile", "script"):
         cli.error(
             f"run {run.id} does not originate from a project - cannot merge to the "
-            "current directory by default\nSpecify --target-dir to skip this "
+            "current directory by default\nUse --target-dir to skip this "
             f"check or try '{ctx.command_path} --help' for more information."
         )
 
@@ -80,7 +101,7 @@ def _run_project_dir(run):
             f"unexpected missing project directory for run {run.id} ({run.opref})\n"
             "This may be a bug in Guild - please report to "
             "https://github.com/guildai/guildai/issues\n"
-            "Skip this check by specifying --target-dir"
+            "Skip this check by using --target-dir"
         )
     return project_dir
 
@@ -90,53 +111,123 @@ def _checked_cwd_matches_project_dir(cwd, project_dir, run, ctx):
         fmt_project_dir = util.format_dir(project_dir)
         cli.error(
             f"run {run.id} originates from a different directory ({fmt_project_dir}) - "
-            "cannot merge to the current directory by default\nSpecify --target-dir "
+            "cannot merge to the current directory by default\nUse --target-dir "
             f"to override this check or try '{ctx.command_path} --help' for more "
             "information."
         )
 
 
 def _check_replace(merge, target_dir, args):
-    if args.replace:
+    """Checks for replacement of files in a target dir.
+
+    Check is disabled if --replace is specified.
+    """
+    if args.replace or not os.path.exists(target_dir):
         return
-    if _dir_under_vcs(target_dir):
-        _check_vcs_status(merge, target_dir, args)
-    else:
-        _check_existing(merge, target_dir)
+    if args.no_replace:
+        _fail_if_replacing(merge, target_dir)
+        return
+    _try_vcs_status_check_replace(merge, target_dir)
 
 
-def _dir_under_vcs(target_dir):
-    assert False
+def _fail_if_replacing(merge, target_dir):
+    replacing = _merge_replacing_files(merge, target_dir)
+    if replacing:
+        _replacing_error(replacing, target_dir)
 
 
-def _check_vcs_status(merge, target_dir, args):
-    pass
-
-
-def _check_existing(merge, target_dir):
-    existing = _existing_files(merge, target_dir)
-    if existing:
-        _replace_existing_error(existing, target_dir)
-
-
-def _existing_files(merge, target_dir):
-    return [
+def _merge_replacing_files(merge, target_dir):
+    return {
         mf.target_path
         for mf in merge.files
         if os.path.exists(os.path.join(target_dir, mf.target_path))
-    ]
+    }
 
 
-def _replace_existing_error(target_paths, target_dir):
+def _replacing_error(target_paths, target_dir):
     target_dir_desc = cmd_impl_support.cwd_desc(target_dir)
     cli.out(
-        f"guild: the following files in {target_dir_desc} would be replaced "
-        "by this command:",
+        f"guild: files in {target_dir_desc} would be replaced:",
         err=True,
     )
     data = [{"path": path} for path in sorted(target_paths)]
     cli.table(data, ["path"], indent=2, err=True)
-    cli.out("Specify --replace to skip this check.", err=True)
+    cli.out("Use --replace to skip this check.", err=True)
+    raise SystemExit()
+
+
+def _try_vcs_status_check_replace(merge, target_dir):
+    """Tries to apply a VCS check for replacement of files in target dir.
+
+    If target dir is managed by a supported VCS, performs a
+    VCS-specific replacement check. See `_check_vcs_status` for
+    VCS-specific logic.
+
+    If target dir is not managed by a known VCS, performs the default
+    replacement check. See `_fail_if_replacing` for this behavior.
+    """
+    try:
+        vcs_status = vcs_util.status(target_dir)
+    except vcs_util.UnsupportedRepo:
+        _fail_if_replacing(merge, target_dir)
+    else:
+        _check_vcs_status(vcs_status, merge, target_dir)
+
+
+def _check_vcs_status(vcs_status, merge, target_dir):
+    """Checks for replacement status in a VCS managed dir.
+
+    The rules applied are as follows:
+
+    - If there are any non-source to be replaced, treats all replaced
+      files as a non-source replace and uses the same message as if
+      the project was not VCS managed.
+
+    - If all of the files to be replaced are uncommitted source code
+      files, shows a message asking user to commit the changes or to
+      override with the '--replace' option.
+
+    - If all of the files to be replaced are committed source code
+      files, does nothing. This allows the merge to continue under the
+      assumption that any replaced files can be recovered from the
+      VCS.
+
+    """
+    all_source = set(vcs_util.ls_files(target_dir))
+    uncommitted = _uncommitted_source(vcs_status, all_source)
+    uncommitted_replacing = _uncommitted_replacing(uncommitted, merge)
+    all_replacing = _merge_replacing_files(merge, target_dir)
+    nonsource_replacing = all_replacing - all_source
+    if nonsource_replacing:
+        _replacing_error(all_replacing, target_dir)
+    elif uncommitted_replacing:
+        _replace_uncommitted_error(uncommitted_replacing, target_dir)
+
+
+def _uncommitted_source(vcs_status, vcs_files):
+    return [path for path in vcs_files if _in_vcs_status(path, vcs_status)]
+
+
+def _in_vcs_status(path, vcs_status):
+    return any(path.startswith(f.path) for f in vcs_status)
+
+
+def _uncommitted_replacing(uncommitted, merge):
+    return {mf.target_path for mf in merge.files if mf.target_path in uncommitted}
+
+
+def _replace_uncommitted_error(target_paths, target_dir):
+    target_dir_desc = cmd_impl_support.cwd_desc(target_dir)
+    cli.out(
+        f"guild: files in {target_dir_desc} have uncommitted changes:",
+        err=True,
+    )
+    data = [{"path": path} for path in sorted(target_paths)]
+    cli.table(data, ["path"], indent=2, err=True)
+    cli.out(
+        "Commit these changes or use --replace to skip this check.",
+        err=True,
+    )
     raise SystemExit()
 
 
@@ -186,9 +277,9 @@ def _format_merge_files(merge_files):
             "run_path": f.run_path,
             "target_path": f.target_path,
         }
-        for f in sorted(merge_files, key=lambda f: f.run_path)
+        for f in merge_files
     ]
 
 
-def _on_merge_copy(merge, merge_file, src, dest):
+def _on_merge_copy(_merge, merge_file, _src, _dest):
     log.info(f"Copying {merge_file.target_path}")

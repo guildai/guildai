@@ -128,7 +128,7 @@ def _format_status(status):
     return bool(status)
 
 
-def iter_source_files(dir):
+def ls_files(dir):
     try:
         return util.try_apply([_try_git_source_iter], dir)
     except util.TryFailed:
@@ -165,15 +165,16 @@ def _parse_git_ls_files(out):
     return [path for path in lines if path]
 
 
-def dir_status(dir):
+def status(dir, ignored=False):
     try:
-        return util.try_apply([_try_git_status], dir)
+        return util.try_apply([_try_git_status], dir, ignored)
     except util.TryFailed:
         raise UnsupportedRepo(dir) from None
 
 
-def _try_git_status(dir):
-    cmd = ["git", "status", "-s", "."]
+def _try_git_status(dir, ignored):
+    ignored_args = ["--ignored=matching"] if ignored else []
+    cmd = ["git", "status", "--short", "--renames"] + ignored_args + ["."]
     try:
         out = subprocess.check_output(cmd, cwd=dir, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
@@ -200,6 +201,8 @@ def _decode_git_status_line(status_line):
 def _normalize_git_file_status(status):
     if status == "??":
         return "?"
+    elif status == "!!":
+        return "!"
     return status
 
 

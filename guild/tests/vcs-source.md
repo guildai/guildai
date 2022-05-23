@@ -13,14 +13,15 @@ Helper to print source files in repo.
 
     >>> def source(subdir=None):
     ...     dir = join_path(repo, subdir) if subdir else repo
-    ...     for path in sorted(vcs_util.iter_source_files(dir)):
+    ...     for path in sorted(vcs_util.ls_files(dir)):
     ...         print(path)
 
 Helper to print dir status.
 
-    >>> def status(subdir=None):
+    >>> def status(subdir=None, ignored=False):
     ...     dir = join_path(repo, subdir) if subdir else repo
-    ...     for status in sorted(vcs_util.dir_status(dir), key=lambda s: s.path):
+    ...     status_files = vcs_util.status(dir, ignored=ignored)
+    ...     for status in sorted(status_files, key=lambda s: s.path):
     ...          if status.status == "R":
     ...              print(f"{status.status}: {status.path} <- {status.renamed_from}")
     ...          else:
@@ -101,6 +102,12 @@ Ignore a file.
 
     >>> status()
     ?: .gitignore
+    ?: b
+    ?: c
+
+    >>> status(ignored=True)
+    ?: .gitignore
+    !: a
     ?: b
     ?: c
 
@@ -261,3 +268,17 @@ Rename 'subdir/d':
     >>> status("subdir")
     D: d
     M: e
+
+Show status including ignored files.
+
+    >>> status(ignored=True)
+    !: a
+    M: b
+    !: c
+    R: d <- subdir/d
+    M: subdir/e
+
+    >>> status(ignored=False)
+    M: b
+    R: d <- subdir/d
+    M: subdir/e

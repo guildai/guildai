@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 import errno
 import fnmatch
 import os
@@ -34,17 +35,7 @@ class StopMerge(Exception):
         self.msg = msg
 
 
-class MergeFile:
-    def __init__(self, type, run_path, target_path):
-        self.type = type
-        self.run_path = run_path
-        self.target_path = target_path
-
-    def __repr__(self):
-        return (
-            f"<{self.__class__.__name__} type='{self.type}' "
-            f"run_path='{self.run_path}' target_path='{self.target_path}'>"
-        )
+MergeFile = collections.namedtuple("MergeFile", ["type", "run_path", "target_path"])
 
 
 class RunMerge:
@@ -155,7 +146,7 @@ def _path_excluded(path, exclude_patterns):
 
 def apply_run_merge(merge, target_dir, pre_copy=None):
     run_dir = merge.run.dir
-    for mf in merge.files:
+    for mf in _sorted_merge_files_for_apply(merge.files):
         src = os.path.join(run_dir, mf.run_path)
         dest = os.path.join(target_dir, mf.target_path)
         try:
@@ -166,11 +157,22 @@ def apply_run_merge(merge, target_dir, pre_copy=None):
             _copy_file(src, dest)
 
 
+def _sorted_merge_files_for_apply(merge_files):
+    return sorted(merge_files, key=lambda mf: mf.target_path)
+
+
 def _copy_file(src, dest):
     try:
-        shutil.copy(src, dest)
+        _shutil_copy(src, dest)
     except IOError as e:
         if e.errno != errno.ENOENT:
             raise
         os.makedirs(os.path.dirname(dest))
+        _shutil_copy(src, dest)
+
+
+def _shutil_copy(src, dest):
+    try:
         shutil.copy(src, dest)
+    except shutil.SameFileError:
+        pass
