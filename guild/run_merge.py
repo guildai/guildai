@@ -149,12 +149,12 @@ def apply_run_merge(merge, target_dir, pre_copy=None):
     for mf in _sorted_merge_files_for_apply(merge.files):
         src = os.path.join(run_dir, mf.run_path)
         dest = os.path.join(target_dir, mf.target_path)
-        try:
-            pre_copy(merge, mf, src, dest)
-        except StopMerge:
-            break
-        else:
-            _copy_file(src, dest)
+        if pre_copy:
+            try:
+                pre_copy(merge, mf, src, dest)
+            except StopMerge:
+                break
+        _copy_file(src, dest)
 
 
 def _sorted_merge_files_for_apply(merge_files):
