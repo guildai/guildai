@@ -982,7 +982,7 @@
         },
         "ConfigDefSchema": {
           "title": "ConfigDefSchema",
-          "description": "This is basically the same as a model, but it serves \nas a template that other models can extend",
+          "description": "This is basically the same as a model, but it serves\nas a template that other models can extend",
           "type": "object",
           "properties": {
             "default": {
