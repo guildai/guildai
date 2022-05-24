@@ -1186,7 +1186,9 @@ def _plugin_selected(plugin, selected):
 
 
 def _op_cmd_flags(opdef):
-    return {flagdef.name: _flag_cmd_for_flagdef(flagdef) for flagdef in opdef.flags}
+    return {
+        flagdef.name: _flag_cmd_for_flagdef(flagdef) for flagdef in opdef.flags or []
+    }
 
 
 def _flag_cmd_for_flagdef(flagdef):
@@ -1529,8 +1531,10 @@ def _resource_flagdef_types(opdef):
     }
 
 
-def _opdef_flagdef_types(opdef):
-    return {flagdef.name: flagdef.type for flagdef in opdef.flags if flagdef.type}
+def _opdef_flagdef_types(opdef: guildfile.OpDef):
+    return {
+        flagdef.name: flagdef.type for flagdef in (opdef.flags or []) if flagdef.type
+    }
 
 
 def parse_flag_arg(arg, flag_types=None):

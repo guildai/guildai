@@ -7,88 +7,10 @@
       "title": "Guild File",
       "$ref": "#/definitions/GuildfileParsingModel",
       "definitions": {
-        "guild__resourcedef__ResourceDef": {
-          "title": "ResourceDef",
+        "ResourceSourceSchema": {
+          "title": "ResourceSourceSchema",
           "type": "object",
           "properties": {
-            "name": {
-              "title": "Name",
-              "type": "string"
-            },
-            "fullname": {
-              "title": "Fullname",
-              "type": "string"
-            },
-            "flag_name": {
-              "title": "Flag Name",
-              "type": "string"
-            },
-            "description": {
-              "title": "Description",
-              "type": "string"
-            },
-            "target_path": {
-              "title": "Target Path",
-              "type": "string"
-            },
-            "preserve_path": {
-              "title": "Preserve Path",
-              "type": "string"
-            },
-            "target_type": {
-              "title": "Target Type",
-              "type": "string"
-            },
-            "default_unpack": {
-              "title": "Default Unpack",
-              "type": "string"
-            },
-            "private": {
-              "title": "Private",
-              "type": "boolean"
-            },
-            "references": {
-              "title": "References",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "sources": {
-              "title": "Sources",
-              "default": [],
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/ResourceSource"
-              }
-            },
-            "source_types": {
-              "title": "Source Types",
-              "default": [
-                "config",
-                "file",
-                "module",
-                "url"
-              ],
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "default_source_type": {
-              "title": "Default Source Type",
-              "default": "file",
-              "type": "string"
-            }
-          }
-        },
-        "ResourceSource": {
-          "title": "ResourceSource",
-          "type": "object",
-          "properties": {
-            "resdef": {
-              "$ref": "#/definitions/guild__resourcedef__ResourceDef"
-            },
             "uri": {
               "title": "Uri",
               "default": "",
@@ -97,6 +19,10 @@
             "name": {
               "title": "Name",
               "default": "",
+              "type": "string"
+            },
+            "operation": {
+              "title": "Operation",
               "type": "string"
             },
             "sha256": {
@@ -113,10 +39,17 @@
             },
             "select": {
               "title": "Select",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
             },
             "warn_if_empty": {
               "title": "Warn If Empty",
@@ -159,18 +92,50 @@
             },
             "replace_existing": {
               "title": "Replace Existing",
-              "default": false,
-              "type": "boolean"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "enum": [
+                    "yes"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "no"
+                  ],
+                  "type": "string"
+                }
+              ]
             },
             "preserve_path": {
               "title": "Preserve Path",
-              "default": false,
-              "type": "boolean"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "enum": [
+                    "yes"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "no"
+                  ],
+                  "type": "string"
+                }
+              ]
             },
             "params": {
               "title": "Params",
-              "default": {},
-              "type": "object"
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             },
             "help": {
               "title": "Help",
@@ -178,8 +143,165 @@
             }
           }
         },
-        "FileSelectSpec": {
-          "title": "FileSelectSpec",
+        "FlagChoiceSchema": {
+          "title": "FlagChoiceSchema",
+          "type": "object",
+          "properties": {
+            "alias": {
+              "title": "Alias",
+              "type": "string"
+            },
+            "description": {
+              "title": "Description",
+              "type": "string"
+            },
+            "value": {
+              "title": "Value",
+              "type": "string"
+            }
+          }
+        },
+        "FlagDefSchema": {
+          "title": "FlagDefSchema",
+          "type": "object",
+          "properties": {
+            "allow-other": {
+              "title": "Allow-Other",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "enum": [
+                    "yes"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "no"
+                  ],
+                  "type": "string"
+                }
+              ]
+            },
+            "arg-name": {
+              "title": "Arg-Name",
+              "type": "string"
+            },
+            "arg-skip": {
+              "title": "Arg-Skip",
+              "type": "string"
+            },
+            "arg-split": {
+              "title": "Arg-Split",
+              "type": "string"
+            },
+            "arg-switch": {
+              "title": "Arg-Switch",
+              "type": "string"
+            },
+            "choices": {
+              "title": "Choices",
+              "default": [],
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/FlagChoiceSchema"
+              }
+            },
+            "default": {
+              "title": "Default",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "enum": [
+                    "yes"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "no"
+                  ],
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "title": "Description",
+              "type": "string"
+            },
+            "distribution": {
+              "title": "Distribution",
+              "type": "string"
+            },
+            "env-name": {
+              "title": "Env-Name",
+              "type": "string"
+            },
+            "extra": {
+              "title": "Extra",
+              "type": "object"
+            },
+            "max": {
+              "title": "Max",
+              "type": "string"
+            },
+            "min": {
+              "title": "Min",
+              "type": "string"
+            },
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "null-label": {
+              "title": "Null-Label",
+              "type": "string"
+            },
+            "required": {
+              "title": "Required",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "enum": [
+                    "yes"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "no"
+                  ],
+                  "type": "string"
+                }
+              ]
+            },
+            "type": {
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "FileSelectSpecSchema": {
+          "title": "FileSelectSpecSchema",
           "type": "object",
           "properties": {
             "patterns": {
@@ -200,8 +322,8 @@
             }
           }
         },
-        "FileSelectDef": {
-          "title": "FileSelectDef",
+        "FileSelectDefSchema": {
+          "title": "FileSelectDefSchema",
           "type": "object",
           "properties": {
             "root": {
@@ -212,7 +334,7 @@
               "title": "Specs",
               "type": "array",
               "items": {
-                "$ref": "#/definitions/FileSelectSpec"
+                "$ref": "#/definitions/FileSelectSpecSchema"
               }
             },
             "digest": {
@@ -264,245 +386,25 @@
                 }
               ]
             }
-          }
-        },
-        "ModelDef": {
-          "title": "ModelDef",
-          "type": "object",
-          "properties": {
-            "default": {
-              "title": "Default",
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "enum": [
-                    "yes"
-                  ],
-                  "type": "string"
-                },
-                {
-                  "enum": [
-                    "no"
-                  ],
-                  "type": "string"
-                }
-              ]
-            },
-            "description": {
-              "title": "Description",
-              "default": "",
-              "type": "string"
-            },
-            "extra": {
-              "title": "Extra",
-              "default": {},
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            },
-            "guildfile": {
-              "title": "Guildfile",
-              "default": "",
-              "type": "string"
-            },
-            "model": {
-              "title": "Model",
-              "default": "",
-              "type": "string"
-            },
-            "op-default-config": {
-              "title": "Op-Default-Config",
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "object"
-                }
-              ]
-            },
-            "operations": {
-              "title": "Operations",
-              "default": [],
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/OpDef"
-              }
-            },
-            "parents": {
-              "title": "Parents",
-              "default": [],
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "plugins": {
-              "title": "Plugins",
-              "default": [],
-              "anyOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                {
-                  "enum": [
-                    false
-                  ],
-                  "type": "boolean"
-                }
-              ]
-            },
-            "python-requires": {
-              "title": "Python-Requires",
-              "type": "string"
-            },
-            "references": {
-              "title": "References",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "resources": {
-              "title": "Resources",
-              "default": [],
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/guild__guildfile__ResourceDef"
-              }
-            },
-            "sourcecode": {
-              "$ref": "#/definitions/FileSelectDef"
-            }
           },
           "additionalProperties": false
         },
-        "guild__guildfile__ResourceDef": {
-          "title": "ResourceDef",
+        "PublishDefSchema": {
+          "title": "PublishDefSchema",
           "type": "object",
           "properties": {
-            "name": {
-              "title": "Name",
-              "type": "string"
-            },
-            "fullname": {
-              "title": "Fullname",
-              "type": "string"
-            },
-            "flag_name": {
-              "title": "Flag Name",
-              "type": "string"
-            },
-            "description": {
-              "title": "Description",
-              "type": "string"
-            },
-            "target_path": {
-              "title": "Target Path",
-              "type": "string"
-            },
-            "preserve_path": {
-              "title": "Preserve Path",
-              "type": "string"
-            },
-            "target_type": {
-              "title": "Target Type",
-              "type": "string"
-            },
-            "default_unpack": {
-              "title": "Default Unpack",
-              "type": "string"
-            },
-            "private": {
-              "title": "Private",
-              "type": "boolean"
-            },
-            "references": {
-              "title": "References",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "sources": {
-              "title": "Sources",
-              "default": [],
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/ResourceSource"
-              }
-            },
-            "source_types": {
-              "title": "Source Types",
-              "default": [
-                "config",
-                "file",
-                "module",
-                "url",
-                "operation"
-              ],
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "default_source_type": {
-              "title": "Default Source Type",
-              "default": "file",
-              "type": "string"
-            },
-            "modeldef": {
-              "$ref": "#/definitions/ModelDef"
-            }
-          }
-        },
-        "OpDependencyDef": {
-          "title": "OpDependencyDef",
-          "type": "object",
-          "properties": {
-            "spec": {
-              "title": "Spec",
-              "type": "string"
-            },
-            "description": {
-              "title": "Description",
-              "type": "string"
-            },
-            "inline_resource": {
-              "$ref": "#/definitions/guild__guildfile__ResourceDef"
-            },
-            "opdef": {
-              "$ref": "#/definitions/OpDef"
-            },
-            "modeldef": {
-              "$ref": "#/definitions/ModelDef"
-            }
-          }
-        },
-        "PublishDef": {
-          "title": "PublishDef",
-          "type": "object",
-          "properties": {
-            "opdef": {
-              "$ref": "#/definitions/OpDef"
-            },
             "files": {
-              "$ref": "#/definitions/FileSelectDef"
+              "$ref": "#/definitions/FileSelectDefSchema"
             },
             "template": {
               "title": "Template",
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
-        "OpDef": {
-          "title": "OpDef",
+        "OpDefSchema": {
+          "title": "OpDefSchema",
           "type": "object",
           "properties": {
             "can-stage-trials": {
@@ -527,7 +429,17 @@
             },
             "compare": {
               "title": "Compare",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
             },
             "default": {
               "title": "Default",
@@ -595,11 +507,37 @@
             },
             "requires": {
               "title": "Requires",
-              "default": [],
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/OpDependencyDef"
-              }
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "$ref": "#/definitions/ResourceSourceSchema"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
             },
             "description": {
               "title": "Description",
@@ -617,9 +555,48 @@
               "title": "Env-Secrets",
               "type": "string"
             },
-            "exec-": {
-              "title": "Exec-",
+            "exec": {
+              "title": "Exec",
+              "default": "",
               "type": "string"
+            },
+            "flags": {
+              "title": "Flags",
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "enum": [
+                      "yes"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "enum": [
+                      "no"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/FlagDefSchema"
+                  }
+                ]
+              }
             },
             "flag-encoder": {
               "title": "Flag-Encoder",
@@ -627,22 +604,34 @@
             },
             "flags-dest": {
               "title": "Flags-Dest",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "type": "string"
             },
             "flags-import": {
               "title": "Flags-Import",
               "anyOf": [
                 {
+                  "enum": [
+                    "yes"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "all"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "no"
+                  ],
+                  "type": "string"
+                },
+                {
                   "type": "array",
                   "items": {
                     "type": "string"
                   }
-                },
-                {
-                  "type": "string"
                 }
               ]
             },
@@ -686,9 +675,6 @@
               "title": "Main",
               "type": "string"
             },
-            "modeldef": {
-              "$ref": "#/definitions/ModelDef"
-            },
             "name": {
               "title": "Name",
               "default": "",
@@ -696,7 +682,24 @@
             },
             "objective": {
               "title": "Objective",
-              "type": "string"
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "optimizers": {
+              "title": "Optimizers",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
             },
             "output-scalars": {
               "title": "Output-Scalars",
@@ -724,7 +727,7 @@
               ]
             },
             "publish": {
-              "$ref": "#/definitions/PublishDef"
+              "$ref": "#/definitions/PublishDefSchema"
             },
             "python-path": {
               "title": "Python-Path",
@@ -759,7 +762,7 @@
               ]
             },
             "sourcecode": {
-              "$ref": "#/definitions/FileSelectDef"
+              "$ref": "#/definitions/FileSelectDefSchema"
             },
             "steps": {
               "title": "Steps",
@@ -799,8 +802,8 @@
           },
           "additionalProperties": false
         },
-        "PackageDef": {
-          "title": "PackageDef",
+        "PackageDefSchema": {
+          "title": "PackageDefSchema",
           "type": "object",
           "properties": {
             "author": {
@@ -885,13 +888,385 @@
           },
           "additionalProperties": false
         },
+        "ResourceDefSchema": {
+          "title": "ResourceDefSchema",
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "fullname": {
+              "title": "Fullname",
+              "type": "string"
+            },
+            "flag_name": {
+              "title": "Flag Name",
+              "type": "string"
+            },
+            "description": {
+              "title": "Description",
+              "type": "string"
+            },
+            "target_path": {
+              "title": "Target Path",
+              "type": "string"
+            },
+            "preserve_path": {
+              "title": "Preserve Path",
+              "type": "string"
+            },
+            "target_type": {
+              "title": "Target Type",
+              "type": "string"
+            },
+            "default_unpack": {
+              "title": "Default Unpack",
+              "type": "string"
+            },
+            "private": {
+              "title": "Private",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "enum": [
+                    "yes"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "no"
+                  ],
+                  "type": "string"
+                }
+              ]
+            },
+            "references": {
+              "title": "References",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "sources": {
+              "title": "Sources",
+              "default": [],
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResourceSourceSchema"
+              }
+            },
+            "source_types": {
+              "title": "Source Types",
+              "default": [
+                "config",
+                "file",
+                "module",
+                "url",
+                "operation"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "default_source_type": {
+              "title": "Default Source Type",
+              "default": "file",
+              "type": "string"
+            }
+          }
+        },
+        "ConfigDefSchema": {
+          "title": "ConfigDefSchema",
+          "description": "This is basically the same as a model, but it serves \nas a template that other models can extend",
+          "type": "object",
+          "properties": {
+            "default": {
+              "title": "Default",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "enum": [
+                    "yes"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "no"
+                  ],
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "title": "Description",
+              "default": "",
+              "type": "string"
+            },
+            "extra": {
+              "title": "Extra",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "extends": {
+              "title": "Extends",
+              "default": "",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "guildfile": {
+              "title": "Guildfile",
+              "default": "",
+              "type": "string"
+            },
+            "config": {
+              "title": "Config",
+              "default": "",
+              "type": "string"
+            },
+            "op-default-config": {
+              "title": "Op-Default-Config",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            },
+            "operations": {
+              "title": "Operations",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/OpDefSchema"
+              }
+            },
+            "params": {
+              "title": "Params",
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parents": {
+              "title": "Parents",
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "plugins": {
+              "title": "Plugins",
+              "default": [],
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "enum": [
+                    false
+                  ],
+                  "type": "boolean"
+                }
+              ]
+            },
+            "python-requires": {
+              "title": "Python-Requires",
+              "type": "string"
+            },
+            "references": {
+              "title": "References",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "title": "Resources",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/ResourceDefSchema"
+              }
+            },
+            "sourcecode": {
+              "$ref": "#/definitions/FileSelectDefSchema"
+            }
+          },
+          "additionalProperties": false
+        },
+        "ModelDefSchema": {
+          "title": "ModelDefSchema",
+          "type": "object",
+          "properties": {
+            "default": {
+              "title": "Default",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "enum": [
+                    "yes"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "no"
+                  ],
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "title": "Description",
+              "default": "",
+              "type": "string"
+            },
+            "extra": {
+              "title": "Extra",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "extends": {
+              "title": "Extends",
+              "default": "",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "guildfile": {
+              "title": "Guildfile",
+              "default": "",
+              "type": "string"
+            },
+            "model": {
+              "title": "Model",
+              "default": "",
+              "type": "string"
+            },
+            "op-default-config": {
+              "title": "Op-Default-Config",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            },
+            "operations": {
+              "title": "Operations",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/OpDefSchema"
+              }
+            },
+            "params": {
+              "title": "Params",
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parents": {
+              "title": "Parents",
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "plugins": {
+              "title": "Plugins",
+              "default": [],
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "enum": [
+                    false
+                  ],
+                  "type": "boolean"
+                }
+              ]
+            },
+            "python-requires": {
+              "title": "Python-Requires",
+              "type": "string"
+            },
+            "references": {
+              "title": "References",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "title": "Resources",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/ResourceDefSchema"
+              }
+            },
+            "sourcecode": {
+              "$ref": "#/definitions/FileSelectDefSchema"
+            }
+          },
+          "additionalProperties": false
+        },
         "GuildfileParsingModel": {
           "title": "GuildfileParsingModel",
+          "description": "Ties together the base types into one of two forms:\n\n- implicit model guildfile, includes only operations\n- \"full\" format, which includes details for Package, Config, and one or more models",
           "anyOf": [
             {
               "type": "object",
               "additionalProperties": {
-                "$ref": "#/definitions/OpDef"
+                "$ref": "#/definitions/OpDefSchema"
               }
             },
             {
@@ -899,19 +1274,13 @@
               "items": {
                 "anyOf": [
                   {
-                    "$ref": "#/definitions/PackageDef"
+                    "$ref": "#/definitions/PackageDefSchema"
                   },
                   {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "$ref": "#/definitions/OpDef"
-                      }
-                    }
+                    "$ref": "#/definitions/ConfigDefSchema"
                   },
                   {
-                    "$ref": "#/definitions/ModelDef"
+                    "$ref": "#/definitions/ModelDefSchema"
                   }
                 ]
               }

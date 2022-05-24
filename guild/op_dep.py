@@ -17,6 +17,7 @@ import re
 import logging
 
 from guild import cli
+from guild import guildfile_schema
 from guild import resolver as resolverlib
 from guild import resourcedef
 from guild import util
@@ -192,7 +193,7 @@ def _resolve_rename_spec_refs(specs, flag_vals, resdef):
     if not specs:
         return specs
     return [
-        resourcedef.RenameSpec(
+        guildfile_schema.RenameSpec(
             _resolve_dep_attr_refs(spec.pattern, flag_vals, resdef),
             _resolve_dep_attr_refs(spec.repl, flag_vals, resdef),
         )

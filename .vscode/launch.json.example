@@ -13,10 +13,11 @@
             "module": "guild.main_bootstrap",
             "args": [
                 "run",
-                "flags.ipynb",
+                "say.py",
                 "-y",
+                "msg=['hi', 'hi2']"
             ],
-            "cwd": "${workspaceFolder}/guild/tests/samples/projects/notebooks",
+            "cwd": "${workspaceFolder}/guild/tests/samples/projects/batch",
             "justMyCode": false,
         },
         {
