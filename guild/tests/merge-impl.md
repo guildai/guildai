@@ -32,6 +32,7 @@ Project files:
     dep-subdir/dep-2
     guild.yml
     op.py
+    overlap.py
 
 Create a new Guild home to isolate runs.
 
@@ -50,6 +51,7 @@ Verify the project ops.
 
     >>> project_run("guild ops")
     default
+    overlap
     <exit 0>
 
 ## Generate a run
@@ -79,6 +81,7 @@ Generate a run from the sample project.
       sourcecode:
         - .guild/sourcecode/guild.yml
         - .guild/sourcecode/op.py
+        - .guild/sourcecode/overlap.py
     <exit 0>
 
     >>> project_run("guild ls -n")
@@ -104,6 +107,7 @@ Attempt to merge the run.
       dep-subdir/dep-2
       guild.yml
       op.py
+      overlap.py
     Use --replace to skip this check.
     <exit 1>
 
@@ -121,6 +125,7 @@ Preview the merge command.
       dep-subdir/dep-2
       guild.yml
       op.py
+      overlap.py
       subdir/c
     Continue (y/N)? (y/N)
     <exit ...>
@@ -134,6 +139,7 @@ Run the command.
     Copying dep-subdir/dep-2
     Copying guild.yml
     Copying op.py
+    Copying overlap.py
     Copying subdir/c
     <exit 0>
 
@@ -147,6 +153,7 @@ Project files:
     dep-subdir/dep-2
     guild.yml
     op.py
+    overlap.py
     subdir/c
 
 Merging into an empty directory poses no replacement issues.
@@ -164,6 +171,7 @@ Merge everything:
     Copying dep-subdir/dep-2
     Copying guild.yml
     Copying op.py
+    Copying overlap.py
     Copying subdir/c
     <exit 0>
 
@@ -174,6 +182,7 @@ Merge everything:
     dep-subdir/dep-2
     guild.yml
     op.py
+    overlap.py
     subdir/c
 
 Merge sourcecode only:
@@ -181,11 +190,13 @@ Merge sourcecode only:
     >>> project_run(f"guild merge -s -t {tmp}/sourcecode -y")
     Copying guild.yml
     Copying op.py
+    Copying overlap.py
     <exit 0>
 
     >>> find(f"{tmp}/sourcecode")
     guild.yml
     op.py
+    overlap.py
 
 Merge deps only:
 
@@ -232,7 +243,8 @@ Attempt to merge.
       dep-subdir/dep-2
       guild.yml
       op.py
-    Commit these changes or use --replace to skip this check.
+      overlap.py
+    Commit or stash these changes or use --replace to skip this check.
     <exit 1>
 
 Commit the changes.
@@ -250,6 +262,7 @@ that are committed.
     Copying dep-subdir/dep-2
     Copying guild.yml
     Copying op.py
+    Copying overlap.py
     Copying subdir/c
     <exit 0>
 
@@ -265,6 +278,7 @@ generated files.
     dep-subdir/dep-2
     guild.yml
     op.py
+    overlap.py
     subdir/c
 
     >>> project_run("guild merge -y")
@@ -275,6 +289,7 @@ generated files.
       dep-subdir/dep-2
       guild.yml
       op.py
+      overlap.py
       subdir/c
     Use --replace to skip this check.
     <exit 1>
@@ -313,6 +328,7 @@ Use '--replace':
       dep-subdir/dep-2
       guild.yml
       op.py
+      overlap.py
       subdir/c
     Continue (y/N)? (y/N)
     <exit ...>
@@ -325,6 +341,7 @@ Use '--skip-deps' and '--skip-generated':
     Files to copy:
       guild.yml
       op.py
+      overlap.py
     Continue (y/N)? (y/N)
     <exit ...>
 
@@ -336,6 +353,7 @@ Use '--sourcecode':
     Files to copy:
       guild.yml
       op.py
+      overlap.py
     Continue (y/N)? (y/N)
     <exit ...>
 
@@ -349,6 +367,7 @@ Exclude the offending files:
       dep-subdir/dep-2
       guild.yml
       op.py
+      overlap.py
     Continue (y/N)? (y/N)
     <exit ...>
 
@@ -366,6 +385,7 @@ Merge to a different directory:
       dep-subdir/dep-2
       guild.yml
       op.py
+      overlap.py
       subdir/c
     Continue (y/N)? (y/N)
     <exit ...>
@@ -447,9 +467,10 @@ Attempt to merge from a new, empty directory.
 
     >>> tmp = mkdtemp()
     >>> run(f"guild -H {guild_home} merge -y", cwd=tmp)
-    guild: run ... originates from a different directory (...) - cannot merge
+    guild: run ... was created from a different project (...) - cannot merge
     to the current directory by default
-    Use --target-dir to override this check or try 'guild merge --help' for more information.
+    Use '--target-dir .' to override this check or try 'guild merge --help'
+    for more information.
     <exit 1>
 
 Next we test the pathological case where Guild can't determine a
@@ -476,6 +497,87 @@ Attempt to merge this run to tmp.
     Skip this check by using --target-dir
     <exit 1>
 
+## Overlapping targets
+
+It's possible in Guild to have multiple run files that map to the same
+project target. For details, see [merge.md](merge.md#prune).
+
+The `overlap` operation creates a target path overlap example.
+
+- Project local dependencies overlap with source code files
+- The operation overwrites one of the overlapped files with generated
+  content
+
+    >>> project_run("guild run overlap -y")
+    Resolving file:dep-1 dependency
+    Resolving file:dep-subdir/dep-2 dependency
+    Generating files
+    <exit 0>
+
+The manifest shows the overlap of source code and dependencies.
+
+    >>> project_run("guild cat -p .guild/manifest")
+    s .guild/sourcecode/dep-1 ... dep-1
+    s .guild/sourcecode/guild.yml ... guild.yml
+    s .guild/sourcecode/op.py ... op.py
+    s .guild/sourcecode/overlap.py ... overlap.py
+    s .guild/sourcecode/dep-subdir/dep-2 ... dep-subdir/dep-2
+    d dep-1 ... dep-1
+    d dep-subdir/dep-2 ... dep-subdir/dep-2
+    <exit 0>
+
+The run file `dep-1` is modified by the operation.
+
+    >>> project_run("guild cat -p dep-1")
+    generated!
+    <exit 0>
+
+    >>> cat(path(project_dir, "dep-1"))
+    <empty>
+
+When we merge such a run, Guild gives preference to non-source code
+gfiles. This is a controversial decision as the user may either prefer
+to copy the source code or to be notified of this case with a warning
+or error that requires an option to disable the check.
+
+At this time, however, Guild prefers non-source files when merging for
+the following reasons:
+
+- In the case of overlapping source and project-local dependencies,
+  the files will be the same and it won't matter which file is
+  selected for the merge.
+
+- Source code files are already protected by Guild's VCS status
+  check. If an unexpected overlap occurs, the user can correct the
+  problem by filtering out the dependency in the Guild file sourcecode
+  spec.
+
+- In the case where a source code file overlaps with a generated file,
+  the generated file may be presumed as preferrable as it's the most
+  recent version of the file.
+
+Merge the run.
+
+    >>> project_run("guild merge -y")
+    Copying dep-1
+    Copying dep-subdir/dep-2
+    Copying guild.yml
+    Copying op.py
+    Copying overlap.py
+    <exit 0>
+
+This merge was allowed with --replace despite replacing several files
+because the project is fully committed.
+
+We can use git to view changes to the project.
+
+    >>> project_run("git status -s")
+    M dep-1
+    <exit 0>
+
+    >>> cat(path(project_dir, "dep-1"))
+    generated!
+
 # TODO
 
 - Run summary to `guild-run-summary.json` (or specified by
@@ -483,3 +585,7 @@ Attempt to merge this run to tmp.
 
 - Consider not copying generated by default (support with --generated
   and include patterns)
+
+- Mod to manifest - use `file:` prefix for file deps
+
+- Rename `merge.md` to `run-merge.md`

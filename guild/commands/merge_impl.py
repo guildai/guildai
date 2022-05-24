@@ -60,7 +60,7 @@ def _apply_sourcecode_arg(args):
 
 def _init_run_merge(run, args):
     try:
-        return run_merge.RunMerge(
+        merge = run_merge.RunMerge(
             run,
             skip_sourcecode=args.skip_sourcecode,
             skip_deps=args.skip_deps,
@@ -69,6 +69,9 @@ def _init_run_merge(run, args):
         )
     except run_merge.MergeError as e:
         cli.error(e)
+    else:
+        run_merge.prune_overlapping_targets(merge, prefer_nonsource=True)
+        return merge
 
 
 def _checked_cwd(run, ctx):
@@ -110,8 +113,8 @@ def _checked_cwd_matches_project_dir(cwd, project_dir, run, ctx):
     if not util.compare_paths(cwd, project_dir):
         fmt_project_dir = util.format_dir(project_dir)
         cli.error(
-            f"run {run.id} originates from a different directory ({fmt_project_dir}) - "
-            "cannot merge to the current directory by default\nUse --target-dir "
+            f"run {run.id} was created from a different project ({fmt_project_dir}) - "
+            "cannot merge to the current directory by default\nUse '--target-dir .' "
             f"to override this check or try '{ctx.command_path} --help' for more "
             "information."
         )
@@ -225,7 +228,7 @@ def _replace_uncommitted_error(target_paths, target_dir):
     data = [{"path": path} for path in sorted(target_paths)]
     cli.table(data, ["path"], indent=2, err=True)
     cli.out(
-        "Commit these changes or use --replace to skip this check.",
+        "Commit or stash these changes or use --replace to skip this check.",
         err=True,
     )
     raise SystemExit()
@@ -282,4 +285,4 @@ def _format_merge_files(merge_files):
 
 
 def _on_merge_copy(_merge, merge_file, _src, _dest):
-    log.info(f"Copying {merge_file.target_path}")
+    log.info("Copying %s", merge_file.target_path)

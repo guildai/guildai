@@ -46,13 +46,14 @@ class RunMerge:
         skip_deps=False,
         skip_generated=False,
         exclude=None,
+        files=None,
     ):
         self.run = run
         self.skip_sourcecode = skip_sourcecode
         self.skip_deps = skip_deps
         self.skip_generated = skip_generated
         self.exclude = exclude
-        self.files = _init_merge_files(self)
+        self.files = files if files is not None else _init_merge_files(self)
 
 
 def _init_merge_files(merge):
@@ -176,3 +177,41 @@ def _shutil_copy(src, dest):
         shutil.copy(src, dest)
     except shutil.SameFileError:
         pass
+
+
+def prune_overlapping_targets(merge, prefer_nonsource=False):
+    """Removes merge files with overlapping target paths.
+
+    Overlapping targets may occur because Guild supports two categries
+    of files for merge: source code and non-source code. Non-source
+    code files include dependencies and generated files.
+
+    `merge.files` may be modified as a result of calling this function.
+
+    By default, the pruning prefers source code files over non-source
+    code files. In the default case, when a target path exists both as
+    source code and as non-source code, the source code file is
+    retained and the non-source code file is pruned.
+
+    To prefer non-source code files over source code files, specify
+    `prefer_nonsource=True`.
+    """
+    source_lookup = {mf.target_path for mf in merge.files if mf.type == "s"}
+    nonsource_lookup = {mf.target_path for mf in merge.files if mf.type != "s"}
+    merge.files = [
+        mf
+        for mf in merge.files
+        if _keep_for_prune_overlapping(
+            mf,
+            source_lookup,
+            nonsource_lookup,
+            prefer_nonsource,
+        )
+    ]
+
+
+def _keep_for_prune_overlapping(mf, source_lookup, nonsource_lookup, prefer_nonsource):
+    return (
+        not (mf.target_path in source_lookup and mf.target_path in nonsource_lookup)
+        or (mf.type != "s" if prefer_nonsource else mf.type == "s")
+    )
