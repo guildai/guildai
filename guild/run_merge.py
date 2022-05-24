@@ -211,7 +211,6 @@ def prune_overlapping_targets(merge, prefer_nonsource=False):
 
 
 def _keep_for_prune_overlapping(mf, source_lookup, nonsource_lookup, prefer_nonsource):
-    return (
-        not (mf.target_path in source_lookup and mf.target_path in nonsource_lookup)
-        or (mf.type != "s" if prefer_nonsource else mf.type == "s")
-    )
+    return not (
+        mf.target_path in source_lookup and mf.target_path in nonsource_lookup
+    ) or (mf.type != "s" if prefer_nonsource else mf.type == "s")
