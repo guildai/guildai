@@ -58,6 +58,7 @@ Providing a prefix limits the tests shown.
     run-impl
     run-labels
     run-manifest
+    run-merge
     run-ops
     run-output
     run-scripts

@@ -11,22 +11,22 @@ it exposes the user project to corruption.
 Create a new project that we can freely modify without changing test
 code.
 
-    >>> project_dir = mkdtemp()
-    >>> copytree(sample("projects", "merge"), project_dir)
+    >> project_dir = mkdtemp()
+    >> copytree(sample("projects", "merge"), project_dir)
 
 Remove ignored files if they exit. Use a helper function so we can run
 this as needed.
 
-    >>> def clean_project():
+    >> def clean_project():
     ...     rm(path(project_dir, "a"), force=True)
     ...     rm(path(project_dir, "b"), force=True)
     ...     rmdir(path(project_dir, "subdir"))
 
-    >>> clean_project()
+    >> clean_project()
 
 Project files:
 
-    >>> find(project_dir)
+    >> find(project_dir)
     .gitignore
     dep-1
     dep-subdir/dep-2
@@ -37,20 +37,20 @@ Project files:
 
 Create a new Guild home to isolate runs.
 
-    >>> guild_home = mkdtemp()
+    >> guild_home = mkdtemp()
 
 Helpers to run commands from the project dir and with `GUILD_HOME` set
 for Guild commands.
 
-    >>> def project_run(cmd, **kw):
+    >> def project_run(cmd, **kw):
     ...     run(cmd, cwd=project_dir, env={"GUILD_HOME": guild_home}, **kw)
 
-    >>> def project_quiet(cmd, **kw):
+    >> def project_quiet(cmd, **kw):
     ...     quiet(cmd, cwd=project_dir, env={"GUILD_HOME": guild_home}, **kw)
 
 Verify the project ops.
 
-    >>> project_run("guild ops")
+    >> project_run("guild ops")
     default
     overlap
     remote-dep
@@ -60,7 +60,7 @@ Verify the project ops.
 
 Generate a run from the sample project.
 
-    >>> project_run("guild run default -y")
+    >> project_run("guild run default -y")
     Resolving file:dep-1 dependency
     Resolving file:dep-subdir/dep-2 dependency
     Resolving file:files.zip dependency
@@ -68,11 +68,11 @@ Generate a run from the sample project.
     Generating files
     <exit 0>
 
-    >>> project_run("guild runs")
+    >> project_run("guild runs")
     [1:...]  default  ...  completed
     <exit 0>
 
-    >>> project_run("guild runs info --manifest")
+    >> project_run("guild runs info --manifest")
     id: ...
     operation: default
     from: .../guild.yml
@@ -90,7 +90,7 @@ Generate a run from the sample project.
         - .guild/sourcecode/overlap.py
     <exit 0>
 
-    >>> project_run("guild ls -n")
+    >> project_run("guild ls -n")
     a
     b
     dep-1
@@ -109,7 +109,7 @@ no-replace policy for all merged/copied files.
 
 Attempt to merge the run.
 
-    >>> project_run("guild merge -y")
+    >> project_run("guild merge -y")
     guild: files in the current directory would be replaced:
       dep-1
       dep-subdir/dep-2
@@ -123,7 +123,7 @@ Override Guild's policy by specifying the '--replace' option.
 
 Preview the merge command.
 
-    >>> project_run("guild merge --replace", timeout=2)
+    >> project_run("guild merge --replace", timeout=2)
     You are about to copy files from the following run to the current directory:
       [...]  default  ...  completed
     Files to copy:
@@ -140,7 +140,7 @@ Preview the merge command.
 
 Run the command.
 
-    >>> project_run("guild merge --replace -y")
+    >> project_run("guild merge --replace -y")
     Copying a
     Copying b
     Copying dep-1
@@ -153,7 +153,7 @@ Run the command.
 
 Project files:
 
-    >>> find(project_dir)
+    >> find(project_dir)
     .gitignore
     a
     b
@@ -169,11 +169,11 @@ Merging into an empty directory poses no replacement issues.
 
 Create a temp directory for our various merge targets.
 
-    >>> tmp = mkdtemp()
+    >> tmp = mkdtemp()
 
 Merge everything:
 
-    >>> project_run(f"guild merge -t {tmp}/everything -y")
+    >> project_run(f"guild merge -t {tmp}/everything -y")
     Copying a
     Copying b
     Copying dep-1
@@ -184,7 +184,7 @@ Merge everything:
     Copying subdir/c
     <exit 0>
 
-    >>> find(f"{tmp}/everything")
+    >> find(f"{tmp}/everything")
     a
     b
     dep-1
@@ -196,37 +196,37 @@ Merge everything:
 
 Merge sourcecode only:
 
-    >>> project_run(f"guild merge -s -t {tmp}/sourcecode -y")
+    >> project_run(f"guild merge -s -t {tmp}/sourcecode -y")
     Copying guild.yml
     Copying op.py
     Copying overlap.py
     <exit 0>
 
-    >>> find(f"{tmp}/sourcecode")
+    >> find(f"{tmp}/sourcecode")
     guild.yml
     op.py
     overlap.py
 
 Merge deps only:
 
-    >>> project_run(f"guild merge -SG -t {tmp}/deps -y")
+    >> project_run(f"guild merge -SG -t {tmp}/deps -y")
     Copying dep-1
     Copying dep-subdir/dep-2
     <exit 0>
 
-    >>> find(f"{tmp}/deps")
+    >> find(f"{tmp}/deps")
     dep-1
     dep-subdir/dep-2
 
 Merge generated only:
 
-    >>> project_run(f"guild merge -SD -t {tmp}/generated -y")
+    >> project_run(f"guild merge -SD -t {tmp}/generated -y")
     Copying a
     Copying b
     Copying subdir/c
     <exit 0>
 
-    >>> find(f"{tmp}/generated")
+    >> find(f"{tmp}/generated")
     a
     b
     subdir/c
@@ -238,15 +238,15 @@ is configured with a VCS.
 
 Initialize a git repositiry in the project directory.
 
-    >>> project_quiet("git init")
+    >> project_quiet("git init")
 
 Remove deps and generated files (from previous merges).
 
-    >>> clean_project()
+    >> clean_project()
 
 Attempt to merge.
 
-    >>> project_run("guild merge -y")
+    >> project_run("guild merge -y")
     guild: files in the current directory have uncommitted changes:
       dep-1
       dep-subdir/dep-2
@@ -258,13 +258,13 @@ Attempt to merge.
 
 Commit the changes.
 
-    >>> project_quiet("git add .")
-    >>> project_quiet("git commit -m 'First commit'")
+    >> project_quiet("git add .")
+    >> project_quiet("git commit -m 'First commit'")
 
 Attempt to merge again. This succeeds because we're replacing files
 that are committed.
 
-    >>> project_run("guild merge -y")
+    >> project_run("guild merge -y")
     Copying a
     Copying b
     Copying dep-1
@@ -278,7 +278,7 @@ that are committed.
 Our project now has additional files from the run -- dependencies and
 generated files.
 
-    >>> find(project_dir)
+    >> find(project_dir)
     .git/...
     .gitignore
     a
@@ -291,7 +291,7 @@ generated files.
     overlap.py
     subdir/c
 
-    >>> project_run("guild merge -y")
+    >> project_run("guild merge -y")
     guild: files in the current directory would be replaced:
       a
       b
@@ -306,7 +306,7 @@ generated files.
 
 These three files are explicitly ignored by git.
 
-    >>> cat(path(project_dir, ".gitignore"))
+    >> cat(path(project_dir, ".gitignore"))
     a
     b
     subdir/c
@@ -328,7 +328,7 @@ copy anything).
 
 Use '--replace':
 
-    >>> project_run("guild merge --replace", timeout=2)
+    >> project_run("guild merge --replace", timeout=2)
     You are about to copy files from the following run to the current directory:
       [...]  default  ...  completed
     Files to copy:
@@ -345,7 +345,7 @@ Use '--replace':
 
 Use '--skip-deps' and '--skip-generated':
 
-    >>> project_run("guild merge --skip-deps --skip-generated", timeout=2)
+    >> project_run("guild merge --skip-deps --skip-generated", timeout=2)
     You are about to copy files from the following run to the current directory:
       [...]  default  ...  completed
     Files to copy:
@@ -357,7 +357,7 @@ Use '--skip-deps' and '--skip-generated':
 
 Use '--sourcecode':
 
-    >>> project_run("guild merge --sourcecode", timeout=2)
+    >> project_run("guild merge --sourcecode", timeout=2)
     You are about to copy files from the following run to the current directory:
       [...]  default  ...  completed
     Files to copy:
@@ -369,7 +369,7 @@ Use '--sourcecode':
 
 Exclude the offending files:
 
-    >>> project_run("guild merge -x a -x b -x '*/c'", timeout=2)
+    >> project_run("guild merge -x a -x b -x '*/c'", timeout=2)
     You are about to copy files from the following run to the current directory:
       [...]  default  ...  completed
     Files to copy:
@@ -383,9 +383,9 @@ Exclude the offending files:
 
 Merge to a different directory:
 
-    >>> tmp = mkdtemp()
+    >> tmp = mkdtemp()
 
-    >>> project_run(f"guild merge --target-dir '{tmp}'", timeout=2)
+    >> project_run(f"guild merge --target-dir '{tmp}'", timeout=2)
     You are about to copy files from the following run to '...':
       [...]  default  ...  completed
     Files to copy:
@@ -421,7 +421,7 @@ There are two cases where Guild generates an error message:
 For the tests below we use a helper for creating a run with
 configurable opref info.
 
-    >>> def init_run(pkg_type, pkg_name, op_name):
+    >> def init_run(pkg_type, pkg_name, op_name):
     ...     from guild import op as oplib
     ...     from guild import opref
     ...     from guild import run as runlib
@@ -437,22 +437,22 @@ configurable opref info.
 
 Create a run that's not associated with a project.
 
-    >>> _ = init_run("func", "", "hello")
-    >>> project_run("guild runs -n1")
+    >> _ = init_run("func", "", "hello")
+    >> project_run("guild runs -n1")
     [1:...]  hello()    pending
     <exit 0>
 
 The run pkg type 'func' in the run opdef indicates the run does not
 originate from a project directory.
 
-    >>> project_run("guild cat -p .guild/opref")
+    >> project_run("guild cat -p .guild/opref")
     func:'' '' '' hello
     <exit 0>
 
 Attempt to merge the run. We safegaurd accidental copies by using an
 empty cwd for the test.
 
-    >>> run(f"guild -H {guild_home} merge 1 -y", cwd=mkdtemp())
+    >> run(f"guild -H {guild_home} merge 1 -y", cwd=mkdtemp())
     guild: run ... does not originate from a project - cannot merge to the
     current directory by default
     Use --target-dir to skip this check or try 'guild merge --help' for more
@@ -471,12 +471,12 @@ We test Guild using two cases:
 
 Generate a new run from the project dir.
 
-    >>> project_quiet("guild run default -y")
+    >> project_quiet("guild run default -y")
 
 Attempt to merge from a new, empty directory.
 
-    >>> tmp = mkdtemp()
-    >>> run(f"guild -H {guild_home} merge -y", cwd=tmp)
+    >> tmp = mkdtemp()
+    >> run(f"guild -H {guild_home} merge -y", cwd=tmp)
     guild: run ... was created from a different project (...) - cannot merge
     to the current directory by default
     Use '--target-dir .' to override this check or try 'guild merge --help'
@@ -488,18 +488,18 @@ project directory from a Guild file based run.
 
 Create a pathological/broken run where the pkg_name is empty.
 
-    >>> _ = init_run("guildfile", "", "broken")
-    >>> project_run("guild cat -p .guild/opref")
+    >> _ = init_run("guildfile", "", "broken")
+    >> project_run("guild cat -p .guild/opref")
     guildfile:'' '' '' broken
     <exit 0>
 
-    >>> project_run("guild runs -n1")
+    >> project_run("guild runs -n1")
     [1:...]  broken    pending
     <exit 0>
 
 Attempt to merge this run to tmp.
 
-    >>> run(f"guild -H {guild_home} merge -y", cwd=tmp)
+    >> run(f"guild -H {guild_home} merge -y", cwd=tmp)
     guild: unexpected missing project directory for run ... (guildfile:''
     '' '' broken)
     This may be a bug in Guild - please report to
@@ -518,7 +518,7 @@ The `overlap` operation creates a target path overlap example.
 - The operation overwrites one of the overlapped files with generated
   content
 
-    >>> project_run("guild run overlap -y")
+    >> project_run("guild run overlap -y")
     Resolving file:dep-1 dependency
     Resolving file:dep-subdir/dep-2 dependency
     Generating files
@@ -526,7 +526,7 @@ The `overlap` operation creates a target path overlap example.
 
 The manifest shows the overlap of source code and dependencies.
 
-    >>> project_run("guild cat -p .guild/manifest")
+    >> project_run("guild cat -p .guild/manifest")
     s .guild/sourcecode/dep-1 ... dep-1
     s .guild/sourcecode/guild.yml ... guild.yml
     s .guild/sourcecode/op.py ... op.py
@@ -538,11 +538,11 @@ The manifest shows the overlap of source code and dependencies.
 
 The run file `dep-1` is modified by the operation.
 
-    >>> project_run("guild cat -p dep-1")
+    >> project_run("guild cat -p dep-1")
     generated!
     <exit 0>
 
-    >>> cat(path(project_dir, "dep-1"))
+    >> cat(path(project_dir, "dep-1"))
     <empty>
 
 When we merge such a run, Guild gives preference to non-source code
@@ -568,7 +568,7 @@ the following reasons:
 
 Merge the run.
 
-    >>> project_run("guild merge -y")
+    >> project_run("guild merge -y")
     Copying dep-1
     Copying dep-subdir/dep-2
     Copying guild.yml
@@ -581,11 +581,11 @@ because the project is fully committed.
 
 We can use git to view changes to the project.
 
-    >>> project_run("git status -s")
+    >> project_run("git status -s")
     M dep-1
     <exit 0>
 
-    >>> cat(path(project_dir, "dep-1"))
+    >> cat(path(project_dir, "dep-1"))
     generated!
 
 # TODO

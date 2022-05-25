@@ -313,14 +313,40 @@ Other exclude patterns:
 
 To apply a merge, use `run_merge.appyly_run_merge`.
 
-    >> from guild.run_merge import apply_run_merge
+    >>> from guild.run_merge import apply_run_merge
 
 Merges are applied to a target directory.
 
-    >> target_dir = mkdtemp()
-    >> apply_run_merge(RunMerge(run), target_dir)
+As noted earlier, Guild copies source code and project local
+dependencies by default.
 
-    >> find(target_dir)
+    >>> target_dir = mkdtemp()
+    >>> apply_run_merge(init_run_merge(run), target_dir)
+    >>> find(target_dir)
+    dep-1
+    dep-subdir/dep-2
+    guild.yml
+    op.py
+    overlap.py
+
+Compare the original project directory with the target directory.
+
+    >>> import filecmp
+    >>> filecmp.dircmp(sample, target_dir).report()
+    diff .../samples/projects/merge ...
+    Only in .../samples/projects/merge :
+      ['.gitignore', 'a', 'b', 'files.zip', 'subdir']
+    Identical files :
+      ['dep-1', 'guild.yml', 'op.py', 'overlap.py']
+    Common subdirectories :
+      ['dep-subdir']
+
+We can copy all files, included run-generated files, by specifying
+`copy_all=True`.
+
+    >>> target_dir = mkdtemp()
+    >>> apply_run_merge(init_run_merge(run, copy_all=True), target_dir)
+    >>> find(target_dir)
     a
     b
     dep-1
@@ -330,14 +356,30 @@ Merges are applied to a target directory.
     overlap.py
     subdir/c
 
-Compare the original project directory with the target directory.
+    >>> filecmp.dircmp(sample, target_dir).report()
+    diff .../samples/projects/merge ...
+    Only in .../samples/projects/merge :
+      ['.gitignore', 'files.zip']
+    Identical files :
+      ['a', 'b', 'dep-1', 'guild.yml', 'op.py', 'overlap.py']
+    Common subdirectories :
+      ['dep-subdir', 'subdir']
 
-    >> import filecmp
-    >> filecmp.dircmp(sample, target_dir).report()
-    diff ...
-    Only in .../samples/projects/merge : ['.gitignore', 'files.zip']
-    Identical files : ['a', 'b', 'dep-1', 'guild.yml', 'op.py', 'overlap.py']
-    Common subdirectories : ['dep-subdir', 'subdir']
+Copy only source code files by skipping dependencies.
+
+    >>> target_dir = mkdtemp()
+    >>> apply_run_merge(init_run_merge(run, skip_deps=True), target_dir)
+    >>> find(target_dir)
+    guild.yml
+    op.py
+    overlap.py
+
+    >>> filecmp.dircmp(sample, target_dir).report()
+    diff .../samples/projects/merge ...
+    Only in .../samples/projects/merge :
+      ['.gitignore', 'a', 'b', 'dep-1', 'dep-subdir', 'files.zip', 'subdir']
+    Identical files :
+      ['guild.yml', 'op.py', 'overlap.py']
 
 <a id="prune">
 
@@ -373,34 +415,42 @@ The function `run_merge.prune_overlapping_targets()` is used to remove
 duplicate merge files from a runs merge based on a preference: keep
 source code files or keep non-source code files.
 
-    >> from guild.run_merge import prune_overlapping_targets
+    >>> from guild.run_merge import _prune_overlapping_targets
 
 Helper to test pruning.
 
-    >> def prune(files, prefer_nonsource=False):
-    ...     from guild.run_merge import MergeFile
-    ...     merge_files = [
-    ...         MergeFile(type=type, run_path=None, target_path=target)
-    ...         for type, target in files
+    >>> def prune(files, prefer_nonsource=False):
+    ...     from guild.run_merge import RunMerge, CopyFile
+    ...     to_copy = [
+    ...         CopyFile(file_type, None, target_path)
+    ...         for file_type, target_path in files
     ...     ]
-    ...     merge = RunMerge(None, files=merge_files)
-    ...     prune_overlapping_targets(merge, prefer_nonsource)
-    ...     return [(mf.type, mf.target_path) for mf in merge.files]
+    ...     merge = RunMerge(
+    ...         run=None,
+    ...         copy_all=False,
+    ...         skip_sourcecode=False,
+    ...         skip_deps=False,
+    ...         exclude=None,
+    ...         to_copy=to_copy,
+    ...         to_skip=[]
+    ...     )
+    ...     _prune_overlapping_targets(merge, prefer_nonsource)
+    ...     return [(cf.file_type, cf.target_path) for cf in merge.to_copy]
 
 Empty case:
 
-    >> prune([])
+    >>> prune([])
     []
 
 Non overlapping:
 
-    >> prune([
+    >>> prune([
     ...     ("s", "foo.txt"),
     ...     ("d", "bar.txt")
     ... ])
     [('s', 'foo.txt'), ('d', 'bar.txt')]
 
-    >> prune([
+    >>> prune([
     ...     ("s", "foo.txt"),
     ...     ("d", "bar.txt")
     ... ],
@@ -409,13 +459,13 @@ Non overlapping:
 
 Overlapping source code and dependency:
 
-    >> prune([
+    >>> prune([
     ...     ("s", "foo.txt"),
     ...     ("d", "foo.txt")
     ... ])
     [('s', 'foo.txt')]
 
-    >> prune([
+    >>> prune([
     ...     ("s", "foo.txt"),
     ...     ("d", "foo.txt")
     ... ],
@@ -424,14 +474,14 @@ Overlapping source code and dependency:
 
 Overlapping source code and generated:
 
-    >> prune([
+    >>> prune([
     ...     ("s", "foo.txt"),
     ...     ("d", "bar.txt"),
     ...     ("g", "foo.txt")
     ... ])
     [('s', 'foo.txt'), ('d', 'bar.txt')]
 
-    >> prune([
+    >>> prune([
     ...     ("s", "foo.txt"),
     ...     ("d", "bar.txt"),
     ...     ("g", "foo.txt")
