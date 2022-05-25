@@ -1,4 +1,3 @@
-import collections
 from decimal import Decimal
 from typing import List, Union, Dict, Any, Optional
 from typing_extensions import Literal
@@ -16,6 +15,24 @@ class FileSelectSpecSchema(schema.BaseModel):
     patterns: List[str] = []
     patterns_type: Optional[str]
     type: Optional[str]
+    include: Optional[
+        Union[
+            str,
+            Dict[
+                Union[Literal["dir"], Literal["text"], Literal["binary"]],
+                Union[str, List[str]],
+            ],
+        ]
+    ]
+    exclude: Optional[
+        Union[
+            str,
+            Dict[
+                Union[Literal["dir"], Literal["text"], Literal["binary"]],
+                Union[str, List[str]],
+            ],
+        ]
+    ]
 
 
 class FileSelectDefSchema(schema.BaseModel):
@@ -27,11 +44,12 @@ class FileSelectDefSchema(schema.BaseModel):
     disabled: optional_bool_type
 
     class Config:
+        alias_generator = underscore_to_dash
         arbitrary_types_allowed = True
         extra = 'forbid'
 
 
-FlagValueTypes = Union[str, int, float, Decimal, optional_bool_type]
+FlagValueTypes = Union[Literal["null"], str, int, float, Decimal, optional_bool_type]
 
 
 class FlagChoiceSchema(schema.BaseModel):
@@ -41,12 +59,12 @@ class FlagChoiceSchema(schema.BaseModel):
 
 
 class FlagDefSchema(schema.BaseModel):
-    allow_other: Optional[Union[bool, Literal["yes"], Literal["no"]]]
+    allow_other: optional_bool_type
     arg_name: Optional[str]
     arg_skip: Optional[str]
     arg_split: Optional[str]
     arg_switch: Optional[str]
-    choices: List['FlagChoiceSchema'] = []
+    choices: Optional[List[Union[FlagValueTypes, 'FlagChoiceSchema']]]
     default: Optional[FlagValueTypes]
     description: Optional[str]
     distribution: Optional[str]
@@ -55,6 +73,7 @@ class FlagDefSchema(schema.BaseModel):
     max: Optional[str]
     min: Optional[str]
     name: Optional[str]
+    nb_replace: Optional[str]
     null_label: Optional[str]
     required: optional_bool_type
     type: Optional[str]
@@ -79,7 +98,36 @@ class OptimizerDefSchema(schema.BaseModel):
     name: Optional[str]
     opspec: Optional[str] = schema.Field("", alias="algorithm")
     default: optional_bool_type = False
-    flags: Optional[Dict[str, Union[FlagValueTypes, FlagDefSchema]]]
+    flags: Optional[Dict[str, Union[Literal[None], FlagValueTypes, FlagDefSchema]]]
+
+    class Config:
+        arbitrary_types_allowed = True
+        extra = 'forbid'
+
+
+class DvCResourceSchema(schema.BaseModel):
+    dvcfile: Optional[str]
+    always_pull: optional_bool_type
+    remote: Optional[str]
+    dvcstage: Optional[str]
+
+    class Config:
+        alias_generator = underscore_to_dash
+        extra = 'forbid'
+
+
+resource_types = Union[
+    str, 'ResourceSourceSchema', 'ResourceDefSchema', 'DvCResourceSchema'
+]
+file_types = Union[str, FileSelectDefSchema, FileSelectSpecSchema]
+str_or_dict_str_str = Union[str, Dict[str, str]]
+
+
+class StepSchema(schema.BaseModel):
+    run: Optional[str]
+    flags: Optional[Dict[str, Union[FlagValueTypes, List[FlagValueTypes]]]]
+    optimizer: Optional[Union[str, OptimizerDefSchema]]
+    max_trials: Optional[int]
 
 
 class OpDefSchema(schema.BaseModel):
@@ -89,39 +137,36 @@ class OpDefSchema(schema.BaseModel):
     default_flag_arg_skip: optional_bool_type
     default_max_trials: Optional[int]
     delete_on_success: optional_bool_type
-    requires: Optional[
-        Union[
-            str, List[Union[str, Dict[str, List[Union[str, 'ResourceSourceSchema']]]]]
-        ]
-    ]
+    disable_plugins: Optional[Union[optional_bool_type, Literal["all"], List[str]]]
     description: Optional[str]
     env: Dict[str, str] = {}
     env_secrets: Optional[str]
     exec_: Optional[str] = schema.Field("", alias="exec")
-    flags: Optional[Dict[str, Union[FlagValueTypes, FlagDefSchema]]]
+    flags: Optional[Dict[str, Union[Literal[None], FlagValueTypes, FlagDefSchema]]]
     flag_encoder: Optional[str]
     flags_dest: Optional[str]
-    flags_import: Optional[
-        Union[Literal['yes'], Literal['all'], Literal['no'], List[str]]
-    ]
+    flags_import: Optional[Union[optional_bool_type, Literal["all"], List[str]]]
     flags_import_skip: Optional[List[str]]
     guildfile: Optional[str]
     handle_keyboard_interrupt: optional_bool_type = True
     label: Optional[str]
     main: Optional[str]
     name: str = ""
+    notebook: Optional[str]
     objective: Optional[Dict[str, str]]
-    optimizers: Optional[Union[str, List[str]]]
-    output_scalars: Optional[str]
+    optimizers: Optional[Union[str, List[str], Dict[str, OptimizerDefSchema]]]
+    output_scalars: Optional[Union[str_or_dict_str_str, List[str_or_dict_str_str]]]
     pip_freeze: Optional[str]
-    plugins: Optional[Union[List[str], Literal[False]]]
+    plugins: Optional[Union[str, List[str], Literal[False]]]
     publish: Optional[PublishDefSchema]
     python_path: Optional[str]
     python_requires: Optional[str]
-    run_attrs: Optional[str]
+    references: Optional[Union[str, List[str]]]
+    requires: Optional[Union[resource_types, List[resource_types]]]
+    run_attrs: Optional[Dict[str, str]]
     set_trace: optional_bool_type
-    sourcecode: Optional['FileSelectDefSchema']
-    steps: Optional[List[Dict[str, Any]]]
+    sourcecode: Optional[Union[optional_bool_type, file_types, List[file_types]]]
+    steps: Optional[List[Union[str, StepSchema]]]
     stoppable: optional_bool_type
     tags: List[str] = []
 
@@ -140,11 +185,8 @@ SourceTypes = [
 ]
 
 
-RenameSpec = collections.namedtuple("RenameSpec", ["pattern", "repl"])
-
-
 class ResourceSourceSchema(schema.BaseModel):
-    uri: Optional[str] = ""
+    uri: Optional[str] = schema.Field("", alias="url")
     name: Optional[str] = ""
     operation: Optional[str]
     sha256: Optional[str]
@@ -153,14 +195,23 @@ class ResourceSourceSchema(schema.BaseModel):
     select: Optional[Union[str, List[str]]]
     warn_if_empty: bool = True
     fail_if_empty: bool = False
-    rename: Optional[List['RenameSpec']]
+    rename: Optional[Union[str, List[str]]]
     post_process: Optional[str]
     target_path: Optional[str]
     target_type: Optional[str]
     replace_existing: optional_bool_type
     preserve_path: optional_bool_type
-    params: Optional[Dict[str, str]]
+    params: Optional[Dict[str, FlagValueTypes]]
     help: Optional[str]
+    # used in yaml, do not exist on actual model
+    config: Optional[str]
+    file: Optional[str]
+    module: Optional[str]
+    path: Optional[str]
+
+    class Config:
+        alias_generator = underscore_to_dash
+        extra = 'forbid'
 
 
 class ResourceDefSchema(schema.BaseModel):
@@ -177,9 +228,14 @@ class ResourceDefSchema(schema.BaseModel):
     sources: List['ResourceSourceSchema'] = []
     source_types: List[str] = SourceTypes + ["operation"]
     default_source_type: str = "file"
+    # missing fields that exist in yaml
+    file: Optional[str]
+    module: Optional[str]
 
     class Config:
+        alias_generator = underscore_to_dash
         arbitrary_types_allowed = True
+        extra = 'forbid'
 
 
 class ModelDefSchema(schema.BaseModel):
@@ -189,15 +245,24 @@ class ModelDefSchema(schema.BaseModel):
     extends: Union[str, List[str]] = ""
     guildfile: str = ""
     name: str = schema.Field("", alias="model")
-    op_default_config: Optional[Union[str, Dict[str, Any]]]
+    op_default_config: Optional['OpDefSchema'] = schema.Field(
+        alias="operation-defaults"
+    )
     operations: Dict[str, 'OpDefSchema'] = {}
     params: Optional[Dict[str, str]]
     parents: List[str] = []
     plugins: Optional[Union[List[str], Literal[False]]] = []
     python_requires: Optional[str]
     references: Optional[List[str]]
-    resources: Dict[str, 'ResourceDefSchema'] = {}
-    sourcecode: Optional['FileSelectDefSchema']
+    resources: Dict[
+        str,
+        Union[
+            'ResourceSourceSchema',
+            'ResourceDefSchema',
+            List[Union['ResourceSourceSchema', 'ResourceDefSchema']],
+        ],
+    ] = {}
+    sourcecode: Optional[Union[optional_bool_type, file_types, List[file_types]]]
 
     class Config:
         alias_generator = underscore_to_dash
@@ -211,6 +276,13 @@ class ConfigDefSchema(ModelDefSchema):
     as a template that other models can extend"""
 
     name: str = schema.Field("", alias="config")
+
+
+class OperationDefaultsDefSchema(ModelDefSchema):
+    """This is basically the same as a model, but it serves
+    as a template that other models can extend"""
+
+    name: str = schema.Field("", alias="operation-defaults")
 
 
 class PackageDefSchema(schema.BaseModel):

@@ -33,6 +33,9 @@ from guild import guildfile_schema, util
 log = logging.getLogger("guild")
 
 
+RenameSpec = collections.namedtuple("RenameSpec", ["pattern", "repl"])
+
+
 class ResourceFormatError(ValueError):
     pass
 
@@ -276,11 +279,9 @@ def _init_rename(data):
 def _init_rename_spec(data):
     if isinstance(data, six.string_types):
         pattern, repl = _split_rename_spec(data)
-        return guildfile_schema.RenameSpec(pattern, repl)
+        return RenameSpec(pattern, repl)
     elif isinstance(data, dict):
-        return guildfile_schema.RenameSpec(
-            data.get("pattern", ""), data.get("repl", "")
-        )
+        return RenameSpec(data.get("pattern", ""), data.get("repl", ""))
     else:
         raise ResourceFormatError(
             "invalid rename spec %r: expected string or map" % data

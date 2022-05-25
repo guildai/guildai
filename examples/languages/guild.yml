@@ -27,7 +27,6 @@ bash-2:
 
 java:
   description: Sample using Java
-  _exec: java Main ${learning-rate} ${batch-size}
   exec: bash -c "javac .guild/sourcecode/Train.java &&
                  java -cp .guild/sourcecode Train ${learning-rate} ${batch-size}"
   flags:
