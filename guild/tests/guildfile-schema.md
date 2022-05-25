@@ -2,7 +2,7 @@
 
     >>> from guild import guildfile_schema
 
-    >>> print(guildfile_schema.schema_json())  # doctest: +REPORT_UDIFF
+    >>> print(guildfile_schema.schema_json())  # doctest: +REPORT_UDIFF -PY36
     {
       "title": "Guild File",
       "$ref": "#/definitions/GuildfileParsingModel",
