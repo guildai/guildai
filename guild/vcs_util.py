@@ -57,8 +57,49 @@ SCHEMES = [
     )
 ]
 
-FileStatus = collections.namedtuple("FileStatus", ["status", "path", "renamed_from"])
+FileStatus = collections.namedtuple("FileStatus", ["status", "path", "orig_path"])
+FileStatus.__doc__ = """
+Represents a file in the result of `status()`.
 
+`status` is a two character status code. This follows the git
+convention as documented in `git status --help` with the exception
+that an empty space char (' ') in the git spec becomes an underscore
+char ('_') in this spec.
+
+  - _ = unmodified
+  - M = modified
+  - A = added
+  - D = deleted
+  - R = renamed
+  - C = copied
+  - U = updated but unmerged
+
+    X          Y     Meaning
+    -------------------------------------------------
+    _        [AMD]   not updated
+    M        [ MD]   updated in index
+    A        [ MD]   added to index
+    D                deleted from index
+    R        [ MD]   renamed in index
+    C        [ MD]   copied in index
+    [MARC]      _    index and work tree matches
+    [ MARC]     M    work tree changed since index
+    [ MARC]     D    deleted in work tree
+    [ D]        R    renamed in work tree
+    [ D]        C    copied in work tree
+    -------------------------------------------------
+    D           D    unmerged, both deleted
+    A           U    unmerged, added by us
+    U           D    unmerged, deleted by them
+    U           A    unmerged, added by them
+    D           U    unmerged, deleted by us
+    A           A    unmerged, both added
+    U           U    unmerged, both modified
+    -------------------------------------------------
+    ?           ?    untracked
+    !           !    ignored
+
+"""
 
 log = logging.getLogger("guild")
 
@@ -192,28 +233,27 @@ def _parse_git_status(out):
 
 
 def _decode_git_status_line(status_line):
-    status = _normalize_git_file_status(status_line[:2].strip())
+    status = _status_code_for_git_status_line(status_line)
     rest = status_line[3:]
-    path, renamed_from = _split_git_file_status_path(status, rest)
-    return FileStatus(status, path, renamed_from)
+    path, orig_path = _split_git_file_status_path(rest)
+    return FileStatus(status, path, orig_path)
 
 
-def _normalize_git_file_status(status):
-    if status == "??":
-        return "?"
-    elif status == "!!":
-        return "!"
-    return status
+def _status_code_for_git_status_line(status_line):
+    """Returns the XY status git status.
+
+    Git status char ' ' (empty space) is replaced with an underscore
+    per the MergeFile status spec above.
+
+    See `git status --help` for details.
+
+    """
+    assert len(status_line) >= 2, status_line
+    return status_line[:2].replace(" ", "_")
 
 
-def _split_git_file_status_path(status, rest):
-    if status == "R":
-        return _parse_git_rename(rest)
-    else:
-        return rest, None
-
-
-def _parse_git_rename(rest):
-    parts = rest.split(" -> ", 1)
-    assert len(parts) == 2, parts
-    return parts[1], parts[0]
+def _split_git_file_status_path(path):
+    parts = path.split(" -> ", 1)
+    if len(parts) == 2:
+        return parts[1], parts[0]
+    return parts[0], None

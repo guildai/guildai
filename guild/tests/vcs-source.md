@@ -22,8 +22,8 @@ Helper to print dir status.
     ...     dir = join_path(repo, subdir) if subdir else repo
     ...     status_files = vcs_util.status(dir, ignored=ignored)
     ...     for status in sorted(status_files, key=lambda s: s.path):
-    ...          if status.status == "R":
-    ...              print(f"{status.status}: {status.path} <- {status.renamed_from}")
+    ...          if status.status[0] == "R":
+    ...              print(f"{status.status}: {status.path} <- {status.orig_path}")
     ...          else:
     ...              print(f"{status.status}: {status.path}")
 
@@ -74,7 +74,7 @@ Add a file. This isn't tracked or ignored by Git.
     a
 
     >>> status()
-    ?: a
+    ??: a
 
 Add some more untracked, unignored files.
 
@@ -87,9 +87,9 @@ Add some more untracked, unignored files.
     c
 
     >>> status()
-    ?: a
-    ?: b
-    ?: c
+    ??: a
+    ??: b
+    ??: c
 
 Ignore a file.
 
@@ -101,15 +101,15 @@ Ignore a file.
     c
 
     >>> status()
-    ?: .gitignore
-    ?: b
-    ?: c
+    ??: .gitignore
+    ??: b
+    ??: c
 
     >>> status(ignored=True)
-    ?: .gitignore
-    !: a
-    ?: b
-    ?: c
+    ??: .gitignore
+    !!: a
+    ??: b
+    ??: c
 
 Ignore another file.
 
@@ -120,8 +120,8 @@ Ignore another file.
     b
 
     >>> status()
-    ?: .gitignore
-    ?: b
+    ??: .gitignore
+    ??: b
 
 Add some more files.
 
@@ -140,12 +140,12 @@ Add some more files.
     e
 
     >>> status()
-    ?: .gitignore
-    ?: b
-    ?: subdir/
+    ??: .gitignore
+    ??: b
+    ??: subdir/
 
     >>> status("subdir")
-    ?: ./
+    ??: ./
 
 Add all unignored files to index.
 
@@ -162,14 +162,14 @@ Add all unignored files to index.
     e
 
     >>> status()
-    A: .gitignore
-    A: b
-    A: subdir/d
-    A: subdir/e
+    A_: .gitignore
+    A_: b
+    A_: subdir/d
+    A_: subdir/e
 
     >>> status("subdir")
-    A: d
-    A: e
+    A_: d
+    A_: e
 
 Commit index changes.
 
@@ -195,7 +195,7 @@ deleted file is tracked by Git.
     subdir/e
 
     >>> status()
-    D: subdir/e
+    _D: subdir/e
 
 Delete the file from git.
 
@@ -207,7 +207,7 @@ Delete the file from git.
     subdir/d
 
     >>> status()
-    D: subdir/e
+    D_: subdir/e
 
 Commit the change.
 
@@ -244,8 +244,8 @@ Modify 'b' and 'subdir/e':
     subdir/e
 
     >>> status()
-    M: b
-    M: subdir/e
+    _M: b
+    _M: subdir/e
 
 Rename 'subdir/d':
 
@@ -261,24 +261,24 @@ Rename 'subdir/d':
     e
 
     >>> status()
-    M: b
-    R: d <- subdir/d
-    M: subdir/e
+    _M: b
+    R_: d <- subdir/d
+    _M: subdir/e
 
     >>> status("subdir")
-    D: d
-    M: e
+    D_: d
+    _M: e
 
 Show status including ignored files.
 
     >>> status(ignored=True)
-    !: a
-    M: b
-    !: c
-    R: d <- subdir/d
-    M: subdir/e
+    !!: a
+    _M: b
+    !!: c
+    R_: d <- subdir/d
+    _M: subdir/e
 
     >>> status(ignored=False)
-    M: b
-    R: d <- subdir/d
-    M: subdir/e
+    _M: b
+    R_: d <- subdir/d
+    _M: subdir/e

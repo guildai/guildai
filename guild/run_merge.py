@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
+from collections import namedtuple
+
 import errno
 import fnmatch
 import os
@@ -35,7 +36,9 @@ class StopMerge(Exception):
         self.msg = msg
 
 
-MergeFile = collections.namedtuple("MergeFile", ["type", "run_path", "target_path"])
+MergeFile = namedtuple("MergeFile", ["type", "run_path", "target_path"])
+
+_NonMergeFile = namedtuple("_UnpackedDepFile", ["run_path"])
 
 
 class RunMerge:
@@ -93,17 +96,27 @@ def _apply_sourcecode_entry_to_index(args, index):
 
 
 def _apply_dep_entry_to_index(args, index):
-    if not _is_project_local_dep_entry(args):
-        return
-    run_path, _hash_arg, target_path = args[1:]
-    index[run_path] = MergeFile("d", run_path, target_path)
+    entry = _index_entry_for_manifest_entry(args)
+    index[entry.run_path] = entry
 
 
-def _is_project_local_dep_entry(args):
-    # Project local files are logged in the run manifst as ['d',
-    # run_path, hash, project_path]. See
-    # `guild.run_manifest.resolved_source_args()` for details.
-    return len(args) == 4
+def _index_entry_for_manifest_entry(args):
+    assert args[0] == "d", args
+    try:
+        return _project_local_merge_file_for_manifest_entry(args)
+    except ValueError:
+        return _NonMergeFile(args[1])
+
+
+def _project_local_merge_file_for_manifest_entry(args):
+    if len(args) != 4:
+        raise ValueError()
+    run_path = args[1]
+    src_uri = args[3]
+    if not src_uri.startswith("file:"):
+        raise ValueError()
+    project_path = src_uri[5:]
+    return MergeFile("d", run_path, project_path)
 
 
 def _iter_run_files(run):
@@ -116,9 +129,13 @@ def _iter_run_files(run):
 
 
 def _handle_run_file_for_merge(run_path, merge, manifest_index, files):
-    merge_file = manifest_index.get(run_path) or _maybe_generated_merge_file(run_path)
-    if merge_file and not _merge_file_excluded(merge_file, merge):
-        files.append(merge_file)
+    entry = manifest_index.get(run_path) or _maybe_generated_merge_file(run_path)
+    if not isinstance(entry, MergeFile):
+        return
+    merge_file = entry
+    if _merge_file_excluded(merge_file, merge):
+        return
+    files.append(merge_file)
 
 
 def _maybe_generated_merge_file(run_path):

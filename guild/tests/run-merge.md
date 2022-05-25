@@ -20,6 +20,8 @@ Generate a run.
     >>> project.run("default")
     Resolving file:dep-1 dependency
     Resolving file:dep-subdir/dep-2 dependency
+    Resolving file:files.zip dependency
+    Unpacking .../files.zip
     Generating files
 
 The run files:
@@ -37,6 +39,8 @@ The run files:
     dep-1
     dep-subdir/dep-2
     subdir/c
+    yyy
+    zzz
 
 ## Merge files
 
@@ -56,7 +60,10 @@ Get the latest run.
 
     >>> run = project.list_runs()[0]
 
-By default, sourcecode, deps, and generated files are copied.
+By default, sourcecode, deps, and generated files are copied. Note
+that files unpacked from required project archives are not listed as
+dependencies in a run merge. These files don't exist in the project --
+they're contained in the required archive.
 
     >>> print_mergefiles(RunMerge(run))
     [s] .guild/sourcecode/guild.yml -> guild.yml
@@ -155,7 +162,7 @@ Compare the original project directory with the target directory.
     >>> import filecmp
     >>> filecmp.dircmp(sample, target_dir).report()
     diff ...
-    Only in .../samples/projects/merge : ['.gitignore']
+    Only in .../samples/projects/merge : ['.gitignore', 'files.zip']
     Identical files : ['a', 'b', 'dep-1', 'guild.yml', 'op.py', 'overlap.py']
     Common subdirectories : ['dep-subdir', 'subdir']
 

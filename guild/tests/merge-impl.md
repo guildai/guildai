@@ -30,6 +30,7 @@ Project files:
     .gitignore
     dep-1
     dep-subdir/dep-2
+    files.zip
     guild.yml
     op.py
     overlap.py
@@ -52,6 +53,7 @@ Verify the project ops.
     >>> project_run("guild ops")
     default
     overlap
+    remote-dep
     <exit 0>
 
 ## Generate a run
@@ -61,6 +63,8 @@ Generate a run from the sample project.
     >>> project_run("guild run default -y")
     Resolving file:dep-1 dependency
     Resolving file:dep-subdir/dep-2 dependency
+    Resolving file:files.zip dependency
+    Unpacking .../files.zip
     Generating files
     <exit 0>
 
@@ -78,6 +82,8 @@ Generate a run from the sample project.
       dependencies:
         - dep-1
         - dep-subdir/dep-2
+        - yyy
+        - zzz
       sourcecode:
         - .guild/sourcecode/guild.yml
         - .guild/sourcecode/op.py
@@ -92,6 +98,8 @@ Generate a run from the sample project.
     dep-subdir/dep-2
     subdir/
     subdir/c
+    yyy
+    zzz
     <exit 0>
 
 ## Non-VCS behavior
@@ -151,6 +159,7 @@ Project files:
     b
     dep-1
     dep-subdir/dep-2
+    files.zip
     guild.yml
     op.py
     overlap.py
@@ -276,6 +285,7 @@ generated files.
     b
     dep-1
     dep-subdir/dep-2
+    files.zip
     guild.yml
     op.py
     overlap.py
@@ -522,8 +532,8 @@ The manifest shows the overlap of source code and dependencies.
     s .guild/sourcecode/op.py ... op.py
     s .guild/sourcecode/overlap.py ... overlap.py
     s .guild/sourcecode/dep-subdir/dep-2 ... dep-subdir/dep-2
-    d dep-1 ... dep-1
-    d dep-subdir/dep-2 ... dep-subdir/dep-2
+    d dep-1 ... file:dep-1
+    d dep-subdir/dep-2 ... file:dep-subdir/dep-2
     <exit 0>
 
 The run file `dep-1` is modified by the operation.
@@ -588,4 +598,4 @@ We can use git to view changes to the project.
 
 - Mod to manifest - use `file:` prefix for file deps
 
-- Rename `merge.md` to `run-merge.md`
+- Don't fail if run and target files are the same - just don't replaceq

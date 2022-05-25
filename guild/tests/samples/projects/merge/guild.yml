@@ -22,3 +22,8 @@ overlap:
       target-type: copy
     - file: dep-subdir/dep-2
       target-path: dep-subdir
+
+remote-dep:
+  main: guild.pass
+  requires:
+    - url: https://guild-pub.s3.amazonaws.com/uat/file.txt
