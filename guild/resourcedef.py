@@ -26,10 +26,9 @@ import pprint
 from typing import Dict, List, Optional, Any
 from urllib.parse import ParseResult
 
-import pydantic as schema
 import six
 
-from guild import util
+from guild import guildfile_schema, util
 
 log = logging.getLogger("guild")
 
@@ -42,35 +41,15 @@ class ResourceDefValueError(ValueError):
     pass
 
 
-SourceTypes = [
-    "config",
-    "file",
-    "module",
-    "url",
-]
-
-
-class ResourceDef(schema.BaseModel):
+class ResourceDef(guildfile_schema.ResourceDefSchema):
     _data: Optional[dict]
-    name: Optional[str]
-    fullname: Optional[str]
-    flag_name: Optional[str]
-    description: Optional[str]
-    target_path: Optional[str]
-    preserve_path: Optional[str]
-    target_type: Optional[str]
-    default_unpack: Optional[str]
-    private: Optional[bool]
-    references: Optional[List[str]]
-    sources: List['ResourceSource'] = []
-    source_types: List[str] = SourceTypes
-    default_source_type: str = "file"
+    sources: Optional[List['ResourceSource']]
 
     class Config:
         underscore_attrs_are_private = True
 
-    def __init__(self, name, data, fullname=None):
-        super().__init__()
+    def __init__(self, name, data, fullname=None, *args, **kw):
+        super().__init__(*args, **kw)
         self.name = name
         self._data = data = _coerce_resdef(data)
         self.fullname = fullname or name
@@ -161,25 +140,9 @@ def _coerce_resdef(data) -> Dict[str, Any]:
     raise ResourceDefValueError()
 
 
-class ResourceSource(schema.BaseModel):
+class ResourceSource(guildfile_schema.ResourceSourceSchema):
     resdef: Optional[ResourceDef]
-    uri: str = ""
     _parsed_uri: Optional[ParseResult] = None
-    name: str = ""
-    sha256: Optional[str]
-    unpack: Optional[bool]
-    type: Optional[str]
-    select: Optional[List[str]]
-    warn_if_empty: bool = True
-    fail_if_empty: bool = False
-    rename: Optional[List['RenameSpec']]
-    post_process: Optional[str]
-    target_path: Optional[str]
-    target_type: Optional[str]
-    replace_existing: bool = False
-    preserve_path: bool = False
-    params: dict = {}
-    help: Optional[str]
 
     class Config:
         underscore_attrs_are_private = True
@@ -206,9 +169,10 @@ class ResourceSource(schema.BaseModel):
         path=None,
         preserve_path=False,
         params=None,
+        *args,
         **kw
     ):
-        super().__init__()
+        super().__init__(*args, **kw)
         self.resdef = resdef
         self.uri = uri
         self.name = name or uri
@@ -309,15 +273,14 @@ def _init_rename(data):
     return [_init_rename_spec(item) for item in data]
 
 
-RenameSpec = collections.namedtuple("RenameSpec", ["pattern", "repl"])
-
-
 def _init_rename_spec(data):
     if isinstance(data, six.string_types):
         pattern, repl = _split_rename_spec(data)
-        return RenameSpec(pattern, repl)
+        return guildfile_schema.RenameSpec(pattern, repl)
     elif isinstance(data, dict):
-        return RenameSpec(data.get("pattern", ""), data.get("repl", ""))
+        return guildfile_schema.RenameSpec(
+            data.get("pattern", ""), data.get("repl", "")
+        )
     else:
         raise ResourceFormatError(
             "invalid rename spec %r: expected string or map" % data

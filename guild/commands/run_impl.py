@@ -1805,9 +1805,9 @@ def _test_sourcecode(S):
     )
     cli.out("Copying from %s" % cmd_impl_support.cwd_desc(logger.root))
     cli.out("Rules:")
-    for rule in logger.select.rules:
+    for rule in logger.select.rules if logger.select else []:
         cli.out("  %s" % _format_file_select_rule(rule))
-    if logger.select.disabled:
+    if logger.select and logger.select.disabled:
         assert not logger.selected, logger.selected
         assert not logger.skipped, logger.skipped
         cli.out("Source code copy disabled")

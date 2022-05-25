@@ -15,6 +15,7 @@
 import logging
 import os
 
+from typing import List
 import six
 
 from guild import cli
@@ -28,7 +29,9 @@ log = logging.getLogger("guild")
 class _ImportedFlagsOpDefProxy:
     def __init__(self, flags_data, wrapped_opdef):
         self.guildfile = wrapped_opdef.guildfile
-        self.flags = self._init_flags(flags_data, wrapped_opdef.main)
+        self.flags: List[guildfile.FlagDef] = self._init_flags(
+            flags_data, wrapped_opdef.main
+        )
 
     def _init_flags(self, flags_data, main_mod):
         flags = []
