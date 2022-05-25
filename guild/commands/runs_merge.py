@@ -39,8 +39,17 @@ def merge_params(fn):
             click.Option(
                 ("-s", "--sourcecode"),
                 help=(
-                    "Only copy run source code. Implies use of `--skip-deps` "
-                    "and `--skip-generated`. Cannot be used with `--skip-sourcecode`."
+                    "Only copy run source code. Implies use of `--skip-deps`. "
+                    "Cannot be used with `--skip-sourcecode`."
+                ),
+                is_flag=True,
+            ),
+            click.Option(
+                ("-a", "--all"),
+                help=(
+                    "Copy all run files. May be used with `--skip-sourcecode`, "
+                    "`--skip-deps`, and `--exclude` to copy all but the "
+                    "skipped/excluded files."
                 ),
                 is_flag=True,
             ),
@@ -55,18 +64,13 @@ def merge_params(fn):
                 is_flag=True,
             ),
             click.Option(
-                ("-G", "--skip-generated"),
-                help="Don't copy run-generated files,",
-                is_flag=True,
-            ),
-            click.Option(
                 ("-x", "--exclude"),
                 help="Exclude a file or pattern (may be used multiple times).",
                 metavar="PATTERN",
                 multiple=True,
             ),
             click.Option(
-                ("-m", "--skip-summary"),
+                ("-S", "--no-summary"),
                 help="Don't generate a run summary.",
                 is_flag=True,
             ),
@@ -77,6 +81,11 @@ def merge_params(fn):
                     "include the run ID."
                 ),
                 metavar="NAME",
+            ),
+            click.Option(
+                ("-p", "--preview"),
+                help="Show what would happen on a merge.",
+                is_flag=True,
             ),
             click.Option(
                 ("-y", "--yes"),

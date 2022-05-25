@@ -599,3 +599,5 @@ We can use git to view changes to the project.
 - Mod to manifest - use `file:` prefix for file deps
 
 - Don't fail if run and target files are the same - just don't replaceq
+
+- Merge --preview option to see what would happen on a merge
