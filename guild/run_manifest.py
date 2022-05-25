@@ -45,20 +45,15 @@ def resolved_source_args(resolved):
 
     `source_args` in this is one of:
 
-        - [project_relative_path]
-        - [project_relative_path, archive_path]
+        - [source_uri]
         - [source_uri, subpath]
 
-    In the case where a project-local file is resolved, a single
-    project relative path is used for source args.
+    Project local files are represented by
+    `file:<project_relative_path>`. Other URIs are listed as they
+    appear in the source configuration.
 
-    If the case where a project-local archive path is resolved, two
-    arguments are provided: a project relative path to the archive and
-    the relative archive path to the resolved source.
-
-    In the case where a non-project-local URI is resolved, two
-    argument are provided: the URI and the URI-relative subpath to the
-    resolved source.
+    When a source is an archive, the URI is followed by the
+    archive-relative subpath to the resolved source.
     """
     dest_arg = os.path.relpath(resolved.target_path, resolved.target_root)
     hash_arg = _resolved_source_hash_manifest_arg(resolved.target_path)
@@ -74,7 +69,7 @@ def _resolved_source_hash_manifest_arg(target_path):
 
 def _resolved_source_src_manifest_args(resolved):
     if _is_project_local_source(resolved):
-        return [_project_relpath(resolved)]
+        return ["file:" + _project_relpath(resolved)]
     else:
         return _resolved_source_uri_args(resolved)
 
@@ -95,7 +90,7 @@ def _resolved_source_uri_args(resolved_source):
 
 def _source_uri_file(source):
     if source.parsed_uri.scheme == "file":
-        return source.parsed_uri.path
+        return "file:" + source.parsed_uri.path
     return source.uri
 
 

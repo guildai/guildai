@@ -46,8 +46,8 @@ Manifests also contain resolved dependencies.
     s .guild/sourcecode/guild.yml 3b884a437e6606986b1cac978e14e77fd243cba8 guild.yml
     s .guild/sourcecode/subdir/eee da39a3ee5e6b4b0d3255bfef95601890afd80709 subdir/eee
     s .guild/sourcecode/subdir/fff da39a3ee5e6b4b0d3255bfef95601890afd80709 subdir/fff
-    d file1.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file1.txt
-    d file2.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file2.txt
-    d zip/file1.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 files.zip file1.txt
-    d zip/file2.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 files.zip file2.txt
+    d file1.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file:file1.txt
+    d file2.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file:file2.txt
+    d zip/file1.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file:files.zip file1.txt
+    d zip/file2.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file:files.zip file2.txt
     <BLANKLINE>

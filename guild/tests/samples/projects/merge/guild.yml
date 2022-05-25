@@ -7,6 +7,9 @@ default:
     - file: dep-1
     - file: dep-subdir/dep-2
       target-path: dep-subdir
+    - file: files.zip
+      unpack: yes
+      rename: xxx zzz
 
 overlap:
   sourcecode:
