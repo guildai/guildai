@@ -1,6 +1,5 @@
 # Guild AI
 
-(https://ci.appveyor.com/project/GarrettSmith/guildai)
 ![Main branch test status](https://github.com/guildai/guildai/actions/workflows/ci.yml/badge.svg)
 [![PyPI version](https://badge.fury.io/py/guildai.svg)](https://badge.fury.io/py/guildai)
 
