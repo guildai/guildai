@@ -1,7 +1,7 @@
 # Guild AI
 
-[![CircleCI](https://circleci.com/gh/guildai/guildai/tree/release.svg?style=shield)](https://circleci.com/gh/guildai/guildai/tree/release)
-[![Appveyor](https://ci.appveyor.com/api/projects/status/github/guildai/guildai?branch=release&svg=true)](https://ci.appveyor.com/project/GarrettSmith/guildai)
+(https://ci.appveyor.com/project/GarrettSmith/guildai)
+![Main branch test status](https://github.com/guildai/guildai/actions/workflows/ci.yml/badge.svg)
 [![PyPI version](https://badge.fury.io/py/guildai.svg)](https://badge.fury.io/py/guildai)
 
 This is the source repository for Guild AI.
