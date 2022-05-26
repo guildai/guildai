@@ -11,22 +11,22 @@ it exposes the user project to corruption.
 Create a new project that we can freely modify without changing test
 code.
 
-    >> project_dir = mkdtemp()
-    >> copytree(sample("projects", "merge"), project_dir)
+    >>> project_dir = mkdtemp()
+    >>> copytree(sample("projects", "merge"), project_dir)
 
 Remove ignored files if they exit. Use a helper function so we can run
 this as needed.
 
-    >> def clean_project():
+    >>> def clean_project():
     ...     rm(path(project_dir, "a"), force=True)
     ...     rm(path(project_dir, "b"), force=True)
     ...     rmdir(path(project_dir, "subdir"))
 
-    >> clean_project()
+    >>> clean_project()
 
 Project files:
 
-    >> find(project_dir)
+    >>> find(project_dir)
     .gitignore
     dep-1
     dep-subdir/dep-2
@@ -37,20 +37,20 @@ Project files:
 
 Create a new Guild home to isolate runs.
 
-    >> guild_home = mkdtemp()
+    >>> guild_home = mkdtemp()
 
 Helpers to run commands from the project dir and with `GUILD_HOME` set
 for Guild commands.
 
-    >> def project_run(cmd, **kw):
+    >>> def project_run(cmd, **kw):
     ...     run(cmd, cwd=project_dir, env={"GUILD_HOME": guild_home}, **kw)
 
-    >> def project_quiet(cmd, **kw):
+    >>> def project_quiet(cmd, **kw):
     ...     quiet(cmd, cwd=project_dir, env={"GUILD_HOME": guild_home}, **kw)
 
 Verify the project ops.
 
-    >> project_run("guild ops")
+    >>> project_run("guild ops")
     default
     overlap
     remote-dep
@@ -60,7 +60,7 @@ Verify the project ops.
 
 Generate a run from the sample project.
 
-    >> project_run("guild run default -y")
+    >>> project_run("guild run default -y")
     Resolving file:dep-1 dependency
     Resolving file:dep-subdir/dep-2 dependency
     Resolving file:files.zip dependency
@@ -68,11 +68,11 @@ Generate a run from the sample project.
     Generating files
     <exit 0>
 
-    >> project_run("guild runs")
+    >>> project_run("guild runs")
     [1:...]  default  ...  completed
     <exit 0>
 
-    >> project_run("guild runs info --manifest")
+    >>> project_run("guild runs info --manifest")
     id: ...
     operation: default
     from: .../guild.yml
@@ -90,7 +90,7 @@ Generate a run from the sample project.
         - .guild/sourcecode/overlap.py
     <exit 0>
 
-    >> project_run("guild ls -n")
+    >>> project_run("guild ls -n")
     a
     b
     dep-1
@@ -103,6 +103,39 @@ Generate a run from the sample project.
     <exit 0>
 
 ## Non-VCS behavior
+
+Guild only copies files that are unchanged. If a project is not under
+version control, Guild will not copy any files unless the '--replace'
+option is specified.
+
+As there are no differences between the run files (to be copied) and
+the project files, the merge command completes without error.
+
+    >>> project_run("guild merge -y")
+    Nothing to copy for run:
+      [...]  default  ...  completed
+    Try 'guild merge --preview' for a list of skipped files.
+    <exit 1>
+
+Show the skipped files using the '--preview' option.
+
+    >>> project_run("guild merge --preview")
+    Merge will copy files from the following run to the current directory:
+      [...]  default  ...  completed
+    Files:
+      nothing to copy
+    Skipped:
+      a                 non-project file
+      b                 non-project file
+      dep-1             unchanged
+      dep-subdir/dep-2  unchanged
+      guild.yml         unchanged
+      op.py             unchanged
+      overlap.py        unchanged
+      subdir/c          non-project file
+      yyy               non-project dependency
+      zzz               non-project dependency
+    <exit 0>
 
 If a project is not under version control, Guild maintains a strict
 no-replace policy for all merged/copied files.

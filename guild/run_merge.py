@@ -16,11 +16,15 @@ from collections import namedtuple
 
 import errno
 import fnmatch
+import logging
 import os
 import shutil
 
 from guild import file_util
 from guild import run_manifest
+
+
+log = logging.getLogger("guild")
 
 
 class MergeError(Exception):
@@ -40,6 +44,7 @@ RunMerge = namedtuple(
     "RunMerge",
     [
         "run",
+        "target_dir",
         "copy_all",
         "skip_sourcecode",
         "skip_deps",
@@ -86,7 +91,8 @@ Represents a merge file that is skipped rather than copied.
   d   - user opted to skip dependencies
   npd - file is a non-project dependencies (either from a non-project
         location or from a project-local unpacked archive)
-  u   - file from manifest is unknown (not a source code file or
+  u   - file is unchanged
+  ?   - file from manifest is unknown (not a source code file or
         dependency source)
 """
 
@@ -104,6 +110,7 @@ _ManifestEntry = namedtuple(
 
 def init_run_merge(
     run,
+    target_dir,
     copy_all=False,
     skip_sourcecode=False,
     skip_deps=False,
@@ -113,6 +120,7 @@ def init_run_merge(
     manifest_index = _init_manifest_index(run)
     merge = RunMerge(
         run,
+        target_dir,
         copy_all=copy_all,
         skip_sourcecode=skip_sourcecode,
         skip_deps=skip_deps,
@@ -120,33 +128,40 @@ def init_run_merge(
         to_copy=[],
         to_skip=[],
     )
+    _apply_run_files_to_merge(run, target_dir, manifest_index, merge)
     _prune_overlapping_targets(merge, prefer_nonsource)
-    _apply_run_files_to_merge(run, manifest_index, merge)
     return merge
 
 
 def _init_manifest_index(run):
-    """Returns a lookup table keyed by run path containing _ManifestEntry items."""
+    """Returns a dict keyed by run path containing _ManifestEntry items."""
     try:
-        m = run_manifest.manfiest_for_run(run)
+        manifest = run_manifest.manfiest_for_run(run)
     except FileNotFoundError:
         raise MergeError(f"run manifest does not exist for run {run.id}")
     else:
-        return {args[1]: _manifest_index_entry(args, run) for args in m}
+        index = {}
+        for manifest_entry in manifest:
+            index_entry = _manifest_index_entry(manifest_entry, run)
+            if not index_entry:
+                continue
+            index[index_entry.run_path] = index_entry
+        return index
 
 
-def _manifest_index_entry(args, run):
-    if len(args) not in (4, 5):
-        raise MergeError(f"unexpected manfiest entry for run {run.id}: {args}")
-    file_type = args[0]
-    run_path = args[1]
-    file_hash = args[2]
-    source = args[3]
-    source_subpath = args[4] if len(args) == 5 else None
+def _manifest_index_entry(entry, run):
+    if len(entry) not in (4, 5):
+        log.warning("unexpected manfiest entry for run %s: %s", run.id, entry)
+        return None
+    file_type = entry[0]
+    run_path = entry[1]
+    file_hash = entry[2]
+    source = entry[3]
+    source_subpath = entry[4] if len(entry) == 5 else None
     return _ManifestEntry(file_type, run_path, file_hash, source, source_subpath)
 
 
-def _apply_run_files_to_merge(run, manifest_index, merge):
+def _apply_run_files_to_merge(run, target_dir, manifest_index, merge):
     for path in _iter_run_files(run):
         _apply_run_file_to_merge(path, manifest_index, merge)
 
@@ -170,23 +185,25 @@ def _apply_run_file_to_merge(path, manifest_index, merge):
 
 def _apply_manifest_entry_to_merge(entry, merge):
     if entry.file_type == "s":
-        _apply_sourcecode_entry_to_merge(entry, merge)
+        _apply_sourcecode_entry(entry, merge)
     elif entry.file_type == "d":
-        _apply_dep_entry_to_merge(entry, merge)
+        _apply_dep_entry(entry, merge)
     else:
         log.warning(
-            "unknown manifest file type '%s' for run file %s",
+            "unknown manifest file type '%s' for run file '%s'",
             entry.file_type,
             entry.run_path,
         )
         _skip_unknown(entry.run_path, merge)
 
 
-def _apply_sourcecode_entry_to_merge(entry, merge):
+def _apply_sourcecode_entry(entry, merge):
     if merge.skip_sourcecode:
         _skip_sourcecode_entry(entry, merge)
     elif _is_excluded_path(entry.source, merge):
         _skip_excluded(entry.run_path, entry.source, merge)
+    elif _is_unchanged(entry.run_path, entry.source, merge):
+        _skip_unchanged(entry.run_path, entry.source, merge)
     else:
         _copy_sourcecode_entry(entry, merge)
 
@@ -205,11 +222,28 @@ def _skip_excluded(run_path, target_path, merge):
     merge.to_skip.append(SkipFile("x", run_path, target_path))
 
 
+def _is_unchanged(run_path, target_path, merge):
+    """Returns True if a run path is unchanged in the target.
+
+    Returns False if the merge is not configured with a target dir
+    (i.e. `merge.target_dir` is None.
+    """
+    dest = os.path.join(merge.target_dir, target_path)
+    if not os.path.isfile(dest):
+        return False
+    src = os.path.join(merge.run.dir, run_path)
+    return not file_util.files_differ(src, dest)
+
+
+def _skip_unchanged(run_path, target_path, merge):
+    merge.to_skip.append(SkipFile("u", run_path, target_path))
+
+
 def _copy_sourcecode_entry(entry, merge):
     merge.to_copy.append(CopyFile("s", entry.run_path, entry.source))
 
 
-def _apply_dep_entry_to_merge(entry, merge):
+def _apply_dep_entry(entry, merge):
     if merge.skip_deps:
         _skip_dep_entry(entry, merge)
     else:
@@ -217,6 +251,8 @@ def _apply_dep_entry_to_merge(entry, merge):
         if target_path:
             if _is_excluded_path(target_path, merge):
                 _skip_excluded(entry.run_path, target_path, merge)
+            elif _is_unchanged(entry.run_path, target_path, merge):
+                _skip_unchanged(entry.run_path, target_path, merge)
             else:
                 _copy_dep_entry(entry, target_path, merge)
         else:
@@ -248,7 +284,7 @@ def _skip_non_project_dep(path, merge):
 
 
 def _skip_unknown(run_path, merge):
-    merge.to_skip.append(SkipFile("u", run_path, None))
+    merge.to_skip.append(SkipFile("?", run_path, None))
 
 
 def _apply_unknown_file_to_merge(path, merge):
@@ -258,6 +294,8 @@ def _apply_unknown_file_to_merge(path, merge):
         _skip_other_path(path, merge)
     elif _is_excluded_path(path, merge):
         _skip_excluded(path, path, merge)
+    elif _is_unchanged(path, path, merge):
+        _skip_unchanged(path, path, merge)
     else:
         _copy_other_path(path, merge)
 
@@ -274,18 +312,18 @@ def _copy_other_path(path, merge):
     merge.to_copy.append(CopyFile("o", path, path))
 
 
-def apply_run_merge(merge, target_dir, pre_copy=None):
+def apply_run_merge(merge, pre_copy=None):
     for cf in _sorted_copy_files(merge.to_copy):
-        _apply_copy_file_for_merge(cf, merge, target_dir, pre_copy)
+        _apply_copy_file_for_merge(cf, merge, pre_copy)
 
 
 def _sorted_copy_files(files):
     return sorted(files, key=lambda cf: cf.target_path)
 
 
-def _apply_copy_file_for_merge(cf, merge, target_dir, pre_copy):
+def _apply_copy_file_for_merge(cf, merge, pre_copy):
     src = os.path.join(merge.run.dir, cf.run_path)
-    dest = os.path.join(target_dir, cf.target_path)
+    dest = os.path.join(merge.target_dir, cf.target_path)
     _apply_pre_copy(pre_copy, merge, cf, src, dest)
     _copy_file(src, dest)
 

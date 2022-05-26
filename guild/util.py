@@ -324,14 +324,7 @@ def write_cached_sha(sha, for_file):
 def file_md5(path):
     import hashlib
 
-    hash = hashlib.md5()
-    with open(path, "rb") as f:
-        while True:
-            data = f.read(102400)
-            if not data:
-                break
-            hash.update(data)
-    return hash.hexdigest()
+    return _gen_file_hash(path, hashlib.md5)
 
 
 def parse_url(url):

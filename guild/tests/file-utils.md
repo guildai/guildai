@@ -370,3 +370,54 @@ Valid and invalid rule types:
     Traceback (most recent call last):
     ValueError: invalid value for type 'invalid': expected one of text,
     binary, dir
+
+## Test for file difference
+
+Use `util.files_differ()` to check whether or not two files differ.
+
+    >>> from guild.file_util import files_differ
+
+Write some files to test:
+
+    >>> tmp = mkdtemp()
+
+    >>> with open(path(tmp, "a"), "wb") as f:
+    ...     _ = f.write(b"abc123")
+
+    >>> with open(path(tmp, "b"), "wb") as f:
+    ...     _ = f.write(b"abc1234")
+
+    >>> with open(path(tmp, "c"), "wb") as f:
+    ...     _ = f.write(b"abc321")
+
+    >>> with open(path(tmp, "d"), "wb") as f:
+    ...     _ = f.write(b"abc123")
+
+Compare the files:
+
+    >>> files_differ(path(tmp, "a"), path(tmp, "a"))
+    False
+
+    >>> files_differ(path(tmp, "a"), path(tmp, "b"))
+    True
+
+    >>> files_differ(path(tmp, "a"), path(tmp, "c"))
+    True
+
+    >>> files_differ(path(tmp, "a"), path(tmp, "d"))
+    False
+
+Compare links:
+
+    >>> symlink("a", path(tmp, "link-to-a"))
+
+    >>> symlink("link-to-a", path(tmp, "link-to-link-to-a"))
+
+    >>> files_differ(path(tmp, "a"), path(tmp, "link-to-a"))
+    False
+
+    >>> files_differ(path(tmp, "a"), path(tmp, "link-to-link-to-a"))
+    False
+
+    >>> files_differ(path(tmp, "link-to-a"), path(tmp, "link-to-link-to-a"))
+    False

@@ -422,3 +422,19 @@ def find(root, followlinks=False, includedirs=False, unsorted=False):
 
 def expand_path(path):
     return os.path.expanduser(os.path.expandvars(path))
+
+
+def files_differ(path1, path2):
+    if os.stat(path1).st_size != os.stat(path2).st_size:
+        return True
+    f1 = open(path1, "rb")
+    f2 = open(path2, "rb")
+    with f1, f2:
+        while True:
+            buf1 = f1.read(1024)
+            buf2 = f2.read(1024)
+            if buf1 != buf2:
+                return True
+            if not buf1 or not buf2:
+                break
+    return False

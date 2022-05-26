@@ -17,6 +17,7 @@ import doctest
 import fnmatch
 import glob
 import errno
+import filecmp
 import json
 import os
 import platform
@@ -561,6 +562,7 @@ def test_globals():
         "cd": _chdir,
         "cwd": os.getcwd,
         "dir": dir,
+        "dircmp": filecmp.dircmp,
         "dirname": os.path.dirname,
         "ensure_dir": util.ensure_dir,
         "exists": os.path.exists,
