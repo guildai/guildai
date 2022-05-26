@@ -16,6 +16,7 @@ This is the list of public flag attrs that are skipped:
     ...   "opdef",
     ...   "extra",
     ...   "description",
+    ...   "nb_replace",
     ... ]
 
 Here's a default flag def:

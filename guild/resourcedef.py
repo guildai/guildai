@@ -23,8 +23,8 @@ import copy
 import logging
 import operator
 import pprint
-from typing import Dict, List, Optional, Any
-from urllib.parse import ParseResult
+from typing import Dict, List, Optional, Any, Union
+from urllib.parse import ParseResult, ParseResultBytes
 
 import six
 
@@ -145,10 +145,14 @@ def _coerce_resdef(data) -> Dict[str, Any]:
 
 class ResourceSource(guildfile_schema.ResourceSourceSchema):
     resdef: Optional[ResourceDef]
-    _parsed_uri: Optional[ParseResult] = None
+    _parsed_uri: Optional[Union[ParseResult, ParseResultBytes]] = None
+    rename: Optional[List[RenameSpec]]
 
     class Config:
         underscore_attrs_are_private = True
+        # this is different from the schema base class, which errors on extra keys. Here we
+        #     want the warning to show up during parsing, but not to error.
+        extra = 'ignore'
 
     def __init__(
         self,
@@ -202,9 +206,11 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
                 self.resdef._uncoerce_attr_key(key),
                 self.name,
             )
+        if hasattr(self, "path"):
+            del self.path
 
     @property
-    def parsed_uri(self) -> ParseResult:
+    def parsed_uri(self) -> Union[ParseResult, ParseResultBytes]:
         if self._parsed_uri is None:
             self._parsed_uri = util.parse_url(self.uri)
             # type hint that it is not None
