@@ -49,7 +49,11 @@ class FileSelectDefSchema(schema.BaseModel):
         extra = 'forbid'
 
 
-FlagValueTypes = Union[Literal["null"], str, int, float, Decimal, optional_bool_type]
+# use these in flagdef schema. Otherwise use FlagArgTypes below, which
+# include FlagDefSchema in them.
+FlagValueTypes = Union[
+    Literal["null"], Literal[None], str, int, float, Decimal, optional_bool_type
+]
 
 
 class FlagChoiceSchema(schema.BaseModel):
@@ -85,6 +89,14 @@ class FlagDefSchema(schema.BaseModel):
         underscore_attrs_are_private = True
 
 
+FlagArgTypes = Union[
+    Literal[None],
+    FlagValueTypes,
+    FlagDefSchema,
+    List[Union[Literal[None], FlagValueTypes, FlagDefSchema]],
+]
+
+
 class PublishDefSchema(schema.BaseModel):
     files: Optional['FileSelectDefSchema']
     template: Optional[str]
@@ -98,7 +110,7 @@ class OptimizerDefSchema(schema.BaseModel):
     name: Optional[str]
     opspec: Optional[str] = schema.Field("", alias="algorithm")
     default: optional_bool_type = False
-    flags: Optional[Dict[str, Union[Literal[None], FlagValueTypes, FlagDefSchema]]]
+    flags: Optional[Dict[str, FlagArgTypes]]
 
     class Config:
         arbitrary_types_allowed = True
@@ -142,7 +154,7 @@ class OpDefSchema(schema.BaseModel):
     env: Dict[str, str] = {}
     env_secrets: Optional[str]
     exec_: Optional[str] = schema.Field("", alias="exec")
-    flags: Optional[Dict[str, Union[Literal[None], FlagValueTypes, FlagDefSchema]]]
+    flags: Optional[Dict[str, FlagArgTypes]]
     flag_encoder: Optional[str]
     flags_dest: Optional[str]
     flags_import: Optional[Union[optional_bool_type, Literal["all"], List[str]]]
