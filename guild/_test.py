@@ -556,13 +556,13 @@ def test_globals():
         "cat": cat,
         "cat_json": cat_json,
         "cli": cli,
+        "compare_dirs": _compare_dirs,
         "compare_paths": util.compare_paths,
         "copyfile": copyfile,
         "copytree": util.copytree,
         "cd": _chdir,
         "cwd": os.getcwd,
         "dir": dir,
-        "dircmp": filecmp.dircmp,
         "dirname": os.path.dirname,
         "ensure_dir": util.ensure_dir,
         "exists": os.path.exists,
@@ -734,6 +734,34 @@ class StderrCapture:
             else:
                 sys.stdout.write(part)
         sys.stdout.flush()
+
+
+class StdoutCapture:
+
+    closed = False
+    _stdout = None
+    _captured = []
+
+    def __enter__(self):
+        self._stdout = sys.stdout
+        self._captured = []
+        self.closed = False
+        sys.stdout = self
+        return self
+
+    def __exit__(self, *exc):
+        assert self._stdout is not None
+        sys.stdout = self._stdout
+        self.closed = True
+
+    def write(self, b):
+        self._captured.append(b)
+
+    def flush(self):
+        pass
+
+    def get_value(self):
+        return "".join(self._captured)
 
 
 def PrintStderr():
@@ -1317,3 +1345,20 @@ def _set_guild_home(path):
     if os.getenv("DEBUG") == "1":
         sys.stderr.write("Setting Guild home: %s\n" % path)
     configlib.set_guild_home(path)
+
+
+def _compare_dirs(d1, d2):
+    if not isinstance(d1, tuple) and len(d1) != 2:
+        raise ValueError("d1 must be a tuple of (dir, label)")
+    if not isinstance(d2, tuple) and len(d2) != 2:
+        raise ValueError("d2 must be a tuple of (dir, label)")
+    d1_path, d1_label = d1
+    d2_path, d2_label = d2
+    cmp_dir = mkdtemp()
+    d1_link = os.path.join(cmp_dir, d1_label)
+    os.symlink(d1_path, d1_link)
+    d2_link = os.path.join(cmp_dir, d2_label)
+    os.symlink(d2_path, d2_link)
+    with StdoutCapture() as out:
+        filecmp.dircmp(d1_link, d2_link).report_full_closure()
+    print(out.get_value().replace(cmp_dir, ""), end="")

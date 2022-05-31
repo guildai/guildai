@@ -29,7 +29,7 @@ MODEL_RES_P = re.compile(r"(%s)$" % RES_TERM)
 GUILDFILE_RES_P = re.compile(r"(%s):(%s)$" % (RES_TERM, RES_TERM))
 PACKAGE_RES_P = re.compile(r"(%s)/(%s)$" % (RES_TERM, RES_TERM))
 
-DEFAULT_TARGET_TYPE = "link"
+DEFAULT_TARGET_TYPE = "copy"
 
 ###################################################################
 # Exception classes

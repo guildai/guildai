@@ -39,7 +39,7 @@ def main(args, ctx):
     _check_replace(merge, target_dir, args)
     _check_nothing_to_copy(merge, args, ctx)
     _maybe_preview_merge(merge, target_dir, args)
-    run_merge.apply_run_merge(merge, target_dir, _on_merge_copy)
+    run_merge.apply_run_merge(merge, _on_merge_copy)
 
 
 def _check_args(args, ctx):
@@ -180,55 +180,85 @@ def _try_vcs_status_check_replace(merge, target_dir):
 def _check_vcs_status(vcs_status, merge, target_dir):
     """Checks for replacement status in a VCS managed dir.
 
+    `vcs_status` is the result of `vcs_util.status()` for the target
+    directory.
+
     The rules applied are as follows:
 
     - If there are any non-source to be replaced, treats all replaced
       files as a non-source replace and uses the same message as if
       the project was not VCS managed.
 
-    - If all of the files to be replaced are uncommitted source code
-      files, shows a message asking user to commit the changes or to
+    - If all of the files to be replaced are unstaged source code
+      files, shows a message asking user to stage the changes or to
       override with the '--replace' option.
 
-    - If all of the files to be replaced are committed source code
+    - If all of the files to be replaced are staged source code
       files, does nothing. This allows the merge to continue under the
       assumption that any replaced files can be recovered from the
       VCS.
 
     """
     all_source = set(vcs_util.ls_files(target_dir))
-    uncommitted = _uncommitted_source(vcs_status, all_source)
-    uncommitted_replacing = _uncommitted_replacing(uncommitted, merge)
+    unstaged = _unstaged_source(vcs_status, all_source)
+    unstaged_replacing = _unstaged_replacing(unstaged, merge)
     all_replacing = _merge_replacing_files(merge, target_dir)
     nonsource_replacing = all_replacing - all_source
     if nonsource_replacing:
         _replacing_error(all_replacing, target_dir)
-    elif uncommitted_replacing:
-        _replace_uncommitted_error(uncommitted_replacing, target_dir)
+    elif unstaged_replacing:
+        _replace_unstaged_error(unstaged_replacing, target_dir)
 
 
-def _uncommitted_source(vcs_status, vcs_files):
-    return [path for path in vcs_files if _in_vcs_status(path, vcs_status)]
+def _unstaged_source(vcs_status, vcs_files):
+    return [path for path in vcs_files if _is_unstaged(path, vcs_status)]
 
 
-def _in_vcs_status(path, vcs_status):
-    return any(path.startswith(f.path) for f in vcs_status)
+def _is_unstaged(vcs_path, vcs_status):
+    """Returns True if `vcs_path` (a string) is unstaged in `vcs_status`.
+
+    `vcs_status` is the result of `vcs_util.status()` for the parent
+    directory of `vcs_path`.
+
+    `vcs_path` must be managed by the VCS associated with
+    `vcs_status`.
+
+    If `vcs_path` is not in `vcs_status`, returns False.
+    """
+    try:
+        path_vcs_status = next(
+            filter(lambda fs: vcs_path.startswith(fs.path), vcs_status)
+        )
+    except StopIteration:
+        return False
+    else:
+        return _is_vcs_file_status_unstaged(path_vcs_status)
 
 
-def _uncommitted_replacing(uncommitted, merge):
-    return {mf.target_path for mf in merge.to_copy if mf.target_path in uncommitted}
+def _is_vcs_file_status_unstaged(file_status):
+    """Returns True if file status is unstage.
+
+    Staged status is determined by the second position of
+    `file_status.stats` code. See `guild.vcs_util.FileStatus` for
+    details.
+    """
+    return file_status.status[1] != "_"
 
 
-def _replace_uncommitted_error(target_paths, target_dir):
+def _unstaged_replacing(unstaged, merge):
+    return {mf.target_path for mf in merge.to_copy if mf.target_path in unstaged}
+
+
+def _replace_unstaged_error(target_paths, target_dir):
     target_dir_desc = cmd_impl_support.cwd_desc(target_dir)
     cli.out(
-        f"guild: files in {target_dir_desc} have uncommitted changes:",
+        f"guild: files in {target_dir_desc} have unstaged changes:",
         err=True,
     )
     data = [{"path": path} for path in sorted(target_paths)]
     cli.table(data, ["path"], indent=2, err=True)
     cli.out(
-        "Commit or stash these changes or use --replace to skip this check.",
+        "Stage or stash these changes or use --replace to skip this check.",
         err=True,
     )
     raise SystemExit()
@@ -237,12 +267,12 @@ def _replace_uncommitted_error(target_paths, target_dir):
 def _check_nothing_to_copy(merge, args, ctx):
     if merge.to_copy or args.preview:
         return
-    cli.out("Nothing to copy for run:", err=True)
+    cli.out("Nothing to copy for the following run:", err=True)
     _preview_merge_run(merge)
     cli.out(
         f"Try '{ctx.command_path} --preview' for a list of skipped files.", err=True
     )
-    raise SystemExit()
+    raise SystemExit(0)
 
 
 def _maybe_preview_merge(merge, target_dir, args):
@@ -378,4 +408,4 @@ def _preview_skipped_files_summary(merge):
 
 
 def _on_merge_copy(_merge, copy_file, _src, _dest):
-    log.info("Copying %s", merge_file.target_path)
+    log.info("Copying %s", copy_file.target_path)

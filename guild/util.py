@@ -396,14 +396,16 @@ def rmtempdir(path):
             log.error("error removing %s: %s", path, e)
 
 
-def safe_rmtree(path):
+def safe_rmtree(path, force=False):
     """Removes path if it's not top level or user dir."""
     assert not _top_level_dir(path), path
     assert path != os.path.expanduser("~"), path
     if os.path.isdir(path):
         shutil.rmtree(path)
-    else:
+    elif os.path.isfile(path):
         os.remove(path)
+    elif not force:
+        raise ValueError(f"{path} does not exist")
 
 
 def ensure_safe_rmtree(path):

@@ -474,29 +474,17 @@ directory.
 Compare the run directory with the target directory. Use links to dirs
 to clarify report output.
 
-Helper to compare run and target dirs.
-
-    >>> def compare_dirs(d1, d2):
-    ...     d1_path, d1_label = d1
-    ...     d2_path, d2_label = d2
-    ...     cmp_dir = mkdtemp()
-    ...     d1_link = path(cmp_dir, d1_label)
-    ...     symlink(d1_path, d1_link)
-    ...     d2_link = path(cmp_dir, d2_label)
-    ...     symlink(d2_path, d2_link)
-    ...     dircmp(d1_link, d2_link).report_full_closure()
-
     >>> compare_dirs((run.dir, "run-dir"), (target_dir, "target-dir"))
-    diff .../run-dir .../target-dir
-    Only in .../run-dir : ['.guild', 'yyy', 'zzz']
-    Only in .../target-dir : ['guild.yml', 'op.py', 'overlap.py']
+    diff /run-dir /target-dir
+    Only in /run-dir : ['.guild', 'yyy', 'zzz']
+    Only in /target-dir : ['guild.yml', 'op.py', 'overlap.py']
     Identical files : ['a', 'b', 'dep-1']
     Common subdirectories : ['dep-subdir', 'subdir']
     <BLANKLINE>
-    diff .../run-dir/dep-subdir .../target-dir/dep-subdir
+    diff /run-dir/dep-subdir /target-dir/dep-subdir
     Identical files : ['dep-2']
     <BLANKLINE>
-    diff .../run-dir/subdir .../target-dir/subdir
+    diff /run-dir/subdir /target-dir/subdir
     Identical files : ['c']
 
 ## Applying a merge
@@ -521,12 +509,12 @@ dependencies by default.
 Compare the original project directory with the target directory.
 
     >>> compare_dirs((sample, "sample"), (target_dir, "target-dir"))
-    diff .../sample .../target-dir
-    Only in .../sample : ['.gitignore', 'a', 'b', 'files.zip', 'subdir']
+    diff /sample /target-dir
+    Only in /sample : ['.gitignore', 'a', 'b', 'files.zip', 'subdir']
     Identical files : ['dep-1', 'guild.yml', 'op.py', 'overlap.py']
     Common subdirectories : ['dep-subdir']
     <BLANKLINE>
-    diff .../sample/dep-subdir .../target-dir/dep-subdir
+    diff /sample/dep-subdir /target-dir/dep-subdir
     Identical files : ['dep-2']
 
 We can copy all files, included run-generated files, by specifying
@@ -545,15 +533,15 @@ We can copy all files, included run-generated files, by specifying
     subdir/c
 
     >>> compare_dirs((sample, "sample"), (target_dir, "target-dir"))
-    diff .../sample .../target-dir
-    Only in .../sample : ['.gitignore', 'files.zip']
+    diff /sample /target-dir
+    Only in /sample : ['.gitignore', 'files.zip']
     Identical files : ['a', 'b', 'dep-1', 'guild.yml', 'op.py', 'overlap.py']
     Common subdirectories : ['dep-subdir', 'subdir']
     <BLANKLINE>
-    diff .../sample/dep-subdir .../target-dir/dep-subdir
+    diff /sample/dep-subdir /target-dir/dep-subdir
     Identical files : ['dep-2']
     <BLANKLINE>
-    diff .../sample/subdir .../target-dir/subdir
+    diff /sample/subdir /target-dir/subdir
     Identical files : ['c']
 
 Copy only source code files by skipping dependencies.
@@ -566,8 +554,8 @@ Copy only source code files by skipping dependencies.
     overlap.py
 
     >>> compare_dirs((sample, "sample"), (target_dir, "target-dir"))
-    diff .../sample .../target-dir
-    Only in .../sample : ['.gitignore', 'a', 'b', 'dep-1', 'dep-subdir', 'files.zip', 'subdir']
+    diff /sample /target-dir
+    Only in /sample : ['.gitignore', 'a', 'b', 'dep-1', 'dep-subdir', 'files.zip', 'subdir']
     Identical files : ['guild.yml', 'op.py', 'overlap.py']
 
 <a id="prune">
