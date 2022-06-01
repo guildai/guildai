@@ -32,14 +32,14 @@ Helper for running commands for the project.
         "exitStatus": 0,
         "files": [
           {
-            "icon": "file-send",
-            "iconTooltip": "Link",
+            "icon": "file-document",
+            "iconTooltip": "Text file",
             "mtime": ...,
             "operation": null,
             "path": "hello.txt",
             "run": null,
             "size": 20,
-            "type": "Link",
+            "type": "Text file",
             "viewer": "text"
           },
           {

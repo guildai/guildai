@@ -25,6 +25,7 @@ from . import runs_support
 @click.option("-c", "--comments", help="Show run comments.", is_flag=True)
 @click.option("-e", "--env", help="Show run environment.", is_flag=True)
 @click.option("-d", "--deps", help="Show resolved dependencies.", is_flag=True)
+@click.option("-m", "--manifest", help="Show manifest", is_flag=True)
 @click.option(
     "-s",
     "--all-scalars",

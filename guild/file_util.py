@@ -408,7 +408,7 @@ def _file_size(path):
         return 0
 
 
-def find(root, followlinks=False, includedirs=False):
+def find(root, followlinks=False, includedirs=False, unsorted=False):
     all = []
     relpath = lambda path, name: (os.path.relpath(os.path.join(path, name), root))
     for path, dirs, files in os.walk(root, followlinks=followlinks):
@@ -417,8 +417,24 @@ def find(root, followlinks=False, includedirs=False):
                 all.append(relpath(path, name))
         for name in files:
             all.append(relpath(path, name))
-    return sorted(all)
+    return all if unsorted else sorted(all)
 
 
 def expand_path(path):
     return os.path.expanduser(os.path.expandvars(path))
+
+
+def files_differ(path1, path2):
+    if os.stat(path1).st_size != os.stat(path2).st_size:
+        return True
+    f1 = open(path1, "rb")
+    f2 = open(path2, "rb")
+    with f1, f2:
+        while True:
+            buf1 = f1.read(1024)
+            buf2 = f2.read(1024)
+            if buf1 != buf2:
+                return True
+            if not buf1 or not buf2:
+                break
+    return False

@@ -17,6 +17,7 @@ import doctest
 import fnmatch
 import glob
 import errno
+import filecmp
 import json
 import os
 import platform
@@ -555,6 +556,7 @@ def test_globals():
         "cat": cat,
         "cat_json": cat_json,
         "cli": cli,
+        "compare_dirs": _compare_dirs,
         "compare_paths": util.compare_paths,
         "copyfile": copyfile,
         "copytree": util.copytree,
@@ -583,6 +585,7 @@ def test_globals():
         "not_used": object(),  # an uncooperative value
         "os": os,
         "path": os.path.join,
+        "printl": _printl,
         "pprint": pprint.pprint,
         "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
         "re": re,
@@ -731,6 +734,34 @@ class StderrCapture:
             else:
                 sys.stdout.write(part)
         sys.stdout.flush()
+
+
+class StdoutCapture:
+
+    closed = False
+    _stdout = None
+    _captured = []
+
+    def __enter__(self):
+        self._stdout = sys.stdout
+        self._captured = []
+        self.closed = False
+        sys.stdout = self
+        return self
+
+    def __exit__(self, *exc):
+        assert self._stdout is not None
+        sys.stdout = self._stdout
+        self.closed = True
+
+    def write(self, b):
+        self._captured.append(b)
+
+    def flush(self):
+        pass
+
+    def get_value(self):
+        return "".join(self._captured)
 
 
 def PrintStderr():
@@ -1093,6 +1124,11 @@ def _normlf(s):
     return s.replace("\r", "")
 
 
+def _printl(l):
+    for x in l:
+        print(x)
+
+
 def _rm(path, force=False):
     if force and not os.path.exists(path):
         return
@@ -1119,7 +1155,7 @@ def _run(
     if env:
         proc_env.update(env)
     proc_env["SYNC_RUN_OUTPUT"] = "1"
-    proc_env["GUILD_HOME"] = guild_home or configlib.guild_home()
+    _apply_guild_home_to_env(guild_home, proc_env)
     p = _popen(cmd, proc_env, cwd)
     with _kill_after(p, timeout):
         out, err = p.communicate()
@@ -1135,6 +1171,13 @@ def _run(
             return out, exit_code
         print(out)
         print("<exit %i>" % exit_code)
+
+
+def _apply_guild_home_to_env(guild_home, env):
+    if guild_home:
+        env["GUILD_HOME"] = guild_home
+    elif "GUILD_HOME" not in env:
+        env["GUILD_HOME"] = configlib.guild_home()
 
 
 def _run_shell_cmd(cmd):
@@ -1302,3 +1345,20 @@ def _set_guild_home(path):
     if os.getenv("DEBUG") == "1":
         sys.stderr.write("Setting Guild home: %s\n" % path)
     configlib.set_guild_home(path)
+
+
+def _compare_dirs(d1, d2):
+    if not isinstance(d1, tuple) and len(d1) != 2:
+        raise ValueError("d1 must be a tuple of (dir, label)")
+    if not isinstance(d2, tuple) and len(d2) != 2:
+        raise ValueError("d2 must be a tuple of (dir, label)")
+    d1_path, d1_label = d1
+    d2_path, d2_label = d2
+    cmp_dir = mkdtemp()
+    d1_link = os.path.join(cmp_dir, d1_label)
+    os.symlink(d1_path, d1_link)
+    d2_link = os.path.join(cmp_dir, d2_label)
+    os.symlink(d2_path, d2_link)
+    with StdoutCapture() as out:
+        filecmp.dircmp(d1_link, d2_link).report_full_closure()
+    print(out.get_value().replace(cmp_dir, ""), end="")

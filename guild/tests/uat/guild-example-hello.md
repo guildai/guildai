@@ -32,6 +32,37 @@ List operations:
     Saving message to msg.out
     <exit 0>
 
+    >>> run("guild runs info --manifest")
+    id: ...
+    operation: hello-file
+    from: .../examples/hello/guild.yml
+    status: completed
+    started: ...
+    stopped: ...
+    marked: no
+    label: file=hello.txt
+    sourcecode_digest: ...
+    vcs_commit: ...
+    run_dir: ...
+    command: ... -um guild.op_main cat -- --file hello.txt
+    exit_status: 0
+    pid:
+    tags:
+    flags:
+      file: hello.txt
+    scalars:
+    manifest:
+      dependencies:
+        - hello.txt
+      sourcecode:
+        - .guild/sourcecode/README.md
+        - .guild/sourcecode/cat.py
+        - .guild/sourcecode/guild.yml
+        - .guild/sourcecode/hello.txt
+        - .guild/sourcecode/repeat.py
+        - .guild/sourcecode/say.py
+    <exit 0>
+
     >>> tmp = mkdtemp()
     >>> tmp_file = path(tmp, "hello")
     >>> write(tmp_file, "A temp file!")

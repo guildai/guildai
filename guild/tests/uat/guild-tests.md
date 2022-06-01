@@ -82,6 +82,7 @@ tests).
       manifest:                    ok
       marked-runs:                 ok
       memory-plugin:               ok
+      merge-impl:                  ok
       model-proxies:               ok
       models:                      ok
       multi-run-deps:              ok
@@ -116,6 +117,7 @@ tests).
       run-impl:                    ok
       run-labels:                  ok
       run-manifest:                ok
+      run-merge:                   ok
       run-ops:                     ok
       run-output:                  ok
       run-scripts:                 ok

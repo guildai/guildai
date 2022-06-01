@@ -16,6 +16,8 @@ import shlex
 
 
 class Manifest:
+    _f = None
+
     def __init__(self, path, mode):
         self.path = path
         self._f = open(path, mode + "b")
@@ -45,6 +47,8 @@ class Manifest:
             yield _decode_line(line)
 
     def __del__(self):
+        if not self._f:
+            return
         try:
             self._f.close()
         except ValueError:

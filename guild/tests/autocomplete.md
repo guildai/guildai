@@ -58,6 +58,7 @@ Providing a prefix limits the tests shown.
     run-impl
     run-labels
     run-manifest
+    run-merge
     run-ops
     run-output
     run-scripts
@@ -588,11 +589,7 @@ Target dir:
 Guild version or path:
 
     >>> ac_init(init._ac_guild_version_or_path)
-    0.1.0
-    ...
-    0.7.4
-    ...
-    !!file:*.@(whl)
+    ???!!file:*.@(whl)
 
 Guild home:
 

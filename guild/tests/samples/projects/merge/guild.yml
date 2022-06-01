@@ -1,0 +1,29 @@
+default:
+  sourcecode:
+    - guild.yml
+    - '*.py'
+  main: op
+  requires:
+    - file: dep-1
+    - file: dep-subdir/dep-2
+      target-path: dep-subdir
+    - file: files.zip
+      unpack: yes
+      rename: xxx zzz
+
+overlap:
+  sourcecode:
+    - guild.yml
+    - '*.py'
+    - dep-1
+    - dep-subdir/dep-2
+  requires:
+    - file: dep-1
+      target-type: copy
+    - file: dep-subdir/dep-2
+      target-path: dep-subdir
+
+remote-dep:
+  main: guild.pass
+  requires:
+    - url: https://guild-pub.s3.amazonaws.com/uat/file.txt

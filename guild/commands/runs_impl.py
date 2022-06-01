@@ -533,7 +533,7 @@ def _list_runs_(runs, args):
         "label",
     ]
     detail = RUN_DETAIL if args.verbose else None
-    cli.table(formatted, cols=cols, detail=detail, max_width_adj=STYLE_TABLE_WIDTH_ADJ)
+    cli.table(formatted, cols, detail=detail, max_width_adj=STYLE_TABLE_WIDTH_ADJ)
 
 
 def _limit_runs(runs, args):
@@ -647,8 +647,8 @@ def runs_op(
         _no_selected_runs_exit(no_runs_help)
     formatted = None  # expensive, lazily init as needed
     if not args.yes:
-        formatted = formatted = format_runs(selected)
         cli.out(preview_msg, err=True)
+        formatted = format_runs(selected)
         cols = [
             "short_index",
             "op_desc",
@@ -656,13 +656,18 @@ def runs_op(
             "status_with_remote",
             "label",
         ]
-        cli.table(formatted, cols=cols, indent=2, err=True)
-    fmt_confirm_prompt = confirm_prompt.format(count=len(selected))
-    if not args.yes and not cli.confirm(fmt_confirm_prompt, confirm_default):
-        raise SystemExit(exit_code.ABORTED)
+        cli.table(formatted, cols, indent=2, err=True)
+        fmt_confirm_prompt = confirm_prompt.format(count=len(selected))
+        if not cli.confirm(fmt_confirm_prompt, confirm_default):
+            raise SystemExit(exit_code.ABORTED)
+    _apply_runs_op_callback(op_callback, selected, formatted)
+
+
+def _apply_runs_op_callback(op_callback, selected, formatted):
     # pylint: disable=deprecated-method
     if len(inspect.getargspec(op_callback).args) == 2:
-        formatted = formatted = format_runs(selected)
+        if formatted is None:
+            formatted = format_runs(selected)
         op_callback(selected, formatted)
     else:
         op_callback(selected)
@@ -824,6 +829,8 @@ def _run_info_data(run, args):
         data.append(("comments", _format_comments_for_run_info(run)))
     if args.env:
         data.append(("environment", run.get("env") or {}))
+    if args.manifest:
+        data.append(("manifest", _format_run_manifest(run)))
     if args.deps:
         data.append(("dependencies", run.get("deps") or {}))
     if args.private_attrs and args.json:
@@ -960,6 +967,43 @@ def _res_sources_paths(sources):
     for source_paths in sources.values():
         paths.extend(source_paths)
     return sorted(paths)
+
+
+def _format_run_manifest(run):
+    from guild import run_manifest
+
+    try:
+        m = run_manifest.manfiest_for_run(run)
+    except Exception as e:
+        log.error("cannot read run manifest: %s", e)
+        return {}
+    else:
+        return _formatted_run_manifest_items(m)
+
+
+def _formatted_run_manifest_items(m):
+    formatted = {}
+    for args in m:
+        _apply_formatted_manifest_args(args, formatted)
+    return {name: sorted(items) for name, items in formatted.items()}
+
+
+def _apply_formatted_manifest_args(args, formatted):
+    type = args[0]
+    if type == "s":
+        _apply_formatted_manifest_sourcecode_file(args[1:], formatted)
+    elif type == "d":
+        _apply_formatted_manifest_dep(args[1:], formatted)
+
+
+def _apply_formatted_manifest_sourcecode_file(args, formatted):
+    section = formatted.setdefault("sourcecode", [])
+    section.append(args[0])
+
+
+def _apply_formatted_manifest_dep(args, formatted):
+    section = formatted.setdefault("dependencies", [])
+    section.append(args[0])
 
 
 def _maybe_append_proto_data(run, data):
@@ -1989,7 +2033,7 @@ def _format_runs_for_comment_msg(runs):
         "status_with_remote",
         "label",
     ]
-    cli.table(formatted, cols=cols, indent=2, file=out)
+    cli.table(formatted, cols, indent=2, file=out)
     return out.getvalue().strip()
 
 

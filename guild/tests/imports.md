@@ -69,6 +69,8 @@
     guild.commands.main
     guild.commands.main_impl
     guild.commands.mark
+    guild.commands.merge
+    guild.commands.merge_impl
     guild.commands.models
     guild.commands.models_impl
     guild.commands.open_
@@ -108,6 +110,7 @@
     guild.commands.runs_label
     guild.commands.runs_list
     guild.commands.runs_mark
+    guild.commands.runs_merge
     guild.commands.runs_publish
     guild.commands.runs_pull
     guild.commands.runs_purge
@@ -231,6 +234,7 @@
     guild.run
     guild.run_check
     guild.run_manifest
+    guild.run_merge
     guild.run_util
     guild.run_zip_proxy
     guild.service

@@ -324,14 +324,7 @@ def write_cached_sha(sha, for_file):
 def file_md5(path):
     import hashlib
 
-    hash = hashlib.md5()
-    with open(path, "rb") as f:
-        while True:
-            data = f.read(102400)
-            if not data:
-                break
-            hash.update(data)
-    return hash.hexdigest()
+    return _gen_file_hash(path, hashlib.md5)
 
 
 def parse_url(url):
@@ -403,14 +396,16 @@ def rmtempdir(path):
             log.error("error removing %s: %s", path, e)
 
 
-def safe_rmtree(path):
+def safe_rmtree(path, force=False):
     """Removes path if it's not top level or user dir."""
     assert not _top_level_dir(path), path
     assert path != os.path.expanduser("~"), path
     if os.path.isdir(path):
         shutil.rmtree(path)
-    else:
+    elif os.path.isfile(path):
         os.remove(path)
+    elif not force:
+        raise ValueError(f"{path} does not exist")
 
 
 def ensure_safe_rmtree(path):

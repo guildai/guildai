@@ -13,12 +13,27 @@ Helper to print source files in repo.
 
     >>> def source(subdir=None):
     ...     dir = join_path(repo, subdir) if subdir else repo
-    ...     for path in sorted(vcs_util.iter_source_files(dir)):
+    ...     for path in sorted(vcs_util.ls_files(dir)):
     ...         print(path)
+
+Helper to print dir status.
+
+    >>> def status(subdir=None, ignored=False):
+    ...     dir = join_path(repo, subdir) if subdir else repo
+    ...     status_files = vcs_util.status(dir, ignored=ignored)
+    ...     for status in sorted(status_files, key=lambda s: s.path):
+    ...          if status.status[0] == "R":
+    ...              print(f"{status.status}: {status.path} <- {status.orig_path}")
+    ...          else:
+    ...              print(f"{status.status}: {status.path}")
 
 An empty repo isn't supported.
 
     >>> source()
+    Traceback (most recent call last):
+    UnsupportedRepo: ...
+
+    >>> status()
     Traceback (most recent call last):
     UnsupportedRepo: ...
 
@@ -45,17 +60,11 @@ Initialize a sample repo.
     Initialized empty Git repository in ...
     <exit 0>
 
-Helper to print source files in repo.
-
-    >>> def source(subdir=None):
-    ...     dir = join_path(repo, subdir) if subdir else repo
-    ...     for path in sorted(vcs_util.iter_source_files(dir)):
-    ...         print(path)
-
-
 Files in an empty repo with no commit.
 
     >>> source()
+
+    >>> status()
 
 Add a file. This isn't tracked or ignored by Git.
 
@@ -63,6 +72,9 @@ Add a file. This isn't tracked or ignored by Git.
 
     >>> source()
     a
+
+    >>> status()
+    ??: a
 
 Add some more untracked, unignored files.
 
@@ -74,6 +86,11 @@ Add some more untracked, unignored files.
     b
     c
 
+    >>> status()
+    ??: a
+    ??: b
+    ??: c
+
 Ignore a file.
 
     >>> write(".gitignore", "/a\n")
@@ -83,6 +100,17 @@ Ignore a file.
     b
     c
 
+    >>> status()
+    ??: .gitignore
+    ??: b
+    ??: c
+
+    >>> status(ignored=True)
+    ??: .gitignore
+    !!: a
+    ??: b
+    ??: c
+
 Ignore another file.
 
     >>> write(".gitignore", "/c\n", append=True)
@@ -90,6 +118,10 @@ Ignore another file.
     >>> source()
     .gitignore
     b
+
+    >>> status()
+    ??: .gitignore
+    ??: b
 
 Add some more files.
 
@@ -103,6 +135,18 @@ Add some more files.
     subdir/d
     subdir/e
 
+    >>> source("subdir")
+    d
+    e
+
+    >>> status()
+    ??: .gitignore
+    ??: b
+    ??: subdir/
+
+    >>> status("subdir")
+    ??: ./
+
 Add all unignored files to index.
 
     >>> quiet("git add .")
@@ -113,6 +157,20 @@ Add all unignored files to index.
     subdir/d
     subdir/e
 
+    >>> source("subdir")
+    d
+    e
+
+    >>> status()
+    A_: .gitignore
+    A_: b
+    A_: subdir/d
+    A_: subdir/e
+
+    >>> status("subdir")
+    A_: d
+    A_: e
+
 Commit index changes.
 
     >>> quiet("git commit -m 'First commit'")
@@ -122,6 +180,8 @@ Commit index changes.
     b
     subdir/d
     subdir/e
+
+    >>> status()
 
 Delete a file. This does not change the file listing because the
 deleted file is tracked by Git.
@@ -134,6 +194,9 @@ deleted file is tracked by Git.
     subdir/d
     subdir/e
 
+    >>> status()
+    _D: subdir/e
+
 Delete the file from git.
 
     >>> quiet("git add -u")
@@ -142,6 +205,9 @@ Delete the file from git.
     .gitignore
     b
     subdir/d
+
+    >>> status()
+    D_: subdir/e
 
 Commit the change.
 
@@ -152,6 +218,67 @@ Commit the change.
     b
     subdir/d
 
-TODO:
+    >>> status()
 
-- Checkout the previous commit and list source
+Checkout the previous commit.
+
+    >>> quiet("git checkout HEAD^1")
+
+    >>> source()
+    .gitignore
+    b
+    subdir/d
+    subdir/e
+
+    >>> status()
+
+Modify 'b' and 'subdir/e':
+
+    >>> write("b", "xxx")
+    >>> write("subdir/e", "yyy")
+
+    >>> source()
+    .gitignore
+    b
+    subdir/d
+    subdir/e
+
+    >>> status()
+    _M: b
+    _M: subdir/e
+
+Rename 'subdir/d':
+
+    >>> quiet("git mv subdir/d d")
+
+    >>> source()
+    .gitignore
+    b
+    d
+    subdir/e
+
+    >>> source("subdir")
+    e
+
+    >>> status()
+    _M: b
+    R_: d <- subdir/d
+    _M: subdir/e
+
+    >>> status("subdir")
+    D_: d
+    _M: e
+
+Show status including ignored files.
+
+    >>> status(ignored=True)
+    !!: a
+    _M: b
+    !!: c
+    R_: d <- subdir/d
+    _M: subdir/e
+
+    >>> status(ignored=False)
+    _M: b
+    R_: d <- subdir/d
+    _M: subdir/e

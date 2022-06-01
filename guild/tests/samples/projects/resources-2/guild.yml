@@ -6,6 +6,7 @@ no-replace-dep-link:
   requires:
     - file: file-1
       replace-existing: no  # default
+      target-type: link
 
 no-replace-dep-copy:
   main: guild.pass
@@ -15,7 +16,6 @@ no-replace-dep-copy:
   requires:
     - file: file-1
       replace-existing: no  # default
-      target-type: copy
 
 replace-dep-link:
   main: guild.pass
@@ -25,6 +25,7 @@ replace-dep-link:
   requires:
     - file: file-1
       replace-existing: yes
+      target-type: link
 
 replace-dep-copy:
   main: guild.pass
@@ -34,4 +35,3 @@ replace-dep-copy:
   requires:
     - file: file-1
       replace-existing: yes
-      target-type: copy

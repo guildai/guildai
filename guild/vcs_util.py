@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 import logging
 import re
 import os
 import subprocess
-
-import six
 
 from guild import util
 
@@ -57,6 +56,50 @@ SCHEMES = [
         status_ok_errors=[],
     )
 ]
+
+FileStatus = collections.namedtuple("FileStatus", ["status", "path", "orig_path"])
+FileStatus.__doc__ = """
+Represents a file in the result of `status()`.
+
+`status` is a two character status code. This follows the git
+convention as documented in `git status --help` with the exception
+that an empty space char (' ') in the git spec becomes an underscore
+char ('_') in this spec.
+
+  - _ = unmodified
+  - M = modified
+  - A = added
+  - D = deleted
+  - R = renamed
+  - C = copied
+  - U = updated but unmerged
+
+    X          Y     Meaning
+    -------------------------------------------------
+    _        [AMD]   not updated
+    M        [ MD]   updated in index
+    A        [ MD]   added to index
+    D                deleted from index
+    R        [ MD]   renamed in index
+    C        [ MD]   copied in index
+    [MARC]      _    index and work tree matches
+    [ MARC]     M    work tree changed since index
+    [ MARC]     D    deleted in work tree
+    [ D]        R    renamed in work tree
+    [ D]        C    copied in work tree
+    -------------------------------------------------
+    D           D    unmerged, both deleted
+    A           U    unmerged, added by us
+    U           D    unmerged, deleted by them
+    U           A    unmerged, added by them
+    D           U    unmerged, deleted by us
+    A           A    unmerged, both added
+    U           U    unmerged, both modified
+    -------------------------------------------------
+    ?           ?    untracked
+    !           !    ignored
+
+"""
 
 log = logging.getLogger("guild")
 
@@ -126,41 +169,91 @@ def _format_status(status):
     return bool(status)
 
 
-def iter_source_files(dir):
+def ls_files(dir):
     try:
-        return util.try_apply([_TryGitSourceIter], dir)
+        return util.try_apply([_try_git_source_iter], dir)
     except util.TryFailed:
-        six.raise_from(UnsupportedRepo(dir), None)
+        raise UnsupportedRepo(dir) from None
 
 
-class _TryGitSourceIter:
+def _try_git_source_iter(dir):
     """Class that conforms to the util.try_apply scheme for iterating source.
 
-    Raises `util.TryFailed` in the contructor
+    Raises `util.TryFailed` if git does not provide a list of files.
     """
-
-    def __init__(self, dir):
-        self._dir = dir
-        self._ls_files = _try_ls_files(dir)
-
-    def __iter__(self):
-        for path in self._ls_files:
-            if path:
-                yield path
-        for path in _try_ls_files(self._dir, untracked=True):
-            if path:
-                yield path
+    tracked = _try_git_ls_files(dir, untracked=False)
+    untracked = _try_git_ls_files(dir, untracked=True)
+    return tracked + untracked
 
 
-def _try_ls_files(dir, untracked=False):
+def _try_git_ls_files(dir, untracked=False):
     cmd = ["git", "ls-files"]
     if untracked:
         cmd.extend(["--other", "--exclude-standard"])
-    p = subprocess.Popen(cmd, cwd=dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    out, _err = p.communicate()
-    if p.returncode != 0:
+    try:
+        out = subprocess.check_output(cmd, cwd=dir, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
-            log.error("error listing git files (%i)", p.returncode)
-            log.error(out)
-        raise util.TryFailed()
-    return out.decode("utf-8", errors="ignore").rstrip().split("\n")
+            log.error("error listing git files (%i)", e.returncode)
+            log.error(e.stdout)
+        raise util.TryFailed() from None
+    else:
+        return _parse_git_ls_files(out)
+
+
+def _parse_git_ls_files(out):
+    lines = out.decode("utf-8", errors="ignore").rstrip().split("\n")
+    return [path for path in lines if path]
+
+
+def status(dir, ignored=False):
+    try:
+        return util.try_apply([_try_git_status], dir, ignored)
+    except util.TryFailed:
+        raise UnsupportedRepo(dir) from None
+
+
+def _try_git_status(dir, ignored):
+    ignored_args = ["--ignored=matching"] if ignored else []
+    cmd = ["git", "status", "--short", "--renames"] + ignored_args + ["."]
+    try:
+        out = subprocess.check_output(cmd, cwd=dir, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.error("error listing git files (%i)", e.returncode)
+            log.error(e.stdout)
+        raise util.TryFailed() from None
+    else:
+        return _parse_git_status(out)
+
+
+def _parse_git_status(out):
+    lines = out.decode("utf-8", errors="ignore").rstrip().split("\n")
+    return [_decode_git_status_line(line) for line in lines if line]
+
+
+def _decode_git_status_line(status_line):
+    status = _status_code_for_git_status_line(status_line)
+    rest = status_line[3:]
+    path, orig_path = _split_git_file_status_path(rest)
+    return FileStatus(status, path, orig_path)
+
+
+def _status_code_for_git_status_line(status_line):
+    """Returns the XY status git status.
+
+    Git status char ' ' (empty space) is replaced with an underscore
+    per the MergeFile status spec above.
+
+    See `git status --help` for details.
+
+    """
+    assert len(status_line) >= 2, status_line
+    return status_line[:2].replace(" ", "_")
+
+
+def _split_git_file_status_path(path):
+    parts = path.split(" -> ", 1)
+    if len(parts) == 2:
+        return parts[1], parts[0]
+    return parts[0], None
