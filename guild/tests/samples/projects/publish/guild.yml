@@ -14,6 +14,7 @@ op3:
   requires:
     - file: src.txt
       rename: src link
+      target-type: link
   publish:
     files:
       - exclude: '*-2.txt'

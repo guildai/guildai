@@ -324,7 +324,7 @@ An empty select spec implies 'select everything'.
     >>> with LogCapture() as log:
     ...     resolve(tar_source)
     {'resolved': ['<unpack-dir>/a.txt', '<unpack-dir>/b.txt', '<unpack-dir>/ccc'],
-     'staged': ['a.txt', 'b.txt', 'ccc'],
+     'staged': ['a.txt', 'b.txt', 'ccc/c.txt', 'ccc/ddd/d.txt'],
      'unpacked': ['.guild-cache-archive2.tar.unpacked',
                   'a.txt',
                   'b.txt',
@@ -412,7 +412,9 @@ attribute, just the directory path is resolved:
     []
 
     >>> resolve(dir_source)
-    {'resolved': ['<project-dir>/files'], 'staged': ['files'], 'unpacked': []}
+    {'resolved': ['<project-dir>/files'],
+     'staged': ['files/a.bin', 'files/e.txt', 'files/f.txt'],
+     'unpacked': []}
 
 When a file is a directory and specifies a `select`, files that are
 selected from the directory are resolved:
@@ -479,7 +481,7 @@ attribute can specify paths within that directory to link to.
 
     >>> resolve(dir_source_2)
     {'resolved': ['<project-dir>/foo/a.txt', '<project-dir>/foo/bar'],
-     'staged': ['a.txt', 'bar'],
+     'staged': ['a.txt', 'bar/a.txt', 'bar/b.txt'],
      'unpacked': []}
 
 #### Selecting from archive
@@ -501,7 +503,7 @@ resolved.
     >>> with LogCapture() as log:
     ...     resolve(zip_source_2)
     {'resolved': ['<unpack-dir>/foo/a.txt', '<unpack-dir>/foo/bar'],
-     'staged': ['a.txt', 'bar'],
+     'staged': ['a.txt', 'bar/a.txt', 'bar/b.txt'],
      'unpacked': ['.guild-cache-foo.zip.unpacked',
                   'foo/a.txt',
                   'foo/bar/a.txt',
@@ -533,7 +535,7 @@ from.
 
     >>> log.print_all()
     Unpacking .../samples/projects/resources/foo.zip
-    WARNING: .../a.txt already exists, skipping link
+    WARNING: .../a.txt already exists, skipping copy
 
 There is more than one file that matches `a.txt` so Guild prints a
 warnings message that it skipped creating the second link.
@@ -692,7 +694,9 @@ The first source specifies the `files` directory but renames it to
     [RenameSpec(pattern='files', repl='all_files')]
 
     >>> resolve(all_files)
-    {'resolved': ['<project-dir>/files'], 'staged': ['all_files'], 'unpacked': []}
+    {'resolved': ['<project-dir>/files'],
+     'staged': ['all_files/a.bin', 'all_files/e.txt', 'all_files/f.txt'],
+     'unpacked': []}
 
 #### bin files
 
@@ -766,7 +770,10 @@ renames them with an `archive2_` prefix.
     >>> with LogCapture() as log:
     ...     resolve(archive2_files)
     {'resolved': ['<unpack-dir>/a.txt', '<unpack-dir>/b.txt', '<unpack-dir>/ccc'],
-     'staged': ['archive2_a.txt', 'archive2_b.txt', 'archive2_ccc'],
+     'staged': ['archive2_a.txt',
+                'archive2_b.txt',
+                'archive2_ccc/c.txt',
+                'archive2_ccc/ddd/d.txt'],
      'unpacked': ['.guild-cache-archive2.tar.unpacked',
                   'a.txt',
                   'b.txt',
@@ -966,10 +973,10 @@ The resolved file:
     >>> cat(resolved)
     12345
 
-The type of file resolved is a link:
+The type of file resolved is a copy:
 
     >>> islink(resolved), resolved
-    (True, ...)
+    (False, ...)
 
 #### Copy target type
 
