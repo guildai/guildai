@@ -2,8 +2,8 @@ hello:
   description: Say hello to my friends
   main: say
   default: yes
-  flags:
-    msg: [a,b,c]
+  flags-import:
+    - msg
 
 hello-file:
   description: Show a message from a file
