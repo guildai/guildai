@@ -36,9 +36,9 @@ def main(args, ctx):
     run = runs_impl.one_run(args, ctx)
     target_dir = args.target_dir or _checked_cwd(run, ctx)
     merge = _init_run_merge(run, target_dir, args)
-    _check_replace(merge, target_dir, args)
+    _check_replace(merge, args)
     _check_nothing_to_copy(merge, args, ctx)
-    _maybe_preview_merge(merge, target_dir, args)
+    _maybe_preview_merge(merge, args)
     run_merge.apply_run_merge(merge, _on_merge_copy)
 
 
@@ -120,35 +120,35 @@ def _checked_cwd_matches_project_dir(cwd, project_dir, run, ctx):
         )
 
 
-def _check_replace(merge, target_dir, args):
+def _check_replace(merge, args):
     """Checks for replacement of files in a target dir.
 
     Check is disabled if --replace is specified.
     """
-    if args.replace or not os.path.exists(target_dir):
+    if args.replace or not os.path.exists(merge.target_dir):
         return
     if args.no_replace:
-        _fail_if_replacing(merge, target_dir)
+        _fail_if_replacing(merge)
         return
-    _try_vcs_status_check_replace(merge, target_dir)
+    _try_vcs_status_check_replace(merge)
 
 
-def _fail_if_replacing(merge, target_dir):
-    replacing = _merge_replacing_files(merge, target_dir)
+def _fail_if_replacing(merge):
+    replacing = _merge_replacing_files(merge)
     if replacing:
-        _replacing_error(replacing, target_dir)
+        _replacing_error(replacing, merge)
 
 
-def _merge_replacing_files(merge, target_dir):
+def _merge_replacing_files(merge):
     return {
         mf.target_path
         for mf in merge.to_copy
-        if os.path.exists(os.path.join(target_dir, mf.target_path))
+        if os.path.exists(os.path.join(merge.target_dir, mf.target_path))
     }
 
 
-def _replacing_error(target_paths, target_dir):
-    target_dir_desc = cmd_impl_support.cwd_desc(target_dir)
+def _replacing_error(target_paths, merge):
+    target_dir_desc = cmd_impl_support.cwd_desc(merge.target_dir)
     cli.out(
         f"guild: files in {target_dir_desc} would be replaced:",
         err=True,
@@ -159,7 +159,7 @@ def _replacing_error(target_paths, target_dir):
     raise SystemExit()
 
 
-def _try_vcs_status_check_replace(merge, target_dir):
+def _try_vcs_status_check_replace(merge):
     """Tries to apply a VCS check for replacement of files in target dir.
 
     If target dir is managed by a supported VCS, performs a
@@ -170,14 +170,14 @@ def _try_vcs_status_check_replace(merge, target_dir):
     replacement check. See `_fail_if_replacing` for this behavior.
     """
     try:
-        vcs_status = vcs_util.status(target_dir)
+        vcs_status = vcs_util.status(merge.target_dir)
     except vcs_util.UnsupportedRepo:
-        _fail_if_replacing(merge, target_dir)
+        _fail_if_replacing(merge)
     else:
-        _check_vcs_status(vcs_status, merge, target_dir)
+        _check_vcs_status(vcs_status, merge)
 
 
-def _check_vcs_status(vcs_status, merge, target_dir):
+def _check_vcs_status(vcs_status, merge):
     """Checks for replacement status in a VCS managed dir.
 
     `vcs_status` is the result of `vcs_util.status()` for the target
@@ -199,15 +199,15 @@ def _check_vcs_status(vcs_status, merge, target_dir):
       VCS.
 
     """
-    all_source = set(vcs_util.ls_files(target_dir))
+    all_source = set(vcs_util.ls_files(merge.target_dir))
     unstaged = _unstaged_source(vcs_status, all_source)
     unstaged_replacing = _unstaged_replacing(unstaged, merge)
-    all_replacing = _merge_replacing_files(merge, target_dir)
+    all_replacing = _merge_replacing_files(merge)
     nonsource_replacing = all_replacing - all_source
     if nonsource_replacing:
-        _replacing_error(all_replacing, target_dir)
+        _replacing_error(all_replacing, merge)
     elif unstaged_replacing:
-        _replace_unstaged_error(unstaged_replacing, target_dir)
+        _replace_unstaged_error(unstaged_replacing, merge)
 
 
 def _unstaged_source(vcs_status, vcs_files):
@@ -249,8 +249,8 @@ def _unstaged_replacing(unstaged, merge):
     return {mf.target_path for mf in merge.to_copy if mf.target_path in unstaged}
 
 
-def _replace_unstaged_error(target_paths, target_dir):
-    target_dir_desc = cmd_impl_support.cwd_desc(target_dir)
+def _replace_unstaged_error(target_paths, merge):
+    target_dir_desc = cmd_impl_support.cwd_desc(merge.target_dir)
     cli.out(
         f"guild: files in {target_dir_desc} have unstaged changes:",
         err=True,
@@ -275,25 +275,25 @@ def _check_nothing_to_copy(merge, args, ctx):
     raise SystemExit(0)
 
 
-def _maybe_preview_merge(merge, target_dir, args):
+def _maybe_preview_merge(merge, args):
     if not args.preview and args.yes:
         return
-    _preview_merge(merge, target_dir, args.preview)
+    _preview_merge(merge, args.preview)
     if args.preview:
         raise SystemExit(0)
     if not cli.confirm("Continue (y/N)?", False):
         raise SystemExit(exit_code.ABORTED)
 
 
-def _preview_merge(merge, target_dir, preview_only):
-    _preview_merge_header(merge, target_dir, preview_only)
+def _preview_merge(merge, preview_only):
+    _preview_merge_header(merge, preview_only)
     _preview_merge_run(merge)
     _preview_merge_copy_files(merge)
     _preview_merge_skipped_files(merge, preview_only)
 
 
-def _preview_merge_header(merge, target_dir, preview_only):
-    target_dir_desc = cmd_impl_support.cwd_desc(target_dir)
+def _preview_merge_header(merge, preview_only):
+    target_dir_desc = cmd_impl_support.cwd_desc(merge.target_dir)
     if preview_only:
         cli.out(f"Merge will copy files from the following run to {target_dir_desc}:")
     else:
@@ -397,7 +397,7 @@ def _skip_file_reason(sf):
 
 def _preview_skipped_files_summary(merge):
     len_skipped = len(merge.to_skip)
-    files_desc = f"1 file" if len_skipped == 1 else f"{len_skipped} files"
+    files_desc = "1 file" if len_skipped == 1 else f"{len_skipped} files"
     cli.out(
         cli.style(
             f"{files_desc} will not be copied (use --preview to show the full list)",

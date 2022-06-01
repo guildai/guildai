@@ -128,7 +128,7 @@ def init_run_merge(
         to_copy=[],
         to_skip=[],
     )
-    _apply_run_files_to_merge(run, target_dir, manifest_index, merge)
+    _apply_run_files_to_merge(run, manifest_index, merge)
     _prune_overlapping_targets(merge, prefer_nonsource)
     return merge
 
@@ -161,7 +161,7 @@ def _manifest_index_entry(entry, run):
     return _ManifestEntry(file_type, run_path, file_hash, source, source_subpath)
 
 
-def _apply_run_files_to_merge(run, target_dir, manifest_index, merge):
+def _apply_run_files_to_merge(run, manifest_index, merge):
     for path in _iter_run_files(run):
         _apply_run_file_to_merge(path, manifest_index, merge)
 
