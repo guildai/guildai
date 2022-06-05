@@ -102,8 +102,6 @@ def _run_project_dir(run):
     if not project_dir:
         cli.error(
             f"unexpected missing project directory for run {run.id} ({run.opref})\n"
-            "This may be a bug in Guild - please report to "
-            "https://github.com/guildai/guildai/issues\n"
             "Skip this check by using --target-dir"
         )
     return project_dir

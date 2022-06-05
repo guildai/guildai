@@ -525,8 +525,6 @@ Attempt to merge this run to tmp.
     >>> run(f"guild -H {guild_home} merge -y", cwd=tmp)
     guild: unexpected missing project directory for run ... (guildfile:''
     '' '' broken)
-    This may be a bug in Guild - please report to
-    https://github.com/guildai/guildai/issues
     Skip this check by using --target-dir
     <exit 1>
 
