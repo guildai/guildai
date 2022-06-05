@@ -81,32 +81,32 @@ _guild_completion() {
     for item in "${reply[@]}"; do
         __strip_click_directive item
         if [ "${item:0:7}" = '!!file:' ]; then
-            COMPREPLY+=($(compgen -f -X '!'"${item:7}" -o plusdirs -- $2))
+            COMPREPLY+=($(compgen -f -X '!'"${item:7}" -o plusdirs -- $2 | sort))
             compopt -o filenames
         elif [ "${item:0:7}" = '!!dir' ]; then
-            COMPREPLY+=($(compgen -d -- $2))
+            COMPREPLY+=($(compgen -d -- $2 | sort))
             compopt -o filenames
         elif [ "${item:0:12}" = '!!batchfile:' ]; then
-            COMPREPLY+=($(compgen -f -X '!'"${item:12}" -P @ -o plusdirs -- ${2:1}))
+            COMPREPLY+=($(compgen -f -X '!'"${item:12}" -P @ -o plusdirs -- ${2:1} | sort))
             compopt -o filenames
         elif [ "${item:0:10}" = '!!rundirs:' ]; then
             alt_cwd="${item:10}"
-            COMPREPLY+=($(cd "$alt_cwd" && compgen -d -- $2))
+            COMPREPLY+=($(cd "$alt_cwd" && compgen -d -- $2 | sort))
             __apply_alt_cwd "$alt_cwd"
         elif [ "${item:0:13}" = '!!allrundirs:' ]; then
             alt_cwd="${item:13}"
-            COMPREPLY+=($(cd "$alt_cwd" && compgen -d -- $2))
+            COMPREPLY+=($(cd "$alt_cwd" && compgen -d -- $2 | sort))
             __apply_alt_cwd "$alt_cwd"
         elif [ "${item:0:11}" = '!!runfiles:' ]; then
             alt_cwd="${item:11}"
-            COMPREPLY+=($(cd "$alt_cwd" && compgen -f -- $2))
+            COMPREPLY+=($(cd "$alt_cwd" && compgen -f -- $2 | sort))
             __apply_alt_cwd "$alt_cwd"
         elif [ "$item" = "!!nospace" ]; then
             compopt -o nospace
         elif [ "${item:0:10}" = "!!command:" ]; then
-            COMPREPLY+=($(compgen -c -X '!'"${item:10}" -- $2))
+            COMPREPLY+=($(compgen -c -X '!'"${item:10}" -- $2 | sort))
         elif [ "$item" = "!!command" ]; then
-            COMPREPLY+=($(compgen -c -- $2))
+            COMPREPLY+=($(compgen -c -- $2 | sort))
         elif [ "$item" = "!!no-colon-wordbreak" ]; then
             # Dangerous as this effects other completions. The damage
             # is mitigated by resetting COMP_WORDBREAKS above but this
