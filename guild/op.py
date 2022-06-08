@@ -395,12 +395,12 @@ def _op_proc_env(op, run):
 
     Proc env is made up of system env, op env, and run env. System env
     is passed through unless otherwise defined by op env or run
-    env. Run env takes precedence when it conflicts with op end.
+    env. Run env takes precedence when it conflicts with op env.
     """
     env = {}
     env.update(_op_proc_system_env())
     env.update(_op_proc_op_env(op))
-    env.update(_op_proc_run_env(run))
+    env.update(_op_proc_run_env(op, run))
     return env
 
 
@@ -421,10 +421,11 @@ def _op_proc_op_env(op):
     return env
 
 
-def _op_proc_run_env(run):
+def _op_proc_run_env(op, run):
     return {
         "RUN_DIR": run.dir,
         "RUN_ID": run.id,
+        "RUN_LABEL": op.run_attrs.get("label", ""),
     }
 
 

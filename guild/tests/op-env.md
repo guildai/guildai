@@ -11,6 +11,7 @@ This logic is implemented by `op._op_proc_env`.
 To illustrate, we need an operation:
 
     >>> op = oplib.Operation()
+    >>> op.run_attrs['label'] = "test_label"
 
 and a run:
 
@@ -38,7 +39,7 @@ With empty system env and op env:
     ...         env = op_env(op, run)
 
     >>> sorted(env)
-    ['CMD_DIR', 'GUILD_HOME', 'GUILD_SOURCECODE', 'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID']
+    ['CMD_DIR', 'GUILD_HOME', 'GUILD_SOURCECODE', 'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID', 'RUN_LABEL']
 
     >>> env["CMD_DIR"] == cwd, (env, cwd)
     (True, ...)
@@ -53,6 +54,9 @@ With empty system env and op env:
     (True, ...)
 
     >>> env["RUN_ID"] == run.id, (env, run.id)
+    (True, ...)
+
+    >>> env["RUN_LABEL"] == op.run_attrs.get("label"), (env, op.run_attrs.get("label"))
     (True, ...)
 
 If we specify an `opref`, we get `GUILD_OP` in the env.
@@ -74,7 +78,7 @@ With some system env - a new var and a var that Guild defines.
 
     >>> sorted(env)
     ['CMD_DIR', 'FOO', 'GUILD_HOME', 'GUILD_OP', 'GUILD_SOURCECODE',
-     'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID']
+     'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID', 'RUN_LABEL']
 
 `FOO` is as set in system env:
 
@@ -109,7 +113,7 @@ The env contains the expected vars:
 
     >>> sorted(env)
     ['BAR', 'CMD_DIR', 'FOO', 'GUILD_HOME', 'GUILD_OP', 'GUILD_SOURCECODE',
-     'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID']
+     'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID', 'RUN_LABEL']
 
 As `FOO` is defined by the op, it overrides the system env:
 
