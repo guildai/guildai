@@ -168,7 +168,7 @@ class OpDefSchema(schema.BaseModel):
     objective: Optional[Dict[str, str]]
     optimizers: Optional[Union[str, List[str], Dict[str, OptimizerDefSchema]]]
     output_scalars: Optional[Union[str_or_dict_str_str, List[str_or_dict_str_str]]]
-    pip_freeze: Optional[str]
+    pip_freeze: optional_bool_type
     plugins: Optional[Union[str, List[str], Literal[False]]]
     publish: Optional[PublishDefSchema]
     python_path: Optional[str]
