@@ -60,10 +60,12 @@ def _ac_flag(ctx, param, incomplete):
     if not opdef:
         return []
 
-    # bash breaks up expressions, but zsh does not. With bash, the args list includes both
-    #     completed flag sets and any incomplete entries. The "incomplete" parameter is not set.
-    #     Zsh includes completed flag sets as a list of strings, where each string is a completed
-    #     flag set. Anything incomplete is passed in as a string in "incomplete"
+    # bash breaks up expressions, but zsh does not. With bash, the
+    #     args list includes both completed flag sets and any
+    #     incomplete entries. The "incomplete" parameter is not set.
+    #     Zsh includes completed flag sets as a list of strings, where
+    #     each string is a completed flag set. Anything incomplete is
+    #     passed in as a string in "incomplete"
 
     flags = []
     flags_are_complete_sets = all("=" in item for item in flags)
@@ -79,16 +81,17 @@ def _ac_flag(ctx, param, incomplete):
     else:
         flags = run_args.flags
 
-    # completed flags come in 3's - the name, the equals sign, the value.
-    # If we have a even division, we have no incomplete flag. Otherwise, take
-    # the end element as the incomplete flag.
+    # completed flags come in 3's - the name, the equals sign, the
+    # value. If we have a even division, we have no incomplete
+    # flag. Otherwise, take the end element as the incomplete flag.
     if flags and len(flags) % 3:
         incomplete = "".join(flags[: -len(flags) % 3])
 
     if incomplete and "=" in incomplete:
         return _ac_flag_choices(incomplete, opdef)
 
-    # every third element is a flag name. The value may or may not be there for the last flag.
+    # every third element is a flag name. The value may or may not be
+    # there for the last flag.
     used_flags = flags[::3]
     unused_flags = sorted([f.name for f in opdef.flags if f.name not in used_flags])
     flags_ac = [f for f in unused_flags if (not incomplete or f.startswith(incomplete))]
@@ -137,7 +140,8 @@ def _ac_flag_choices(incomplete, opdef):
         if (not flag_val_incomplete or val.startswith(flag_val_incomplete))
     ]
     if _current_shell() == "bash":
-        # bash wants only the completed value here, whereas zsh wants the flag name also
+        # bash wants only the completed value here, whereas zsh wants
+        # the flag name also
         return values
     else:
         values = [flag_name + "=" + value for value in values]
