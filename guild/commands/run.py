@@ -24,8 +24,6 @@ AC_EXTENSIONS = ["py", "ipynb"]
 
 def _ac_opspec(ctx, param, incomplete):
     ops = _ac_operations(ctx, param, incomplete)
-    if not incomplete and ops:
-        return ops
     return ops + click_util.completion_filename(AC_EXTENSIONS, incomplete=incomplete)
 
 
