@@ -7,9 +7,9 @@ Context manager to set completions for zsh.
     >>> def ZshCompletion():
     ...     return Env({"_GUILD_COMPLETE": "complete", "_GUILD_COMPLETE_SHELL": "zsh"})
 
-    >>> from guild.commands.ac_support import current_shell
+    >>> from guild.commands.ac_support import _active_shell
     >>> with ZshCompletion():
-    ...     current_shell()
+    ...     _active_shell()
     'zsh'
 
 Helper functions:

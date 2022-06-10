@@ -23,7 +23,7 @@ from . import runs_support
 def _ac_cmd(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
-    return ac_support.ac_command(incomplete=incomplete)
+    return ac_support.ac_command(incomplete)
 
 
 def _ac_path(ctx, _param, incomplete):

@@ -20,11 +20,7 @@ from . import ac_support
 
 
 def _ac_python(_ctx, _param, incomplete):
-    filter = r"^python[^-]*(?!-config)$"
-    if ac_support.current_shell_supports_directives():
-        # shell matching is a bit different than regex
-        filter = "python*[^-config]"
-    return ac_support.ac_command(filter, incomplete)
+    return ac_support.ac_python(incomplete)
 
 
 def _ac_guild_version_or_path(ctx, _param, incomplete):

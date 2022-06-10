@@ -18,24 +18,20 @@ import os
 import shutil
 import sys
 
-import psutil
 import guild
 
 from guild import cli
 from guild import config
 from guild import util
 
-from . import ac_support
-
 log = logging.getLogger("guild")
 
 
-DEFAULT_SHELL = "sh"
 SHELL_INIT_BACKUP_SUFFIX_PATTERN = ".guild-backup.{n}"
 
 
 def main(args):
-    shell = args.shell or ac_support.current_shell()
+    shell = args.shell or util.active_shell()
     script = _completion_script(shell)
     if args.install:
         _install_completion_script(shell, script, args)

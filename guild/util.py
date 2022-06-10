@@ -1776,3 +1776,23 @@ class lazy_str:
 
     def __str__(self):
         return self.f()
+
+
+DEFAULT_SHELL = "sh"
+
+
+def active_shell():
+    import psutil
+
+    known_shells = {"bash", "zsh", "fish", "dash", "sh"}
+    parent_shell = os.path.basename(psutil.Process().parent().exe())
+    if parent_shell not in known_shells:
+        # if we use something like make to launch guild, we may need
+        # to look one level higher.
+        parent_of_parent = os.path.basename(psutil.Process().parent().parent().exe())
+        if parent_of_parent in known_shells:
+            parent_shell = parent_of_parent
+        else:
+            log.warning("unknown shell '%s', assuming %s", parent_shell, DEFAULT_SHELL)
+            parent_shell = DEFAULT_SHELL
+    return parent_shell
