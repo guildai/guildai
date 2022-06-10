@@ -1,8 +1,8 @@
 # Link vs Copy Dependencies
 
-As of 0.7, Guild supports copying resources as well as links. For
-temporary backward compatibility, Guild links by default. This default
-will change in a future version of Guild.
+As of 0.7, Guild supports copying resources as well as links. As of
+Guild 0.8.2, the default behavior is to copy dependencies. Prior to
+this version, the default behavior is to link.
 
 Delete runs for these tests.
 
@@ -17,26 +17,27 @@ Here's a project that demonstrates various resources.
     ...   main: guild.pass
     ...   requires:
     ...     - file: a.txt
-    ...       name: link-default
-    ...       rename: a link-default
+    ...       name: copy-default
+    ...       rename: a copy-default
     ...     - file: a.txt
     ...       name: link-explicit
     ...       target-type: link
     ...       rename: a link-explicit
     ...     - file: a.txt
-    ...       name: copy
+    ...       name: copy-explicit
     ...       target-type: copy
-    ...       rename: a copy
+    ...       rename: a copy-explicit
     ...
     ... op-2:
     ...   main: guild.pass
     ...   requires:
     ...    - file: files
-    ...      target-type: copy
-    ...      name: copy
-    ...    - file: files
+    ...      target-type: link
     ...      rename: files files-link
     ...      name: link
+    ...    - file: files
+    ...      rename: files files-copy
+    ...      name: copy
     ... """)
 
     >>> write(path(project_dir, "a.txt"), "Hello")
@@ -55,25 +56,25 @@ Create a nested list of subdirectories with a file:
 Run `op-1`:
 
     >>> run("guild run op-1 -y")
-    Resolving link-default dependency
+    Resolving copy-default dependency
     Resolving link-explicit dependency
-    Resolving copy dependency
+    Resolving copy-explicit dependency
     <exit 0>
 
     >>> run("guild ls")
     ???:
-      copy.txt
-      link-default.txt
+      copy-default.txt
+      copy-explicit.txt
       link-explicit.txt
     <exit 0>
 
 Here's the contents of each file:
 
-    >>> run("guild cat -p copy.txt")
+    >>> run("guild cat -p copy-default.txt")
     Hello
     <exit 0>
 
-    >>> run("guild cat -p link-default.txt")
+    >>> run("guild cat -p copy-explicit.txt")
     Hello
     <exit 0>
 
@@ -89,12 +90,12 @@ project source implicitly change runs.
 
 Here are the three run files again:
 
-    >>> run("guild cat -p copy.txt")
+    >>> run("guild cat -p copy-default.txt")
     Hello
     <exit 0>
 
-    >>> run("guild cat -p link-default.txt")
-    Hola
+    >>> run("guild cat -p copy-explicit.txt")
+    Hello
     <exit 0>
 
     >>> run("guild cat -p link-explicit.txt")
@@ -104,32 +105,32 @@ Here are the three run files again:
 Run op-1:
 
     >>> run("guild run op-2 -y")
-    Resolving copy dependency
     Resolving link dependency
+    Resolving copy dependency
     <exit 0>
 
 The files:
 
     >>> run("guild ls")
     ???:
+      files-copy/
+      files-copy/a/
+      files-copy/a/a/
+      files-copy/a/a/a/
+      files-copy/a/a/a/a/
+      files-copy/a/a/a/a/a/
+      files-copy/a/a/a/a/a/a/
+      files-copy/a/a/a/a/a/a/a/
+      files-copy/a/a/a/a/a/a/a/a/
+      files-copy/a/a/a/a/a/a/a/a/a/
+      files-copy/a/a/a/a/a/a/a/a/a/a/
+      files-copy/a/a/a/a/a/a/a/a/a/a/a.txt
       files-link/
-      files/
-      files/a/
-      files/a/a/
-      files/a/a/a/
-      files/a/a/a/a/
-      files/a/a/a/a/a/
-      files/a/a/a/a/a/a/
-      files/a/a/a/a/a/a/a/
-      files/a/a/a/a/a/a/a/a/
-      files/a/a/a/a/a/a/a/a/a/
-      files/a/a/a/a/a/a/a/a/a/a/
-      files/a/a/a/a/a/a/a/a/a/a/a.txt
     <exit 0>
 
 The resolved files:
 
-    >>> run("guild cat -p files/a/a/a/a/a/a/a/a/a/a/a.txt")
+    >>> run("guild cat -p files-copy/a/a/a/a/a/a/a/a/a/a/a.txt")
     Hello, deeply
     <exit 0>
 
@@ -147,11 +148,13 @@ The remaining files don't include `files`:
     a.txt
     guild.yml
 
-The resolved file is still available.
+The resolved file copy is still available.
 
-    >>> run("guild cat -p files/a/a/a/a/a/a/a/a/a/a/a.txt")
+    >>> run("guild cat -p files-copy/a/a/a/a/a/a/a/a/a/a/a.txt")
     Hello, deeply
     <exit 0>
+
+The linked file is not available.
 
     >>> run("guild cat -p files-link/a/a/a/a/a/a/a/a/a/a/a.txt")
     guild: .../files-link/a/a/a/a/a/a/a/a/a/a/a.txt does not exist

@@ -415,6 +415,8 @@ named resources.
       config.yml
       customizable-file.txt
       dir-op/
+      dir-op/a
+      dir-op/b
       dir/
       dir/a
       dir/b
