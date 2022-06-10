@@ -159,9 +159,31 @@ Show remote run info.
     scalars:
     <exit 0>
 
+    >>> run("guild runs info 3 -r guild-uat-gist")
+    Refreshing run info for guild-uat-gist
+    id: ...
+    operation: hello
+    from: .../examples/hello/guild.yml
+    status: completed
+    started: ...
+    stopped: ...
+    marked: no
+    label: msg='Hello gist'
+    sourcecode_digest: ...
+    vcs_commit: ...
+    run_dir: ...
+    command: ... -um guild.op_main say -- --msg "Hello gist"
+    exit_status: 0
+    pid:
+    tags:
+    flags:
+      msg: Hello gist
+    scalars:
+    <exit 0>
+
 ## Pull remote runs
 
-To illustrate pull, we delete two local runs.
+To illustrate pull, first delete two local runs.
 
     >>> run("guild runs rm 1 2 -y")
     Deleted 2 run(s)
