@@ -21,6 +21,7 @@ this as needed.
     ...     rm(path(project_dir, "a"), force=True)
     ...     rm(path(project_dir, "b"), force=True)
     ...     rmdir(path(project_dir, "subdir"), force=True)
+    ...     rmdir(path(project_dir, "__pycache__"), force=True)
 
     >>> clean_project()
 
