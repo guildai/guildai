@@ -5,7 +5,7 @@
 Context manager to set completions for zsh.
 
     >>> def BashCompletion():
-    ...     return Env({"_GUILD_COMPLETE": "complete", "GUILD_SHELL": "bash"})
+    ...     return Env({"_GUILD_COMPLETE": "complete", "_GUILD_AC_SHELL": "bash"})
 
     >>> from guild.commands.completion_impl import _current_shell
     >>> with BashCompletion():

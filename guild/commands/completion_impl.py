@@ -43,7 +43,7 @@ def main(args):
 
 
 def _current_shell():
-    parent_shell = os.getenv("GUILD_SHELL")
+    parent_shell = os.getenv("_GUILD_AC_SHELL")
     known_shells = {"bash", "zsh", "fish", "dash", "sh"}
 
     if not parent_shell:
