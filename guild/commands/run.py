@@ -15,7 +15,6 @@
 import click
 
 from guild import click_util
-from .completion_impl import _current_shell
 
 from . import ac_support
 from . import remote_support
@@ -126,7 +125,7 @@ def _ac_flag_choices(incomplete, opdef):
 
     if not flagdef or (not flagdef.choices and _maybe_filename_type(flagdef)):
         values = ac_support.ac_filename(incomplete=flag_val_incomplete)
-        if _current_shell() == "bash":
+        if ac_support.current_shell() == "bash":
             return values
         values = [flag_name + "=" + value for value in values]
         return values
@@ -136,7 +135,7 @@ def _ac_flag_choices(incomplete, opdef):
         for val in choices
         if (not flag_val_incomplete or val.startswith(flag_val_incomplete))
     ]
-    if _current_shell() == "bash":
+    if ac_support.current_shell() == "bash":
         # bash wants only the completed value here, whereas zsh wants
         # the flag name also
         return values

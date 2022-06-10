@@ -19,8 +19,6 @@ import subprocess
 
 from guild.util import natsorted
 
-from .completion_impl import current_shell_supports_directives, _current_shell
-
 
 def ac_filename(ext=None, incomplete=None):
     if os.getenv("_GUILD_COMPLETE"):
@@ -100,7 +98,7 @@ def ac_nospace():
     if (
         os.getenv("_GUILD_COMPLETE")
         and current_shell_supports_directives()
-        or _current_shell() == "zsh"
+        or current_shell() == "zsh"
     ):
         return ["!!nospace"]
     return []
@@ -180,3 +178,29 @@ def ac_safe_apply(ctx, f, args):
             if os.getenv("_GUILD_COMPLETE_DEBUG") == "1":
                 raise
             return None
+
+
+def current_shell():
+    parent_shell = os.getenv("_GUILD_COMPLETE_SHELL")
+    known_shells = {"bash", "zsh", "fish", "dash", "sh"}
+
+    if not parent_shell:
+        parent_shell = os.path.basename(psutil.Process().parent().exe())
+    if parent_shell not in known_shells:
+        # if we use something like make to launch guild, we may need
+        # to look one level higher.
+        parent_of_parent = os.path.basename(psutil.Process().parent().parent().exe())
+        if parent_of_parent in known_shells:
+            parent_shell = parent_of_parent
+        else:
+            log.warning("unknown shell '%s', assuming %s", parent_shell, DEFAULT_SHELL)
+            parent_shell = DEFAULT_SHELL
+    return parent_shell
+
+
+def current_shell_supports_directives():
+    # TODO: we should maybe register this support in a more dynamic
+    # way instead of hard-coding it
+    return current_shell() in {
+        "bash",
+    }

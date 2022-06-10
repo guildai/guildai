@@ -7,9 +7,9 @@ Context manager to set completions for zsh.
     >>> def BashCompletion():
     ...     return Env({"_GUILD_COMPLETE": "complete", "_GUILD_COMPLETE_SHELL": "bash"})
 
-    >>> from guild.commands.completion_impl import _current_shell
+    >>> from guild.commands.ac_support import current_shell
     >>> with BashCompletion():
-    ...     _current_shell()
+    ...     current_shell()
     'bash'
 
 Helper functions:

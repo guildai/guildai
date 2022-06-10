@@ -25,6 +25,8 @@ from guild import cli
 from guild import config
 from guild import util
 
+from . import ac_support
+
 log = logging.getLogger("guild")
 
 
@@ -33,37 +35,13 @@ SHELL_INIT_BACKUP_SUFFIX_PATTERN = ".guild-backup.{n}"
 
 
 def main(args):
-    shell = args.shell or _current_shell()
+    shell = args.shell or ac_support.current_shell()
     script = _completion_script(shell)
     if args.install:
         _install_completion_script(shell, script, args)
     else:
         sys.stdout.write(script)
         sys.stdout.write("\n")
-
-
-def _current_shell():
-    parent_shell = os.getenv("_GUILD_COMPLETE_SHELL")
-    known_shells = {"bash", "zsh", "fish", "dash", "sh"}
-
-    if not parent_shell:
-        parent_shell = os.path.basename(psutil.Process().parent().exe())
-    if parent_shell not in known_shells:
-        # if we use something like make to launch guild, we may need to look one level higher.
-        parent_of_parent = os.path.basename(psutil.Process().parent().parent().exe())
-        if parent_of_parent in known_shells:
-            parent_shell = parent_of_parent
-        else:
-            log.warning("unknown shell '%s', assuming %s", parent_shell, DEFAULT_SHELL)
-            parent_shell = DEFAULT_SHELL
-    return parent_shell
-
-
-def current_shell_supports_directives():
-    # TODO: we should maybe register this support in a more dynamic way instead of hard-coding it
-    return _current_shell() in {
-        "bash",
-    }
 
 
 def _completion_script(shell):
