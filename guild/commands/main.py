@@ -70,7 +70,7 @@ DEFAULT_GUILD_HOME = config.default_guild_home()
 
 
 def _ac_dir(_ctx, _param, incomplete):
-    return ac_support.completion_dir(incomplete=incomplete)
+    return ac_support.ac_dir(incomplete)
 
 
 @click.group(cls=click_util.Group)

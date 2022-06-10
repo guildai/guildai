@@ -22,7 +22,7 @@ from guild.util import natsorted
 from .completion_impl import current_shell_supports_directives, _current_shell
 
 
-def completion_filename(ext=None, incomplete=None):
+def ac_filename(ext=None, incomplete=None):
     if os.getenv("_GUILD_COMPLETE"):
         if current_shell_supports_directives():
             return _compgen_filenames("file", ext)
@@ -72,7 +72,7 @@ def _ensure_leading_dots(l):
     return ["." + x if x[:1] != "." else x for x in l]
 
 
-def completion_dir(incomplete=None):
+def ac_dir(incomplete=None):
     if os.getenv("_GUILD_COMPLETE"):
         if current_shell_supports_directives():
             return ["!!dir"]
@@ -80,7 +80,7 @@ def completion_dir(incomplete=None):
     return []
 
 
-def completion_opnames(names):
+def ac_opnames(names):
     if os.getenv("_GUILD_COMPLETE"):
         if current_shell_supports_directives():
             names = ["!!no-colon-wordbreak"] + names
@@ -94,7 +94,7 @@ def _compgen_filenames(type, ext):
     return ["!!%s:*.@(%s)" % (type, "|".join(ext))]
 
 
-def completion_nospace():
+def ac_nospace():
     # TODO: zsh supports this directive, but not the others.
     # We should add proper support for all of them at some point.
     if (
@@ -106,7 +106,7 @@ def completion_nospace():
     return []
 
 
-def completion_batchfile(ext=None, incomplete=None):
+def ac_batchfile(ext=None, incomplete=None):
     incomplete = incomplete or ""
     if os.getenv("_GUILD_COMPLETE"):
         if current_shell_supports_directives():
@@ -118,7 +118,7 @@ def completion_batchfile(ext=None, incomplete=None):
     return []
 
 
-def completion_command(filter=None, incomplete=None):
+def ac_command(filter=None, incomplete=None):
     if os.getenv("_GUILD_COMPLETE"):
         if current_shell_supports_directives():
             if filter:
@@ -149,7 +149,7 @@ def completion_command(filter=None, incomplete=None):
     return []
 
 
-def completion_run_dirpath(run_dir, all=False, incomplete=None):
+def ac_run_dirpath(run_dir, all=False, incomplete=None):
     if os.getenv("_GUILD_COMPLETE"):
         if current_shell_supports_directives():
             if all:
@@ -162,7 +162,7 @@ def completion_run_dirpath(run_dir, all=False, incomplete=None):
     return []
 
 
-def completion_run_filepath(run_dir, incomplete):
+def ac_run_filepath(run_dir, incomplete):
     if os.getenv("_GUILD_COMPLETE"):
         if current_shell_supports_directives():
             return ["!!runfiles:%s" % run_dir]
@@ -170,7 +170,7 @@ def completion_run_filepath(run_dir, incomplete):
     return []
 
 
-def completion_safe_apply(ctx, f, args):
+def ac_safe_apply(ctx, f, args):
     from guild import config
 
     with config.SetGuildHome(ctx.parent.params.get("guild_home")):

@@ -20,7 +20,7 @@ from . import ac_support
 
 
 def _ac_dir(_ctx, _param, incomplete):
-    return ac_support.completion_dir(incomplete=incomplete)
+    return ac_support.ac_dir(incomplete)
 
 
 @click.command()
@@ -29,7 +29,7 @@ def _ac_dir(_ctx, _param, incomplete):
     metavar="PACKAGE...",
     nargs=-1,
     required=True,
-    shell_complete=ac_support.completion_filename,
+    shell_complete=ac_support.ac_filename,
 )
 @click.option(
     "-U",

@@ -113,9 +113,7 @@ def ac_digest(ctx, _param, incomplete):
 
 
 def ac_archive(_ctx, _param, incomplete):
-    return ac_support.completion_dir(
-        incomplete=incomplete
-    ) + ac_support.completion_filename(ext=["zip"], incomplete=incomplete)
+    return ac_support.ac_dir(incomplete) + ac_support.ac_filename(["zip"], incomplete)
 
 
 def runs_arg(fn):

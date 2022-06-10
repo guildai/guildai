@@ -43,7 +43,7 @@ def _ac_run_path(ctx, _param, incomplete):
     if not run:
         return []
     base_dir = _run_base_dir(run, ctx)
-    return ac_support.completion_run_filepath(base_dir, incomplete)
+    return ac_support.ac_run_filepath(base_dir, incomplete)
 
 
 @click.command("cat")

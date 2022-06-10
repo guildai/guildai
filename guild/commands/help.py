@@ -25,7 +25,7 @@ def _ac_path_or_package(_ctx, _param, incomplete):
     packages = [pkg.project_name for pkg in packages_impl.packages(False)]
     return sorted(
         [pkg for pkg in packages if pkg.startswith(incomplete)]
-    ) + ac_support.completion_dir(incomplete=incomplete)
+    ) + ac_support.ac_dir(incomplete)
 
 
 @click.command()

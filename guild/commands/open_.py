@@ -23,7 +23,7 @@ from . import runs_support
 def _ac_cmd(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
-    return ac_support.completion_command(incomplete=incomplete)
+    return ac_support.ac_command(incomplete=incomplete)
 
 
 def _ac_path(ctx, _param, incomplete):
@@ -35,7 +35,7 @@ def _ac_path(ctx, _param, incomplete):
         dir_base = run.guild_path("sourcecode")
     else:
         dir_base = run.dir
-    return ac_support.completion_run_filepath(dir_base, incomplete)
+    return ac_support.ac_run_filepath(dir_base, incomplete)
 
 
 @click.command("open")
