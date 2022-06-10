@@ -31,6 +31,7 @@ TensorBoard versions.
     >>> def check(req):
     ...     venv = mkenv()
     ...     pip_install("pip", venv)
+    ...     pip_install("protobuf<4", venv)  # TEMP to workaround breakage in Google protobuf ecosystem
     ...     pip_install(req, venv)
     ...     tensorboard_check(req, venv)
 
