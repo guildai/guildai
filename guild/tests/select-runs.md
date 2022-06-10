@@ -7,6 +7,7 @@ We use the `optimizers` project for our tests to generate runs with a
 known loss.
 
     >>> project = Project(sample("projects", "optimizers"))
+    >>> set_guild_home(project.guild_home)
 
 ## Select API Function
 
@@ -110,7 +111,7 @@ Invalid scalar spec:
 
 Full run ID (32 chars) are shown by default.
 
-    >>> out, code = run_capture("guild select 1", guild_home=project.guild_home)
+    >>> out, code = run_capture("guild select 1")
     >>> code, out
     (0, ...)
     >>> len(out.split("\n")[0])
@@ -118,7 +119,7 @@ Full run ID (32 chars) are shown by default.
 
 Use -s/--short-id to show only the short run ID.
 
-    >>> out, code = run_capture("guild select 2 -s", guild_home=project.guild_home)
+    >>> out, code = run_capture("guild select 2 -s")
     >>> code, out
     (0, ...)
     >>> len(out.split("\n")[0]), out
@@ -126,25 +127,25 @@ Use -s/--short-id to show only the short run ID.
 
 Use -a/--attr to show a run attribute.
 
-    >>> run("guild select 3 --attr run_dir", guild_home=project.guild_home)
+    >>> run("guild select 3 --attr run_dir")
     ???/runs/...
     <exit 0>
 
-    >>> run("guild select 3 --attr status", guild_home=project.guild_home)
+    >>> run("guild select 3 --attr status")
     completed
     <exit 0>
 
-    >>> run("guild select 3 --attr label", guild_home=project.guild_home)
+    >>> run("guild select 3 --attr label")
     b=yes f=1.0 i=3 s=hello
     <exit 0>
 
-    >>> run("guild select 3 --attr user", guild_home=project.guild_home)
+    >>> run("guild select 3 --attr user")
     test
     <exit 0>
 
 Use -p/--path to show run directory.
 
-    >>> out, code = run_capture("guild select 3 --path", guild_home=project.guild_home)
+    >>> out, code = run_capture("guild select 3 --path")
     >>> code
     0
 
@@ -153,6 +154,6 @@ Use -p/--path to show run directory.
 
 An invalid attr generates an error.
 
-    >>> run("guild select 3 --attr wombat", guild_home=project.guild_home)
+    >>> run("guild select 3 --attr wombat")
     guild: no such run attribute 'wombat'
     <exit 1>

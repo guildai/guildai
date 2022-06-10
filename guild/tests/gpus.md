@@ -3,21 +3,13 @@
 Sample script that prints out `CUDA_VISIBLE_DEVICES` env var.
 
     >>> project = mkdtemp()
-
+    >>> set_guild_home(project)
     >>> cd(project)
 
-    >>> write(path(project, "test.py"), """
+    >>> write("test.py", """
     ... import os
     ... print(os.getenv("CUDA_VISIBLE_DEVICES"))
     ... """)
-
-Run command to isolate runs.
-
-    >>> _run = run
-
-    >>> def run(*args, **kw):
-    ...     return _run(*args, guild_home=project, **kw)
-
 
 No GPU spec:
 
