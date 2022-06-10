@@ -16,18 +16,20 @@ import click
 
 from guild import click_util
 
+from . import ac_support
+
 
 def _ac_python(_ctx, _param, incomplete):
     filter = r"^python[^-]*(?!-config)$"
-    if click_util.current_shell_supports_directives():
+    if ac_support.current_shell_supports_directives():
         # shell matching is a bit different than regex
         filter = "python*[^-config]"
-    return click_util.completion_command(filter=filter, incomplete=incomplete)
+    return ac_support.completion_command(filter=filter, incomplete=incomplete)
 
 
 def _ac_guild_version_or_path(ctx, _param, incomplete):
     versions = [ver for ver in _guild_versions(ctx) if ver.startswith(incomplete)]
-    return versions + click_util.completion_filename(ext=["whl"])
+    return versions + ac_support.completion_filename(ext=["whl"])
 
 
 def _guild_versions(ctx):
@@ -42,19 +44,19 @@ def _guild_versions(ctx):
         data = json.loads(resp.text)
         return sorted(data.get("releases") or {})
 
-    return click_util.completion_safe_apply(ctx, f, []) or []
+    return ac_support.completion_safe_apply(ctx, f, []) or []
 
 
 def _ac_guild_home(_ctx, _param, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return ac_support.completion_dir(incomplete=incomplete)
 
 
 def _ac_requirement(_ctx, _param, incomplete):
-    return click_util.completion_filename(ext=["txt"], incomplete=incomplete)
+    return ac_support.completion_filename(ext=["txt"], incomplete=incomplete)
 
 
 def _ac_dir(_ctx, _param, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return ac_support.completion_dir(incomplete=incomplete)
 
 
 @click.command()

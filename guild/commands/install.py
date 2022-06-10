@@ -16,9 +16,11 @@ import click
 
 from guild import click_util
 
+from . import ac_support
+
 
 def _ac_dir(_ctx, _param, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return ac_support.completion_dir(incomplete=incomplete)
 
 
 @click.command()
@@ -27,7 +29,7 @@ def _ac_dir(_ctx, _param, incomplete):
     metavar="PACKAGE...",
     nargs=-1,
     required=True,
-    shell_complete=click_util.completion_filename,
+    shell_complete=ac_support.completion_filename,
 )
 @click.option(
     "-U",

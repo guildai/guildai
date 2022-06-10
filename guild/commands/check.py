@@ -16,13 +16,14 @@ import click
 
 from guild import click_util
 
+from . import ac_support
 from . import remote_support
 
 
 def _ac_all_tests(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
-    return _ac_builtin_tests(ctx, param, incomplete) + click_util.completion_filename(
+    return _ac_builtin_tests(ctx, param, incomplete) + ac_support.completion_filename(
         ext=["md", "txt"], incomplete=incomplete
     )
 

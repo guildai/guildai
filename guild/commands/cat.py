@@ -16,6 +16,7 @@ import click
 
 from guild import click_util
 
+from . import ac_support
 from . import remote_support
 from . import runs_support
 
@@ -42,7 +43,7 @@ def _ac_run_path(ctx, _param, incomplete):
     if not run:
         return []
     base_dir = _run_base_dir(run, ctx)
-    return click_util.completion_run_filepath(base_dir, incomplete)
+    return ac_support.completion_run_filepath(base_dir, incomplete)
 
 
 @click.command("cat")

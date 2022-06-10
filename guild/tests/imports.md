@@ -39,6 +39,7 @@
     guild.cmd_impl_support
     guild.cmd_notify
     guild.commands.__init__
+    guild.commands.ac_support
     guild.commands.api
     guild.commands.api_compare
     guild.commands.api_ops

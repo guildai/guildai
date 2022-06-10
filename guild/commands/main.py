@@ -63,12 +63,14 @@ from .uninstall import uninstall
 from .view import view
 from .watch import watch
 
+from . import ac_support
+
 
 DEFAULT_GUILD_HOME = config.default_guild_home()
 
 
 def _ac_dir(_ctx, _param, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return ac_support.completion_dir(incomplete=incomplete)
 
 
 @click.group(cls=click_util.Group)

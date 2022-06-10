@@ -19,6 +19,8 @@ import click
 
 from guild import click_util
 
+from . import ac_support
+
 log = logging.getLogger("guild")
 
 
@@ -111,9 +113,9 @@ def ac_digest(ctx, _param, incomplete):
 
 
 def ac_archive(_ctx, _param, incomplete):
-    return click_util.completion_dir(
+    return ac_support.completion_dir(
         incomplete=incomplete
-    ) + click_util.completion_filename(ext=["zip"], incomplete=incomplete)
+    ) + ac_support.completion_filename(ext=["zip"], incomplete=incomplete)
 
 
 def runs_arg(fn):

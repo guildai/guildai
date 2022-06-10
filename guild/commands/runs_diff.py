@@ -18,6 +18,7 @@ import click
 
 from guild import click_util
 
+from . import ac_support
 from . import remote_support
 from . import runs_support
 
@@ -25,7 +26,7 @@ from . import runs_support
 def _ac_cmd(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
-    return click_util.completion_command(incomplete=incomplete)
+    return ac_support.completion_command(incomplete=incomplete)
 
 
 def _ac_path(ctx, _param, incomplete):
@@ -37,7 +38,7 @@ def _ac_path(ctx, _param, incomplete):
     dir_base = _diff_run_dir_base(ctx)
     if not dir_base:
         return []
-    return click_util.completion_run_filepath(dir_base, incomplete)
+    return ac_support.completion_run_filepath(dir_base, incomplete)
 
 
 def _has_non_path_options(params):
@@ -71,7 +72,7 @@ def _diff_run_dir_base(ctx):
     if not run:
         return None
     if args.working:
-        return click_util.completion_safe_apply(
+        return ac_support.completion_safe_apply(
             ctx, diff_impl._working_dir_for_run, [run]
         )
     if args.sourcecode:
@@ -85,7 +86,7 @@ def _run_to_diff(ctx):
 
 
 def _ac_dir(_ctx, _param, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return ac_support.completion_dir(incomplete=incomplete)
 
 
 def diff_params(fn):

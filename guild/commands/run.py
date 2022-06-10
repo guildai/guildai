@@ -17,14 +17,16 @@ import click
 from guild import click_util
 from .completion_impl import _current_shell
 
+from . import ac_support
 from . import remote_support
+
 
 AC_EXTENSIONS = ["py", "ipynb"]
 
 
 def _ac_opspec(ctx, param, incomplete):
     ops = _ac_operations(ctx, param, incomplete)
-    return ops + click_util.completion_filename(AC_EXTENSIONS, incomplete=incomplete)
+    return ops + ac_support.completion_filename(AC_EXTENSIONS, incomplete=incomplete)
 
 
 def _ac_operations(ctx, _param, incomplete):
@@ -38,10 +40,10 @@ def _ac_operations(ctx, _param, incomplete):
             cmd_impl_support.init_model_path()
             return [op["fullname"] for op in operations_impl.filtered_ops(ops_args)]
 
-    ops = click_util.completion_safe_apply(ctx, f, [])
+    ops = ac_support.completion_safe_apply(ctx, f, [])
 
     names = [op for op in ops if (not incomplete or op.startswith(incomplete))]
-    return click_util.completion_opnames(names)
+    return ac_support.completion_opnames(names)
 
 
 def _hide_warnings():
@@ -95,7 +97,7 @@ def _ac_flag(ctx, param, incomplete):
     used_flags = flags[::3]
     unused_flags = sorted([f.name for f in opdef.flags if f.name not in used_flags])
     flags_ac = [f for f in unused_flags if (not incomplete or f.startswith(incomplete))]
-    result = ["%s=" % f for f in flags_ac] + click_util.completion_nospace()
+    result = ["%s=" % f for f in flags_ac] + ac_support.completion_nospace()
     return result
 
 
@@ -106,7 +108,7 @@ def _ensure_log_init():
 
 
 def _ac_batch_files(_ctx, _param, incomplete):
-    return click_util.completion_batchfile(
+    return ac_support.completion_batchfile(
         ext=["csv", "yaml", "yml", "json"], incomplete=incomplete
     )
 
@@ -128,7 +130,7 @@ def _ac_flag_choices(incomplete, opdef):
     flagdef = opdef.get_flagdef(flag_name)
 
     if not flagdef or (not flagdef.choices and _maybe_filename_type(flagdef)):
-        values = click_util.completion_filename(incomplete=flag_val_incomplete)
+        values = ac_support.completion_filename(incomplete=flag_val_incomplete)
         if _current_shell() == "bash":
             return values
         values = [flag_name + "=" + value for value in values]
@@ -149,7 +151,7 @@ def _ac_flag_choices(incomplete, opdef):
             values = (
                 [flag_name + "=" + flag_val_incomplete]
                 if flag_val_incomplete
-                else [flag_name + "="] + click_util.completion_nospace()
+                else [flag_name + "="] + ac_support.completion_nospace()
             )
     return values
 
@@ -187,7 +189,7 @@ def _ac_run(ctx, _param, incomplete):
 
 
 def _ac_dir(_ctx, _param, incomplete):
-    return click_util.completion_dir(incomplete=incomplete)
+    return ac_support.completion_dir(incomplete=incomplete)
 
 
 def run_params(fn):
@@ -428,7 +430,7 @@ def run_params(fn):
                     "Saves generated trials to a CSV batch file. See BATCH FILES "
                     "for more information."
                 ),
-                shell_complete=click_util.completion_filename,
+                shell_complete=ac_support.completion_filename,
             ),
             click.Option(
                 ("--keep-run",),
@@ -445,7 +447,7 @@ def run_params(fn):
                 metavar="PATH",
                 help=("Include PATH as a dependency."),
                 multiple=True,
-                shell_complete=click_util.completion_filename,
+                shell_complete=ac_support.completion_filename,
             ),
             click.Option(
                 ("--break", "break_"),
