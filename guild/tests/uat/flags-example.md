@@ -46,6 +46,7 @@
       red
       blue
       green
+      gray
     <BLANKLINE>
     Run the command again using one of these options.
     <exit 1>
