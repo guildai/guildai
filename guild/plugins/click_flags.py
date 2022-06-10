@@ -152,11 +152,45 @@ def _maybe_apply_flag(param, flags):
         attrs["required"] = True
     if param.is_flag:
         attrs["arg-switch"] = not param.default
+    _apply_type_flag_attr(param, attrs)
     log.debug("added flag %r: %r", flag_name, attrs)
 
 
 def _ensure_json_encodable(val, name):
     return import_argparse_flags_main._ensure_json_encodable(val, name)
+
+
+def _apply_type_flag_attr(param, attrs):
+    if not param.type:
+        return
+    if _is_boolean_param(param):
+        attrs["type"] = "boolean"
+    elif _is_int_param(param):
+        attrs["type"] = "int"
+    elif _is_float_param(param):
+        attrs["type"] = "float"
+    elif _is_string_param(param):
+        attrs["type"] = "string"
+
+
+def _is_boolean_param(p):
+    return p.type in (bool, click.BOOL) or isinstance(p.type, click.types.BoolParamType)
+
+
+def _is_int_param(p):
+    return p.type in (int, click.INT) or isinstance(p.type, click.types.IntParamType)
+
+
+def _is_float_param(p):
+    return p.type in (float, click.FLOAT) or isinstance(
+        p.type, click.types.FloatParamType
+    )
+
+
+def _is_string_param(p):
+    return p.type in (str, click.STRING) or isinstance(
+        p.type, click.types.StringParamType
+    )
 
 
 def _param_arg_name(param):

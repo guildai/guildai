@@ -13,7 +13,7 @@ prefix = "Flags:"
     "color",
     "-c",
     default="red",
-    type=click.Choice(["red", "blue", "green"]),
+    type=click.Choice(["red", "blue", "green", "gray"]),
     help="sample choices",
 )
 def main(i, f, b, s, color):
