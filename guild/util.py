@@ -410,7 +410,7 @@ def safe_rmtree(path, force=False):
 
 def ensure_safe_rmtree(path):
     try:
-        safe_rmtree(path)
+        safe_rmtree(path, force=True)
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
