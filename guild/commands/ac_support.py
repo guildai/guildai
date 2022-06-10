@@ -13,11 +13,8 @@
 # limitations under the License.
 
 import os
-import pathlib
-import re
-import subprocess
 
-from guild import util
+# Move other imports into functions as this is used for command UI
 
 
 def ac_filename(ext=None, incomplete=None):
@@ -39,6 +36,9 @@ def _list_dir(dir, incomplete, filters=None, ext=None):
     a fallback where we have not yet implemented handling for our
     directives.
     """
+    import pathlib
+    from guild import util
+
     ext = _ensure_leading_dots(ext)
     if incomplete and os.path.sep in incomplete:
         leading_dir, incomplete = os.path.split(incomplete)
@@ -125,6 +125,9 @@ def ac_python(incomplete):
 
 
 def _gen_ac_command(directive_filter, regex_filter, incomplete):
+    import re
+    import subprocess
+
     if os.getenv("_GUILD_COMPLETE"):
         if _active_shell_supports_directives():
             if directive_filter:
@@ -189,12 +192,17 @@ def ac_safe_apply(ctx, f, args):
 
 
 def _active_shell():
+    from guild import util
+
     return os.getenv("_GUILD_COMPLETE_SHELL") or util.active_shell()
 
 
 def _active_shell_supports_directives():
-    # TODO: we should maybe register this support in a more dynamic
-    # way instead of hard-coding it
-    return _active_shell() in {
-        "bash",
-    }
+    return _active_shell() in ("bash",)
+
+
+def ac_assignments(key, vals, val_incomplete):
+    ac_vals = [val for val in vals if val.startswith(val_incomplete)]
+    if _active_shell() == "bash":
+        return ac_vals
+    return [f"{key}={val}" for val in ac_vals]

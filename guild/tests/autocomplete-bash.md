@@ -89,7 +89,7 @@ Providing a prefix limits the tests shown.
 To illustate the various auto completion scenarions, we generate a
 number of runs.
 
-    >>> project = ac_project = Project(sample("projects", "autocomplete"))
+    >>> project = Project(sample("projects", "autocomplete"))
 
     >>> project.run("a", run_dir=path(project.guild_home, "runs", "aaa"))
     a
@@ -454,11 +454,10 @@ Choices are limited as well.
     >>> run_ac("flags", ["flags"], "c=hel")
     hello
 
-If flag type is not defined and choices aren't available, file path
-completion is used.
+If there are no sensible choices to present, completions are empty.
 
     >>> run_ac("flags", ["flags"], "nt=")
-    !!file:*
+    <empty>
 
 Flag type is otherwise used to provide possible completions.
 
@@ -482,16 +481,19 @@ Boolean flags support 'true' and 'false'.
     >>> run_ac("flags", ["flags"], "b=t")
     true
 
-String types including paths support file name completions.
-
-    >>> run_ac("flags", ["flags"], "s=")
-    !!file:*
+Paths support file name completions.
 
     >>> run_ac("flags", ["flags"], "p=")
     !!file:*
 
     >>> run_ac("flags", ["flags"], "ep=")
     !!file:*
+
+String types do not.
+
+    >>> run_ac("flags", ["flags"], "s=")
+    <empty>
+
 
 If a flag starts with '@' it's considered a batch file. In this case
 completion is handled by the `!!batchfile` directive.

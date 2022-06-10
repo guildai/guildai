@@ -52,62 +52,31 @@ def _ac_flag(ctx, param, incomplete):
     if incomplete[:1] == "@":
         return _ac_batch_files(ctx, param, incomplete)
 
-    run_args = click_util.Args(**ctx.params)
-    _ensure_log_init()
-    opdef = _ac_opdef(run_args.opspec)
+    args = click_util.Args(**ctx.params)
+    opdef = _opdef_for_opspec(args.opspec)
     if not opdef:
         return []
 
-    # bash breaks up expressions, but zsh does not. With bash, the
-    #     args list includes both completed flag sets and any
-    #     incomplete entries. The "incomplete" parameter is not set.
-    #     Zsh includes completed flag sets as a list of strings, where
-    #     each string is a completed flag set. Anything incomplete is
-    #     passed in as a string in "incomplete"
-
-    flags = []
-    flags_are_complete_sets = all("=" in item for item in flags)
-    if flags_are_complete_sets:
-        for f in run_args.flags:
-            parts = f.split("=")
-            name = parts[0]
-            if len(parts) == 1:
-                value = ""
-            else:
-                value = parts[1]
-            flags.extend([name, "=", value])
-    else:
-        flags = run_args.flags
-
-    # completed flags come in 3's - the name, the equals sign, the
-    # value. If we have a even division, we have no incomplete
-    # flag. Otherwise, take the end element as the incomplete flag.
-    if flags and len(flags) % 3:
-        incomplete = "".join(flags[: -len(flags) % 3])
-
-    if incomplete and "=" in incomplete:
+    if "=" in incomplete:
         return _ac_flag_choices(incomplete, opdef)
 
-    # every third element is a flag name. The value may or may not be
-    # there for the last flag.
-    used_flags = flags[::3]
-    unused_flags = sorted([f.name for f in opdef.flags if f.name not in used_flags])
-    flags_ac = [f for f in unused_flags if (not incomplete or f.startswith(incomplete))]
-    result = ["%s=" % f for f in flags_ac] + ac_support.ac_nospace()
-    return result
+    unused_flags = _unused_flags_for_args(args, opdef)
+    flags_ac = [f for f in unused_flags if f.startswith(incomplete)]
+    return ["%s=" % f for f in flags_ac] + ac_support.ac_nospace()
 
 
-def _ensure_log_init():
-    from guild import log
+def _unused_flags_for_args(args, opdef):
+    from . import run_impl
 
-    log.init_logging()
+    used, _batch_files = run_impl.split_flag_args(args.flags, opdef)
+    return sorted([f.name for f in opdef.flags if f.name not in used])
 
 
 def _ac_batch_files(_ctx, _param, incomplete):
     return ac_support.ac_batchfile(["csv", "yaml", "yml", "json"], incomplete)
 
 
-def _ac_opdef(opspec):
+def _opdef_for_opspec(opspec):
     import os
     from . import run_impl
 
@@ -122,52 +91,24 @@ def _ac_opdef(opspec):
 def _ac_flag_choices(incomplete, opdef):
     flag_name, flag_val_incomplete = incomplete.split("=", 1)
     flagdef = opdef.get_flagdef(flag_name)
-
-    if not flagdef or (not flagdef.choices and _maybe_filename_type(flagdef)):
-        values = ac_support.ac_filename(incomplete=flag_val_incomplete)
-        if ac_support._active_shell() == "bash":
-            return values
-        values = [flag_name + "=" + value for value in values]
-        return values
-    choices = _flagdef_choices(flagdef)
-    values = [
-        val
-        for val in choices
-        if (not flag_val_incomplete or val.startswith(flag_val_incomplete))
-    ]
-    if ac_support._active_shell() == "bash":
-        # bash wants only the completed value here, whereas zsh wants
-        # the flag name also
-        return values
-    else:
-        values = [flag_name + "=" + value for value in values]
-        if not values:
-            values = (
-                [flag_name + "=" + flag_val_incomplete]
-                if flag_val_incomplete
-                else [flag_name + "="] + ac_support.ac_nospace()
-            )
-    return values
+    values = _choice_values_for_flagdef(flagdef) if flagdef else []
+    return ac_support.ac_assignments(flag_name, values, flag_val_incomplete)
 
 
-def _maybe_filename_type(flagdef):
-    assert flagdef
-    if flagdef.type:
-        return flagdef.type not in {"int", "float", "number", "boolean"}
-    parsed_type = type(flagdef.default)
-    if parsed_type not in {int, float, bool}:
-        return True
-    return False
-
-
-def _flagdef_choices(flagdef):
+def _choice_values_for_flagdef(flagdef):
     if flagdef.choices:
-        from guild import yaml_util
-
-        return [yaml_util.encode_yaml(c.value) for c in flagdef.choices]
+        return _encode_choices(flagdef.choices)
     if flagdef.type == "boolean":
         return ["true", "false"]
+    if flagdef.type in ("path", "existing-path"):
+        return ac_support.ac_filename()
     return []
+
+
+def _encode_choices(choices):
+    from guild import yaml_util
+
+    return [yaml_util.encode_yaml(c.value) for c in choices]
 
 
 def _ac_run(ctx, _param, incomplete):

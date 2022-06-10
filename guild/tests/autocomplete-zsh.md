@@ -597,36 +597,23 @@ Choices are limited as well.
     >>> run_ac("flags", ["flags"], "c=hel")
     c=hello
 
-If flag type is not defined and choices aren't available, file path
-completion is used.
+If there are no sensible choices to present, completions are empty.
 
     >>> run_ac("flags", ["flags"], "nt=")
-    nt=batch_fail.py
-    nt=echo2.py
-    nt=echo.py
-    nt=fail.py
-    nt=guild.yml
-    nt=noisy.py
-    nt=noisy_flubber.py
-    nt=poly.py
-    nt=trial_fail.py
-    nt=tune-echo
+    <empty>
 
 Flag type is otherwise used to provide possible completions.
 
 Types that don't support completion: int, float and number.
 
     >>> run_ac("flags", ["flags"], "i=")
-    i=
-    !!nospace
+    <empty>
 
     >>> run_ac("flags", ["flags"], "f=")
-    f=
-    !!nospace
+    <empty>
 
     >>> run_ac("flags", ["flags"], "n=")
-    n=
-    !!nospace
+    <empty>
 
 Boolean flags support 'true' and 'false'.
 
@@ -637,23 +624,7 @@ Boolean flags support 'true' and 'false'.
     >>> run_ac("flags", ["flags"], "b=t")
     b=true
 
-String types (including paths) support file name completions.
-
-    >>> run_ac("flags", ["flags"], "s=")
-    s=batch_fail.py
-    s=echo2.py
-    s=echo.py
-    s=fail.py
-    s=guild.yml
-    s=noisy.py
-    s=noisy_flubber.py
-    s=poly.py
-    s=trial_fail.py
-    s=tune-echo
-
-    >>> run_ac("flags", ["flags"], "s=e")
-    s=echo2.py
-    s=echo.py
+Paths types support file name completions.
 
     >>> run_ac("flags", ["flags"], "p=")
     p=batch_fail.py
@@ -681,6 +652,11 @@ String types (including paths) support file name completions.
     ep=poly.py
     ep=trial_fail.py
     ep=tune-echo
+
+String types do not.
+
+    >>> run_ac("flags", ["flags"], "s=")
+    <empty>
 
 If a flag starts with '@' it's considered a batch file. In this case
 completion is handled by the `!!batchfile` directive.
