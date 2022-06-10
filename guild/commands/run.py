@@ -128,7 +128,7 @@ def _ac_flag_choices(incomplete, opdef):
     flagdef = opdef.get_flagdef(flag_name)
 
     if not flagdef or (not flagdef.choices and _maybe_filename_type(flagdef)):
-        values = click_util.completion_filename()
+        values = click_util.completion_filename(incomplete=flag_val_incomplete)
         if _current_shell() == "bash":
             return values
         values = [flag_name + "=" + value for value in values]
@@ -169,10 +169,9 @@ def _flagdef_choices(flagdef):
         from guild import yaml_util
 
         return [yaml_util.encode_yaml(c.value) for c in flagdef.choices]
-    elif flagdef.type == "boolean":
+    if flagdef.type == "boolean":
         return ["true", "false"]
-    else:
-        return []
+    return []
 
 
 def _ac_run(ctx, _param, incomplete):

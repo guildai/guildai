@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import click
 
 from guild import click_util
@@ -31,15 +33,8 @@ def _ac_path(ctx, _param, incomplete):
         return []
     if _has_non_path_options(ctx.params):
         return []
-    if not ctx.params["run"]:
-        ctx.params["run"] = "1"
-        if ctx.args:
-            if len(ctx.args) >= 2:
-                ctx.params["run"] = ctx.args[0]
-                ctx.params["other_run"] = ctx.args[1]
-            else:
-                ctx.params["other_run"] = ctx.args[0]
-    dir_base = _diff_dir_base(ctx)
+    _apply_default_runs_for_diff(ctx)
+    dir_base = _diff_run_dir_base(ctx)
     if not dir_base:
         return []
     return click_util.completion_run_filepath(dir_base, incomplete)
@@ -54,12 +49,24 @@ def _has_non_path_options(params):
     )
 
 
-def _diff_dir_base(ctx):
+def _apply_default_runs_for_diff(ctx):
+    if ctx.params["run"]:
+        return
+    ctx.params["run"] = "1"
+    if ctx.args:
+        if len(ctx.args) >= 2:
+            ctx.params["run"] = ctx.args[0]
+            ctx.params["other_run"] = ctx.args[1]
+        else:
+            ctx.params["other_run"] = ctx.args[0]
+
+
+def _diff_run_dir_base(ctx):
     from . import diff_impl
 
     args = click_util.Args(**ctx.params)
     if args.dir:
-        return args.dir
+        return os.path.abspath(args.dir)
     run = _run_to_diff(ctx)
     if not run:
         return None

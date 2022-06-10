@@ -10,7 +10,8 @@ tests).
       anonymous-models:            ok
       api:                         ok
       api-cmd:                     ok
-      autocomplete:                ok
+      autocomplete-bash:           ok
+      autocomplete-zsh:            ok
       batch-basics:                ok
       batch-custom-optimizer:      ok
       batch-error-handling:        ok

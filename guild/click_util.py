@@ -347,28 +347,35 @@ def _list_dir(dir, incomplete, filters=None, ext=None):
     a fallback where we have not yet implemented handling for our
     directives.
     """
-    if ext:
-        ext = ["." + _ if not _.startswith(".") else _ for _ in ext]
-    leading_dir = ""
+    ext = _ensure_leading_dots(ext)
     if incomplete and os.path.sep in incomplete:
         leading_dir, incomplete = os.path.split(incomplete)
+    else:
+        leading_dir = ""
+    fulldir = os.path.join(dir, leading_dir)
+
+    if not os.path.isdir(fulldir):
+        return []
 
     results = set()
-    tested = set()
-    if os.path.isdir(os.path.join(dir, leading_dir)):
-        for path in Path(os.path.join(dir, leading_dir)).iterdir():
-            key = str(path.relative_to(dir)) + ("/" if path.is_dir() else "")
-            if key not in tested:
-                tested.add(key)
-                # pylint: disable=too-many-boolean-expressions
-                if (
-                    (not ext or path.suffix in set(ext))
-                    and path.name not in {".guild", "__pycache__"}
-                    and (not incomplete or path.name.startswith(incomplete))
-                    and (not filters or all(filter(str(path)) for filter in filters))
-                ):
-                    results.add(key)
+
+    for path in Path(fulldir).iterdir():
+        key = str(path.relative_to(dir)) + ("/" if path.is_dir() else "")
+        # pylint: disable=too-many-boolean-expressions
+        if (
+            (not ext or path.suffix in set(ext))
+            and path.name not in {".guild", "__pycache__"}
+            and (not incomplete or path.name.startswith(incomplete))
+            and (not filters or all(filter(str(path)) for filter in filters))
+        ):
+            results.add(key)
     return natsorted(results)
+
+
+def _ensure_leading_dots(l):
+    if not l:
+        return l
+    return ["." + x if x[:1] != "." else x for x in l]
 
 
 def completion_filename(ext=None, incomplete=None):
