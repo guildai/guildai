@@ -36,11 +36,93 @@
       b  sample flag (default is no)
       c  sample choices (default is red)
     <BLANKLINE>
-         Choices:  red, blue, green
+         Choices:  red, blue, green, gray
     <BLANKLINE>
       f  sample float (default is 1.1)
       i  sample int (default is 1)
       s  sample string (default is hello)
+    <exit 0>
+
+    >>> run("guild run args-click-default --test-flags")
+    ???
+    flags-dest: args:click
+    flags-import: yes
+    flags:
+      b:
+        default: no
+        type: boolean
+        required: no
+        arg-name:
+        arg-skip:
+        arg-switch: yes
+        arg-split:
+        env-name:
+        choices: []
+        allow-other: no
+        distribution:
+        max:
+        min:
+        null-label:
+      c:
+        default: red
+        type:
+        required: no
+        arg-name:
+        arg-skip:
+        arg-switch:
+        arg-split:
+        env-name:
+        choices: [red, blue, green, gray]
+        allow-other: no
+        distribution:
+        max:
+        min:
+        null-label:
+      f:
+        default: 1.1
+        type: float
+        required: no
+        arg-name:
+        arg-skip:
+        arg-switch:
+        arg-split:
+        env-name:
+        choices: []
+        allow-other: no
+        distribution:
+        max:
+        min:
+        null-label:
+      i:
+        default: 1
+        type: int
+        required: no
+        arg-name:
+        arg-skip:
+        arg-switch:
+        arg-split:
+        env-name:
+        choices: []
+        allow-other: no
+        distribution:
+        max:
+        min:
+        null-label:
+      s:
+        default: hello
+        type: string
+        required: no
+        arg-name:
+        arg-skip:
+        arg-switch:
+        arg-split:
+        env-name:
+        choices: []
+        allow-other: no
+        distribution:
+        max:
+        min:
+        null-label:
     <exit 0>
 
     >>> run("guild run args-default --help-op")
