@@ -18,11 +18,9 @@ import os
 
 
 def ac_filename(ext=None, incomplete=None):
-    if os.getenv("_GUILD_COMPLETE"):
-        if _active_shell_supports_directives():
-            return _compgen_filenames("file", ext)
-        return _list_dir(os.getcwd(), incomplete, ext=ext)
-    return []
+    if _active_shell_supports_directives():
+        return _compgen_filenames("file", ext)
+    return _list_dir(os.getcwd(), incomplete, ext=ext)
 
 
 def _list_dir(dir, incomplete, filters=None, ext=None):
@@ -71,19 +69,15 @@ def _ensure_leading_dots(l):
 
 
 def ac_dir(incomplete=None):
-    if os.getenv("_GUILD_COMPLETE"):
-        if _active_shell_supports_directives():
-            return ["!!dir"]
-        return _list_dir(os.getcwd(), incomplete, filters=[os.path.isdir])
-    return []
+    if _active_shell_supports_directives():
+        return ["!!dir"]
+    return _list_dir(os.getcwd(), incomplete, filters=[os.path.isdir])
 
 
 def ac_opnames(names):
-    if os.getenv("_GUILD_COMPLETE"):
-        if _active_shell_supports_directives():
-            names = ["!!no-colon-wordbreak"] + names
-        return names
-    return []
+    if _active_shell_supports_directives():
+        names = ["!!no-colon-wordbreak"] + names
+    return names
 
 
 def _compgen_filenames(type, ext):
@@ -95,25 +89,19 @@ def _compgen_filenames(type, ext):
 def ac_nospace():
     # TODO: zsh supports this directive, but not the others.
     # We should add proper support for all of them at some point.
-    if (
-        os.getenv("_GUILD_COMPLETE")
-        and _active_shell_supports_directives()
-        or _active_shell() == "zsh"
-    ):
+    if _active_shell_supports_directives() or _active_shell() == "zsh":
         return ["!!nospace"]
     return []
 
 
 def ac_batchfile(ext=None, incomplete=None):
     incomplete = incomplete or ""
-    if os.getenv("_GUILD_COMPLETE"):
-        if _active_shell_supports_directives():
-            return _compgen_filenames("batchfile", ext)
-        return [
-            "@" + str(item)
-            for item in _list_dir(os.getcwd(), incomplete.replace("@", ""), ext=ext)
-        ]
-    return []
+    if _active_shell_supports_directives():
+        return _compgen_filenames("batchfile", ext)
+    return [
+        "@" + str(item)
+        for item in _list_dir(os.getcwd(), incomplete.replace("@", ""), ext=ext)
+    ]
 
 
 def ac_command(incomplete):
@@ -128,55 +116,49 @@ def _gen_ac_command(directive_filter, regex_filter, incomplete):
     import re
     import subprocess
 
-    if os.getenv("_GUILD_COMPLETE"):
-        if _active_shell_supports_directives():
-            if directive_filter:
-                return ["!!command:%s" % directive_filter]
-            return ["!!command"]
+    if _active_shell_supports_directives():
+        if directive_filter:
+            return ["!!command:%s" % directive_filter]
+        return ["!!command"]
 
-        # TODO: how should we handle this on windows? call out to bash
-        #    explicitly? better to avoid explicitly calling sh.
-        available_commands = subprocess.check_output(
-            [
-                "sh",
-                "-c",
-                "ls $(echo $PATH | tr ':' ' ') | grep -v '/' | grep . | sort | uniq",
-            ],
-            stderr=subprocess.DEVNULL,
-        )
-        available_commands = [_.decode() for _ in available_commands.strip().split()]
-        if regex_filter:
-            filter_re = re.compile(regex_filter)
-            available_commands = [
-                cmd for cmd in available_commands if filter_re.match(cmd)
-            ]
-        if incomplete:
-            available_commands = [
-                cmd for cmd in available_commands if cmd.startswith(incomplete)
-            ]
-        return available_commands
-    return []
+    # TODO: how should we handle this on windows? call out to bash
+    #    explicitly? better to avoid explicitly calling sh.
+    available_commands = subprocess.check_output(
+        [
+            "sh",
+            "-c",
+            "ls $(echo $PATH | tr ':' ' ') | grep -v '/' | grep . | sort | uniq",
+        ],
+        stderr=subprocess.DEVNULL,
+    )
+    available_commands = [_.decode() for _ in available_commands.strip().split()]
+    if regex_filter:
+        filter_re = re.compile(regex_filter)
+        available_commands = [
+            cmd for cmd in available_commands if filter_re.match(cmd)
+        ]
+    if incomplete:
+        available_commands = [
+            cmd for cmd in available_commands if cmd.startswith(incomplete)
+        ]
+    return available_commands
 
 
 def ac_run_dirpath(run_dir, all=False, incomplete=None):
-    if os.getenv("_GUILD_COMPLETE"):
-        if _active_shell_supports_directives():
-            if all:
-                return ["!!allrundirs:%s" % run_dir]
-            return ["!!rundirs:%s" % run_dir]
-        filters = [os.path.isdir, lambda x: os.path.isdir(os.path.join(x, ".guild"))]
+    if _active_shell_supports_directives():
         if all:
-            filters.pop()
-        return _list_dir(dir=run_dir, incomplete=incomplete, filters=filters)
-    return []
+            return ["!!allrundirs:%s" % run_dir]
+        return ["!!rundirs:%s" % run_dir]
+    filters = [os.path.isdir, lambda x: os.path.isdir(os.path.join(x, ".guild"))]
+    if all:
+        filters.pop()
+    return _list_dir(dir=run_dir, incomplete=incomplete, filters=filters)
 
 
 def ac_run_filepath(run_dir, incomplete):
-    if os.getenv("_GUILD_COMPLETE"):
-        if _active_shell_supports_directives():
-            return ["!!runfiles:%s" % run_dir]
-        return _list_dir(run_dir, incomplete)
-    return []
+    if _active_shell_supports_directives():
+        return ["!!runfiles:%s" % run_dir]
+    return _list_dir(run_dir, incomplete)
 
 
 def ac_safe_apply(ctx, f, args):
