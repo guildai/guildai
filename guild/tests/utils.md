@@ -714,3 +714,16 @@ with underscore.
 
     >>> file_sha256(sample("textorbinary", "lena.jpg"), use_cache=False)
     '54e97bc5e2a8744022f3c57c08d2a36566067866d9cabfbdde131e99a485134a'
+
+## Active shell
+
+The active shell is provided as a shell string using
+`util.active_shell()`.
+
+    >>> from guild.util import active_shell, _KNOWN_SHELLS
+
+We assume that our tests are run under a known shell.
+
+    >>> shell = active_shell()
+    >>> shell in _KNOWN_SHELLS, (shell, _KNOWN_SHELLS)
+    (True, ...)

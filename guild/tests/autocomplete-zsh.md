@@ -58,6 +58,7 @@ Default list includes all built-in tests and a directive to include
 markdown and text files.
 
     >>> ac_check_tests("")
+    ac-support
     additional-deps
     anonymous-models
     api
@@ -529,8 +530,8 @@ used by the bash completion handlers to find matching files.
     tune-echo
     tune-echo-2
     batch_fail.py
-    echo2.py
     echo.py
+    echo2.py
     fail.py
     noisy.py
     noisy_flubber.py
@@ -544,8 +545,8 @@ If we specify something for opspec, we get matching ops and scripts.
 
     >>> run_ac("opspec", [], "ech")
     echo
-    echo2.py
     echo.py
+    echo2.py
 
 ### Flags
 
@@ -555,23 +556,23 @@ to enter a value for flag after the equals sign.
 If a project has a default operation, flags are listed for it.
 
     >>> run_ac("flags", [])
+    !!nospace
     noise=
     x=
-    !!nospace
 
 With incomplete:
 
     >>> run_ac("flags", [], "x")
-    x=
     !!nospace
+    x=
 
 Provide an explicit operation.
 
     >>> run_ac("flags", ["echo"])
+    !!nospace
     x=
     y=
     z=
-    !!nospace
 
 When choices are available, they are shown once the flag is
 identified. zsh wants the format 'name=val' (bash just lists the
@@ -628,8 +629,8 @@ Paths types support file name completions.
 
     >>> run_ac("flags", ["flags"], "p=")
     p=batch_fail.py
-    p=echo2.py
     p=echo.py
+    p=echo2.py
     p=fail.py
     p=guild.yml
     p=noisy.py
@@ -643,8 +644,8 @@ Paths types support file name completions.
 
     >>> run_ac("flags", ["flags"], "ep=")
     ep=batch_fail.py
-    ep=echo2.py
     ep=echo.py
+    ep=echo2.py
     ep=fail.py
     ep=guild.yml
     ep=noisy.py
@@ -724,7 +725,7 @@ Locations may be directories or zip files.
     >>> with ZshCompletion():
     ...     with Chdir(export_tmp):
     ...         [_.value for _ in runs_export.export_runs.params[0].shell_complete(None, "")]
-    ['yyy/', 'xxx.zip']
+    ['xxx.zip', 'yyy/']
 
 ## `help`
 
@@ -755,7 +756,7 @@ The archive location for import is a directory or a zip file.
     >>> with ZshCompletion():
     ...     with Chdir(export_tmp):
     ...         [_.value for _ in runs_import.import_runs.params[0].shell_complete(None, "")]
-    ['yyy/', 'xxx.zip']
+    ['xxx.zip', 'yyy/']
 
 ## `init`
 
@@ -796,6 +797,11 @@ Guild version or path:
     >>> ac_init(init._ac_guild_version_or_path)
     ???aaa.whl
     bbb.whl
+    dir-1/
+    dir-2/
+
+    >>> ac_init(init._ac_guild_version_or_path, "b")
+    bbb.whl
 
 Guild home:
 
@@ -806,9 +812,49 @@ Requirements:
     >>> ac_init(init._ac_requirement)
     xxx.txt
     yyy.txt
+    dir-1/
+    dir-2/
 
 Additional Python path:
 
     >>> ac_init(init._ac_dir)
     dir-1/
     dir-2/
+
+## `install`
+
+    >>> from guild.commands import install
+
+    >>> def ac_install(f, incomplete=""):
+    ...     with ZshCompletion():
+    ...         with Chdir(install_tmp):
+    ...             return f(None, None, incomplete)
+
+Create a directory structure to test package arg.
+
+    >>> install_tmp = mkdtemp()
+    >>> touch(path(install_tmp, "aaa.whl"))
+    >>> touch(path(install_tmp, "bbb.whl"))
+    >>> mkdir(path(install_tmp, "dir-1"))
+    >>> mkdir(path(install_tmp, "dir-2"))
+    >>> touch(path(install_tmp, "dir-2", "ccc.whl"))
+
+Package arg:
+
+    >>> ac_install(install._ac_package)
+    ['aaa.whl', 'bbb.whl', 'dir-1/', 'dir-2/']
+
+    >>> ac_install(install._ac_package, "a")
+    ['aaa.whl']
+
+    >>> ac_install(install._ac_package, "dir-2")
+    ['dir-2/']
+
+    >>> ac_install(install._ac_package, "dir-2/")
+    ['dir-2/ccc.whl']
+
+    >>> ac_install(install._ac_package, "dir-2/c")
+    ['dir-2/ccc.whl']
+
+    >>> ac_install(install._ac_package, "dir-2/x")
+    []

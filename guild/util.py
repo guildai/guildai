@@ -1778,21 +1778,87 @@ class lazy_str:
         return self.f()
 
 
-DEFAULT_SHELL = "sh"
+_KNOWN_SHELLS = ("bash", "zsh", "fish", "dash", "sh")
 
 
 def active_shell():
     import psutil
 
-    known_shells = {"bash", "zsh", "fish", "dash", "sh"}
-    parent_shell = os.path.basename(psutil.Process().parent().exe())
-    if parent_shell not in known_shells:
-        # if we use something like make to launch guild, we may need
-        # to look one level higher.
-        parent_of_parent = os.path.basename(psutil.Process().parent().parent().exe())
-        if parent_of_parent in known_shells:
-            parent_shell = parent_of_parent
-        else:
-            log.warning("unknown shell '%s', assuming %s", parent_shell, DEFAULT_SHELL)
-            parent_shell = DEFAULT_SHELL
-    return parent_shell
+    p = psutil.Process().parent()  # skip current process as we're
+                                   # running as Python
+    while p:
+        p_name = p.name()
+        if p_name in _KNOWN_SHELLS:
+            return p_name
+        p = p.parent()
+    return None
+
+
+class StderrCapture:
+
+    closed = False
+    _stderr = None
+    _captured = []
+
+    def __init__(self, autoprint=False):
+        self._autoprint = autoprint
+
+    def __enter__(self):
+        self._stderr = sys.stderr
+        self._captured = []
+        self.closed = False
+        sys.stderr = self
+        return self
+
+    def __exit__(self, *exc):
+        assert self._stderr is not None
+        sys.stderr = self._stderr
+        self.closed = True
+
+    def write(self, b):
+        self._captured.append(b)
+        if self._autoprint:
+            if hasattr(b, "decode"):
+                sys.stdout.write(b.decode("utf-8"))
+            else:
+                sys.stdout.write(b)
+            sys.stdout.flush()
+
+    def flush(self):
+        pass
+
+    def print(self):
+        for part in self._captured:
+            if hasattr(part, "decode"):
+                sys.stdout.write(part.decode("utf-8"))
+            else:
+                sys.stdout.write(part)
+        sys.stdout.flush()
+
+
+class StdoutCapture:
+
+    closed = False
+    _stdout = None
+    _captured = []
+
+    def __enter__(self):
+        self._stdout = sys.stdout
+        self._captured = []
+        self.closed = False
+        sys.stdout = self
+        return self
+
+    def __exit__(self, *exc):
+        assert self._stdout is not None
+        sys.stdout = self._stdout
+        self.closed = True
+
+    def write(self, b):
+        self._captured.append(b)
+
+    def flush(self):
+        pass
+
+    def get_value(self):
+        return "".join(self._captured)

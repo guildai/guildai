@@ -20,49 +20,47 @@ from . import ac_support
 from . import remote_support
 
 
-def _ac_opspec(ctx, param, incomplete):
-    ops = _ac_operations(ctx, param, incomplete)
-    return ops + ac_support.ac_filename(["py", "ipynb"], incomplete=incomplete)
+def _ac_opspec(_ctx, param, incomplete):
+    ops = _ac_operations(param, incomplete)
+    return ops + ac_support.ac_filename(["py", "ipynb"], incomplete)
 
 
-def _ac_operations(ctx, _param, incomplete):
+def _ac_operations(_param, incomplete):
+    op_names = _op_names()
+    return ac_support.ac_no_colon_wordbreak(op_names, incomplete)
+
+
+def _op_names():
     from guild import cmd_impl_support
+    from guild import util
     from . import operations_impl
 
-    ops_args = click_util.Args(installed=False, all=False, filters=[])
+    with util.StderrCapture():
+        cmd_impl_support.init_model_path()
 
-    def f():
-        with _hide_warnings():
-            cmd_impl_support.init_model_path()
-            return [op["fullname"] for op in operations_impl.filtered_ops(ops_args)]
-
-    ops = ac_support.ac_safe_apply(ctx, f, [])
-
-    names = [op for op in ops if (not incomplete or op.startswith(incomplete))]
-    return ac_support.ac_opnames(names)
-
-
-def _hide_warnings():
-    from guild import _test
-
-    return _test.StderrCapture()
+    ops = operations_impl.filtered_ops(
+        click_util.Args(
+            installed=False,
+            all=False,
+            filters=[],
+        )
+    )
+    return sorted([op["fullname"] for op in ops])
 
 
 def _ac_flag(ctx, param, incomplete):
     if incomplete[:1] == "@":
         return _ac_batch_files(ctx, param, incomplete)
-
     args = click_util.Args(**ctx.params)
     opdef = _opdef_for_opspec(args.opspec)
     if not opdef:
         return []
-
     if "=" in incomplete:
         return _ac_flag_choices(incomplete, opdef)
-
-    unused_flags = _unused_flags_for_args(args, opdef)
-    flags_ac = [f for f in unused_flags if f.startswith(incomplete)]
-    return ["%s=" % f for f in flags_ac] + ac_support.ac_nospace()
+    unused_flag_assigns = [
+        f"{flag_name}=" for flag_name in _unused_flags_for_args(args, opdef)
+    ]
+    return ac_support.ac_nospace(unused_flag_assigns, incomplete)
 
 
 def _unused_flags_for_args(args, opdef):
@@ -101,7 +99,7 @@ def _choice_values_for_flagdef(flagdef):
     if flagdef.type == "boolean":
         return ["true", "false"]
     if flagdef.type in ("path", "existing-path"):
-        return ac_support.ac_filename()
+        return _cwd_filename_choices()
     return []
 
 
@@ -109,6 +107,15 @@ def _encode_choices(choices):
     from guild import yaml_util
 
     return [yaml_util.encode_yaml(c.value) for c in choices]
+
+
+def _cwd_filename_choices():
+    """Returns a list of cwd filename choices.
+
+    All file extensions are supported and the list is not filtered by
+    incomplete. Filtering is performed downstream.
+    """
+    return ac_support.ac_filename(None, None)
 
 
 def _ac_run(ctx, _param, incomplete):

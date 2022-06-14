@@ -23,13 +23,17 @@ def _ac_dir(_ctx, _param, incomplete):
     return ac_support.ac_dir(incomplete)
 
 
+def _ac_package(_ctx, _param, incomplete):
+    return ac_support.ac_filename(["whl"], incomplete)
+
+
 @click.command()
 @click.argument(
     "packages",
     metavar="PACKAGE...",
     nargs=-1,
     required=True,
-    shell_complete=ac_support.ac_filename,
+    shell_complete=_ac_package,
 )
 @click.option(
     "-U",

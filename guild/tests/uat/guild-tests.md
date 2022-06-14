@@ -6,6 +6,7 @@ tests).
 
     >>> run("NO_SKIPPED_MSG=1 guild check -nT", timeout=int(os.getenv("GUILD_CHECK_TIMEOUT", 1800))) # doctest: +REPORT_UDIFF
     internal tests:
+      ac-support:                  ok
       additional-deps:             ok
       anonymous-models:            ok
       api:                         ok

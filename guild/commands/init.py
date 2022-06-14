@@ -23,12 +23,12 @@ def _ac_python(_ctx, _param, incomplete):
     return ac_support.ac_python(incomplete)
 
 
-def _ac_guild_version_or_path(ctx, _param, incomplete):
-    versions = [ver for ver in _guild_versions(ctx) if ver.startswith(incomplete)]
-    return versions + ac_support.ac_filename(["whl"])
+def _ac_guild_version_or_path(_ctx, _param, incomplete):
+    versions = [ver for ver in _guild_versions() if ver.startswith(incomplete)]
+    return versions + ac_support.ac_filename(["whl"], incomplete)
 
 
-def _guild_versions(ctx):
+def _guild_versions():
     import json
 
     # We want to import pip._vendor.requests but pip has an import
@@ -40,7 +40,7 @@ def _guild_versions(ctx):
         data = json.loads(resp.text)
         return sorted(data.get("releases") or {})
 
-    return ac_support.ac_safe_apply(ctx, f, []) or []
+    return ac_support.ac_safe_apply(f, []) or []
 
 
 def _ac_guild_home(_ctx, _param, incomplete):

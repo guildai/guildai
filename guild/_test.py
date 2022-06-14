@@ -547,7 +547,7 @@ def test_globals():
         "RunError": gapi.RunError,
         "SetCwd": configlib.SetCwd,
         "SetGuildHome": configlib.SetGuildHome,
-        "StderrCapture": StderrCapture,
+        "StderrCapture": util.StderrCapture,
         "SysPath": SysPath,
         "TempFile": util.TempFile,
         "UserConfig": UserConfig,
@@ -694,78 +694,8 @@ def copyfile(*args, **kw):
     shutil.copy2(*args, **kw)
 
 
-class StderrCapture:
-
-    closed = False
-    _stderr = None
-    _captured = []
-
-    def __init__(self, autoprint=False):
-        self._autoprint = autoprint
-
-    def __enter__(self):
-        self._stderr = sys.stderr
-        self._captured = []
-        self.closed = False
-        sys.stderr = self
-        return self
-
-    def __exit__(self, *exc):
-        assert self._stderr is not None
-        sys.stderr = self._stderr
-        self.closed = True
-
-    def write(self, b):
-        self._captured.append(b)
-        if self._autoprint:
-            if hasattr(b, "decode"):
-                sys.stdout.write(b.decode("utf-8"))
-            else:
-                sys.stdout.write(b)
-            sys.stdout.flush()
-
-    def flush(self):
-        pass
-
-    def print(self):
-        for part in self._captured:
-            if hasattr(part, "decode"):
-                sys.stdout.write(part.decode("utf-8"))
-            else:
-                sys.stdout.write(part)
-        sys.stdout.flush()
-
-
-class StdoutCapture:
-
-    closed = False
-    _stdout = None
-    _captured = []
-
-    def __enter__(self):
-        self._stdout = sys.stdout
-        self._captured = []
-        self.closed = False
-        sys.stdout = self
-        return self
-
-    def __exit__(self, *exc):
-        assert self._stdout is not None
-        sys.stdout = self._stdout
-        self.closed = True
-
-    def write(self, b):
-        self._captured.append(b)
-
-    def flush(self):
-        pass
-
-    def get_value(self):
-        return "".join(self._captured)
-
-
 def PrintStderr():
-    return StderrCapture(autoprint=True)
+    return util.StderrCapture(autoprint=True)
 
 
 def write(filename, contents, append=False):
@@ -1352,6 +1282,6 @@ def _compare_dirs(d1, d2):
     os.symlink(d1_path, d1_link)
     d2_link = os.path.join(cmp_dir, d2_label)
     os.symlink(d2_path, d2_link)
-    with StdoutCapture() as out:
+    with util.StdoutCapture() as out:
         filecmp.dircmp(d1_link, d2_link).report_full_closure()
     print(out.get_value().replace(cmp_dir, ""), end="")

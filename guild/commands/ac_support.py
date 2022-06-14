@@ -14,17 +14,20 @@
 
 import os
 
-# Move other imports into functions as this is used for command UI
+# Avoid expensive or one-off imports
 
 
-def ac_filename(ext=None, incomplete=None):
+def ac_filename(ext, incomplete):
     if _active_shell_supports_directives():
         return _compgen_filenames("file", ext)
-    return _list_dir(os.getcwd(), incomplete, ext=ext)
+    return _list_dir(os.getcwd(), filters=None, ext=ext, incomplete=incomplete)
 
 
-def _list_dir(dir, incomplete, filters=None, ext=None):
+def _list_dir(dir, filters=None, ext=None, incomplete=None):
     """Python based directory listing for completions.
+
+    Returns a list of paths for `dir` to include in completion
+    results.
 
     We use shell functions (e.g. compgen on bash) where possible to
     provide listing. This is for the sake of speed as well as making
@@ -33,51 +36,102 @@ def _list_dir(dir, incomplete, filters=None, ext=None):
     for our !! directives. We provide native Python implementation as
     a fallback where we have not yet implemented handling for our
     directives.
+
+    `filters` is a None or a list of functions used to filter (select
+    for inclusion) paths by returning True. Each function must accept
+    a single argument, which is a pathlib.Path object for the path
+    being filtered.  All filters must return True for a path to be
+    included in the result.
+
+    `ext` is None or a list of file extensions, not including leading
+    dots. If specified, a path is filtered (selected for inclusion) if
+    its suffix matches any of the specified extensions. Matching in
+    this case is case insensitive.
     """
     import pathlib
-    from guild import util
 
-    ext = _ensure_leading_dots(ext)
-    if incomplete and os.path.sep in incomplete:
-        leading_dir, incomplete = os.path.split(incomplete)
-    else:
-        leading_dir = ""
-    fulldir = os.path.join(dir, leading_dir)
+    ext = set(_normalize_file_extensions(ext))
 
-    if not os.path.isdir(fulldir):
+    subdir_incomplete, path_incomplete = _split_path_incomplete(incomplete)
+    root = pathlib.Path(dir, subdir_incomplete)
+    if not os.path.isdir(root):
         return []
 
     results = set()
-
-    for path in pathlib.Path(fulldir).iterdir():
-        key = str(path.relative_to(dir)) + ("/" if path.is_dir() else "")
-        # pylint: disable=too-many-boolean-expressions
-        if (
-            (not ext or path.suffix in set(ext))
-            and path.name not in {".guild", "__pycache__"}
-            and (not incomplete or path.name.startswith(incomplete))
-            and (not filters or all(filter(str(path)) for filter in filters))
-        ):
-            results.add(key)
-    return util.natsorted(results)
+    for path in root.iterdir():
+        if not _filter_path(path, filters, ext, path_incomplete):
+            continue
+        results.add(_format_path_for_list(path, dir))
+    return _sort_list_dir_result(results)
 
 
-def _ensure_leading_dots(l):
-    if not l:
-        return l
-    return ["." + x if x[:1] != "." else x for x in l]
+def _split_path_incomplete(incomplete):
+    return os.path.split(incomplete) if incomplete else ("", "")
 
 
-def ac_dir(incomplete=None):
+def _normalize_file_extensions(exts):
+    """Normalizes a list of extensions for use in filtering.
+
+    Each extension is returned from `exts` as lower-case and with a
+    leading dot. This format can be used to test an lower-case suffix.
+    """
+    return ["." + ext.lower() for ext in (exts or [])]
+
+
+def _filter_path(path, filters, normlized_extensions, incomplete):
+    if filters and not _apply_path_filters(filters, path):
+        return False
+    if incomplete and not path.name.startswith(incomplete):
+        return False
+    if path.is_dir():
+        return True
+    if normlized_extensions and not path.suffix.lower() in normlized_extensions:
+        return False
+    return True
+
+
+def _apply_path_filters(filters, path):
+    return all(f(path) for f in filters)
+
+
+def _format_path_for_list(path, toplevel_dir):
+    return str(path.relative_to(toplevel_dir)) + _maybe_trailing_sep(path)
+
+
+def _maybe_trailing_sep(path):
+    return os.path.sep if path.is_dir() else ""
+
+
+def _sort_list_dir_result(paths):
+    """Returns sorted list of paths for a directory listing.
+
+    Entries are ordered alphabetically with directories always occurring
+    after non-directories.
+    """
+    return sorted(paths, key=_list_dir_sort_key)
+
+
+def _list_dir_sort_key(path):
+    return (1, path) if path[-1:] == os.path.sep else (0, path)
+
+
+def ac_dir(incomplete):
     if _active_shell_supports_directives():
         return ["!!dir"]
-    return _list_dir(os.getcwd(), incomplete, filters=[os.path.isdir])
+    return _list_dir(os.getcwd(), filters=[os.path.isdir], incomplete=incomplete)
 
 
-def ac_opnames(names):
+def ac_no_colon_wordbreak(values, incomplete):
+    values = _values_for_incomplete(incomplete, values)
     if _active_shell_supports_directives():
-        names = ["!!no-colon-wordbreak"] + names
-    return names
+        return ["!!no-colon-wordbreak"] + values
+    return values
+
+
+def _values_for_incomplete(incomplete, values):
+    if not incomplete:
+        return values
+    return [s for s in values if s.startswith(incomplete)]
 
 
 def _compgen_filenames(type, ext):
@@ -86,22 +140,35 @@ def _compgen_filenames(type, ext):
     return ["!!%s:*.@(%s)" % (type, "|".join(ext))]
 
 
-def ac_nospace():
-    # TODO: zsh supports this directive, but not the others.
-    # We should add proper support for all of them at some point.
-    if _active_shell_supports_directives() or _active_shell() == "zsh":
-        return ["!!nospace"]
-    return []
+def ac_nospace(values, incomplete):
+    values = _values_for_incomplete(incomplete, values)
+    if _active_shell_supports_nospace():
+        return ["!!nospace"] + values
+    return values
 
 
-def ac_batchfile(ext=None, incomplete=None):
-    incomplete = incomplete or ""
+def _active_shell_supports_nospace():
+    # zsh is a one-off shell that supports the nospace directive but
+    # otherwise doesn't support directives. See
+    # (../completions/zsh-guild for details).
+    return _active_shell_supports_directives() or _active_shell() == "zsh"
+
+
+def ac_batchfile(ext, incomplete):
     if _active_shell_supports_directives():
         return _compgen_filenames("batchfile", ext)
-    return [
-        "@" + str(item)
-        for item in _list_dir(os.getcwd(), incomplete.replace("@", ""), ext=ext)
-    ]
+    batchfile_paths = _list_dir(
+        os.getcwd(), ext=ext, incomplete=_strip_batch_prefix(incomplete)
+    )
+    return [_apply_batch_prefix(path) for path in batchfile_paths]
+
+
+def _strip_batch_prefix(s):
+    return s[1:] if s and s[:1] == "@" else s
+
+
+def _apply_batch_prefix(s):
+    return "@" + s
 
 
 def ac_command(incomplete):
@@ -109,7 +176,11 @@ def ac_command(incomplete):
 
 
 def ac_python(incomplete):
-    return _gen_ac_command("python*[^-config]", r"^python[^-]*(?!-config)$", incomplete)
+    return _gen_ac_command(
+        "python*[^-config]",
+        r"^python[^-]*(?!-config)$",
+        incomplete,
+    )
 
 
 def _gen_ac_command(directive_filter, regex_filter, incomplete):
@@ -134,43 +205,30 @@ def _gen_ac_command(directive_filter, regex_filter, incomplete):
     available_commands = [_.decode() for _ in available_commands.strip().split()]
     if regex_filter:
         filter_re = re.compile(regex_filter)
-        available_commands = [
-            cmd for cmd in available_commands if filter_re.match(cmd)
-        ]
-    if incomplete:
-        available_commands = [
-            cmd for cmd in available_commands if cmd.startswith(incomplete)
-        ]
-    return available_commands
-
-
-def ac_run_dirpath(run_dir, all=False, incomplete=None):
-    if _active_shell_supports_directives():
-        if all:
-            return ["!!allrundirs:%s" % run_dir]
-        return ["!!rundirs:%s" % run_dir]
-    filters = [os.path.isdir, lambda x: os.path.isdir(os.path.join(x, ".guild"))]
-    if all:
-        filters.pop()
-    return _list_dir(dir=run_dir, incomplete=incomplete, filters=filters)
+        available_commands = [cmd for cmd in available_commands if filter_re.match(cmd)]
+    return _values_for_incomplete(incomplete, available_commands)
 
 
 def ac_run_filepath(run_dir, incomplete):
     if _active_shell_supports_directives():
         return ["!!runfiles:%s" % run_dir]
-    return _list_dir(run_dir, incomplete)
+    return _list_dir(run_dir, filters=[_run_filepath_filter], incomplete=incomplete)
 
 
-def ac_safe_apply(ctx, f, args):
-    from guild import config
+def _run_filepath_filter(p):
+    """Filter used with _list_dir to remove `.guild` from completions."""
+    return p.name != ".guild"
 
-    with config.SetGuildHome(ctx.parent.params.get("guild_home")):
-        try:
-            return f(*args)
-        except (Exception, SystemExit):
-            if os.getenv("_GUILD_COMPLETE_DEBUG") == "1":
-                raise
-            return None
+
+def ac_safe_apply(f, args):
+    try:
+        return f(*args)
+    except (Exception, SystemExit):
+        import logging
+
+        if logging.getLogger("guild").getEffectiveLevel() <= logging.DEBUG:
+            raise
+        return None
 
 
 def _active_shell():
@@ -183,8 +241,12 @@ def _active_shell_supports_directives():
     return _active_shell() in ("bash",)
 
 
-def ac_assignments(key, vals, val_incomplete):
-    ac_vals = [val for val in vals if val.startswith(val_incomplete)]
-    if _active_shell() == "bash":
-        return ac_vals
-    return [f"{key}={val}" for val in ac_vals]
+def ac_assignments(key, values, value_incomplete):
+    values = _values_for_incomplete(value_incomplete, values)
+    if not _active_shell_requires_full_assign():
+        return values
+    return [f"{key}={val}" for val in values]
+
+
+def _active_shell_requires_full_assign():
+    return _active_shell() != "bash"

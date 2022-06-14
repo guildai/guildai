@@ -49,6 +49,7 @@ Default list includes all built-in tests and a directive to include
 markdown and text files.
 
     >>> ac_check_tests("")
+    ac-support
     additional-deps
     anonymous-models
     api
@@ -413,23 +414,23 @@ to enter a value for flag after the equals sign.
 If a project has a default operation, flags are listed for it.
 
     >>> run_ac("flags", [])
+    !!nospace
     noise=
     x=
-    !!nospace
 
 With incomplete:
 
     >>> run_ac("flags", [], "x")
-    x=
     !!nospace
+    x=
 
 Provide an explicit operation.
 
     >>> run_ac("flags", ["echo"])
+    !!nospace
     x=
     y=
     z=
-    !!nospace
 
 When choices are available, they are shown once the flag is
 identified.
@@ -556,7 +557,7 @@ Locations may be directories or zip files.
 
     >>> with BashCompletion():
     ...     [_.value for _ in runs_export.export_runs.params[0].shell_complete(None, "")]
-    ['!!dir', '!!file:*.@(zip)']
+    ['!!file:*.@(zip)']
 
 ## `help`
 
@@ -581,7 +582,7 @@ The archive location for import is a directory.
 
     >>> with BashCompletion():
     ...     [_.value for _ in runs_import.import_runs.params[0].shell_complete(None, "")]
-    ['!!dir', '!!file:*.@(zip)']
+    ['!!file:*.@(zip)']
 
 ## `init`
 
@@ -626,3 +627,25 @@ Additional Python path:
 
     >>> ac_init(init._ac_dir)
     !!dir
+
+## `install`
+
+    >>> from guild.commands import install
+
+    >>> def ac_install(f, incomplete=""):
+    ...     with BashCompletion():
+    ...         with Chdir(install_tmp):
+    ...             return f(None, None, incomplete)
+
+Create a directory structure to test package arg.
+
+    >>> install_tmp = mkdtemp()
+    >>> mkdir(path(install_tmp, "dir-1"))
+    >>> mkdir(path(install_tmp, "dir-2"))
+    >>> touch(path(install_tmp, "aaa.whl"))
+    >>> touch(path(install_tmp, "bbb.whl"))
+
+Package arg:
+
+    >>> ac_install(install._ac_package)
+    ['!!file:*.@(whl)']

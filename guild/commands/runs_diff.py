@@ -26,7 +26,7 @@ from . import runs_support
 def _ac_cmd(ctx, _param, incomplete):
     if ctx.params.get("remote"):
         return []
-    return ac_support.ac_command(incomplete=incomplete)
+    return ac_support.ac_command(incomplete)
 
 
 def _ac_path(ctx, _param, incomplete):
@@ -72,7 +72,7 @@ def _diff_run_dir_base(ctx):
     if not run:
         return None
     if args.working:
-        return ac_support.ac_safe_apply(ctx, diff_impl._working_dir_for_run, [run])
+        return ac_support.ac_safe_apply(diff_impl._working_dir_for_run, [run])
     if args.sourcecode:
         return run.guild_path("sourcecode")
     return run.dir

@@ -21,7 +21,7 @@ from . import runs_support
 
 
 def _ac_archive(_ctx, _param, incomplete):
-    return ac_support.ac_dir(incomplete) + ac_support.ac_filename(["zip"], incomplete)
+    return ac_support.ac_filename(["zip"], incomplete)
 
 
 def import_params(fn):
