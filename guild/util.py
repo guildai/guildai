@@ -1784,8 +1784,7 @@ _KNOWN_SHELLS = ("bash", "zsh", "fish", "dash", "sh")
 def active_shell():
     import psutil
 
-    p = psutil.Process().parent()  # skip current process as we're
-                                   # running as Python
+    p = psutil.Process().parent()
     while p:
         p_name = p.name()
         if p_name in _KNOWN_SHELLS:
