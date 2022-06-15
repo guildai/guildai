@@ -727,3 +727,49 @@ We assume that our tests are run under a known shell.
     >>> shell = active_shell()
     >>> shell in _KNOWN_SHELLS, (shell, _KNOWN_SHELLS)
     (True, ...)
+
+### Active shell caching
+
+The `util` module caches the active shell to avoid rereading the
+environment. The cached value is `util._cached_active_shell`.
+
+    >>> from guild import util
+    >>> util._cached_active_shell == shell, (util._cached_active_shell, shell)
+    (True, ...)
+
+We can verify that the environment is read only when this value is set
+to "__unset__". To test this, we temporarily replace the underlying
+function that checks the environment (`util._active_shell`).
+
+    >>> def _active_shell_replacement():
+    ...     print("Reading the env for active shell")
+    ...     return "xxx"  # value used as active shell
+
+    >>> _active_shell_save = util._active_shell
+    >>> shell_save = shell  # save value from above
+    >>> util._active_shell = _active_shell_replacement
+
+Reset the cached active shell and re-read the value.
+
+    >>> util._cached_active_shell = "__unset__"
+    >>> shell = util.active_shell()
+    Reading the env for active shell
+
+Call `active_shell()` again to verify that the environment is not read.
+
+    >>> shell = util.active_shell()  # does not log 'Reading the env...'
+
+    >>> shell
+    'xxx'
+
+Replace the environment read function.
+
+    >>> util._active_shell = _active_shell_save
+
+Force a re-read of the environment for active shell.
+
+    >>> util._cached_active_shell = "__unset__"
+    >>> shell = util.active_shell()
+
+    >>> shell == shell_save, (shell, shell_save)
+    (True, ...)

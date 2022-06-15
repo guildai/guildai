@@ -1779,9 +1779,18 @@ class lazy_str:
 
 
 _KNOWN_SHELLS = ("bash", "zsh", "fish", "dash", "sh")
+_cached_active_shell = "__unset__"
 
 
 def active_shell():
+    if _cached_active_shell != "__unset__":
+        return _cached_active_shell
+    shell = _active_shell()
+    globals()["_cached_active_shell"] = shell
+    return shell
+
+
+def _active_shell():
     import psutil
 
     p = psutil.Process().parent()
