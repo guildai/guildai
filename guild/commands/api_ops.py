@@ -12,24 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 import click
 
 from guild import click_util
 
+from . import api_support
+
 
 @click.command("ops")
-@click.option("-f", "--format", is_flag=True, help="Format the JSON outout.")
+@api_support.output_options
 @click_util.use_args
 @click_util.render_doc
 def main(args):
     """Show operations as JSON."""
 
-    ops_data = _ops_data()
-    json_opts = {"indent": 2, "sort_keys": True} if args.format else {}
-    out = json.dumps(ops_data, **json_opts)
-    print(out)
+    api_support.out(_ops_data(), args)
 
 
 def _ops_data():

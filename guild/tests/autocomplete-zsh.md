@@ -62,9 +62,7 @@ markdown and text files.
     additional-deps
     anonymous-models
     api
-    api-cmd
-    autocomplete-bash
-    autocomplete-zsh
+    api-compare
     ...
     var
     vcs-source

@@ -42,8 +42,11 @@
     guild.commands.ac_support
     guild.commands.api
     guild.commands.api_compare
+    guild.commands.api_help_op
+    guild.commands.api_merge
     guild.commands.api_ops
     guild.commands.api_runs
+    guild.commands.api_support
     guild.commands.cat
     guild.commands.cat_impl
     guild.commands.check

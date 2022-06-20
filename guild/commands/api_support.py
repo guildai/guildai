@@ -12,22 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 import click
 
 from guild import click_util
 
-from .api_compare import main as compare
-from .api_help_op import main as help_op
-from .api_ops import main as ops
-from .api_runs import main as runs
+
+def output_options(fn):
+    click_util.append_params(
+        fn,
+        [
+            click.Option(
+                ("-f", "--format"),
+                is_flag=True,
+                help="Format the JSON outout.",
+            )
+        ],
+    )
+    return fn
 
 
-@click.group(cls=click_util.Group)
-def api(**_kw):
-    """CLI based API calls."""
+def out(data, args):
+    print(_encode_data(data, args))
 
 
-api.add_command(compare)
-api.add_command(help_op)
-api.add_command(ops)
-api.add_command(runs)
+def _encode_data(data, args):
+    json_opts = {"indent": 2, "sort_keys": True} if args.format else {}
+    return json.dumps(data, **json_opts)

@@ -10,7 +10,11 @@ tests).
       additional-deps:             ok
       anonymous-models:            ok
       api:                         ok
-      api-cmd:                     ok
+      api-compare:                 ok
+      api-help-op:                 ok
+      api-merge:                   ok
+      api-ops:                     ok
+      api-runs:                    ok
       autocomplete-bash:           ok
       autocomplete-zsh:            ok
       batch-basics:                ok

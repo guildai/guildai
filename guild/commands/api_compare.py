@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 import click
 
 from guild import click_util
 
+from . import api_support
 from . import runs_support
 
 
 @click.command("compare")
-@click.option("-f", "--format", is_flag=True, help="Format the JSON outout.")
+@api_support.output_options
 @runs_support.runs_arg
 @click.option("--include-batch", is_flag=True, help="Include batch runs.")
 @runs_support.all_filters
@@ -30,15 +29,10 @@ from . import runs_support
 @click_util.render_doc
 def main(args):
     """Show comparison matric as JSON."""
-    print(_encode_data(_compare_data(args), args))
+    api_support.out(_compare_data(args), args)
 
 
 def _compare_data(args):
     from .view_impl import ViewDataImpl
 
     return ViewDataImpl(args).compare_data()
-
-
-def _encode_data(data, args):
-    json_opts = {"indent": 2, "sort_keys": True} if args.format else {}
-    return json.dumps(data, **json_opts)
