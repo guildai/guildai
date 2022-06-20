@@ -567,6 +567,7 @@ def test_globals():
         "ensure_dir": util.ensure_dir,
         "exists": os.path.exists,
         "example": _example,
+        "examples_dir": _examples_dir,
         "find": find,
         "findl": file_util.find,
         "gapi": gapi,
@@ -653,8 +654,11 @@ def _filter_ignored(paths, ignore):
 
 
 def _example(name):
-    examples = os.path.abspath(os.getenv("EXAMPLES") or _default_examples_dir())
-    return os.path.join(examples, name)
+    return os.path.join(_examples_dir(), name)
+
+
+def _examples_dir():
+    return os.path.abspath(os.getenv("EXAMPLES") or _default_examples_dir())
 
 
 def _default_examples_dir():

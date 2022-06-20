@@ -52,6 +52,7 @@ from .runs import runs
 from .search import search
 from .select import select
 from .mark import mark
+from .schema import schema
 from .shell import shell
 from .stop import stop
 from .sync import sync
@@ -138,6 +139,7 @@ main.add_command(remote)
 main.add_command(remotes)
 main.add_command(run)
 main.add_command(runs)
+main.add_command(schema)
 main.add_command(search)
 main.add_command(select)
 main.add_command(mark)

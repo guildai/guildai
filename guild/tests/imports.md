@@ -122,6 +122,7 @@
     guild.commands.runs_tag
     guild.commands.s3_sync
     guild.commands.s3_sync_impl
+    guild.commands.schema
     guild.commands.search
     guild.commands.search_impl
     guild.commands.select

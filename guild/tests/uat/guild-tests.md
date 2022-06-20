@@ -60,6 +60,7 @@ tests).
       flags-sub-commands:          ok
       gpus:                        ok
       guild-home:                  ok
+      guildfile-schema:            ok
       guildfiles:                  ok
       help:                        ok
       help-op:                     ok
@@ -130,7 +131,6 @@ tests).
       runs-1:                      ok
       runs-2:                      ok
       scalars:                     ok
-      schema-validation:           ok
       select-resources:            ok
       select-runs:                 ok
       select-runs-2:               ok

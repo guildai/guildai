@@ -6,6 +6,9 @@ import pydantic as schema
 
 optional_bool_type = Optional[Union[bool, Literal["yes"], Literal["no"]]]
 
+# Pass-through export
+ValidationError = schema.ValidationError
+
 
 def underscore_to_dash(string: str) -> str:
     return string.replace("_", "-")
@@ -157,7 +160,14 @@ class OpDefSchema(schema.BaseModel):
     flags: Optional[Dict[str, FlagArgTypes]]
     flag_encoder: Optional[str]
     flags_dest: Optional[str]
-    flags_import: Optional[Union[optional_bool_type, Literal["all"], List[str]]]
+    flags_import: Optional[
+        Union[
+            optional_bool_type,
+            Literal["all"],
+            Literal["off"],
+            List[str],
+        ]
+    ]
     flags_import_skip: Optional[List[str]]
     guildfile: Optional[str]
     handle_keyboard_interrupt: optional_bool_type = True
@@ -346,6 +356,14 @@ class GuildfileParsingModel(schema.BaseModel):
 
 def schema_json():
     return schema.schema_json_of(GuildfileParsingModel, indent=2, title="Guild File")
+
+
+def parse_file(path):
+    import yaml  # Expensive
+
+    with open(path) as f:
+        data = yaml.safe_load(f)
+        return GuildfileParsingModel.parse_obj(data)
 
 
 def main():
