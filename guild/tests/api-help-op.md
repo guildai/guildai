@@ -24,14 +24,14 @@ The `api help-op` command shows operation details as JSON.
       },
       "fullname": "train.py",
       "guildfile": {
-        "dir": ".../examples/get-started",
+        "dir": .../examples/get-started",
         "src": null
       },
       "name": "train.py",
       "opref": {
         "modelName": "",
         "opName": "train.py",
-        "pkgName": ".../examples/get-started",
+        "pkgName": .../examples/get-started",
         "pkgType": "script",
         "pkgVersion": ""
       }
@@ -92,7 +92,7 @@ The `api help-op` command shows operation details as JSON.
       "opref": {
         "modelName": "",
         "opName": "args.py",
-        "pkgName": ".../examples/flags",
+        "pkgName": .../examples/flags",
         "pkgType": "script",
         "pkgVersion": ""
       }
@@ -163,14 +163,14 @@ The `api help-op` command shows operation details as JSON.
       },
       "fullname": "args_click.py",
       "guildfile": {
-        "dir": ".../examples/flags",
+        "dir": .../examples/flags",
         "src": null
       },
       "name": "args_click.py",
       "opref": {
         "modelName": "",
         "opName": "args_click.py",
-        "pkgName": ".../examples/flags",
+        "pkgName": .../examples/flags",
         "pkgType": "script",
         "pkgVersion": ""
       }
@@ -220,14 +220,14 @@ The `api help-op` command shows operation details as JSON.
       },
       "fullname": "namespace",
       "guildfile": {
-        "dir": ".../examples/flags",
-        "src": ".../examples/flags/guild.yml"
+        "dir": .../examples/flags",
+        "src": .../examples/flags/guild.yml"
       },
       "name": "namespace",
       "opref": {
         "modelName": "",
         "opName": "namespace",
-        "pkgName": ".../examples/flags/guild.yml",
+        "pkgName": .../examples/flags/guild.yml",
         "pkgType": "guildfile",
         "pkgVersion": "17a5b78d3584b2ab57d8e1fe742aa912"
       }
