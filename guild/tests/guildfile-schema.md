@@ -50,11 +50,11 @@ Pydantic - the correct error message should be 'value is not a dict'.)
 ## Validate example Guild files
 
 To exercise the schema validation and to verify the correctness of our
-examples, apply validation to the Gulid files under `examples/`.
+examples, apply validation to the Guild files under `examples/`.
 
     >>> def example_guildfiles():
     ...     return sorted(filter(
-    ...         lambda p: os.path.basename(p) == "guild.yml",
+    ...         lambda p: (os.path.basename(p) == "guild.yml" and "/build/" not in p),
     ...         findl(examples_dir())))
 
     >>> for path in example_guildfiles():  # doctest: +REPORT_UDIFF
@@ -66,13 +66,11 @@ examples, apply validation to the Gulid files under `examples/`.
     dependencies/guild.yml
     detectron2/guild.yml
     dvc/guild.yml
+    features/guild.yml
     flags/guild.yml
     get-started-use-guild/guild.yml
-    hello-package-2/build/lib/gpkg/hello/guild.yml
     hello-package-2/guild.yml
-    hello-package-legacy/build/lib/hello/guild.yml
     hello-package-legacy/guild.yml
-    hello-package/build/lib/gpkg/hello/guild.yml
     hello-package/guild.yml
     hello/guild.yml
     hydra/guild.yml
@@ -82,7 +80,6 @@ examples, apply validation to the Gulid files under `examples/`.
     languages/guild.yml
     models/guild.yml
     notebooks/guild.yml
-    parallel-runs/build/lib/gpkg/anonymous_f35005fb/guild.yml
     parallel-runs/guild.yml
     pipeline/guild.yml
     project-user-config/guild.yml
