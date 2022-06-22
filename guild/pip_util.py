@@ -238,7 +238,7 @@ def _ensure_expected_download_path(downloaded, filename):
 
 
 def _normalize_attr_case(s):
-    m = re.match("([^:]+:)(.*)", str(s))
+    m = re.match("([^:]+:)(.*)", s)
     if m:
         return m.group(1).lower() + m.group(2)
     return s
@@ -251,7 +251,17 @@ def print_package_info(pkg, verbose=False, show_files=False):
     if show_files:
         args.append("--files")
     args.append(pkg)
-    return [_normalize_attr_case(s) for s in subprocess.check_output(args).splitlines()]
+    try:
+        lines = subprocess.check_output(args).splitlines()
+        for line in lines:
+            print(
+                _normalize_attr_case(
+                    line.decode('utf-8') if hasattr(line, 'decode') else line
+                )
+            )
+        return 0
+    except:
+        return f"Failed to get package info for {pkg}"
 
 
 def is_requirements(path):
