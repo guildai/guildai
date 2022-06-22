@@ -20,7 +20,12 @@ import os
 def ac_filename(ext, incomplete):
     if _active_shell_supports_directives():
         return _compgen_filenames("file", ext)
-    return _list_dir(os.getcwd(), filters=None, ext=ext, incomplete=incomplete)
+    return _list_dir(
+        os.getcwd(),
+        filters=[lambda p: "__pycache__" not in str(p)],
+        ext=ext,
+        incomplete=incomplete,
+    )
 
 
 def _list_dir(dir, filters=None, ext=None, incomplete=None):
