@@ -238,7 +238,7 @@ def _ensure_expected_download_path(downloaded, filename):
 
 
 def _normalize_attr_case(s):
-    m = re.match("([^:]+:)(.*)", s)
+    m = re.match("([^:]+:)(.*)", str(s))
     if m:
         return m.group(1).lower() + m.group(2)
     return s
