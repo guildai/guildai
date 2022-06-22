@@ -60,7 +60,10 @@ def install(
             args.extend(["--extra-index-url", url])
     if target:
         args.extend(["--target", target])
-    args.extend(reqs)
+    for req in reqs:
+        if "/" in req:
+            args.append("-r")
+        args.append(req)
 
     try:
         return subprocess.check_call(args)
@@ -70,12 +73,6 @@ def install(
 
 def _reset_env_for_install():
     util.del_env(["PIP_REQ_TRACKER"])
-
-
-def _pip_cmd(cls, *args, **kw):
-    cmd = cls(*args, **kw)
-    cmd.verbosity = False
-    return cmd
 
 
 def running_under_virtualenv():
