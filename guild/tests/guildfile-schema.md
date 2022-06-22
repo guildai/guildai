@@ -57,6 +57,7 @@ examples, apply validation to the Guild files under `examples/`.
     ...         lambda p: (os.path.basename(p) == "guild.yml" and "/build/" not in p),
     ...         findl(examples_dir())))
 
+    >>> import pydantic
     >>> for path in example_guildfiles():  # doctest: +REPORT_UDIFF
     ...     print(path)
     ...     try:

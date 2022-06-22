@@ -17,12 +17,16 @@ import os
 # Avoid expensive or one-off imports
 
 
+def _omit_pycache(path):
+    return "__pycache__" not in str(path)
+
+
 def ac_filename(ext, incomplete):
     if _active_shell_supports_directives():
         return _compgen_filenames("file", ext)
     return _list_dir(
         os.getcwd(),
-        filters=[lambda p: "__pycache__" not in str(p)],
+        filters=[_omit_pycache],
         ext=ext,
         incomplete=incomplete,
     )
@@ -123,7 +127,9 @@ def _list_dir_sort_key(path):
 def ac_dir(incomplete):
     if _active_shell_supports_directives():
         return ["!!dir"]
-    return _list_dir(os.getcwd(), filters=[os.path.isdir], incomplete=incomplete)
+    return _list_dir(
+        os.getcwd(), filters=[os.path.isdir, _omit_pycache], incomplete=incomplete
+    )
 
 
 def ac_no_colon_wordbreak(values, incomplete):
@@ -163,7 +169,10 @@ def ac_batchfile(ext, incomplete):
     if _active_shell_supports_directives():
         return _compgen_filenames("batchfile", ext)
     batchfile_paths = _list_dir(
-        os.getcwd(), ext=ext, incomplete=_strip_batch_prefix(incomplete)
+        os.getcwd(),
+        ext=ext,
+        incomplete=_strip_batch_prefix(incomplete),
+        filters=[_omit_pycache],
     )
     return [_apply_batch_prefix(path) for path in batchfile_paths]
 
@@ -217,7 +226,9 @@ def _gen_ac_command(directive_filter, regex_filter, incomplete):
 def ac_run_filepath(run_dir, incomplete):
     if _active_shell_supports_directives():
         return ["!!runfiles:%s" % run_dir]
-    return _list_dir(run_dir, filters=[_run_filepath_filter], incomplete=incomplete)
+    return _list_dir(
+        run_dir, filters=[_run_filepath_filter, _omit_pycache], incomplete=incomplete
+    )
 
 
 def _run_filepath_filter(p):
