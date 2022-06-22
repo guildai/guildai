@@ -259,7 +259,8 @@ def is_requirements(path):
     if not util.is_text_file(path):
         return False
     try:
-        list(parse_requirements(path))
+        with open(path) as f:
+            list(parse_requirements(f.readlines()))
     except Exception:
         return False
     else:
