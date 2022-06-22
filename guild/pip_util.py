@@ -60,9 +60,10 @@ def install(
             args.extend(["--extra-index-url", url])
     if target:
         args.extend(["--target", target])
+
     for req in reqs:
         if "/" in req:
-            args.append("-r")
+            args.append("--requirement")
         args.append(req)
 
     try:
