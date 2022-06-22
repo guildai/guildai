@@ -59,7 +59,10 @@ examples, apply validation to the Guild files under `examples/`.
 
     >>> for path in example_guildfiles():  # doctest: +REPORT_UDIFF
     ...     print(path)
-    ...     _ = guildfile_schema.parse_file(os.path.join(examples_dir(), path))
+    ...     try:
+    ...         _ = guildfile_schema.parse_file(os.path.join(examples_dir(), path))
+    ...     except pydantic.error_wrappers.ValidationError as e:
+    ...         print(f"Failure at {path}: {str(e)}")
     api/guild.yml
     bias/guild.yml
     classification-report/guild.yml
