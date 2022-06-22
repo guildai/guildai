@@ -31,8 +31,6 @@ def _ac_guild_version_or_path(_ctx, _param, incomplete):
 def _guild_versions():
     import json
 
-    # We want to import pip._vendor.requests but pip has an import
-    # cycle so we get to it via pip._internal.index.
     import requests
 
     def f():

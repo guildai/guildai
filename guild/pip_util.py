@@ -15,7 +15,10 @@
 import logging
 import os
 import re
+import subprocess
 import sys
+
+from pkg_resources import parse_requirements
 
 from guild import util
 
@@ -24,39 +27,6 @@ log = logging.getLogger("guild")
 
 class InstallError(Exception):
     pass
-
-
-class SearchError(Exception):
-    pass
-
-
-def SearchCommand(spec, operator, *args, **kw):
-    """Guild specific pip search implementation.
-
-    This exposes the search fields and operator, which were are hard
-    coded in the pip implementation.
-
-    Implemented as a function to defer import of upstream
-    implementation.
-    """
-    from pip._internal.commands.search import SearchCommand
-
-    cmd = SearchCommand(*args, **kw)
-    cmd._spec = spec
-    cmd._operator = operator
-    util.bind_method(cmd, "search", _SearchCommand_search)
-    return cmd
-
-
-def _SearchCommand_search(cmd, _query, options):
-    from six.moves import xmlrpc_client
-    from pip._internal.download import PipXmlrpcTransport
-
-    index_url = options.index
-    with cmd._build_session(options) as session:
-        transport = PipXmlrpcTransport(index_url, session)
-        pypi = xmlrpc_client.ServerProxy(index_url, transport)
-        return pypi.search(cmd._spec, cmd._operator)
 
 
 def install(
@@ -69,13 +39,9 @@ def install(
     reinstall=False,
     target=None,
 ):
-    from pip._internal.commands.install import InstallCommand
-    from pip._internal.exceptions import InstallationError
 
     _reset_env_for_install()
-    _ensure_patch_pip_get_entry_points()
-    cmd = _pip_cmd(InstallCommand)
-    args = []
+    args = [sys.executable, "-m", "pip", "install"]
     if pre_releases:
         args.append("--pre")
     if not running_under_virtualenv() and not target:
@@ -95,10 +61,10 @@ def install(
     if target:
         args.extend(["--target", target])
     args.extend(reqs)
-    options, cmd_args = cmd.parse_args(args)
+
     try:
-        return cmd.run(options, cmd_args)
-    except InstallationError as e:
+        return subprocess.check_call(args)
+    except subprocess.CalledProcessError as e:
         raise InstallError(str(e))
 
 
@@ -116,73 +82,25 @@ def running_under_virtualenv():
     return "VIRTUAL_ENV" in os.environ or "CONDA_PREFIX" in os.environ
 
 
-def _ensure_patch_pip_get_entry_points():
-    """Patch pip's get_entrypoints function.
-
-    Older versions of pip use configparse to load the entrypoints file
-    in a wheel, which imposes its own syntax requirements on entry
-    point keys causing problems for our key naming conventions.
-
-    We replace their `get_entrypoints` which is
-    `_get_entrypoints_patch`, which is copied from their more recent
-    source.
-    """
-    from pip._internal import wheel
-
-    if wheel.get_entrypoints != _pip_get_entrypoints_patch:
-        wheel.get_entrypoints = _pip_get_entrypoints_patch
-
-
-def _pip_get_entrypoints_patch(filename):
-    """See `_ensure_pip_get_entrypoints_patch` for details."""
-    from pip._vendor.six import StringIO
-    from pip._vendor import pkg_resources
-
-    if not os.path.exists(filename):
-        return {}, {}
-
-    # This is done because you can pass a string to entry_points wrappers which
-    # means that they may or may not be valid INI files. The attempt here is to
-    # strip leading and trailing whitespace in order to make them valid INI
-    # files.
-    with open(filename) as fp:
-        data = StringIO()
-        for line in fp:
-            data.write(line.strip())
-            data.write("\n")
-        data.seek(0)
-
-    # get the entry points and then the script names
-    entry_points = pkg_resources.EntryPoint.parse_map(data)
-    console = entry_points.get('console_scripts', {})
-    gui = entry_points.get('gui_scripts', {})
-
-    def _split_ep(s):
-        """get the string representation of EntryPoint, remove space and split
-        on '='"""
-        return str(s).replace(" ", "").split("=")
-
-    # convert the EntryPoint objects into strings with module:function
-    console = dict(_split_ep(v) for v in console.values())
-    gui = dict(_split_ep(v) for v in gui.values())
-    return console, gui
+def package_in_user_path(dist):
+    raise NotImplementedError
 
 
 def get_installed():
-    from .external.pip._internal.utils.misc import get_installed_distributions
+    if sys.version_info >= (3, 8):
+        from importlib import metadata as importlib_metadata
+    else:
+        import importlib_metadata
 
     user_only = not running_under_virtualenv()
-    return get_installed_distributions(local_only=False, user_only=user_only)
-
-
-def search(spec, operator):
-    _ensure_search_logger()
-    cmd = _pip_cmd(SearchCommand, spec, operator)
-    options, unused_parsed_query = cmd.parse_args([])
-    try:
-        return cmd.search(unused_parsed_query, options)
-    except Exception as e:
-        raise SearchError(str(e))
+    dists = importlib_metadata.distributions()
+    selected_dists = []
+    for dist in dists:
+        # get path; handle according to user_only setting
+        if not user_only or package_in_user_path(dist):
+            selected_dists.append(dist)
+    # get_installed_distributions(local_only=False, user_only=user_only)
+    return selected_dists
 
 
 class QuietLogger(logging.Logger):
@@ -192,40 +110,24 @@ class QuietLogger(logging.Logger):
         self.level = logging.WARNING
 
 
-def _ensure_search_logger():
-    try:
-        from pip._internal import (
-            download as _unused,
-        )  # Avoid circular import (see #313)
-        from pip._vendor.requests.packages.urllib3 import connectionpool
-    except ImportError:
-        pass
-    else:
-        if not isinstance(connectionpool.log, QuietLogger):
-            connectionpool.log = QuietLogger(connectionpool.log)
-
-
 def uninstall(reqs, dont_prompt=False):
-    from pip._internal.commands.uninstall import UninstallCommand
-
-    cmd = _pip_cmd(UninstallCommand)
     for req in reqs:
-        _uninstall(req, cmd, dont_prompt)
+        _uninstall(req, dont_prompt)
 
 
-def _uninstall(req, cmd, dont_prompt):
-    from pip._internal.exceptions import UninstallationError
-
-    args = [req]
+def _uninstall(req, dont_prompt):
+    args = [sys.executable, "-m", "pip", "unistall"]
     if dont_prompt:
         args.append("--yes")
-    options, cmd_args = cmd.parse_args(args)
+    args.append(req)
     try:
-        cmd.run(options, cmd_args)
-    except UninstallationError as e:
-        if "not installed" not in str(e):
+        out = subprocess.check_output(args)
+    except subprocess.CalledProcessError as e:
+        if "not installed" in str(e):
+            log.warning("%s is not installed, skipping", req)
+        else:
             raise
-        log.warning("%s is not installed, skipping", req)
+    return out
 
 
 def download_url(url, download_dir, sha256=None):
@@ -245,20 +147,22 @@ def download_url(url, download_dir, sha256=None):
     again. This behavior is designed to preserve downloads at the cost
     of requiring that invalid files be explicitly deleted.
     """
-    from pip._internal.index import Link
 
-    link = Link(url)
-    downloaded_path = _check_download_path(link, download_dir, sha256)
+    from urllib.parse import urlparse, unquote
+
+    filename = unquote(urlparse(url).path.split("/")[-1])
+
+    downloaded_path = _check_download_path(filename, download_dir, sha256)
     if not downloaded_path:
-        orig_path = _pip_download(link, download_dir)
-        downloaded_path = _ensure_expected_download_path(orig_path, link)
+        orig_path = _pip_download(url, download_dir)
+        downloaded_path = _ensure_expected_download_path(orig_path, filename)
         if sha256:
             _verify_and_cache_hash(downloaded_path, sha256)
     return downloaded_path
 
 
-def _check_download_path(link, download_dir, expected_hash):
-    download_path = os.path.join(download_dir, link.filename)
+def _check_download_path(filename, download_dir, expected_hash):
+    download_path = os.path.join(download_dir, filename)
     if not os.path.exists(download_path):
         return None
     log.info("Using cached file %s", download_path)
@@ -300,65 +204,57 @@ def _pip_download(link, download_dir):
     #
     # https://github.com/ionrock/cachecontrol/issues/145
     #
-    from pip._internal.commands.download import DownloadCommand
-    from pip._internal.download import _download_http_url
-
-    cmd = _pip_cmd(DownloadCommand)
-    options, _args = cmd.parse_args(["--no-cache-dir"])
-    session = cmd._build_session(options)
-    orig_path, _content_type = _download_http_url(
-        link, session, download_dir, hashes=None, progress_bar="on"
+    args = [
+        sys.executable,
+        "-m",
+        "pip",
+        "download",
+        "--no-cache-dir",
+        "--no-deps",
+        "--dest",
+        download_dir,
+        link,
+    ]
+    proc = subprocess.Popen(
+        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8'
     )
-    return orig_path
+    output = ""
+    while proc.poll() is None:
+        text = proc.stdout.readline()
+        output += text + "\n"
+        sys.stdout.write(text)
+    location = re.search(r"Saved\ ([^\n]+)", str(output))
+    if not location:
+        raise ValueError("Did not succeed at downloading specified URL")
+    location = location.group(1)
+    if not os.path.isabs(location):
+        location = os.path.abspath(os.path.join(download_dir, location))
+    return location
 
 
-def _ensure_expected_download_path(downloaded, link):
-    expected = os.path.join(os.path.dirname(downloaded), link.filename)
+def _ensure_expected_download_path(downloaded, filename):
+    expected = os.path.join(os.path.dirname(downloaded), filename)
     if downloaded != expected:
         os.rename(downloaded, expected)
     return expected
 
 
-def print_package_info(pkg, verbose=False, show_files=False):
-    from pip._internal.commands.show import ShowCommand
+@staticmethod
+def _normalize_attr_case(s):
+    m = re.match("([^:]+:)(.*)", s)
+    if m:
+        return m.group(1).lower() + m.group(2)
+    return s
 
-    _ensure_print_package_logger()
-    cmd = _pip_cmd(ShowCommand)
-    args = []
+
+def print_package_info(pkg, verbose=False, show_files=False):
+    args = [sys.executable, "-m", "pip", "show"]
     if verbose:
         args.append("--verbose")
     if show_files:
         args.append("--files")
     args.append(pkg)
-    return cmd.run(*cmd.parse_args(args))
-
-
-class PrintPackageLogger:
-    def info(self, msg, args=None):
-        args = args or []
-        out = self._normalize_attr_case(msg % args)
-        sys.stdout.write(out)
-        sys.stdout.write("\n")
-
-    @staticmethod
-    def _normalize_attr_case(s):
-        m = re.match("([^:]+:)(.*)", s)
-        if m:
-            return m.group(1).lower() + m.group(2)
-        return s
-
-
-def _ensure_print_package_logger():
-    from pip._internal.commands import show
-
-    if not isinstance(show.logger, PrintPackageLogger):
-        show.logger = PrintPackageLogger()
-
-
-def parse_requirements(path):
-    from pip._internal.req import req_file
-
-    return req_file.parse_requirements(path, session="unused")
+    return [_normalize_attr_case(s) for s in subprocess.check_output(args).splitlines()]
 
 
 def is_requirements(path):
@@ -372,13 +268,108 @@ def is_requirements(path):
         return True
 
 
+def _distutils_scheme(
+    dist_name, user=False, home=None, root=None, isolated=False, prefix=None
+):
+    """
+    Return a distutils install scheme
+
+    This function is vendored from pip.
+    """
+    from setuptools.dist import Distribution
+
+    def running_under_virtualenv():
+        """
+        Return True if we're running inside a virtualenv, False otherwise.
+
+        """
+        if hasattr(sys, 'real_prefix'):
+            return True
+        elif sys.prefix != getattr(sys, "base_prefix", sys.prefix):
+            return True
+
+        return False
+
+    scheme = {}
+
+    if isolated:
+        extra_dist_args = {"script_args": ["--no-user-cfg"]}
+    else:
+        extra_dist_args = {}
+    dist_args = {'name': dist_name}
+    dist_args.update(extra_dist_args)
+
+    d = Distribution(dist_args)
+    d.parse_config_files()
+    i = d.get_command_obj('install', create=True)
+    # NOTE: setting user or home has the side-effect of creating the home dir
+    # or user base for installations during finalize_options()
+    # ideally, we'd prefer a scheme class that has no side-effects.
+    assert not (user and prefix), "user={} prefix={}".format(user, prefix)
+    i.user = user or i.user
+    if user:
+        i.prefix = ""
+    i.prefix = prefix or i.prefix
+    i.home = home or i.home
+    i.root = root or i.root
+    i.finalize_options()
+    for key in ('purelib', 'platlib', 'headers', 'scripts', 'data'):
+        scheme[key] = getattr(i, 'install_' + key)
+
+    # install_lib specified in setup.cfg should install *everything*
+    # into there (i.e. it takes precedence over both purelib and
+    # platlib).  Note, i.install_lib is *always* set after
+    # finalize_options(); we only want to override here if the user
+    # has explicitly requested it hence going back to the config
+    if 'install_lib' in d.get_option_dict('install'):
+        scheme.update(dict(purelib=i.install_lib, platlib=i.install_lib))
+
+    if running_under_virtualenv():
+        scheme['headers'] = os.path.join(
+            sys.prefix,
+            'include',
+            'site',
+            'python' + sys.version[:3],
+            dist_name,
+        )
+
+        if root is not None:
+            path_no_drive = os.path.splitdrive(os.path.abspath(scheme["headers"]))[1]
+            scheme["headers"] = os.path.join(
+                root,
+                path_no_drive[1:],
+            )
+
+    return scheme
+
+
+dist_info_re = re.compile(
+    r"""^(?P<namever>(?P<name>.+?)(-(?P<ver>\d.+?))?)
+                                \.dist-info$""",
+    re.VERBOSE,
+)
+
+
+def root_is_purelib(name, wheeldir):
+    """
+    Return True if the extracted wheel in wheeldir should go into purelib.
+    """
+    name_folded = name.replace("-", "_")
+    for item in os.listdir(wheeldir):
+        match = dist_info_re.match(item)
+        if match and match.group('name') == name_folded:
+            with open(os.path.join(wheeldir, item, 'WHEEL')) as wheel:
+                for line in wheel:
+                    line = line.lower().rstrip()
+                    if line == "root-is-purelib: true":
+                        return True
+    return False
+
+
 def lib_dir(
     name, wheeldir, user=False, home=None, root=None, isolated=False, prefix=None
 ):
-    from pip._internal.locations import distutils_scheme
-    from pip._internal.wheel import root_is_purelib
-
-    scheme = distutils_scheme(
+    scheme = _distutils_scheme(
         "", user=user, home=home, root=root, isolated=isolated, prefix=prefix
     )
     if root_is_purelib(name, wheeldir):
@@ -388,10 +379,10 @@ def lib_dir(
 
 
 def freeze():
-    from pip._internal.operations.freeze import freeze
-
     try:
-        return list(freeze())
+        return subprocess.check_output(
+            [sys.executable, "-m", "pip", "freeze"]
+        ).splitlines()
     except Exception as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("reading pip freeze")
