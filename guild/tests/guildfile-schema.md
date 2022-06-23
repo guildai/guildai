@@ -62,7 +62,7 @@ examples, apply validation to the Guild files under `examples/`.
     ...     print(path)
     ...     try:
     ...         _ = guildfile_schema.parse_file(os.path.join(examples_dir(), path))
-    ...     except pydantic.error_wrappers.ValidationError as e:
+    ...     except Exception as e:
     ...         print(f"Failure at {path}: {str(e)}")
     api/guild.yml
     bias/guild.yml
