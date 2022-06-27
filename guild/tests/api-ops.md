@@ -18,39 +18,70 @@ Generate some sample runs.
     [
       {
         "description": "Say hello to my friends",
-        "details": [],
-        "flags": [
-          "msg: (default is Hello Guild!)"
-        ],
+        "flags": {
+          "msg": {
+            "choices": [],
+            "default": "Hello Guild!",
+            "defaultAssign": "msg='Hello Guild!'",
+            "description": "",
+            "type": "string"
+          }
+        },
         "fullname": "hello",
-        "main": "say",
-        "model": "",
-        "model_name": "",
-        "name": "hello"
+        "guildfile": {
+          "dir": ".../examples/hello",
+          "src": ".../examples/hello/guild.yml"
+        },
+        "name": "hello",
+        "opref": {
+          "modelName": "",
+          "opName": "hello",
+          "pkgName": ".../examples/hello/guild.yml",
+          "pkgType": "guildfile",
+          "pkgVersion": "bd3ca4e8bd044ab25c2ede36bd71e740"
+        }
       },
       {
         "description": "Show a message from a file",
-        "details": [],
-        "flags": [
-          "file: (default is hello.txt)"
-        ],
+        "flags": {
+          "file": {
+            "choices": [],
+            "default": "hello.txt",
+            "defaultAssign": "file=hello.txt",
+            "description": "",
+            "type": null
+          }
+        },
         "fullname": "hello-file",
-        "main": "cat",
-        "model": "",
-        "model_name": "",
-        "name": "hello-file"
+        "guildfile": {
+          "dir": ".../examples/hello",
+          "src": ".../examples/hello/guild.yml"
+        },
+        "name": "hello-file",
+        "opref": {
+          "modelName": "",
+          "opName": "hello-file",
+          "pkgName": ".../examples/hello/guild.yml",
+          "pkgType": "guildfile",
+          "pkgVersion": "bd3ca4e8bd044ab25c2ede36bd71e740"
+        }
       },
       {
-        "description": "Show a message from a hello-file operation",
-        "details": [
-          "Relies on the output interface from `hello-file`, which is to write the message to `msg.out`."
-        ],
-        "flags": [],
+        "description": "Show a message from a hello-file operation\nRelies on the output interface from `hello-file`, which is to write the message to `msg.out`.",
+        "flags": {},
         "fullname": "hello-op",
-        "main": "cat",
-        "model": "",
-        "model_name": "",
-        "name": "hello-op"
+        "guildfile": {
+          "dir": ".../examples/hello",
+          "src": ".../examples/hello/guild.yml"
+        },
+        "name": "hello-op",
+        "opref": {
+          "modelName": "",
+          "opName": "hello-op",
+          "pkgName": ".../examples/hello/guild.yml",
+          "pkgType": "guildfile",
+          "pkgVersion": "bd3ca4e8bd044ab25c2ede36bd71e740"
+        }
       }
     ]
     <exit 0>

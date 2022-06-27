@@ -1165,9 +1165,9 @@ class OpDef(guildfile_schema.OpDefSchema):
 
     @property
     def opref(self):
-        if self._modelref:
-            return opref.OpRef.for_op(self.name, self._modelref)
-        return None
+        if not self._modelref:
+            raise ValueError('set_modelref() must be called before reading opref')
+        return opref.OpRef.for_op(self.name, self._modelref)
 
     def get_flagdef(self, name):
         for flag in self.flags or []:

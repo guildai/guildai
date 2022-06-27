@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import click
 
 from guild import click_util
@@ -39,14 +41,19 @@ def main(args):
 
 
 def _op_data(args):
-    import os
-    from guild import flag_util
     from .run_impl import opdef_for_opspec
 
     opdef = opdef_for_opspec(args.opspec)
+    return op_info_for_opdef(opdef)
+
+
+def op_info_for_opdef(opdef):
+    from guild import flag_util
+
     return {
         "opref": _opref_data(opdef.opref),
         "name": opdef.name,
+        "fullname": opdef.fullname,
         "description": opdef.description,
         "guildfile": {
             "dir": os.path.abspath(opdef.guildfile.dir),
@@ -67,11 +74,11 @@ def _op_data(args):
 
 def _opref_data(opref):
     return {
-        "pkg_type": opref.pkg_type,
-        "pkg_name": opref.pkg_name,
-        "pkg_version": opref.pkg_version,
-        "model_name": opref.model_name,
-        "op_name": opref.op_name,
+        "pkgType": opref.pkg_type,
+        "pkgName": opref.pkg_name,
+        "pkgVersion": opref.pkg_version,
+        "modelName": opref.model_name,
+        "opName": opref.op_name,
     }
 
 

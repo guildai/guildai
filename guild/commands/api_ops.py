@@ -32,15 +32,11 @@ def main(args):
 def _ops_data():
     from guild import cmd_impl_support
     from . import operations_impl
+    from . import api_help_op
 
-    ops_args = click_util.Args(installed=False, all=False, filters=[])
+    args = click_util.Args(installed=False, all=False, filters=[])
     cmd_impl_support.init_model_path()
     return [
-        _strip_private(op_data) for op_data in operations_impl.filtered_ops(ops_args)
+        api_help_op.op_info_for_opdef(op)
+        for op, _model in operations_impl.iter_ops(args)
     ]
-
-
-def _strip_private(data):
-    if not isinstance(data, dict):
-        return data
-    return {key: _strip_private(val) for key, val in data.items() if key[:1] != "_"}

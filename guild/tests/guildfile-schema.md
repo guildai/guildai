@@ -99,6 +99,7 @@ examples, apply validation to the Gulid files under `examples/`.
     tensorflow/guild.yml
     tensorflow2/guild.yml
     upstream-flags/guild.yml
+    vscode-extension/guild.yml
 
 ## Schema generation via CLI
 

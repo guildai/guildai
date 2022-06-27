@@ -31,16 +31,17 @@ def main(args):
     )
 
 
-def filtered_ops(args):
+def iter_ops(args):
     dirs = models_impl.models_iter_dirs(args)
-    formatted = [_format_op(op, model) for op, model in _iter_ops(dirs)]
-    return [op for op in formatted if _filter_op(op, args)]
-
-
-def _iter_ops(dirs):
     for model in models_impl.iter_models(dirs, include_anonymous=True):
         for op in model.modeldef.operations:
+            op.set_modelref(model.reference)
             yield op, model
+
+
+def filtered_ops(args):
+    formatted = [_format_op(op, model) for op, model in iter_ops(args)]
+    return [op for op in formatted if _filter_op(op, args)]
 
 
 def _format_op(op, model):

@@ -9,30 +9,31 @@ The `api help-op` command shows operation details as JSON.
       "flags": {
         "noise": {
           "choices": [],
-          "default": 0.5,
-          "defaultAssign": "noise=0.5",
+          "default": 0.1,
+          "defaultAssign": "noise=0.1",
           "description": "",
           "type": "number"
         },
         "x": {
           "choices": [],
-          "default": 0.5,
-          "defaultAssign": "x=0.5",
+          "default": 0.1,
+          "defaultAssign": "x=0.1",
           "description": "",
           "type": "number"
         }
       },
+      "fullname": "train.py",
       "guildfile": {
         "dir": ".../examples/get-started",
         "src": null
       },
       "name": "train.py",
       "opref": {
-        "model_name": "",
-        "op_name": "train.py",
-        "pkg_name": ".../examples/get-started",
-        "pkg_type": "script",
-        "pkg_version": ""
+        "modelName": "",
+        "opName": "train.py",
+        "pkgName": ".../examples/get-started",
+        "pkgType": "script",
+        "pkgVersion": ""
       }
     }
     <exit 0>
@@ -82,17 +83,18 @@ The `api help-op` command shows operation details as JSON.
           "type": null
         }
       },
+      "fullname": "args.py",
       "guildfile": {
         "dir": ".../examples/flags",
         "src": null
       },
       "name": "args.py",
       "opref": {
-        "model_name": "",
-        "op_name": "args.py",
-        "pkg_name": ".../examples/flags",
-        "pkg_type": "script",
-        "pkg_version": ""
+        "modelName": "",
+        "opName": "args.py",
+        "pkgName": ".../examples/flags",
+        "pkgType": "script",
+        "pkgVersion": ""
       }
     }
     <exit 0>
@@ -159,17 +161,18 @@ The `api help-op` command shows operation details as JSON.
           "type": "string"
         }
       },
+      "fullname": "args_click.py",
       "guildfile": {
         "dir": ".../examples/flags",
         "src": null
       },
       "name": "args_click.py",
       "opref": {
-        "model_name": "",
-        "op_name": "args_click.py",
-        "pkg_name": ".../examples/flags",
-        "pkg_type": "script",
-        "pkg_version": ""
+        "modelName": "",
+        "opName": "args_click.py",
+        "pkgName": ".../examples/flags",
+        "pkgType": "script",
+        "pkgVersion": ""
       }
     }
     <exit 0>
@@ -215,17 +218,18 @@ The `api help-op` command shows operation details as JSON.
           "type": "string"
         }
       },
+      "fullname": "namespace",
       "guildfile": {
         "dir": ".../examples/flags",
         "src": ".../examples/flags/guild.yml"
       },
       "name": "namespace",
       "opref": {
-        "model_name": "",
-        "op_name": "namespace",
-        "pkg_name": ".../examples/flags/guild.yml",
-        "pkg_type": "guildfile",
-        "pkg_version": "17a5b78d3584b2ab57d8e1fe742aa912"
+        "modelName": "",
+        "opName": "namespace",
+        "pkgName": ".../examples/flags/guild.yml",
+        "pkgType": "guildfile",
+        "pkgVersion": "17a5b78d3584b2ab57d8e1fe742aa912"
       }
     }
     <exit 0>
