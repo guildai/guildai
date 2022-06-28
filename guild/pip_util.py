@@ -80,25 +80,12 @@ def running_under_virtualenv():
     return "VIRTUAL_ENV" in os.environ or "CONDA_PREFIX" in os.environ
 
 
-def package_in_user_path(dist):
-    raise NotImplementedError
-
-
 def get_installed():
     if sys.version_info >= (3, 8):
         from importlib import metadata as importlib_metadata
     else:
         import importlib_metadata
-
-    user_only = not running_under_virtualenv()
-    dists = importlib_metadata.distributions()
-    selected_dists = []
-    for dist in dists:
-        # get path; handle according to user_only setting
-        if not user_only or package_in_user_path(dist):
-            selected_dists.append(dist)
-    # get_installed_distributions(local_only=False, user_only=user_only)
-    return selected_dists
+    return importlib_metadata.distributions()
 
 
 class QuietLogger(logging.Logger):
