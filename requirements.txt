@@ -4,7 +4,9 @@
 # guildai.dist-info/METADATA. You must manually edit
 # that file to reflect any changes made here.
 
-chardet>=3.0.4
+# upper bound on chardet comes from requests. Will be fixed
+# in requests in release after 2.28.0.
+chardet>=3.0.4,<5.0.0
 click>=8
 daemonize>=2.4.7
 filelock>=3.0.12
