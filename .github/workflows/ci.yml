@@ -10,6 +10,12 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: "false"
 
 concurrency:
   group: "${{ github.ref }}"
@@ -84,5 +90,10 @@ jobs:
           guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
           source "$(find test-env -iname activate | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n 1)"
           guild check --uat --offline
+          steps:
+      # Enable tmate debugging of manually-triggered workflows if the input option was provided
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled && runner.os == 'Linux' }}
       - name: upload coverage to Codecov
         uses: codecov/codecov-action@v2
