@@ -45,9 +45,9 @@ def _is_gpkg(pkg):
 
 def _format_pkg(pkg):
     return {
-        "name": pkg.project_name,
+        "name": pkg.metadata["Name"],
         "summary": _strip_guildai_suffix(pkg.metadata.get("Summary", "")),
-        "version": pkg.version,
+        "version": pkg.metadata["Version"],
     }
 
 
@@ -126,4 +126,4 @@ def _iter_project_names(pkgs):
         except namespace.NamespaceError:
             log.warning("unknown namespace in '%s' - ignoring", pkg)
         else:
-            yield ns.pip_info(name).project_name, pkg
+            yield ns.pip_info(name).metadata["Name"], pkg
