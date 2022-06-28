@@ -18,8 +18,6 @@ import re
 import subprocess
 import sys
 
-from pkg_resources import parse_requirements
-
 from guild import util
 
 log = logging.getLogger("guild")
@@ -101,7 +99,7 @@ def uninstall(reqs, dont_prompt=False):
 
 
 def _uninstall(req, dont_prompt):
-    args = [sys.executable, "-m", "pip", "unistall"]
+    args = [sys.executable, "-m", "pip", "uninstall"]
     if dont_prompt:
         args.append("--yes")
     args.append(req)
@@ -252,6 +250,8 @@ def print_package_info(pkg, verbose=False, show_files=False):
 
 
 def is_requirements(path):
+    from pkg_resources import parse_requirements
+
     if not util.is_text_file(path):
         return False
     try:
