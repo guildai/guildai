@@ -82,9 +82,6 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           python setup.py bdist_wheel
           python -m pip install --upgrade dist/*.whl
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-        if: runner.os == 'Linux'
       - name: Run UAT tests
         env:
           GUILD_CHECK_TIMEOUT: ${{ fromJSON('{"Linux":1800,"macOS":3600,"Windows":3600}')[runner.os] }}
