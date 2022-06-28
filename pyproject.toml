@@ -3,6 +3,7 @@
 skip-string-normalization = true
 exclude = '''
 /(
+    guild/external
     | guild/tests/samples/projects/flags
     | guild/tests/samples/scripts
     | guild/view

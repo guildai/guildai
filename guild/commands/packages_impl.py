@@ -126,4 +126,4 @@ def _iter_project_names(pkgs):
         except namespace.NamespaceError:
             log.warning("unknown namespace in '%s' - ignoring", pkg)
         else:
-            yield ns.pip_info(name).metadata["Name"], pkg
+            yield ns.pip_info(name).project_name, pkg

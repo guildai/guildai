@@ -1,5 +1,6 @@
 exclude: |
     (?x)(
+        ^guild/external/|
         ^guild/tests/samples/|
         ^guild/view/
         ^test/lib/
