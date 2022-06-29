@@ -3,7 +3,7 @@
     >>> from guild.plugins import tensorboard as tb
 
     >>> tb.version()
-    '2.3.0'
+    '2.9.1'
 
     >>> tb.version_supported()
     True
@@ -136,14 +136,14 @@ Util to generate event file names.
 Get base plugins.
 
     >>> plugins = tb.base_plugins()
-
-    >>> for name in sorted([p.__name__ for p in plugins]):
+    >>> def get_plugin_name(plugin):
+    ...     name = getattr(plugin, "__name__", None) or getattr(plugin, "name", None) or getattr(plugin, "plugin_name", None) or plugin.__class__.__name__
+    ...     return name
+    >>> for name in sorted([get_plugin_name(p) for p in plugins]):
     ...     print(name)  # doctest: +REPORT_UDIFF
     AudioPlugin
-    BeholderPluginLoader
     CorePluginLoader
     CustomScalarsPlugin
-    DebuggerPluginLoader
     DebuggerV2Plugin
     DistributionsPlugin
     ExperimentalNpmiPlugin
@@ -153,6 +153,7 @@ Get base plugins.
     HistogramsPlugin
     ImagesPlugin
     MeshPlugin
+    MetricsPlugin
     PrCurvesPlugin
     ProfileRedirectPluginLoader
     ProjectorPlugin

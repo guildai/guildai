@@ -30,12 +30,11 @@ def _ac_guild_version_or_path(_ctx, _param, incomplete):
 
 def _guild_versions():
     import json
-
-    import requests
+    from urllib.request import urlopen
 
     def f():
-        resp = requests.get("https://pypi.org/pypi/guildai/json")
-        data = json.loads(resp.text)
+        resp = urlopen("https://pypi.org/pypi/guildai/json")
+        data = json.loads(resp.read())
         return sorted(data.get("releases") or {})
 
     return ac_support.ac_safe_apply(f, []) or []

@@ -104,13 +104,12 @@ def _uninstall(req, dont_prompt):
         args.append("--yes")
     args.append(req)
     try:
-        out = subprocess.check_output(args)
+        subprocess.check_call(args)
     except subprocess.CalledProcessError as e:
         if "not installed" in str(e):
             log.warning("%s is not installed, skipping", req)
         else:
             raise
-    return out
 
 
 def download_url(url, download_dir, sha256=None):
@@ -132,12 +131,14 @@ def download_url(url, download_dir, sha256=None):
     """
 
     from urllib.parse import urlparse, unquote
+    import urllib.request
 
     filename = unquote(urlparse(url).path.split("/")[-1])
 
     downloaded_path = _check_download_path(filename, download_dir, sha256)
     if not downloaded_path:
-        orig_path = _pip_download(url, download_dir)
+        orig_path = os.path.join(download_dir, filename)
+        urllib.request.urlretrieve(url, orig_path)
         downloaded_path = _ensure_expected_download_path(orig_path, filename)
         if sha256:
             _verify_and_cache_hash(downloaded_path, sha256)
@@ -177,44 +178,6 @@ def _cache_sha256(sha256, download_path):
     util.write_cached_sha(sha256, download_path)
 
 
-def _pip_download(link, download_dir):
-    # We disable cache control for downloads for two reasons: First,
-    # we're already caching our downloads as resources, so an
-    # additional level of caching, even if efficiently managed, is
-    # probably not worth the cost. Second, the cachecontrol module
-    # used with pip's download facility is unusable with large files
-    # as it reads files into memory:
-    #
-    # https://github.com/ionrock/cachecontrol/issues/145
-    #
-    args = [
-        sys.executable,
-        "-m",
-        "pip",
-        "download",
-        "--no-cache-dir",
-        "--no-deps",
-        "--dest",
-        download_dir,
-        link,
-    ]
-    proc = subprocess.Popen(
-        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8'
-    )
-    output = ""
-    while proc.poll() is None:
-        text = proc.stdout.readline()
-        output += text + "\n"
-        sys.stdout.write(text)
-    location = re.search(r"Saved\ ([^\n]+)", str(output))
-    if not location:
-        raise ValueError("Did not succeed at downloading specified URL")
-    location = location.group(1)
-    if not os.path.isabs(location):
-        location = os.path.abspath(os.path.join(download_dir, location))
-    return location
-
-
 def _ensure_expected_download_path(downloaded, filename):
     expected = os.path.join(os.path.dirname(downloaded), filename)
     if downloaded != expected:
@@ -242,7 +205,7 @@ def print_package_info(pkg, verbose=False, show_files=False):
             print(
                 _normalize_attr_case(
                     line.decode('utf-8') if hasattr(line, 'decode') else line
-                )
+                ).rstrip()
             )
         return 0
     except:

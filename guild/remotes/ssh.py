@@ -365,7 +365,7 @@ class SSHRemote(remotelib.Remote):
             pidfile=_noquote(pidfile),
             quiet=True,
             yes=True,
-            **opts
+            **opts,
         )
         env = {
             "PYTHONPATH": python_path,
@@ -437,8 +437,9 @@ class SSHRemote(remotelib.Remote):
     def _conda_env_activate(self):
         if self.conda_env:
             return [
-                "source ~/*conda*/etc/profile.d/conda.sh",
-                "conda activate '%s'" % self.conda_env,
+                f"source {self.conda_env}/etc/profile.d/conda.sh > /dev/null 2>&1 || "
+                f"source {self.conda_env}/../../etc/profile.d/conda.sh > /dev/null 2>&1",
+                f"conda activate '{self.conda_env}'",
             ]
         return None
 
@@ -582,7 +583,7 @@ def _list_runs_filter_args(
     limit=False,
     comments=False,
     verbose=False,
-    **filters
+    **filters,
 ):
     args = []
     if all:
@@ -1028,7 +1029,7 @@ def _diff_args(
     cmd,
     working,
     dir,
-    **filters
+    **filters,
 ):
     args = _filter_and_status_args(**filters)
     if output:

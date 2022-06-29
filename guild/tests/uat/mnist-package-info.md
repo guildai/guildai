@@ -12,8 +12,8 @@ Use `guild packages info PKG` to show information about a package:
     author-email: packages@guild.ai
     license: Apache 2.0
     location: /.../lib/python.../site-packages
-    requires:...
-    required-by:...
+    requires:
+    required-by:
     <exit 0>
 
 We can use the `--verbose` and `--files` flags to get more
@@ -27,9 +27,9 @@ information.
     author: Guild AI
     author-email: packages@guild.ai
     license: Apache 2.0
-    location: .../lib/python.../site-packages
-    requires:...
-    required-by:...
+    location: /.../lib/python.../site-packages
+    requires:
+    required-by:
     metadata-version: 2.1
     installer: pip
     classifiers:
@@ -39,12 +39,14 @@ information.
       cnn = guild.model:PackageModel
       logreg = guild.model:PackageModel
       samples = guild.model:PackageModel
-
+    <BLANKLINE>
       [guild.resources]
       cnn:mnist-dataset = guild.model:PackageModelResource
       cnn:trained-model = guild.model:PackageModelResource
       logreg:mnist-dataset = guild.model:PackageModelResource
       logreg:trained-model = guild.model:PackageModelResource
       samples:mnist-dataset = guild.model:PackageModelResource
+    <BLANKLINE>
+    project-urls:
     files:...
     <exit 0>

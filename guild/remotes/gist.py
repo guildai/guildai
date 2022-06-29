@@ -137,7 +137,7 @@ class GistRemote(meta_sync.MetaSyncRemote):
         _delete_gist(gist, self.local_env)
 
     def _clear_gist_cache(self):
-        log.info("Clearning local cache")
+        log.info("Clearing local cache")
         log.debug("deleting %s", self.local_sync_dir)
         util.ensure_safe_rmtree(self.local_sync_dir)
 
@@ -264,17 +264,20 @@ def _ensure_md_ext(s):
 
 
 def _find_gist_with_file(user, filename, env):
-    import requests  # expensive
+    import urllib.request
+    import json
 
     page = 1
-    url = "https://api.github.com/users/%s/gists" % user
     while True:
-        resp = requests.get(
+        url = f"https://api.github.com/users/{ user }/gists?page={ page }&per_page=100"
+        req = urllib.request.Request(
             url,
-            params={"page": page, "per_page": 100},
             headers=_github_auth_headers(env),
+            method="GET",
         )
-        gists = resp.json()
+        resp = urllib.request.urlopen(req)
+        gists = json.loads(resp.read().decode("utf-8"))
+
         if not gists:
             return None
         for gist in gists:
@@ -431,7 +434,8 @@ def _replace_run_dir(run_dir, src_dir):
 
 
 def _create_gist(gist_remote_user, gist_remote_name, gist_readme_name, env):
-    import requests
+    import json
+    import urllib.request
 
     access_token = _required_gist_access_token(env)
     content = _gist_readme_content(gist_remote_user, gist_remote_name)
@@ -451,12 +455,19 @@ def _create_gist(gist_remote_user, gist_remote_name, gist_readme_name, env):
     headers = {
         "Authorization": "token %s" % access_token,
     }
-    resp = requests.post("https://api.github.com/gists", json=data, headers=headers)
-    if resp.status_code not in (200, 201):
+    req = urllib.request.Request(
+        "https://api.github.com/gists",
+        data=json.dumps(data).encode(),
+        headers=headers,
+        method="POST",
+    )
+    resp = urllib.request.urlopen(req)
+    if resp.getcode() not in (200, 201):
         raise remotelib.OperationError(
-            "error creating gist: (%i) %s" % (resp.status_code, resp.text)
+            "error creating gist: (%i) %s"
+            % (resp.getcode(), resp.read().decode("utf-8"))
         )
-    return resp.json()
+    return json.loads(resp.read().decode("utf-8"))
 
 
 def _required_gist_access_token(env):
@@ -590,7 +601,8 @@ def _write_gist_access_token_script(path):
 
 
 def _delete_gist(gist, env):
-    import requests
+    import urllib.request
+    import json
 
     access_token = _required_gist_access_token(env)
     data = {
@@ -600,13 +612,18 @@ def _delete_gist(gist, env):
     headers = {
         "Authorization": "token %s" % access_token,
     }
-    resp = requests.delete(
-        "https://api.github.com/gists/%s" % gist["id"], json=data, headers=headers
+    req = urllib.request.Request(
+        url=f"https://api.github.com/gists/{ gist['id'] }",
+        method="DELETE",
+        data=json.dumps(data).encode(),
+        headers=headers,
     )
-    if resp.status_code not in (200, 204):
-        raise remotelib.OperationError(
-            "error creating gist: (%i) %s" % (resp.status_code, resp.text)
-        )
+    with urllib.request.urlopen(req) as resp:
+        if resp.getcode() not in (200, 204):
+            response_data = json.loads(resp.read().decode("utf-8"))
+            raise remotelib.OperationError(
+                "error creating gist: (%i) %s" % (resp.getcode(), response_data)
+            )
 
 
 def _delete_gist_runs(runs, gist_repo, runs_dir):

@@ -26,8 +26,13 @@ def _ac_path_or_package(_ctx, _param, incomplete):
 def _ac_package_names(incomplete):
     from . import packages_impl
 
-    packages = [pkg.project_name for pkg in packages_impl.packages(all=False)]
-    return sorted([pkg for pkg in packages if pkg.startswith(incomplete)])
+    return sorted(
+        [
+            pkg.metadata['Name']
+            for pkg in packages_impl.packages(all=False)
+            if pkg.metadata['Name'].startswith(incomplete)
+        ]
+    )
 
 
 @click.command()
