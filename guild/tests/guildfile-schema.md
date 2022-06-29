@@ -70,7 +70,6 @@ examples, apply validation to the Guild files under `examples/`.
     dependencies/guild.yml
     detectron2/guild.yml
     dvc/guild.yml
-    features/guild.yml
     flags/guild.yml
     get-started-use-guild/guild.yml
     hello-package-2/guild.yml
