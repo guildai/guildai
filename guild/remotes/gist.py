@@ -519,7 +519,7 @@ def _push_commit_msg():
     return "`guild push` by %s@%s with version %s" % (
         util.user(),
         util.hostname(),
-        guild.version(),
+        guild.__version__,
     )
 
 
@@ -662,7 +662,7 @@ def _delete_commit_msg():
     return "`guild runs rm` by %s@%s with version %s" % (
         util.user(),
         util.hostname(),
-        guild.version(),
+        guild.__version__,
     )
 
 
