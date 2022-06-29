@@ -295,7 +295,7 @@ class ViewDataImpl(view.ViewData):
         return {
             "cwd": cwd,
             "titleLabel": self._title_label(cwd),
-            "version": guild.version(),
+            "version": guild.__version__,
         }
 
     def _title_label(self, cwd):
