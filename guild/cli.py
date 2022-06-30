@@ -266,12 +266,23 @@ def _pad_col_val(val, col, col_info):
     return val.ljust(col_info[col]["width"] + TABLE_COL_SPACING)
 
 
+def _is_console_interactive() -> bool:
+    """Is this console interactive?"""
+    return (
+        sys.stdin is not None
+        and (not hasattr(sys.stdin, "closed") or not sys.stdin.closed)
+        and sys.stdin.isatty()
+    )
+
+
 def confirm(prompt, default=False, wrap=False):
     if wrap:
         prompt = wrap(prompt)
     click.echo(prompt, nl=False, err=True)
     click.echo(" %s " % ("(Y/n)" if default else "(y/N)"), nl=False, err=True)
-    c = input()
+    c = "Y" if default else "n"
+    if _is_console_interactive():
+        c = input()
     yes_vals = ["y", "yes"]
     if default:
         yes_vals.append("")
