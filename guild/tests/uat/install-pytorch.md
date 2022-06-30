@@ -4,7 +4,7 @@ doctest: -PY2
 
 # Install PyTorch
 
-    >>> quiet("pip install torch==1.12.0", timeout=120)
+    >>> quiet("pip install torch==1.12.0")
 
     >>> run("guild check --offline --pytorch")
     guild_version:             ...

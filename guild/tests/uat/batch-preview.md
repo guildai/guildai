@@ -18,7 +18,7 @@ Create a simply script to test.
 
 Preview a normal batch.
 
-    >>> run("guild run test.py x=[1,2] y=[2,3]", timeout=4)
+    >>> run("guild run test.py x=[1,2] y=[2,3]")
     You are about to run test.py as a batch (4 trials)
       x: [1, 2]
       y: [2, 3]
@@ -28,7 +28,7 @@ Preview a normal batch.
 Specify max trials with a normal batch - max trials less than full
 trial count.
 
-    >>> run("guild run test.py x=[1,2] y=[2,3] --max-trials 3", timeout=4)
+    >>> run("guild run test.py x=[1,2] y=[2,3] --max-trials 3")
     You are about to run test.py as a batch (3 trials)
       x: [1, 2]
       y: [2, 3]
@@ -38,7 +38,7 @@ trial count.
 Specify max trials with a normal batch - max trials greater than full
 trial count.
 
-    >>> run("guild run test.py x=[1,2] y=[2,3] --max-trials 5", timeout=4)
+    >>> run("guild run test.py x=[1,2] y=[2,3] --max-trials 5")
     You are about to run test.py as a batch (4 trials)
       x: [1, 2]
       y: [2, 3]
@@ -47,7 +47,7 @@ trial count.
 
 Random batch:
 
-    >>> run("guild run test.py x=[1:100] --max-trials 5", timeout=3)
+    >>> run("guild run test.py x=[1:100] --max-trials 5")
     You are about to run test.py with random search (5 trials)
       x: [1:100]
       y: 2
@@ -56,7 +56,7 @@ Random batch:
 
 Optimizer with default objective:
 
-    >>> run("guild run test.py x=[1:100] -o gp", timeout=3)
+    >>> run("guild run test.py x=[1:100] -o gp")
     You are about to run test.py with skopt:gp optimizer (20 trials, minimize loss)
       x: [1:100]
       y: 2
@@ -72,7 +72,7 @@ Optimizer with default objective:
 
 Optimizer with explict objective:
 
-    >>> run("guild run test.py x=[1:100] -o gbrt -X foo -m10", timeout=3)
+    >>> run("guild run test.py x=[1:100] -o gbrt -X foo -m10")
     You are about to run test.py with skopt:gbrt optimizer (10 trials, maximize foo)
       x: [1:100]
       y: 2
@@ -92,7 +92,7 @@ Preview batch files:
     ... 3
     ... """)
 
-    >>> run("guild run test.py @trials-1.csv", timeout=3)
+    >>> run("guild run test.py @trials-1.csv")
     You are about to run test.py as a batch (3 trials) (flags below
     used unless specified in batch trial)
       x: 1
@@ -102,7 +102,7 @@ Preview batch files:
 
 Preview with batch file and flag list:
 
-    >>> run("guild run test.py @trials-1.csv y=[4,5]", timeout=3)
+    >>> run("guild run test.py @trials-1.csv y=[4,5]")
     You are about to run test.py as a batch (6 trials) (flags below
     used unless specified in batch trial)
       x: 1
@@ -117,7 +117,7 @@ Preview with two batch files:
     ... 5,6
     ... """)
 
-    >>> run("guild run test.py @trials-1.csv @trials-2.csv", timeout=3)
+    >>> run("guild run test.py @trials-1.csv @trials-2.csv")
     You are about to run test.py as a batch (5 trials) (flags below
     used unless specified in batch trial)
       x: 1

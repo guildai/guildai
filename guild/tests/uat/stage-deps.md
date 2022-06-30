@@ -10,7 +10,7 @@ Use `dependencies` example.
 
 Warning when missing required op:
 
-    >>> run("guild run file-op", timeout=4)
+    >>> run("guild run file-op")
     WARNING: cannot find a suitable run for required resource 'file'
     You are about to run file-op
       file: unspecified
@@ -27,7 +27,7 @@ Stage a required op.
 
 When running, staged runs are selected.
 
-    >>> run("guild run file-op", timeout=4)
+    >>> run("guild run file-op")
     You are about to run file-op
       file: ...
     Continue? (Y/n)
@@ -35,7 +35,7 @@ When running, staged runs are selected.
 
 Stage downstream op.
 
-    >>> run("guild run file-op --stage", timeout=4)
+    >>> run("guild run file-op --stage")
     You are about to stage file-op
       file: ...
     Continue? (Y/n)
