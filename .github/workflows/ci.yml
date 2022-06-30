@@ -30,7 +30,6 @@ env:
   EXAMPLES: examples
   GUILD_START_THRESHOLD: 2.0
   DASK_SPEEDUP_THRESHOLD: 1.2
-  # The following line is a temporary workaround for this issue: https://github.com/pypa/setuptools/issues/2230
   GUILD_SHELL: bash
 
 jobs:
@@ -50,10 +49,10 @@ jobs:
          - { os: ubuntu-latest,  shell: bash }
          - { os: macos-latest,   shell: bash }
         python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"] # 3.11 doesn't have many wheels available yet. Disable for now until it has broader support.
-        exclude:
-          - sys:
-              os: macos-latest
-            python-version: 3.7  # there's a strange distutils error about missing distutils.sysconfig. We're punting and ignoring it for now.
+        # exclude:
+        #   - sys:
+        #       os: macos-latest
+        #     python-version: 3.7  # there's a strange distutils error about missing distutils.sysconfig. We're punting and ignoring it for now.
 
     defaults:
       run:

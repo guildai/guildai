@@ -58,7 +58,7 @@ examples, apply validation to the Guild files under `examples/`.
     ...         findl(examples_dir())))
 
     >>> import pydantic
-    >>> for path in example_guildfiles():  # doctest: +REPORT_UDIFF
+    >>> for path in example_guildfiles():  # doctest: +REPORT_UDIFF -PY36
     ...     print(path)
     ...     try:
     ...         _ = guildfile_schema.parse_file(os.path.join(examples_dir(), path))

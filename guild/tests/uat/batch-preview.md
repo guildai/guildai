@@ -28,7 +28,7 @@ Preview a normal batch.
 Specify max trials with a normal batch - max trials less than full
 trial count.
 
-    >>> run("guild run test.py x=[1,2] y=[2,3] --max-trials 3", timeout=2)
+    >>> run("guild run test.py x=[1,2] y=[2,3] --max-trials 3", timeout=4)
     You are about to run test.py as a batch (3 trials)
       x: [1, 2]
       y: [2, 3]
@@ -38,7 +38,7 @@ trial count.
 Specify max trials with a normal batch - max trials greater than full
 trial count.
 
-    >>> run("guild run test.py x=[1,2] y=[2,3] --max-trials 5", timeout=2)
+    >>> run("guild run test.py x=[1,2] y=[2,3] --max-trials 5", timeout=4)
     You are about to run test.py as a batch (4 trials)
       x: [1, 2]
       y: [2, 3]
