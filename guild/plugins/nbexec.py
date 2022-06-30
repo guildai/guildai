@@ -104,8 +104,9 @@ def _init_flags(run, args):
 
 
 def _check_nbconvert():
-    nbconvert = util.which("jupyter-nbconvert")
-    if not nbconvert:
+    try:
+        import nbconvert
+    except ImportError:
         log.error(
             "jupyter-nbconvert is required to run Notebooks - "
             "install it by running 'pip install jupyter' and try again"
@@ -128,7 +129,9 @@ def _check_nbextensions():
 def _nbexec(notebook):
     notebook_relpath = _relpath(notebook)
     cmd = [
-        "jupyter-nbconvert",
+        sys.executable,
+        "-m",
+        "nbconvert",
         "-y",
         "--log-level",
         "WARN",
