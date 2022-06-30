@@ -13,8 +13,8 @@ doctest: -PY3 +PY36 +PY37  # 2022-04-11 on python 3.8+, wheels are not available
     author-email: packages@guild.ai
     license: Apache 2.0
     location: /.../lib/python.../site-packages
-    requires: []
-    required-by: []
+    requires:...
+    required-by:...
     <exit 0>
 
     >>> run("guild models mnist")
