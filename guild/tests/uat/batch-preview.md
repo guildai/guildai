@@ -18,7 +18,7 @@ Create a simply script to test.
 
 Preview a normal batch.
 
-    >>> run("guild run test.py x=[1,2] y=[2,3]", timeout=2)
+    >>> run("guild run test.py x=[1,2] y=[2,3]", timeout=4)
     You are about to run test.py as a batch (4 trials)
       x: [1, 2]
       y: [2, 3]

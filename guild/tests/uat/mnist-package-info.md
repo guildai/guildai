@@ -11,7 +11,7 @@ Use `guild packages info PKG` to show information about a package:
     author: Guild AI
     author-email: packages@guild.ai
     license: Apache 2.0
-    location: /.../lib/python.../site-packages
+    location: .../lib/python.../site-packages
     requires:
     required-by:
     <exit 0>
@@ -27,7 +27,7 @@ information.
     author: Guild AI
     author-email: packages@guild.ai
     license: Apache 2.0
-    location: /.../lib/python.../site-packages
+    location: .../lib/python.../site-packages
     requires:
     required-by:
     metadata-version: 2.1
@@ -45,8 +45,6 @@ information.
       cnn:trained-model = guild.model:PackageModelResource
       logreg:mnist-dataset = guild.model:PackageModelResource
       logreg:trained-model = guild.model:PackageModelResource
-      samples:mnist-dataset = guild.model:PackageModelResource
-    <BLANKLINE>
-    project-urls:
+      samples:mnist-dataset = guild.model:PackageModelResource...
     files:...
     <exit 0>
