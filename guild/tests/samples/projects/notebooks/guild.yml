@@ -31,3 +31,7 @@ extended:
 
 add2:
   notebook: add.ipynb --html-no-input
+
+deps.ipynb:
+  requires:
+    - file: dep.txt

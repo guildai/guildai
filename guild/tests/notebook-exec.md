@@ -209,6 +209,23 @@ to not match. `y` is therefore unchanged. To address this, the
 developer must provide patterns that tolerate the potential flag value
 substitutions where possibly applicable.
 
+## Implied opdef main for notebook
+
+If an operation name ends with `.ipynb` and a main attribute is not
+specified, Guild assumes the operation is intended to run as a
+notebook.
+
+The operation `deps.ipynb` does not specify either `notebook` or
+`main` but is still run as a notebook.
+
+    >>> project.run("deps.ipynb")
+    Resolving file:dep.txt dependency
+    INFO: [guild] Initializing deps.ipynb for run
+    INFO: [guild] Executing deps.ipynb
+    Hello!
+    <BLANKLINE>
+    INFO: [guild] Saving HTML
+
 ## Errors
 
     >>> project.run("invalid_language.ipynb")

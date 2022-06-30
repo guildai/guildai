@@ -47,16 +47,26 @@ class NotebookPlugin(pluginlib.Plugin):
         cache = {}
         for m in gf.models.values():
             for opdef in m.operations:
-                if _is_nbexec_op(opdef):
-                    _apply_notebook_flags(opdef, cache)
+                _maybe_apply_main(opdef)
+                _maybe_apply_notebook_flags(opdef, cache)
 
 
 def _is_notebook(path):
     return os.path.isfile(path) and path.lower().endswith(".ipynb")
 
 
+def _maybe_apply_main(opdef):
+    if opdef.name.lower().endswith(".ipynb") and not opdef.main:
+        opdef.main = f"guild.plugins.nbexec {opdef.name}"
+
+
+def _maybe_apply_notebook_flags(opdef, cache):
+    if _is_nbexec_op(opdef):
+        _apply_notebook_flags(opdef, cache)
+
+
 def _is_nbexec_op(opdef):
-    return opdef.main and opdef.main.rstrip().startswith("guild.plugins.nbexec")
+    return opdef.main and opdef.main.lstrip().startswith("guild.plugins.nbexec")
 
 
 def _apply_notebook_flags(opdef, cache):
