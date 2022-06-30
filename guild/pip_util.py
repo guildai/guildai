@@ -60,7 +60,7 @@ def install(
         args.extend(["--target", target])
 
     for req in reqs:
-        if "/" in req:
+        if req.endswith("requirements.txt"):
             args.append("--requirement")
         args.append(req)
 
