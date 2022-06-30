@@ -88,7 +88,6 @@ jobs:
           guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
           source "$(find test-env -iname activate | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n 1)"
           guild check --uat --offline
-          steps:
       # Enable tmate debugging of manually-triggered workflows if the input option was provided
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
