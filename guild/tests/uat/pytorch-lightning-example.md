@@ -1,5 +1,5 @@
 ---
-doctest: -PY2 -PY310 # 2022-04-26 torch 1.10 is not available for python 3.10. We should bump the constraint to 1.11 when time allows.
+doctest: -PY2
 ---
 
 # PyTorch Lightning Example
@@ -18,8 +18,8 @@ Show script help.
     <BLANKLINE>
     Flags:
       accelerator                     Supports passing different accelerator types
-                                      ("cpu", "gpu", "tpu", "ipu", "auto") as well
-                                      as custom accelerator instances. ..
+                                      ("cpu", "gpu", "tpu", "ipu", "hpu", "auto")
+                                      as well as custom accelerator instances. ..
                                       deprecated:: v1.5 Passing training
                                       strategies (e.g., 'ddp') to ``accelerator``
                                       has been deprecated in v1.5.0 and will be
@@ -27,10 +27,11 @@ Show script help.
                                       ``strategy`` argument instead.
     <BLANKLINE>
       accumulate_grad_batches         Accumulates grads every k batches or as set
-                                      up in the dict.
+                                      up in the dict. Default: ``None``.
     <BLANKLINE>
       amp_backend                     The mixed precision backend to use ("native"
-                                      or "apex"). (default is native)
+                                      or "apex"). Default: ``'native''``. (default
+                                      is native)
     <BLANKLINE>
       amp_level                       The optimization level to use (O1, O2,
                                       etc...). By default it will be set to "O2"
@@ -43,7 +44,8 @@ Show script help.
                                       learning rate in self.lr or
                                       self.learning_rate in the LightningModule.
                                       To use a different key set a string instead
-                                      of True with the key name. (default is 'no')
+                                      of True with the key name. Default:
+                                      ``False``. (default is 'no')
     <BLANKLINE>
       auto_scale_batch_size           If set to True, will `initially` run a batch
                                       size finder trying to find the largest batch
@@ -53,26 +55,35 @@ Show script help.
                                       either `power` that estimates the batch size
                                       through a power search or `binsearch` that
                                       estimates the batch size through a binary
-                                      search. (default is 'no')
-    <BLANKLINE>
-      auto_select_gpus                If enabled and ``gpus`` is an integer, pick
-                                      available gpus automatically. This is
-                                      especially useful when GPUs are configured
-                                      to be in "exclusive mode", such that only
-                                      one process at a time can access them.
-                                      (default is 'no')
-    <BLANKLINE>
-      benchmark                       If true enables cudnn.benchmark. (default is
+                                      search. Default: ``False``. (default is
                                       'no')
     <BLANKLINE>
-      check_val_every_n_epoch         Check val every n train epochs. (default is
-                                      1)
+      auto_select_gpus                If enabled and ``gpus`` or ``devices`` is an
+                                      integer, pick available gpus automatically.
+                                      This is especially useful when GPUs are
+                                      configured to be in "exclusive mode", such
+                                      that only one process at a time can access
+                                      them. Default: ``False``. (default is 'no')
     <BLANKLINE>
-      checkpoint_callback             If ``True``, enable checkpointing. ..
-                                      deprecated:: v1.5 ``checkpoint_callback``
-                                      has been deprecated in v1.5 and will be
-                                      removed in v1.7. Please consider using
-                                      ``enable_checkpointing`` instead.
+      benchmark                       The value (``True`` or ``False``) to set
+                                      ``torch.backends.cudnn.benchmark`` to. The
+                                      value for ``torch.backends.cudnn.benchmark``
+                                      set in the current session will be used
+                                      (``False`` if not manually set). If :paramre
+                                      f:`~pytorch_lightning.trainer.Trainer.determ
+                                      inistic` is set to ``True``, this will
+                                      default to ``False``. Override to manually
+                                      set a different value. Default: ``None``.
+    <BLANKLINE>
+      check_val_every_n_epoch         Check val every n train epochs. Default:
+                                      ``1``. (default is 1)
+    <BLANKLINE>
+      checkpoint_callback             If ``True``, enable checkpointing. Default:
+                                      ``None``. .. deprecated:: v1.5
+                                      ``checkpoint_callback`` has been deprecated
+                                      in v1.5 and will be removed in v1.7. Please
+                                      consider using ``enable_checkpointing``
+                                      instead.
     <BLANKLINE>
       default_root_dir                Default path for logs and weights when no
                                       logger/ckpt_callback passed. Default:
@@ -81,11 +92,13 @@ Show script help.
                                       'hdfs://path/'
     <BLANKLINE>
       detect_anomaly                  Enable anomaly detection for the autograd
-                                      engine. (default is 'no')
+                                      engine. Default: ``False``. (default is
+                                      'no')
     <BLANKLINE>
       deterministic                   If ``True``, sets whether PyTorch operations
-                                      must use deterministic algorithms. Default:
-                                      ``False``. (default is 'no')
+                                      must use deterministic algorithms. If not
+                                      set, defaults to ``False``. Default:
+                                      ``None``.
     <BLANKLINE>
       devices                         Will be mapped to either `gpus`,
                                       `tpu_cores`, `num_processes` or `ipus`,
@@ -95,18 +108,21 @@ Show script help.
                                       configure a default ModelCheckpoint callback
                                       if there is no user-defined ModelCheckpoint
                                       in :paramref:`~pytorch_lightning.trainer.tra
-                                      iner.Trainer.callbacks`. (default is 'yes')
+                                      iner.Trainer.callbacks`. Default: ``True``.
+                                      (default is 'yes')
     <BLANKLINE>
       enable_model_summary            Whether to enable model summarization by
-                                      default. (default is 'yes')
+                                      default. Default: ``True``. (default is
+                                      'yes')
     <BLANKLINE>
       enable_progress_bar             Whether to enable to progress bar by
-                                      default. (default is 'yes')
+                                      default. Default: ``False``. (default is
+                                      'yes')
     <BLANKLINE>
       fast_dev_run                    Runs n if set to ``n`` (int) else 1 if set
                                       to ``True`` batch(es) of train, val and test
                                       to find any bugs (ie: a sort of unit test).
-                                      (default is 'no')
+                                      Default: ``False``. (default is 'no')
     <BLANKLINE>
       flush_logs_every_n_steps        How often to flush logs to disk (defaults to
                                       every 100 steps). .. deprecated:: v1.5
@@ -117,7 +133,7 @@ Show script help.
     <BLANKLINE>
       gpus                            Number of GPUs to train on (int) or which
                                       GPUs to train on (list or str) applied per
-                                      node
+                                      node Default: ``None``.
     <BLANKLINE>
       gradient_clip_algorithm         The gradient clipping algorithm to use. Pass
                                       ``gradient_clip_algorithm="value"`` to clip
@@ -130,27 +146,29 @@ Show script help.
                                       Passing ``gradient_clip_val=None`` disables
                                       gradient clipping. If using Automatic Mixed
                                       Precision (AMP), the gradients will be
-                                      unscaled before.
+                                      unscaled before. Default: ``None``.
     <BLANKLINE>
-      ipus                            How many IPUs to train on.
+      ipus                            How many IPUs to train on. Default:
+                                      ``None``.
+    <BLANKLINE>
       limit_predict_batches           How much of prediction dataset to check
                                       (float = fraction, int = num_batches).
-                                      (default is 1.0)
+                                      Default: ``1.0``.
     <BLANKLINE>
       limit_test_batches              How much of test dataset to check (float =
-                                      fraction, int = num_batches). (default is
-                                      1.0)
+                                      fraction, int = num_batches). Default:
+                                      ``1.0``.
     <BLANKLINE>
       limit_train_batches             How much of training dataset to check (float
-                                      = fraction, int = num_batches). (default is
-                                      1.0)
+                                      = fraction, int = num_batches). Default:
+                                      ``1.0``.
     <BLANKLINE>
       limit_val_batches               How much of validation dataset to check
                                       (float = fraction, int = num_batches).
-                                      (default is 1.0)
+                                      Default: ``1.0``.
     <BLANKLINE>
-      log_every_n_steps               How often to log within steps (defaults to
-                                      every 50 steps). (default is 50)
+      log_every_n_steps               How often to log within steps. Default:
+                                      ``50``. (default is 50)
     <BLANKLINE>
       log_gpu_memory                  None, 'min_max', 'all'. Might slow
                                       performance. .. deprecated:: v1.5 Deprecated
@@ -167,7 +185,8 @@ Show script help.
                                       files (checkpoints, profiler traces, etc.)
                                       are saved in ``default_root_dir`` rather
                                       than in the ``log_dir`` of any of the
-                                      individual loggers. (default is 'yes')
+                                      individual loggers. Default: ``True``.
+                                      (default is 'yes')
     <BLANKLINE>
       lr                              Learning rate for the Adam optimizer
                                       (default is 0.001)
@@ -186,25 +205,24 @@ Show script help.
                                       (default is -1)
     <BLANKLINE>
       max_time                        Stop training after this amount of time has
-                                      passed. Disabled by default (None). The time
-                                      duration can be specified in the format
+                                      passed. Disabled by default (``None``). The
+                                      time duration can be specified in the format
                                       DD:HH:MM:SS (days, hours, minutes seconds),
                                       as a :class:`datetime.timedelta`, or a
                                       dictionary with keys that will be passed to
                                       :class:`datetime.timedelta`.
     <BLANKLINE>
       min_epochs                      Force training for at least these many
-                                      epochs. Disabled by default (None). If both
-                                      min_epochs and min_steps are not specified,
-                                      defaults to ``min_epochs = 1``.
+                                      epochs. Disabled by default (None).
     <BLANKLINE>
       min_steps                       Force training for at least these number of
-                                      steps. Disabled by default (None).
+                                      steps. Disabled by default (``None``).
     <BLANKLINE>
       move_metrics_to_cpu             Whether to force internal logged metrics to
                                       be moved to cpu. This can save some gpu
                                       memory, but can make training slower. Use
-                                      with attention. (default is 'no')
+                                      with attention. Default: ``False``. (default
+                                      is 'no')
     <BLANKLINE>
       multiple_trainloader_mode       How to loop over the datasets when there are
                                       multiple train loaders. In 'max_size_cycle'
@@ -213,31 +231,32 @@ Show script help.
                                       datasets reload when running out of their
                                       data. In 'min_size' mode, all the datasets
                                       reload when reaching the minimum length of
-                                      datasets. (default is max_size_cycle)
+                                      datasets. Default: ``"max_size_cycle"``.
+                                      (default is max_size_cycle)
     <BLANKLINE>
       num_nodes                       Number of GPU nodes for distributed
-                                      training. (default is 1)
+                                      training. Default: ``1``. (default is 1)
     <BLANKLINE>
       num_processes                   Number of processes for distributed training
-                                      with ``accelerator="cpu"``. (default is 1)
+                                      with ``accelerator="cpu"``. Default: ``1``.
     <BLANKLINE>
       num_sanity_val_steps            Sanity check runs n validation batches
                                       before starting the training routine. Set it
                                       to `-1` to run all batches in all validation
-                                      dataloaders. (default is 2)
+                                      dataloaders. Default: ``2``. (default is 2)
     <BLANKLINE>
       overfit_batches                 Overfit a fraction of training data (float)
-                                      or a set number of batches (int). (default
-                                      is 0.0)
+                                      or a set number of batches (int). Default:
+                                      ``0.0``. (default is 0.0)
     <BLANKLINE>
       plugins                         Plugins allow modification of core behavior
                                       like ddp and amp, and enable custom
-                                      lightning plugins.
+                                      lightning plugins. Default: ``None``.
     <BLANKLINE>
       precision                       Double precision (64), full precision (32),
                                       half precision (16) or bfloat16 precision
-                                      (bf16). Can be used on CPU, GPU or TPUs.
-                                      (default is 32)
+                                      (bf16). Can be used on CPU, GPU, TPUs, HPUs
+                                      or IPUs. Default: ``32``. (default is 32)
     <BLANKLINE>
                                       Choices:  16, 32, 64
     <BLANKLINE>
@@ -247,8 +266,8 @@ Show script help.
                                       deprecated:: v1.5 Deprecated in v1.5.0 and
                                       will be removed in v1.7.0 Please set
                                       ``prepare_data_per_node`` in
-                                      LightningDataModule or LightningModule
-                                      directly instead.
+                                      ``LightningDataModule`` and/or
+                                      ``LightningModule`` directly instead.
     <BLANKLINE>
       process_position                Orders the progress bar when running
                                       multiple models on same machine. ..
@@ -262,6 +281,7 @@ Show script help.
     <BLANKLINE>
       profiler                        To profile individual steps during training
                                       and assist in identifying bottlenecks.
+                                      Default: ``None``.
     <BLANKLINE>
       progress_bar_refresh_rate       How often to refresh progress bar (in
                                       steps). Value ``0`` disables progress bar.
@@ -279,17 +299,10 @@ Show script help.
                                       the progress bar, pass ``enable_progress_bar
                                       = False`` to the Trainer.
     <BLANKLINE>
-      reload_dataloaders_every_epoch  Set to True to reload dataloaders every
-                                      epoch. .. deprecated:: v1.4
-                                      ``reload_dataloaders_every_epoch`` has been
-                                      deprecated in v1.4 and will be removed in
-                                      v1.6. Please use
-                                      ``reload_dataloaders_every_n_epochs``.
-                                      (default is 'no')
-    <BLANKLINE>
       reload_dataloaders_every_n_epochs
                                       Set to a non-negative integer to reload
-                                      dataloaders every n epochs. (default is 0)
+                                      dataloaders every n epochs. Default: ``0``.
+                                      (default is 0)
     <BLANKLINE>
       replace_sampler_ddp             Explicitly enables or disables sampler
                                       replacement. If not specified this will
@@ -309,28 +322,29 @@ Show script help.
                                       beginning of the next epoch. .. deprecated::
                                       v1.5 ``resume_from_checkpoint`` is
                                       deprecated in v1.5 and will be removed in
-                                      v1.7. Please pass the path to
+                                      v2.0. Please pass the path to
                                       ``Trainer.fit(..., ckpt_path=...)`` instead.
     <BLANKLINE>
       stochastic_weight_avg           Whether to use `Stochastic Weight Averaging
                                       (SWA)
                                       <https://pytorch.org/blog/pytorch-1.6-now-
-                                      includes-stochastic-weight-averaging/>`_. ..
-                                      deprecated:: v1.5 ``stochastic_weight_avg``
-                                      has been deprecated in v1.5 and will be
-                                      removed in v1.7. Please pass :class:`~pytorc
-                                      h_lightning.callbacks.stochastic_weight_avg.
-                                      StochasticWeightAveraging` directly to the
-                                      Trainer's ``callbacks`` argument instead.
-                                      (default is 'no')
+                                      includes-stochastic-weight-averaging/>`_.
+                                      Default: ``False``. .. deprecated:: v1.5
+                                      ``stochastic_weight_avg`` has been
+                                      deprecated in v1.5 and will be removed in
+                                      v1.7. Please pass :class:`~pytorch_lightning
+                                      .callbacks.stochastic_weight_avg.StochasticW
+                                      eightAveraging` directly to the Trainer's
+                                      ``callbacks`` argument instead. (default is
+                                      'no')
     <BLANKLINE>
       strategy                        Supports different training strategies with
-                                      aliases as well custom training type
-                                      plugins.
+                                      aliases as well custom strategies. Default:
+                                      ``None``.
     <BLANKLINE>
       sync_batchnorm                  Synchronize batch norm layers between
-                                      process groups/whole world. (default is
-                                      'no')
+                                      process groups/whole world. Default:
+                                      ``False``. (default is 'no')
     <BLANKLINE>
       terminate_on_nan                If set to True, will terminate training (by
                                       raising a `ValueError`) at the end of each
@@ -342,18 +356,21 @@ Show script help.
                                       instead.
     <BLANKLINE>
       tpu_cores                       How many TPU cores to train on (1 or 8) /
-                                      Single TPU to train on [1]
+                                      Single TPU to train on (1) Default:
+                                      ``None``.
     <BLANKLINE>
       track_grad_norm                 -1 no tracking. Otherwise tracks that
                                       p-norm. May be set to 'inf' infinity-norm.
                                       If using Automatic Mixed Precision (AMP),
                                       the gradients will be unscaled before
-                                      logging them. (default is -1)
+                                      logging them. Default: ``-1``. (default is
+                                      -1)
     <BLANKLINE>
-      val_check_interval              How often to check the validation set. Use
-                                      float to check within a training epoch, use
-                                      int to check every n steps (batches).
-                                      (default is 1.0)
+      val_check_interval              How often to check the validation set. Pass
+                                      a ``float`` in the range [0.0, 1.0] to check
+                                      after a fraction of the training epoch. Pass
+                                      an ``int`` to check after a fixed number of
+                                      training batches. Default: ``1.0``.
     <BLANKLINE>
       weights_save_path               Where to save weights if specified. Will
                                       override default_root_dir for checkpoints
@@ -363,7 +380,12 @@ Show script help.
                                       `default_root_dir`. Can be remote file paths
                                       such as `s3://mybucket/path` or
                                       'hdfs://path/' Defaults to
-                                      `default_root_dir`.
+                                      `default_root_dir`. .. deprecated:: v1.6
+                                      ``weights_save_path`` has been deprecated in
+                                      v1.6 and will be removed in v1.8. Please
+                                      pass ``dirpath`` directly to the :class:`~py
+                                      torch_lightning.callbacks.model_checkpoint.M
+                                      odelCheckpoint` callback.
     <BLANKLINE>
       weights_summary                 Prints a summary of the weights when
                                       training begins. .. deprecated:: v1.5
@@ -393,13 +415,9 @@ Print the command.
     no
     --auto_select_gpus
     no
-    --benchmark
-    no
     --check_val_every_n_epoch
     1
     --detect_anomaly
-    no
-    --deterministic
     no
     --enable_checkpointing
     yes
@@ -408,15 +426,7 @@ Print the command.
     --enable_progress_bar
     yes
     --fast_dev_run
-    ...
-    --limit_predict_batches
-    1.0
-    --limit_test_batches
-    1.0
-    --limit_train_batches
-    1.0
-    --limit_val_batches
-    1.0
+    no
     --log_every_n_steps
     50
     --logger
@@ -431,8 +441,6 @@ Print the command.
     max_size_cycle
     --num_nodes
     1
-    --num_processes
-    1
     --num_sanity_val_steps
     2
     --overfit_batches
@@ -441,8 +449,6 @@ Print the command.
     32
     --process_position
     0
-    --reload_dataloaders_every_epoch
-    no
     --reload_dataloaders_every_n_epochs
     0
     --replace_sampler_ddp
@@ -453,8 +459,6 @@ Print the command.
     no
     --track_grad_norm
     -1.0
-    --val_check_interval
-    1.0
     --weights_summary
     top
     <exit 0>
@@ -476,13 +480,9 @@ Print the command using the `train` operation, which imports all flags.
     no
     --auto_select_gpus
     no
-    --benchmark
-    no
     --check_val_every_n_epoch
     1
     --detect_anomaly
-    no
-    --deterministic
     no
     --enable_checkpointing
     yes
@@ -491,15 +491,7 @@ Print the command using the `train` operation, which imports all flags.
     --enable_progress_bar
     yes
     --fast_dev_run
-    ...
-    --limit_predict_batches
-    1.0
-    --limit_test_batches
-    1.0
-    --limit_train_batches
-    1.0
-    --limit_val_batches
-    1.0
+    no
     --log_every_n_steps
     50
     --logger
@@ -514,8 +506,6 @@ Print the command using the `train` operation, which imports all flags.
     max_size_cycle
     --num_nodes
     1
-    --num_processes
-    1
     --num_sanity_val_steps
     2
     --overfit_batches
@@ -524,8 +514,6 @@ Print the command using the `train` operation, which imports all flags.
     32
     --process_position
     0
-    --reload_dataloaders_every_epoch
-    no
     --reload_dataloaders_every_n_epochs
     0
     --replace_sampler_ddp
@@ -536,8 +524,6 @@ Print the command using the `train` operation, which imports all flags.
     no
     --track_grad_norm
     -1.0
-    --val_check_interval
-    1.0
     --weights_summary
     top
     <exit 0>
