@@ -1077,7 +1077,7 @@ def _run(
     cmd,
     quiet=False,
     ignore=None,
-    timeout=600,
+    timeout=1800,
     cut=None,
     cwd=None,
     env=None,
