@@ -154,8 +154,7 @@ in-progress and defer starting the pending staged run until it's next
 check.
 
     >>> run("guild cat --output -Fl q2")
-    INFO: [guild] ... Found staged run ... (waiting for runs to finish: ...)
-    ...
+    INFO: [guild] ... Found staged run ... (waiting for runs to finish: ...)...
     <exit 0>
 
 As we have a race condition for which queue starts the second staged
