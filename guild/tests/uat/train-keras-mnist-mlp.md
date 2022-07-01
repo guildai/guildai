@@ -7,8 +7,7 @@ doctest: -PY3 +PY36 +PY37 # 2022-04-11 these tests fail on github actions becaus
 For this example, we'll use the full spelling of "train", which is to
 run the `train` operation on the model.
 
-    >>> run("guild run -y --no-gpus gpkg.keras.mnist/mlp:train epochs=1",
-    ...     timeout=420)
+    >>> run("guild run -y --no-gpus gpkg.keras.mnist/mlp:train epochs=1")
     Resolving script dependency...
     Using TensorFlow backend...
     Epoch 1/1...

@@ -50,7 +50,7 @@ However, we do see the operations:
 The project has a default operation, which is defined in
 guild.yml. Let's see what it wants to run by looking at a run preview:
 
-    >>> run("guild run", timeout=2)
+    >>> run("guild run")
     You are about to run train
       batch_size: 100
       epochs: 10
@@ -158,7 +158,7 @@ scalars that we can view by including the `-s` option to `runs info`.
 
 We can run a Python script directly as an operation:
 
-    >>> run("guild run mnist.py --no-gpus epochs=1 -y", timeout=120)
+    >>> run("guild run mnist.py --no-gpus epochs=1 -y")
     ???
     Step 20:...
     Step 540:...

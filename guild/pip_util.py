@@ -339,7 +339,7 @@ def lib_dir(
 def freeze():
     try:
         return subprocess.check_output(
-            [sys.executable, "-m", "pip", "freeze"]
+            [sys.executable, "-m", "pip", "freeze"], stdin=subprocess.DEVNULL
         ).splitlines()
     except Exception as e:
         if log.getEffectiveLevel() <= logging.DEBUG:

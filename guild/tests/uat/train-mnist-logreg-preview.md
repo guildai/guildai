@@ -6,7 +6,7 @@ review the setting before continuing.
 Because the prompt waits for user input, we need to terminate the
 process using a timeout:
 
-    >>> run("guild run logreg:train", timeout=4)
+    >>> run("guild run logreg:train")
     You are about to run gpkg.mnist/logreg:train
       batch-size: 100
       epochs: 5
