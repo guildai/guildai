@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 import click
 
 from guild import click_util
@@ -21,8 +23,11 @@ from guild import click_util
 @click.argument("terms", metavar="TERM...", nargs=-1, required=True)
 @click.option("-a", "--all", is_flag=True, help="Search all packages.")
 @click_util.use_args
-def search(args):
+def search(args):  # pylint: disable=unused-argument
     """Search for a package.
+
+    This function is disabled because PyPI no longer supports the XMLRPC
+    interface for searching.
 
     Specify one or more `TERM` arguments to search for.
 
@@ -30,6 +35,7 @@ def search(args):
     packages, use the `--all` option.
 
     """
-    from . import search_impl
-
-    search_impl.main(args)
+    sys.exit(
+        "This function is disabled because PyPI no longer supports "
+        "the XMLRPC interface for searching."
+    )

@@ -186,7 +186,7 @@ The exit status indicates the error.
 An error status also arises when a process terminates abnormally.
 
 The `kill` operation simulates this by sending SIGKILL to its parent
-process, preventing Guild from clearning up LOCK and writing the exit
+process, preventing Guild from clearing up LOCK and writing the exit
 status.
 
 We run with the `--no-wait` option because we aren't able to properly

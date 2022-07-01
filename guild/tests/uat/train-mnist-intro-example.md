@@ -8,7 +8,7 @@ We can train the MNIST example model `mnist-intro` in the `mnist`
 directory:
 
     >>> run("guild -C %s run intro:train -y --no-gpus epochs=1"
-    ...     % example("models"), timeout=120)
+    ...     % example("models"))
     Resolving data dependency
     ...
     Step 0: training=...

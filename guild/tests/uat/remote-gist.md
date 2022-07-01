@@ -15,7 +15,7 @@ Check status again to confirm the gist doesn't exit.
     >>> run("guild remote status guild-uat-gist")
     Getting guild-uat-gist status
     guild: cannot find gist remote 'guild-uat' (denoted by the file
-    '[Guild AI] guild-uat.md') for user gar1t
+    '[Guild AI] guild-uat.md') for user ...
     If the gist is private, you must specify a valid access token
     with GIST_ACCESS_TOKEN.
     For more information see https://my.guild.ai/docs/gists.
@@ -26,7 +26,7 @@ Create the gist.
     >>> run("guild remote start guild-uat-gist -y")
     Getting guild-uat-gist status
     Creating gist
-    Created guild-uat-gist (gist ...) for user gar1t
+    Created guild-uat-gist (gist ...) for user ...
     Refreshing run info for guild-uat-gist
     <exit 0>
 
@@ -275,13 +275,13 @@ Permanently delete the remote hello runs.
     >>> run("guild remote stop guild-uat-gist -y")
     Getting guild-uat-gist status
     Deleting gist ...
-    Clearning local cache
+    Clearing local cache
     <exit 0>
 
     >>> run("guild remote status guild-uat-gist")
     Getting guild-uat-gist status
     guild: cannot find gist remote 'guild-uat' (denoted by the file
-    '[Guild AI] guild-uat.md') for user gar1t
+    '[Guild AI] guild-uat.md') for user ...
     If the gist is private, you must specify a valid access token
     with GIST_ACCESS_TOKEN.
     For more information see https://my.guild.ai/docs/gists.

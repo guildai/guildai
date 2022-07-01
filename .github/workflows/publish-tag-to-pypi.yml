@@ -61,10 +61,10 @@ jobs:
          - { os: ubuntu-latest,  shell: bash }
          - { os: macos-latest,   shell: bash }
         python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
-        exclude:
-          - sys:
-              os: macos-latest
-            python-version: 3.7  # there's a strange distutils error about missing distutils.sysconfig. We're punting and ignoring it for now.
+        # exclude:
+        #   - sys:
+        #       os: macos-latest
+        #     python-version: 3.7  # there's a strange distutils error about missing distutils.sysconfig. We're punting and ignoring it for now.
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v2

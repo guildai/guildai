@@ -1,9 +1,8 @@
 ---
-doctest: -PY2 -PY310 # 2022-04-26 torch 1.10 is not available for python 3.10. We should bump the constraint to 1.11 when time allows.
+doctest: -PY2
 ---
 
 # Install PyTorch Lightning
 
-    >>> quiet("pip install pytorch-lightning==1.5.4", timeout=120)
-
-    >>> quiet("pip install torchvision==0.11.1", timeout=120)
+    >>> quiet("pip install pytorch-lightning==1.5.10 torchvision==0.11.2") # doctest: -PY3 +PY36
+    >>> quiet("pip install pytorch-lightning==1.6.4 torchvision==0.13.0") # doctest: -PY36

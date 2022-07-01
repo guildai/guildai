@@ -50,7 +50,7 @@ However, we do see the operations:
 The project has a default operation, which is defined in
 guild.yml. Let's see what it wants to run by looking at a run preview:
 
-    >>> run("guild run", timeout=2)
+    >>> run("guild run", timeout=5)
     You are about to run train
       batch_size: 100
       epochs: 10
@@ -74,7 +74,7 @@ The `train` operation, defined in the Guild file, defines non-default columns:
 
     >>> run("guild compare --table 1")
     run  operation  started  time  status     label                    step  train_loss  train_acc
-    ...  train      ...      ...   completed  batch_size=100 epochs=1  540   0...        0...
+    ...  train      ...      ...   completed  batch_size=100 epochs=1  540   0...        ...
     <exit 0>
 
 ## View results with runs info
@@ -158,7 +158,7 @@ scalars that we can view by including the `-s` option to `runs info`.
 
 We can run a Python script directly as an operation:
 
-    >>> run("guild run mnist.py --no-gpus epochs=1 -y", timeout=120)
+    >>> run("guild run mnist.py --no-gpus epochs=1 -y")
     ???
     Step 20:...
     Step 540:...

@@ -39,29 +39,15 @@ def packages(all=False):
 
 
 def _is_gpkg(pkg):
-    keywords = _pkg_metadata(pkg, "Keywords") or ""
+    keywords = pkg.metadata.get("Keywords", "")
     return "gpkg" in keywords.split(" ")
-
-
-def _pkg_metadata(pkg, name):
-    try:
-        metadata_lines = pkg.get_metadata_lines("METADATA")
-    except IOError:
-        # no METADATA
-        metadata_lines = []
-    line_prefix = "{}: ".format(name)
-    len_line_prefix = len(line_prefix)
-    for line in metadata_lines:
-        if line[:len_line_prefix] == line_prefix:
-            return line[len_line_prefix:]
-    return None
 
 
 def _format_pkg(pkg):
     return {
-        "name": pkg.project_name,
-        "summary": _strip_guildai_suffix(_pkg_metadata(pkg, "Summary") or ""),
-        "version": pkg.version,
+        "name": pkg.metadata["Name"],
+        "summary": _strip_guildai_suffix(pkg.metadata.get("Summary", "")),
+        "version": pkg.metadata["Version"],
     }
 
 

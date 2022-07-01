@@ -5,3 +5,4 @@ recursive-include guild/scripts *
 recursive-include guild/view/dist *
 recursive-include guild/templates *
 recursive-include guild/tests *
+prune guild/tests/.git/

@@ -50,16 +50,20 @@ Pydantic - the correct error message should be 'value is not a dict'.)
 ## Validate example Guild files
 
 To exercise the schema validation and to verify the correctness of our
-examples, apply validation to the Gulid files under `examples/`.
+examples, apply validation to the Guild files under `examples/`.
 
     >>> def example_guildfiles():
     ...     return sorted(filter(
-    ...         lambda p: os.path.basename(p) == "guild.yml",
+    ...         lambda p: (os.path.basename(p) == "guild.yml" and "/build/" not in p),
     ...         findl(examples_dir())))
 
-    >>> for path in example_guildfiles():  # doctest: +REPORT_UDIFF
+    >>> import pydantic
+    >>> for path in example_guildfiles():  # doctest: +REPORT_UDIFF -PY36
     ...     print(path)
-    ...     _ = guildfile_schema.parse_file(os.path.join(examples_dir(), path))
+    ...     try:
+    ...         _ = guildfile_schema.parse_file(os.path.join(examples_dir(), path))
+    ...     except Exception as e:
+    ...         print(f"Failure at {path}: {str(e)}")
     api/guild.yml
     bias/guild.yml
     classification-report/guild.yml
@@ -68,11 +72,8 @@ examples, apply validation to the Gulid files under `examples/`.
     dvc/guild.yml
     flags/guild.yml
     get-started-use-guild/guild.yml
-    hello-package-2/build/lib/gpkg/hello/guild.yml
     hello-package-2/guild.yml
-    hello-package-legacy/build/lib/hello/guild.yml
     hello-package-legacy/guild.yml
-    hello-package/build/lib/gpkg/hello/guild.yml
     hello-package/guild.yml
     hello/guild.yml
     hydra/guild.yml
@@ -82,7 +83,6 @@ examples, apply validation to the Gulid files under `examples/`.
     languages/guild.yml
     models/guild.yml
     notebooks/guild.yml
-    parallel-runs/build/lib/gpkg/anonymous_f35005fb/guild.yml
     parallel-runs/guild.yml
     pipeline/guild.yml
     project-user-config/guild.yml

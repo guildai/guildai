@@ -112,8 +112,7 @@ Note that we can't assert the resolution message as the resource may
 be cached, which prints a different message.
 
     >>> run("guild run url -y")
-    Resolving https://guild-pub.s3.amazonaws.com/uat/file.txt dependency
-    ...
+    Resolving https://guild-pub.s3.amazonaws.com/uat/file.txt dependency...
     <exit 0>
 
     >>> run("guild ls -n")

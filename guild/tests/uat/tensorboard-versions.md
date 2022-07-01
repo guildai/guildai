@@ -35,38 +35,39 @@ TensorBoard versions.
     ...     pip_install(req, venv)
     ...     tensorboard_check(req, venv)
 
-## 2.0.0
+## 2.7.0
 
-    >>> check("tensorboard==2.0.0") # doctest: -PY310
+    >>> check("tensorboard==2.7.0")  # doctest: -PY2 -PY3 +PY36 +PY37 +PY38 +PY39
     venv: ...
     python_path: ...
     internal tests:
-      tensorboard==2.0.0.md:       ok
+      tensorboard==2.7.0.md:       ok...
     <exit 0>
 
-## 2.1.0
 
-    >>> check("tensorboard==2.1.0") # doctest: -PY310
+## 2.8.0
+
+    >>> check("tensorboard==2.8.0")  # doctest: -PY2
     venv: ...
     python_path: ...
     internal tests:
-      tensorboard==2.1.0.md:       ok
+      tensorboard==2.8.0.md:       ok...
     <exit 0>
 
-## 2.2.0
+## 2.9.0
 
-    >>> check("tensorboard==2.2.0")  # doctest: -PY2 -PY310
+    >>> check("tensorboard==2.9.0")  # doctest: -PY2
     venv: ...
     python_path: ...
     internal tests:
-      tensorboard==2.2.0.md:       ok
+      tensorboard==2.9.0.md:       ok...
     <exit 0>
 
-## 2.3.0
+## 2.9.1
 
-    >>> check("tensorboard==2.3.0")  # doctest: -PY2 -PY310
+    >>> check("tensorboard==2.9.1")  # doctest: -PY2
     venv: ...
     python_path: ...
     internal tests:
-      tensorboard==2.3.0.md:       ok
+      tensorboard==2.9.1.md:       ok...
     <exit 0>
