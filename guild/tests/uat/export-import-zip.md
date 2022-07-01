@@ -35,7 +35,7 @@ Create a temp dir to write our archive to.
 
 Show preview:
 
-    >>> run("guild export %s 1" % archive, timeout=2)
+    >>> run("guild export %s 1" % archive, timeout=4)
     You are about to copy the following runs to '...':
       [...]  hello   ...  completed  msg=hola
     Continue? (Y/n)
@@ -72,7 +72,7 @@ Runs still exist because the default export mode is to copy runs.
 
 Export two more runs - preview.
 
-    >>> run("guild export %s 2 3" % archive, timeout=2)
+    >>> run("guild export %s 2 3" % archive, timeout=4)
     You are about to copy the following runs to '...':
       [...]  hello   ...  completed  msg=hi
       [...]  hello   ...  completed  msg=hello
@@ -114,7 +114,7 @@ Export to another export dir using the `--move` option:
 
 Preview:
 
-    >>> run("guild export %s --move" % archive, timeout=2)
+    >>> run("guild export %s --move" % archive, timeout=4)
     You are about to move the following runs to '...':
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
@@ -156,7 +156,7 @@ Current runs are empty because runs were moved rather than copied.
 
 Import preview:
 
-    >>> run("guild import %s" % archive, timeout=2)
+    >>> run("guild import %s" % archive, timeout=4)
     You are about to import (copy) the following runs from '...':
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
@@ -194,7 +194,7 @@ Import again:
 
 ## Import with Move - no supported for zip archives
 
-    >>> run("guild import %s --move" % archive, timeout=2)
+    >>> run("guild import %s --move" % archive, timeout=4)
     guild: '--move' cannot be used with zip archives
     <exit 1>
 
