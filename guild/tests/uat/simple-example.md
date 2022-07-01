@@ -50,7 +50,7 @@ However, we do see the operations:
 The project has a default operation, which is defined in
 guild.yml. Let's see what it wants to run by looking at a run preview:
 
-    >>> run("guild run")
+    >>> run("guild run", timeout=2)
     You are about to run train
       batch_size: 100
       epochs: 10

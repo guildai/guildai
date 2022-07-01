@@ -78,7 +78,7 @@ start a trial.
     >>> from guild import lock as locklib
 
     >>> def _run_trial(trial_run):
-    ...     status_lock = locklib.Lock(locklib.RUN_STATUS)
+    ...     status_lock = locklib.Lock(locklib.RUN_STATUS, timeout=5)
     ...     with SetGuildHome(project.guild_home):
     ...         batch_util._try_run_pending_trial(trial_run, batch_run, status_lock)
 

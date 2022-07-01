@@ -232,14 +232,14 @@ The tags, however, are modified.
 When modifying tags without the -y option, Guild shows a clarifying
 message related to syncing labels.
 
-    >>> run("guild tag -c")
+    >>> run("guild tag -c", timeout=2)
     You are about to modify tags for the following runs:
     Labels are not updated - use --sync-labels to apply changes run labels.
       [...]  hello  ...  completed  example hello run
     Continue? (Y/n)
     <exit ...>
 
-    >>> run("guild tag -c -s")
+    >>> run("guild tag -c -s", timeout=2)
     You are about to modify tags for the following runs:
     Labels are updated to reflect the latest tags.
       [...]  hello  ...  completed  example hello run

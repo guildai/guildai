@@ -35,7 +35,7 @@ Create an export dir:
 
 Show preview:
 
-    >>> run("guild export %s" % export_dir)
+    >>> run("guild export %s" % export_dir, timeout=2)
     You are about to copy the following runs to '...':
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
@@ -96,7 +96,7 @@ Export to another export dir using the `--move` option:
 
 Preview:
 
-    >>> run("guild export %s --move" % export_dir)
+    >>> run("guild export %s --move" % export_dir, timeout=2)
     You are about to move the following runs to '...':
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
@@ -130,7 +130,7 @@ Current runs are empty because runs were moved rather than copied.
 
 Import preview:
 
-    >>> run("guild import %s" % export_dir)
+    >>> run("guild import %s" % export_dir, timeout=2)
     You are about to import (copy) the following runs from '...':
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi
@@ -182,7 +182,7 @@ Delete existing runs:
 
 Import preview:
 
-    >>> run("guild import %s --move" % export_dir)
+    >>> run("guild import %s --move" % export_dir, timeout=2)
     You are about to import (move) the following runs from '...':
       [...]  hello   ...  completed  msg=hola
       [...]  hello   ...  completed  msg=hi

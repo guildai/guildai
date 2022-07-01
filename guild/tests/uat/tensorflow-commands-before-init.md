@@ -19,7 +19,7 @@ We're assuming that neither are installed at this point:
 
 The `tensorboard` command won't run unless TensorFlow is installed:
 
-    >>> run("guild tensorboard")
+    >>> run("guild tensorboard", timeout=1)
     TensorBoard cannot not be started because TensorFlow is not installed.
     Refer to https://www.tensorflow.org/install/ for help installing TensorFlow
     on your system.

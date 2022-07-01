@@ -92,14 +92,14 @@ Show remote run info.
 
 Prompt to delete remote runs. Non-permanent delete is not supported.
 
-    >>> run("guild runs rm -r guild-uat-azure-blob")
+    >>> run("guild runs rm -r guild-uat-azure-blob", timeout=10)
     guild: remote 'guild-uat-azure-blob' does not support non permanent deletes
     Use the '--permanent' with this command and try again.
     <exit 1>
 
 We need to use the permanent option.
 
-    >>> run("guild runs rm -p -r guild-uat-azure-blob")
+    >>> run("guild runs rm -p -r guild-uat-azure-blob", timeout=10)
     Refreshing run info for guild-uat-azure-blob
     WARNING: You are about to permanently delete the following runs on guild-uat-azure-blob:
       [...]  hello  ...  completed  run-2
@@ -148,7 +148,7 @@ Delete local runs:
 
 Pull remote runs prompt:
 
-    >>> run("guild pull guild-uat-azure-blob")
+    >>> run("guild pull guild-uat-azure-blob", timeout=15)
     Refreshing run info for guild-uat-azure-blob
     You are about to copy (pull) the following runs from guild-uat-azure-blob:
       [...]  hello  ...  completed  run-2
