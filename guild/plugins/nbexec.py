@@ -105,7 +105,7 @@ def _init_flags(run, args):
 
 def _check_nbconvert():
     try:
-        import nbconvert
+        import nbconvert as _unused
     except ImportError:
         log.error(
             "jupyter-nbconvert is required to run Notebooks - "
