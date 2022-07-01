@@ -74,7 +74,7 @@ The `train` operation, defined in the Guild file, defines non-default columns:
 
     >>> run("guild compare --table 1")
     run  operation  started  time  status     label                    step  train_loss  train_acc
-    ...  train      ...      ...   completed  batch_size=100 epochs=1  540   0...        0...
+    ...  train      ...      ...   completed  batch_size=100 epochs=1  540   0...        ...
     <exit 0>
 
 ## View results with runs info

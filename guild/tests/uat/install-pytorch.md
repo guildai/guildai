@@ -4,8 +4,8 @@ doctest: -PY2
 
 # Install PyTorch
 
-    >>> quiet("pip install torch==1.12.0")  -PY3 +PY36
-    >>> quiet("pip install torch==1.12.0")  -PY36
+    >>> quiet("pip install torch==1.10.0")  # doctest: -PY3 +PY36
+    >>> quiet("pip install torch==1.12.0")  # doctest: -PY36
 
     >>> run("guild check --offline --pytorch")
     guild_version:             ...
