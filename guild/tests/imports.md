@@ -257,4 +257,6 @@
     guild.var
     guild.vcs_util
     guild.view
+    guild.widgets.__init__
+    guild.widgets.runs
     guild.yaml_util
