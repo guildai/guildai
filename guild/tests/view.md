@@ -42,7 +42,7 @@ Available run data:
 
     >>> run_data = runs_data[0]
 
-    >>> pprint(sorted(run_data.keys()))
+    >>> pprint(sorted(run_data.keys()))  # doctest: +REPORT_UDIFF
     ['command',
      'comments',
      'deps',
@@ -53,10 +53,10 @@ Available run data:
      'flags',
      'id',
      'label',
-     'opModel',
-     'opName',
+     'opRef',
      'operation',
      'otherAttrs',
+     'projectDir',
      'scalars',
      'shortId',
      'sourcecode',

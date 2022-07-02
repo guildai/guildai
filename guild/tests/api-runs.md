@@ -59,10 +59,16 @@ Helper for running commands for the project.
         },
         "id": "...",
         "label": "file=hello.txt",
-        "opModel": "",
-        "opName": "hello-file",
+        "opRef": {
+          "modelName": "",
+          "opName": "hello-file",
+          "pkgName": ".../examples/hello/guild.yml",
+          "pkgType": "guildfile",
+          "pkgVersion": "..."
+        },
         "operation": "hello-file",
         "otherAttrs": {},
+        "projectDir": ".../examples/hello",
         "scalars": [],
         "shortId": "...",
         "sourcecode": {

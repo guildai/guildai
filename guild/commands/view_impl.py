@@ -111,8 +111,6 @@ class ViewDataImpl(view.ViewData):
             "shortId": run.short_id,
             "dir": run.dir,
             "operation": formatted["operation"],
-            "opModel": run.opref.model_name,
-            "opName": run.opref.op_name,
             "started": formatted["started"],
             "stopped": formatted["stopped"],
             "time": self._run_duration(run),
@@ -129,6 +127,8 @@ class ViewDataImpl(view.ViewData):
             "deps": self._format_deps(run.get("deps", {})),
             "files": self._format_files(run.iter_files(), run.path),
             "sourcecode": _sourcecode_data(run),
+            "projectDir": run_util.run_op_dir(run),
+            "opRef": _opref_data(run),
         }
 
     @staticmethod
@@ -347,6 +347,18 @@ def _iter_sourcecode_files(path):
     for root, _dirs, files in os.walk(path):
         for name in files:
             yield os.path.relpath(os.path.join(root, name), path)
+
+
+def _opref_data(run):
+    if not run.opref:
+        return None
+    return {
+        "pkgType": run.opref.pkg_type,
+        "pkgName": run.opref.pkg_name,
+        "pkgVersion": run.opref.pkg_version,
+        "modelName": run.opref.model_name,
+        "opName": run.opref.op_name,
+    }
 
 
 def main(args):

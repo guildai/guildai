@@ -574,23 +574,10 @@ def _apply_op_desc(formatted):
 
 def _op_desc_base(fmt_run, apply_style=True):
     op = fmt_run["operation"]
-    op_dir = _run_op_dir(fmt_run["_run"])
+    op_dir = run_util.run_op_dir(fmt_run["_run"])
     if not op_dir:
         return _empty_style(op, apply_style)
     return "%s%s" % (op, _styled_op_dir_suffix(op_dir, apply_style))
-
-
-def _run_op_dir(run):
-    run = run.batch_proto or run
-    opref = run.opref
-    if opref.pkg_type == "guildfile":
-        return os.path.dirname(opref.pkg_name)
-    elif opref.pkg_type == "script":
-        return opref.pkg_name
-    elif opref.pkg_type == "import":
-        return os.path.dirname(opref.pkg_name)
-    else:
-        return None
 
 
 def _empty_style(s, apply_style):

@@ -684,3 +684,16 @@ def calc_run_duration(status, started, stopped=None):
     elif stopped:
         return util.format_duration(started, stopped)
     return None
+
+
+def run_op_dir(run):
+    run = run.batch_proto or run
+    opref = run.opref
+    if opref.pkg_type == "guildfile":
+        return os.path.dirname(opref.pkg_name)
+    elif opref.pkg_type == "script":
+        return opref.pkg_name
+    elif opref.pkg_type == "import":
+        return os.path.dirname(opref.pkg_name)
+    else:
+        return None
