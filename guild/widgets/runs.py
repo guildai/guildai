@@ -14,6 +14,7 @@
 
 
 def Runs():
+    # pylint: disable=import-error
     from IPython.display import display, HTML
 
     display(HTML("Hello there!"))
