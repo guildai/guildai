@@ -4,6 +4,7 @@
 # guildai.dist-info/METADATA. You must manually edit
 # that file to reflect any changes made here.
 
+chardet>=3.0.4
 click>=8
 daemonize>=2.4.7
 filelock>=3.0.12
