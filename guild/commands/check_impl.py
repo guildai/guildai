@@ -31,7 +31,6 @@ from guild import cli
 from guild import config
 from guild import file_util
 from guild import plugin
-from guild import python_util
 from guild import uat
 from guild import util
 from guild import var
@@ -117,9 +116,8 @@ def _check_impl(args):
 
 
 def _check_version(req):
-    guild_version = _strip_dev_version(guild.__version__)
     try:
-        match = python_util.test_package_version(guild_version, req)
+        match = util.check_guild_version(req)
     except ValueError:
         cli.error(
             "invalid requirement spec '%s'\n"
@@ -131,12 +129,6 @@ def _check_version(req):
                 "version mismatch: current version '%s' does not match '%s'"
                 % (guild.__version__, req)
             )
-
-
-def _strip_dev_version(s):
-    m = re.match(r"(\d+\.\d+\.\d+).*", s)
-    assert m, s
-    return m.group(1)
 
 
 def _uat_and_exit():

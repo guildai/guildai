@@ -773,3 +773,33 @@ Force a re-read of the environment for active shell.
 
     >>> shell == shell_save, (shell, shell_save)
     (True, ...)
+
+## Check Guild version
+
+Guild `util` module provides a function to validate the current Guild
+version given a package requirement spec.
+
+    >>> from guild.util import check_guild_version
+    >>> from guild import __version__ as current_guild_version
+
+Test some version assertions that we know are true.
+
+    >>> check_guild_version(">0.0.0")
+    True
+
+    >>> check_guild_version("<9999")
+    True
+
+Provide an invalid spec (error message varies across Python versions).
+
+    >>> check_guild_version("not a valid spec")
+    Traceback (most recent call last):
+    ValueError: ...error at "'a valid '"...
+
+Test against current verion, minus any development component.
+
+    >>> guild_version_without_dev = re.match(
+    ...     r"(\d+\.\d+\.\d+).*", current_guild_version).group(1)
+
+    >>> check_guild_version(f"=={guild_version_without_dev}")
+    True

@@ -1,6 +1,6 @@
 import sys
 
-import guild
+from guild.util import check_guild_version
 
 
 def _patch():
@@ -15,5 +15,5 @@ def _patched_op_run(f0, op, *args, **kw):
     sys.stdout.flush()
 
 
-if guild.test_version(">=0.7.1.dev1"):
+if check_guild_version(">=0.7.1.dev1"):
     _patch()

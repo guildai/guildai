@@ -551,43 +551,42 @@ can execute the script.
     ('pkg', 'hello2')
 
 ## Test Package Version
+    >>> from guild.python_util import check_package_version
 
-    >>> from guild.python_util import test_package_version
-
-    >>> test_package_version("1", "1")
+    >>> check_package_version("1", "1")
     True
 
-    >>> test_package_version("1", "2")
+    >>> check_package_version("1", "2")
     False
 
-    >>> test_package_version("1", "<2")
+    >>> check_package_version("1", "<2")
     True
 
-    >>> test_package_version("1.1", "<=1.2")
+    >>> check_package_version("1.1", "<=1.2")
     True
 
-    >>> test_package_version("0.7.0", ">=0.7.0")
+    >>> check_package_version("0.7.0", ">=0.7.0")
     True
 
-    >>> test_package_version("0.7.1", ">=0.7.0")
+    >>> check_package_version("0.7.1", ">=0.7.0")
     True
 
-    >>> test_package_version("0.7", ">=0.7.0")
+    >>> check_package_version("0.7", ">=0.7.0")
     True
 
-    >>> test_package_version("0.6", ">=0.7.0")
+    >>> check_package_version("0.6", ">=0.7.0")
     False
 
-    >>> test_package_version("0.66", ">=0.7.0")
+    >>> check_package_version("0.66", ">=0.7.0")
     True
 
-    >>> test_package_version("0.7.1.dev1", ">=0.7.0")
+    >>> check_package_version("0.7.1.dev1", ">=0.7.0")
     True
 
 This is unexpected but it's the actual behavior when you check for
 pre-releases:
 
-    >>> test_package_version("0.7.1.dev1", "<0.7.1")
+    >>> check_package_version("0.7.1.dev1", "<0.7.1")
     False
 
 ## Breakable Module Lines

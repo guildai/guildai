@@ -622,7 +622,7 @@ def _split_module(main_mod, gf_dir):
     return os.path.join(gf_dir, parts[0]), parts[1]
 
 
-def test_package_version(version, req):
+def check_package_version(version, req):
     req = _parse_req(req)
     matches = list(req.specifier.filter({version: ""}, prereleases=True))
     return len(matches) > 0

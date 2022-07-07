@@ -1870,3 +1870,12 @@ class StdoutCapture:
 
     def get_value(self):
         return "".join(self._captured)
+
+
+def check_guild_version(req):
+    import re
+    import guild
+    from guild import python_util
+
+    version_without_dev = re.match(r"(\d+\.\d+\.\d+).*", guild.__version__).group(1)
+    return python_util.check_package_version(version_without_dev, req)
