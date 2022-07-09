@@ -134,7 +134,8 @@ def _prepare_threshold():
 
 
 def _tensorboard_options(args):
-    return dict([_parse_tensorboard_opt(opt) for opt in args.tensorboard_options])
+    name_vals = [_parse_tensorboard_opt(opt) for opt in args.tensorboard_options]
+    return dict(name_vals)
 
 
 def _parse_tensorboard_opt(opt):
@@ -174,12 +175,38 @@ def _split_flags(flags_arg):
 
 def _list_runs_cb(args):
     def f():
-        runs = runs_impl.runs_for_args(args)
-        if args.include_batch:
-            return runs
-        return [run for run in runs if not batch_util.is_batch(run)]
+        return (
+            _runs_for_infile(args.runs_infile)
+            if args.runs_infile
+            else _runs_for_args(args)
+        )
 
     return f
+
+
+def _runs_for_infile(path):
+    run_ids = _read_infile(path).split()
+    maybe_runs = [run_util.run_for_id(id) for id in run_ids]
+    return [run for run in maybe_runs if run.opref]
+
+
+def _read_infile(path):
+    try:
+        f = open(path)
+    except FileNotFoundError:
+        return ""
+    else:
+        with f:
+            return f.read()
+
+
+def _runs_for_args(args):
+    runs = runs_impl.runs_for_args(args)
+    return runs if args.include_batch else _strip_batch_runs(runs)
+
+
+def _strip_batch_runs(runs):
+    return [run for run in runs if not batch_util.is_batch(run)]
 
 
 def _open_cb(args):

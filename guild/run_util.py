@@ -697,3 +697,8 @@ def run_op_dir(run):
         return os.path.dirname(opref.pkg_name)
     else:
         return None
+
+
+def run_for_id(id, runs_dir=None):
+    runs_dir = runs_dir or var.runs_dir()
+    return runlib.Run(id, os.path.join(runs_dir, id))

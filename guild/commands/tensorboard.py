@@ -65,8 +65,27 @@ from . import server_support
     ),
 )
 @runs_support.all_filters
-@click.option("--keep-logdir", is_flag=True, hidden=True)
-@click.option("--test-logdir", is_flag=True, hidden=True)
+@click.option(
+    "--runs-infile",
+    metavar="PATH",
+    hidden=True,
+    help=(
+        "Use flat file at PATH to provide a whilespace delimited list of run "
+        "IDs to select"
+    ),
+)
+@click.option(
+    "--keep-logdir",
+    is_flag=True,
+    hidden=True,
+    help="Don't delete the log directory on exit.",
+)
+@click.option(
+    "--test-logdir",
+    is_flag=True,
+    hidden=True,
+    help="Prepare the log directory and exit. Use for testing.",
+)
 @click_util.use_args
 @click_util.render_doc
 def tensorboard(args):
