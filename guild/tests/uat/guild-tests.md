@@ -39,6 +39,7 @@ tests).
       batch-terminate:             ok
       breakpoints:                 ok
       cli:                         ok
+      click-patch:                 ok
       comments:                    ok
       compare:                     ok
       config:                      ok

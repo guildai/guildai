@@ -22,8 +22,10 @@ import click
 from click import shell_completion
 
 import guild
+from guild import python_util
 
 CMD_SPLIT_P = re.compile(r", ?")
+PARAM_HELP_EXTRA_P = re.compile(r"  \[.+\]$")
 
 
 def NUMBER(s):
@@ -333,6 +335,7 @@ def _maybe_render_doc(s, vars):
 
 def patch_click():
     shell_completion._is_incomplete_option = _patched_is_incomplete_option
+    python_util.listen_method(click.Option, "get_help_record", _patched_get_help_record)
 
 
 def _patched_is_incomplete_option(ctx, all_args, cmd_param):
@@ -366,6 +369,26 @@ def _patched_is_incomplete_option(ctx, all_args, cmd_param):
         if "-%s" % last_option[i:] in cmd_param.opts:
             return True
     return False
+
+
+def _patched_get_help_record(get_help_record, *args, **kw):
+    help_record = get_help_record(*args, **kw)
+    raise python_util.Result(_remove_param_extra(help_record))
+
+
+def _remove_param_extra(help_record):
+    if not help_record:
+        return help_record
+    # Help record is expected to be a two-tuple of option desc and
+    # help text.
+    if not isinstance(help_record, tuple) and len(help_record) != 2:
+        return help_record
+    return help_record[0], _remove_param_extra_help_text(help_record[1])
+
+
+def _remove_param_extra_help_text(help_text):
+    m = PARAM_HELP_EXTRA_P.search(help_text)
+    return help_text[: m.start()] if m else help_text
 
 
 if os.getenv("SKIP_PATCH_CLICK") != "1":

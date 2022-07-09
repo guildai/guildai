@@ -297,7 +297,7 @@ class MethodWrapper:
 
     def _bind(self, wrapped_self):
         def f(*args, **kw):
-            self._func(wrapped_self, *args, **kw)
+            return self._func(wrapped_self, *args, **kw)
 
         f.__self__ = wrapped_self
         return f
