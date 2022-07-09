@@ -214,7 +214,6 @@
     guild.plugins.skopt_gp_main
     guild.plugins.skopt_util
     guild.plugins.summary_util
-    guild.plugins.tensorboard
     guild.publish
     guild.python_util
     guild.query.__init__
@@ -248,6 +247,7 @@
     guild.summary
     guild.tabview
     guild.tensorboard
+    guild.tensorboard_util
     guild.tfevent
     guild.timerange.__init__
     guild.timerange.trlex

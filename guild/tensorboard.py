@@ -26,6 +26,7 @@ from guild import flag_util
 from guild import run_util
 from guild import query
 from guild import summary
+from guild import tensorboard_util
 from guild import tfevent
 from guild import util
 
@@ -534,11 +535,9 @@ def create_app(
     tensorboard_options=None,
     disabled_plugins=None,
 ):
-    from guild.plugins import tensorboard
-
     plugins = _tensorboard_plugins(disabled_plugins)
     log.debug("TensorBoard plugins: %s", plugins)
-    return tensorboard.wsgi_app(
+    return tensorboard_util.wsgi_app(
         logdir,
         plugins,
         reload_interval=reload_interval,
@@ -548,9 +547,7 @@ def create_app(
 
 
 def _tensorboard_plugins(disabled=None):
-    from guild.plugins import tensorboard
-
-    base_plugins = tensorboard.base_plugins()
+    base_plugins = tensorboard_util.base_plugins()
     return _filter_disabled_plugins(disabled, base_plugins)
 
 
@@ -580,9 +577,7 @@ def setup_logging():
 
 
 def _setup_tensorboard_logging():
-    from guild.plugins import tensorboard
-
-    tensorboard.silence_info_logging()
+    tensorboard_util.silence_info_logging()
 
 
 def _setup_werkzeug_logging():
@@ -601,13 +596,11 @@ def _silent_logger(log0):
 
 
 def run_simple_server(tb_app, host, port, ready_cb):
-    from guild.plugins import tensorboard
-
     server, _url = make_simple_server(tb_app, host, port)
     url = util.local_server_url(host, port)
     sys.stderr.write(
         "Running TensorBoard %s at %s (Type Ctrl+C to quit)\n"
-        % (tensorboard.version(), url)
+        % (tensorboard_util.tensorboard_version(), url)
     )
     sys.stderr.flush()
     if ready_cb:
@@ -641,11 +634,9 @@ def serve_forever(
 
 
 def test_output(out):
-    from guild.plugins import tensorboard
-
     plugins = _tensorboard_plugins()
     data = {
-        "version": tensorboard.version(),
+        "version": tensorboard_util.tensorboard_version(),
         "plugins": ["%s.%s" % (p.__module__, p.__name__) for p in plugins],
     }
     json.dump(data, out)

@@ -19,6 +19,7 @@ import sys
 
 import six
 
+from guild import tensorboard_util
 from guild import util
 
 log = logging.getLogger("guild")
@@ -48,17 +49,15 @@ class EventFileWriter:
         filename_base=None,
         filename_suffix="",
     ):
-        from guild.plugins import tensorboard
-
         util.ensure_dir(logdir)
-        self._writer = tensorboard.AsyncWriter(
+        self._writer = tensorboard_util.AsyncWriter(
             logdir,
             max_queue_size=max_queue_size,
             flush_secs=flush_secs,
             filename_base=filename_base,
             filename_suffix=filename_suffix,
         )
-        self.add_event(tensorboard.Event(file_version="brain.Event:2"))
+        self.add_event(tensorboard_util.Event(file_version="brain.Event:2"))
         self.flush()
 
     def add_event(self, event):
@@ -97,11 +96,9 @@ class SummaryWriter:
         return self._writer
 
     def _add_summary(self, summary, step=None):
-        from guild.plugins import tensorboard
-
         if step is not None:
             step = int(step)
-        event = tensorboard.Event(summary=summary, step=step)
+        event = tensorboard_util.Event(summary=summary, step=step)
         self._get_writer().add_event(event)
 
     def add_scalar(self, tag, val, step=None):
@@ -142,21 +139,17 @@ class SummaryWriter:
 
 
 def _ScalarSummary(tag, val):
-    from guild.plugins import tensorboard
-
-    return tensorboard.Summary(tag, simple_value=val)
+    return tensorboard_util.Summary(tag, simple_value=val)
 
 
 def _ImageSummary(tag, height, width, colorspace, encoded_image):
-    from guild.plugins import tensorboard
-
-    image = tensorboard.Image(
+    image = tensorboard_util.Image(
         height=height,
         width=width,
         colorspace=colorspace,
         encoded_image_string=encoded_image,
     )
-    return tensorboard.Summary(tag, image=image)
+    return tensorboard_util.Summary(tag, image=image)
 
 
 def _try_encode_png(image):
@@ -177,9 +170,7 @@ def _image_desc(img):
 
 
 def _HParamExperiment(hparams, metrics):
-    from guild.plugins import tensorboard
-
-    hp = tensorboard.hparams_hp_proto()
+    hp = tensorboard_util.hparams_hp_proto()
     return hp.hparams_config_pb(
         hparams=[_HParam(key, vals) for key, vals in sorted(hparams.items())],
         metrics=[hp.Metric(tag) for tag in sorted(metrics)],
@@ -195,9 +186,7 @@ def _HParam(name, vals):
 
     Otherwise does not use a domain.
     """
-    from guild.plugins import tensorboard
-
-    hp = tensorboard.hparams_hp_proto()
+    hp = tensorboard_util.hparams_hp_proto()
 
     type = hparam_type(vals)
     if type == HPARAM_TYPE_NUMBER:
@@ -246,9 +235,7 @@ def is_hparam_string(vals):
 
 
 def _HParamSessionStart(name, hparams):
-    from guild.plugins import tensorboard
-
-    hp = tensorboard.hparams_hp_proto()
+    hp = tensorboard_util.hparams_hp_proto()
     try:
         # pylint: disable=unexpected-keyword-arg
         return hp.hparams_pb(hparams, trial_id=name)
@@ -257,9 +244,7 @@ def _HParamSessionStart(name, hparams):
 
 
 def _legacy_hparams_pb(hparams, trial_id):
-    from guild.plugins import tensorboard
-
-    hp = tensorboard.hparams_hp_proto()
+    hp = tensorboard_util.hparams_hp_proto()
     hparams = hp._normalize_hparams(hparams)
     info = hp.plugin_data_pb2.SessionStartInfo(group_name=trial_id)
     for name in sorted(hparams):
@@ -281,9 +266,7 @@ def _legacy_hparams_pb(hparams, trial_id):
 
 
 def _HParamSessionEnd(status):
-    from guild.plugins import tensorboard
-
-    hp = tensorboard.hparams_hp_proto()
+    hp = tensorboard_util.hparams_hp_proto()
     info = hp.plugin_data_pb2.SessionEndInfo(status=_Status(status))
     return hp._summary_pb(
         hp.metadata.SESSION_END_INFO_TAG,
@@ -292,9 +275,7 @@ def _HParamSessionEnd(status):
 
 
 def _Status(status):
-    from guild.plugins import tensorboard
-
-    api = tensorboard.hparams_api_proto()
+    api = tensorboard_util.hparams_api_proto()
     if status in ("terminated", "completed"):
         return api.Status.Value("STATUS_SUCCESS")
     elif status == "error":

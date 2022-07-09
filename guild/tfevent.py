@@ -23,6 +23,8 @@ import hashlib
 import logging
 import os
 
+from guild import tensorboard_util
+
 log = logging.getLogger("guild")
 
 
@@ -33,11 +35,9 @@ class EventReader:
 
     def __iter__(self):
         """Yields event for all available events in dir."""
-        from guild.plugins import tensorboard
-
         _ensure_tb_logging_patched()
         try:
-            for event in tensorboard.iter_tf_events(self.dir):
+            for event in tensorboard_util.iter_tf_events(self.dir):
                 if self.all_events or event.HasField("summary"):
                     yield event
         except Exception as e:
@@ -79,11 +79,9 @@ def _try_scalar_event(event, val):
 
 
 def _try_tensor_scalar(val):
-    from guild.plugins import tensorboard
-
     if not _is_float_tensor(val.tensor):
         return None
-    ndarray = tensorboard.make_ndarray(val.tensor)
+    ndarray = tensorboard_util.make_ndarray(val.tensor)
     try:
         return ndarray.item()
     except ValueError:
@@ -161,6 +159,4 @@ def _ensure_tb_logging_patched():
     TB has become very chatty and we want to control our logs. We
     disable outright info and debug logs here.
     """
-    from guild.plugins import tensorboard
-
-    tensorboard.silence_info_logging()
+    tensorboard_util.silence_info_logging()
