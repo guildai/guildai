@@ -1873,7 +1873,6 @@ class StdoutCapture:
 
 
 def check_guild_version(req):
-    import re
     import guild
     from guild import python_util
 

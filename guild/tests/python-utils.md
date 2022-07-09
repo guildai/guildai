@@ -288,8 +288,7 @@ And a wrapper that modifies the bound `self` for a wrapped function:
     >>> Hello2().say()
     Hello Two!
 
-In our final example, we'll replace a method that increments a value
-with a new function.
+This example increments a value with a new function.
 
 Here's our class and method:
 
