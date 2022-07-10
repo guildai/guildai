@@ -31,7 +31,7 @@ def tensorboard_version():
     return version.VERSION
 
 
-def version_supported():
+def tensorboard_version_supported():
     major_version = int(tensorboard_version().split(".", 1)[0])
     return major_version >= 2
 

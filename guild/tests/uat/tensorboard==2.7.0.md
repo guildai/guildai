@@ -1,11 +1,11 @@
 # TensorBoard Plugin
 
-    >>> from guild.plugins import tensorboard as tb
+    >>> from guild import tensorboard_util as tb
 
-    >>> tb.version()
+    >>> tb.tensorboard_version()
     '2.7.0'
 
-    >>> tb.version_supported()
+    >>> tb.tensorboard_version_supported()
     True
 
 ## Silence TensorBoard logging
