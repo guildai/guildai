@@ -93,6 +93,7 @@ def _run_tensorboard(args):
                 port=(args.port or util.free_port()),
                 reload_interval=args.refresh_interval,
                 tensorboard_options=tensorboard_options,
+                middleware=_maybe_tb_middleware(args),
                 ready_cb=_open_cb(args),
             )
         except tensorboard.TensorboardError as e:
@@ -207,6 +208,14 @@ def _runs_for_args(args):
 
 def _strip_batch_runs(runs):
     return [run for run in runs if not batch_util.is_batch(run)]
+
+
+def _maybe_tb_middleware(args):
+    if args.dark_mode:
+        from guild import tensorboard_util
+
+        return tensorboard_util.dark_mode_middleware()
+    return None
 
 
 def _open_cb(args):

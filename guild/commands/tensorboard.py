@@ -86,6 +86,12 @@ from . import server_support
     hidden=True,
     help="Prepare the log directory and exit. Use for testing.",
 )
+@click.option(
+    "--dark-mode",
+    is_flag=True,
+    hidden=True,
+    help="Style TensorBoard in dark mode."
+)
 @click_util.use_args
 @click_util.render_doc
 def tensorboard(args):

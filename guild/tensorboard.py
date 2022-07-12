@@ -626,9 +626,12 @@ def serve_forever(
     port,
     reload_interval=DEFAULT_RELOAD_INTERVAL,
     tensorboard_options=None,
+    middleware=None,
     ready_cb=None,
 ):
     app = create_app(logdir, reload_interval, tensorboard_options=tensorboard_options)
+    if middleware:
+        app = middleware(app)
     setup_logging()
     run_simple_server(app, host, port, ready_cb)
 

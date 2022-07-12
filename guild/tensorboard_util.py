@@ -248,6 +248,124 @@ def _extra_tb_args(options):
     return args
 
 
+def dark_mode_middleware():
+    def f(upstream):
+        def app(env, start_resp):
+            if env["PATH_INFO"] == "/":
+                return _style_tb_for_dark_mode(upstream, env, start_resp)
+            elif env["PATH_INFO"] == "/index.js":
+                return _disable_dark_mode_toggle(upstream, env, start_resp)
+            else:
+                return upstream(env, start_resp)
+
+        return app
+
+    return f
+
+
+def _style_tb_for_dark_mode(upstream, env, start_resp):
+    return _apply_middleware_to_plain_text(
+        _insert_dark_mode_styles, upstream, env, start_resp
+    )
+
+
+def _apply_middleware_to_plain_text(handle_text, upstream, env, start_resp):
+    env["HTTP_ACCEPT_ENCODING"] = "identity"
+    start_resp_args = []
+
+    def wrapped_start_resp(status, headers, exc_info):
+        start_resp_args.extend([status, headers, exc_info])
+
+    upstream_resp = upstream(env, wrapped_start_resp)
+    middleware_resp, content_len = handle_text(upstream_resp)
+    start_resp(*_apply_content_len_to_resp(content_len, start_resp_args))
+    return middleware_resp
+
+
+def _insert_dark_mode_styles(resp):
+    text = b"".join(resp)
+
+    out = []
+    content_len = 0
+
+    def add(part):
+        nonlocal content_len
+        if part:
+            out.append(part)
+            content_len += len(part)
+
+    parts = text.split(b"</head>", 1)
+    assert len(parts) == 2, parts
+
+    add(parts[0])
+    add(
+        b"""<style>
+
+html {
+  --primary-text-color: #fff !important;
+  --primary-background-color: #252526 !important;
+  --secondary-text-color: #fff;
+  --secondary-background-color: #1e1e1e !important;
+  --tb-orange-strong: #1e1e1e !important;
+}
+
+body.dark-mode .mat-toolbar {
+  background-color: #1e1e1e !important;
+}
+
+.tab-bar {
+  background-color: #1e1e1e !important;
+}
+
+
+app-header-dark-mode-toggle {
+  display: none;
+}
+</style>
+"""
+    )
+    add(b"</head>")
+
+    parts = parts[1].split(b"<body>", 1)
+    assert len(parts) == 2, parts
+
+    add(parts[0])
+    add(b"<body class=\"dark-mode\">")
+    add(parts[1])
+
+    return out, content_len
+
+
+def _disable_dark_mode_toggle(upstream, env, start_resp):
+    return _apply_middleware_to_plain_text(
+        _disable_dark_mode_toggle_scripts, upstream, env, start_resp
+    )
+
+
+def _disable_dark_mode_toggle_scripts(resp):
+    text = b"".join(resp)
+    text = text.replace(
+        b"document.body.classList.toggle(\"dark-mode\"",
+        b"document.body.classList.toggle(\"guild-dark-mode\"",
+    )
+
+    return [text], len(text)
+
+
+def _apply_content_len_to_resp(content_len, start_resp_args):
+    status, headers, exc_info = start_resp_args
+    return [status, _apply_content_len_to_headers(content_len, headers), exc_info]
+
+
+def _apply_content_len_to_headers(content_len, headers):
+    return [_apply_content_len_to_header(content_len, header) for header in headers]
+
+
+def _apply_content_len_to_header(content_len, header):
+    name, _value = header
+    return (name, str(content_len)) if name == "Content-Length" else header
+
+
 def set_notf():
     """Patch tb compat to avoid loading tensorflow.
 
