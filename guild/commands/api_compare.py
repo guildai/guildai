@@ -33,6 +33,47 @@ def main(args):
 
 
 def _compare_data(args):
-    from .view_impl import ViewDataImpl
+    from .compare_impl import get_compare_data
 
-    return ViewDataImpl(args).compare_data()
+    data = get_compare_data(_compare_args_with_id(args), format_cells=False)
+    return _relocate_id_col_to_run_col(data)
+
+
+def _compare_args_with_id(args):
+    """Returns args for compare command that can be used to get compare data.
+
+    Includes an additional `.id` column at the end of the default
+    columns to get the full run ID.
+    """
+    return click_util.Args(
+        extra_cols=False,
+        cols=(".id",),
+        strict_cols=None,
+        top=None,
+        min_col=None,
+        max_col=None,
+        limit=None,
+        skip_core=False,
+        skip_op_cols=False,
+        all_scalars=False,
+        skip_unchanged=False,
+        **args.as_kw()
+    )
+
+
+def _relocate_id_col_to_run_col(compare_data):
+    """Returns transformated compare data to include the full run ID as the first col.
+
+    Compare data uses the short run ID to represent a 'run'. The short
+    run ID is more suitable for typical compare use cases, where the
+    data is formatted for the user. In the case of the API, we want to
+    provide the full run ID, so we include the `id` run attribute (the
+    full run ID) using the `-c` option, which appends that column to
+    the compare data.
+
+    This function relocated the last column (the full ID) to the first
+    column (the short ID).
+    """
+    assert compare_data[0][0] == "run", compare_data[0]
+    assert compare_data[0][-1] == "id", compare_data[0]
+    return [row[-1:] + row[1:-1] for row in compare_data]

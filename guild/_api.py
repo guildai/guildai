@@ -475,7 +475,7 @@ def compare(
         # calling get_data.
         compare_impl._check_args(args, None)
         compare_impl._apply_strict_columns(args)
-        return compare_impl.get_data(args, format_cells=False)
+        return compare_impl.get_compare_data(args, format_cells=False)
 
 
 def publish(

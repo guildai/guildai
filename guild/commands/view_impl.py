@@ -43,24 +43,6 @@ VIEW_FILES_REFRESH_INTERVAL = 3
 class ViewDataImpl(view.ViewData):
     def __init__(self, args):
         self._args = args
-        self._compare_args = self._init_compare_args(args)
-
-    @staticmethod
-    def _init_compare_args(view_args):
-        return click_util.Args(
-            extra_cols=False,
-            cols=None,
-            strict_cols=None,
-            top=None,
-            min_col=None,
-            max_col=None,
-            limit=None,
-            skip_core=False,
-            skip_op_cols=False,
-            all_scalars=False,
-            skip_unchanged=False,
-            **view_args.as_kw()
-        )
 
     def runs(self):
         runs = runs_impl.runs_for_args(self._args)
@@ -324,7 +306,25 @@ class ViewDataImpl(view.ViewData):
             return os.path.join(*parts[-2:])
 
     def compare_data(self):
-        return compare_impl.get_data(self._compare_args, format_cells=False)
+        compare_args = _compare_args_for_view_args(self._args)
+        return compare_impl.get_compare_data(compare_args, format_cells=False)
+
+
+def _compare_args_for_view_args(view_args):
+    return click_util.Args(
+        extra_cols=False,
+        cols=None,
+        strict_cols=None,
+        top=None,
+        min_col=None,
+        max_col=None,
+        limit=None,
+        skip_core=False,
+        skip_op_cols=False,
+        all_scalars=False,
+        skip_unchanged=False,
+        **view_args.as_kw()
+    )
 
 
 def _sourcecode_data(run):

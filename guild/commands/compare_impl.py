@@ -105,7 +105,7 @@ def _print_scalars(args):
 
 
 def _write_csv(args):
-    data = get_data(args, format_cells=False, skip_header_if_empty=True) or []
+    data = get_compare_data(args, format_cells=False, skip_header_if_empty=True) or []
     with _open_file(args.csv) as out:
         writer = csv.writer(out, lineterminator="\n")
         for row in data:
@@ -130,7 +130,7 @@ def _csv_row_item(x):
     return x
 
 
-def get_data(args, format_cells=True, skip_header_if_empty=False):
+def get_compare_data(args, format_cells=True, skip_header_if_empty=False):
     index = indexlib.RunIndex()
     cb = _get_data_cb(
         args,
@@ -145,7 +145,7 @@ def get_data(args, format_cells=True, skip_header_if_empty=False):
 
 
 def _print_table(args):
-    data = get_data(args, skip_header_if_empty=True)
+    data = get_compare_data(args, skip_header_if_empty=True)
     if not data:
         return
     cols = data[0]
@@ -169,28 +169,32 @@ def _tabview(args):
 
 def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
     def f():
-        log_capture = util.LogCapture()
-        with log_capture:
-            runs = _runs_for_args(args)
-            index.refresh(runs)
-            cols_table = _cols_table(runs, args, index)
-            table = _resolve_table_cols(cols_table, index)
-            header = _table_header(table)
-            if not header:
-                if skip_header_if_empty:
-                    return [], []
-                header = [NO_RUNS_CAPTION]
-            rows = _sorted_table_rows(table, header, args)
-            if args.limit:
-                rows = rows[: args.limit]
-            if format_cells:
-                _format_cells(rows, header, runs)
-            log = log_capture.get_all()
-            if args.skip_unchanged and len(rows) > 1:
-                header, rows = _drop_unchanged_cols(header, rows)
-            return [header] + rows, log
+        return _compare_data(args, index, format_cells, skip_header_if_empty)
 
     return f
+
+
+def _compare_data(args, index, format_cells, skip_header_if_empty):
+    log_capture = util.LogCapture()
+    with log_capture:
+        runs = _runs_for_args(args)
+        index.refresh(runs)
+        cols_table = _cols_table(runs, args, index)
+        table = _resolve_table_cols(cols_table, index)
+        header = _table_header(table)
+        if not header:
+            if skip_header_if_empty:
+                return [], []
+            header = [NO_RUNS_CAPTION]
+        rows = _sorted_table_rows(table, header, args)
+        if args.limit:
+            rows = rows[: args.limit]
+        if format_cells:
+            _format_cells(rows, header, runs)
+        log = log_capture.get_all()
+        if args.skip_unchanged and len(rows) > 1:
+            header, rows = _drop_unchanged_cols(header, rows)
+        return [header] + rows, log
 
 
 def _runs_for_args(args):
@@ -629,5 +633,5 @@ def _compare_with_tool(args):
 def _compare_with_hiplot(args):
     from guild.plugins import hiplot
 
-    get_data_cb = lambda: get_data(args, format_cells=False)
+    get_data_cb = lambda: get_compare_data(args, format_cells=False)
     hiplot.compare_runs(get_data_cb)

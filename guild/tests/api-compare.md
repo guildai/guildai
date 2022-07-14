@@ -22,7 +22,7 @@ Show compare data for runs:
     ...     cwd=project.cwd)  # doctest: +REPORT_UDIFF
     [
       [
-        "run",
+        "id",
         "operation",
         "started",
         "time",
