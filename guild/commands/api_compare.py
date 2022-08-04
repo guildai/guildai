@@ -74,6 +74,7 @@ def _relocate_id_col_to_run_col(compare_data):
     This function relocated the last column (the full ID) to the first
     column (the short ID).
     """
-    assert compare_data[0][0] == "run", compare_data[0]
-    assert compare_data[0][-1] == "id", compare_data[0]
+    if compare_data[0][0] == "no runs":
+        return []
+    assert compare_data[0][0] == "run" and compare_data[0][-1] == "id", compare_data[0]
     return [row[-1:] + row[1:-1] for row in compare_data]
