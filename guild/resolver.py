@@ -367,7 +367,7 @@ class ConfigResolver(FileResolver):
     element.
 
     Param and flag values are applied using the nesting rules
-    implemented in `util.nested_config`. These use dot delimieters to
+    implemented in `util.nested_config`. These use dot delimiters to
     designate additional levels in the config map.
 
     flag values take precedence over param values of the same name.
