@@ -23,7 +23,7 @@ Guild supports a number of operation package types:
 Each package type applies op ref attribute differently. The table
 below describes the differences.
 
-| `pkg_type` | `pkg_name`     | `pkg_version` | `model_name` | `op_name        |
+| `pkg_type` | `pkg_name`     | `pkg_version` | `model_name` | `op_name`       |
 |------------|----------------|---------------|--------------|-----------------|
 | guildfile  | guild.yml path | guild.yml md5 | model name   | op name         |
 | script     | Script dir     | empty         | empty        | script basename |
