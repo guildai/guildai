@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import click
 
 from guild import click_util
 
+from . import api_support
 from . import runs_merge
 
 
 @click.command("merge")
+@api_support.output_options
 @runs_merge.merge_params
 @click.pass_context
 @click_util.use_args
@@ -30,20 +34,28 @@ def main(ctx, args):
     Use '--preview' to generate JSON output describing a merge.
 
     This command does not prompt for user input. If '--yes' is not
-    specified, the command fails with an error on a merge attemp.
+    specified, the command fails with an error.
     """
     from guild.util import StderrCapture
-    from .merge_impl import main as merge_main
+    from .merge_impl import main_with_system_exit_detail as merge_main
+    from .merge_impl import SystemExitWithDetail
 
     _check_merge_without_yes(args, ctx)
 
     with StderrCapture() as out:
         try:
             merge_main(args, ctx)
+        except SystemExitWithDetail as e:
+            _handle_exit(e.code, e.detail, out.get_value(), args)
         except SystemExit as e:
-            _handle_exit(e, out)
+            # Calling `main_with_system_exit_detail` should not raise
+            # SystemExit - any system exit related exception should be
+            # wrapped in `SystemExitWithDetail`. See class docs for
+            # `guild.commands.merge_impl.SystemExitWithDetail` for
+            # more information.
+            assert False, e
         else:
-            _handle_exit(SystemExit(0), out)
+            _handle_exit(0, None, out.get_value(), args)
 
 
 def _check_merge_without_yes(args, ctx):
@@ -56,8 +68,95 @@ def _check_merge_without_yes(args, ctx):
         )
 
 
-def _handle_exit(e, out):
-    from guild.main import system_exit_params
+def _handle_exit(code, detail, output, args):
+    from . import merge_impl
 
-    msg, code = system_exit_params(e)
-    print(msg, code, out.get_value())
+    if detail == None:
+        assert False, "TODO"
+    elif isinstance(detail, merge_impl.PreviewMergeDetail):
+        _handle_preview(detail.merge, args)
+    elif isinstance(detail, merge_impl.ReplacementPathsDetail):
+        _handle_replacement_paths(detail.paths, args)
+    elif isinstance(detail, merge_impl.UnstagedPathsDetail):
+        _handle_unstaged_paths(detail.paths, args)
+    elif isinstance(detail, merge_impl.NothingToCopyDetail):
+        _handle_nothing_to_copy(args)
+    else:
+        _handle_other_error(code, detail, output, args)
+
+
+def _handle_preview(merge, args):
+    resp = {
+        "resp": "preview",
+        "run": _run_data(merge.run),
+        "targetDir": os.path.abspath(merge.target_dir),
+        "toCopy": [_copy_file_data(f) for f in merge.to_copy],
+        "toSkip": [_skip_file_data(f) for f in merge.to_skip],
+    }
+    api_support.out(resp, args)
+
+
+def _run_data(run):
+    from .view_impl import run_data
+
+    attrs = (
+        "id",
+        "shortId",
+        "dir",
+        "operation",
+        "started",
+        "stopped",
+        "label",
+        "status",
+        "projectDir",
+        "opRef",
+    )
+    data = run_data(run)
+    return {name: data.get(name) for name in attrs}
+
+
+def _copy_file_data(f):
+    return {
+        "fileType": f.file_type,
+        "runPath": f.run_path,
+        "targetPath": f.target_path,
+    }
+
+
+def _skip_file_data(f):
+    return {
+        "reason": f.reason,
+        "runPath": f.run_path,
+        "targetPath": f.target_path,
+    }
+
+
+def _handle_replacement_paths(paths, args):
+    resp = {
+        "resp": "replacement-paths",
+        "paths": sorted(paths),
+    }
+    api_support.out(resp, args)
+
+
+def _handle_nothing_to_copy(args):
+    resp = {"resp": "nothing-to-copy"}
+    api_support.out(resp, args)
+
+
+def _handle_unstaged_paths(paths, args):
+    resp = {
+        "resp": "unstaged-paths",
+        "paths": sorted(paths),
+    }
+    api_support.out(resp, args)
+
+
+def _handle_other_error(code, detail, output, args):
+    resp = {
+        "resp": "other-error",
+        "code": code,
+        "detail": str(detail),
+        "output": output,
+    }
+    api_support.out(resp, args)

@@ -1837,11 +1837,15 @@ class StderrCapture:
 
     def print(self):
         for part in self._captured:
-            if hasattr(part, "decode"):
-                sys.stdout.write(part.decode("utf-8"))
-            else:
-                sys.stdout.write(part)
+            sys.stdout.write(self._decode_part(part))
         sys.stdout.flush()
+
+    def get_value(self):
+        return "".join([self._decode_part(part) for part in self._captured])
+
+    @staticmethod
+    def _decode_part(part):
+        return part.decode("utf-8") if hasattr(part, "decode") else part
 
 
 class StdoutCapture:

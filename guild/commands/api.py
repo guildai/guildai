@@ -18,6 +18,7 @@ from guild import click_util
 
 from .api_compare import main as compare
 from .api_help_op import main as help_op
+from .api_merge import main as merge
 from .api_ops import main as ops
 from .api_runs import main as runs
 
@@ -29,5 +30,6 @@ def api(**_kw):
 
 api.add_command(compare)
 api.add_command(help_op)
+api.add_command(merge)
 api.add_command(ops)
 api.add_command(runs)
