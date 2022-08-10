@@ -1,4 +1,7 @@
 import os
+import os.path
+import json
+import subprocess
 
 
 from guild import config
@@ -6,10 +9,6 @@ from guild import guildfile
 from guild import model as modellib
 from guild import plugin as pluginlib
 from guild import util
-
-
-def is_r_script(opspec):
-    return os.path.isfile(opspec) and opspec[-2:].upper() == ".R"
 
 
 class RScriptModelProxy:
@@ -33,14 +32,16 @@ class RScriptModelProxy:
 
     def _init_modeldef(self):
 
+        flags_data = infer_global_flags(self.script_path)
         data = [
             {
                 "model": self.name,
                 "operations": {
                     self.op_name: {
-                        "exec": "Rscript %s ${flag_args}" % self.script_path,
-                        # "flags": flags_data,
-                        # "flags-dest": flags_dest,
+                        "exec": """Rscript -e 'guild.ai:::do_guild_run("%s")' ${flag_args}"""
+                        % (os.path.relpath(self.script_path)),
+                        "flags-dest": 'globals',
+                        "flags": flags_data,
                         # "output-scalars": self.output_scalars,
                         # "objective": self.objective,
                         # "plugins": self.plugins,
@@ -75,7 +76,6 @@ class RScriptPlugin(pluginlib.Plugin):
     # must be less than exec_script level of 100
 
     def resolve_model_op(self, opspec):
-        print("resolve_model_op() called")
         # pylint: disable=unused-argument,no-self-use
         """Return a tuple of model, op_name for opspec.
 
@@ -90,5 +90,32 @@ class RScriptPlugin(pluginlib.Plugin):
             model = RScriptModelProxy(path, opspec)
             return model, model.op_name
         return None
+
+
+def normalize_path(x):
+    x = os.path.expanduser(x)
+    x = os.path.abspath(x)
+    return x
+
+
+def infer_global_flags(r_script_path):
+
+    out = subprocess.run(
+        [
+            "Rscript",
+            "--vanilla",
+            "--default-packages=base",
+            '-e',
+            "guild.ai:::infer_and_emit_global_flags('%s')" % r_script_path,
+        ],
+        check=True,
+        capture_output=True,
+    )
+
+    return json.loads(out.stdout.decode())
+
+
+def is_r_script(opspec):
+    return os.path.isfile(opspec) and opspec[-2:].upper() == ".R"
 
 
