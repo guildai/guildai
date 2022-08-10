@@ -67,13 +67,13 @@ class ViewDataImpl(view.ViewData):
         if not run:
             return None
         index = self._init_index([run])
-        return self._run_data(run, index)
+        return run_data(run, index)
 
     def _runs_data_iter(self, runs):
         index = self._init_index(runs)
         for run in runs:
             try:
-                yield self._run_data(run, index)
+                yield run_data(run, index)
             except Exception as e:
                 if log.getEffectiveLevel() <= logging.DEBUG:
                     log.exception("error processing run data for %s", run.id)
@@ -85,192 +85,6 @@ class ViewDataImpl(view.ViewData):
         index = indexlib.RunIndex()
         index.refresh(runs, ["scalar"])
         return index
-
-    def _run_data(self, run, index):
-        formatted = run_util.format_run(run)
-        return {
-            "id": run.id,
-            "shortId": run.short_id,
-            "dir": run.dir,
-            "operation": formatted["operation"],
-            "started": formatted["started"],
-            "stopped": formatted["stopped"],
-            "time": self._run_duration(run),
-            "label": formatted["label"],
-            "tags": self._format_tags(run.get("tags") or []),
-            "comments": run.get("comments") or [],
-            "status": run.status,
-            "exitStatus": formatted["exit_status"],
-            "command": formatted["command"],
-            "otherAttrs": self._other_attrs(run),
-            "flags": run.get("flags", {}),
-            "scalars": self._run_scalars(run, index),
-            "env": run.get("env", {}),
-            "deps": self._format_deps(run.get("deps", {})),
-            "files": self._format_files(run.iter_files(), run.path),
-            "sourcecode": _sourcecode_data(run),
-            "projectDir": run_util.run_op_dir(run),
-            "opRef": _opref_data(run),
-        }
-
-    @staticmethod
-    def _run_duration(run):
-        started = run.get("started")
-        if run.status == "running":
-            return util.format_duration(started)
-        stopped = run.get("stopped")
-        if stopped:
-            return util.format_duration(started, stopped)
-        return ""
-
-    @staticmethod
-    def _format_tags(tags):
-        return ", ".join(tags)
-
-    @staticmethod
-    def _other_attrs(run):
-        return {name: run.get(name) for name in runs_impl.other_attr_names(run)}
-
-    @staticmethod
-    def _run_scalars(run, index):
-        return index.run_scalars(run)
-
-    def _format_deps(self, deps):
-        runs_dir = var.runs_dir()
-        runs = {}
-        for paths in deps.values():
-            for path in paths:
-                if not path.startswith(runs_dir):
-                    continue
-                subdir = path[len(runs_dir) + 1 :]
-                parts = subdir.split(os.path.sep)
-                run_id = parts[0]
-                try:
-                    run, run_paths = runs[run_id]
-                except KeyError:
-                    run_paths = []
-                    try:
-                        run = self._run_for_id(run_id)
-                    except LookupError:
-                        # Dep run is missing - silently drop it from
-                        # the list of deps.
-                        pass
-                    else:
-                        runs[run_id] = run, run_paths
-                run_paths.append(os.path.join(*parts[1:]))
-        formatted = [self._format_dep(run, paths) for run, paths in runs.values()]
-        return sorted(formatted, key=lambda x: x["operation"])
-
-    @staticmethod
-    def _run_for_id(run_id):
-        return var.get_run(run_id)
-
-    @staticmethod
-    def _format_dep(run, paths):
-        return {
-            "run": run.short_id,
-            "operation": run_util.format_operation(run, nowarn=True),
-            "paths": paths,
-        }
-
-    def _format_files(self, files, root):
-        filtered = [
-            path for path in files if os.path.islink(path) or os.path.isfile(path)
-        ]
-        formatted = [self._format_file(path, root) for path in filtered]
-        return util.natsorted(formatted, key=lambda x: x["path"])
-
-    def _format_file(self, path, root):
-        typeDesc, icon, iconTooltip, viewer = self._file_type_info(path)
-        opDesc, opRun = self._op_source_info(path)
-        relpath = path[len(root) + 1 :]
-        mtime = util.safe_mtime(path)
-        if mtime:
-            mtime = int(mtime * 1000)
-        return {
-            "path": relpath,
-            "size": util.safe_filesize(path),
-            "mtime": mtime,
-            "type": typeDesc,
-            "icon": icon,
-            "iconTooltip": iconTooltip,
-            "viewer": viewer,
-            "operation": opDesc,
-            "run": opRun,
-        }
-
-    def _file_type_info(self, path):
-        typeDesc, icon, iconTooltip, viewer = self._base_file_type_info(path)
-        if os.path.islink(path):
-            target = util.realpath(path)
-            link_type = "directory" if os.path.isdir(target) else "file"
-            if target.startswith(var.runs_dir()):
-                typeDesc = "Link to operation output"
-            elif target.startswith(var.cache_dir()):
-                typeDesc = "Link to resource {}".format(link_type)
-            else:
-                typeDesc = "Link"
-            icon = "folder-move" if link_type == "directory" else "file-send"
-            iconTooltip = "Link"
-        return typeDesc, icon, iconTooltip, viewer
-
-    def _base_file_type_info(self, path):
-        path_lower = path.lower()
-        if re.search(r"\.tfevents\.", path_lower):
-            return "Event log", "file-chart", "File", None
-        elif re.search(r"saved_model\.pb$", path_lower):
-            return "SavedModel protocol buffer", "file", "File", None
-        elif re.search(r"graph\.pb$", path_lower):
-            return "GraphDef protocol buffer", "file", "File", None
-        elif re.search(r"saved_model\.pbtxt$", path_lower):
-            return ("SavedModel protocol buffer", "file-document", "Text file", "text")
-        elif re.search(r"graph\.pbtxt$", path_lower):
-            return ("GraphDef protocol buffer", "file-document", "Text file", "text")
-        elif re.search(r"\.index$", path_lower):
-            return "Checkpoint index", "file", "File", None
-        elif re.search(r"\.meta$", path_lower):
-            return "Checkpoint meta graph", "file", "File", None
-        elif re.search(r"[/\\]checkpoint$", path_lower):
-            return "Latest checkpoint marker", "file", "File", None
-        elif re.search(r"data-\d+-of-\d+$", path_lower):
-            return "Checkpoint values", "file", "File", None
-        elif re.search(r"\.tfrecord$", path_lower):
-            return "Dataset file", "file", "File", None
-        elif re.search(r"\.(jpg|jpeg|gif|png|tiff)$", path_lower):
-            return "Image", "file-image", "Image", "image"
-        elif re.search(r"\.mid", path_lower):
-            return "Audio", "file-music", "Audio", "midi"
-        elif re.search(r"\.(wav|mp3)", path_lower):
-            return "Audio", "file-music", "Audio", None
-        elif re.search(r"\.(csv|tsv)", path_lower):
-            return "Table", "file-delimited", "Delimited", "table"
-        else:
-            return self._default_file_type_info(path)
-
-    @staticmethod
-    def _default_file_type_info(path):
-        if not os.path.exists(path):
-            return "File", "file", "File", None
-        if util.is_text_file(path):
-            return "Text file", "file-document", "Text file", "text"
-        return "File", "file", "File", None
-
-    def _op_source_info(self, path):
-        if not os.path.islink(path):
-            return None, None
-        path = util.realpath(path)
-        runs_dir = var.runs_dir()
-        if not path.startswith(runs_dir):
-            return None, None
-        subdir = path[len(runs_dir) + 1 :]
-        parts = subdir.split(os.path.sep, 1)
-        try:
-            run = self._run_for_id(parts[0])
-        except LookupError:
-            return "%s (deleted)" % parts[0][:8], None
-        else:
-            operation = run_util.format_operation(run, nowarn=True)
-            return operation, run.short_id
 
     def config(self):
         cwd = util.format_dir(config.cwd())
@@ -308,6 +122,199 @@ class ViewDataImpl(view.ViewData):
     def compare_data(self):
         compare_args = _compare_args_for_view_args(self._args)
         return compare_impl.get_compare_data(compare_args, format_cells=False)
+
+
+def run_data(run, index=None):
+    formatted = run_util.format_run(run)
+    data = {
+        "id": run.id,
+        "shortId": run.short_id,
+        "dir": run.dir,
+        "operation": formatted["operation"],
+        "started": formatted["started"],
+        "stopped": formatted["stopped"],
+        "time": _run_duration(run),
+        "label": formatted["label"],
+        "tags": _format_tags(run.get("tags") or []),
+        "comments": run.get("comments") or [],
+        "status": run.status,
+        "exitStatus": formatted["exit_status"],
+        "command": formatted["command"],
+        "otherAttrs": _other_attrs(run),
+        "flags": run.get("flags", {}),
+        "env": run.get("env", {}),
+        "deps": _format_deps(run.get("deps", {})),
+        "files": _format_files(run.iter_files(), run.path),
+        "sourcecode": _sourcecode_data(run),
+        "projectDir": run_util.run_op_dir(run),
+        "opRef": _opref_data(run),
+    }
+    if index:
+        data["scalars"] = _run_scalars(run, index)
+    return data
+
+
+def _run_duration(run):
+    started = run.get("started")
+    if run.status == "running":
+        return util.format_duration(started)
+    stopped = run.get("stopped")
+    if stopped:
+        return util.format_duration(started, stopped)
+    return ""
+
+
+def _format_tags(tags):
+    return ", ".join(tags)
+
+
+def _other_attrs(run):
+    return {name: run.get(name) for name in runs_impl.other_attr_names(run)}
+
+
+def _format_deps(deps):
+    runs_dir = var.runs_dir()
+    runs = {}
+    for paths in deps.values():
+        for path in paths:
+            if not path.startswith(runs_dir):
+                continue
+            subdir = path[len(runs_dir) + 1 :]
+            parts = subdir.split(os.path.sep)
+            run_id = parts[0]
+            try:
+                run, run_paths = runs[run_id]
+            except KeyError:
+                run_paths = []
+                try:
+                    run = _run_for_id(run_id)
+                except LookupError:
+                    # Dep run is missing - silently drop it from the
+                    # list of deps.
+                    pass
+                else:
+                    runs[run_id] = run, run_paths
+            run_paths.append(os.path.join(*parts[1:]))
+    formatted = [_format_dep(run, paths) for run, paths in runs.values()]
+    return sorted(formatted, key=lambda x: x["operation"])
+
+
+def _run_for_id(run_id):
+    return var.get_run(run_id)
+
+
+def _format_dep(run, paths):
+    return {
+        "run": run.short_id,
+        "operation": run_util.format_operation(run, nowarn=True),
+        "paths": paths,
+    }
+
+
+def _format_files(files, root):
+    filtered = [path for path in files if os.path.islink(path) or os.path.isfile(path)]
+    formatted = [_format_file(path, root) for path in filtered]
+    return util.natsorted(formatted, key=lambda x: x["path"])
+
+
+def _format_file(path, root):
+    typeDesc, icon, iconTooltip, viewer = _file_type_info(path)
+    opDesc, opRun = _op_source_info(path)
+    relpath = path[len(root) + 1 :]
+    mtime = util.safe_mtime(path)
+    if mtime:
+        mtime = int(mtime * 1000)
+    return {
+        "path": relpath,
+        "size": util.safe_filesize(path),
+        "mtime": mtime,
+        "type": typeDesc,
+        "icon": icon,
+        "iconTooltip": iconTooltip,
+        "viewer": viewer,
+        "operation": opDesc,
+        "run": opRun,
+    }
+
+
+def _file_type_info(path):
+    typeDesc, icon, iconTooltip, viewer = _base_file_type_info(path)
+    if os.path.islink(path):
+        target = util.realpath(path)
+        link_type = "directory" if os.path.isdir(target) else "file"
+        if target.startswith(var.runs_dir()):
+            typeDesc = "Link to operation output"
+        elif target.startswith(var.cache_dir()):
+            typeDesc = "Link to resource {}".format(link_type)
+        else:
+            typeDesc = "Link"
+        icon = "folder-move" if link_type == "directory" else "file-send"
+        iconTooltip = "Link"
+    return typeDesc, icon, iconTooltip, viewer
+
+
+def _base_file_type_info(path):
+    path_lower = path.lower()
+    if re.search(r"\.tfevents\.", path_lower):
+        return "Event log", "file-chart", "File", None
+    elif re.search(r"saved_model\.pb$", path_lower):
+        return "SavedModel protocol buffer", "file", "File", None
+    elif re.search(r"graph\.pb$", path_lower):
+        return "GraphDef protocol buffer", "file", "File", None
+    elif re.search(r"saved_model\.pbtxt$", path_lower):
+        return ("SavedModel protocol buffer", "file-document", "Text file", "text")
+    elif re.search(r"graph\.pbtxt$", path_lower):
+        return ("GraphDef protocol buffer", "file-document", "Text file", "text")
+    elif re.search(r"\.index$", path_lower):
+        return "Checkpoint index", "file", "File", None
+    elif re.search(r"\.meta$", path_lower):
+        return "Checkpoint meta graph", "file", "File", None
+    elif re.search(r"[/\\]checkpoint$", path_lower):
+        return "Latest checkpoint marker", "file", "File", None
+    elif re.search(r"data-\d+-of-\d+$", path_lower):
+        return "Checkpoint values", "file", "File", None
+    elif re.search(r"\.tfrecord$", path_lower):
+        return "Dataset file", "file", "File", None
+    elif re.search(r"\.(jpg|jpeg|gif|png|tiff)$", path_lower):
+        return "Image", "file-image", "Image", "image"
+    elif re.search(r"\.mid", path_lower):
+        return "Audio", "file-music", "Audio", "midi"
+    elif re.search(r"\.(wav|mp3)", path_lower):
+        return "Audio", "file-music", "Audio", None
+    elif re.search(r"\.(csv|tsv)", path_lower):
+        return "Table", "file-delimited", "Delimited", "table"
+    else:
+        return _default_file_type_info(path)
+
+
+def _default_file_type_info(path):
+    if not os.path.exists(path):
+        return "File", "file", "File", None
+    if util.is_text_file(path):
+        return "Text file", "file-document", "Text file", "text"
+    return "File", "file", "File", None
+
+
+def _op_source_info(path):
+    if not os.path.islink(path):
+        return None, None
+    path = util.realpath(path)
+    runs_dir = var.runs_dir()
+    if not path.startswith(runs_dir):
+        return None, None
+    subdir = path[len(runs_dir) + 1 :]
+    parts = subdir.split(os.path.sep, 1)
+    try:
+        run = _run_for_id(parts[0])
+    except LookupError:
+        return "%s (deleted)" % parts[0][:8], None
+    else:
+        operation = run_util.format_operation(run, nowarn=True)
+        return operation, run.short_id
+
+
+def _run_scalars(run, index):
+    return index.run_scalars(run)
 
 
 def _compare_args_for_view_args(view_args):

@@ -30,7 +30,59 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 
+class SystemExitWithDetail(Exception):
+    """Wrapper for SystemExit that includes additional details.
+
+    The merge implementation makes use of SystemExit to terminate the
+    process for various reasons. A wrapper is used to convey
+    additional details about a system exit that can be used by an API
+    (e.g. `guild.commands.merge_api`).
+
+    A caller who's interested in system exit details can call
+    `main_with_system_exit_detail` below and should catch
+    `SystemExitWithDetail` to get details about a system exit. Note
+    the caller must handle the system exit if needed.
+
+    For detail types, see `XxxDetail` classes below.
+
+    """
+
+    def __init__(self, code, detail):
+        self.code = code
+        self.detail = detail
+
+
+class ReplacementPathsDetail:
+    def __init__(self, paths):
+        self.paths = paths
+
+
+class UnstagedPathsDetail:
+    def __init__(self, paths):
+        self.paths = paths
+
+
+class NothingToCopyDetail:
+    pass
+
+
+class PreviewMergeDetail:
+    def __init__(self, merge):
+        self.merge = merge
+
+
+class AbortedDetail:
+    pass
+
+
 def main(args, ctx):
+    try:
+        main_with_system_exit_detail(args, ctx)
+    except SystemExitWithDetail as e:
+        raise SystemExit(e.code)
+
+
+def main_with_system_exit_detail(args, ctx):
     _check_args(args, ctx)
     _apply_sourcecode_arg(args)
     run = runs_impl.one_run(args, ctx)
@@ -154,7 +206,7 @@ def _replacing_error(target_paths, merge):
     data = [{"path": path} for path in sorted(target_paths)]
     cli.table(data, ["path"], indent=2, err=True)
     cli.out("Use --replace to skip this check.", err=True)
-    raise SystemExit()
+    raise SystemExitWithDetail(1, ReplacementPathsDetail(target_paths))
 
 
 def _try_vcs_status_check_replace(merge):
@@ -259,7 +311,7 @@ def _replace_unstaged_error(target_paths, merge):
         "Stage or stash these changes or use --replace to skip this check.",
         err=True,
     )
-    raise SystemExit()
+    raise SystemExitWithDetail(1, UnstagedPathsDetail(target_paths))
 
 
 def _check_nothing_to_copy(merge, args, ctx):
@@ -270,7 +322,7 @@ def _check_nothing_to_copy(merge, args, ctx):
     cli.out(
         f"Try '{ctx.command_path} --preview' for a list of skipped files.", err=True
     )
-    raise SystemExit(0)
+    raise SystemExitWithDetail(0, NothingToCopyDetail())
 
 
 def _maybe_preview_merge(merge, args):
@@ -278,9 +330,9 @@ def _maybe_preview_merge(merge, args):
         return
     _preview_merge(merge, args.preview)
     if args.preview:
-        raise SystemExit(0)
+        raise SystemExitWithDetail(0, PreviewMergeDetail(merge))
     if not cli.confirm("Continue (y/N)?", False):
-        raise SystemExit(exit_code.ABORTED)
+        raise SystemExitWithDetail(exit_code.ABORTED, AbortedDetail())
 
 
 def _preview_merge(merge, preview_only):
@@ -293,10 +345,14 @@ def _preview_merge(merge, preview_only):
 def _preview_merge_header(merge, preview_only):
     target_dir_desc = cmd_impl_support.cwd_desc(merge.target_dir)
     if preview_only:
-        cli.out(f"Merge will copy files from the following run to {target_dir_desc}:")
+        cli.out(
+            f"Merge will copy files from the following run to {target_dir_desc}:",
+            err=True,
+        )
     else:
         cli.out(
-            f"You are about to copy files from the following run to {target_dir_desc}:"
+            f"You are about to copy files from the following run to {target_dir_desc}:",
+            err=True,
         )
 
 
