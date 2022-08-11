@@ -9,6 +9,7 @@ from guild import guildfile
 from guild import model as modellib
 from guild import plugin as pluginlib
 from guild import util
+from guild import cli
 
 
 class RScriptModelProxy:
@@ -55,7 +56,7 @@ class RScriptModelProxy:
                                             "renv.lock",
                                             ".Rprofile",
                                             ".Renviron",
-                                            "*.[rR]",
+                                            "**.[rR]",
                                         ]
                                     }
                                 },
@@ -99,23 +100,57 @@ def normalize_path(x):
 
 
 def infer_global_flags(r_script_path):
-
-    out = subprocess.run(
-        [
-            "Rscript",
-            "--vanilla",
-            "--default-packages=base",
-            '-e',
-            "guild.ai:::infer_and_emit_global_flags('%s')" % r_script_path,
-        ],
-        check=True,
-        capture_output=True,
-    )
-
-    return json.loads(out.stdout.decode())
+    out = run_r("guild.ai:::infer_and_emit_global_flags('%s')" % r_script_path)
+    return json.loads(out)
 
 
 def is_r_script(opspec):
     return os.path.isfile(opspec) and opspec[-2:].upper() == ".R"
 
 
+def check_guild_r_package_installled():
+    installed = run_r('cat(requireNamespace("guild.ai", quietly = TRUE))') == "TRUE"
+    if installed:
+        return
+
+    # TODO, consider vendoring r-pkg as part of pip pkg, auto-bootstrap R install
+    # into a stand-alone lib we inject via prefixing R_LIBS env var
+    consent = cli.confirm(
+        "The 'guild.ai' R package must be installed in the R library. Continue?", True
+    )
+    if consent:
+        run_r(
+            'utils::install.packages("guild.ai", repos = c(CRAN = "https://cran.rstudio.com/"))'
+        )
+        return
+    raise ImportError
+
+
+def run_r(
+    *exprs, file=None, infile=None, vanilla=True, default_packages='base', **run_kwargs
+):
+    assert (
+        sum(map(bool, [exprs, file, infile])) == 1
+    ), "exprs, file, and infile, are mutually exclusive. Only supply one."
+
+    cmd = ["Rscript"]
+    if default_packages:
+        cmd.append("--default-packages=%s" % default_packages)
+    if vanilla:
+        cmd.append("--vanilla")
+
+    if file:
+        cmd.append(file)
+    elif exprs:
+        for e in exprs:
+            cmd.extend(["-e", e])
+    elif infile:
+        cmd.append("-")
+        run_kwargs['input'] = infile.encode()
+
+    run_kwargs.setdefault("stderr", subprocess.STDOUT)
+    run_kwargs.setdefault("stdout", subprocess.PIPE)
+    run_kwargs.setdefault("check", True)
+
+    out = subprocess.run(cmd, **run_kwargs)
+    return out.stdout.decode()
