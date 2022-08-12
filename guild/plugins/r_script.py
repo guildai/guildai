@@ -119,9 +119,23 @@ def check_guild_r_package_installled():
         "The 'guild.ai' R package must be installed in the R library. Continue?", True
     )
     if consent:
-        run_r(
-            'utils::install.packages("guild.ai", repos = c(CRAN = "https://cran.rstudio.com/"))'
-        )
+
+        run_r(infile = """
+        if(!requireNamespace("remotes", quietly = TRUE))
+            utils::install.packages("remotes", repos = c(CRAN = "https://cran.rstudio.com/"))
+
+        remotes::install_github("t-kalinowski/guildai-r")
+        """)
+
+        # Still need to figure out the appropriate home for this r package
+        # if we bundle it w/ the python module we could install with something like:
+        #   path_r_pkg_src_dir = resolve_using(__path__)
+        #   run_r('remotes::install_local("%s")' % path_r_pkg_src_dir)
+        # or we could pull from cran directly:
+        #  'utils::install.packages("guildai", repos = c(CRAN = "https://cran.rstudio.com/"))'
+        #  or install w/o the remotes, but then we'll have to resolve R dep pkgs (e.g., jsonlite) manually first
+        # 'utils::install.packages("%s", repos = NULL, type = "source")' % path_to_r_pkg_src
+
         return
     raise ImportError
 
@@ -129,6 +143,14 @@ def check_guild_r_package_installled():
 def run_r(
     *exprs, file=None, infile=None, vanilla=True, default_packages='base', **run_kwargs
 ):
+    """Run R code in a subprocess, return stderr+stdout output in a single string
+
+    This has different defaults from `Rscript`, designed for isolated, fast invocations.
+    Args:
+      exprs: strings of individual R expressions to be evaluated sequentially
+      file: path to an R script
+      infile: multiline string of R code, piped into Rscript frontend via stdin.
+    """
     assert (
         sum(map(bool, [exprs, file, infile])) == 1
     ), "exprs, file, and infile, are mutually exclusive. Only supply one."
