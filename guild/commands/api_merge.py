@@ -71,8 +71,8 @@ def _check_merge_without_yes(args, ctx):
 def _handle_exit(code, detail, output, args):
     from . import merge_impl
 
-    if detail == None:
-        assert False, "TODO"
+    if detail == None and code == 0:
+        _handle_merge_success(output, args)
     elif isinstance(detail, merge_impl.PreviewMergeDetail):
         _handle_preview(detail.merge, args)
     elif isinstance(detail, merge_impl.ReplacementPathsDetail):
@@ -83,6 +83,23 @@ def _handle_exit(code, detail, output, args):
         _handle_nothing_to_copy(args)
     else:
         _handle_other_error(code, detail, output, args)
+
+
+def _handle_merge_success(output, args):
+    resp = {
+        "resp": "ok",
+        "copied": _parse_copied_files(output),
+    }
+    api_support.out(resp, args)
+
+
+def _parse_copied_files(output):
+    return [_copied_file_for_output(line) for line in output.split('\n') if line]
+
+
+def _copied_file_for_output(line):
+    assert line.startswith("Copying "), line
+    return line[8:]
 
 
 def _handle_preview(merge, args):
@@ -125,9 +142,10 @@ def _copy_file_data(f):
 
 def _skip_file_data(f):
     return {
-        "reason": f.reason,
+        "fileType": f.file_type,
         "runPath": f.run_path,
         "targetPath": f.target_path,
+        "reason": f.reason,
     }
 
 
