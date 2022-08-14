@@ -133,6 +133,9 @@ class Script:
             for target in node.targets:
                 if not isinstance(target, ast.Name):
                     continue
+                # Ignore subsequent assigns to target. See #442
+                if target.id in self._params:
+                    continue
                 self._params[target.id] = val
 
 
