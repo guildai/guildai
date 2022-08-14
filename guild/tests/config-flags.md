@@ -60,6 +60,16 @@ Help for project contains imported flags.
             i  (default is 456)
             s  (default is bye)
     <BLANKLINE>
+       explicit-no-replace
+         Flags:
+           b    (default is yes)
+           d.a  (default is A)
+           d.b  (default is B)
+           f    (default is 2.234)
+           i    (default is 456)
+           l    (default is 1 2 abc)
+           s    (default is flu flam)
+    <BLANKLINE>
         json
           Flags:
             b    (default is yes)
@@ -399,9 +409,52 @@ Guild generates a run specific config file.
     {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456, "l": [2, 1, "a b", "d"], "s": "abc"}
     <exit 0>
 
-## Invalid extensions
+## Restarting runs with param flags
 
-To illustrate how Guild handles invalid extensions, we create a new project.
+When a run is restarted with flags destined for a config file, Guild
+re-writes the config file with the new flag values.
+
+    >>> out, exit_code = run_capture(f"guild -H {gh} select")
+    >>> exit_code, out
+    (0, ...)
+    >>> last_run_id = out.strip()
+
+    >>> guild(f"run --restart {last_run_id} b=no f=3.345 -y")
+    Resolving config:flags.json.in dependency
+    {'b': False,
+     'd': {'a': 'A', 'b': 'B'},
+     'f': 3.345,
+     'i': 456,
+     'l': [2, 1, 'a b', 'd'],
+     's': 'abc'}
+    <exit 0>
+
+If an operation explicitly defines a config resource to not re-resolve
+on restart, Guild fails on restart. We can use the
+'explicit-no-replace' operation to test this.
+
+    >>> guild("run explicit-no-replace -y")
+    Resolving config:flags.json dependency
+    <exit 0>
+
+Get the last run ID.
+
+    >>> out, exit_code = run_capture(f"guild -H {gh} select")
+    >>> exit_code, out
+    (0, ...)
+    >>> last_run_id = out.strip()
+
+Restar the run.
+
+    >>> guild(f"run --restart {last_run_id} -y")
+    Resolving config:flags.json dependency
+    Skipping resolution of config:flags.json because it's already resolved
+    <exit 0>
+
+## Handling unsupported config file extensions
+
+To illustrate how Guild handles unsupported file extensions, we create
+a new project.
 
     >>> tmp = mkdtemp()
     >>> write(join_path(tmp, "guild.yml"), """

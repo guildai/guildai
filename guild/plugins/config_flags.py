@@ -142,21 +142,45 @@ def _is_legal_flag_val(val):
 
 
 def _ensure_config_dep(config_src, opdef):
-    if not _has_config_dep(opdef, config_src):
-        depdef = guildfile.OpDependencyDef(
-            {
-                "config": config_src,
-                "replace-existing": True,
-            },
-            opdef,
-        )
-        opdef.dependencies.append(depdef)
+    """Ensures that opdef is configured to resolve config src."""
+    existing = _find_config_res_source(opdef, config_src)
+    if existing:
+        _ensure_config_dep_attrs(existing)
+    else:
+        _add_config_dep(config_src, opdef)
 
 
-def _has_config_dep(opdef, config_src):
+def _find_config_res_source(opdef, config_src):
     config_source_uri = "config:%s" % config_src
     for resdef in op_util.iter_opdef_resources(opdef):
         for source in resdef.sources:
             if source.uri == config_source_uri:
-                return True
-    return False
+                return source
+    return None
+
+
+def _ensure_config_dep_attrs(source):
+    """Ensures that a dep source is configured resolving a config.
+
+    Specificlaly, sets 'always_resolve' and 'replace_existing' both to
+    True if they are not alreay set. This ensures that a run restart
+    will resolve any new flag values by re-resolving the config source.
+    """
+    if source.always_resolve is None:
+        source.always_resolve = True
+    if source.replace_existing is None:
+        source.replace_existing = True
+
+
+def _add_config_dep(config_src, opdef):
+    """Adds a config dependency to opdef for a config source (path)."""
+    opdef.dependencies.append(
+        guildfile.OpDependencyDef(
+            {
+                "config": config_src,
+                "replace-existing": True,
+                "always-resolve": True,
+            },
+            opdef,
+        )
+    )

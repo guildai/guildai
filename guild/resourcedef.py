@@ -172,7 +172,8 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
         post_process=None,
         target_path=None,
         target_type=None,
-        replace_existing=False,
+        replace_existing=None,
+        always_resolve=None,
         path=None,
         preserve_path=False,
         params=None,
@@ -199,6 +200,7 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
         self.replace_existing = replace_existing
         self.preserve_path = preserve_path
         self.params = params
+        self.always_resolve = always_resolve
         self.help = help
         for key in sorted(kw):
             log.warning(

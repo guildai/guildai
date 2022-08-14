@@ -224,6 +224,7 @@ class ResourceSourceSchema(schema.BaseModel):
     replace_existing: optional_bool_type
     preserve_path: optional_bool_type
     params: Optional[Dict[str, FlagValueTypes]]
+    always_resolve: optional_bool_type
     help: Optional[str]
     # used in yaml, do not exist on actual model
     config: Optional[str]
