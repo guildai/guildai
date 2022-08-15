@@ -17,6 +17,7 @@ import logging
 import os
 import sys
 import shutil
+import typing
 
 import click
 import six
@@ -46,7 +47,7 @@ except NameError:
 _noted = set()
 
 
-def error(msg=None, exit_status=1):
+def error(msg=None, exit_status=1) -> typing.NoReturn:
     raise SystemExit(msg, exit_status)
 
 

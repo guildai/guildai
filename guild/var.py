@@ -92,19 +92,20 @@ def _default_all_runs_f(root):
 
 
 def _zipfile_all_runs_f(root):
-    if root and root.lower().endswith(".zip"):
-        from . import run_zip_proxy
+    if not root or not root.lower().endswith(".zip"):
+        return None
+    from . import run_zip_proxy
 
-        def f():
-            try:
-                return run_zip_proxy.all_runs(root)
-            except Exception as e:
-                if log.getEffectiveLevel() <= logging.DEBUG:
-                    log.exception("getting runs for zip file %s", root)
-                log.error("cannot read from %s: %s", root, e)
-                return []
+    def f():
+        try:
+            return run_zip_proxy.all_runs(root)
+        except Exception as e:
+            if log.getEffectiveLevel() <= logging.DEBUG:
+                log.exception("getting runs for zip file %s", root)
+            log.error("cannot read from %s: %s", root, e)
+            return []
 
-        return f
+    return f
 
 
 def _runs_under_parent_f(root):

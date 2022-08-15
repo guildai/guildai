@@ -1428,8 +1428,8 @@ def shorten_path(path, max_len=28, ellipsis="\u2026", sep=os.path.sep):
         l = [parts.pop(0)]
         pop_r = True
     while parts:
-        len_l = sum([len(s) + 1 for s in l])
-        len_r = sum([len(s) + 1 for s in r])
+        len_l = sum((len(s) + 1 for s in l))
+        len_r = sum((len(s) + 1 for s in r))
         part = parts.pop() if pop_r else parts.pop(0)
         side = r if pop_r else l
         if len_l + len_r + len(part) + len(ellipsis) >= max_len:

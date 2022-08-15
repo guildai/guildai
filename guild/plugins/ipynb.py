@@ -256,7 +256,7 @@ def _load_notebook(path):
             log.exception("load notebook '%s'", path)
         else:
             log.warning("error loading notebook '%s': %s", path, e)
-            return None
+        return None
 
 
 def _iter_notebook_source(nb_data):
@@ -318,15 +318,15 @@ def _assign_node_ann_type(node):
 def _flag_type_for_annotation(ann):
     if not isinstance(ann, ast.Name):
         return None
-    name = ann.id
-    if name == "int":
+    if ann.id == "int":
         return "int"
-    elif name == "float":
+    if ann.id == "float":
         return "float"
-    elif name == "bool":
+    if ann.id == "bool":
         return "boolean"
-    elif name == "str":
+    if ann.id == "str":
         return "string"
+    return None
 
 
 def _flag_data_for_val(val, ann_type=None):

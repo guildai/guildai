@@ -14,6 +14,7 @@
 
 import logging
 import os
+import typing
 
 from guild import cli
 from guild import click_util
@@ -107,7 +108,7 @@ def one_run(runs, spec, ctx=None):
     _non_unique_run_id_error(runs, spec)
 
 
-def _no_matching_run_error(spec, ctx):
+def _no_matching_run_error(spec, ctx) -> typing.NoReturn:
     help_msg = " or '%s' for more information" % click_util.cmd_help(ctx) if ctx else ""
     cli.error(
         "could not find a run matching '%s'\n"
@@ -115,7 +116,7 @@ def _no_matching_run_error(spec, ctx):
     )
 
 
-def _non_unique_run_id_error(matches, spec):
+def _non_unique_run_id_error(matches, spec) -> typing.NoReturn:
     cli.out("'%s' matches multiple runs:" % spec, err=True)
     for m in matches:
         cli.out("  %s" % _match_short_id(m), err=True)

@@ -15,6 +15,7 @@
 import os
 import re
 import logging
+import typing
 
 from guild import cli
 from guild import resolver as resolverlib
@@ -296,7 +297,7 @@ class ResourceProxy:
         self.config = config
 
 
-def _source_resolution_error(source, dep, e):
+def _source_resolution_error(source, dep, e) -> typing.NoReturn:
     msg = "could not resolve '%s' in %s resource: %s" % (source, dep.resdef.name, e)
     if source.help:
         msg += "\n%s" % cli.style(source.help, fg="yellow")

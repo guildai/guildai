@@ -224,6 +224,7 @@ def _default_diff_cmd_for_path(path):
     _root, ext = os.path.splitext(path)
     if ext == ".ipynb":
         return _find_cmd(["nbdiff-web -M"])
+    return None
 
 
 def _default_diff_cmd_():

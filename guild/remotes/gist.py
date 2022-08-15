@@ -555,20 +555,18 @@ def _git_commit(local_repo, msg, env):
 
 def _git_push(local_repo, env):
     cmd = [_git_cmd(), "-C", local_repo, "push", "--quiet"]
-    env = _maybe_askpass(env, local_repo)
+    _maybe_apply_askpass(local_repo, env)
     log.debug("pushing for %s", local_repo)
     _subprocess_tty(cmd, extra_env=env)
 
 
-def _maybe_askpass(env, local_repo):
+def _maybe_apply_askpass(local_repo, env):
     if not _gist_access_token_defined(env):
         return
     askpass_path = _maybe_gist_access_token_script(local_repo)
     if not askpass_path:
-        return env
-    env = dict(env)
+        return
     env["GIT_ASKPASS"] = askpass_path
-    return env
 
 
 def _gist_access_token_defined(env):

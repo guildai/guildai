@@ -14,6 +14,7 @@
 
 import logging
 import os
+import typing
 import warnings
 
 import six
@@ -477,7 +478,7 @@ def _ipy_prev_trials_cb(prev_results_cb, objective_scalar):
 ###################################################################
 
 
-def missing_search_dim_error(flag_vals):
+def missing_search_dim_error(flag_vals) -> typing.NoReturn:
     log.error(
         "flags for batch (%s) do not contain any search dimensions\n"
         "Try specifying a range for one or more flags as NAME=[MIN:MAX].",

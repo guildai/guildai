@@ -14,6 +14,7 @@
 
 import logging
 import sys
+import typing
 
 from guild import batch_util
 
@@ -48,7 +49,7 @@ def _batch_trials(batch_run):
         batch_util.invalid_flag_function_args_error(e)
 
 
-def _search_dim_error(e):
+def _search_dim_error(e) -> typing.NoReturn:
     log.error(str(e))
     sys.exit(1)
 

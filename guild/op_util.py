@@ -1767,7 +1767,7 @@ def run_params_for_restart(run, user_specified_params=None):
 
     run_params = run.get("run_params", {})
     if not isinstance(run_params, dict):
-        return
+        return None
     baseline_params = run_cmd.make_context("", []).params
     result = {}
     for name in run_params:

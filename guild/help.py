@@ -402,7 +402,7 @@ def _write_flags(flags, heading, out, no_flags_msg=None):
 def flags_dl(flags):
     if not flags:
         return []
-    max_flag_len = max([len(flag.name) for flag in flags])
+    max_flag_len = max((len(flag.name) for flag in flags))
     return [(flag.name, _format_flag_desc(flag, max_flag_len)) for flag in flags]
 
 

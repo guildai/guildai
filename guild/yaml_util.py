@@ -60,7 +60,8 @@ def _yaml_front_matter_s(filename):
             elif reading:
                 lines.append(trimmed)
             else:
-                return None
+                break
+    return None
 
 
 def patch_yaml_resolver():

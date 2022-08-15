@@ -1173,6 +1173,7 @@ def _label_for_run(run, args):
         return "%s %s" % (_run_label(run), format_run_label(args.append, run))
     elif args.remove:
         return _remove_label_parts(args.remove, _run_label(run))
+    assert False, args
 
 
 def format_run_label(template, run):
@@ -1548,6 +1549,7 @@ def _colspec_val_f(colspec):
             return _flag_val_f(col)
         elif isinstance(col, query.Attr):
             return _attr_val_f(col)
+        assert False, col
 
 
 def _scalar_val_f(col):

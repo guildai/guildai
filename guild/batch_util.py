@@ -20,6 +20,7 @@ import os
 import random
 import signal
 import threading
+import typing
 
 import six
 
@@ -237,7 +238,7 @@ def _trial_flags_desc(run):
     return op_util.flags_desc(flags)
 
 
-def invalid_flag_function_args_error(e):
+def invalid_flag_function_args_error(e) -> typing.NoReturn:
     flag_val = _flag_value_for_function(e.function_name, e.function_args)
     raise SystemExit(f"invalid function args in '{e.flag_name}={flag_val}': {e}")
 

@@ -41,8 +41,8 @@ def NUMBER(s):
 class Args:
     def __init__(self, **kw):
         self.__names = set()
-        for name in kw:
-            setattr(self, name, kw[name])
+        for name, val in kw.items():
+            setattr(self, name, val)
 
     def __repr__(self):
         return "<guild.click_util.Args %s>" % self.as_kw()

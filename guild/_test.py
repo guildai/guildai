@@ -1105,6 +1105,7 @@ def _run(
             return out, exit_code
         print(out)
         print("<exit %i>" % exit_code)
+    return None
 
 
 def _run_shell_cmd(cmd):

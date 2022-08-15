@@ -56,7 +56,7 @@ class SummaryPlugin(Plugin):
         try:
             from tensorboardX import SummaryWriter
         except ImportError:
-            pass
+            return None
         else:
             self.log.debug("wrapping tensorboardX.SummaryWriter.add_scalar")
             wrapper = python_util.listen_method(
@@ -264,6 +264,7 @@ class SummaryCache:
             is_current_step = bool(step == self._step)
         except Exception as e:
             self._maybe_log_cannot_evaluate(e)
+            return None
         else:
             return self._val if is_current_step else None
 

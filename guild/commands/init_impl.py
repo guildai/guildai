@@ -129,10 +129,6 @@ class Config:
             params.append(("Resource cache", "shared"))
         return params
 
-    def _maybe_guild_pkg_reqs(self):
-        if self.no_guild_pkg_reqs:
-            return []
-
     def as_kw(self):
         return self.__dict__
 
