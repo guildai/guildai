@@ -2450,9 +2450,7 @@ def _no_such_model_op_error(opspec):
                 "Try 'guild operations' for a list of available operations." % opspec
             )
     else:
-        cli.error(
-            "cannot find a default operation\nTry 'guild operations' for a list."
-        )
+        cli.error("cannot find a default operation\nTry 'guild operations' for a list.")
 
 
 def _multiple_models_error(model_ref, models):
@@ -2509,9 +2507,7 @@ def _missing_required_flags_error(e):
         indent=2,
         err=True,
     )
-    cli.out(
-        "\nRun the command again with these flags specified as NAME=VAL.", err=True
-    )
+    cli.out("\nRun the command again with these flags specified as NAME=VAL.", err=True)
     cli.error()
 
 

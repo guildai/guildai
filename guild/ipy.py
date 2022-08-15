@@ -244,10 +244,7 @@ class Batch:
     def __call__(self):
         runs = []
         results = []
-
-        def prev_results_cb():
-            return runs, results
-
+        prev_results_cb = lambda: (runs, results)
         for trial in self.gen_trials(self.flag_vals, prev_results_cb, **self.opts):
             trial_flag_vals, trial_attrs = _split_gen_trial(trial)
             print(

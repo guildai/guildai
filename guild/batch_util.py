@@ -437,9 +437,7 @@ def trial_runs(batch_run, prev_trials_mode=PREV_TRIALS_BATCH):
         return _proto_sourcecode_runs(batch_run)
     if prev_trials_mode == PREV_TRIALS_OPERATION:
         return _proto_op_runs(batch_run)
-    raise ValueError(
-        f"unsupported value for prev_trials_mode: {prev_trials_mode!r}"
-    )
+    raise ValueError(f"unsupported value for prev_trials_mode: {prev_trials_mode!r}")
 
 
 def _batch_trial_runs(batch_run):

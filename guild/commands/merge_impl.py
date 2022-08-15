@@ -403,7 +403,7 @@ def _preview_skipped_files_full(merge):
 
 
 def _sorted_merge_skip_files(merge):
-    return sorted(merge.to_skip, key=lambda sf: _skip_file_path(sf))
+    return sorted(merge.to_skip, key=_skip_file_path)
 
 
 def _skip_file_path(sf):

@@ -158,12 +158,11 @@ disable=raw-checker-failed,
         missing-class-docstring,
         protected-access,
         too-few-public-methods,
-        unspecified-encoding,   # Punt on [this problem](https://peps.python.org/pep-0597/)
+        unspecified-encoding,            # Punt on [this problem](https://peps.python.org/pep-0597/)
         too-many-arguments,
         too-many-return-statements,
-        consider-using-with,    # Unfortunately this test is brute force, applied for every call to open
-        no-member,              # This check is generates too many false positives and
-                                # generated-members [does not work](https://github.com/PyCQA/pylint/issues/2498)
+        consider-using-with,             # Brute force - applied for every call to open
+        no-member,                       # Too false positives and generated-members [does not work](https://github.com/PyCQA/pylint/issues/2498)
         redefined-outer-name,
         broad-except,
         too-many-instance-attributes,
@@ -175,8 +174,11 @@ disable=raw-checker-failed,
         too-many-function-args,
         fixme,
         bare-except,
-        keyword-arg-before-vararg,  # DANGEROUS - changes function spec!
-        cyclic-import,          # [false positives](https://github.com/PyCQA/pylint/issues/5168)
+        keyword-arg-before-vararg,       # DANGEROUS - changes function spec!
+        cyclic-import,                   # [False positives](https://github.com/PyCQA/pylint/issues/5168) from deferred imports
+        duplicate-code,                  # DRY is not a goal
+        unnecessary-lambda-assignment,
+
         # TEMP - disabled for incremental linting (TODO re-enable each to cleanup code)
         invalid-name,
         raise-missing-from,
@@ -184,11 +186,8 @@ disable=raw-checker-failed,
         no-else-return,
         redefined-builtin,               # TODO rename or add to allowed-redefined-builtins
         inconsistent-return-statements,  # TODO important - likely bugs!
-        unnecessary-lambda-assignment,
         consider-using-dict-items,
-        consider-using-generator,
-        unnecessary-lambda,
-        duplicate-code
+        consider-using-generator
 
 
 # Enable the message, report, category or checker with the given id(s). You can

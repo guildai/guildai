@@ -407,8 +407,10 @@ def _file_size(path):
 
 def find(root, followlinks=False, includedirs=False, unsorted=False):
     paths = []
+
     def relpath(path, name):
         return os.path.relpath(os.path.join(path, name), root)
+
     for path, dirs, files in os.walk(root, followlinks=followlinks):
         for name in dirs:
             if includedirs or os.path.islink(os.path.join(path, name)):

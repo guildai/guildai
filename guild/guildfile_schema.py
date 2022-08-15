@@ -131,9 +131,7 @@ class DvCResourceSchema(schema.BaseModel):
         extra = 'forbid'
 
 
-Resource = Union[
-    str, 'ResourceSourceSchema', 'ResourceDefSchema', 'DvCResourceSchema'
-]
+Resource = Union[str, 'ResourceSourceSchema', 'ResourceDefSchema', 'DvCResourceSchema']
 FileSelect = Union[str, FileSelectDefSchema, FileSelectSpecSchema]
 OutputScalar = Union[str, Dict[str, str]]
 

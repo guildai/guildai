@@ -63,18 +63,6 @@ DEFAULT_PROC_KILL_DELAY = 30
 
 NoCurrentRun = _api.NoCurrentRun
 
-try:
-    bytes('')
-except TypeError:
-    # Python 3
-    LF = 10
-    BYTES_JOIN = bytes
-else:
-    # Python 2
-    LF = b"\n"
-    BYTES_JOIN = lambda l: b"".join(l)
-
-
 ###################################################################
 # Error classes
 ###################################################################
@@ -302,12 +290,12 @@ class RunOutput:
                     if b < 9:  # non-printable
                         continue
                     line.append(b)
-                    if b == LF:
+                    if b == 10:  # LF
                         self._output_eol(index_fileno, line, stream_type)
                         del line[:]
 
     def _output_eol(self, index_fileno, line, stream_type):
-        line_bytes = BYTES_JOIN(line)
+        line_bytes = bytes(line)
         entry = struct.pack("!QB", int(time.time() * 1000), stream_type)
         os.write(index_fileno, entry)
         if self._output_cb:
@@ -1083,19 +1071,13 @@ def _opdef_exec_and_run_attrs(opdef):
     """
     if opdef.exec_:
         if opdef.main:
-            log.warning(
-                "operation 'exec' and 'main' both specified, ignoring 'main'"
-            )
+            log.warning("operation 'exec' and 'main' both specified, ignoring 'main'")
         if opdef.steps:
-            log.warning(
-                "operation 'exec' and 'steps' both specified, ignoring 'steps'"
-            )
+            log.warning("operation 'exec' and 'steps' both specified, ignoring 'steps'")
         return opdef.exec_, None
     elif opdef.main:
         if opdef.steps:
-            log.warning(
-                "operation 'main' and 'steps' both specified, ignoring 'steps'"
-            )
+            log.warning("operation 'main' and 'steps' both specified, ignoring 'steps'")
         return DEFAULT_EXEC, None
     elif opdef.steps:
         return STEPS_EXEC, _run_attrs_for_steps(opdef)

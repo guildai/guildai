@@ -42,7 +42,6 @@ class NamespaceError(LookupError):
 
 
 class Namespace:
-
     def __init__(self, ep):
         self.name = ep.name
 

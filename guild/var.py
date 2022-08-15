@@ -141,14 +141,11 @@ def _is_parent_run_path(path, runs_dir):
 
 
 def run_filter(name, *args):
-    # Disabling undefined-variable check to work around
-    # https://github.com/PyCQA/pylint/issues/760
-    # pylint: disable=undefined-variable
     if name.startswith("!"):
         name = name[1:]
         maybe_negate = lambda f: lambda r: not f(r)
     else:
-        maybe_negate = lambda f: lambda r: f(r)
+        maybe_negate = lambda f: f
     if name == "true":
         filter = lambda _: True
     elif name == "attr":
