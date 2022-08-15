@@ -82,7 +82,7 @@ else:
 
 class ArgValueError(ValueError):
     def __init__(self, arg):
-        super(ArgValueError, self).__init__(arg)
+        super().__init__(arg)
         self.arg = arg
 
 
@@ -92,20 +92,20 @@ class FlagError(Exception):
 
 class MissingRequiredFlags(FlagError):
     def __init__(self, missing):
-        super(MissingRequiredFlags, self).__init__(missing)
+        super().__init__(missing)
         self.missing = missing
 
 
 class InvalidFlagChoice(FlagError):
     def __init__(self, val, flag):
-        super(InvalidFlagChoice, self).__init__(val, flag)
+        super().__init__(val, flag)
         self.val = val
         self.flag = flag
 
 
 class InvalidFlagValue(FlagError):
     def __init__(self, value, flag, msg):
-        super(InvalidFlagValue, self).__init__(value, flag, msg)
+        super().__init__(value, flag, msg)
         self.value = value
         self.flag = flag
         self.msg = msg
@@ -117,59 +117,59 @@ class OpDefLookupError(LookupError):
 
 class InvalidOpSpec(OpDefLookupError):
     def __init__(self, opspec):
-        super(InvalidOpSpec, self).__init__(opspec)
+        super().__init__(opspec)
         self.opspec = opspec
 
 
 class NoSuchModel(OpDefLookupError):
     def __init__(self, opspec):
-        super(NoSuchModel, self).__init__(opspec)
+        super().__init__(opspec)
         self.opspec = opspec
 
 
 class NoSuchOperation(OpDefLookupError):
     def __init__(self, model, op_name):
-        super(NoSuchOperation, self).__init__(model, op_name)
+        super().__init__(model, op_name)
         self.model = model
         self.op_name = op_name
 
 
 class CwdGuildfileError(OpDefLookupError):
     def __init__(self, guildfile_error):
-        super(CwdGuildfileError, self).__init__(guildfile_error)
+        super().__init__(guildfile_error)
         self.msg = guildfile_error.msg
         self.path = guildfile_error.path
 
 
 class MultipleMatchingModels(OpDefLookupError):
     def __init__(self, model_ref, matches):
-        super(MultipleMatchingModels, self).__init__(model_ref, matches)
+        super().__init__(model_ref, matches)
         self.model_ref = model_ref
         self.matches = matches
 
 
 class NoMatchingModel(OpDefLookupError):
     def __init__(self, model_ref):
-        super(NoMatchingModel, self).__init__(model_ref)
+        super().__init__(model_ref)
         self.model_ref = model_ref
 
 
 class ModelOpProxyError(Exception):
     def __init__(self, opspec, msg):
-        super(ModelOpProxyError, self).__init__(opspec, msg)
+        super().__init__(opspec, msg)
         self.opspec = opspec
         self.msg = msg
 
 
 class NoSuchFlagError(FlagError):
     def __init__(self, flag_name):
-        super(NoSuchFlagError, self).__init__(flag_name)
+        super().__init__(flag_name)
         self.flag_name = flag_name
 
 
 class InvalidOpDef(ValueError):
     def __init__(self, opdef, msg):
-        super(InvalidOpDef, self).__init__(opdef, msg)
+        super().__init__(opdef, msg)
         self.opdef = opdef
         self.msg = msg
 
@@ -183,7 +183,7 @@ class OpCmdError(Exception):
 
 class BatchFileError(Exception):
     def __init__(self, path, msg):
-        super(BatchFileError, self).__init__(path, msg)
+        super().__init__(path, msg)
         self.path = path
         self.msg = msg
 
@@ -314,7 +314,7 @@ class RunOutput:
             try:
                 self._output_cb.write(line_bytes)
             except Exception:
-                log.exception("error in output callback (will be " "removed)")
+                log.exception("error in output callback (will be removed)")
                 self._output_cb = None
 
     def wait(self):
@@ -1034,7 +1034,7 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
 
     def _warn_max_size(self, path):
         log.warning(
-            "Skipping potential source code file %s because it's " "too big.%s",
+            "Skipping potential source code file %s because it's too big.%s",
             path,
             self._warning_help_suffix,
         )
@@ -1084,17 +1084,17 @@ def _opdef_exec_and_run_attrs(opdef):
     if opdef.exec_:
         if opdef.main:
             log.warning(
-                "operation 'exec' and 'main' both specified, " "ignoring 'main'"
+                "operation 'exec' and 'main' both specified, ignoring 'main'"
             )
         if opdef.steps:
             log.warning(
-                "operation 'exec' and 'steps' both specified, " "ignoring 'steps'"
+                "operation 'exec' and 'steps' both specified, ignoring 'steps'"
             )
         return opdef.exec_, None
     elif opdef.main:
         if opdef.steps:
             log.warning(
-                "operation 'main' and 'steps' both specified, " "ignoring 'steps'"
+                "operation 'main' and 'steps' both specified, ignoring 'steps'"
             )
         return DEFAULT_EXEC, None
     elif opdef.steps:
@@ -1940,7 +1940,7 @@ def sourcecode_manifest_logger_cls(run_dir):
 
     class _Handler(SourceCodeCopyHandler):
         def _try_copy_file(self, src, dest):
-            super(_Handler, self)._try_copy_file(src, dest)
+            super()._try_copy_file(src, dest)
             m.write(run_manifest.sourcecode_args(dest, run_dir, src, self.src_root))
 
     return _Handler

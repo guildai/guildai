@@ -162,9 +162,7 @@ def _try_acc_modeldefs(path, acc):
 
 class GuildfileDistribution(pkg_resources.Distribution):
     def __init__(self, guildfile):
-        super(GuildfileDistribution, self).__init__(
-            guildfile.dir, project_name=self._init_project_name(guildfile)
-        )
+        super().__init__(guildfile.dir, project_name=self._init_project_name(guildfile))
         self.guildfile = guildfile
         self._entry_map = self._init_entry_map()
 
@@ -355,7 +353,7 @@ class GuildfileNamespace(namespace.PrefixNamespace):
         raise TypeError("guildfiles cannot be installed using pip")
 
     def package_name(self, project_name):
-        pkg = super(GuildfileNamespace, self).package_name(project_name)
+        pkg = super().package_name(project_name)
         parts = pkg.split("/", 1)
         decoded_project_name = unescape_project_name(parts[0])
         rest = "/" + parts[1] if len(parts) == 2 else ""

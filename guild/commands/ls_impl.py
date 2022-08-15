@@ -42,7 +42,7 @@ def _check_ignored_remote_opts(args):
 def _main(args, ctx):
     if args.path and os.path.isabs(args.path):
         cli.error(
-            "PATH must be relative\n" "Try 'guild ls --help' for more information."
+            "PATH must be relative\nTry 'guild ls --help' for more information."
         )
     run = runs_impl.one_run(args, ctx)
     base_dir = _base_dir(run, args)

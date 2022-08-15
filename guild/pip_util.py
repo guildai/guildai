@@ -88,7 +88,7 @@ def get_installed():
 
 class QuietLogger(logging.Logger):
     def __init__(self, parent):
-        super(QuietLogger, self).__init__(parent.name)
+        super().__init__(parent.name)
         self.parent = parent
         self.level = logging.WARNING
 
@@ -161,7 +161,7 @@ def _check_download_path(filename, download_dir, expected_hash):
 
 class HashMismatch(Exception):
     def __init__(self, path, expected, actual):
-        super(HashMismatch, self).__init__(path, expected, actual)
+        super().__init__(path, expected, actual)
         self.path = path
         self.expected = expected
         self.actual = actual

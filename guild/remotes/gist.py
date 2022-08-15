@@ -97,7 +97,7 @@ class GistRemote(meta_sync.MetaSyncRemote):
         )
         self._local_gist_repo = os.path.join(self.local_sync_dir, "gist")
         runs_dir = os.path.join(self.local_sync_dir, "runs")
-        super(GistRemote, self).__init__(runs_dir, None)
+        super().__init__(runs_dir, None)
 
     def status(self, verbose=False):
         remote_util.remote_activity("Getting %s status", self.name)

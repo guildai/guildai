@@ -21,7 +21,7 @@ import sys
 
 class RunError(Exception):
     def __init__(self, cmd, returncode, output=None):
-        super(RunError, self).__init__(cmd, returncode, output)
+        super().__init__(cmd, returncode, output)
         self.cmd_args, self.cmd_cwd, self.cmd_env = cmd
         self.returncode = returncode
         self.output = output

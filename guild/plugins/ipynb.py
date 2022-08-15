@@ -178,6 +178,7 @@ def _iter_replacements_for_source(src, opdef):
             if m and m.regs:
                 val_str = _replacement_capture(m, src)
                 try:
+                    # pylint: disable=eval-used
                     val = eval(val_str)
                 except Exception as e:
                     if log.getEffectiveLevel() < logging.DEBUG:

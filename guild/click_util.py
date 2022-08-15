@@ -71,7 +71,7 @@ class Group(click.Group):
 
     def get_command(self, ctx, cmd_name):
         cmd_name = _group_cmd_name(self.commands.values(), cmd_name)
-        return super(Group, self).get_command(ctx, cmd_name)
+        return super().get_command(ctx, cmd_name)
 
 
 def _group_cmd_name(group_command_names, default_name):
@@ -140,7 +140,7 @@ class HelpFormatter(ClickBaseHelpFormatter):
     ]
 
     def write_text(self, text):
-        super(HelpFormatter, self).write_text(self._format_text(text))
+        super().write_text(self._format_text(text))
 
     def _format_text(self, text):
         for pattern, repl in self._text_subs:
@@ -149,9 +149,7 @@ class HelpFormatter(ClickBaseHelpFormatter):
 
     def write_dl(self, rows, col_max=None, col_spacing=None, preserve_paragraphs=False):
         rows = [(term, self._format_text(text)) for term, text in rows]
-        super(HelpFormatter, self).write_dl(
-            rows, preserve_paragraphs=preserve_paragraphs
-        )
+        super().write_dl(rows, preserve_paragraphs=preserve_paragraphs)
 
 
 class JSONHelpFormatter:

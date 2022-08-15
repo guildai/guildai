@@ -57,7 +57,7 @@ class Plugin:
         """
 
     def enabled_for_op(self, op):
-        # pylint: disable=unused-argument,no-self-use
+        # pylint: disable=unused-argument
         """Returns a tuple of boolean and reason.
 
         The boolean indicates whether or not the plugin is enabled for
@@ -69,7 +69,7 @@ class Plugin:
         """Called to let the plugin patch the Python environment."""
 
     def resolve_model_op(self, opspec):
-        # pylint: disable=unused-argument,no-self-use
+        # pylint: disable=unused-argument
         """Return a tuple of model, op_name for opspec.
 
         If opspec cannot be resolved to a model, the function should
@@ -78,7 +78,7 @@ class Plugin:
         return None
 
     def resource_source_for_data(self, data, resdef):
-        # pylint: disable=unused-argument,no-self-use
+        # pylint: disable=unused-argument
         """Return an instance of `guild.resourcedef.ResourceSource` for data.
 
         Return None if data is not supported as a resource source.
@@ -86,7 +86,7 @@ class Plugin:
         return None
 
     def resolver_class_for_source(self, source):
-        # pylint: disable=unused-argument,no-self-use
+        # pylint: disable=unused-argument
         """Return a class (or factory) for a resolver suitable for `source`.
 
         `source` is an instance of `guild.resourcedef.ResourceSource`.

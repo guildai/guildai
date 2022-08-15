@@ -77,7 +77,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
         self.local_sync_dir = meta_sync.local_meta_dir(name, self._s3_uri())
         runs_dir = os.path.join(self.local_sync_dir, *RUNS_PATH)
         deleted_runs_dir = os.path.join(self.local_sync_dir, *DELETED_RUNS_PATH)
-        super(S3Remote, self).__init__(runs_dir, deleted_runs_dir)
+        super().__init__(runs_dir, deleted_runs_dir)
 
     def _s3_uri(self, *subpath):
         joined_path = _join_path(self.root, *subpath)

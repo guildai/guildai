@@ -38,7 +38,7 @@ class OneRunArgs(click_util.Args):
     def __init__(self, base_args, run):
         kw = base_args.as_kw()
         kw['run'] = run
-        super(OneRunArgs, self).__init__(**kw)
+        super().__init__(**kw)
 
 
 def main(args, ctx):

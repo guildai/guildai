@@ -112,7 +112,7 @@ class State:
 
 class Operation(oplib.Operation):
     def __init__(self):
-        super(Operation, self).__init__()
+        super().__init__()
         self._run = None
         self._run_is_proto = False
         self._force_sourcecode = False
@@ -685,7 +685,7 @@ class _RemoteOperationResolver(resolverlib.OperationResolver):
     """
 
     def __init__(self, remote, source, resource):
-        super(_RemoteOperationResolver, self).__init__(source, resource)
+        super().__init__(source, resource)
         self.remote = remote
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
@@ -2451,7 +2451,7 @@ def _no_such_model_op_error(opspec):
             )
     else:
         cli.error(
-            "cannot find a default operation\n" "Try 'guild operations' for a list."
+            "cannot find a default operation\nTry 'guild operations' for a list."
         )
 
 
@@ -2510,7 +2510,7 @@ def _missing_required_flags_error(e):
         err=True,
     )
     cli.out(
-        "\nRun the command again with these flags specified " "as NAME=VAL.", err=True
+        "\nRun the command again with these flags specified as NAME=VAL.", err=True
     )
     cli.error()
 
@@ -2604,7 +2604,7 @@ def _save_trials_for_non_batch_error():
 
 
 def _skip_needed_unchanged_flags_info():
-    cli.out("Skipping run because flags have not changed " "(--needed specified)")
+    cli.out("Skipping run because flags have not changed (--needed specified)")
 
 
 def _skip_needed_matches_info(matching_runs):

@@ -70,8 +70,7 @@ def _resolved_source_hash_manifest_arg(target_path):
 def _resolved_source_src_manifest_args(resolved):
     if _is_project_local_source(resolved):
         return ["file:" + _project_relpath(resolved)]
-    else:
-        return _resolved_source_uri_args(resolved)
+    return _resolved_source_uri_args(resolved)
 
 
 def _is_project_local_source(resolved_source):

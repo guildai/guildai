@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import logging
+import sys
 
 import pkg_resources
-import sys
 
 log = logging.getLogger("guild")
 

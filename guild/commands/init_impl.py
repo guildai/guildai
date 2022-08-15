@@ -15,10 +15,11 @@
 import hashlib
 import logging
 import os
-import pkg_resources
 import re
 import subprocess
 import sys
+
+import pkg_resources
 
 import six
 import yaml
@@ -591,7 +592,7 @@ def _initialized_msg(config):
         "Guild environment initialized in {}."
         "\n".format(util.format_dir(config.env_dir))
     )
-    cli.out("To activate it " "run:\n")
+    cli.out("To activate it run:\n")
     cli.out("  %s" % _source_cmd(util.format_dir(config.env_dir)))
     cli.out()
 

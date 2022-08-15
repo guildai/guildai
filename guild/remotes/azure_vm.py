@@ -53,7 +53,7 @@ class AzureVMRemote(ssh_remote.SSHRemote):
         self.private_key = config.get("private-key")
         self.working_dir = var.remote_dir(name)
         self.init_timeout = config.get("init-timeout")
-        super(AzureVMRemote, self).__init__(name, self._ensure_none_host(config))
+        super().__init__(name, self._ensure_none_host(config))
 
     def _ensure_none_host(self, config):
         if "host" in config:
@@ -100,7 +100,7 @@ class AzureVMRemote(ssh_remote.SSHRemote):
                     "for more information."
                 )
             else:
-                return out.decode("utf-8").split(os.linesep)[0]
+                return out.decode("utf-8").split(os.linesep, 1)[0]
         else:
             raise remotelib.OperationError(
                 "Azure CLI is required for this operation - refer to "

@@ -80,7 +80,7 @@ class ViewData:
 
 class DevServer(threading.Thread):
     def __init__(self, host, port, view_port):
-        super(DevServer, self).__init__()
+        super().__init__()
         self.host = host or socket.gethostname()
         self.port = port
         self.view_port = view_port
@@ -108,7 +108,7 @@ class DevServer(threading.Thread):
     def wait_for_ready(self):
         url_base = util.local_server_url(self.host, self.port)
         while not self._ready:
-            ping_url = "{}/assets/favicon.png".format(url_base)
+            ping_url = f"{url_base}/assets/favicon.png"
             try:
                 util.http_get(ping_url)
             except util.HTTPConnectionError:
@@ -121,8 +121,8 @@ class DevServer(threading.Thread):
         path = os.path.join(MODULE_DIR, "view/node_modules/.bin/webpack-dev-server")
         if not os.path.exists(path):
             raise AssertionError(
-                "{} does not exits - did you resolve node dependencies by "
-                "running npm install?".format(path)
+                f"{path} does not exits - did you resolve node dependencies by "
+                "running npm install?"
             )
         return path
 
@@ -165,14 +165,13 @@ class TBServer:
     def _list_runs(self):
         if self._key == "0":
             return self._data.runs()
-        else:
-            run = self._data.one_run(self._key)
-            if not run:
-                return []
-            return [run]
+        run = self._data.one_run(self._key)
+        if not run:
+            return []
+        return [run]
 
     def _path_prefix(self):
-        return "/tb/{}/".format(self._key)
+        return f"/tb/{self._key}/"
 
     def __call__(self, env, start_resp):
         if not self.running:
@@ -222,8 +221,8 @@ class TBServers:
         return self._tb_mod
 
     def iter_servers(self):
-        for key in self._servers:
-            yield self._servers[key]
+        for server in self._servers.values():
+            yield server
 
     def stop_servers(self):
         for server in self._servers.values():
@@ -235,12 +234,12 @@ class TBServers:
 class DistFiles(serving_util.StaticDir):
     def __init__(self):
         dist_dir = os.path.join(MODULE_DIR, "view/dist")
-        super(DistFiles, self).__init__(dist_dir)
+        super().__init__(dist_dir)
 
 
 class RunFiles(serving_util.StaticBase):
     def __init__(self):
-        super(RunFiles, self).__init__({"/files": var.runs_dir()})
+        super().__init__({"/files": var.runs_dir()})
 
     def handle(self, _req):
         def app(env, start_resp0):
@@ -290,7 +289,7 @@ def _serve_dev(data, host, port, no_open, logging):
     view_url = util.local_server_url(host, view_port)
     if not no_open:
         util.open_url(util.local_server_url(host, port))
-    sys.stdout.write(" I  Guild View backend: {}\n".format(view_url))
+    sys.stdout.write(f" I  Guild View backend: {view_url}\n")
     _start_view(data, host, view_port, logging)
     sys.stdout.write("\n")
 
@@ -302,9 +301,7 @@ def _serve_prod(data, host, port, no_open, logging):
             util.open_url(view_url)
         except util.URLOpenError:
             sys.stdout.write("Unable to open browser window for Guild View\n")
-    sys.stdout.write(
-        "Running Guild View at {} (Type Ctrl-C to quit)\n".format(view_url)
-    )
+    sys.stdout.write(f"Running Guild View at {view_url} (Type Ctrl-C to quit)\n")
     _start_view(data, host, port, logging)
     sys.stdout.write("\n")
 
@@ -387,7 +384,7 @@ def _route_tb(req):
         key = req.args["run"]
     else:
         key = "0"
-    return redirect("/tb/{}/".format(key), code=303)
+    return redirect(f"/tb/{key}/", code=303)
 
 
 def _handle_tb_index(req, tb_servers, data, key):
@@ -404,8 +401,8 @@ def _handle_tb(_req, tb_servers, key):
     with tb_servers:
         try:
             return tb_servers[key]
-        except KeyError:
-            raise NotFound()
+        except KeyError as e:
+            raise NotFound() from e
 
 
 def _try_run_id(key, data):

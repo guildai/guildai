@@ -60,7 +60,7 @@ class _FakeShell:
 class Formatter(logging.Formatter):
     def format(self, record):
         return self._maybe_strip_ansi(
-            self._color(super(Formatter, self).format(record), record.levelno)
+            self._color(super().format(record), record.levelno)
         )
 
     @staticmethod
@@ -90,7 +90,7 @@ class ConsoleLogHandler(logging.StreamHandler):
     }
 
     def __init__(self, formats=None):
-        super(ConsoleLogHandler, self).__init__()
+        super().__init__()
         formats = formats or self.DEFAULT_FORMATS
         self._formatters = {level: Formatter(fmt) for level, fmt in formats.items()}
 
@@ -99,7 +99,7 @@ class ConsoleLogHandler(logging.StreamHandler):
         if fmt:
             return fmt.format(record)
         else:
-            return super(ConsoleLogHandler, self).format(record)
+            return super().format(record)
 
 
 def init_logging(level=None, formats=None):

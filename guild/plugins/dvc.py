@@ -110,7 +110,7 @@ def _apply_stage_deps_data(stage, dvc_config, opdef_data):
     requires_data = opdef_data.setdefault("requires", [])
     if not isinstance(requires_data, list):
         log.warning(
-            "unexpected value for 'requires' - expected a list, " "skipping DvC deps"
+            "unexpected value for 'requires' - expected a list, skipping DvC deps"
         )
         return
     for parent_stage, deps in dvc_util.iter_stage_deps_by_parent(stage, dvc_config):
@@ -243,7 +243,7 @@ class _DvcFileResolver(resolverlib.FileResolver):
 
     def _try_default_resolve(self, resolve_context):
         try:
-            return super(_DvcFileResolver, self).resolve(resolve_context)
+            return super().resolve(resolve_context)
         except resolverlib.ResolutionError as e:
             log.debug("error trying default file resolution: %s", e)
             return None

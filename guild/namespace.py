@@ -37,13 +37,11 @@ class NamespaceError(LookupError):
     """Raised if a namespace doesn't exist."""
 
     def __init__(self, value):
-        super(NamespaceError, self).__init__(value)
+        super().__init__(value)
         self.value = value
 
 
 class Namespace:
-
-    # pylint: disable=no-self-use
 
     def __init__(self, ep):
         self.name = ep.name

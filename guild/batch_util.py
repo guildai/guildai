@@ -56,7 +56,7 @@ class CurrentRunNotBatchError(Exception):
 
 class InvalidFlagFunctionArgs(Exception):
     def __init__(self, name, args, flag_name, msg):
-        super(InvalidFlagFunctionArgs, self).__init__(msg)
+        super().__init__(msg)
         self.function_name = name
         self.function_args = args
         self.flag_name = flag_name
@@ -113,7 +113,7 @@ def _save_trials(trials, path):
     if ext.lower() == ".json":
         _save_trials_json(trials, path)
     else:
-        assert ext.lower() in (".csv", ""), "unsupported extension in path '%s'" % path
+        assert ext.lower() in (".csv", ""), f"unsupported extension in path '{path}'"
         _save_trials_csv(trials, path)
 
 
@@ -153,10 +153,9 @@ def init_trial_run(batch_run, trial_flag_vals, run_dir=None):
     run = op_util.init_run(run_dir)
     _link_to_trial(batch_run, run)
     proto_run = batch_run.batch_proto
-    assert proto_run, "proto_run not initialized for batch %s (%s)" % (
-        batch_run.id,
-        batch_run.dir,
-    )
+    assert (
+        proto_run
+    ), f"proto_run not initialized for batch {batch_run.id} ({batch_run.dir})"
     util.copytree(proto_run.dir, run.dir)
     run.write_attr("flags", trial_flag_vals)
     run.write_attr("label", _trial_label(proto_run, trial_flag_vals))
@@ -228,8 +227,7 @@ def _log_start_trial(run, stage):
 def _trial_name(run):
     if util.compare_paths(os.path.dirname(run.dir), var.runs_dir()):
         return os.path.basename(run.dir)
-    else:
-        return "in %s" % run.dir
+    return "in {run.dir}"
 
 
 def _trial_flags_desc(run):
@@ -240,15 +238,13 @@ def _trial_flags_desc(run):
 
 
 def invalid_flag_function_args_error(e):
-    raise SystemExit(
-        "invalid function args in '%s=%s': %s"
-        % (e.flag_name, _flag_value_for_function(e.function_name, e.function_args), e)
-    )
+    flag_val = _flag_value_for_function(e.function_name, e.function_args)
+    raise SystemExit(f"invalid function args in '{e.flag_name}={flag_val}': {e}")
 
 
 def _flag_value_for_function(name, args):
     args_list = ":".join([str(arg) for arg in args])
-    return "%s[%s]" % (name, args_list)
+    return f"{name}[{args_list}]"
 
 
 def handle_trial_system_exit(e, batch_run, trial_run):
@@ -277,9 +273,8 @@ def handle_trial_system_exit(e, batch_run, trial_run):
 
 def _trial_run_error_desc(code, msg):
     if msg:
-        return ": (%i) %s" % (code, msg)
-    else:
-        return " (%i) - see log for details" % code
+        return f": ({code}) {msg}"
+    return f" ({code}) - see log for details"
 
 
 def fail_on_trial_error(batch_run):
@@ -308,7 +303,7 @@ def batch_run():
         raise CurrentRunNotBatchError("no current run")
     proto_path = current_run.guild_path("proto")
     if not os.path.exists(proto_path):
-        raise CurrentRunNotBatchError("missing proto %s" % proto_path)
+        raise CurrentRunNotBatchError(f"missing proto {proto_path}")
     return current_run
 
 
@@ -397,8 +392,7 @@ def expanded_batch_trials(batch_run, random_seed=None):
     if trials:
         user_flag_vals = proto_run.get("user_flags") or {}
         return expand_trial_flags(trials, flag_vals, user_flag_vals, random_seed)
-    else:
-        return expand_flags(flag_vals, random_seed)
+    return expand_flags(flag_vals, random_seed)
 
 
 def expand_trial_flags(trials, flag_vals, user_flag_vals, random_seed=None):
@@ -439,14 +433,13 @@ def trial_results_for_runs(runs, scalars):
 def trial_runs(batch_run, prev_trials_mode=PREV_TRIALS_BATCH):
     if prev_trials_mode == PREV_TRIALS_BATCH:
         return _batch_trial_runs(batch_run)
-    elif prev_trials_mode == PREV_TRIALS_SOURCECODE:
+    if prev_trials_mode == PREV_TRIALS_SOURCECODE:
         return _proto_sourcecode_runs(batch_run)
-    elif prev_trials_mode == PREV_TRIALS_OPERATION:
+    if prev_trials_mode == PREV_TRIALS_OPERATION:
         return _proto_op_runs(batch_run)
-    else:
-        raise ValueError(
-            "unsupported value for prev_trials_mode: %r" % prev_trials_mode
-        )
+    raise ValueError(
+        f"unsupported value for prev_trials_mode: {prev_trials_mode!r}"
+    )
 
 
 def _batch_trial_runs(batch_run):

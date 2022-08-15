@@ -357,12 +357,12 @@ def _leading_wildcard_want(want):
 
 class TestRunner(doctest.DocTestRunner):
     def __init__(self, checker=None, verbose=None, optionflags=0):
-        super(TestRunner, self).__init__(checker, verbose, optionflags)
+        super().__init__(checker, verbose, optionflags)
         self.skipped = 0
 
     def run(self, test, compileflags=None, out=None, clear_globs=True):
         self._apply_skip(test)
-        super(TestRunner, self).run(test, compileflags, out, clear_globs)
+        super().run(test, compileflags, out, clear_globs)
 
     @staticmethod
     def _apply_skip(test):

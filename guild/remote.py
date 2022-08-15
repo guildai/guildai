@@ -59,7 +59,7 @@ class RemoteForSpecNotImplemented(Exception):
 
 class RemoteProcessError(Exception):
     def __init__(self, exit_status, cmd, output):
-        super(RemoteProcessError, self).__init__(exit_status, cmd, output)
+        super().__init__(exit_status, cmd, output)
         self.exit_status = exit_status
         self.cmd = cmd
         self.output = output
@@ -71,7 +71,7 @@ class RemoteProcessError(Exception):
 
 class RunFailed(Exception):
     def __init__(self, remote_run_dir):
-        super(RunFailed, self).__init__(remote_run_dir)
+        super().__init__(remote_run_dir)
         self.remote_run_dir = remote_run_dir
 
 
@@ -82,7 +82,7 @@ class RemoteProcessDetached(Exception):
 class RemoteConfig(dict):
     def __getitem__(self, key):
         try:
-            return super(RemoteConfig, self).__getitem__(key)
+            return super().__getitem__(key)
         except KeyError:
             raise MissingRequiredConfig(key)
 
@@ -140,7 +140,7 @@ class RemoteType:
 
 class Remote:
 
-    # pylint: disable=unused-argument,no-self-use
+    # pylint: disable=unused-argument
 
     name = None
 

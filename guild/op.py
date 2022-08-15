@@ -42,7 +42,7 @@ LOG_WAITING_DELAY_SECONDS = 2
 
 class InvalidOpDef(ValueError):
     def __init__(self, opdef, msg):
-        super(InvalidOpDef, self).__init__(opdef, msg)
+        super().__init__(opdef, msg)
         self.opdef = opdef
         self.msg = msg
 

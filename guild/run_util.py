@@ -72,10 +72,10 @@ class RunsMonitor(util.LoopingThread):
         interval = interval or DEFAULT_MONITOR_INTERVAL
         if interval < MIN_MONITOR_INTERVAL:
             raise ValueError(
-                "interval %r is too low - must be at least %i"
-                % (interval, MIN_MONITOR_INTERVAL)
+                f"interval {interval} is too low - must be at least "
+                f"{MIN_MONITOR_INTERVAL}"
             )
-        super(RunsMonitor, self).__init__(
+        super().__init__(
             cb=self.run_once, interval=interval, stop_timeout=self.STOP_TIMEOUT
         )
         self.logdir = logdir
@@ -90,9 +90,7 @@ class RunsMonitor(util.LoopingThread):
         except SystemExit as e:
             if exit_on_error:
                 raise
-            log.error(
-                "An error occurred while reading runs. " "Use --debug for details."
-            )
+            log.error("An error occurred while reading runs. Use --debug for details.")
             log.debug(e)
         else:
             self._refresh_logdir(runs)
@@ -139,7 +137,7 @@ def default_run_name(run):
 def run_name(run, label):
     parts = [run.short_id]
     if run.opref.model_name:
-        parts.append("%s:%s" % (run.opref.model_name, run.opref.op_name))
+        parts.append(f"{run.opref.model_name}:{run.opref.op_name}")
     else:
         parts.append(run.opref.op_name)
     parts.append(util.format_timestamp(run.get("started")))
@@ -181,9 +179,8 @@ def format_run(run, index=None):
 
 def _format_run_index(run, index=None):
     if index is not None:
-        return "[%i:%s]" % (index, run.short_id)
-    else:
-        return "[%s]" % run.short_id
+        return f"[{index}:{run.short_id}]"
+    return f"[{run.short_id}]"
 
 
 def _with_marked(s, marked):
@@ -194,9 +191,8 @@ def _with_marked(s, marked):
 
 def _status_with_remote(status, remote):
     if remote:
-        return "{} ({})".format(status, remote)
-    else:
-        return status
+        return f"{status} ({remote})"
+    return status
 
 
 def _format_command(cmd):
@@ -208,9 +204,8 @@ def _format_command(cmd):
 def _maybe_quote_arg(arg):
     arg = str(arg)
     if arg == "" or " " in arg:
-        return '"%s"' % arg
-    else:
-        return arg
+        return f"\"{arg}\""
+    return arg
 
 
 def _format_exit_status(run):
@@ -221,12 +216,11 @@ def format_pkg_name(run):
     opref = run.opref
     if opref.pkg_type == "guildfile":
         return _format_guildfile_pkg_name(opref)
-    elif opref.pkg_type == "script":
+    if opref.pkg_type == "script":
         return _format_script_pkg_name(opref)
-    elif opref.pkg_type == "package":
-        return "%s==%s" % (opref.pkg_name, opref.pkg_version)
-    else:
-        return opref.pkg_name
+    if opref.pkg_type == "package":
+        return f"{opref.pkg_name}=={opref.pkg_version}"
+    return opref.pkg_name
 
 
 def _format_guildfile_pkg_name(opref):
@@ -247,28 +241,27 @@ def format_operation(run, nowarn=False, seen_protos=None):
 def _base_op_desc(opref, nowarn):
     if opref.pkg_type == "guildfile":
         return _format_guildfile_op(opref)
-    elif opref.pkg_type == "package":
+    if opref.pkg_type == "package":
         return _format_package_op(opref)
-    elif opref.pkg_type == "script":
+    if opref.pkg_type == "script":
         return _format_script_op(opref)
-    elif opref.pkg_type == "builtin":
+    if opref.pkg_type == "builtin":
         return _format_builtin_op(opref)
-    elif opref.pkg_type == "pending":
+    if opref.pkg_type == "pending":
         return _format_pending_op(opref)
-    elif opref.pkg_type == "test":
+    if opref.pkg_type == "test":
         return _format_test_op(opref)
-    elif opref.pkg_type == "func":
+    if opref.pkg_type == "func":
         return _format_func_op(opref)
-    elif opref.pkg_type == "import":
+    if opref.pkg_type == "import":
         return _format_import_op(opref)
-    else:
-        if not nowarn:
-            log.warning(
-                "cannot format op desc, unexpected pkg type: %s (%s)",
-                opref.pkg_type,
-                opref.pkg_name,
-            )
-        return "?"
+    if not nowarn:
+        log.warning(
+            "cannot format op desc, unexpected pkg type: %s (%s)",
+            opref.pkg_type,
+            opref.pkg_name,
+        )
+    return "?"
 
 
 def _format_guildfile_op(opref):
@@ -283,8 +276,8 @@ def _full_op_name(opref):
 
 def _format_package_op(opref):
     if not opref.model_name:
-        return "%s/%s" % (opref.pkg_name, opref.op_name)
-    return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
+        return f"{opref.pkg_name}/{opref.op_name}"
+    return f"{opref.pkg_name}/{opref.model_name}:{opref.op_name}"
 
 
 def _format_script_op(opref):
@@ -300,11 +293,11 @@ def _format_pending_op(opref):
 
 
 def _format_test_op(opref):
-    return "%s:%s" % (opref.model_name, opref.op_name)
+    return f"{opref.model_name}:{opref.op_name}"
 
 
 def _format_func_op(opref):
-    return "%s()" % opref.op_name
+    return f"{opref.op_name}()"
 
 
 def _format_import_op(opref):
@@ -372,26 +365,25 @@ def _default_format_dir(dir, _cwd):
 def format_attr(val):
     if val is None:
         return ""
-    elif isinstance(val, six.string_types):
+    if isinstance(val, six.string_types):
         return val
-    elif isinstance(val, (bool, int, float)):
+    if isinstance(val, (bool, int, float)):
         return flag_util.encode_flag_val(val)
-    elif isinstance(val, list):
+    if isinstance(val, list):
         return _format_attr_list(val)
-    elif isinstance(val, dict):
+    if isinstance(val, dict):
         return _format_attr_dict(val)
-    else:
-        return _format_yaml_block(val)
+    return _format_yaml_block(val)
 
 
 def _format_attr_list(l):
-    return "\n%s" % "\n".join(["  %s" % format_attr(item) for item in l])
+    joined = "\n".join([f"  {format_attr(item)}" for item in l])
+    return "\n" + joined
 
 
 def _format_attr_dict(d):
-    return "\n%s" % "\n".join(
-        ["  %s: %s" % (key, format_attr(d[key])) for key in sorted(d)]
-    )
+    joined = "\n".join([f"  {key}: {format_attr(d[key])}" for key in sorted(d)])
+    return "\n" + joined
 
 
 def _format_yaml_block(val):
@@ -420,7 +412,7 @@ def run_scalar_key(scalar):
     tag = scalar.get("tag")
     if not prefix or prefix == ".guild":
         return tag
-    return "%s#%s" % (prefix, tag)
+    return f"{prefix}#{tag}"
 
 
 def latest_compare(run):
@@ -451,9 +443,8 @@ def run_guildfile(run):
 def run_project_dir(run):
     if run.opref.pkg_type == "script":
         return run.opref.pkg_name
-    else:
-        gf = run_guildfile(run)
-        return gf.dir if gf else None
+    gf = run_guildfile(run)
+    return gf.dir if gf else None
 
 
 def _try_guildfile_opdef(gf, run):
@@ -498,8 +489,7 @@ def sourcecode_dir(run):
 def export_runs(runs, dest, move=False, copy_resources=False, quiet=False):
     if dest.lower().endswith(".zip"):
         return _export_runs_to_zip(runs, dest, move, copy_resources, quiet)
-    else:
-        return _export_runs_to_dir(runs, dest, move, copy_resources, quiet)
+    return _export_runs_to_dir(runs, dest, move, copy_resources, quiet)
 
 
 def _export_runs_to_zip(runs, filename, move, copy_resources, quiet):
@@ -515,7 +505,7 @@ def _export_runs_to_zip(runs, filename, move, copy_resources, quiet):
             try:
                 _write_zip_files(filename, zf, existing)
             except zipfile.BadZipfile as e:
-                raise RunsExportError("cannot write to %s: %s" % (filename, e))
+                raise RunsExportError(f"cannot write to {filename}: {e}") from e
         _copy_runs_to_zip(runs, move, copy_resources, zf, existing, quiet, exported)
     log.debug("replacing %s with %s", filename, tmp_zip)
     shutil.move(tmp_zip, filename)
@@ -613,8 +603,10 @@ def _init_export_dir(dir):
         util.touch(os.path.join(dir, ".guild-nocopy"))
     except IOError as e:
         if e.errno == errno.ENOTDIR:
-            raise RunsExportError("'%s' is not a directory" % dir)
-        raise RunsExportError("error initializing export directory '%s': %s" % (dir, e))
+            raise RunsExportError(f"'{dir}' is not a directory") from e
+        raise RunsExportError(
+            f"error initializing export directory '{dir}': {e}"
+        ) from e
 
 
 class _Skipped(Exception):
@@ -681,7 +673,7 @@ def run_duration(run):
 def calc_run_duration(status, started, stopped=None):
     if status == "running":
         return util.format_duration(started)
-    elif stopped:
+    if stopped:
         return util.format_duration(started, stopped)
     return None
 
@@ -691,12 +683,11 @@ def run_op_dir(run):
     opref = run.opref
     if opref.pkg_type == "guildfile":
         return os.path.dirname(opref.pkg_name)
-    elif opref.pkg_type == "script":
+    if opref.pkg_type == "script":
         return opref.pkg_name
-    elif opref.pkg_type == "import":
+    if opref.pkg_type == "import":
         return os.path.dirname(opref.pkg_name)
-    else:
-        return None
+    return None
 
 
 def run_for_id(id, runs_dir=None):

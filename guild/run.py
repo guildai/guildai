@@ -261,12 +261,11 @@ def timestamp():
 
     Ensures that subsequent calls return increasing values.
     """
-    global __last_ts
     ts = int(time.time() * 1000000)
     with __last_ts_lock:
         if __last_ts is not None and __last_ts >= ts:
             ts = __last_ts + 1
-        __last_ts = ts
+        globals()["__last_ts"] = ts
     return ts
 
 

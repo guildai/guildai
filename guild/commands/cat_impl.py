@@ -29,7 +29,7 @@ log = logging.getLogger("guild")
 def main(args, ctx):
     if args.path and os.path.isabs(args.path):
         cli.error(
-            "PATH must be relative\n" "Try 'guild cat --help' for more information."
+            "PATH must be relative\nTry 'guild cat --help' for more information."
         )
     if args.remote:
         remote_impl_support.cat(args)
@@ -54,7 +54,7 @@ def _path(run, args):
         cli.error("-p / --path is required unless --output is specified")
     if os.path.isabs(args.path):
         cli.error(
-            "PATH must be relative\n" "Try 'guild cat --help' for more information."
+            "PATH must be relative\nTry 'guild cat --help' for more information."
         )
     path_root = _path_root(args, run)
     return os.path.join(path_root, args.path)
@@ -63,7 +63,7 @@ def _path(run, args):
 def _check_non_output_args(args):
     if args.path or args.sourcecode:
         cli.out(
-            "--output cannot be used with other options - " "ignorning other options",
+            "--output cannot be used with other options - ignorning other options",
             err=True,
         )
 

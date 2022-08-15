@@ -71,7 +71,7 @@ def _check_merge_without_yes(args, ctx):
 def _handle_exit(code, detail, output, args):
     from . import merge_impl
 
-    if detail == None and code == 0:
+    if detail is None and code == 0:
         _handle_merge_success(output, args)
     elif isinstance(detail, merge_impl.PreviewMergeDetail):
         _handle_preview(detail.merge, args)

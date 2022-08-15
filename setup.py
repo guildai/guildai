@@ -19,6 +19,7 @@ import sys
 
 sys.path.insert(0, "./guild/external")
 
+# pylint: disable=wrong-import-position
 from pkg_resources import Distribution as PkgDist
 from pkg_resources import PathMetadata
 from setuptools import find_packages, setup
@@ -93,7 +94,7 @@ def _check_npm():
     try:
         subprocess.check_output([NPM_CMD, "--version"])
     except OSError as e:
-        raise SystemExit("error checking npm: %s" % e)
+        raise SystemExit(f"error checking npm: {e}") from e
 
 
 def _build_view_dist():

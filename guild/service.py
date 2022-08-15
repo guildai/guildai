@@ -30,27 +30,27 @@ class ServiceError(Exception):
 
 class Running(ServiceError):
     def __init__(self, name, pidfile):
-        super(Running, self).__init__(name, pidfile)
+        super().__init__(name, pidfile)
         self.name = name
         self.pidfile = pidfile
 
 
 class NotRunning(ServiceError):
     def __init__(self, name):
-        super(NotRunning, self).__init__(name)
+        super().__init__(name)
         self.name = name
 
 
 class PidfileError(ServiceError):
     def __init__(self, pidfile, error):
-        super(PidfileError, self).__init__(pidfile, error)
+        super().__init__(pidfile, error)
         self.pidfile = pidfile
         self.error = error
 
 
 class OrphanedProcess(ServiceError):
     def __init__(self, pid, pidfile):
-        super(OrphanedProcess, self).__init__(pid, pidfile)
+        super().__init__(pid, pidfile)
         self.pid = pid
         self.pidfile = pidfile
 

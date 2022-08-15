@@ -32,7 +32,7 @@ log = logging.getLogger("guild")
 
 class State(gen_queue.StateBase):
     def __init__(self, args):
-        super(State, self).__init__(
+        super().__init__(
             start_run_cb=_start_run,
             is_queue_cb=_is_queue,
             max_startable_runs=1,

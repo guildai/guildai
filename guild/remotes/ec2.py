@@ -52,7 +52,7 @@ class EC2Remote(ssh_remote.SSHRemote):
         self.private_key = config.get("private-key")
         self.working_dir = var.remote_dir(name)
         self.init_timeout = config.get("init-timeout")
-        super(EC2Remote, self).__init__(name, self._ensure_none_host(config))
+        super().__init__(name, self._ensure_none_host(config))
 
     def _ensure_none_host(self, config):
         if "host" in config:

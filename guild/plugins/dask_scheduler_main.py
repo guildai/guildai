@@ -42,7 +42,7 @@ class State(gen_queue.StateBase):
     resources = None
 
     def __init__(self, args):
-        super(State, self).__init__(
+        super().__init__(
             _start_run,
             _is_queue,
             name="Dask scheduler",

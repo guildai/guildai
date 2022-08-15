@@ -25,7 +25,7 @@ PLATFORM = platform.system()
 
 class DiskPlugin(SummaryPlugin):
     def __init__(self, ep):
-        super(DiskPlugin, self).__init__(ep)
+        super().__init__(ep)
         self._last_disk = None
 
     def enabled_for_op(self, _op):
@@ -35,7 +35,7 @@ class DiskPlugin(SummaryPlugin):
             import psutil as _unused
         except ImportError as e:
             self.log.warning(
-                "disk stats disabled because psutil " "cannot be imported (%s)", e
+                "disk stats disabled because psutil cannot be imported (%s)", e
             )
             return False, "error importing psutil: %s" % e
         else:

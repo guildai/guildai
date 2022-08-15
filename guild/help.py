@@ -93,9 +93,9 @@ class RstFormatter(click_util.ClickBaseHelpFormatter):
             if i > 0:
                 self.write_paragraph()
             self.write_text(self._strong(name))
-            super(RstFormatter, self).indent()
+            super().indent()
             self.write_text(self._emph(desc))
-            super(RstFormatter, self).dedent()
+            super().dedent()
 
     def indent(self):
         self._indent_level += 1
@@ -118,7 +118,7 @@ class RstFormatter(click_util.ClickBaseHelpFormatter):
 
 class MarkdownFormatter(click_util.ClickBaseHelpFormatter):
     def __init__(self, heading_level=1):
-        super(MarkdownFormatter, self).__init__()
+        super().__init__()
         self._in_section = False
         self._heading_level = heading_level
 

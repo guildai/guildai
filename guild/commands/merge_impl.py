@@ -44,6 +44,7 @@ class SystemExitWithDetail(Exception):
     """
 
     def __init__(self, code, detail):
+        super().__init__(code, detail)
         self.code = code
         self.detail = detail
 

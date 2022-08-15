@@ -43,14 +43,14 @@ class PublishError(Exception):
 
 class TemplateError(PublishError):
     def __init__(self, e):
-        super(TemplateError, self).__init__(e)
+        super().__init__(e)
         self._e = e
 
     def __str__(self):
         if hasattr(self._e, "filename"):
             return self._default_str()
         else:
-            return super(TemplateError, self).__str__()
+            return super().__str__()
 
     def _default_str(self):
         e = self._e
@@ -64,7 +64,7 @@ class TemplateError(PublishError):
 
 class GenerateError(PublishError):
     def __init__(self, e, template):
-        super(GenerateError, self).__init__(e)
+        super().__init__(e)
         self._e = e
         self._template = template
 
@@ -118,7 +118,7 @@ class RunFilters:
     def runfile_link(self, path):
         if self.run_dest is None:
             raise TemplateError(
-                "runfile_link cannot be used in this context " "(not publishing a run"
+                "runfile_link cannot be used in this context (not publishing a run"
             )
         if not isinstance(path, six.string_types):
             return ""

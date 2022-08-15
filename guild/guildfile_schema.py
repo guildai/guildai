@@ -4,7 +4,7 @@ from typing_extensions import Literal
 
 import pydantic as schema
 
-optional_bool_type = Optional[Union[bool, Literal["yes"], Literal["no"]]]
+OptionalBool = Optional[Union[bool, Literal["yes"], Literal["no"]]]
 
 # Pass-through export
 ValidationError = schema.ValidationError
@@ -43,8 +43,8 @@ class FileSelectDefSchema(schema.BaseModel):
     specs: Optional[List['FileSelectSpecSchema']]
     digest: Optional[str]
     dest: Optional[str]
-    empty_def: optional_bool_type = True
-    disabled: optional_bool_type
+    empty_def: OptionalBool = True
+    disabled: OptionalBool
 
     class Config:
         alias_generator = underscore_to_dash
@@ -55,7 +55,7 @@ class FileSelectDefSchema(schema.BaseModel):
 # use these in flagdef schema. Otherwise use FlagArgTypes below, which
 # include FlagDefSchema in them.
 FlagValueTypes = Union[
-    Literal["null"], Literal[None], str, int, float, Decimal, optional_bool_type
+    Literal["null"], Literal[None], str, int, float, Decimal, OptionalBool
 ]
 
 
@@ -66,7 +66,7 @@ class FlagChoiceSchema(schema.BaseModel):
 
 
 class FlagDefSchema(schema.BaseModel):
-    allow_other: optional_bool_type
+    allow_other: OptionalBool
     arg_name: Optional[str]
     arg_skip: Optional[str]
     arg_split: Optional[str]
@@ -82,7 +82,7 @@ class FlagDefSchema(schema.BaseModel):
     name: Optional[str]
     nb_replace: Optional[str]
     null_label: Optional[str]
-    required: optional_bool_type
+    required: OptionalBool
     type: Optional[str]
 
     class Config:
@@ -112,7 +112,7 @@ class PublishDefSchema(schema.BaseModel):
 class OptimizerDefSchema(schema.BaseModel):
     name: Optional[str]
     opspec: Optional[str] = schema.Field("", alias="algorithm")
-    default: optional_bool_type = False
+    default: OptionalBool = False
     flags: Optional[Dict[str, FlagArgTypes]]
 
     class Config:
@@ -122,7 +122,7 @@ class OptimizerDefSchema(schema.BaseModel):
 
 class DvCResourceSchema(schema.BaseModel):
     dvcfile: Optional[str]
-    always_pull: optional_bool_type
+    always_pull: OptionalBool
     remote: Optional[str]
     dvcstage: Optional[str]
 
@@ -131,11 +131,11 @@ class DvCResourceSchema(schema.BaseModel):
         extra = 'forbid'
 
 
-resource_types = Union[
+Resource = Union[
     str, 'ResourceSourceSchema', 'ResourceDefSchema', 'DvCResourceSchema'
 ]
-file_types = Union[str, FileSelectDefSchema, FileSelectSpecSchema]
-str_or_dict_str_str = Union[str, Dict[str, str]]
+FileSelect = Union[str, FileSelectDefSchema, FileSelectSpecSchema]
+OutputScalar = Union[str, Dict[str, str]]
 
 
 class StepSchema(schema.BaseModel):
@@ -146,13 +146,13 @@ class StepSchema(schema.BaseModel):
 
 
 class OpDefSchema(schema.BaseModel):
-    can_stage_trials: optional_bool_type
+    can_stage_trials: OptionalBool
     compare: Optional[Union[str, List[str]]]
-    default: optional_bool_type
-    default_flag_arg_skip: optional_bool_type
+    default: OptionalBool
+    default_flag_arg_skip: OptionalBool
     default_max_trials: Optional[int]
-    delete_on_success: optional_bool_type
-    disable_plugins: Optional[Union[optional_bool_type, Literal["all"], List[str]]]
+    delete_on_success: OptionalBool
+    disable_plugins: Optional[Union[OptionalBool, Literal["all"], List[str]]]
     description: Optional[str]
     env: Dict[str, str] = {}
     env_secrets: Optional[str]
@@ -162,7 +162,7 @@ class OpDefSchema(schema.BaseModel):
     flags_dest: Optional[str]
     flags_import: Optional[
         Union[
-            optional_bool_type,
+            OptionalBool,
             Literal["all"],
             Literal["off"],
             List[str],
@@ -170,26 +170,26 @@ class OpDefSchema(schema.BaseModel):
     ]
     flags_import_skip: Optional[List[str]]
     guildfile: Optional[str]
-    handle_keyboard_interrupt: optional_bool_type = True
+    handle_keyboard_interrupt: OptionalBool = True
     label: Optional[str]
     main: Optional[str]
     name: str = ""
     notebook: Optional[str]
     objective: Optional[Dict[str, str]]
     optimizers: Optional[Union[str, List[str], Dict[str, OptimizerDefSchema]]]
-    output_scalars: Optional[Union[str_or_dict_str_str, List[str_or_dict_str_str]]]
-    pip_freeze: optional_bool_type
+    output_scalars: Optional[Union[OutputScalar, List[OutputScalar]]]
+    pip_freeze: OptionalBool
     plugins: Optional[Union[str, List[str], Literal[False]]]
     publish: Optional[PublishDefSchema]
     python_path: Optional[str]
     python_requires: Optional[str]
     references: Optional[Union[str, List[str]]]
-    requires: Optional[Union[resource_types, List[resource_types]]]
+    requires: Optional[Union[Resource, List[Resource]]]
     run_attrs: Optional[Dict[str, str]]
-    set_trace: optional_bool_type
-    sourcecode: Optional[Union[optional_bool_type, file_types, List[file_types]]]
+    set_trace: OptionalBool
+    sourcecode: Optional[Union[OptionalBool, FileSelect, List[FileSelect]]]
     steps: Optional[List[Union[str, StepSchema]]]
-    stoppable: optional_bool_type
+    stoppable: OptionalBool
     tags: List[str] = []
 
     class Config:
@@ -221,10 +221,10 @@ class ResourceSourceSchema(schema.BaseModel):
     post_process: Optional[str]
     target_path: Optional[str]
     target_type: Optional[str]
-    replace_existing: optional_bool_type
-    preserve_path: optional_bool_type
+    replace_existing: OptionalBool
+    preserve_path: OptionalBool
     params: Optional[Dict[str, FlagValueTypes]]
-    always_resolve: optional_bool_type
+    always_resolve: OptionalBool
     help: Optional[str]
     # used in yaml, do not exist on actual model
     config: Optional[str]
@@ -246,7 +246,7 @@ class ResourceDefSchema(schema.BaseModel):
     preserve_path: Optional[str]
     target_type: Optional[str]
     default_unpack: Optional[str]
-    private: optional_bool_type
+    private: OptionalBool
     references: Optional[List[str]]
     sources: List['ResourceSourceSchema'] = []
     source_types: List[str] = SourceTypes + ["operation"]
@@ -262,7 +262,7 @@ class ResourceDefSchema(schema.BaseModel):
 
 
 class ModelDefSchema(schema.BaseModel):
-    default: optional_bool_type
+    default: OptionalBool
     description: str = ""
     extra: Dict[str, str] = {}
     extends: Union[str, List[str]] = ""
@@ -285,7 +285,7 @@ class ModelDefSchema(schema.BaseModel):
             List[Union['ResourceSourceSchema', 'ResourceDefSchema']],
         ],
     ] = {}
-    sourcecode: Optional[Union[optional_bool_type, file_types, List[file_types]]]
+    sourcecode: Optional[Union[OptionalBool, FileSelect, List[FileSelect]]]
 
     class Config:
         alias_generator = underscore_to_dash

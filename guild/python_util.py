@@ -83,15 +83,14 @@ class Script:
             self._handle_apply_node_error(e, node)
 
     def _handle_apply_node_error(self, e, node):
-        msg = "error applying AST node %s from %s:%s:" % (
-            node.__class__.__name__,
-            self.src,
-            node.lineno,
+        msg = (
+            f"error applying AST node {node.__class__.__name__} "
+            f"from {self.src}:{node.lineno}:"
         )
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception(msg)
         else:
-            msg += " %s (use 'guild --debug ...' for more information)" % e
+            msg += f" {e} (use 'guild --debug ...' for more information)"
             log.warning(msg)
 
     def _apply_node(self, node):
@@ -142,42 +141,40 @@ class Script:
 def ast_param_val(val):
     if isinstance(val, ast.Num):
         return val.n
-    elif isinstance(val, ast.Str):
+    if isinstance(val, ast.Str):
         return val.s
-    elif isinstance(val, NameConstant):
+    if isinstance(val, NameConstant):
         return val.value
-    elif isinstance(val, ast.Name):
+    if isinstance(val, ast.Name):
         if val.id == "True":
             return True
-        elif val.id == "False":
+        if val.id == "False":
             return False
-        elif val.id == "None":
+        if val.id == "None":
             return None
-    elif isinstance(val, ast.List):
+        raise TypeError(val)
+    if isinstance(val, ast.List):
         return [ast_param_val(item) for item in val.elts]
-    elif isinstance(val, ast.UnaryOp):
+    if isinstance(val, ast.UnaryOp):
         return _unary_val(val)
-    elif isinstance(val, ast.Dict):
+    if isinstance(val, ast.Dict):
         return {
             ast_param_val(item_key): ast_param_val(item_val)
             for item_key, item_val in zip(val.keys, val.values)
         }
-    elif _is_namespace(val):
+    if _is_namespace(val):
         return _namespace_val(val)
-    else:
-        raise TypeError(val)
+    raise TypeError(val)
 
 
 def _unary_val(val):
     if isinstance(val.operand, ast.Num):
         if isinstance(val.op, ast.USub):
             return -val.operand.n
-        elif isinstance(val.op, ast.UAdd):
+        if isinstance(val.op, ast.UAdd):
             return +val.operand.n
-        else:
-            raise TypeError(val)
-    else:
         raise TypeError(val)
+    raise TypeError(val)
 
 
 def _is_namespace(val):
@@ -198,6 +195,7 @@ def _namespace_kw(val):
 
 
 def _SimpleNamespace(kw):
+    # pylint: disable=invalid-name
     try:
         from types import SimpleNamespace as BuiltinSimpleNamespace
     except ImportError:
@@ -213,10 +211,8 @@ class SimpleNamespace:
     def __repr__(self):
         from pprint import pformat
 
-        items = (
-            "{}={}".format(k, pformat(v)) for k, v in sorted(self.__dict__.items())
-        )
-        return "namespace({})".format(", ".join(items))
+        items = (f"{k}={pformat(v)}" for k, v in sorted(self.__dict__.items()))
+        return f"namespace({', '.join(items)})"
 
     def __eq__(self, other):
         if isinstance(self, SimpleNamespace) and isinstance(other, SimpleNamespace):
@@ -232,14 +228,13 @@ class Call:
     def _func_name(self, func):
         if isinstance(func, ast.Name):
             return func.id
-        elif isinstance(func, ast.Attribute):
+        if isinstance(func, ast.Attribute):
             return func.attr
-        elif isinstance(func, ast.Call):
+        if isinstance(func, ast.Call):
             return self._func_name(func.func)
-        elif isinstance(func, ast.Subscript):
+        if isinstance(func, ast.Subscript):
             return None
-        else:
-            raise AssertionError(func)
+        raise AssertionError(func)
 
     def kwarg_param(self, name):
         for kw in self.node.keywords:
@@ -259,7 +254,7 @@ def _script_name(src):
 
 class Result(Exception):
     def __init__(self, value):
-        super(Result, self).__init__(value)
+        super().__init__(value)
         self.value = value
 
 
@@ -277,7 +272,7 @@ class MethodWrapper:
 
     def _wrap(self):
         wrapper = self._wrapper()
-        wrapper.__name__ = "%s_wrapper" % self._name
+        wrapper.__name__ = f"{self._name}_wrapper"
         wrapper.__wrapper__ = self
         setattr(self._cls, self._name, wrapper)
 
@@ -293,8 +288,7 @@ class MethodWrapper:
                     result = e.value
             if result is marker:
                 return wrapped_bound(*args, **kw)
-            else:
-                return result
+            return result
 
         return wrapper
 
@@ -359,7 +353,7 @@ class FunctionWrapper:
 
     def _wrap(self):
         wrapper = self._wrapper()
-        wrapper.__name__ = "%s_wrapper" % self._name
+        wrapper.__name__ = f"{self._name}_wrapper"
         wrapper.__wrapper__ = self
         setattr(self._mod, self._name, wrapper)
 
@@ -374,8 +368,7 @@ class FunctionWrapper:
                     result = e.value
             if result is marker:
                 return self._func(*args, **kw)
-            else:
-                return result
+            return result
 
         return wrapper
 
@@ -426,17 +419,20 @@ def scripts_for_dir(dir, exclude=None):
     ]
 
 
-class MainModulePretender:
-    def __init__(self, main_module_globals):
-        self.backup = {}
-        self.new_globals = main_module_globals
+class MainModuleContext:
+
+    _main_globals_save = None
+
+    def __init__(self, globals):
+        self._main_globals = globals
 
     def __enter__(self):
-        self.backup = sys.modules["__main__"]
-        sys.modules["__main__"] = self.new_globals
+        self._main_globals_save = sys.modules["__main__"]
+        sys.modules["__main__"] = self._main_globals
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        sys.modules["__main__"] = self.backup
+        assert self._main_globals_save
+        sys.modules["__main__"] = self._main_globals_save
 
 
 def exec_script(filename, globals=None, mod_name="__main__"):
@@ -469,7 +465,8 @@ def exec_script(filename, globals=None, mod_name="__main__"):
             "__file__": filename,
         }
     )
-    with MainModulePretender(script_globals):
+    with MainModuleContext(script_globals):
+        # pylint: disable=exec-used
         exec(code, script_globals)
     return script_globals
 
@@ -602,11 +599,11 @@ def _find_module(main_mod, model_paths):
                     maybe_mod_path = _find_package_main(maybe_mod_path)
                     if not maybe_mod_path:
                         raise ImportError(
-                            "No module named %s.__main__ ('%s' is a package "
-                            "and cannot be directly executed)" % (module, module)
+                            f"No module named {module}.__main__ ('{module}' is "
+                            "a package and cannot be directly executed)"
                         )
                 return main_mod_sys_path, maybe_mod_path
-    raise ImportError("No module named %s" % main_mod)
+    raise ImportError(f"No module named {main_mod}")
 
 
 def _find_package_main(mod_path):
@@ -636,9 +633,9 @@ def _parse_req(req):
 
     req = _apply_equals(req)
     try:
-        return pkg_resources.Requirement.parse("notused%s" % req)
+        return pkg_resources.Requirement.parse(f"fakepkg{req}")
     except Exception as e:
-        raise ValueError(e)
+        raise ValueError(e) from e
 
 
 def _apply_equals(req):
@@ -647,7 +644,7 @@ def _apply_equals(req):
 
 def _apply_equals2(s):
     if re.match(r"^\d", s):
-        return "==%s" % s
+        return f"=={s}"
     return s
 
 
@@ -672,7 +669,7 @@ def next_breakable_line(src, line=1):
     for lineno in _iter_breakable_lines(parsed):
         if lineno >= line:
             return lineno
-    raise TypeError("no breakable lines at or after %i in %s" % (line, src))
+    raise TypeError(f"no breakable lines at or after {line} in {src}")
 
 
 def _iter_breakable_lines(top):

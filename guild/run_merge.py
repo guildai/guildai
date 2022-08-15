@@ -35,7 +35,7 @@ class StopMerge(Exception):
     """Raised during a merge to indicate the operation stopped early."""
 
     def __init__(self, target_file, msg=None):
-        super(StopMerge, self).__init__([target_file, msg])
+        super().__init__([target_file, msg])
         self.target_file = target_file
         self.msg = msg
 

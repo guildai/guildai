@@ -41,7 +41,7 @@ DEFAULT_OBJECTIVE = "loss"
 
 class MissingSearchDimension(Exception):
     def __init__(self, flag_vals):
-        super(MissingSearchDimension, self).__init__(flag_vals)
+        super().__init__(flag_vals)
         self.flag_vals = flag_vals
 
 

@@ -26,7 +26,7 @@ class RunZipProxy(runlib.Run):
         path = src + ":" + prefix
         self.prefix = prefix
         self.zip_src = src
-        super(RunZipProxy, self).__init__(id, path)
+        super().__init__(id, path)
 
     def _read_opref(self):
         encoded = _try_zip_entry(self.zip_src, self.prefix, ".guild/opref")

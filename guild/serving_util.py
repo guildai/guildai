@@ -28,7 +28,7 @@ log = logging.getLogger("guild")
 class QuietRequestHandler(serving.WSGIRequestHandler):
     def log(self, type, message, *args):
         if type != 'info':
-            super(QuietRequestHandler, self).log(type, message, *args)
+            super().log(type, message, *args)
 
 
 class StaticBase:
@@ -45,7 +45,7 @@ class StaticBase:
 
 class StaticDir(StaticBase):
     def __init__(self, dir):
-        super(StaticDir, self).__init__({"/": dir})
+        super().__init__({"/": dir})
 
     def handle_index(self, _req):
         def app(env, start_resp):
@@ -72,7 +72,7 @@ def make_server(host, port, app, logging=True):
         if host:
             raise
         log.debug(
-            "error starting server on %s:%s (%s), " "trying IPv6 default host '::'",
+            "error starting server on %s:%s (%s), trying IPv6 default host '::'",
             host,
             port,
             e,

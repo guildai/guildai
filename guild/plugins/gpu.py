@@ -39,7 +39,7 @@ class GPUPlugin(SummaryPlugin):
     _stats_cmd = None
 
     def __init__(self, ep):
-        super(GPUPlugin, self).__init__(ep)
+        super().__init__(ep)
         self._stats_cmd = _stats_cmd()
 
     def enabled_for_op(self, _op):

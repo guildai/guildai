@@ -223,7 +223,7 @@ def _sleep_interval(interval, start):
 
 class LoopingThread(threading.Thread):
     def __init__(self, cb, interval, first_interval=None, stop_timeout=0):
-        super(LoopingThread, self).__init__()
+        super().__init__()
         self._cb = cb
         self._interval = interval
         self._first_interval = first_interval
@@ -566,7 +566,7 @@ class ReferenceCycleError(Exception):
 
 class UndefinedReferenceError(Exception):
     def __init__(self, reference):
-        super(UndefinedReferenceError, self).__init__(reference)
+        super().__init__(reference)
         self.reference = reference
 
 
@@ -625,7 +625,7 @@ def which(cmd):
         return None
     else:
         assert out, cmd
-        return out.decode("utf-8").split(os.linesep)[0]
+        return out.decode("utf-8").split(os.linesep, 1)[0]
 
 
 def symlink(target, link):
@@ -1412,7 +1412,7 @@ def _resolve_path(p):
     return realpath(os.path.abspath(os.path.expanduser(p)))
 
 
-def shorten_path(path, max_len=28, ellipsis=u"\u2026", sep=os.path.sep):
+def shorten_path(path, max_len=28, ellipsis="\u2026", sep=os.path.sep):
     if len(path) <= max_len:
         return path
     parts = _shorten_path_split_path(path, sep)
@@ -1664,7 +1664,7 @@ def norm_path_sep(path):
 
 
 def bind_method(obj, method_name, function):
-    setattr(obj, method_name, function.__get__(obj, obj.__class__))
+    setattr(obj, method_name, function.get(obj, obj.__class__))
 
 
 def edit(s, extension=".txt", strip_comment_lines=False):
@@ -1716,16 +1716,6 @@ def test_windows_symlinks():
         return
     with TempDir() as tmp:
         os.symlink(tempfile.gettempdir(), os.path.join(tmp.path, "link"))
-
-
-def raise_from(raise_exc, from_exc):
-    # pylint: disable=unused-variable,unused-argument
-    if six.PY3:
-        exec("raise raise_exc from from_exc")
-    else:
-        raise_exc_type = raise_exc.__class__
-        tb = sys.exc_info()[2]
-        exec("raise raise_exc_type, raise_exc, tb")
 
 
 class PropertyCache:

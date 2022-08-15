@@ -383,7 +383,7 @@ class ConfigResolver(FileResolver):
     def resolve(self, resolve_context):
         if not resolve_context.run:
             raise TypeError("config resolver requires run for resolve context")
-        resolved = super(ConfigResolver, self).resolve(resolve_context)
+        resolved = super().resolve(resolve_context)
         return [self._generate_config(path, resolve_context) for path in resolved]
 
     def _generate_config(self, path, resolve_context):
