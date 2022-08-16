@@ -34,12 +34,13 @@ class RScriptModelProxy:
     def _init_modeldef(self):
 
         flags_data = infer_global_flags(self.script_path)
+
         data = [
             {
                 "model": self.name,
                 "operations": {
                     self.op_name: {
-                        "exec": """Rscript -e 'guild.ai:::do_guild_run("%s")' ${flag_args}"""
+                        "exec": """Rscript -e 'guildai:::run_with_global_flags("%s")' ${flag_args}"""
                         % (os.path.relpath(self.script_path)),
                         "flags-dest": 'globals',
                         "flags": flags_data,
@@ -100,7 +101,7 @@ def normalize_path(x):
 
 
 def infer_global_flags(r_script_path):
-    out = run_r("guild.ai:::infer_and_emit_global_flags('%s')" % r_script_path)
+    out = run_r("guildai:::peek_r_script_global_flags('%s')" % r_script_path)
     return json.loads(out)
 
 
@@ -109,23 +110,25 @@ def is_r_script(opspec):
 
 
 def check_guild_r_package_installled():
-    installed = run_r('cat(requireNamespace("guild.ai", quietly = TRUE))') == "TRUE"
+    installed = run_r('cat(requireNamespace("guildai", quietly = TRUE))') == "TRUE"
     if installed:
         return
 
     # TODO, consider vendoring r-pkg as part of pip pkg, auto-bootstrap R install
     # into a stand-alone lib we inject via prefixing R_LIBS env var
     consent = cli.confirm(
-        "The 'guild.ai' R package must be installed in the R library. Continue?", True
+        "The 'guildai' R package must be installed in the R library. Continue?", True
     )
     if consent:
 
-        run_r(infile = """
-        if(!requireNamespace("remotes", quietly = TRUE))
+        run_r(
+            infile="""
+        if(!require("remotes", quietly = TRUE))
             utils::install.packages("remotes", repos = c(CRAN = "https://cran.rstudio.com/"))
 
-        remotes::install_github("t-kalinowski/guildai-r")
-        """)
+        install_github("t-kalinowski/guildai-r")
+        """
+        )
 
         # Still need to figure out the appropriate home for this r package
         # if we bundle it w/ the python module we could install with something like:
@@ -137,6 +140,7 @@ def check_guild_r_package_installled():
         # 'utils::install.packages("%s", repos = NULL, type = "source")' % path_to_r_pkg_src
 
         return
+
     raise ImportError
 
 
