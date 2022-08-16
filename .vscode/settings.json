@@ -1,0 +1,6 @@
+{
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "python.linting.pylintCategorySeverity.refactor": "Warning",
+    "python.formatting.provider": "black"
+}
