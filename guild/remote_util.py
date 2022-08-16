@@ -29,9 +29,7 @@ log = logging.getLogger("guild")
 
 def require_env(name):
     if name not in os.environ:
-        raise remotelib.OperationError(
-            "missing required %s environment variable" % name
-        )
+        raise remotelib.OperationError(f"missing required {name} environment variable")
 
 
 def set_remote_lock(remote_run, remote_name, runs_dir=None):
@@ -101,9 +99,7 @@ def subprocess_call(cmd, extra_env=None, quiet=False, allowed_returncodes=(0,)):
     if returncode not in allowed_returncodes:
         for line in buffer:
             sys.stderr.write(line)
-        raise SystemExit(
-            "error running %s - see above for details" % cmd[0], returncode
-        )
+        raise SystemExit(f"error running {cmd[0]} - see above for details", returncode)
     return returncode
 
 
@@ -114,13 +110,12 @@ def init_env(env_config):
 def _env_for_config(env_config):
     if isinstance(env_config, dict):
         return env_config
-    elif isinstance(env_config, str):
+    if isinstance(env_config, str):
         return _env_from_file(env_config)
-    elif env_config is None:
+    if env_config is None:
         return {}
-    else:
-        log.warning("invalid value for remote env %r - ignoring", env_config)
-        return {}
+    log.warning("invalid value for remote env %r - ignoring", env_config)
+    return {}
 
 
 def _legal_env(env):
@@ -148,6 +143,7 @@ def _try_read_gpg(path):
         )
     except OSError as e:
         log.error("cannot decode %s with command '%s' (%s)", path, " ".join(cmd), e)
+        return None
     else:
         out, err = p.communicate()
         if p.returncode != 0:

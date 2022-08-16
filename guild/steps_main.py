@@ -16,6 +16,7 @@ import logging
 import os
 import subprocess
 import sys
+import typing
 
 import click
 import six
@@ -123,10 +124,9 @@ def _coerce_step_data(data):
 def _coerce_flags_data(data):
     if isinstance(data, list):
         return data
-    elif isinstance(data, dict):
+    if isinstance(data, dict):
         return flag_util.flag_assigns(data)
-    else:
-        _error("invalid flags value %r" % data)
+    _error("invalid flags value %r" % data)
 
 
 def _run_params_for_step_data(data):
@@ -482,7 +482,7 @@ def _internal_error(msg):
     sys.exit(exit_code.INTERNAL_ERROR)
 
 
-def _error(msg, exit_code=exit_code.DEFAULT_ERROR):
+def _error(msg, exit_code=exit_code.DEFAULT_ERROR) -> typing.NoReturn:
     sys.stderr.write("guild: %s\n" % msg)
     sys.exit(exit_code)
 

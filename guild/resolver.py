@@ -170,11 +170,11 @@ class URLResolver(Resolver):
             raise ResolutionError(
                 "bad sha256 for '%s' (expected %s but got %s)"
                 % (e.path, e.expected, e.actual)
-            )
+            ) from e
         except Exception as e:
             if log.getEffectiveLevel() <= logging.DEBUG:
                 log.exception(self.source.uri)
-            raise ResolutionError(e)
+            raise ResolutionError(e) from e
         else:
             unpack_dir = _url_unpack_dir(source_path, resolve_context.unpack_dir)
             resolved = resolve_source_files(source_path, self.source, unpack_dir)
@@ -234,8 +234,8 @@ class OperationResolver(FileResolver):
         for spec in self._split_opref_specs(self.source.parsed_uri.path):
             try:
                 oprefs.append(guild.opref.OpRef.for_string(spec))
-            except guild.opref.OpRefError:
-                raise ResolutionError("inavlid operation reference %r" % spec)
+            except guild.opref.OpRefError as e:
+                raise ResolutionError("inavlid operation reference %r" % spec) from e
         return oprefs
 
     @staticmethod
@@ -346,7 +346,7 @@ class ModuleResolver(Resolver):
         try:
             importlib.import_module(module_name)
         except ImportError as e:
-            raise ResolutionError(str(e))
+            raise ResolutionError(str(e)) from e
         else:
             return []
 
@@ -383,14 +383,14 @@ class ConfigResolver(FileResolver):
     def resolve(self, resolve_context):
         if not resolve_context.run:
             raise TypeError("config resolver requires run for resolve context")
-        resolved = super(ConfigResolver, self).resolve(resolve_context)
+        resolved = super().resolve(resolve_context)
         return [self._generate_config(path, resolve_context) for path in resolved]
 
     def _generate_config(self, path, resolve_context):
         try:
             config = self._load_config(path)
         except Exception as e:
-            raise ResolutionError("error loading config from %s: %s" % (path, e))
+            raise ResolutionError("error loading config from %s: %s" % (path, e)) from e
         else:
             log.debug("loaded config: %r", config)
             self._apply_params(config)
@@ -841,7 +841,7 @@ def post_process(source, cwd, use_cache=True):
     except subprocess.CalledProcessError as e:
         raise ResolutionError(
             "error post processing %s resource: %s" % (source.resdef.name, e)
-        )
+        ) from e
     else:
         util.touch(process_marker)
 

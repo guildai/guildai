@@ -21,7 +21,7 @@ import sys
 
 class RunError(Exception):
     def __init__(self, cmd, returncode, output=None):
-        super(RunError, self).__init__(cmd, returncode, output)
+        super().__init__(cmd, returncode, output)
         self.cmd_args, self.cmd_cwd, self.cmd_env = cmd
         self.returncode = returncode
         self.output = output
@@ -323,8 +323,7 @@ def _run_ids(runs):
 def _coerce_run_id(run):
     if hasattr(run, "id"):
         return run.id
-    else:
-        return str(run)
+    return str(run)
 
 
 def runs_label(
@@ -396,10 +395,9 @@ def runs_tag(
 def _coerce_list(x):
     if isinstance(x, list):
         return x
-    elif x is None:
+    if x is None:
         return []
-    else:
-        return [x]
+    return [x]
 
 
 class NoCurrentRun(Exception):
@@ -566,7 +564,7 @@ def select(runs=None, min=None, max=None, cwd=".", guild_home=None, **kw):
         try:
             return runs_impl.select_run(args)
         except SystemExit as e:
-            raise ValueError(e)
+            raise ValueError(e) from e
 
 
 def runs_stop(runs=None, no_wait=False, cwd=".", guild_home=None, **kw):

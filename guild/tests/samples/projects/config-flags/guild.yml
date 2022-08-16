@@ -42,6 +42,17 @@
         - config: flags.json.in
           rename: flags.json.in flags.json
 
+    explicit-no-replace:
+      # To test explicitly disabling a re-resolve/replace of any
+      # existing config
+      main: guild.pass
+      flags-dest: config:flags.json
+      flags-import: all
+      requires:
+        - config: flags.json
+          replace-existing: false
+          always-resolve: false
+
     cfg:
       main: config_cfg flags.cfg
       flags-dest: config:flags.cfg

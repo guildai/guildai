@@ -50,7 +50,7 @@ class AzureBlobStorageRemote(meta_sync.MetaSyncRemote):
         self.local_env = remote_util.init_env(config.get("local-env"))
         self.local_sync_dir = meta_sync.local_meta_dir(name, self._container_path())
         runs_dir = os.path.join(self.local_sync_dir, *RUNS_PATH)
-        super(AzureBlobStorageRemote, self).__init__(runs_dir, None)
+        super().__init__(runs_dir, None)
 
     def _container_path(self, *path_parts):
         all_parts = path_parts if not self.root else (self.root,) + path_parts

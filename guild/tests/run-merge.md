@@ -112,9 +112,9 @@ Print the files that Guild copies by default.
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
     To skip:
-    [o] a -> a
-    [o] b -> b
-    [o] subdir/c -> subdir/c
+    [?] a -> a
+    [?] b -> b
+    [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -145,9 +145,9 @@ Source code files can be skipped using `skip_sourecode=True`.
     [s] .guild/sourcecode/guild.yml -> guild.yml
     [s] .guild/sourcecode/op.py -> op.py
     [s] .guild/sourcecode/overlap.py -> overlap.py
-    [o] a -> a
-    [o] b -> b
-    [o] subdir/c -> subdir/c
+    [?] a -> a
+    [?] b -> b
+    [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -159,11 +159,11 @@ Dependencyes can be skipped using `skip_deps=True`.
     [s] .guild/sourcecode/op.py -> op.py
     [s] .guild/sourcecode/overlap.py -> overlap.py
     To skip:
-    [o] a -> a
-    [o] b -> b
+    [?] a -> a
+    [?] b -> b
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
-    [o] subdir/c -> subdir/c
+    [?] subdir/c -> subdir/c
     [d] yyy -> ?
     [d] zzz -> ?
 
@@ -175,11 +175,11 @@ Skip both dependencies and source code:
     [s] .guild/sourcecode/guild.yml -> guild.yml
     [s] .guild/sourcecode/op.py -> op.py
     [s] .guild/sourcecode/overlap.py -> overlap.py
-    [o] a -> a
-    [o] b -> b
+    [?] a -> a
+    [?] b -> b
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
-    [o] subdir/c -> subdir/c
+    [?] subdir/c -> subdir/c
     [d] yyy -> ?
     [d] zzz -> ?
 
@@ -193,11 +193,11 @@ Exclude all files:
     [x] .guild/sourcecode/guild.yml -> guild.yml
     [x] .guild/sourcecode/op.py -> op.py
     [x] .guild/sourcecode/overlap.py -> overlap.py
-    [o] a -> a
-    [o] b -> b
+    [?] a -> a
+    [?] b -> b
     [x] dep-1 -> dep-1
     [x] dep-subdir/dep-2 -> dep-subdir/dep-2
-    [o] subdir/c -> subdir/c
+    [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -230,9 +230,9 @@ target path rather than the run path.
     [x] .guild/sourcecode/guild.yml -> guild.yml
     [x] .guild/sourcecode/op.py -> op.py
     [x] .guild/sourcecode/overlap.py -> overlap.py
-    [o] a -> a
-    [o] b -> b
-    [o] subdir/c -> subdir/c
+    [?] a -> a
+    [?] b -> b
+    [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -250,9 +250,9 @@ files don't match.
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
     To skip:
-    [o] a -> a
-    [o] b -> b
-    [o] subdir/c -> subdir/c
+    [?] a -> a
+    [?] b -> b
+    [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -266,9 +266,9 @@ Other exclude patterns:
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
     To skip:
-    [o] a -> a
-    [o] b -> b
-    [o] subdir/c -> subdir/c
+    [?] a -> a
+    [?] b -> b
+    [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -292,11 +292,11 @@ Other exclude patterns:
     [s] .guild/sourcecode/overlap.py -> overlap.py
     To skip:
     [x] .guild/sourcecode/guild.yml -> guild.yml
-    [o] a -> a
-    [o] b -> b
+    [?] a -> a
+    [?] b -> b
     [x] dep-1 -> dep-1
     [x] dep-subdir/dep-2 -> dep-subdir/dep-2
-    [o] subdir/c -> subdir/c
+    [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -337,9 +337,9 @@ Here are the default merge files for the empty directory:
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
     To skip:
-    [o] a -> a
-    [o] b -> b
-    [o] subdir/c -> subdir/c
+    [?] a -> a
+    [?] b -> b
+    [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -377,11 +377,11 @@ print them.
     [u] .guild/sourcecode/guild.yml -> guild.yml
     [u] .guild/sourcecode/op.py -> op.py
     [u] .guild/sourcecode/overlap.py -> overlap.py
-    [o] a -> a
-    [o] b -> b
+    [?] a -> a
+    [?] b -> b
     [u] dep-1 -> dep-1
     [u] dep-subdir/dep-2 -> dep-subdir/dep-2
-    [o] subdir/c -> subdir/c
+    [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -699,7 +699,7 @@ entry with an usupported file type.
     ...     print_merge(init_run_merge(run_for_dir(run_dir), mkdtemp()))
     To copy:
     To skip:
-    [?] barfoo -> ?
+    [?] barfoo -> file:barfoo
 
     >>> log.print_all()
     WARNING: unexpected manfiest entry for run ...: ['z', 'foobar']

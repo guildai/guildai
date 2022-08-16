@@ -43,14 +43,13 @@ class PublishError(Exception):
 
 class TemplateError(PublishError):
     def __init__(self, e):
-        super(TemplateError, self).__init__(e)
+        super().__init__(e)
         self._e = e
 
     def __str__(self):
         if hasattr(self._e, "filename"):
             return self._default_str()
-        else:
-            return super(TemplateError, self).__str__()
+        return super().__str__()
 
     def _default_str(self):
         e = self._e
@@ -64,7 +63,7 @@ class TemplateError(PublishError):
 
 class GenerateError(PublishError):
     def __init__(self, e, template):
-        super(GenerateError, self).__init__(e)
+        super().__init__(e)
         self._e = e
         self._template = template
 
@@ -118,7 +117,7 @@ class RunFilters:
     def runfile_link(self, path):
         if self.run_dest is None:
             raise TemplateError(
-                "runfile_link cannot be used in this context " "(not publishing a run"
+                "runfile_link cannot be used in this context (not publishing a run"
             )
         if not isinstance(path, six.string_types):
             return ""
@@ -242,7 +241,7 @@ def _init_file_template(path, run_dest=None, filters=None):
     try:
         return env.get_template(basename)
     except jinja2.TemplateError as e:
-        raise TemplateError(e)
+        raise TemplateError(e) from e
 
 
 def _render_template(template, vars, dest):
@@ -722,10 +721,10 @@ def _generate_template(state):
     try:
         template.generate(state.run_dest, render_vars)
     except jinja2.TemplateRuntimeError as e:
-        raise GenerateError(e, template)
+        raise GenerateError(e, template) from e
     except jinja2.exceptions.TemplateNotFound as e:
         e.message = "template not found: %s" % e.message
-        raise GenerateError(e, template)
+        raise GenerateError(e, template) from e
 
 
 def _template_config(opdef):

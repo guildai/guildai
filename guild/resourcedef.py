@@ -97,7 +97,7 @@ class ResourceDef(guildfile_schema.ResourceDefSchema):
         data_copy = copy.copy(data)
         type_vals = [data_copy.pop(attr, None) for attr in self.source_types]
         type_items = zip(self.source_types, type_vals)
-        type_count = sum([bool(val) for val in type_vals])
+        type_count = sum((bool(val) for val in type_vals))
         if type_count == 0:
             raise ResourceFormatError(
                 "invalid source %s in resource '%s': missing required "
@@ -172,7 +172,8 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
         post_process=None,
         target_path=None,
         target_type=None,
-        replace_existing=False,
+        replace_existing=None,
+        always_resolve=None,
         path=None,
         preserve_path=False,
         params=None,
@@ -199,6 +200,7 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
         self.replace_existing = replace_existing
         self.preserve_path = preserve_path
         self.params = params
+        self.always_resolve = always_resolve
         self.help = help
         for key in sorted(kw):
             log.warning(

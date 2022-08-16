@@ -234,78 +234,22 @@ the two previous runs finish.
     >>> quiet("guild run op.py --run-id=ccc sleep=2 --gpus 0,1 --tag dask:'gpu0=1 gpu1=1' --stage -y")
 
 Stage a run that requires GPU 1. This should run in parallel alongside
-the first staged run for GPU 0.
+the first staged run for GPU 0. (We increase the sleep time to assert
+completion order below.)
 
-NOTE: The behavior from Dask.distributed is unexpected. The following
-does not run until after the previous run is completed, even though it
-could be moved up in priority to take advantage of the fact that gpu1
-is not occupied when this is scheduled.
+    >>> quiet("guild run op.py --run-id=ddd sleep=3 --gpus 1 --tag dask:gpu1=1 --stage -y")
 
-    >>> quiet("guild run op.py --run-id=ddd sleep=2 --gpus 1 --tag dask:gpu1=1 --stage -y")
+Here are the staged runs:
 
     >>> run("guild runs")
-    [1:ddd]  op.py  ...  staged  dask:gpu1=1 sleep=2
+    [1:ddd]  op.py  ...  staged  dask:gpu1=1 sleep=3
     [2:ccc]  op.py  ...  staged  dask:gpu0=1 gpu1=1 sleep=2
     [3:bbb]  op.py  ...  staged  dask:gpu0=1 sleep=2
     [4:aaa]  op.py  ...  staged  dask:gpu0=1 sleep=2
     <exit 0>
 
 Run a scheduler that defines resources for the two GPUs. It allows
-only one run per GPU.
-
-    >>> run("guild run dask:scheduler resources='gpu0=1 gpu1=1' run-once=yes -y")
-    INFO: [guild] ... Starting Dask scheduler
-    INFO: [guild] ... Initializing Dask cluster
-    INFO: [guild] ... Dashboard link: ...
-    INFO: [guild] ... Cluster resources: gpu0=1 gpu1=1
-    INFO: [guild] ... Processing staged runs
-    ...
-    INFO: [guild] ... Run aaa started...
-    INFO: [guild] ... Run aaa completed...
-    INFO: [guild] ... Run bbb started...
-    INFO: [guild] ... Run bbb completed...
-    INFO: [guild] ... Run ccc started...
-    INFO: [guild] ... Run ccc completed...
-    INFO: [guild] ... Run ddd started...
-    INFO: [guild] ... Run ddd completed...
-    INFO: [guild] ... Dask scheduler processed 4 run(s) in ... seconds
-    INFO: [guild] ... Stopping Dask scheduler
-    INFO: [guild] ... Stopping Dask cluster
-    <exit 0>
-
-NOTE: Again, the output here is unexpected or at least suboptimal. Run
-'ddd' could be stated alongside run 'aaa'. Instead, Dask is
-serializing the runs that require gpu0 first.
-
-In light of this surprise, a user should take care when ordering
-staged runs to support parallelism.
-
-NOTE: Guild could address this, possibly, by ordering the submits to
-the client to take advantage of possible parallelism.
-
-The above example can be re-ordered to take advantage of parallelism.
-
-Delete runs first.
-
-    >>> quiet("guild runs rm -y")
-
-Stage the same runs but in a different order to schedule runs on GPU0
-and GPU1 concurrently. We have ddd wait one second longer to let us
-assert the ordering of the scheduler output below.
-
-    >>> quiet("guild run op.py --run-id=aaa sleep=2 --gpus 0 --tag dask:gpu0=1 --stage -y")
-    >>> quiet("guild run op.py --run-id=ddd sleep=3 --gpus 1 --tag dask:gpu1=1 --stage -y")
-    >>> quiet("guild run op.py --run-id=bbb sleep=2 --gpus 0 --tag dask:gpu0=1 --stage -y")
-    >>> quiet("guild run op.py --run-id=ccc sleep=2 --gpus 0,1 --tag dask:'gpu0=1 gpu1=1' --stage -y")
-
-    >>> run("guild runs")
-    [1:ccc]  op.py  ...  staged  dask:gpu0=1 gpu1=1 sleep=2
-    [2:bbb]  op.py  ...  staged  dask:gpu0=1 sleep=2
-    [3:ddd]  op.py  ...  staged  dask:gpu1=1 sleep=3
-    [4:aaa]  op.py  ...  staged  dask:gpu0=1 sleep=2
-    <exit 0>
-
-Run the scheduler as before.
+only one run per GPU at a time.
 
     >>> run("guild run dask:scheduler resources='gpu0=1 gpu1=1' run-once=yes -y")
     INFO: [guild] ... Starting Dask scheduler
@@ -317,15 +261,16 @@ Run the scheduler as before.
     INFO: [guild] ... Run aaa started...
     INFO: [guild] ... Run ddd started...
     INFO: [guild] ... Run aaa completed...
-    INFO: [guild] ... Run bbb started...
     INFO: [guild] ... Run ddd completed...
-    INFO: [guild] ... Run bbb completed...
     INFO: [guild] ... Run ccc started...
     INFO: [guild] ... Run ccc completed...
+    INFO: [guild] ... Run bbb started...
+    INFO: [guild] ... Run bbb completed...
     INFO: [guild] ... Dask scheduler processed 4 run(s) in ... seconds
     INFO: [guild] ... Stopping Dask scheduler
     INFO: [guild] ... Stopping Dask cluster
     <exit 0>
 
-In this case, aaa and ddd are run concurrently. aaa finished before
-ddd, letting the scheduler start bbb before ddd finished.
+NOTE: it's surprising that 'ccc' is started before 'bbb'. It's not
+clear why Dask is making this decision but is consistent. Importantly,
+runs 'aaa' and 'ddd' are scheduled to run alongside one another.

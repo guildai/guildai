@@ -237,8 +237,10 @@ class ScalarReader:
     def _read_col_index(self, qual, step):
         try:
             return self._col_index_map[(qual or "last", step)]
-        except KeyError:
-            raise ValueError("unsupported scalar type qual=%r step=%s" % (qual, step))
+        except KeyError as e:
+            raise ValueError(
+                "unsupported scalar type qual=%r step=%s" % (qual, step)
+            ) from e
 
     def iter_scalars(self, run):
         cur = self._db.execute(

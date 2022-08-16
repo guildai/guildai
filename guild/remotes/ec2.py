@@ -52,7 +52,7 @@ class EC2Remote(ssh_remote.SSHRemote):
         self.private_key = config.get("private-key")
         self.working_dir = var.remote_dir(name)
         self.init_timeout = config.get("init-timeout")
-        super(EC2Remote, self).__init__(name, self._ensure_none_host(config))
+        super().__init__(name, self._ensure_none_host(config))
 
     def _ensure_none_host(self, config):
         if "host" in config:
@@ -132,8 +132,8 @@ class EC2Remote(ssh_remote.SSHRemote):
         self._terraform_refresh()
         try:
             host = self._output("host")
-        except LookupError:
-            raise remotelib.Down("not running")
+        except LookupError as e:
+            raise remotelib.Down("not running") from e
         else:
             if not host:
                 raise remotelib.Down("stopped")
@@ -164,10 +164,10 @@ class EC2Remote(ssh_remote.SSHRemote):
         cmd = ["terraform", "output", "-json"]
         try:
             out = subprocess.check_output(cmd, cwd=self.working_dir)
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
             raise remotelib.OperationError(
                 "unable to get Terraform output in %s" % self.working_dir
-            )
+            ) from e
         else:
             output = json.loads(out.decode())
             return output[name]["value"]
@@ -330,10 +330,10 @@ class EC2Remote(ssh_remote.SSHRemote):
     def _ssh_host(self):
         try:
             host = self._output("host")
-        except LookupError:
+        except LookupError as e:
             raise remotelib.OperationError(
                 "cannot get host for %s - is the remote started?" % self.name
-            )
+            ) from e
         else:
             if not host:
                 raise remotelib.OperationError(

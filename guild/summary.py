@@ -161,6 +161,7 @@ def _try_encode_png(image):
         log.error("error encoding %s: %s", image_desc, e)
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("encoding %s", image_desc)
+        return None
     else:
         return bytes.getvalue()
 
@@ -385,7 +386,8 @@ def _line_to_match(line):
 def _try_apply_match(m, key, vals):
     groupdict = m.groupdict()
     if groupdict:
-        return _try_apply_groupdict(groupdict, vals)
+        _try_apply_groupdict(groupdict, vals)
+        return
     groups = m.groups()
     len_groups = len(groups)
     if len_groups == 1:

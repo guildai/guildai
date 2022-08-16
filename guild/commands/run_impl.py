@@ -15,6 +15,7 @@
 import logging
 import os
 import sys
+import typing
 
 import six
 
@@ -112,7 +113,7 @@ class State:
 
 class Operation(oplib.Operation):
     def __init__(self):
-        super(Operation, self).__init__()
+        super().__init__()
         self._run = None
         self._run_is_proto = False
         self._force_sourcecode = False
@@ -685,7 +686,7 @@ class _RemoteOperationResolver(resolverlib.OperationResolver):
     """
 
     def __init__(self, remote, source, resource):
-        super(_RemoteOperationResolver, self).__init__(source, resource)
+        super().__init__(source, resource)
         self.remote = remote
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
@@ -2383,7 +2384,7 @@ def _log_delete_run(run):
     )
 
 
-def _handle_run_error(exit_status):
+def _handle_run_error(exit_status) -> typing.NoReturn:
     cli.error(exit_status=exit_status)
 
 
@@ -2392,7 +2393,7 @@ def _handle_run_error(exit_status):
 ###################################################################
 
 
-def _incompatible_options_error(a, b):
+def _incompatible_options_error(a, b) -> typing.NoReturn:
     cli.error(
         "--%s and --%s cannot both be used\n"
         "Try 'guild run --help' for more information."
@@ -2400,25 +2401,25 @@ def _incompatible_options_error(a, b):
     )
 
 
-def _incompatible_with_restart_error(option, restart_option):
+def _incompatible_with_restart_error(option, restart_option) -> typing.NoReturn:
     cli.error(
         "%s cannot be used with --%s\n"
         "Try 'guild run --help' for more information." % (option, restart_option)
     )
 
 
-def _background_on_windows_error():
+def _background_on_windows_error() -> typing.NoReturn:
     cli.error("Run in background is not supported on Windows.")
 
 
-def _invalid_opspec_error(opspec):
+def _invalid_opspec_error(opspec) -> typing.NoReturn:
     cli.error(
         "invalid operation '%s'\n"
         "Try 'guild operations' for a list of available operations." % opspec
     )
 
 
-def _guildfile_error(gf_path, msg):
+def _guildfile_error(gf_path, msg) -> typing.NoReturn:
     log.error(msg)
     if os.path.basename(gf_path) == "guild.yml":
         gf_path = os.path.dirname(gf_path)
@@ -2428,7 +2429,7 @@ def _guildfile_error(gf_path, msg):
     )
 
 
-def _missing_run_opdef_error(opspec, run):
+def _missing_run_opdef_error(opspec, run) -> typing.NoReturn:
     cli.error(
         "cannot find definition for operation '%s' in run %s\n"
         "The definition is required when setting flags for start or restart."
@@ -2436,7 +2437,7 @@ def _missing_run_opdef_error(opspec, run):
     )
 
 
-def _no_such_model_op_error(opspec):
+def _no_such_model_op_error(opspec) -> typing.NoReturn:
     if opspec:
         if ":" in opspec:
             cli.error(
@@ -2450,12 +2451,10 @@ def _no_such_model_op_error(opspec):
                 "Try 'guild operations' for a list of available operations." % opspec
             )
     else:
-        cli.error(
-            "cannot find a default operation\n" "Try 'guild operations' for a list."
-        )
+        cli.error("cannot find a default operation\nTry 'guild operations' for a list.")
 
 
-def _multiple_models_error(model_ref, models):
+def _multiple_models_error(model_ref, models) -> typing.NoReturn:
     models_list = "\n".join(
         ["  %s" % name for name in sorted([m.fullname for m in models])]
     )
@@ -2466,7 +2465,7 @@ def _multiple_models_error(model_ref, models):
     )
 
 
-def _no_such_opdef_error(model, op_name):
+def _no_such_opdef_error(model, op_name) -> typing.NoReturn:
     op = "operation '{0}'".format(op_name) if op_name else "a default operation"
     if model.name:
         cli.error(
@@ -2481,14 +2480,14 @@ def _no_such_opdef_error(model, op_name):
         )
 
 
-def _invalid_flag_arg_error(arg):
+def _invalid_flag_arg_error(arg) -> typing.NoReturn:
     cli.error(
         "invalid argument(s):\n%s\nexpected NAME=VAL"
         % "\n".join(e.arg for e in arg.values())
     )
 
 
-def _no_such_flag_error(name, opdef):
+def _no_such_flag_error(name, opdef) -> typing.NoReturn:
     cli.error(
         "unsupported flag '%s'\n"
         "Try 'guild run %s --help-op' for a list of "
@@ -2496,11 +2495,11 @@ def _no_such_flag_error(name, opdef):
     )
 
 
-def _coerce_flag_val_error(e):
+def _coerce_flag_val_error(e) -> typing.NoReturn:
     cli.error("cannot apply %r to flag '%s': %s" % (e.value, e.flag_name, e.error))
 
 
-def _missing_required_flags_error(e):
+def _missing_required_flags_error(e) -> typing.NoReturn:
     cli.out("Operation requires the following missing flags:\n", err=True)
     line1 = lambda s: s.split("\n")[0]
     cli.table(
@@ -2509,13 +2508,11 @@ def _missing_required_flags_error(e):
         indent=2,
         err=True,
     )
-    cli.out(
-        "\nRun the command again with these flags specified " "as NAME=VAL.", err=True
-    )
+    cli.out("\nRun the command again with these flags specified as NAME=VAL.", err=True)
     cli.error()
 
 
-def _invalid_flag_choice_error(e):
+def _invalid_flag_choice_error(e) -> typing.NoReturn:
     cli.out(
         "Unsupported value for '%s' - supported values are:\n" % e.flag.name, err=True
     )
@@ -2535,36 +2532,36 @@ def _invalid_flag_choice_error(e):
     cli.error()
 
 
-def _invalid_flag_value_error(e):
+def _invalid_flag_value_error(e) -> typing.NoReturn:
     cli.error("invalid value %s for %s: %s" % (e.value, e.flag.name, e.msg))
 
 
-def _invalid_opdef_error(opdef, msg):
+def _invalid_opdef_error(opdef, msg) -> typing.NoReturn:
     cli.error("invalid definition for operation '%s': %s" % (opdef.fullname, msg))
 
 
-def _model_op_proxy_error(e):
+def _model_op_proxy_error(e) -> typing.NoReturn:
     cli.error("cannot run '%s': %s" % (e.opspec, e.msg))
 
 
-def _op_cmd_error(msg):
+def _op_cmd_error(msg) -> typing.NoReturn:
     cli.error(msg)
 
 
-def _op_dependency_error(e):
+def _op_dependency_error(e) -> typing.NoReturn:
     cli.error("run failed because a dependency was not met: %s" % e)
 
 
-def _op_process_error(op, e):
+def _op_process_error(op, e) -> typing.NoReturn:
     cli.error("error running %s: %s" % (_fmt_opref(op.opref), e))
 
 
-def _opt_flags_for_missing_batch_opdef_error(args):
+def _opt_flags_for_missing_batch_opdef_error(args) -> typing.NoReturn:
     assert args
     cli.error("invalid optimizer flag %s: no optimizer specified" % args[0])
 
 
-def _missing_op_config_for_restart_error(run):
+def _missing_op_config_for_restart_error(run) -> typing.NoReturn:
     cli.error(
         "cannot restart run in %s: missing op configuration\n"
         "The run may not have been initialized correctly. Try starting "
@@ -2572,7 +2569,7 @@ def _missing_op_config_for_restart_error(run):
     )
 
 
-def _invalid_op_config_for_restart_error(run):
+def _invalid_op_config_for_restart_error(run) -> typing.NoReturn:
     cli.error(
         "cannot restart run in %s: invalid op configuration\n"
         "This may be an internal error. Please open an issue "
@@ -2580,31 +2577,31 @@ def _invalid_op_config_for_restart_error(run):
     )
 
 
-def _no_such_batch_file_error(path):
+def _no_such_batch_file_error(path) -> typing.NoReturn:
     cli.error("batch file %s does not exist" % path)
 
 
-def _batch_file_error(e):
+def _batch_file_error(e) -> typing.NoReturn:
     cli.error(e)
 
 
-def _flag_for_resolved_dep_error(flag_name, run):
+def _flag_for_resolved_dep_error(flag_name, run) -> typing.NoReturn:
     cli.error(
         "cannot specify a value for '%s' when restarting %s - "
         "resource has already been resolved" % (flag_name, run.short_id)
     )
 
 
-def _print_trials_for_non_batch_error():
+def _print_trials_for_non_batch_error() -> typing.NoReturn:
     cli.error("cannot print trials for a non-batch operation")
 
 
-def _save_trials_for_non_batch_error():
+def _save_trials_for_non_batch_error() -> typing.NoReturn:
     cli.error("cannot save trials for a non-batch operation")
 
 
 def _skip_needed_unchanged_flags_info():
-    cli.out("Skipping run because flags have not changed " "(--needed specified)")
+    cli.out("Skipping run because flags have not changed (--needed specified)")
 
 
 def _skip_needed_matches_info(matching_runs):

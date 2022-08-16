@@ -19,3 +19,8 @@ k = -(
 aa = not False
 bb = 1 + 2
 cc = lambda: 123
+
+# Redefinitions
+
+a = 2
+b = -2

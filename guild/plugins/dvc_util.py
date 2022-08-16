@@ -84,8 +84,8 @@ def _stages_config(dvc_config):
 def _stage_config(stage, dvc_config):
     try:
         return _stages_config(dvc_config)[stage]
-    except KeyError:
-        raise ValueError("no such stage: %s" % stage)
+    except KeyError as e:
+        raise ValueError("no such stage: %s" % stage) from e
 
 
 def _stage_outs(stage_config):
@@ -185,17 +185,17 @@ def ensure_dvc_repo(run_dir, project_dir):
 def _ensure_git_repo(run_dir):
     try:
         _ignored = subprocess.check_output(["git", "init"], cwd=run_dir)
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         raise DvcInitError(
             "cannot initialize Git in run directory %s "
             "(required for 'dvc pull') - is Git installed and "
             "available on the path?" % run_dir
-        )
-    except subprocess.CalledProcessError:
+        ) from e
+    except subprocess.CalledProcessError as e:
         raise DvcInitError(
             "error initializing Git repo in run directory %s "
             "(required for 'dvc pull')" % run_dir
-        )
+        ) from e
 
 
 def _ensure_dvc_config(run_dir, project_dir):
@@ -283,7 +283,7 @@ def _pull_dep(dep, run_dir, remote=None):
         raise DvcPullError(
             "error fetching DvC resource %s: 'dvc pull' exited with "
             "non-zero exit status %i (see above for details)" % (dep, e.returncode)
-        )
+        ) from e
     else:
         dep_path = os.path.join(run_dir, dep)
         if not os.path.exists(dep_path):

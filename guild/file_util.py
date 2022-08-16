@@ -131,8 +131,7 @@ class FileSelectRule:
     def _patterns_match_f(self, patterns, regex):
         if regex:
             return self._regex_match_f(patterns)
-        else:
-            return self._fnmatch_f(patterns)
+        return self._fnmatch_f(patterns)
 
     @staticmethod
     def _regex_match_f(patterns):
@@ -148,8 +147,7 @@ class FileSelectRule:
         valid = ("text", "binary", "dir")
         if type is not None and type not in valid:
             raise ValueError(
-                "invalid value for type %r: expected one of %s"
-                % (type, ", ".join(valid))
+                f"invalid value for type {type!r}: expected one of {', '.join(valid)}"
             )
         return type
 
@@ -187,12 +185,11 @@ class FileSelectRule:
             return True
         if self.type == "text":
             return self._test_text_file(path)
-        elif self.type == "binary":
+        if self.type == "binary":
             return self._test_binary_file(path)
-        elif self.type == "dir":
+        if self.type == "dir":
             return self._test_dir(path)
-        else:
-            assert False, self.type
+        assert False, self.type
 
     @staticmethod
     def _test_text_file(path):
@@ -363,12 +360,12 @@ def files_digest(root):
 
 
 def _files_for_digest(root):
-    all = []
-    for path, _dirs, files in os.walk(root, followlinks=False):
-        for name in files:
-            all.append(os.path.join(path, name))
-    all.sort()
-    return all
+    files = []
+    for path, _dirs, names in os.walk(root, followlinks=False):
+        for name in names:
+            files.append(os.path.join(path, name))
+    files.sort()
+    return files
 
 
 def _normalize_path_for_digest(path, root):
@@ -381,10 +378,10 @@ def _encode_file_path_for_digest(path):
 
 
 def _apply_digest_file_bytes(path, d):
-    BUF_SIZE = 1024 * 1024
+    buf_size = 1024 * 1024
     with open(path, "rb") as f:
         while True:
-            buf = f.read(BUF_SIZE)
+            buf = f.read(buf_size)
             if not buf:
                 break
             d.update(buf)
@@ -409,15 +406,18 @@ def _file_size(path):
 
 
 def find(root, followlinks=False, includedirs=False, unsorted=False):
-    all = []
-    relpath = lambda path, name: (os.path.relpath(os.path.join(path, name), root))
+    paths = []
+
+    def relpath(path, name):
+        return os.path.relpath(os.path.join(path, name), root)
+
     for path, dirs, files in os.walk(root, followlinks=followlinks):
         for name in dirs:
             if includedirs or os.path.islink(os.path.join(path, name)):
-                all.append(relpath(path, name))
+                paths.append(relpath(path, name))
         for name in files:
-            all.append(relpath(path, name))
-    return all if unsorted else sorted(all)
+            paths.append(relpath(path, name))
+    return paths if unsorted else sorted(paths)
 
 
 def expand_path(path):

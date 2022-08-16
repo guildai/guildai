@@ -127,7 +127,7 @@ but with a message indicating that nothing is copied.
 
 Show the skipped files using the '--preview' option.
 
-    >>> project_run("guild merge --preview")
+    >>> project_run("guild merge --preview")  # doctest: +REPORT_UDIFF
     Merge will copy files from the following run to the current directory:
       [...]  default  ...  completed
     Files:

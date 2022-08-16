@@ -36,7 +36,7 @@ class PermissionError(InitError):
 
 class RequiredParamError(InitError):
     def __init__(self, name, param):
-        super(RequiredParamError, self).__init__(name, param)
+        super().__init__(name, param)
         self.name = name
         self.param = param
 

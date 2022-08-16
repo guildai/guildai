@@ -77,7 +77,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
         self.local_sync_dir = meta_sync.local_meta_dir(name, self._s3_uri())
         runs_dir = os.path.join(self.local_sync_dir, *RUNS_PATH)
         deleted_runs_dir = os.path.join(self.local_sync_dir, *DELETED_RUNS_PATH)
-        super(S3Remote, self).__init__(runs_dir, deleted_runs_dir)
+        super().__init__(runs_dir, deleted_runs_dir)
 
     def _s3_uri(self, *subpath):
         joined_path = _join_path(self.root, *subpath)
@@ -203,8 +203,8 @@ class S3Remote(meta_sync.MetaSyncRemote):
         log.info("Creating S3 bucket %s", self.bucket)
         try:
             self._s3_cmd("mb", ["s3://%s" % self.bucket])
-        except remotelib.RemoteProcessError:
-            raise remotelib.OperationError()
+        except remotelib.RemoteProcessError as e:
+            raise remotelib.OperationError() from e
 
     def reinit(self):
         self.start()
@@ -213,8 +213,8 @@ class S3Remote(meta_sync.MetaSyncRemote):
         log.info("Deleting S3 bucket %s", self.bucket)
         try:
             self._s3_cmd("rb", ["--force", "s3://%s" % self.bucket])
-        except remotelib.RemoteProcessError:
-            raise remotelib.OperationError()
+        except remotelib.RemoteProcessError as e:
+            raise remotelib.OperationError() from e
 
     def stop_details(self):
         return "S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!" % self.bucket

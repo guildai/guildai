@@ -14,6 +14,7 @@
 
 import logging
 import os
+import typing
 
 from guild import cli
 from guild import click_util
@@ -39,8 +40,7 @@ def cwd_desc(cwd=None):
     cwd = cwd or config.cwd()
     if os.path.abspath(cwd) == os.path.abspath(os.getcwd()):
         return "the current directory"
-    else:
-        return "'%s'" % cwd
+    return "'%s'" % cwd
 
 
 def cwd_guildfile(cwd=None):
@@ -107,7 +107,7 @@ def one_run(runs, spec, ctx=None):
     _non_unique_run_id_error(runs, spec)
 
 
-def _no_matching_run_error(spec, ctx):
+def _no_matching_run_error(spec, ctx) -> typing.NoReturn:
     help_msg = " or '%s' for more information" % click_util.cmd_help(ctx) if ctx else ""
     cli.error(
         "could not find a run matching '%s'\n"
@@ -115,7 +115,7 @@ def _no_matching_run_error(spec, ctx):
     )
 
 
-def _non_unique_run_id_error(matches, spec):
+def _non_unique_run_id_error(matches, spec) -> typing.NoReturn:
     cli.out("'%s' matches multiple runs:" % spec, err=True)
     for m in matches:
         cli.out("  %s" % _match_short_id(m), err=True)
@@ -162,10 +162,9 @@ def path_or_package_guildfile(path_or_package, ctx=None):
     path_or_package = path_or_package or config.cwd()
     if os.path.isdir(path_or_package):
         return _dir_guildfile(path_or_package, ctx)
-    elif os.path.isfile(path_or_package):
+    if os.path.isfile(path_or_package):
         return _guildfile(path_or_package)
-    else:
-        return _package_guildfile(path_or_package)
+    return _package_guildfile(path_or_package)
 
 
 def _dir_guildfile(dir, ctx):
@@ -226,8 +225,7 @@ def _matching_packages(ref):
         if ref == name:
             return [(name, gf)]
         # otherwise check for match in full name of model
-        elif ref in model.fullname:
-            matches[name] = gf
+        matches[name] = gf
     return sorted(matches.items())
 
 
@@ -254,9 +252,8 @@ def _arg_parts(part):
     if isinstance(part, tuple):
         assert len(part) == 2, part
         return part
-    else:
-        assert isinstance(part, str)
-        return part, "--" + part.replace("_", "-")
+    assert isinstance(part, str)
+    return part, "--" + part.replace("_", "-")
 
 
 def check_required_args(required, args, ctx, msg_template=None):

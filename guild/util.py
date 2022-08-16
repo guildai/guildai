@@ -179,7 +179,7 @@ def _open_url_with_cmd(url):
         try:
             subprocess.check_call(args, stderr=null, stdout=null)
         except subprocess.CalledProcessError as e:
-            raise URLOpenError(url, e)
+            raise URLOpenError(url, e) from e
 
 
 def _open_url_with_webbrowser(url):
@@ -223,7 +223,7 @@ def _sleep_interval(interval, start):
 
 class LoopingThread(threading.Thread):
     def __init__(self, cb, interval, first_interval=None, stop_timeout=0):
-        super(LoopingThread, self).__init__()
+        super().__init__()
         self._cb = cb
         self._interval = interval
         self._first_interval = first_interval
@@ -538,8 +538,7 @@ def _resolve_refs_recurse(val, kv, undefined, stack):
     resolved = list(_iter_resolved_ref_parts(parts, kv, undefined, stack))
     if len(resolved) == 1:
         return resolved[0]
-    else:
-        return "".join([_resolved_part_str(part) for part in resolved])
+    return "".join([_resolved_part_str(part) for part in resolved])
 
 
 def _resolved_part_str(part):
@@ -566,7 +565,7 @@ class ReferenceCycleError(Exception):
 
 class UndefinedReferenceError(Exception):
     def __init__(self, reference):
-        super(UndefinedReferenceError, self).__init__(reference)
+        super().__init__(reference)
         self.reference = reference
 
 
@@ -625,7 +624,7 @@ def which(cmd):
         return None
     else:
         assert out, cmd
-        return out.decode("utf-8").split(os.linesep)[0]
+        return out.decode("utf-8").split(os.linesep, 1)[0]
 
 
 def symlink(target, link):
@@ -650,7 +649,7 @@ def _windows_symlink(target, link):
     except subprocess.CalledProcessError as e:
         err_msg = e.output.decode(errors="ignore").strip()
         _maybe_symlink_error(err_msg, e.returncode)
-        raise OSError(e.returncode, err_msg)
+        raise OSError(e.returncode, err_msg) from e
 
 
 def _maybe_symlink_error(err_msg, err_code):
@@ -784,13 +783,11 @@ def is_text_file(path, ignore_ext=False):
             pass
     if likely_binary:
         return decodable_as_unicode
-    else:
-        if decodable_as_unicode:
-            return True
-        else:
-            if b'\x00' in sample or b'\xff' in sample:
-                return False
+    if decodable_as_unicode:
         return True
+    if b'\x00' in sample or b'\xff' in sample:
+        return False
+    return True
 
 
 def safe_is_text_file(path, ignore_ext=False):
@@ -1061,8 +1058,8 @@ def find_python_interpreter(version_spec):
         # Requirement.parse wants a package name, so we use 'python'
         # here, but anything would do.
         req = pkg_resources.Requirement.parse("python%s" % version_spec)
-    except pkg_resources.RequirementParseError:
-        raise ValueError(version_spec)
+    except pkg_resources.RequirementParseError as e:
+        raise ValueError(version_spec) from e
     python_interps = {ver: path for path, ver in python_interpreters()}
     matching = list(req.specifier.filter(sorted(python_interps)))
     if not matching:
@@ -1412,7 +1409,7 @@ def _resolve_path(p):
     return realpath(os.path.abspath(os.path.expanduser(p)))
 
 
-def shorten_path(path, max_len=28, ellipsis=u"\u2026", sep=os.path.sep):
+def shorten_path(path, max_len=28, ellipsis="\u2026", sep=os.path.sep):
     if len(path) <= max_len:
         return path
     parts = _shorten_path_split_path(path, sep)
@@ -1428,8 +1425,8 @@ def shorten_path(path, max_len=28, ellipsis=u"\u2026", sep=os.path.sep):
         l = [parts.pop(0)]
         pop_r = True
     while parts:
-        len_l = sum([len(s) + 1 for s in l])
-        len_r = sum([len(s) + 1 for s in r])
+        len_l = sum((len(s) + 1 for s in l))
+        len_r = sum((len(s) + 1 for s in r))
         part = parts.pop() if pop_r else parts.pop(0)
         side = r if pop_r else l
         if len_l + len_r + len(part) + len(ellipsis) >= max_len:
@@ -1501,7 +1498,7 @@ def _http_request(url, headers=None, data=None, method="GET", timeout=None):
         conn.request(method, url_parts.path, params, headers)
     except socket.error as e:
         if e.errno == errno.ECONNREFUSED:
-            raise HTTPConnectionError(url)
+            raise HTTPConnectionError(url) from e
         raise
     else:
         return HTTPResponse(conn.getresponse())
@@ -1664,7 +1661,7 @@ def norm_path_sep(path):
 
 
 def bind_method(obj, method_name, function):
-    setattr(obj, method_name, function.__get__(obj, obj.__class__))
+    setattr(obj, method_name, function.get(obj, obj.__class__))
 
 
 def edit(s, extension=".txt", strip_comment_lines=False):
@@ -1673,7 +1670,7 @@ def edit(s, extension=".txt", strip_comment_lines=False):
     try:
         edited = click.edit(s, _try_editor(), extension=extension)
     except click.UsageError as e:
-        raise ValueError(e)
+        raise ValueError(e) from e
     else:
         if edited is None:
             edited = s
@@ -1716,16 +1713,6 @@ def test_windows_symlinks():
         return
     with TempDir() as tmp:
         os.symlink(tempfile.gettempdir(), os.path.join(tmp.path, "link"))
-
-
-def raise_from(raise_exc, from_exc):
-    # pylint: disable=unused-variable,unused-argument
-    if six.PY3:
-        exec("raise raise_exc from from_exc")
-    else:
-        raise_exc_type = raise_exc.__class__
-        tb = sys.exc_info()[2]
-        exec("raise raise_exc_type, raise_exc, tb")
 
 
 class PropertyCache:

@@ -30,27 +30,27 @@ class ServiceError(Exception):
 
 class Running(ServiceError):
     def __init__(self, name, pidfile):
-        super(Running, self).__init__(name, pidfile)
+        super().__init__(name, pidfile)
         self.name = name
         self.pidfile = pidfile
 
 
 class NotRunning(ServiceError):
     def __init__(self, name):
-        super(NotRunning, self).__init__(name)
+        super().__init__(name)
         self.name = name
 
 
 class PidfileError(ServiceError):
     def __init__(self, pidfile, error):
-        super(PidfileError, self).__init__(pidfile, error)
+        super().__init__(pidfile, error)
         self.pidfile = pidfile
         self.error = error
 
 
 class OrphanedProcess(ServiceError):
     def __init__(self, pid, pidfile):
-        super(OrphanedProcess, self).__init__(pid, pidfile)
+        super().__init__(pid, pidfile)
         self.pid = pid
         self.pidfile = pidfile
 
@@ -157,12 +157,12 @@ def status(name):
         try:
             pid = _read_pid(pidfile)
         except Exception as e:
-            raise PidfileError(pidfile, e)
+            raise PidfileError(pidfile, e) from e
         else:
             try:
                 proc = psutil.Process(pid)
-            except psutil.NoSuchProcess:
-                raise OrphanedProcess(pid, pidfile)
+            except psutil.NoSuchProcess as e:
+                raise OrphanedProcess(pid, pidfile) from e
             else:
                 return Status(proc.is_running(), pid)
     else:

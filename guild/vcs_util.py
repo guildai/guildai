@@ -147,11 +147,11 @@ def _apply_scheme(repo_dir, cmd_template, pattern, ok_errors):
     except OSError as e:
         if e.errno == 2:
             return None
-        raise CommitReadError(e)
+        raise CommitReadError(e) from e
     except subprocess.CalledProcessError as e:
         if e.returncode in ok_errors:
             return None
-        raise CommitReadError(e, e.output)
+        raise CommitReadError(e, e.output) from e
     else:
         out = out.decode("ascii", errors="replace")
         log.debug("vcs scheme result: %s", out)

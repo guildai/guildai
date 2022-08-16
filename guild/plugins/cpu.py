@@ -17,7 +17,7 @@ from guild.plugins.summary_util import SummaryPlugin
 
 class CPUPlugin(SummaryPlugin):
     def __init__(self, ep):
-        super(CPUPlugin, self).__init__(ep)
+        super().__init__(ep)
         self._cpu_percent_init = False
 
     def enabled_for_op(self, _op):
@@ -25,7 +25,7 @@ class CPUPlugin(SummaryPlugin):
             import psutil as _unused
         except ImportError as e:
             self.log.warning(
-                "cpu stats disabled because psutil " "cannot be imported (%s)", e
+                "cpu stats disabled because psutil cannot be imported (%s)", e
             )
             return False, "error importing psutil: %s" % e
         else:

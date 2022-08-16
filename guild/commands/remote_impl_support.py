@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import typing
 
 from guild import cli
 from guild import remote as remotelib
@@ -426,12 +427,12 @@ def _comment_runs_kw(args):
     return _arg_kw(args, names, ignore)
 
 
-def _handle_remote_process_error(e):
+def _handle_remote_process_error(e) -> typing.NoReturn:
     msg = e.output.decode().strip() if e.output else None
     cli.error(msg, exit_status=e.exit_status)
 
 
-def _handle_not_supported(remote, e):
+def _handle_not_supported(remote, e) -> typing.NoReturn:
     if e.args:
         msg = e.args[0]
     else:

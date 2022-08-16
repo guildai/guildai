@@ -250,8 +250,8 @@ class SSHRemote(remotelib.Remote):
             return run_id
         try:
             self._watch_started_op(remote_run_dir)
-        except KeyboardInterrupt:
-            raise remotelib.RemoteProcessDetached(run_id)
+        except KeyboardInterrupt as e:
+            raise remotelib.RemoteProcessDetached(run_id) from e
         else:
             return run_id
 

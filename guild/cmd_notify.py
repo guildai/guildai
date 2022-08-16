@@ -20,9 +20,7 @@ log = logging.getLogger("guild")
 
 class MsgSendError(Exception):
     def __init__(self, error, port):
-        super(MsgSendError, self).__init__(
-            "Error sending msg to port %i: %s" % (port, error)
-        )
+        super().__init__("Error sending msg to port %i: %s" % (port, error))
         self.error = error
         self.port = port
 
@@ -80,7 +78,7 @@ def _send_msg(msg, port):
     try:
         sock = socket.create_connection(("*", port))
     except Exception as e:
-        raise MsgSendError(e, port)
+        raise MsgSendError(e, port) from e
     else:
         log.debug("sending msg %r to notify port %i", msg, port)
         with sock:

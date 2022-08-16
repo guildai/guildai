@@ -38,7 +38,7 @@ class OneRunArgs(click_util.Args):
     def __init__(self, base_args, run):
         kw = base_args.as_kw()
         kw['run'] = run
-        super(OneRunArgs, self).__init__(**kw)
+        super().__init__(**kw)
 
 
 def main(args, ctx):
@@ -224,6 +224,7 @@ def _default_diff_cmd_for_path(path):
     _root, ext = os.path.splitext(path)
     if ext == ".ipynb":
         return _find_cmd(["nbdiff-web -M"])
+    return None
 
 
 def _default_diff_cmd_():

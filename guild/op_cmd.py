@@ -157,8 +157,7 @@ def _encode_flag_arg(val, dest, arg_split):
         or dest.startswith("namespace:")
     ):
         return _encode_flag_arg_for_globals(val)
-    else:
-        return _encode_flag_arg_for_argparse(val, arg_split)
+    return _encode_flag_arg_for_argparse(val, arg_split)
 
 
 def _encode_flag_arg_for_globals(val):
@@ -186,14 +185,13 @@ def _encode_flag_arg_for_argparse(val, arg_split):
     """
     if val is True:
         return "1"
-    elif val is False or val is None:
+    if val is False or val is None:
         return ""
-    elif isinstance(val, six.string_types):
+    if isinstance(val, six.string_types):
         return val
-    elif isinstance(val, list):
+    if isinstance(val, list):
         return flag_util.join_splittable_flag_vals(val, arg_split)
-    else:
-        return pprint.pformat(val)
+    return pprint.pformat(val)
 
 
 def _gen_env(op_cmd, flag_vals):

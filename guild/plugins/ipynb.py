@@ -178,6 +178,7 @@ def _iter_replacements_for_source(src, opdef):
             if m and m.regs:
                 val_str = _replacement_capture(m, src)
                 try:
+                    # pylint: disable=eval-used
                     val = eval(val_str)
                 except Exception as e:
                     if log.getEffectiveLevel() < logging.DEBUG:
@@ -229,12 +230,12 @@ class MissingIPython(Exception):
 def _ipython_to_python(source):
     try:
         from IPython.core.inputsplitter import IPythonInputSplitter
-    except ImportError:
+    except ImportError as e:
         log.warning(
             "IPython is required to process Notebook source code - "
             "install it by running 'pip install ipython'"
         )
-        raise MissingIPython()
+        raise MissingIPython() from e
     else:
         isp = IPythonInputSplitter(line_input_checker=False)
         python_source = isp.transform_cell(source)
@@ -255,7 +256,7 @@ def _load_notebook(path):
             log.exception("load notebook '%s'", path)
         else:
             log.warning("error loading notebook '%s': %s", path, e)
-            return None
+        return None
 
 
 def _iter_notebook_source(nb_data):
@@ -317,15 +318,15 @@ def _assign_node_ann_type(node):
 def _flag_type_for_annotation(ann):
     if not isinstance(ann, ast.Name):
         return None
-    name = ann.id
-    if name == "int":
+    if ann.id == "int":
         return "int"
-    elif name == "float":
+    if ann.id == "float":
         return "float"
-    elif name == "bool":
+    if ann.id == "bool":
         return "boolean"
-    elif name == "str":
+    if ann.id == "str":
         return "string"
+    return None
 
 
 def _flag_data_for_val(val, ann_type=None):

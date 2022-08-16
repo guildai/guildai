@@ -93,9 +93,9 @@ class RstFormatter(click_util.ClickBaseHelpFormatter):
             if i > 0:
                 self.write_paragraph()
             self.write_text(self._strong(name))
-            super(RstFormatter, self).indent()
+            super().indent()
             self.write_text(self._emph(desc))
-            super(RstFormatter, self).dedent()
+            super().dedent()
 
     def indent(self):
         self._indent_level += 1
@@ -118,7 +118,7 @@ class RstFormatter(click_util.ClickBaseHelpFormatter):
 
 class MarkdownFormatter(click_util.ClickBaseHelpFormatter):
     def __init__(self, heading_level=1):
-        super(MarkdownFormatter, self).__init__()
+        super().__init__()
         self._in_section = False
         self._heading_level = heading_level
 
@@ -134,8 +134,7 @@ class MarkdownFormatter(click_util.ClickBaseHelpFormatter):
     def _heading(self, val):
         if self._heading_level <= 6:
             return "%s %s" % ("#" * self._heading_level, val)
-        else:
-            return "<h%i>%s</h%i>" % (self._heading_level, val, self._heading_level)
+        return "<h%i>%s</h%i>" % (self._heading_level, val, self._heading_level)
 
     def write_heading(self, heading):
         self.write_text(self._heading(heading))
@@ -285,11 +284,10 @@ def _write_console_help_overview(guildfile, model_desc, out):
 def _format_guildfile_dir(mf):
     if _is_cwd(mf.dir):
         return "the current directory"
-    else:
-        relpath = os.path.relpath(mf.dir)
-        if relpath[0] != '.':
-            relpath = os.path.join(".", relpath)
-        return "'%s'" % relpath
+    relpath = os.path.relpath(mf.dir)
+    if relpath[0] != '.':
+        relpath = os.path.join(".", relpath)
+    return "'%s'" % relpath
 
 
 def _is_cwd(path):
@@ -402,7 +400,7 @@ def _write_flags(flags, heading, out, no_flags_msg=None):
 def flags_dl(flags):
     if not flags:
         return []
-    max_flag_len = max([len(flag.name) for flag in flags])
+    max_flag_len = max((len(flag.name) for flag in flags))
     return [(flag.name, _format_flag_desc(flag, max_flag_len)) for flag in flags]
 
 
@@ -424,8 +422,7 @@ def _format_flag_desc(flag, max_flag_len):
         lines.append(_format_flag_choices(flag.choices, max_flag_len))
     if len(lines) > 1:
         return "\n\n".join(lines)
-    else:
-        return lines[0]
+    return lines[0]
 
 
 def _format_flag_choices(choices, max_flag_len):
@@ -434,10 +431,9 @@ def _format_flag_choices(choices, max_flag_len):
         out.width = out.width - max_flag_len - 4
         _format_flag_choices_dl(choices, out)
         return "\n\b\n" + out.getvalue()
-    else:
-        out.width = out.width - max_flag_len - 4 - len("Choices:")
-        _format_flag_choices_value_list(choices, out)
-        return "\n\b\n" + out.getvalue()
+    out.width = out.width - max_flag_len - 4 - len("Choices:")
+    _format_flag_choices_value_list(choices, out)
+    return "\n\b\n" + out.getvalue()
 
 
 def _choices_have_description(choices):

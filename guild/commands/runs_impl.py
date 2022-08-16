@@ -407,14 +407,14 @@ def select_runs(runs, select_specs, ctx=None):
 def _parse_slice(spec):
     try:
         index = int(spec)
-    except ValueError:
+    except ValueError as e:
         m = re.match("(\\d+)?:(\\d+)?", spec)
         if m:
             try:
                 return (_slice_part(m.group(1), decr=True), _slice_part(m.group(2)))
             except ValueError:
                 pass
-        raise ValueError(spec)
+        raise ValueError(spec) from e
     else:
         return index - 1, index
 
@@ -1173,6 +1173,7 @@ def _label_for_run(run, args):
         return "%s %s" % (_run_label(run), format_run_label(args.append, run))
     elif args.remove:
         return _remove_label_parts(args.remove, _run_label(run))
+    assert False, args
 
 
 def format_run_label(template, run):
@@ -1548,6 +1549,7 @@ def _colspec_val_f(colspec):
             return _flag_val_f(col)
         elif isinstance(col, query.Attr):
             return _attr_val_f(col)
+        assert False, col
 
 
 def _scalar_val_f(col):
@@ -1600,8 +1602,8 @@ def _try_print_formatted_run_attr(run, attr_name):
     formatted = run_util.format_run(run)
     try:
         val = formatted[attr_name]
-    except KeyError:
-        raise util.TryFailed()
+    except KeyError as e:
+        raise util.TryFailed() from e
     else:
         print(val)
 
@@ -1609,8 +1611,8 @@ def _try_print_formatted_run_attr(run, attr_name):
 def _try_print_raw_run_attr(run, attr_name):
     try:
         val = run[attr_name]
-    except KeyError:
-        raise util.TryFailed()
+    except KeyError as e:
+        raise util.TryFailed() from e
     else:
         print(yaml_util.encode_yaml(val))
 

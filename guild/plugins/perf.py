@@ -19,7 +19,7 @@ from guild.plugins.summary_util import SummaryPlugin
 
 class PerfPlugin(SummaryPlugin):
     def __init__(self, ep):
-        super(PerfPlugin, self).__init__(ep)
+        super().__init__(ep)
         self._last_step = None
         self._last_time = None
 

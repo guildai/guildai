@@ -38,7 +38,7 @@ def main(args, ctx):
 def _check_args(args, ctx):
     if args.path and os.path.isabs(args.path):
         cli.error(
-            "PATH must be relative\n" "Try 'guild open --help' for more information."
+            "PATH must be relative\nTry 'guild open --help' for more information."
         )
     cmd_impl_support.check_incompatible_args(
         [
@@ -72,7 +72,7 @@ def _path(run, args):
 def _check_non_output_args(args):
     if args.path or args.sourcecode:
         cli.out(
-            "--output cannot be used with other options - " "ignorning other options",
+            "--output cannot be used with other options - ignorning other options",
             err=True,
         )
 

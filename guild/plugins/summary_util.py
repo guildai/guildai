@@ -35,7 +35,7 @@ class SummaryPlugin(Plugin):
     MIN_SUMMARY_INTERVAL = 5
 
     def __init__(self, ep):
-        super(SummaryPlugin, self).__init__(ep)
+        super().__init__(ep)
         self._summary_cache = SummaryCache(self.MIN_SUMMARY_INTERVAL, self.log)
 
     def patch_env(self):
@@ -56,7 +56,7 @@ class SummaryPlugin(Plugin):
         try:
             from tensorboardX import SummaryWriter
         except ImportError:
-            pass
+            return None
         else:
             self.log.debug("wrapping tensorboardX.SummaryWriter.add_scalar")
             wrapper = python_util.listen_method(
@@ -142,7 +142,7 @@ class SummaryPlugin(Plugin):
 
     def _listen_tf_failed(self):
         self.log.warning(
-            "unable to find TensorFlow summary writer, skipping " "summaries for %s",
+            "unable to find TensorFlow summary writer, skipping summaries for %s",
             self.name,
         )
 
@@ -221,7 +221,6 @@ class SummaryPlugin(Plugin):
 
     def read_summary_values(self, _global_step):
         """Overridden by subclasses."""
-        # pylint: disable=no-self-use
         return {}
 
 
@@ -265,6 +264,7 @@ class SummaryCache:
             is_current_step = bool(step == self._step)
         except Exception as e:
             self._maybe_log_cannot_evaluate(e)
+            return None
         else:
             return self._val if is_current_step else None
 

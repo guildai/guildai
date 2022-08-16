@@ -42,9 +42,7 @@ def status():
 def _run(args, log):
     log.info("%s started with timeout = %im", TITLE, args.timeout)
     if args.dont_shutdown:
-        log.info(
-            "%s WILL NOT SHUTDOWN system because " "--dont-shutdown was used", TITLE
-        )
+        log.info("%s WILL NOT SHUTDOWN system because --dont-shutdown was used", TITLE)
     last_activity = _now()
     while True:
         try:

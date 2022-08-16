@@ -17,6 +17,7 @@ import logging
 import os
 import sys
 import shutil
+import typing
 
 import click
 import six
@@ -46,7 +47,7 @@ except NameError:
 _noted = set()
 
 
-def error(msg=None, exit_status=1):
+def error(msg=None, exit_status=1) -> typing.NoReturn:
     raise SystemExit(msg, exit_status)
 
 
@@ -128,19 +129,17 @@ def table(
 def _table_row_sort_key(sort):
     if not sort:
         return lambda _: 0
-    else:
-        return functools.cmp_to_key(lambda x, y: _item_cmp(x, y, sort))
+    return functools.cmp_to_key(lambda x, y: _item_cmp(x, y, sort))
 
 
 def _item_cmp(x, y, sort):
     if isinstance(sort, str):
         return _val_cmp(x, y, sort)
-    else:
-        for part in sort:
-            part_cmp = _val_cmp(x, y, part)
-            if part_cmp != 0:
-                return part_cmp
-        return 0
+    for part in sort:
+        part_cmp = _val_cmp(x, y, part)
+        if part_cmp != 0:
+            return part_cmp
+    return 0
 
 
 def _val_cmp(x, y, sort):
@@ -159,21 +158,19 @@ def _val_cmp(x, y, sort):
 def _coerce_cmp_val(x, y):
     if sys.version_info[0] == 2:
         return x
-    elif x is None:
+    if x is None:
         if y is None:
             return ""
         return type(y)()
-    elif type(x) == type(y):  # pylint: disable=unidiomatic-typecheck
+    if type(x) == type(y):  # pylint: disable=unidiomatic-typecheck
         return x
-    elif isinstance(x, (int, float)) and isinstance(y, (int, float)):
+    if isinstance(x, (int, float)) and isinstance(y, (int, float)):
         return x
-    elif isinstance(x, six.string_types):
+    if isinstance(x, six.string_types):
         return x
-    else:
-        if isinstance(y, six.string_types):
-            return ""
-        else:
-            return str(x)
+    if isinstance(y, six.string_types):
+        return ""
+    return str(x)
 
 
 def _format_table_data(data, cols):
@@ -183,10 +180,9 @@ def _format_table_data(data, cols):
 def _format_table_val(val):
     if val is None:
         return ""
-    elif isinstance(val, six.string_types):
+    if isinstance(val, six.string_types):
         return val
-    else:
-        return str(val)
+    return str(val)
 
 
 def _col_info(data, cols):
@@ -256,10 +252,8 @@ def _format_detail_val(val, indent, terminal_width):
             return "\n" + "\n".join(
                 [click.wrap_text(x, val_width, val_indent, val_indent) for x in val]
             )
-        else:
-            return " -"
-    else:
-        return " %s" % val
+        return " -"
+    return " %s" % val
 
 
 def _pad_col_val(val, col, col_info):

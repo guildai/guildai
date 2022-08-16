@@ -106,7 +106,7 @@ def _remove_invalid_dom_chars(s):
     The upstream problem is with TensorBoard UI, which as of issue
     #230 does handle so-called invalid DOM chars gracefully.
     """
-    invalid = {u"\u2026"}
+    invalid = {"\u2026"}
     return "".join(x if x not in invalid else "?" for x in s)
 
 

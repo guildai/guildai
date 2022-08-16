@@ -17,6 +17,7 @@ import hashlib
 import logging
 import os
 import sys
+import typing
 import warnings
 
 with warnings.catch_warnings():
@@ -486,7 +487,7 @@ def _handle_twine_error(e):
     _exit(msg)
 
 
-def _exit(msg, exit_code=1):
+def _exit(msg, exit_code=1) -> typing.NoReturn:
     sys.stderr.write(msg)
     sys.stderr.write("\n")
     sys.exit(exit_code)

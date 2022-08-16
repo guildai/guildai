@@ -85,8 +85,8 @@ def _compile_pattern(pattern):
         return None
     try:
         return re.compile(pattern)
-    except Exception:
-        raise ValueError("invalid regular expression: %r" % pattern)
+    except Exception as e:
+        raise ValueError("invalid regular expression: %r" % pattern) from e
 
 
 def _compare_files(actual, expected):
@@ -107,8 +107,8 @@ def _compare(actual, expected, actual_src, expected_src):
 def _read(path):
     try:
         return open(path, "r").read()
-    except Exception:
-        raise Failed("error reading run output from %s" % path)
+    except Exception as e:
+        raise Failed("error reading run output from %s" % path) from e
 
 
 def _apply_env_to_path(path):

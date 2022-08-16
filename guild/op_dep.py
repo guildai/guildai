@@ -15,6 +15,7 @@
 import os
 import re
 import logging
+import typing
 
 from guild import cli
 from guild import resolver as resolverlib
@@ -185,7 +186,7 @@ def _resolve_dep_attr_refs(attr_val, flag_vals, resdef):
         raise OpDependencyError(
             "invalid flag reference '%s' in dependency '%s'"
             % (resdef.name, e.reference)
-        )
+        ) from e
 
 
 def _resolve_rename_spec_refs(specs, flag_vals, resdef):
@@ -296,7 +297,7 @@ class ResourceProxy:
         self.config = config
 
 
-def _source_resolution_error(source, dep, e):
+def _source_resolution_error(source, dep, e) -> typing.NoReturn:
     msg = "could not resolve '%s' in %s resource: %s" % (source, dep.resdef.name, e)
     if source.help:
         msg += "\n%s" % cli.style(source.help, fg="yellow")
@@ -439,7 +440,7 @@ def _rename_source(name, rename):
             raise OpDependencyError(
                 "error renaming source %s (%r %r): %s"
                 % (name, spec.pattern, spec.repl, e)
-            )
+            ) from e
         else:
             if renamed != name:
                 return renamed

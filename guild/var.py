@@ -92,19 +92,20 @@ def _default_all_runs_f(root):
 
 
 def _zipfile_all_runs_f(root):
-    if root and root.lower().endswith(".zip"):
-        from . import run_zip_proxy
+    if not root or not root.lower().endswith(".zip"):
+        return None
+    from . import run_zip_proxy
 
-        def f():
-            try:
-                return run_zip_proxy.all_runs(root)
-            except Exception as e:
-                if log.getEffectiveLevel() <= logging.DEBUG:
-                    log.exception("getting runs for zip file %s", root)
-                log.error("cannot read from %s: %s", root, e)
-                return []
+    def f():
+        try:
+            return run_zip_proxy.all_runs(root)
+        except Exception as e:
+            if log.getEffectiveLevel() <= logging.DEBUG:
+                log.exception("getting runs for zip file %s", root)
+            log.error("cannot read from %s: %s", root, e)
+            return []
 
-        return f
+    return f
 
 
 def _runs_under_parent_f(root):
@@ -141,14 +142,11 @@ def _is_parent_run_path(path, runs_dir):
 
 
 def run_filter(name, *args):
-    # Disabling undefined-variable check to work around
-    # https://github.com/PyCQA/pylint/issues/760
-    # pylint: disable=undefined-variable
     if name.startswith("!"):
         name = name[1:]
         maybe_negate = lambda f: lambda r: not f(r)
     else:
-        maybe_negate = lambda f: lambda r: f(r)
+        maybe_negate = lambda f: f
     if name == "true":
         filter = lambda _: True
     elif name == "attr":

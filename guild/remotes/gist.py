@@ -69,11 +69,11 @@ def _parse_spec(spec):
 def _required_gist_user_env(env):
     try:
         return _required_env("GIST_USER", [env, os.environ])
-    except KeyError:
+    except KeyError as e:
         raise MissingRequiredEnv(
             "gist remotes must be specified as USER/GIST_NAME if GIST_USER "
             "environment variable is not defined"
-        )
+        ) from e
 
 
 def _required_env(name, sources):
@@ -97,7 +97,7 @@ class GistRemote(meta_sync.MetaSyncRemote):
         )
         self._local_gist_repo = os.path.join(self.local_sync_dir, "gist")
         runs_dir = os.path.join(self.local_sync_dir, "runs")
-        super(GistRemote, self).__init__(runs_dir, None)
+        super().__init__(runs_dir, None)
 
     def status(self, verbose=False):
         remote_util.remote_activity("Getting %s status", self.name)
@@ -473,13 +473,13 @@ def _create_gist(gist_remote_user, gist_remote_name, gist_readme_name, env):
 def _required_gist_access_token(env):
     try:
         return _required_env("GIST_ACCESS_TOKEN", [env, os.environ])
-    except KeyError:
+    except KeyError as e:
         raise MissingRequiredEnv(
             "missing required environment variable GIST_ACCESS_TOKEN\n"
             "This operation requires a GitHub personal access token for "
             "creating gists.\n"
             "See https://my.guild.ai/docs/gists for more information."
-        )
+        ) from e
 
 
 def _gist_readme_content(user, remote_name):
@@ -555,20 +555,18 @@ def _git_commit(local_repo, msg, env):
 
 def _git_push(local_repo, env):
     cmd = [_git_cmd(), "-C", local_repo, "push", "--quiet"]
-    env = _maybe_askpass(env, local_repo)
+    _maybe_apply_askpass(local_repo, env)
     log.debug("pushing for %s", local_repo)
     _subprocess_tty(cmd, extra_env=env)
 
 
-def _maybe_askpass(env, local_repo):
+def _maybe_apply_askpass(local_repo, env):
     if not _gist_access_token_defined(env):
         return
     askpass_path = _maybe_gist_access_token_script(local_repo)
     if not askpass_path:
-        return env
-    env = dict(env)
+        return
     env["GIT_ASKPASS"] = askpass_path
-    return env
 
 
 def _gist_access_token_defined(env):

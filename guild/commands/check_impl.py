@@ -528,7 +528,7 @@ def _print_disk_usage():
         ("cache", var.cache_dir()),
     ]
     formatted_disk_usage = [_formatted_disk_usage(path) for _name, path in paths]
-    max_disk_usage_width = max([len(s) for s in formatted_disk_usage])
+    max_disk_usage_width = max((len(s) for s in formatted_disk_usage))
     for (name, path), disk_usage in zip(paths, formatted_disk_usage):
         _attr(
             "  %s" % name,

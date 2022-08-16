@@ -40,5 +40,4 @@ def _parse_lock(raw):
     parts = raw.split(":", 1)
     if len(parts) == 1:
         return parts[0], None
-    else:
-        return parts[0], parts[1]
+    return parts[0], parts[1]

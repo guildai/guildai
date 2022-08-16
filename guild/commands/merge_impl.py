@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import os
 
 from guild import cli
@@ -25,9 +24,6 @@ from guild import util
 from guild import vcs_util
 
 from . import runs_impl
-
-
-log = logging.getLogger("guild")
 
 
 class SystemExitWithDetail(Exception):
@@ -48,6 +44,7 @@ class SystemExitWithDetail(Exception):
     """
 
     def __init__(self, code, detail):
+        super().__init__(code, detail)
         self.code = code
         self.detail = detail
 
@@ -79,7 +76,7 @@ def main(args, ctx):
     try:
         main_with_system_exit_detail(args, ctx)
     except SystemExitWithDetail as e:
-        raise SystemExit(e.code)
+        raise SystemExit(e.code) from e
 
 
 def main_with_system_exit_detail(args, ctx):
@@ -406,7 +403,7 @@ def _preview_skipped_files_full(merge):
 
 
 def _sorted_merge_skip_files(merge):
-    return sorted(merge.to_skip, key=lambda sf: _skip_file_path(sf))
+    return sorted(merge.to_skip, key=_skip_file_path)
 
 
 def _skip_file_path(sf):
@@ -433,8 +430,11 @@ def _format_merge_skip_files(to_skip):
 
 def _skip_file_reason(sf):
     code = sf.reason
-    if code == "o":
-        return "non-project file"
+    if code == "?":
+        if sf.file_type == "o":
+            return "non-project file"
+        else:
+            return f"unknown (type={sf.file_type})"
     elif code == "u":
         return "unchanged"
     elif code == "npd":
@@ -446,7 +446,7 @@ def _skip_file_reason(sf):
     elif code == "x":
         return "excluded"
     else:
-        return f"Unknown (code={code})"
+        return f"unknown (code={code})"
 
 
 def _preview_skipped_files_summary(merge):
@@ -462,4 +462,4 @@ def _preview_skipped_files_summary(merge):
 
 
 def _on_merge_copy(_merge, copy_file, _src, _dest):
-    log.info("Copying %s", copy_file.target_path)
+    cli.out(f"Copying {copy_file.target_path}", err=True)

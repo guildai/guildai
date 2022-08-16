@@ -34,7 +34,7 @@ def decode_yaml(s):
     try:
         return yaml.safe_load(s)
     except yaml.scanner.ScannerError as e:
-        raise ValueError(e)
+        raise ValueError(e) from e
 
 
 def yaml_front_matter(filename):
@@ -54,13 +54,13 @@ def _yaml_front_matter_s(filename):
                 continue
             if trimmed == "---":
                 if reading:
-                    return "\n".join(lines)
-                else:
-                    reading = True
+                    break
+                reading = True
             elif reading:
                 lines.append(trimmed)
             else:
-                return None
+                break
+    return "\n".join(lines) if lines else None
 
 
 def patch_yaml_resolver():
@@ -74,7 +74,7 @@ def patch_yaml_resolver():
     `yaml/resolver.py` for the original patterns.
     """
     yaml.resolver.Resolver.add_implicit_resolver(
-        u'tag:yaml.org,2002:float',
+        "tag:yaml.org,2002:float",
         # The patterns below are modified from the original set in two
         # ways: the first pattern makes `[-+]` optional and the second
         # pattern is a new pattern to match scientific notation that
@@ -88,7 +88,7 @@ def patch_yaml_resolver():
                     |\.(?:nan|NaN|NAN))$""",
             re.X,
         ),
-        list(u'-+0123456789.'),
+        list("-+0123456789."),
     )
 
 

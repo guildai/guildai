@@ -54,12 +54,12 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
     try:
         import pandas as pd
-    except ImportError:
+    except ImportError as e:
         raise RuntimeError(
             "guild.ipy requires pandas - install it first before using "
             "this module (see https://pandas.pydata.org/pandas-docs/stable/"
             "install.html for help)"
-        )
+        ) from e
 
 log = logging.getLogger("guild")
 
@@ -78,7 +78,7 @@ DEFAULT_MAX_TRIALS = 20
 
 class RunException(Exception):
     def __init__(self, run, from_exc):
-        super(RunException, self).__init__(run, from_exc)
+        super().__init__(run, from_exc)
         self.run = run
         self.from_exc = from_exc
 
@@ -159,7 +159,7 @@ class RunIndex:
     def _x_id(x):
         if isinstance(x, six.string_types):
             return x
-        elif isinstance(x, RunIndex):
+        if isinstance(x, RunIndex):
             return x.value.id
         return None
 
@@ -248,8 +248,7 @@ class Batch:
         for trial in self.gen_trials(self.flag_vals, prev_results_cb, **self.opts):
             trial_flag_vals, trial_attrs = _split_gen_trial(trial)
             print(
-                "Running %s (%s):"
-                % (self.op.__name__, op_util.flags_desc(trial_flag_vals))
+                f"Running {self.op.__name__} ({op_util.flags_desc(trial_flag_vals)}):"
             )
             run, result = _run(self.op, trial_flag_vals, self.opts, trial_attrs)
             runs.append(run)
@@ -261,8 +260,7 @@ def _split_gen_trial(trial):
     if isinstance(trial, tuple):
         assert len(trial) == 2, ("generated trial must be a two-tuple or a dict", trial)
         return trial
-    else:
-        return trial, {}
+    return trial, {}
 
 
 def _coerce_range_functions(flag_vals):
@@ -282,7 +280,7 @@ class RangeFunction:
 
     def __str__(self):
         args = ":".join([str(arg) for arg in self.args])
-        return "%s[%s]" % (self.name, args)
+        return f"{self.name}[{args}]"
 
 
 def batch_gen_trials(flag_vals, _prev_trials_cb, max_trials=None, **kw):
@@ -301,10 +299,10 @@ def optimizer_trial_generator(model_op):
     main_mod = _optimizer_module(model_op.module_name)
     try:
         return main_mod.gen_trials
-    except AttributeError:
+    except AttributeError as e:
         raise TypeError(
-            "%s optimizer module does not implement gen_trials" % main_mod.__name__
-        )
+            f"{main_mod.__name__} optimizer module does not implement gen_trials"
+        ) from e
 
 
 def _optimizer_module(module_name):
@@ -407,8 +405,8 @@ def _maybe_random_runner(op, flag_vals, opts):
 def _init_gen_trials(optimizer):
     try:
         model_op, _name = model_proxy.resolve_plugin_model_op(optimizer)
-    except model_proxy.NotSupported:
-        raise TypeError("optimizer %r is not supported" % optimizer)
+    except model_proxy.NotSupported as e:
+        raise TypeError(f"optimizer {optimizer!r} is not supported") from e
     else:
         return optimizer_trial_generator(model_op)
 
@@ -436,10 +434,10 @@ def _run(op, flag_vals, opts, extra_attrs=None):
                 result = op(**flag_vals)
     except KeyboardInterrupt as e:
         exit_status = exit_code.KEYBOARD_INTERRUPT
-        util.raise_from(RunTerminated(run, e), e)
+        raise RunTerminated(run, e) from e
     except Exception as e:
         exit_status = exit_code.DEFAULT_ERROR
-        util.raise_from(RunError(run, e), e)
+        raise RunError(run, e) from e
     else:
         return run, result
     finally:
@@ -493,7 +491,7 @@ def _tagged_label(opts):
     except KeyError:
         return None
     else:
-        return "%s ${default_label}" % tag
+        return f"{tag} ${{default_label}}"
 
 
 def _init_output_scalars(run, opts):
@@ -586,16 +584,15 @@ def _format_run(run, cols):
 def _run_attr(run, name, fmt):
     if name == "run":
         return RunIndex(run, fmt)
-    elif name in ("operation",):
+    if name in ("operation",):
         return fmt[name]
-    elif name in ("started", "stopped"):
+    if name in ("started", "stopped"):
         return _datetime(run.get(name))
-    elif name in ("label",):
+    if name in ("label",):
         return run.get(name, "")
-    elif name == "time":
+    if name == "time":
         return _run_time(run)
-    else:
-        return getattr(run, name)
+    return getattr(run, name)
 
 
 def _datetime(ts):
@@ -611,17 +608,17 @@ def _run_time(run):
 
 def _print_run_info(item, output=False, scalars=False):
     for name in RUN_DETAIL:
-        print("%s: %s" % (name, item.fmt.get(name, "")))
+        print(f"{name}: {item.fmt.get(name, '')}")
     print("flags:", end="")
     print(run_util.format_attr(item.value.get("flags", "")))
     if scalars:
         print("scalars:")
         for s in indexlib.iter_run_scalars(item.value):
-            print("  %s: %f (step %i)" % (s["tag"], s["last_val"], s["last_step"]))
+            print(f"  {s['tag']}: {s['last_val']} (step {s['last_step']})")
     if output:
         print("output:")
         for line in run_util.iter_output(item.value):
-            print("  %s" % line, end="")
+            print(f"  {line}", end="")
 
 
 def _runs_scalars(runs):
