@@ -57,7 +57,6 @@ def _is_bool_type(action_name):
 def _bool_default(x):
     if x is True:
         return "yes"
-    elif x is False:
+    if x is False:
         return "no"
-    else:
-        return x
+    return x

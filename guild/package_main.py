@@ -71,8 +71,7 @@ def _load_pkgdef():
     else:
         if not gf.package:
             return _default_pkgdef(gf)
-        else:
-            return gf.package
+        return gf.package
 
 
 def _default_pkgdef(gf):
@@ -132,16 +131,14 @@ def _bdist_wheel_cmd_args(pkgdef):
 def _python_tag_args(pkgdef):
     if pkgdef.python_tag:
         return ["--python-tag", pkgdef.python_tag]
-    else:
-        return ["--universal"]
+    return ["--universal"]
 
 
 def _dist_dir_args():
     dist_dir = os.getenv("DIST_DIR")
     if dist_dir:
         return ["--dist-dir", dist_dir]
-    else:
-        return []
+    return []
 
 
 def _setup_kw(pkgdef):
@@ -227,8 +224,7 @@ def _namespace_packages(python_pkg_name):
     parts = python_pkg_name.rsplit(".", 1)
     if len(parts) == 1:
         return []
-    else:
-        return [parts[0]]
+    return [parts[0]]
 
 
 def _package_data(pkgdef):
@@ -250,8 +246,7 @@ def _pkg_data_files(pkgdef):
 def _match_data_files_pattern(pattern):
     if os.path.isdir(pattern):
         return _all_files_for_dir(pattern)
-    else:
-        return glob.glob(pattern)
+    return glob.glob(pattern)
 
 
 def _all_files_for_dir(dir):
@@ -321,10 +316,9 @@ def _pkg_keywords(pkgdef):
 def _pkg_install_requires(pkgdef):
     if pkgdef.requires is None or not pkgdef.requires:
         return _maybe_requirements_txt(pkgdef)
-    else:
-        return [
-            _project_name(req) for req in pkgdef.requires if not _is_multi_arch_req(req)
-        ]
+    return [
+        _project_name(req) for req in pkgdef.requires if not _is_multi_arch_req(req)
+    ]
 
 
 def _maybe_requirements_txt(pkgdef):
@@ -447,10 +441,8 @@ def _twine_repo_args(repo):
         rc_section = _pypirc_section_for_repo(repo)
         if rc_section:
             return ["--repository", rc_section]
-        else:
-            return ["--repository-url", repo]
-    else:
-        return ["--repository", repo]
+        return ["--repository-url", repo]
+    return ["--repository", repo]
 
 
 def _pypirc_section_for_repo(repo):

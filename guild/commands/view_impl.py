@@ -97,8 +97,7 @@ class ViewDataImpl(view.ViewData):
     def _title_label(self, cwd):
         if len(self._args.runs) == 1:
             return self._single_run_title_label(self._args.runs[0])
-        else:
-            return self._cwd_title_label(cwd)
+        return self._cwd_title_label(cwd)
 
     @staticmethod
     def _single_run_title_label(run_id):
@@ -108,16 +107,14 @@ class ViewDataImpl(view.ViewData):
     def _all_title_label(args):
         if args.ops:
             return "all {}".format(" ".join(args.ops))
-        else:
-            return "all"
+        return "all"
 
     @staticmethod
     def _cwd_title_label(cwd):
         parts = cwd.split(os.path.sep)
         if len(parts) < 2:
             return cwd
-        else:
-            return os.path.join(*parts[-2:])
+        return os.path.join(*parts[-2:])
 
     def compare_data(self):
         compare_args = _compare_args_for_view_args(self._args)
@@ -257,34 +254,33 @@ def _base_file_type_info(path):
     path_lower = path.lower()
     if re.search(r"\.tfevents\.", path_lower):
         return "Event log", "file-chart", "File", None
-    elif re.search(r"saved_model\.pb$", path_lower):
+    if re.search(r"saved_model\.pb$", path_lower):
         return "SavedModel protocol buffer", "file", "File", None
-    elif re.search(r"graph\.pb$", path_lower):
+    if re.search(r"graph\.pb$", path_lower):
         return "GraphDef protocol buffer", "file", "File", None
-    elif re.search(r"saved_model\.pbtxt$", path_lower):
+    if re.search(r"saved_model\.pbtxt$", path_lower):
         return ("SavedModel protocol buffer", "file-document", "Text file", "text")
-    elif re.search(r"graph\.pbtxt$", path_lower):
+    if re.search(r"graph\.pbtxt$", path_lower):
         return ("GraphDef protocol buffer", "file-document", "Text file", "text")
-    elif re.search(r"\.index$", path_lower):
+    if re.search(r"\.index$", path_lower):
         return "Checkpoint index", "file", "File", None
-    elif re.search(r"\.meta$", path_lower):
+    if re.search(r"\.meta$", path_lower):
         return "Checkpoint meta graph", "file", "File", None
-    elif re.search(r"[/\\]checkpoint$", path_lower):
+    if re.search(r"[/\\]checkpoint$", path_lower):
         return "Latest checkpoint marker", "file", "File", None
-    elif re.search(r"data-\d+-of-\d+$", path_lower):
+    if re.search(r"data-\d+-of-\d+$", path_lower):
         return "Checkpoint values", "file", "File", None
-    elif re.search(r"\.tfrecord$", path_lower):
+    if re.search(r"\.tfrecord$", path_lower):
         return "Dataset file", "file", "File", None
-    elif re.search(r"\.(jpg|jpeg|gif|png|tiff)$", path_lower):
+    if re.search(r"\.(jpg|jpeg|gif|png|tiff)$", path_lower):
         return "Image", "file-image", "Image", "image"
-    elif re.search(r"\.mid", path_lower):
+    if re.search(r"\.mid", path_lower):
         return "Audio", "file-music", "Audio", "midi"
-    elif re.search(r"\.(wav|mp3)", path_lower):
+    if re.search(r"\.(wav|mp3)", path_lower):
         return "Audio", "file-music", "Audio", None
-    elif re.search(r"\.(csv|tsv)", path_lower):
+    if re.search(r"\.(csv|tsv)", path_lower):
         return "Table", "file-delimited", "Delimited", "table"
-    else:
-        return _default_file_type_info(path)
+    return _default_file_type_info(path)
 
 
 def _default_file_type_info(path):

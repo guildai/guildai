@@ -198,9 +198,7 @@ def _replacement_capture_slice(m):
     if len(m.regs) == 1:
         # If no capture groups, assume entire capture.
         return m.regs[0]
-    else:
-        # Use the first capture group.
-        return m.regs[1]
+    return m.regs[1]
 
 
 def _iter_notebook_assigns(notebook_path):
@@ -304,7 +302,7 @@ def _assign_node_target(node):
     if hasattr(node, "targets"):
         # Only support assigns to right-most name targets.
         return node.targets[-1]
-    elif hasattr(node, "target"):
+    if hasattr(node, "target"):
         return node.target
     assert False, node
 
@@ -339,9 +337,8 @@ def _flag_data_for_val(val, ann_type=None):
 def _flag_type(val):
     if isinstance(val, six.string_types):
         return "string"
-    elif isinstance(val, bool):
+    if isinstance(val, bool):
         return "boolean"
-    elif isinstance(val, (int, float)):
+    if isinstance(val, (int, float)):
         return "number"
-    else:
-        return None
+    return None

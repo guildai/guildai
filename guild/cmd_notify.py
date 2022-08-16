@@ -46,8 +46,7 @@ def _cmd_enter_msg(ctx):
 def _cmd_exit_msg(ctx, exc_type):
     if exc_type:
         return _gen_cmd_msg(b"cmd-error", ctx)
-    else:
-        return _gen_cmd_msg(b"cmd-exit", ctx)
+    return _gen_cmd_msg(b"cmd-exit", ctx)
 
 
 def _gen_cmd_msg(msg_type, ctx):

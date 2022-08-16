@@ -192,14 +192,13 @@ def _HParam(name, vals):
     type = hparam_type(vals)
     if type == HPARAM_TYPE_NUMBER:
         return hp.HParam(name, hp.RealInterval(float("-inf"), float("inf")))
-    elif type == HPARAM_TYPE_BOOL:
+    if type == HPARAM_TYPE_BOOL:
         return hp.HParam(name, hp.Discrete((True, False)))
-    elif type == HPARAM_TYPE_STRING:
+    if type == HPARAM_TYPE_STRING:
         return hp.HParam(name, hp.Discrete(vals))
-    elif type == HPARAM_TYPE_NONE:
+    if type == HPARAM_TYPE_NONE:
         return hp.HParam(name)
-    else:
-        assert False, type
+    assert False, type
 
 
 def hparam_type(vals):
@@ -210,15 +209,13 @@ def hparam_type(vals):
 
 
 def _hparam_val_type(val):
-    # pylint: disable=unidiomatic-typecheck
     if isinstance(val, six.string_types):
         return HPARAM_TYPE_STRING
-    elif type(val) in (float, int):
+    if type(val) in (float, int):
         return HPARAM_TYPE_NUMBER
-    elif val is True or val is False:
+    if val is True or val is False:
         return HPARAM_TYPE_BOOL
-    else:
-        return HPARAM_TYPE_NONE
+    return HPARAM_TYPE_NONE
 
 
 def is_hparam_numeric(vals):
@@ -279,12 +276,11 @@ def _Status(status):
     api = tensorboard_util.hparams_api_proto()
     if status in ("terminated", "completed"):
         return api.Status.Value("STATUS_SUCCESS")
-    elif status == "error":
+    if status == "error":
         return api.Status.Value("STATUS_FAILURE")
-    elif status == "running":
+    if status == "running":
         return api.Status.Value("STATUS_RUNNING")
-    else:
-        return api.Status.Value("STATUS_UNKNOWN")
+    return api.Status.Value("STATUS_UNKNOWN")
 
 
 class OutputScalars:
@@ -331,11 +327,10 @@ def _init_patterns(config):
 def _config_item_patterns(item):
     if isinstance(item, dict):
         return _map_patterns(item)
-    elif isinstance(item, six.string_types):
+    if isinstance(item, six.string_types):
         return _string_patterns(item)
-    else:
-        log.warning("invalid item config: %r", item)
-        return []
+    log.warning("invalid item config: %r", item)
+    return []
 
 
 def _map_patterns(map_config):

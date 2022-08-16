@@ -75,8 +75,7 @@ def _s3_uri(args):
         path = path[:-1]
     if path:
         return "s3://{}/{}".format(bucket, path)
-    else:
-        return "s3://{}".format(bucket)
+    return "s3://{}".format(bucket)
 
 
 def _sync_once(state):

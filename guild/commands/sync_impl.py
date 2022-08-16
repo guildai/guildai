@@ -36,11 +36,10 @@ class State:
         if not self.ran_once:
             self.ran_once = True
             return True
-        elif self.watch:
+        if self.watch:
             time.sleep(self.interval)
             return True
-        else:
-            return False
+        return False
 
 
 def main(args):

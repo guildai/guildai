@@ -71,7 +71,7 @@ def _link_guild_dir(src, link):
                 src,
             )
         return
-    elif os.path.exists(link):
+    if os.path.exists(link):
         log.warning(
             "Guild directory %s exists, skipping link to Guild home %s", link, src
         )

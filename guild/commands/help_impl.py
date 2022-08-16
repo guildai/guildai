@@ -50,12 +50,11 @@ def _guildfile_desc(gf):
 def _format_guildfile_help(guildfile, desc, args):
     if args.package_description:
         return helplib.package_description(guildfile)
-    elif args.markdown:
+    if args.markdown:
         return helplib.guildfile_markdown_help(
             guildfile, args.title, args.base_heading_level
         )
-    else:
-        return helplib.guildfile_console_help(guildfile, desc)
+    return helplib.guildfile_console_help(guildfile, desc)
 
 
 def _print_help(help, args):

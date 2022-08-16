@@ -307,8 +307,7 @@ def _sync_gist_repo(gist, local_repo, env):
 def _gist_repo_url(gist, env):
     if _gist_urltype(env) == "ssh":
         return "git@gist.github.com:%s.git" % gist["id"]
-    else:
-        return gist["git_pull_url"]
+    return gist["git_pull_url"]
 
 
 def _gist_urltype(env):

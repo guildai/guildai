@@ -117,9 +117,8 @@ def _diff_working(args, ctx):
 def _working_dir(run, args):
     if args.dir:
         return os.path.join(config.cwd(), args.dir)
-    else:
-        assert args.working
-        return _working_dir_for_run(run)
+    assert args.working
+    return _working_dir_for_run(run)
 
 
 def _working_dir_for_run(run):
@@ -207,11 +206,10 @@ def _safe_re_match(ext, pattern):
 def _coerce_config_diff_command(data):
     if data is None or isinstance(data, dict):
         return data
-    elif isinstance(data, six.string_types):
+    if isinstance(data, six.string_types):
         return {"default": data}
-    else:
-        log.warning("unsupported configuration for diff command: %r", data)
-        return None
+    log.warning("unsupported configuration for diff command: %r", data)
+    return None
 
 
 def _default_diff_cmd(path):
@@ -230,10 +228,9 @@ def _default_diff_cmd_for_path(path):
 def _default_diff_cmd_():
     if util.get_platform() == "Linux":
         return _find_cmd(["meld", "xxdiff -r", "dirdiff", "colordiff"])
-    elif util.get_platform() == "Darwin":
+    if util.get_platform() == "Darwin":
         return _find_cmd(["Kaleidoscope", "meld", "DiffMerge", "FileMerge"])
-    else:
-        return DEFAULT_DIFF_CMD
+    return DEFAULT_DIFF_CMD
 
 
 def _find_cmd(cmds):
@@ -306,8 +303,7 @@ def _sourcecode_paths(run, other_run, args):
             )
             for path in args.paths
         ]
-    else:
-        return [(run_sourcecode_dir, other_run_sourcecode_dir)]
+    return [(run_sourcecode_dir, other_run_sourcecode_dir)]
 
 
 def _base_paths(run, other_run, args):

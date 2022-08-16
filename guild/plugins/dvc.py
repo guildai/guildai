@@ -175,18 +175,16 @@ class DvcPlugin(pluginlib.Plugin):
     def resource_source_for_data(self, data, resdef):
         if "dvcfile" in data:
             return _dvcfile_source(data, resdef)
-        elif "dvcstage" in data:
+        if "dvcstage" in data:
             return _dvcstage_source(data, resdef)
-        else:
-            return None
+        return None
 
     def resolver_class_for_source(self, source):
         if source.parsed_uri.scheme == "dvcfile":
             return _DvcFileResolver
-        elif source.parsed_uri.scheme == "dvcstage":
+        if source.parsed_uri.scheme == "dvcstage":
             return _DvcStageResolver
-        else:
-            return None
+        return None
 
 
 class DvcResourceSource(resourcedef.ResourceSource):
@@ -333,9 +331,8 @@ def _ensure_stage_opdef(stage, model):
     if model_opdef:
         _apply_stage_opdef_config(stage_opdef, model_opdef)
         return model_opdef
-    else:
-        model.operations.append(stage_opdef)
-        return stage_opdef
+    model.operations.append(stage_opdef)
+    return stage_opdef
 
 
 def _init_stage_opdef(stage, model):

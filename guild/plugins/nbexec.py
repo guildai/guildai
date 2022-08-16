@@ -219,11 +219,10 @@ def _iter_flag_replace_config(flags, flags_extra):
 def _coerce_repl_config_to_list(config):
     if isinstance(config, six.string_types):
         return [config]
-    elif isinstance(config, list):
+    if isinstance(config, list):
         return config
-    else:
-        log.warning("unsupported nb-replace %r, ignoring", config)
-        return []
+    log.warning("unsupported nb-replace %r, ignoring", config)
+    return []
 
 
 def _replace_flag_ref(pattern, val, s):
@@ -253,9 +252,8 @@ def _pattern_slices(m):
     if len(m.regs) == 1:
         # No replacement groups so assume entire match is replaced.
         return m.regs
-    else:
-        # Only use explicit replacement groups.
-        return m.regs[1:]
+    # Only use explicit replacement groups.
+    return m.regs[1:]
 
 
 def _replace_flag_assign_vals(source, state):

@@ -371,12 +371,11 @@ def _unit_delta(n, unit):
     unit = unit.lower()
     if unit == "m":
         return timedelta(minutes=n)
-    elif unit == "h":
+    if unit == "h":
         return timedelta(hours=n)
-    elif unit == "d":
+    if unit == "d":
         return timedelta(days=n)
-    else:
-        assert False, unit
+    assert False, unit
 
 
 ###################################################################
@@ -396,8 +395,7 @@ def _between(p1, p2, ref):
     start2, end2 = p2(ref)
     if start1 < start2:
         return start1, end2
-    else:
-        return start2, end1
+    return start2, end1
 
 
 def p_range_range(p):
@@ -426,10 +424,9 @@ def p_explicit_datetime(p):
 def _datetime_range(dt):
     if isinstance(dt, datetime_for_date):
         return _day_range(dt)
-    elif isinstance(dt, datetime_for_longtime):
+    if isinstance(dt, datetime_for_longtime):
         return _second_range(dt)
-    else:
-        return _minute_range(dt)
+    return _minute_range(dt)
 
 
 def _second_range(ref):

@@ -51,8 +51,7 @@ def _main(args, ctx):
 def _base_dir(run, args):
     if args.sourcecode:
         return run_util.sourcecode_dir(run)
-    else:
-        return run.dir
+    return run.dir
 
 
 def _print_header(dir, args):
@@ -65,8 +64,7 @@ def _header(dir, args):
         dir = os.path.basename(dir)
     if args.full_path:
         return dir
-    else:
-        return util.format_dir(dir)
+    return util.format_dir(dir)
 
 
 def _print_file_listing(dir, args):
@@ -90,10 +88,9 @@ def _list(dir, args):
 def _path_filter_for_args(args):
     if not args.path:
         return _NoPathFilter(args.all)
-    elif _is_pattern(args.path):
+    if _is_pattern(args.path):
         return _PatternFilter(args.path, args.all)
-    else:
-        return _PathFilter(args.path, args.all)
+    return _PathFilter(args.path, args.all)
 
 
 class _NoPathFilter:

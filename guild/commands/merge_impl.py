@@ -433,20 +433,18 @@ def _skip_file_reason(sf):
     if code == "?":
         if sf.file_type == "o":
             return "non-project file"
-        else:
-            return f"unknown (type={sf.file_type})"
-    elif code == "u":
+        return f"unknown (type={sf.file_type})"
+    if code == "u":
         return "unchanged"
-    elif code == "npd":
+    if code == "npd":
         return "non-project dependency"
-    elif code == "d":
+    if code == "d":
         return "skipped dependency"
-    elif code == "s":
+    if code == "s":
         return "skipped source code"
-    elif code == "x":
+    if code == "x":
         return "excluded"
-    else:
-        return f"unknown (code={code})"
+    return f"unknown (code={code})"
 
 
 def _preview_skipped_files_summary(merge):

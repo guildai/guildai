@@ -63,16 +63,14 @@ def _check_activity(last_activity, log):
     if pids:
         log_f("Active runs (pids): %s", ",".join(map(str, pids)))
         return now
-    else:
-        log_f("No runs for %s", _format_duration(now - last_activity))
-        return last_activity
+    log_f("No runs for %s", _format_duration(now - last_activity))
+    return last_activity
 
 
 def _format_duration(seconds):
     if seconds < 60:
         return "%i second(s)" % seconds
-    else:
-        return "%i minute(s)" % (seconds // 60)
+    return "%i minute(s)" % (seconds // 60)
 
 
 def _log_function(log, now, pids):
@@ -95,8 +93,7 @@ def _log_function(log, now, pids):
     if now >= last_log + LOG_HEARTBEAT:
         log.last_log = now
         return log.info
-    else:
-        return log.debug
+    return log.debug
 
 
 def _guild_ops():

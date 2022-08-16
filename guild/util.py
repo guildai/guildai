@@ -1509,10 +1509,9 @@ def _HTTPConnection(scheme, netloc, timeout):
 
     if scheme == "http":
         return http_client.HTTPConnection(netloc, timeout=timeout)
-    elif scheme == "https":
+    if scheme == "https":
         return http_client.HTTPSConnection(netloc, timeout=timeout)
-    else:
-        raise ValueError("unsupported scheme '%s' - must be 'http' or 'https'" % scheme)
+    raise ValueError("unsupported scheme '%s' - must be 'http' or 'https'" % scheme)
 
 
 class StdIOContextManager:

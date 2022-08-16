@@ -316,16 +316,15 @@ def _script_flags_dest(script):
             "%s imports argparse - assuming args", (_script_desc, script)
         )
         return "args"
-    elif _imports_click(script):
+    if _imports_click(script):
         flags_import_util.log_flags_info(
             "%s imports click - assuming args:click", (_script_desc, script)
         )
         return "args:click"
-    else:
-        flags_import_util.log_flags_info(
-            "%s does not import argparse - assuming globals", (_script_desc, script)
-        )
-        return "globals"
+    flags_import_util.log_flags_info(
+        "%s does not import argparse - assuming globals", (_script_desc, script)
+    )
+    return "globals"
 
 
 def _imports_argparse(script):
@@ -387,17 +386,16 @@ def _global_param_flags_data(script, param_name, log):
     param_val = script.params.get(param_name)
     if isinstance(param_val, dict):
         return _dict_param_flag_data(param_val)
-    elif _is_simple_namespace(param_val):
+    if _is_simple_namespace(param_val):
         return _simple_namespace_param_flag_data(param_val)
-    else:
-        log.warning(
-            "cannot import flags for param '%s' in '%s': param must "
-            "be a dict or SimpleNamespace (got %s)",
-            param_name,
-            _script_desc(script),
-            type(param_val).__name__,
-        )
-        return {}
+    log.warning(
+        "cannot import flags for param '%s' in '%s': param must "
+        "be a dict or SimpleNamespace (got %s)",
+        param_name,
+        _script_desc(script),
+        type(param_val).__name__,
+    )
+    return {}
 
 
 def _entry_point_args_flags_data(flags_dest, script, base_args, log):
@@ -540,8 +538,7 @@ def _split_argparse_flags_error(e_str):
     if "Traceback" in e_str:
         lines = e_str.split("\n")
         return lines[-1], _strip_debug_tag(e_str)
-    else:
-        return e_str, None
+    return e_str, None
 
 
 def _strip_debug_tag(s):

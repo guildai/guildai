@@ -199,20 +199,19 @@ def _ensure_json_encodable(x, flag_name):
 def _flag_type_for_action(action_type, flag_name, ignore_unknown_type):
     if action_type is str:
         return "string"
-    elif action_type is float:
+    if action_type is float:
         return "float"
-    elif action_type is int:
+    if action_type is int:
         return "int"
-    elif action_type is bool:
+    if action_type is bool:
         return "boolean"
-    else:
-        if not ignore_unknown_type:
-            log.warning(
-                "unsupported flag type %s for flag %s - ignoring type setting",
-                action_type,
-                flag_name,
-            )
-        return None
+    if not ignore_unknown_type:
+        log.warning(
+            "unsupported flag type %s for flag %s - ignoring type setting",
+            action_type,
+            flag_name,
+        )
+    return None
 
 
 def _apply_store_true_flag_attrs(attrs):

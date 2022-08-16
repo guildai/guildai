@@ -114,8 +114,7 @@ def _index_template(args):
         cli.error("index template '%s' does not exist" % index_template)
     if os.path.isdir(index_template):
         return _index_template_readme(index_template)
-    else:
-        return index_template
+    return index_template
 
 
 def _index_template_readme(dir):

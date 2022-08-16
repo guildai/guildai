@@ -69,8 +69,7 @@ class Check:
     def _init_offline(args):
         if args.offline is not None:
             return args.offline
-        else:
-            return _check_config().get("offline")
+        return _check_config().get("offline")
 
     def error(self):
         self._errors = True
@@ -327,8 +326,7 @@ def _torch_cuda_version(torch):
 def _torch_cuda_available(torch):
     if torch.cuda.is_available():
         return "yes"
-    else:
-        return "no"
+    return "no"
 
 
 def _pytorch_cuda_devices(torch):
@@ -364,9 +362,8 @@ def _cuda_version_nvcc():
         m = re.search(r"V([0-9\.]+)", out, re.MULTILINE)
         if m:
             return m.group(1)
-        else:
-            log.debug("Unexpected output from nvcc: %s", out)
-            return "unknown (error)"
+        log.debug("Unexpected output from nvcc: %s", out)
+        return "unknown (error)"
 
 
 def _cuda_version_nvidia_smi():
@@ -382,9 +379,8 @@ def _cuda_version_nvidia_smi():
         m = re.search(r"CUDA Version\s+: ([0-9\.]+)", out, re.MULTILINE)
         if m:
             return m.group(1)
-        else:
-            log.debug("Unexpected output from nvidia-smi: %s", out)
-            return "unknown (error)"
+        log.debug("Unexpected output from nvidia-smi: %s", out)
+        return "unknown (error)"
 
 
 def _print_nvidia_tools_info(check):
@@ -404,9 +400,8 @@ def _nvidia_smi_version():
         m = re.search(r"NVIDIA-SMI ([0-9\.]+)", out)
         if m:
             return m.group(1)
-        else:
-            log.debug("Unexpected output from nvidia-smi: %s", out)
-            return "unknown (error)"
+        log.debug("Unexpected output from nvidia-smi: %s", out)
+        return "unknown (error)"
 
 
 def _print_mods_info(check):
@@ -439,15 +434,13 @@ def _try_module_version(name, check, required=True, version_attr="__version__"):
 def _not_installed_msg(e):
     if "No module named " in str(e):
         return "not installed"
-    else:
-        return "not installed (%s)" % e
+    return "not installed (%s)" % e
 
 
 def _format_version(ver):
     if isinstance(ver, tuple):
         return ".".join([str(part) for part in ver])
-    else:
-        return str(ver)
+    return str(ver)
 
 
 def _print_guild_latest_versions(check):

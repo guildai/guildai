@@ -227,7 +227,7 @@ def encode_flag_for_optimizer(val, flagdef):
     """Encodes a flag def for the range of supported skopt search spaces."""
     if flagdef.choices:
         return [c.value for c in flagdef.choices]
-    elif flagdef.min is not None and flagdef.max is not None:
+    if flagdef.min is not None and flagdef.max is not None:
         return _encode_function(flagdef, val)
     return val
 
@@ -254,13 +254,13 @@ class SkoptPlugin(pluginlib.Plugin):
         if opspec in ("random", "skopt:random"):
             model = RandomOptimizerModelProxy()
             return model, model.op_name
-        elif opspec in ("gp", "skopt:gp", "bayesian", "gaussian"):
+        if opspec in ("gp", "skopt:gp", "bayesian", "gaussian"):
             model = GPOptimizerModelProxy()
             return model, model.op_name
-        elif opspec in ("forest", "skopt:forest"):
+        if opspec in ("forest", "skopt:forest"):
             model = ForestOptimizerModelProxy()
             return model, model.op_name
-        elif opspec in ("gbrt", "skopt:gbrt"):
+        if opspec in ("gbrt", "skopt:gbrt"):
             model = GBRTOptimizerModelProxy()
             return model, model.op_name
         return None

@@ -108,12 +108,11 @@ class Run:
     def status(self):
         if os.path.exists(self.guild_path("LOCK.remote")):
             return "running"
-        elif os.path.exists(self.guild_path("PENDING")):
+        if os.path.exists(self.guild_path("PENDING")):
             return "pending"
-        elif os.path.exists(self.guild_path("STAGED")):
+        if os.path.exists(self.guild_path("STAGED")):
             return "staged"
-        else:
-            return self._local_status()
+        return self._local_status()
 
     @property
     def remote(self):
@@ -246,10 +245,9 @@ def _status_for_exit_status(exit_status):
     assert exit_status is not None, exit_status
     if exit_status == 0:
         return "completed"
-    elif exit_status < 0:
+    if exit_status < 0:
         return "terminated"
-    else:
-        return "error"
+    return "error"
 
 
 __last_ts = None
