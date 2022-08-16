@@ -34,8 +34,8 @@ def NUMBER(s):
     except ValueError:
         try:
             return float(s)
-        except ValueError:
-            raise ValueError("%s is not a valid number")
+        except ValueError as e:
+            raise ValueError("%s is not a valid number") from e
 
 
 class Args:
@@ -265,12 +265,11 @@ def format_error_message(e):
 def _format_click_error_message(e):
     if isinstance(e, click.exceptions.MissingParameter):
         return _format_missing_parameter_error(e)
-    elif isinstance(e, click.exceptions.NoSuchOption):
+    if isinstance(e, click.exceptions.NoSuchOption):
         return _format_no_such_option_error(e)
-    elif isinstance(e, click.exceptions.UsageError):
+    if isinstance(e, click.exceptions.UsageError):
         return _format_usage_error(e)
-    else:
-        return e.format_message()
+    return e.format_message()
 
 
 def _format_missing_parameter_error(e):

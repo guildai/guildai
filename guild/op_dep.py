@@ -186,7 +186,7 @@ def _resolve_dep_attr_refs(attr_val, flag_vals, resdef):
         raise OpDependencyError(
             "invalid flag reference '%s' in dependency '%s'"
             % (resdef.name, e.reference)
-        )
+        ) from e
 
 
 def _resolve_rename_spec_refs(specs, flag_vals, resdef):
@@ -440,7 +440,7 @@ def _rename_source(name, rename):
             raise OpDependencyError(
                 "error renaming source %s (%r %r): %s"
                 % (name, spec.pattern, spec.repl, e)
-            )
+            ) from e
         else:
             if renamed != name:
                 return renamed

@@ -76,7 +76,7 @@ def main(args, ctx):
     try:
         main_with_system_exit_detail(args, ctx)
     except SystemExitWithDetail as e:
-        raise SystemExit(e.code)
+        raise SystemExit(e.code) from e
 
 
 def main_with_system_exit_detail(args, ctx):

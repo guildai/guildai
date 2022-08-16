@@ -401,7 +401,7 @@ def _try_model_proxy(opspec):
     except model_proxy.NotSupported:
         return None
     except model_proxy.OpSpecError as e:
-        raise ModelOpProxyError(opspec, str(e))
+        raise ModelOpProxyError(opspec, str(e)) from e
     else:
         opdef = model.modeldef.get_operation(op_name)
         if opdef:
@@ -525,7 +525,7 @@ def _cwd_guildfile():
     except guildfile.NoModels:
         return None
     except guildfile.GuildfileError as e:
-        raise CwdGuildfileError(e)
+        raise CwdGuildfileError(e) from e
 
 
 def _resolve_system_model(model_ref):
@@ -1229,7 +1229,7 @@ def _coerced_flag_value(name, val, flagdefs):
     try:
         return coerce_flag_value(val, flagdef)
     except (ValueError, TypeError) as e:
-        raise InvalidFlagValue(val, flagdef, str(e))
+        raise InvalidFlagValue(val, flagdef, str(e)) from e
 
 
 def coerce_flag_value(val, flagdef):
@@ -1680,7 +1680,7 @@ def _yaml_trials(path):
     try:
         data = yaml.safe_load(open(path, "r"))
     except Exception as e:
-        raise BatchFileError(path, str(e))
+        raise BatchFileError(path, str(e)) from e
     else:
         return _coerce_trials_data(data, path)
 

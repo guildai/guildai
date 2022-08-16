@@ -96,8 +96,8 @@ def _try_cmd_notify_port():
         return None
     try:
         return int(port)
-    except ValueError:
+    except ValueError as e:
         raise SystemExit(
             "invalid value for GUILD_CMD_NOTIFY_PORT %r: must "
             "be a valid numeric port" % port
-        )
+        ) from e

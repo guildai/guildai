@@ -119,7 +119,7 @@ def _init_dvc_repo(state):
     try:
         dvc_util.ensure_dvc_repo(state.run_dir, state.project_dir)
     except dvc_util.DvcInitError as e:
-        raise SystemExit(str(e))
+        raise SystemExit(str(e)) from e
 
 
 def _copy_dvc_yaml(state):
@@ -215,7 +215,7 @@ def _pull_dep(dep, state):
     try:
         dvc_util.pull_dvc_dep(dep, state.run_dir, state.project_dir)
     except dvc_util.DvcPullError as e:
-        raise SystemExit(str(e))
+        raise SystemExit(str(e)) from e
 
 
 def _copy_params_with_flags(state):

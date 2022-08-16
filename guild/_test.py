@@ -136,8 +136,7 @@ def _run_test(name):
 def _filename_for_test(name_or_path):
     if os.path.sep in name_or_path or "." in name_or_path:
         return os.path.abspath(name_or_path)
-    else:
-        return _named_test_filename(name_or_path)
+    return _named_test_filename(name_or_path)
 
 
 def _named_test_filename(name):
@@ -399,10 +398,9 @@ def _run_test_file_with_config(filename, globs, optionflags):
     doctest_type = fm.get("doctest-type", "python")
     if doctest_type == "python":
         return _run_python_doctest(filename, globs, optionflags)
-    elif doctest_type == "bash":
+    if doctest_type == "bash":
         return _run_bash_doctest(filename, globs, optionflags)
-    else:
-        raise RuntimeError("unsupported doctest type '%s'" % doctest_type)
+    raise RuntimeError("unsupported doctest type '%s'" % doctest_type)
 
 
 def _run_python_doctest(filename, globs, optionflags):
@@ -1046,8 +1044,7 @@ def _strip_error_module(last_line):
     m = re.match(r"([\w\.]+): (.+)", last_line)
     if not m:
         return _strip_class_module(last_line)
-    else:
-        return "{}: {}".format(_strip_class_module(m.group(1)), m.group(2))
+    return "{}: {}".format(_strip_class_module(m.group(1)), m.group(2))
 
 
 def _strip_class_module(class_name):
@@ -1111,8 +1108,7 @@ def _run(
 def _run_shell_cmd(cmd):
     if util.get_platform() == "Windows":
         return _run_shell_win_cmd(cmd)
-    else:
-        return _run_shell_posix_cmd(cmd)
+    return _run_shell_posix_cmd(cmd)
 
 
 def _run_shell_win_cmd(cmd):
@@ -1179,8 +1175,7 @@ def _run_shell_posix_cmd(cmd):
 def _popen(cmd, env, cwd):
     if util.get_platform() == "Windows":
         return _popen_win(cmd, env, cwd)
-    else:
-        return _popen_posix(cmd, env, cwd)
+    return _popen_posix(cmd, env, cwd)
 
 
 def _popen_win(cmd, env, cwd):

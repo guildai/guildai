@@ -34,10 +34,8 @@ RUN_STATUS = "run-status"
 
 
 def Lock(name, timeout=-1, guild_home=None):
-    # pylint: disable=invalid-name
     guild_home = guild_home or config.guild_home()
     locks_dir = os.path.join(guild_home, "locks")
     util.ensure_dir(locks_dir)
     lock_path = os.path.join(locks_dir, name)
-    # pylint: disable=abstract-class-instantiated
     return filelock.FileLock(lock_path, timeout)

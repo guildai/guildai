@@ -168,9 +168,8 @@ def run(
     if pidfile:
         _run_op_in_background(run, op, pidfile, quiet, stop_after, extra_env)
         return run, None
-    else:
-        exit_status = _run_op(run, op, quiet, stop_after, extra_env)
-        return run, exit_status
+    exit_status = _run_op(run, op, quiet, stop_after, extra_env)
+    return run, exit_status
 
 
 def _run_op_in_background(run, op, pidfile, quiet, stop_after, extra_env):
@@ -221,7 +220,7 @@ def _op_start_proc(op, run, quiet, extra_env):
             stderr=stderr,
         )
     except OSError as e:
-        raise ProcessError(e)
+        raise ProcessError(e) from e
     else:
         op_util.write_proc_lock(proc.pid, run)
         return proc
@@ -270,12 +269,10 @@ def _proc_streams(quiet):
     if os.getenv("NO_RUN_OUTPUT") == "1":
         if quiet:
             return _devnull(), _devnull()
-        else:
-            return None, None
-    elif os.getenv("SYNC_RUN_OUTPUT") == "1":
+        return None, None
+    if os.getenv("SYNC_RUN_OUTPUT") == "1":
         return subprocess.PIPE, subprocess.STDOUT
-    else:
-        return subprocess.PIPE, subprocess.PIPE
+    return subprocess.PIPE, subprocess.PIPE
 
 
 def _devnull():
@@ -298,8 +295,7 @@ def _op_watch_proc(op, proc, run, quiet, stop_after):
     if os.getenv("NO_RUN_OUTPUT") != "1":
         output_summary = _output_summary_for_run(run, op)
         return _proc_wait_with_run_output(proc, run, quiet, output_summary, stop_after)
-    else:
-        return _proc_wait(proc, stop_after)
+    return _proc_wait(proc, stop_after)
 
 
 def _output_summary_for_run(run, op):
@@ -334,8 +330,7 @@ class _RunOutput:
 def _proc_wait(proc, stop_after):
     if stop_after is None:
         return proc.wait()
-    else:
-        return _proc_wait_minutes(proc, stop_after)
+    return _proc_wait_minutes(proc, stop_after)
 
 
 def _proc_wait_minutes(proc, minutes):

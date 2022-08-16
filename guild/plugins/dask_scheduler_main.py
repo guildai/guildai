@@ -94,11 +94,11 @@ def _init_dask_client(args):
     _workaround_multiprocessing_cycle()
     try:
         from dask.distributed import Client, LocalCluster
-    except ImportError:
+    except ImportError as e:
         raise SystemExit(
             "dask.distributed not available - "
             "install it first using 'pip install dask[distributed]'"
-        )
+        ) from e
     else:
         dashboard_address = _dashboard_address(args)
         resources = _cluster_resources(args)

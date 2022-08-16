@@ -152,8 +152,8 @@ def _init_manifest_index(run):
     """Returns a dict keyed by run path containing _ManifestEntry items."""
     try:
         manifest = run_manifest.manfiest_for_run(run)
-    except FileNotFoundError:
-        raise MergeError(f"run manifest does not exist for run {run.id}")
+    except FileNotFoundError as e:
+        raise MergeError(f"run manifest does not exist for run {run.id}") from e
     else:
         index = {}
         for manifest_entry in manifest:

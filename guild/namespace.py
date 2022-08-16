@@ -111,8 +111,8 @@ def iter_namespaces():
 def for_name(name):
     try:
         return _namespaces.one_for_name(name)
-    except LookupError:
-        raise NamespaceError(name)
+    except LookupError as e:
+        raise NamespaceError(name) from e
 
 
 def for_project_name(project_name):

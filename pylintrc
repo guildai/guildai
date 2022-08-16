@@ -179,11 +179,10 @@ disable=raw-checker-failed,
         duplicate-code,                  # DRY is not a goal
         unnecessary-lambda-assignment,
         redefined-builtin,
+        invalid-name,                    # Tedious and generally unhelpful
         # TEMP - disabled for incremental linting (TODO re-enable each to cleanup code)
-        invalid-name,
-        raise-missing-from,
         consider-using-f-string,
-        no-else-return
+        #no-else-return
 
 
 # Enable the message, report, category or checker with the given id(s). You can
@@ -643,5 +642,3 @@ logging-format-style=old
 # Logging modules to check that the string format arguments are in logging
 # function parameter format.
 logging-modules=logging
-
-Fundamental finished at Mon Aug 15 17:48:18

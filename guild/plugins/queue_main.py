@@ -64,7 +64,9 @@ def _start_run(run, state):
     try:
         gapi.run(restart=run.id, extra_env=_run_env(run), gpus=state.gpus)
     except gapi.RunError as e:
-        raise RuntimeError("%s failed with exit code %i" % (run.id, e.returncode))
+        raise RuntimeError(
+            "%s failed with exit code %i" % (run.id, e.returncode)
+        ) from e
 
 
 def _run_env(run):

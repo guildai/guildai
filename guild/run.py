@@ -174,8 +174,8 @@ class Run:
     def __getitem__(self, name):
         try:
             f = open(self._attr_path(name), "r")
-        except IOError:
-            raise KeyError(name)
+        except IOError as e:
+            raise KeyError(name) from e
         else:
             return yaml.safe_load(f)
 

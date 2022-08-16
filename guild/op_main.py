@@ -156,8 +156,7 @@ def _parse_module_spec(spec):
     parts = spec.rsplit("/", 1)
     if len(parts) == 2:
         return parts[0], parts[1]
-    else:
-        return None, parts[0]
+    return None, parts[0]
 
 
 def _try_resolve_package_path(package_path):
@@ -223,18 +222,17 @@ def _flags_interface(args):
     dest = os.getenv("FLAGS_DEST", "args")
     if dest == "args" or dest.startswith("args:"):
         return _args_dest(args)
-    elif dest == "globals":
+    if dest == "globals":
         return _globals_dest(args)
-    elif dest.startswith("global:"):
+    if dest.startswith("global:"):
         return _global_dict_dest(args, dest[7:])
-    elif dest.startswith("dict:"):
+    if dest.startswith("dict:"):
         return _global_dict_dest(args, dest[5:])
-    elif dest.startswith("namespace:"):
+    if dest.startswith("namespace:"):
         return _global_simple_namespace_dest(args, dest[10:])
-    elif dest == "none":
+    if dest == "none":
         return _no_dest_args(args)
-    else:
-        return _unknown_dest(dest, args)
+    return _unknown_dest(dest, args)
 
 
 def _args_dest(args):
@@ -389,11 +387,10 @@ def _resolve_break(b, module_info):
 
     if re.match(r"[0-9]+", b):
         return _module_break(module_info.mod_path, int(b))
-    elif re.match(r".+?:[0-9]$", b):
+    if re.match(r".+?:[0-9]$", b):
         path, line = b.rsplit(":", 2)
         return _module_break(path, int(line), module_info.mod_path)
-    else:
-        return b
+    return b
 
 
 def _module_break(path, want_line, main_mod=None):
@@ -408,8 +405,7 @@ def _module_break(path, want_line, main_mod=None):
         if want_line > 1:
             # Try first available breakpoint
             return _module_break(path, 1)
-        else:
-            return "%s:%i" % (path, want_line)
+        return "%s:%i" % (path, want_line)
     else:
         return "%s:%i" % (path, next_line)
 

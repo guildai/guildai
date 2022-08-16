@@ -69,11 +69,11 @@ def _parse_spec(spec):
 def _required_gist_user_env(env):
     try:
         return _required_env("GIST_USER", [env, os.environ])
-    except KeyError:
+    except KeyError as e:
         raise MissingRequiredEnv(
             "gist remotes must be specified as USER/GIST_NAME if GIST_USER "
             "environment variable is not defined"
-        )
+        ) from e
 
 
 def _required_env(name, sources):
@@ -473,13 +473,13 @@ def _create_gist(gist_remote_user, gist_remote_name, gist_readme_name, env):
 def _required_gist_access_token(env):
     try:
         return _required_env("GIST_ACCESS_TOKEN", [env, os.environ])
-    except KeyError:
+    except KeyError as e:
         raise MissingRequiredEnv(
             "missing required environment variable GIST_ACCESS_TOKEN\n"
             "This operation requires a GitHub personal access token for "
             "creating gists.\n"
             "See https://my.guild.ai/docs/gists for more information."
-        )
+        ) from e
 
 
 def _gist_readme_content(user, remote_name):

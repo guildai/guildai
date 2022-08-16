@@ -130,8 +130,8 @@ def t_RESERVED(t):
     r"[a-zA-Z]+"
     try:
         t.type = reserved_map[t.value.lower()]
-    except KeyError:
-        raise LexError("unexpected '%s' at position %i" % (t.value, t.lexpos))
+    except KeyError as e:
+        raise LexError("unexpected '%s' at position %i" % (t.value, t.lexpos)) from e
     else:
         return t
 

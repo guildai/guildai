@@ -37,8 +37,8 @@ class RunZipProxy(runlib.Run):
     def __getitem__(self, name):
         try:
             encoded = _zip_entry(self.zip_src, self.prefix, ".guild/attrs", name)
-        except KeyError:
-            raise KeyError(name)
+        except KeyError as e:
+            raise KeyError(name) from e
         else:
             return yaml.safe_load(encoded)
 

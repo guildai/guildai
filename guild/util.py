@@ -179,7 +179,7 @@ def _open_url_with_cmd(url):
         try:
             subprocess.check_call(args, stderr=null, stdout=null)
         except subprocess.CalledProcessError as e:
-            raise URLOpenError(url, e)
+            raise URLOpenError(url, e) from e
 
 
 def _open_url_with_webbrowser(url):
@@ -538,8 +538,7 @@ def _resolve_refs_recurse(val, kv, undefined, stack):
     resolved = list(_iter_resolved_ref_parts(parts, kv, undefined, stack))
     if len(resolved) == 1:
         return resolved[0]
-    else:
-        return "".join([_resolved_part_str(part) for part in resolved])
+    return "".join([_resolved_part_str(part) for part in resolved])
 
 
 def _resolved_part_str(part):
@@ -650,7 +649,7 @@ def _windows_symlink(target, link):
     except subprocess.CalledProcessError as e:
         err_msg = e.output.decode(errors="ignore").strip()
         _maybe_symlink_error(err_msg, e.returncode)
-        raise OSError(e.returncode, err_msg)
+        raise OSError(e.returncode, err_msg) from e
 
 
 def _maybe_symlink_error(err_msg, err_code):
@@ -784,13 +783,11 @@ def is_text_file(path, ignore_ext=False):
             pass
     if likely_binary:
         return decodable_as_unicode
-    else:
-        if decodable_as_unicode:
-            return True
-        else:
-            if b'\x00' in sample or b'\xff' in sample:
-                return False
+    if decodable_as_unicode:
         return True
+    if b'\x00' in sample or b'\xff' in sample:
+        return False
+    return True
 
 
 def safe_is_text_file(path, ignore_ext=False):
@@ -1061,8 +1058,8 @@ def find_python_interpreter(version_spec):
         # Requirement.parse wants a package name, so we use 'python'
         # here, but anything would do.
         req = pkg_resources.Requirement.parse("python%s" % version_spec)
-    except pkg_resources.RequirementParseError:
-        raise ValueError(version_spec)
+    except pkg_resources.RequirementParseError as e:
+        raise ValueError(version_spec) from e
     python_interps = {ver: path for path, ver in python_interpreters()}
     matching = list(req.specifier.filter(sorted(python_interps)))
     if not matching:
@@ -1501,7 +1498,7 @@ def _http_request(url, headers=None, data=None, method="GET", timeout=None):
         conn.request(method, url_parts.path, params, headers)
     except socket.error as e:
         if e.errno == errno.ECONNREFUSED:
-            raise HTTPConnectionError(url)
+            raise HTTPConnectionError(url) from e
         raise
     else:
         return HTTPResponse(conn.getresponse())
@@ -1673,7 +1670,7 @@ def edit(s, extension=".txt", strip_comment_lines=False):
     try:
         edited = click.edit(s, _try_editor(), extension=extension)
     except click.UsageError as e:
-        raise ValueError(e)
+        raise ValueError(e) from e
     else:
         if edited is None:
             edited = s

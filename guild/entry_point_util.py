@@ -68,14 +68,14 @@ class EntryPointResources:
     def one_for_name(self, name):
         try:
             return next(self.for_name(name))
-        except StopIteration:
-            raise LookupError(name)
+        except StopIteration as e:
+            raise LookupError(name) from e
 
     def for_name(self, name):
         try:
             name_resources = self._resources[name]
-        except KeyError:
-            raise LookupError(name)
+        except KeyError as e:
+            raise LookupError(name) from e
         else:
             for res in name_resources:
                 try:

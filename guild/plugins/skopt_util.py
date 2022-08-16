@@ -145,8 +145,8 @@ def _try_function_dim(val, flag_name):
     assert isinstance(val, six.string_types), val
     try:
         func_name, func_args = flag_util.decode_flag_function(val)
-    except ValueError:
-        raise ValueError(val, flag_name)
+    except ValueError as e:
+        raise ValueError(val, flag_name) from e
     else:
         return function_dim(func_name, func_args, flag_name)
 
@@ -307,7 +307,7 @@ def _objective_y_info(batch_run):
     try:
         colspec = qparse.parse_colspec(objective_spec)
     except qparse.ParseError as e:
-        raise InvalidObjective("invalid objective %r: %s" % (objective_spec, e))
+        raise InvalidObjective("invalid objective %r: %s" % (objective_spec, e)) from e
     else:
         if len(colspec.cols) > 1:
             raise InvalidObjective(
@@ -443,7 +443,7 @@ def _ipy_objective(minimize, maximize):
     try:
         cols = qparse.parse_colspec(colspec).cols
     except qparse.ParseError as e:
-        raise ValueError("cannot parse objective %r: %s" % (colspec, e))
+        raise ValueError("cannot parse objective %r: %s" % (colspec, e)) from e
     else:
         if len(cols) > 1:
             raise ValueError(

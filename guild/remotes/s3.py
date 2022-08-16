@@ -203,8 +203,8 @@ class S3Remote(meta_sync.MetaSyncRemote):
         log.info("Creating S3 bucket %s", self.bucket)
         try:
             self._s3_cmd("mb", ["s3://%s" % self.bucket])
-        except remotelib.RemoteProcessError:
-            raise remotelib.OperationError()
+        except remotelib.RemoteProcessError as e:
+            raise remotelib.OperationError() from e
 
     def reinit(self):
         self.start()
@@ -213,8 +213,8 @@ class S3Remote(meta_sync.MetaSyncRemote):
         log.info("Deleting S3 bucket %s", self.bucket)
         try:
             self._s3_cmd("rb", ["--force", "s3://%s" % self.bucket])
-        except remotelib.RemoteProcessError:
-            raise remotelib.OperationError()
+        except remotelib.RemoteProcessError as e:
+            raise remotelib.OperationError() from e
 
     def stop_details(self):
         return "S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!" % self.bucket

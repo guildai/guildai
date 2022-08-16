@@ -157,12 +157,12 @@ def status(name):
         try:
             pid = _read_pid(pidfile)
         except Exception as e:
-            raise PidfileError(pidfile, e)
+            raise PidfileError(pidfile, e) from e
         else:
             try:
                 proc = psutil.Process(pid)
-            except psutil.NoSuchProcess:
-                raise OrphanedProcess(pid, pidfile)
+            except psutil.NoSuchProcess as e:
+                raise OrphanedProcess(pid, pidfile) from e
             else:
                 return Status(proc.is_running(), pid)
     else:

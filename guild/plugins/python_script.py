@@ -371,7 +371,7 @@ def _argparse_flags_data(script, base_args, log):
                 )
             if details and log.getEffectiveLevel() <= logging.DEBUG:
                 log.error(details)
-            raise DataLoadError()
+            raise DataLoadError() from e
         else:
             out = out.decode()
             log.debug("import_argparse_flags_main output: %s", out)

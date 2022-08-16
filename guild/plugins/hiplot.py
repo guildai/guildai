@@ -37,10 +37,10 @@ def compare_runs(get_data_cb):
 def _check_hiplot_install():
     try:
         import hiplot as _unused
-    except ImportError:
+    except ImportError as e:
         raise SystemExit(
             "HiPlot is not available\nInstall it by running 'pip install hiplot'"
-        )
+        ) from e
 
 
 def _handle_html_env(data, html_path):

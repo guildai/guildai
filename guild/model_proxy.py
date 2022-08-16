@@ -95,7 +95,7 @@ def resolve_plugin_model_op(opspec):
         try:
             model_op = plugin.resolve_model_op(opspec)
         except pluginlib.ModelOpResolutionError as e:
-            raise OpSpecError(e)
+            raise OpSpecError(e) from e
         else:
             if model_op:
                 log.debug(

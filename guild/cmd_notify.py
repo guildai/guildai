@@ -78,7 +78,7 @@ def _send_msg(msg, port):
     try:
         sock = socket.create_connection(("*", port))
     except Exception as e:
-        raise MsgSendError(e, port)
+        raise MsgSendError(e, port) from e
     else:
         log.debug("sending msg %r to notify port %i", msg, port)
         with sock:

@@ -134,8 +134,7 @@ class MarkdownFormatter(click_util.ClickBaseHelpFormatter):
     def _heading(self, val):
         if self._heading_level <= 6:
             return "%s %s" % ("#" * self._heading_level, val)
-        else:
-            return "<h%i>%s</h%i>" % (self._heading_level, val, self._heading_level)
+        return "<h%i>%s</h%i>" % (self._heading_level, val, self._heading_level)
 
     def write_heading(self, heading):
         self.write_text(self._heading(heading))
@@ -285,11 +284,10 @@ def _write_console_help_overview(guildfile, model_desc, out):
 def _format_guildfile_dir(mf):
     if _is_cwd(mf.dir):
         return "the current directory"
-    else:
-        relpath = os.path.relpath(mf.dir)
-        if relpath[0] != '.':
-            relpath = os.path.join(".", relpath)
-        return "'%s'" % relpath
+    relpath = os.path.relpath(mf.dir)
+    if relpath[0] != '.':
+        relpath = os.path.join(".", relpath)
+    return "'%s'" % relpath
 
 
 def _is_cwd(path):
@@ -424,8 +422,7 @@ def _format_flag_desc(flag, max_flag_len):
         lines.append(_format_flag_choices(flag.choices, max_flag_len))
     if len(lines) > 1:
         return "\n\n".join(lines)
-    else:
-        return lines[0]
+    return lines[0]
 
 
 def _format_flag_choices(choices, max_flag_len):
@@ -434,10 +431,9 @@ def _format_flag_choices(choices, max_flag_len):
         out.width = out.width - max_flag_len - 4
         _format_flag_choices_dl(choices, out)
         return "\n\b\n" + out.getvalue()
-    else:
-        out.width = out.width - max_flag_len - 4 - len("Choices:")
-        _format_flag_choices_value_list(choices, out)
-        return "\n\b\n" + out.getvalue()
+    out.width = out.width - max_flag_len - 4 - len("Choices:")
+    _format_flag_choices_value_list(choices, out)
+    return "\n\b\n" + out.getvalue()
 
 
 def _choices_have_description(choices):

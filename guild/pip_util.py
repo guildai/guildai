@@ -67,7 +67,7 @@ def install(
     try:
         return subprocess.check_call(args)
     except subprocess.CalledProcessError as e:
-        raise InstallError(str(e))
+        raise InstallError(str(e)) from e
 
 
 def _reset_env_for_install():
@@ -237,15 +237,11 @@ def _distutils_scheme(
     from setuptools.dist import Distribution
 
     def running_under_virtualenv():
-        """
-        Return True if we're running inside a virtualenv, False otherwise.
-
-        """
+        """Return True if we're running inside a virtualenv, False otherwise."""
         if hasattr(sys, 'real_prefix'):
             return True
-        elif sys.prefix != getattr(sys, "base_prefix", sys.prefix):
+        if sys.prefix != getattr(sys, "base_prefix", sys.prefix):
             return True
-
         return False
 
     scheme = {}
@@ -325,15 +321,20 @@ def root_is_purelib(name, wheeldir):
 
 
 def lib_dir(
-    name, wheeldir, user=False, home=None, root=None, isolated=False, prefix=None
+    name,
+    wheeldir,
+    user=False,
+    home=None,
+    root=None,
+    isolated=False,
+    prefix=None,
 ):
     scheme = _distutils_scheme(
         "", user=user, home=home, root=root, isolated=isolated, prefix=prefix
     )
     if root_is_purelib(name, wheeldir):
         return scheme['purelib']
-    else:
-        return scheme['platlib']
+    return scheme['platlib']
 
 
 def freeze():

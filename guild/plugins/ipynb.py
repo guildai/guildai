@@ -230,12 +230,12 @@ class MissingIPython(Exception):
 def _ipython_to_python(source):
     try:
         from IPython.core.inputsplitter import IPythonInputSplitter
-    except ImportError:
+    except ImportError as e:
         log.warning(
             "IPython is required to process Notebook source code - "
             "install it by running 'pip install ipython'"
         )
-        raise MissingIPython()
+        raise MissingIPython() from e
     else:
         isp = IPythonInputSplitter(line_input_checker=False)
         python_source = isp.transform_cell(source)

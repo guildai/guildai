@@ -172,8 +172,7 @@ class GuildfileDistribution(pkg_resources.Distribution):
     def get_entry_map(self, group=None):
         if group is None:
             return self._entry_map
-        else:
-            return self._entry_map.get(group, {})
+        return self._entry_map.get(group, {})
 
     def get_modeldef(self, name):
         for modeldef_name, modeldef in self.guildfile.models.items():

@@ -49,8 +49,7 @@ class TemplateError(PublishError):
     def __str__(self):
         if hasattr(self._e, "filename"):
             return self._default_str()
-        else:
-            return super().__str__()
+        return super().__str__()
 
     def _default_str(self):
         e = self._e
@@ -242,7 +241,7 @@ def _init_file_template(path, run_dest=None, filters=None):
     try:
         return env.get_template(basename)
     except jinja2.TemplateError as e:
-        raise TemplateError(e)
+        raise TemplateError(e) from e
 
 
 def _render_template(template, vars, dest):
@@ -722,10 +721,10 @@ def _generate_template(state):
     try:
         template.generate(state.run_dest, render_vars)
     except jinja2.TemplateRuntimeError as e:
-        raise GenerateError(e, template)
+        raise GenerateError(e, template) from e
     except jinja2.exceptions.TemplateNotFound as e:
         e.message = "template not found: %s" % e.message
-        raise GenerateError(e, template)
+        raise GenerateError(e, template) from e
 
 
 def _template_config(opdef):

@@ -34,7 +34,7 @@ def decode_yaml(s):
     try:
         return yaml.safe_load(s)
     except yaml.scanner.ScannerError as e:
-        raise ValueError(e)
+        raise ValueError(e) from e
 
 
 def yaml_front_matter(filename):
@@ -54,14 +54,13 @@ def _yaml_front_matter_s(filename):
                 continue
             if trimmed == "---":
                 if reading:
-                    return "\n".join(lines)
-                else:
-                    reading = True
+                    break
+                reading = True
             elif reading:
                 lines.append(trimmed)
             else:
                 break
-    return None
+    return "\n".join(lines) if lines else None
 
 
 def patch_yaml_resolver():

@@ -195,7 +195,6 @@ def _namespace_kw(val):
 
 
 def _SimpleNamespace(kw):
-    # pylint: disable=invalid-name
     try:
         from types import SimpleNamespace as BuiltinSimpleNamespace
     except ImportError:

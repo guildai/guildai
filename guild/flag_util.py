@@ -38,16 +38,15 @@ DEFAULT_SHORTENED_PATH_LEN = 20
 def encode_flag_val(val):
     if val is True:
         return "yes"
-    elif val is False:
+    if val is False:
         return "no"
-    elif val is None:
+    if val is None:
         return "null"
-    elif isinstance(val, list):
+    if isinstance(val, list):
         return _encode_list(val)
-    elif isinstance(val, dict):
+    if isinstance(val, dict):
         return _encode_dict(val)
-    else:
-        return yaml_util.encode_yaml(val, default_flow_style=True)
+    return yaml_util.encode_yaml(val, default_flow_style=True)
 
 
 def _encode_list(val_list):
@@ -100,19 +99,18 @@ def _base_decoders_for_type(flag_type):
     """
     if flag_type in (None, "auto"):
         return []
-    elif flag_type in ("string", "path", "existing-path"):
+    if flag_type in ("string", "path", "existing-path"):
         return [(_string_type, ValueError)]
-    elif flag_type == "int":
+    if flag_type == "int":
         return [(int, ValueError)]
-    elif flag_type == "float":
+    if flag_type == "float":
         return [(float, ValueError)]
-    elif flag_type == "number":
+    if flag_type == "number":
         return _number_decoders()
-    elif flag_type == "boolean":
+    if flag_type == "boolean":
         return [(_boolean_type, (ValueError, yaml.YAMLError))]
-    else:
-        log.warning("uknown flag type %s, assuming 'auto'", flag_type)
-        return []
+    log.warning("uknown flag type %s, assuming 'auto'", flag_type)
+    return []
 
 
 def _string_type(s):
@@ -169,10 +167,9 @@ def _flag_function_or_expanded_sequence(s):
     name, args = decode_flag_function(s)
     if _is_anonymous_flag_function(name, args):
         return s
-    elif _is_sequence_flag_function(name):
+    if _is_sequence_flag_function(name):
         return _expand_sequence(name, args)
-    else:
-        raise ValueError(s)
+    raise ValueError(s)
 
 
 def _is_anonymous_flag_function(name, args):
@@ -448,8 +445,7 @@ def _maybe_truncate_dec_part(part, trunc_len):
 def split_encoded_flag_val(encoded, split_spec):
     if split_spec is True or split_spec == "shlex":
         return util.shlex_split(encoded)
-    else:
-        return _string_split(encoded, split_spec)
+    return _string_split(encoded, split_spec)
 
 
 def _string_split(encoded, sep):
@@ -460,7 +456,6 @@ def join_splittable_flag_vals(vals, split_spec=None):
     encoded_vals = [encode_flag_val(val) for val in vals]
     if split_spec in (None, True, "shlex"):
         return " ".join([util.shlex_quote(x) for x in encoded_vals])
-    elif isinstance(split_spec, six.string_types):
+    if isinstance(split_spec, six.string_types):
         return split_spec.join(encoded_vals)
-    else:
-        raise ValueError("split_spec must be None, True, or a string: %r" % split_spec)
+    raise ValueError("split_spec must be None, True, or a string: %r" % split_spec)

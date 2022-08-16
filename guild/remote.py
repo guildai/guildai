@@ -83,8 +83,8 @@ class RemoteConfig(dict):
     def __getitem__(self, key):
         try:
             return super().__getitem__(key)
-        except KeyError:
-            raise MissingRequiredConfig(key)
+        except KeyError as e:
+            raise MissingRequiredConfig(key) from e
 
 
 class RunProxy:
@@ -222,15 +222,15 @@ def for_name(name):
     remotes = user_config.get("remotes", {})
     try:
         remote = remotes[name]
-    except KeyError:
-        raise NoSuchRemote(name)
+    except KeyError as e:
+        raise NoSuchRemote(name) from e
     else:
         remote_config = RemoteConfig(remote)
         remote_type = remote_config["type"]
         try:
             T = _remote_types.one_for_name(remote_type)
-        except LookupError:
-            raise UnsupportedRemoteType(remote_type)
+        except LookupError as e:
+            raise UnsupportedRemoteType(remote_type) from e
         else:
             return T.remote_for_config(name, remote_config)
 
@@ -242,10 +242,10 @@ def for_spec(spec):
     remote_type, remote_spec = m.groups()
     try:
         T = _remote_types.one_for_name(remote_type)
-    except LookupError:
-        raise UnsupportedRemoteType(remote_type)
+    except LookupError as e:
+        raise UnsupportedRemoteType(remote_type) from e
     else:
         try:
             return T.remote_for_spec(remote_spec)
-        except NotImplementedError:
-            raise RemoteForSpecNotImplemented(remote_type, remote_spec)
+        except NotImplementedError as e:
+            raise RemoteForSpecNotImplemented(remote_type, remote_spec) from e
