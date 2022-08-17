@@ -33,7 +33,7 @@ class RScriptModelProxy:
 
     def _init_modeldef(self):
 
-        flags_data = infer_global_flags(self.script_path)
+        script_data = peek_script_guild_info(self.script_path)
 
         data = [
             {
@@ -43,7 +43,7 @@ class RScriptModelProxy:
                         "exec": """Rscript -e 'guildai:::run_with_global_flags("%s")' ${flag_args}"""
                         % (os.path.relpath(self.script_path)),
                         "flags-dest": 'globals',
-                        "flags": flags_data,
+                        "flags": script_data['global-flags'],
                         # "output-scalars": self.output_scalars,
                         # "objective": self.objective,
                         # "plugins": self.plugins,
@@ -100,8 +100,8 @@ def normalize_path(x):
     return x
 
 
-def infer_global_flags(r_script_path):
-    out = run_r("guildai:::peek_r_script_global_flags('%s')" % r_script_path)
+def peek_script_guild_info(r_script_path):
+    out = run_r("guildai:::peek_r_script_guild_info('%s')" % r_script_path)
     return json.loads(out)
 
 
