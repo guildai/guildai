@@ -34,8 +34,7 @@ def path(*names):
 def runs_dir(deleted=False):
     if deleted:
         return trash_dir("runs")
-    else:
-        return path("runs")
+    return path("runs")
 
 
 def trash_dir(name=None):
@@ -217,8 +216,7 @@ def _run_attr_cmp(x, y, attr):
 def _run_attr(run, name):
     if name in runlib.Run.__properties__:
         return getattr(run, name)
-    else:
-        return run.get(name)
+    return run.get(name)
 
 
 def delete_runs(runs, permanent=False):

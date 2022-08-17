@@ -265,8 +265,7 @@ class SSHRemote(remotelib.Remote):
     def _init_remote_run_dir(self, opspec, restart_run_id):
         if restart_run_id:
             return self._init_remote_restart_run_dir(restart_run_id)
-        else:
-            return self._init_remote_new_run_dir(opspec)
+        return self._init_remote_new_run_dir(opspec)
 
     @staticmethod
     def _contains_whl(dir):
@@ -350,8 +349,7 @@ class SSHRemote(remotelib.Remote):
     def _pre_flag(self):
         if self.use_prerelease:
             return "--pre"
-        else:
-            return ""
+        return ""
 
     def _start_op(self, remote_run_dir, opspec, restart, flags, run_id, stage, **opts):
         pidfile = ("%s/.guild/JOB" % remote_run_dir) if not stage else None

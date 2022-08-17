@@ -552,9 +552,7 @@ def _apply_default_dep_runs(opdef, op_cmd, args, flag_vals):
 def _resolver_factory(args):
     if args.remote:
         return _remote_resolver_for_source_f(args.remote)
-    else:
-        # Use default.
-        return None
+    return None
 
 
 def _dep_flag_name(dep):
@@ -1556,10 +1554,10 @@ def _objective_for_opdef(opdef):
     obj = opdef.objective
     if isinstance(obj, six.string_types):
         return obj
-    elif isinstance(obj, dict):
+    if isinstance(obj, dict):
         if "maximize" in obj:
             return "-" + obj["maximize"]
-        elif "minimize" in obj:
+        if "minimize" in obj:
             return obj["minimize"]
     return DEFAULT_OBJECTIVE
 
@@ -2019,20 +2017,18 @@ def _confirm_run(S):
 def _preview_op_action(S):
     if S.args.stage:
         return "stage"
-    elif S.args.stage_trials:
+    if S.args.stage_trials:
         return "stage trials for"
-    elif S.args.restart:
+    if S.args.restart:
         return "start"
-    else:
-        return "run"
+    return "run"
 
 
 def _preview_op_subject(S):
     op_desc = _fmt_opref(S.user_op.opref)
     if S.restart_run:
         return "%s (%s)" % (S.restart_run.id, op_desc)
-    else:
-        return op_desc
+    return op_desc
 
 
 def _fmt_opref(opref):
@@ -2054,10 +2050,9 @@ def _batch_desc_preview_part(op):
     opt_name = op.opref.to_opspec(config.cwd())
     if opt_name == "+":
         return " as a batch"
-    elif opt_name in ("random", "skopt:random"):
+    if opt_name in ("random", "skopt:random"):
         return " with random search"
-    else:
-        return " with %s optimizer" % opt_name
+    return " with %s optimizer" % opt_name
 
 
 def _batch_qualifier_preview_part(S):
@@ -2078,8 +2073,7 @@ def _preview_trials_count(S):
     trials_count = _trials_count(S)
     if trials_count == 1:
         return "1 trial"
-    else:
-        return "%i trials" % trials_count
+    return "%i trials" % trials_count
 
 
 def _trials_count(S):
@@ -2094,8 +2088,7 @@ def _op_trials(op):
         return batch_util.expand_trial_flags(
             op._batch_trials, op._op_flag_vals, op._user_flag_vals, op._random_seed
         )
-    else:
-        return batch_util.expand_flags(op._op_flag_vals, op._random_seed)
+    return batch_util.expand_flags(op._op_flag_vals, op._random_seed)
 
 
 def _is_likey_optimizer(op):
@@ -2113,8 +2106,7 @@ def _is_likey_optimizer(op):
 def _objective_preview_part(obj):
     if obj[:1] == "-":
         return "maximize %s" % obj[1:]
-    else:
-        return "minimize %s" % obj
+    return "minimize %s" % obj
 
 
 def _preview_remote_suffix(S):
@@ -2244,8 +2236,7 @@ def _find_matching_runs(S):
             S.batch_op.opref, S.batch_op._op_flag_vals
         )
         return _filter_matching_batch_runs(matching, S.user_op)
-    else:
-        return op_util.find_matching_runs(S.user_op.opref, S.user_op._op_flag_vals)
+    return op_util.find_matching_runs(S.user_op.opref, S.user_op._op_flag_vals)
 
 
 def _filter_matching_batch_runs(batch_runs, user_op):
@@ -2349,10 +2340,9 @@ def _run_op(op, args, extra_env=None):
 def _op_pidfile(args):
     if args.pidfile:
         return args.pidfile
-    elif args.background:
+    if args.background:
         return util.TempFile("guild-pid-").path
-    else:
-        return None
+    return None
 
 
 def _handle_run_exit(exit_status, op, run):

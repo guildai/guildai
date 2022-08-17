@@ -56,9 +56,8 @@ def _parse_spec(spec):
     parts = spec.split("/", 1)
     if len(parts) == 1:
         return parts[0], "/"
-    else:
-        assert len(parts) == 2, parts
-        return parts[0], "/" + parts[1]
+    assert len(parts) == 2, parts
+    return parts[0], "/" + parts[1]
 
 
 def _remote_name(bucket, root):

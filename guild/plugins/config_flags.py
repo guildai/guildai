@@ -69,12 +69,11 @@ def _load_flags(src):
     ext = _flags_src_ext(src)
     if ext in (".yaml", ".yml"):
         return _load_flags_yaml(src)
-    elif ext in (".json",):
+    if ext in (".json",):
         return _load_flags_json(src)
-    elif ext in (".ini", ".cfg"):
+    if ext in (".ini", ".cfg"):
         return _load_flags_cfg(src)
-    else:
-        raise _ConfigNotSupported(src)
+    raise _ConfigNotSupported(src)
 
 
 def _flags_src_ext(src):

@@ -127,12 +127,11 @@ def runs_for_args(args, ctx=None):
 def filtered_runs(args, ctx=None):
     if getattr(args, "remote", None):
         return remote_impl_support.filtered_runs(args)
-    else:
-        return var.runs(
-            _runs_root_for_args(args),
-            sort=["-timestamp"],
-            filter=_runs_filter(args, ctx),
-        )
+    return var.runs(
+        _runs_root_for_args(args),
+        sort=["-timestamp"],
+        filter=_runs_filter(args, ctx),
+    )
 
 
 def _runs_root_for_args(args):
@@ -142,8 +141,7 @@ def _runs_root_for_args(args):
         cli.error("--archive and --deleted cannot both be used")
     if archive:
         return archive
-    else:
-        return var.runs_dir(deleted=deleted)
+    return var.runs_dir(deleted=deleted)
 
 
 def _runs_filter(args, ctx):
@@ -185,8 +183,7 @@ def _op_run_filter(op_refs):
 def _compare_op(ref, opspec):
     if ref.startswith("^") or ref.endswith("$"):
         return _re_match(ref, opspec)
-    else:
-        return _opspec_match(ref, opspec)
+    return _opspec_match(ref, opspec)
 
 
 def _re_match(pattern, target):
@@ -230,8 +227,7 @@ def _opspec_part_match(ref, part):
         return False
     if "*" in ref:
         return _opspec_part_fnmatch(ref, part)
-    else:
-        return ref == part
+    return ref == part
 
 
 def _opspec_part_fnmatch(ref, part):
@@ -422,10 +418,9 @@ def _parse_slice(spec):
 def _slice_part(s, decr=False):
     if s is None:
         return None
-    elif decr:
+    if decr:
         return int(s) - 1
-    else:
-        return int(s)
+    return int(s)
 
 
 def _find_run_by_id(id_part, runs, ctx):
@@ -512,8 +507,7 @@ def _run_attr(run, name):
     base_attrs = ("status",)
     if name in base_attrs:
         return getattr(run, name)
-    else:
-        return run.get(name)
+    return run.get(name)
 
 
 def _apply_batch_proto(run, data):
@@ -920,8 +914,7 @@ def _scalar_val(s, val_key, step_key, format_json):
     step = s[step_key]
     if format_json:
         return val, step
-    else:
-        return _format_scalar_val(val, step)
+    return _format_scalar_val(val, step)
 
 
 def _format_scalar_val(val, step):
@@ -1010,10 +1003,8 @@ def _tuple_lists_to_dict(data):
     if isinstance(data, list):
         if data and isinstance(data[0], tuple):
             return {name: _tuple_lists_to_dict(val) for name, val in data}
-        else:
-            return [_tuple_lists_to_dict(val) for val in data]
-    else:
-        return data
+        return [_tuple_lists_to_dict(val) for val in data]
+    return data
 
 
 def _print_run_info_ordered(data):
@@ -1060,8 +1051,7 @@ def _print_run_info_dict(name, val):
 def _sort_run_info_attr(name, val):
     if name == "scalars":
         return _sort_run_info_scalars(val)
-    else:
-        return sorted(val.items())
+    return sorted(val.items())
 
 
 def _sort_run_info_scalars(val):
@@ -1143,35 +1133,34 @@ def _set_labels(args, ctx):
 def _set_labels_preview(args):
     if args.set:
         return "You are about to label the following runs with '%s':" % args.set
-    elif args.prepend:
+    if args.prepend:
         return (
             "You are about to prepend '%s' to the label of the following runs:"
             % args.prepend
         )
-    elif args.append:
+    if args.append:
         return (
             "You are about to append '%s' to the label of the following runs:"
             % args.append
         )
-    elif args.remove:
+    if args.remove:
         return (
             "You are about to remove '%s' from the label of the following runs:"
             % args.remove
         )
-    elif args.clear:
+    if args.clear:
         return "You are about to clear the label of the following runs:"
-    else:
-        assert False, args
+    assert False, args
 
 
 def _label_for_run(run, args):
     if args.set:
         return format_run_label(args.set, run)
-    elif args.prepend:
+    if args.prepend:
         return "%s %s" % (format_run_label(args.prepend, run), _run_label(run))
-    elif args.append:
+    if args.append:
         return "%s %s" % (_run_label(run), format_run_label(args.append, run))
-    elif args.remove:
+    if args.remove:
         return _remove_label_parts(args.remove, _run_label(run))
     assert False, args
 
@@ -1384,8 +1373,7 @@ def push(args, ctx):
 def _delete_clause(args):
     if args.delete:
         return " with delete"
-    else:
-        return ""
+    return ""
 
 
 def pull(args, ctx):
@@ -1494,11 +1482,10 @@ def select_run(args, ctx=None):
     _check_select_run_args(args, ctx)
     if args.min:
         return _select_min_run(args, ctx, args.min)
-    elif args.max:
+    if args.max:
         return _select_min_run(args, ctx, args.max, reverse=True)
-    else:
-        args.run = args.runs[0] if args.runs else None
-        return one_run(args, ctx)
+    args.run = args.runs[0] if args.runs else None
+    return one_run(args, ctx)
 
 
 def _check_select_run_args(args, ctx):
@@ -1545,9 +1532,9 @@ def _colspec_val_f(colspec):
         col = cols[0]
         if isinstance(col, query.Scalar):
             return _scalar_val_f(col)
-        elif isinstance(col, query.Flag):
+        if isinstance(col, query.Flag):
             return _flag_val_f(col)
-        elif isinstance(col, query.Attr):
+        if isinstance(col, query.Attr):
             return _attr_val_f(col)
         assert False, col
 
@@ -1819,15 +1806,13 @@ def _list_runs_comments(runs, comment_index_format=True):
 def _col1_for_comments_header(comment_index_format):
     if comment_index_format:
         return "short_id"
-    else:
-        return "index"
+    return "index"
 
 
 def _fg_for_comments_header(comment_index_format):
     if comment_index_format:
         return "yellow"
-    else:
-        return None
+    return None
 
 
 def _run_comments_detail_cb(comment_index_format):
@@ -1865,8 +1850,7 @@ def _format_comment_header(index, comment, comment_index_format):
     time = _format_comment_time(comment)
     if comment_index_format:
         return "[%i] %s %s" % (index, user, time)
-    else:
-        return "  %s %s" % (user, time)
+    return "  %s %s" % (user, time)
 
 
 def _format_comment_user(comment):

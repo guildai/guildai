@@ -80,27 +80,25 @@ def _check_non_output_args(args):
 def _path_root(args, run):
     if args.sourcecode:
         return run.guild_path("sourcecode")
-    else:
-        return run.path
+    return run.path
 
 
 def _open_f(args):
     if args.cmd:
         return _subproc_f(args.cmd)
-    elif args.shell or args.shell_cmd:
+    if args.shell or args.shell_cmd:
         return _shell_f(args.shell_cmd)
-    elif os.name == "nt":
+    if os.name == "nt":
         return os.startfile
-    elif sys.platform.startswith("darwin"):
+    if sys.platform.startswith("darwin"):
         return _subproc_f("open")
-    elif os.name == "posix":
+    if os.name == "posix":
         return _subproc_f("xdg-open")
-    else:
-        cli.error(
-            "unsupported platform: %s %s\n"
-            "Try --cmd to explicitly provide a command or "
-            "'guild open --help' for more information." % (sys.platform, os.name)
-        )
+    cli.error(
+        "unsupported platform: %s %s\n"
+        "Try --cmd to explicitly provide a command or "
+        "'guild open --help' for more information." % (sys.platform, os.name)
+    )
 
 
 def _subproc_f(prog):

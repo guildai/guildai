@@ -289,8 +289,7 @@ class EC2Remote(ssh_remote.SSHRemote):
         maybe_path = remote_util.config_path(self.public_key)
         if os.path.exists(maybe_path):
             return open(maybe_path, "r").read()
-        else:
-            return self.public_key
+        return self.public_key
 
     def _init_script(self):
         return self.init or ""

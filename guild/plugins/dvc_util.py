@@ -325,10 +325,9 @@ def _load_metrics(path):
     ext = os.path.splitext(path)[1]
     if ext in (".yml", "yaml"):
         return _load_yaml(path)
-    elif ext in (".json",):
+    if ext in (".json",):
         return _load_json(path)
-    else:
-        raise ValueError("unsupported metrics type in %s" % path)
+    raise ValueError("unsupported metrics type in %s" % path)
 
 
 def _load_yaml(path):

@@ -78,20 +78,18 @@ class ResourceDef(guildfile_schema.ResourceDefSchema):
     def _init_sources(self, data):
         if isinstance(data, list):
             return [self._init_resource_source(src_data) for src_data in data]
-        else:
-            raise ResourceFormatError(
-                "invalid sources value for resource '%s': %r" % (self.fullname, data)
-            )
+        raise ResourceFormatError(
+            "invalid sources value for resource '%s': %r" % (self.fullname, data)
+        )
 
     def _init_resource_source(self, data):
         if isinstance(data, dict):
             return self._resource_source_for_data(data)
-        elif isinstance(data, str):
+        if isinstance(data, str):
             return self._source_for_type(self.default_source_type, data, {})
-        else:
-            raise ResourceFormatError(
-                "invalid source for resource '%s': %s" % (self.fullname, data)
-            )
+        raise ResourceFormatError(
+            "invalid source for resource '%s': %s" % (self.fullname, data)
+        )
 
     def _resource_source_for_data(self, data):
         data_copy = copy.copy(data)
@@ -117,14 +115,13 @@ class ResourceDef(guildfile_schema.ResourceDefSchema):
         data = self._coerce_source_data(data)
         if type == "file":
             return ResourceSource(self, "file:%s" % val, **data)
-        elif type == "url":
+        if type == "url":
             return ResourceSource(self, val, **data)
-        elif type == "module":
+        if type == "module":
             return ResourceSource(self, "module:%s" % val, **data)
-        elif type == "config":
+        if type == "config":
             return ResourceSource(self, "config:%s" % val, **data)
-        else:
-            raise AssertionError(type, val, data)
+        raise AssertionError(type, val, data)
 
     @staticmethod
     def _coerce_source_data(data):
@@ -138,7 +135,7 @@ class ResourceDef(guildfile_schema.ResourceDefSchema):
 def _coerce_resdef(data) -> Dict[str, Any]:
     if isinstance(data, dict):
         return data
-    elif isinstance(data, list):
+    if isinstance(data, list):
         return {"sources": data}
     raise ResourceDefValueError()
 
@@ -288,24 +285,22 @@ def _init_rename_spec(data):
     if isinstance(data, six.string_types):
         pattern, repl = _split_rename_spec(data)
         return RenameSpec(pattern, repl)
-    elif isinstance(data, dict):
+    if isinstance(data, dict):
         return RenameSpec(data.get("pattern", ""), data.get("repl", ""))
-    else:
-        raise ResourceFormatError(
-            "invalid rename spec %r: expected string or map" % data
-        )
+    raise ResourceFormatError(
+        "invalid rename spec %r: expected string or map" % data
+    )
 
 
 def _split_rename_spec(spec):
     parts = util.shlex_split(spec)
     if len(parts) == 2:
         return parts
-    elif len(parts) == 1:
+    if len(parts) == 1:
         return ".*", parts[0]
-    else:
-        raise ResourceFormatError(
-            "invalid rename spec %r: expected 'PATTERN REPL' or 'NAME'" % spec
-        )
+    raise ResourceFormatError(
+        "invalid rename spec %r: expected 'PATTERN REPL' or 'NAME'" % spec
+    )
 
 
 def _init_target_path(target_path_arg, path_arg, context):
@@ -328,12 +323,11 @@ def _init_target_path(target_path_arg, path_arg, context):
 def _coerce_list(val, desc):
     if val is None:
         return []
-    elif isinstance(val, six.string_types):
+    if isinstance(val, six.string_types):
         return [val]
-    elif isinstance(val, list):
+    if isinstance(val, list):
         return val
-    else:
-        raise ResourceFormatError("invalid %s val: %s" % (desc, val))
+    raise ResourceFormatError("invalid %s val: %s" % (desc, val))
 
 
 # See https://github.com/samuelcolvin/pydantic/issues/1298

@@ -78,16 +78,15 @@ def resolver_class_for_source(source):
     scheme = source.parsed_uri.scheme
     if scheme == "file":
         return FileResolver
-    elif scheme in ["http", "https"]:
+    if scheme in ["http", "https"]:
         return URLResolver
-    elif scheme == "module":
+    if scheme == "module":
         return ModuleResolver
-    elif scheme == "operation":
+    if scheme == "operation":
         return OperationResolver
-    elif scheme == "config":
+    if scheme == "config":
         return ConfigResolver
-    else:
-        return _try_plugins_for_resolver_class(source)
+    return _try_plugins_for_resolver_class(source)
 
 
 def _try_plugins_for_resolver_class(source):
@@ -313,8 +312,7 @@ def _run_id_prefix_filter(run_id_prefix):
     if run_id_prefix:
         assert isinstance(run_id_prefix, six.string_types), run_id_prefix
         return lambda run: run.id.startswith(run_id_prefix)
-    else:
-        return lambda _run: True
+    return lambda _run: True
 
 
 def _run_status_filter(status):
@@ -411,12 +409,11 @@ class ConfigResolver(FileResolver):
         ext = _config_file_ext(path)
         if ext in cls.YAML_EXT:
             return cls._yaml_load
-        elif ext in cls.JSON_EXT:
+        if ext in cls.JSON_EXT:
             return cls._json_load
-        elif ext in cls.CFG_EXT:
+        if ext in cls.CFG_EXT:
             return cls._cfg_load
-        else:
-            return None
+        return None
 
     @staticmethod
     def _yaml_load(path):
@@ -515,12 +512,11 @@ class ConfigResolver(FileResolver):
         ext = _config_file_ext(path)
         if ext in cls.YAML_EXT:
             return yaml_util.encode_yaml
-        elif ext in cls.JSON_EXT:
+        if ext in cls.JSON_EXT:
             return cls._json_encode
-        elif ext in cls.CFG_EXT:
+        if ext in cls.CFG_EXT:
             return cls._cfg_encode
-        else:
-            assert False, path
+        assert False, path
 
     @staticmethod
     def _json_encode(config_data):
@@ -549,15 +545,13 @@ def resolve_source_files(source_path, source, unpack_dir):
     log.debug("resolving source files for '%s' from %s", source, source_path)
     if os.path.isdir(source_path):
         return _resolve_source_dir_files(source_path, source)
-    else:
-        return _resolve_source_file_or_archive_files(source_path, source, unpack_dir)
+    return _resolve_source_file_or_archive_files(source_path, source, unpack_dir)
 
 
 def _resolve_source_dir_files(source_path, source):
     if source.select:
         return _selected_dir_files(source_path, source.select)
-    else:
-        return _root_dir_files(source_path)
+    return _root_dir_files(source_path)
 
 
 def _selected_dir_files(source_path, select):
@@ -616,10 +610,8 @@ def _resolve_source_file_or_archive_files(source_path, source, unpack_dir):
         archive_type = _archive_type(source_path, source)
         if archive_type:
             return _resolve_archive_files(source_path, archive_type, source, unpack_dir)
-        else:
-            return [source_path]
-    else:
         return [source_path]
+    return [source_path]
 
 
 def _verify_path(path, sha256):
@@ -647,12 +639,11 @@ def _archive_type(source_path, source):
     parts = source_path.lower().split(".")
     if parts[-1] == "zip":
         return "zip"
-    elif parts[-1] == "tar" or parts[-1] == "tgz" or parts[-2:-1] == ["tar"]:
+    if parts[-1] == "tar" or parts[-1] == "tgz" or parts[-2:-1] == ["tar"]:
         return "tar"
-    elif parts[-1] == "gz":
+    if parts[-1] == "gz":
         return "gzip"
-    else:
-        return None
+    return None
 
 
 def _resolve_archive_files(source_path, archive_type, source, unpack_dir):
@@ -674,8 +665,7 @@ def _resolve_archive_files(source_path, archive_type, source, unpack_dir):
     unpacked = _ensure_unpacked(source_path, archive_type, unpack_dir)
     if source.select:
         return _selected_source_paths(unpack_dir, unpacked, source.select)
-    else:
-        return _root_paths(unpack_dir, unpacked)
+    return _root_paths(unpack_dir, unpacked)
 
 
 def _ensure_unpacked(source_path, archive_type, unpack_dir):
@@ -705,15 +695,14 @@ def _unpacked_cache_path(unpack_dir, source_path):
 def _unpack(source_path, archive_type, unpack_dir):
     if archive_type == "zip":
         return _unzip(source_path, unpack_dir)
-    elif archive_type == "tar":
+    if archive_type == "tar":
         return _untar(source_path, unpack_dir)
-    elif archive_type == "gzip":
+    if archive_type == "gzip":
         return _gunzip(source_path, unpack_dir)
-    else:
-        raise ResolutionError(
-            "'%s' cannot be unpacked "
-            "(unsupported archive type '%s')" % (source_path, archive_type)
-        )
+    raise ResolutionError(
+        "'%s' cannot be unpacked "
+        "(unsupported archive type '%s')" % (source_path, archive_type)
+    )
 
 
 def _unzip(src, unpack_dir):
@@ -791,8 +780,7 @@ def _gzip_extract_fun(src):
 def _strip_leading_dotdir(path):
     if path[:2] == "./":
         return path[2:]
-    else:
-        return path
+    return path
 
 
 def _gen_unpack(unpack_dir, list_members, member_name, extract):
@@ -899,10 +887,9 @@ def _resdef_dir(resdef):
     """
     if hasattr(resdef, "modeldef"):
         return resdef.modeldef.guildfile.dir
-    elif hasattr(resdef, "dist"):
+    if hasattr(resdef, "dist"):
         return resdef.dist.guildfile.dir
-    else:
-        raise AssertionError(resdef)
+    raise AssertionError(resdef)
 
 
 def _resdef_parent_dirs(resdef):

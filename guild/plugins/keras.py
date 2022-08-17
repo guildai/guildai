@@ -87,7 +87,7 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
         for call in reversed(script.calls):
             if call.name == "fit":
                 return call
-            elif call.name == "predict":
+            if call.name == "predict":
                 predict = call
         return predict
 

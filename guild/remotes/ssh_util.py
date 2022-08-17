@@ -43,8 +43,7 @@ def ssh_ping(
 def _full_host(host, user):
     if user:
         return "%s@%s" % (user, host)
-    else:
-        return host
+    return host
 
 
 def ssh_cmd(
@@ -129,8 +128,7 @@ def rsync_copy_to(
 def format_rsync_host_path(host, path, user):
     if user:
         return "{}@{}:{}".format(user, host, path)
-    else:
-        return "{}:{}".format(host, path)
+    return "{}:{}".format(host, path)
 
 
 def rsync_ssh_opts(private_key=None, connect_timeout=None, port=None, proxy=None):

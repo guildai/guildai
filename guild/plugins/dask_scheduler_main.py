@@ -168,19 +168,17 @@ def _port_int(s):
 def _dashboard_address_for_typed_val(val):
     if val is False:
         return None
-    elif isinstance(val, int):
+    if isinstance(val, int):
         return ":%s" % val
-    else:
-        return val
+    return val
 
 
 def _workers_log_entry_suffix(args):
     if args.workers is None:
         return ""
-    elif args.workers == 1:
+    if args.workers == 1:
         return " with 1 worker"
-    else:
-        return " with %i workers" % args.workers
+    return " with %i workers" % args.workers
 
 
 def _cluster_resources(args):

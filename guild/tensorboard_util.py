@@ -253,10 +253,9 @@ def dark_mode_middleware():
         def app(env, start_resp):
             if env["PATH_INFO"] == "/":
                 return _style_tb_for_dark_mode(upstream, env, start_resp)
-            elif env["PATH_INFO"] == "/index.js":
+            if env["PATH_INFO"] == "/index.js":
                 return _disable_dark_mode_toggle(upstream, env, start_resp)
-            else:
-                return upstream(env, start_resp)
+            return upstream(env, start_resp)
 
         return app
 

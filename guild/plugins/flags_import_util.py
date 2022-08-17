@@ -100,10 +100,9 @@ def _flags_to_import(opdef, all_marker):
     if opdef.flags_import is None:
         # If flags-import is not configured, import all defined flags.
         return {flag.name for flag in opdef.flags}
-    elif isinstance(opdef.flags_import, list):
+    if isinstance(opdef.flags_import, list):
         return set(opdef.flags_import)
-    else:
-        return set([opdef.flags_import])
+    return set([opdef.flags_import])
 
 
 def _flags_to_skip(opdef):
@@ -133,12 +132,11 @@ def _encode_splittable_list(l):
 def _flag_type(val):
     if isinstance(val, six.string_types):
         return "string"
-    elif isinstance(val, bool):
+    if isinstance(val, bool):
         return "boolean"
-    elif isinstance(val, (int, float)):
+    if isinstance(val, (int, float)):
         return "number"
-    else:
-        return None
+    return None
 
 
 def _flag_arg_split(val):

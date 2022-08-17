@@ -65,17 +65,15 @@ def _tf_version(tf, state):
 def _cuda_support(tf):
     if tf.test.is_built_with_cuda():
         return "yes"
-    else:
-        return "no"
+    return "no"
 
 
 def _gpu_available(tf):
     if tf.test.is_gpu_available():
         return "yes"
-    elif tf.test.is_built_with_cuda():
+    if tf.test.is_built_with_cuda():
         return _warn("NO (CUDA support is enabled but GPU is not available)")
-    else:
-        return "no"
+    return "no"
 
 
 def _print_cuda_info():

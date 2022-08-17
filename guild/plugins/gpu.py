@@ -62,9 +62,8 @@ class GPUPlugin(SummaryPlugin):
         result = p.wait()
         if result == 0:
             return raw_lines
-        else:
-            self.log.debug("reading GPU stats (smi output: '%s')", raw_lines)
-            return []
+        self.log.debug("reading GPU stats (smi output: '%s')", raw_lines)
+        return []
 
     @staticmethod
     def _calc_gpu_stats(raw):
@@ -90,12 +89,11 @@ def _stats_cmd():
     nvidia_smi = util.which("nvidia-smi")
     if not nvidia_smi:
         return None
-    else:
-        return [
-            nvidia_smi,
-            "--format=csv,noheader",
-            "--query-gpu=%s" % ",".join(STATS),
-        ]
+    return [
+        nvidia_smi,
+        "--format=csv,noheader",
+        "--query-gpu=%s" % ",".join(STATS),
+    ]
 
 
 def _read_csv_lines(raw_in):
@@ -107,8 +105,7 @@ def _parse_raw(raw, parser):
     stripped = raw.strip()
     if stripped == "[Not Supported]":
         return None
-    else:
-        return parser(stripped)
+    return parser(stripped)
 
 
 def _parse_pstate(val):
@@ -123,28 +120,25 @@ def _parse_int(val):
 def _parse_percent(val):
     if val.endswith(" %"):
         return float(val[0:-2]) / 100
-    elif "N/A" in val:
+    if "N/A" in val:
         return None
-    else:
-        assert False, repr(val)
+    assert False, repr(val)
 
 
 def _parse_bytes(val):
     if val.endswith(" MiB"):
         return int(val[0:-4]) * 1024 * 1024
-    elif "N/A" in val:
+    if "N/A" in val:
         return None
-    else:
-        assert False, repr(val)
+    assert False, repr(val)
 
 
 def _parse_watts(val):
     if val.endswith(" W"):
         return float(val[0:-2])
-    elif "N/A" in val:
+    if "N/A" in val:
         return None
-    else:
-        assert False, repr(val)
+    assert False, repr(val)
 
 
 def _gpu_val_key(index, name):

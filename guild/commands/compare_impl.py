@@ -332,13 +332,12 @@ def _resolve_run_cols(run, cols, index):
 def _col_data(run, col, index):
     if isinstance(col, query.Flag):
         return index.run_flag(run, col.name)
-    elif isinstance(col, query.Attr):
+    if isinstance(col, query.Attr):
         return index.run_attr(run, col.name)
-    elif isinstance(col, query.Scalar):
+    if isinstance(col, query.Scalar):
         prefix, tag = col.split_key()
         return index.run_scalar(run, prefix, tag, col.qualifier, col.step)
-    else:
-        assert False, col
+    assert False, col
 
 
 def _table_header(table):

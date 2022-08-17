@@ -92,7 +92,7 @@ class Config:
         # installation of Guild package reqs)
         if args.requirement:
             return args.requirement
-        elif not args.no_reqs:
+        if not args.no_reqs:
             default_reqs = os.path.join(config.cwd(), "requirements.txt")
             if os.path.exists(default_reqs):
                 return (default_reqs,)
@@ -204,8 +204,7 @@ def _implicit_guild_version():
     reqs_file = _guild_reqs_file()
     if reqs_file:
         return "from source (%s)" % os.path.dirname(reqs_file)
-    else:
-        return guild.__version__
+    return guild.__version__
 
 
 def main(args):
@@ -596,8 +595,7 @@ def _initialized_msg(config):
 def _source_cmd(env_dir):
     if os.path.exists(os.path.join(env_dir, "Scripts", "activate.bat")):
         return _windows_activate_cmd(env_dir)
-    else:
-        return _default_source_cmd(env_dir)
+    return _default_source_cmd(env_dir)
 
 
 def _windows_activate_cmd(env_dir):
@@ -608,9 +606,7 @@ def _default_source_cmd(env_dir):
     env_parent = os.path.dirname(env_dir)
     if env_parent != os.getcwd():
         return "source guild-env {}".format(env_dir)
-    else:
-        env_name = os.path.basename(env_dir)
-        if env_name == "venv":
-            return "source guild-env"
-        else:
-            return "source guild-env {}".format(env_name)
+    env_name = os.path.basename(env_dir)
+    if env_name == "venv":
+        return "source guild-env"
+    return "source guild-env {}".format(env_name)

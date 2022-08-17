@@ -129,10 +129,9 @@ def flag_dims(flags):
 def _flag_dim(val, flag_name):
     if isinstance(val, list):
         return _categorical_dim(val, None)
-    elif isinstance(val, six.string_types):
+    if isinstance(val, six.string_types):
         return _try_function_dim(val, flag_name)
-    else:
-        raise ValueError(val, flag_name)
+    raise ValueError(val, flag_name)
 
 
 def _categorical_dim(vals, initial):
@@ -156,12 +155,11 @@ def function_dim(func_name, args, flag_name):
         func_name = "uniform"
     if func_name == "uniform":
         return _uniform_dim(args, func_name, flag_name)
-    elif func_name == "loguniform":
+    if func_name == "loguniform":
         return _real_dim(args, "log-uniform", func_name, flag_name)
-    else:
-        raise InvalidSearchDimension(
-            "unknown function '%s' used for flag %s" % (func_name, flag_name)
-        )
+    raise InvalidSearchDimension(
+        "unknown function '%s' used for flag %s" % (func_name, flag_name)
+    )
 
 
 def _uniform_dim(args, func_name, flag_name):
@@ -188,12 +186,11 @@ def _real_dim(args, prior, func_name, flag_name):
 def _dim_args_and_initial(args, func_name, flag_name):
     if len(args) == 2:
         return args, None
-    elif len(args) == 3:
+    if len(args) == 3:
         return args[:2], args[2]
-    else:
-        raise InvalidSearchDimension(
-            "%s requires 2 or 3 args, got %s for flag %s" % (func_name, args, flag_name)
-        )
+    raise InvalidSearchDimension(
+        "%s requires 2 or 3 args, got %s for flag %s" % (func_name, args, flag_name)
+    )
 
 
 ###################################################################
@@ -361,12 +358,11 @@ def _log_seq_trial(
 def _random_start_explanation(random_starts, runs_count, x0, prev_trials, objective):
     if runs_count < random_starts:
         return "%s of %s" % (runs_count + 1, random_starts)
-    elif not prev_trials:
+    if not prev_trials:
         return "missing previous trials"
-    elif not x0:
+    if not x0:
         return "cannot find objective '%s'" % _format_objective(objective)
-    else:
-        assert False, (random_starts, runs_count, x0, prev_trials, objective)
+    assert False, (random_starts, runs_count, x0, prev_trials, objective)
 
 
 def _format_objective(objective):

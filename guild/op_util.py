@@ -568,8 +568,7 @@ def _is_default_cwd_model(model, cwd_guildfile):
 def _match_model_ref(model_ref, model):
     if "/" in model_ref:
         return model_ref in model.fullname
-    else:
-        return model_ref in model.name
+    return model_ref in model.name
 
 
 def _complete_match_one_model(model_ref, matches):
@@ -775,17 +774,16 @@ def _apply_template_transform(t, val):
         name, arg = parts
     if name[:1] == "%":
         return _t_python_format(val, name)
-    elif name == "default":
+    if name == "default":
         return _t_default(val, arg)
-    elif name == "basename":
+    if name == "basename":
         if arg:
             log.warning("ignoring argment to baseline in %r", t)
         return _t_basename(val)
-    elif name == "unquote":
+    if name == "unquote":
         return _t_unquote(val)
-    else:
-        log.warning("unsupported template transform: %r", t)
-        return "#error#"
+    log.warning("unsupported template transform: %r", t)
+    return "#error#"
 
 
 def _t_python_format(val, fmt):
@@ -937,10 +935,9 @@ def _sourcecode_config_rules(config, root):
 def _rule_for_select_spec(spec, root):
     if spec.type == "include":
         return _file_util_rule(file_util.include, spec, root)
-    elif spec.type == "exclude":
+    if spec.type == "exclude":
         return _file_util_rule(file_util.exclude, spec, root)
-    else:
-        assert False, spec.type
+    assert False, spec.type
 
 
 def _file_util_rule(rule_f, spec, root):
@@ -1075,14 +1072,13 @@ def _opdef_exec_and_run_attrs(opdef):
         if opdef.steps:
             log.warning("operation 'exec' and 'steps' both specified, ignoring 'steps'")
         return opdef.exec_, None
-    elif opdef.main:
+    if opdef.main:
         if opdef.steps:
             log.warning("operation 'main' and 'steps' both specified, ignoring 'steps'")
         return DEFAULT_EXEC, None
-    elif opdef.steps:
+    if opdef.steps:
         return STEPS_EXEC, _run_attrs_for_steps(opdef)
-    else:
-        raise InvalidOpDef(opdef, "must define either exec, main, or steps")
+    raise InvalidOpDef(opdef, "must define either exec, main, or steps")
 
 
 def _run_attrs_for_steps(opdef):
@@ -1244,37 +1240,35 @@ def coerce_flag_value(val, flagdef):
         return val
     if isinstance(val, list):
         return [coerce_flag_value(x, flagdef) for x in val]
-    elif flagdef.arg_split:
+    if flagdef.arg_split:
         return _coerce_flag_val_split_parts(val, flagdef)
-    else:
-        return _coerce_typed_flag_value(val, flagdef)
+    return _coerce_typed_flag_value(val, flagdef)
 
 
 def _coerce_typed_flag_value(val, flagdef):
     assert flagdef.type is not None
     if flagdef.type == "string":
         return _try_coerce_flag_val(val, str, flagdef)
-    elif flagdef.type == "int":
+    if flagdef.type == "int":
         if isinstance(val, float):
             raise ValueError("invalid value for type 'int'")
         return _try_coerce_flag_val(val, int, flagdef)
-    elif flagdef.type == "float":
+    if flagdef.type == "float":
         return _try_coerce_flag_val(val, float, flagdef)
-    elif flagdef.type == "boolean":
+    if flagdef.type == "boolean":
         return _try_coerce_flag_val(val, bool, flagdef)
-    elif flagdef.type == "number":
+    if flagdef.type == "number":
         if isinstance(val, (float, int)):
             return val
         return _try_coerce_flag_val(val, (int, float), flagdef)
-    elif flagdef.type in ("path", "existing-path"):
+    if flagdef.type in ("path", "existing-path"):
         return _resolve_rel_path(val)
-    else:
-        log.warning(
-            "unknown flag type '%s' for %s - cannot coerce",
-            flagdef.type,
-            flagdef.name,
-        )
-        return val
+    log.warning(
+        "unknown flag type '%s' for %s - cannot coerce",
+        flagdef.type,
+        flagdef.name,
+    )
+    return val
 
 
 def _coerce_flag_val_split_parts(val, flagdef):
@@ -1670,10 +1664,9 @@ def _read_trials(path):
     ext = os.path.splitext(path)[1].lower()
     if ext in (".json", ".yml", ".yaml"):
         return _yaml_trials(path)
-    elif ext in ("", ".csv"):
+    if ext in ("", ".csv"):
         return _csv_trials(path)
-    else:
-        raise BatchFileError(path, "unsupported extension")
+    raise BatchFileError(path, "unsupported extension")
 
 
 def _yaml_trials(path):

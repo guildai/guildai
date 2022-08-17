@@ -69,10 +69,9 @@ class Formatter(logging.Formatter):
             return s
         if level >= logging.ERROR:
             return "\033[31m%s\033[0m" % s
-        elif level >= logging.WARNING:
+        if level >= logging.WARNING:
             return "\033[33m%s\033[0m" % s
-        else:
-            return s
+        return s
 
     @staticmethod
     def _maybe_strip_ansi(s):
@@ -98,8 +97,7 @@ class ConsoleLogHandler(logging.StreamHandler):
         fmt = self._formatters.get(record.levelname) or self._formatters.get("_")
         if fmt:
             return fmt.format(record)
-        else:
-            return super().format(record)
+        return super().format(record)
 
 
 def init_logging(level=None, formats=None):

@@ -398,8 +398,7 @@ def _source_target_path(source, source_path, source_origin):
                 target_path_attr,
             )
         return os.path.relpath(os.path.dirname(source_path), source_origin)
-    else:
-        return target_path_attr or source.resdef.target_path or ""
+    return target_path_attr or source.resdef.target_path or ""
 
 
 def _link_to_source(source_path, link, replace_existing=False):
