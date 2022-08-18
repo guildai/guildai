@@ -143,8 +143,9 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
 
     class Config:
         underscore_attrs_are_private = True
-        # this is different from the schema base class, which errors on extra keys. Here we
-        #     want the warning to show up during parsing, but not to error.
+        # This is different from the schema base class, which errors
+        # on extra keys. Here we want the warning to show up during
+        # parsing, but not to error.
         extra = 'ignore'
 
     def __init__(
