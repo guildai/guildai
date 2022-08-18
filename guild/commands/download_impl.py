@@ -34,10 +34,10 @@ def main(args):
         _handle_download_error(e, source)
     else:
         sha256 = util.file_sha256(source_path, use_cache=False)
-        print("{}  {}".format(sha256, source_path))
+        print(f"{sha256}  {source_path}")
 
 
 def _handle_download_error(e, source):
     if log.getEffectiveLevel() <= logging.DEBUG:
         log.exception("downloading %s", source)
-    cli.error("error downloading %s: %s" % (source, e))
+    cli.error(f"error downloading {source}: {e}")

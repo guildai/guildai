@@ -140,7 +140,7 @@ class DaskModelProxy:
                 },
             }
         ]
-        gf = guildfile.Guildfile(data, src="<%s>" % self.__class__.__name__)
+        gf = guildfile.Guildfile(data, src=f"<{self.__class__.__name__}>")
         return gf.models[self.name]
 
     @staticmethod

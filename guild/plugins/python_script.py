@@ -118,9 +118,8 @@ class PythonScriptModelProxy:
         return gf.models[self.name]
 
     def _exec_attr(self):
-        return "${python_exe} -um guild.op_main %s ${flag_args}" % shlex_quote(
-            self._script_module()
-        )
+        quoted_module = shlex_quote(self._script_module())
+        return f"${{python_exe}} -um guild.op_main {quoted_module} ${{flag_args}}"
 
     def _script_module(self):
         return python_util.script_module(self.script_path, config.cwd())

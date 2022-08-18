@@ -98,9 +98,8 @@ def _pip_info(pkg):
     except namespace.NamespaceError as e:
         terms = " ".join(pkg.split("/")[1:])
         cli.error(
-            "unsupported namespace %s in '%s'\n"
-            "Try 'guild search %s -a' to find matching packages."
-            % (e.value, pkg, terms)
+            f"unsupported namespace {e.value} in '{pkg}'\n"
+            f"Try 'guild search {terms} -a' to find matching packages."
         )
 
 

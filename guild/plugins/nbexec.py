@@ -168,9 +168,9 @@ def _find_notebook(notebook):
         if os.path.exists(maybe_notebook):
             return maybe_notebook
     log.error(
-        "cannot find notebook '%s' - make sure it's copied as source code\n"
+        f"cannot find notebook '{notebook}' - make sure it's copied as source code\n"
         "Use 'guild run <operation> --test-sourcecode to troubleshoot source code "
-        "configuration issues" % notebook
+        "configuration issues"
     )
     sys.exit(1)
 
@@ -538,7 +538,7 @@ def _iter_notebook_output(notebook):
                 for part in output.get("text", []):
                     yield stream, part
             elif output_type == "execute_result":
-                yield sys.stdout, "Out[%s]: " % cell_execution_count
+                yield sys.stdout, f"Out[{cell_execution_count}]: "
                 data = output.get("data", {})
                 for part in data.get("text/plain", []):
                     yield sys.stdout, part
@@ -582,11 +582,7 @@ def _iter_notebook_images(notebook):
                     e,
                 )
             else:
-                filename = "%s_%s_%i.png" % (
-                    notebook_base,
-                    cell_execution_count,
-                    output_pos,
-                )
+                filename = f"{notebook_base}_{cell_execution_count}_{output_pos}.png"
                 yield filename, img_bytes
             output_pos += 1
 
@@ -605,8 +601,9 @@ def _nbconvert_html(notebook, args):
         cmd.append("--no-input")
     cmd.append(notebook_relpath)
     log.debug("jupyter-nbconvert cmd: %s", cmd)
+    omitting_desc = " (omitting input cells)" if args.html_no_input else ""
     log.info(
-        "Saving HTML%s" % (" (omitting input cells)" if args.html_no_input else "")
+        f"Saving HTML{omitting_desc}"
     )
     returncode = subprocess.call(cmd)
     if returncode != 0:

@@ -241,7 +241,7 @@ def _encode_function(flagdef, val):
     if val is not None:
         initial = flag_util.encode_flag_val(val)
         args.append(initial)
-    return "%s[%s]" % (func_name, ":".join(args))
+    return f"{func_name}[{':'.join(args)}]"
 
 
 ###################################################################

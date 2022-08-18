@@ -272,6 +272,6 @@ class SummaryCache:
         if self._logged_cannot_evaluate:
             return
         self._log.debug(
-            "cannot evaluate current step, ignoring plugin summary value: %s" % e
+            f"cannot evaluate current step, ignoring plugin summary value: {e}"
         )
         self._logged_cannot_evaluate = True

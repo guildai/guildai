@@ -74,12 +74,12 @@ def _lazy_pformat(x):
 def _stage_op_data(stage_name, project_dir):
     dvc_config = dvc_util.load_dvc_config(project_dir)
     op_data = {
-        "main": "guild.plugins.dvc_stage_main --project-dir %s %s"
-        % (
-            util.shlex_quote(project_dir),
-            util.shlex_quote(stage_name),
+        "main": (
+            "guild.plugins.dvc_stage_main "
+            f"--project-dir {util.shlex_quote(project_dir)} "
+            f"{util.shlex_quote(stage_name)}"
         ),
-        "description": "Stage '%s' imported from dvc.yaml" % stage_name,
+        "description": f"Stage '{stage_name}' imported from dvc.yaml",
     }
     _apply_stage_flags_data(stage_name, dvc_config, op_data)
     _apply_stage_deps_data(stage_name, dvc_config, op_data)
@@ -91,7 +91,7 @@ def _apply_stage_flags_data(stage, dvc_config, data):
     imports = set()
     for param_name, config_name in dvc_util.iter_stage_params(stage, dvc_config):
         if applied_flags_dest is None:
-            data["flags-dest"] = "config:%s" % config_name
+            data["flags-dest"] = f"config:{config_name}"
             imports.add(param_name)
             applied_flags_dest = config_name
         elif applied_flags_dest != config_name:
@@ -206,7 +206,7 @@ def _dvcfile_source(data, resdef):
         )
     always_pull = data_copy.pop("always-pull", False)
     remote = data_copy.pop("remote", None)
-    source = DvcResourceSource(resdef, "dvcfile:%s" % dep_spec, **data_copy)
+    source = DvcResourceSource(resdef, f"dvcfile:{dep_spec}", **data_copy)
     source.always_pull = always_pull
     source.remote = remote
     return source
@@ -219,7 +219,7 @@ def _dvcstage_source(data, resdef):
         raise resourcedef.ResourceFormatError(
             "missing spec for 'dvcstage' source attribute"
         )
-    source = resourcedef.ResourceSource(resdef, "dvcstage:%s" % dep_spec, **data_copy)
+    source = resourcedef.ResourceSource(resdef, f"dvcstage:{dep_spec}", **data_copy)
     return source
 
 
@@ -276,7 +276,7 @@ class _DvcStageResolver(resolverlib.OperationResolver):
         status = ("completed", "staged") if include_staged else ("completed",)
         run = dvc_util.marked_or_latest_run_for_stage(stage, run_id_prefix, status)
         if not run:
-            raise resolverlib.ResolutionError("no suitable run for '%s' stage" % stage)
+            raise resolverlib.ResolutionError(f"no suitable run for '{stage}' stage")
         return run
 
 

@@ -85,7 +85,7 @@ def _stage_config(stage, dvc_config):
     try:
         return _stages_config(dvc_config)[stage]
     except KeyError as e:
-        raise ValueError("no such stage: %s" % stage) from e
+        raise ValueError(f"no such stage: {stage}") from e
 
 
 def _stage_outs(stage_config):
@@ -187,14 +187,14 @@ def _ensure_git_repo(run_dir):
         _ignored = subprocess.check_output(["git", "init"], cwd=run_dir)
     except FileNotFoundError as e:
         raise DvcInitError(
-            "cannot initialize Git in run directory %s "
+            f"cannot initialize Git in run directory {run_dir} "
             "(required for 'dvc pull') - is Git installed and "
-            "available on the path?" % run_dir
+            "available on the path?"
         ) from e
     except subprocess.CalledProcessError as e:
         raise DvcInitError(
-            "error initializing Git repo in run directory %s "
-            "(required for 'dvc pull')" % run_dir
+            f"error initializing Git repo in run directory {run_dir} "
+            "(required for 'dvc pull')"
         ) from e
 
 
@@ -235,7 +235,7 @@ def _try_copy_dvc_config_in(project_dir, run_dir):
 def _no_dvc_config_resolution_error(project_dir, _run_dir):
     raise DvcInitError(
         "cannot find DvC config ('.dvc/config' or 'dvc.config.in') "
-        "in %s (required for 'dvc pull')" % os.path.relpath(project_dir)
+        f"in {os.path.relpath(project_dir)} (required for 'dvc pull')"
     )
 
 
@@ -262,8 +262,8 @@ def _ensure_dvc_file(dep, run_dir, project_dir):
     src = os.path.join(project_dir, dvc_file_name)
     if not os.path.exists(src):
         raise DvcPullError(
-            "cannot find DvC file %s in %s (required for 'dvc pull')"
-            % (dvc_file_name, os.path.relpath(project_dir))
+            f"cannot find DvC file {dvc_file_name} in "
+            f"{os.path.relpath(project_dir)} (required for 'dvc pull')"
         )
     util.ensure_dir(os.path.dirname(dest))
     util.copyfile(src, dest)
@@ -281,15 +281,15 @@ def _pull_dep(dep, run_dir, remote=None):
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("cmd: %s", cmd)
         raise DvcPullError(
-            "error fetching DvC resource %s: 'dvc pull' exited with "
-            "non-zero exit status %i (see above for details)" % (dep, e.returncode)
+            f"error fetching DvC resource {dep}: 'dvc pull' exited with "
+            f"non-zero exit status {e.returncode} (see above for details)"
         ) from e
     else:
         dep_path = os.path.join(run_dir, dep)
         if not os.path.exists(dep_path):
             raise DvcPullError(
-                "'dvc pull' did not fetch the expected file %s (see above for details)"
-                % dep
+                f"'dvc pull' did not fetch the expected file {dep} "
+                "(see above for details)"
             )
         return dep_path
 
@@ -327,7 +327,7 @@ def _load_metrics(path):
         return _load_yaml(path)
     if ext in (".json",):
         return _load_json(path)
-    raise ValueError("unsupported metrics type in %s" % path)
+    raise ValueError(f"unsupported metrics type in {path}")
 
 
 def _load_yaml(path):

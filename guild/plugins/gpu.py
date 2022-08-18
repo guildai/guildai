@@ -89,10 +89,11 @@ def _stats_cmd():
     nvidia_smi = util.which("nvidia-smi")
     if not nvidia_smi:
         return None
+    query_stats = ",".join(STATS)
     return [
         nvidia_smi,
         "--format=csv,noheader",
-        "--query-gpu=%s" % ",".join(STATS),
+        f"--query-gpu={query_stats}",
     ]
 
 
@@ -142,4 +143,4 @@ def _parse_watts(val):
 
 
 def _gpu_val_key(index, name):
-    return "sys/gpu%s/%s" % (index, name)
+    return f"sys/gpu{index}/{name}"

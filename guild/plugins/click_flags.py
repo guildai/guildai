@@ -102,11 +102,11 @@ def _write_command_flags(group_call_f0, base_args, output_path):
 def _cmd_for_call_f(call_f):
     closure = call_f.__closure__
     if len(closure) != 2:
-        raise SystemExit("unexpected closure len for %s: %s" % (call_f, closure))
+        raise SystemExit(f"unexpected closure len for {call_f}: {closure}")
     cmd = closure[1].cell_contents
     if not isinstance(cmd, click.Command):
         raise SystemExit(
-            "unexpected entry for group in closure for %s: %s" % (call_f, cmd)
+            f"unexpected entry for group in closure for {call_f}: {cmd}"
         )
     return cmd
 

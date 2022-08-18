@@ -107,8 +107,7 @@ def _init_modeldef(notebook_path, model_name, op_name):
             "model": model_name,
             "operations": {
                 op_name: {
-                    "main": "guild.plugins.nbexec %s"
-                    % _normpath_for_main(notebook_path),
+                    "main": f"guild.plugins.nbexec {_normpath_for_main(notebook_path)}",
                     "flags": _flags_data_for_notebook(notebook_path),
                 }
             },
