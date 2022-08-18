@@ -252,7 +252,7 @@ def _move(src, dest):
 
 def _move_to_backup(path):
     dir = os.path.dirname(path)
-    prefix = "%s_" % os.path.basename(path)
+    prefix = f"{os.path.basename(path)}_"
     backup = tempfile.NamedTemporaryFile(prefix=prefix, dir=dir, delete=True)
     log.warning("%s exists, moving to %s", path, backup.name)
     backup.close()

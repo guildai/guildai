@@ -184,7 +184,7 @@ def _apply_section_item_inherits(item, section, data, src):
 def _resolved_parent(spec, section, data, src):
     parent = _find_parent(spec, section, data)
     if parent is None:
-        raise ConfigError("cannot find '%s' in %s" % (spec, src))
+        raise ConfigError(f"cannot find '{spec}' in {src}")
     parent_item, parent_section = parent
     _apply_section_item_inherits(parent_item, parent_section, data, src)
     return parent_item

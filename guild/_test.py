@@ -104,13 +104,13 @@ def run(tests, skip=None):
             success = success and run_success
         else:
             sys.stdout.write(
-                "  %s:%s skipped\n" % (test, " " * (TEST_NAME_WIDTH - len(test)))
+                f"  {test}:{' ' * (TEST_NAME_WIDTH - len(test))} skipped\n"
             )
     return success
 
 
 def _run_test(name):
-    sys.stdout.write("  %s: " % name)
+    sys.stdout.write(f"  {name}: ")
     sys.stdout.flush()
     filename = _filename_for_test(name)
     if not os.path.exists(filename):
@@ -253,7 +253,7 @@ def _log_test_ok(name):
 
 def _log_general_error(name, error):
     sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
-    sys.stdout.write(cli.style("ERROR (%s)\n" % error, fg="red"))
+    sys.stdout.write(cli.style(f"ERROR ({error})\n", fg="red"))
     sys.stdout.flush()
 
 
@@ -400,7 +400,7 @@ def _run_test_file_with_config(filename, globs, optionflags):
         return _run_python_doctest(filename, globs, optionflags)
     if doctest_type == "bash":
         return _run_bash_doctest(filename, globs, optionflags)
-    raise RuntimeError("unsupported doctest type '%s'" % doctest_type)
+    raise RuntimeError(f"unsupported doctest type '{doctest_type}'")
 
 
 def _run_python_doctest(filename, globs, optionflags):
@@ -483,16 +483,15 @@ class BashDocTestParser(doctest.DocTestParser):
     @staticmethod
     def _wrap_bash(source):
         source = source.replace("\n", " ").replace("\"", "\\\"")
-        return "run(\"%s\")" % source
+        return f"run(\"{source}\")"
 
     @staticmethod
     def _check_prompt_blank(lines, indent, name, lineno, *_):
         for i, line in enumerate(lines):
             if len(line) >= indent + 2 and line[indent + 1] != " ":
                 raise ValueError(
-                    "line %r of the docstring for %s "
-                    "lacks blank after %s: %r"
-                    % (lineno + i + 1, name, line[indent : indent + 1], line)
+                    f"line {lineno + i + 1} of the docstring for {name} "
+                    f"lacks blank after {line[indent : indent + 1]}: {line!r}"
                 )
 
 
@@ -839,7 +838,7 @@ class Project:
         try:
             _run, out = self.run_capture(*args, **kw)
         except gapi.RunError as e:
-            print("{}\n<exit {}>".format(e.output.strip(), e.returncode))
+            print(f"{e.output.strip()}\n<exit {e.returncode}>")
         else:
             print(out)
 
@@ -1044,7 +1043,7 @@ def _strip_error_module(last_line):
     m = re.match(r"([\w\.]+): (.+)", last_line)
     if not m:
         return _strip_class_module(last_line)
-    return "{}: {}".format(_strip_class_module(m.group(1)), m.group(2))
+    return f"{_strip_class_module(m.group(1))}: {m.group(2)}"
 
 
 def _strip_class_module(class_name):
@@ -1101,7 +1100,7 @@ def _run(
         if _capture:
             return out, exit_code
         print(out)
-        print("<exit %i>" % exit_code)
+        print(f"<exit {exit_code}>")
     return None
 
 
@@ -1169,7 +1168,7 @@ def _guild_exe_for_win_error():
 
 
 def _run_shell_posix_cmd(cmd):
-    return "set -eu && %s" % cmd
+    return f"set -eu && {cmd}"
 
 
 def _popen(cmd, env, cwd):
@@ -1266,7 +1265,7 @@ def _chdir(s):
 
 def _set_guild_home(path):
     if os.getenv("DEBUG") == "1":
-        sys.stderr.write("Setting Guild home: %s\n" % path)
+        sys.stderr.write(f"Setting Guild home: {path}\n")
     configlib.set_guild_home(path)
 
 

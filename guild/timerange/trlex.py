@@ -131,13 +131,13 @@ def t_RESERVED(t):
     try:
         t.type = reserved_map[t.value.lower()]
     except KeyError as e:
-        raise LexError("unexpected '%s' at position %i" % (t.value, t.lexpos)) from e
+        raise LexError(f"unexpected '{t.value}' at position {t.lexpos}") from e
     else:
         return t
 
 
 def t_error(t):
-    raise LexError("unexpected '%s' at position %s" % (t.value, t.lexpos))
+    raise LexError(f"unexpected '{t.value}' at position {t.lexpos}")
 
 
 def lexer():

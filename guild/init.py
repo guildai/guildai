@@ -41,7 +41,7 @@ class RequiredParamError(InitError):
         self.param = param
 
     def __str__(self):
-        return "missing required parameter '%s'" % self.name
+        return f"missing required parameter '{self.name}'"
 
 
 def init_env(path, guild_home=None, local_resource_cache=False):
@@ -167,7 +167,7 @@ def _safe_project_init_copies(src, dest):
                 continue
             copy_dest = os.path.join(dest, rel_path, name)
             if os.path.exists(copy_dest):
-                raise InitError("%s exists and would be overwritten" % copy_dest)
+                raise InitError(f"{copy_dest} exists and would be overwritten")
             copy_src = os.path.join(root, name)
             safe_copies.append((copy_src, copy_dest))
     return safe_copies
@@ -206,7 +206,7 @@ def _replace_param_refs(s, params, meta, dir_name):
         val = params.get(name, meta_param.get("default", ""))
         if val == "${DIR_NAME}":
             val = dir_name
-        s = s.replace("{{%s}}" % name, val)
+        s = s.replace("{{{{{name}}}}}", val)
     return s
 
 

@@ -57,7 +57,7 @@ def _tests_for_index():
 
 
 def _init_workspace():
-    print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
+    print(f"Initializing workspace {WORKSPACE} under {sys.executable}")
     util.ensure_dir(os.path.join(WORKSPACE, "passed-tests"))
     util.ensure_dir(os.path.join(WORKSPACE, ".guild"))
 
@@ -75,7 +75,7 @@ def _run_tests(tests):
     to_skip = os.getenv("UAT_SKIP", "").split(",")
     with _UATEnv():
         for name in tests:
-            print("Running %s:" % name)
+            print(f"Running {name}:")
             if _skip_test(name, to_skip):
                 print("  skipped (user requested)")
                 continue
@@ -88,7 +88,7 @@ def _run_tests(tests):
                 continue
             failed, attempted = testlib.run_test_file(filename, globs)
             if not failed:
-                print("  %i test(s) passed" % attempted)
+                print(f"  {attempted} test(s) passed")
                 _mark_test_passed(name)
             else:
                 sys.exit(1)

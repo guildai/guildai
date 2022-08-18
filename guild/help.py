@@ -44,7 +44,7 @@ class ConsoleFormatter(click_util.ClickBaseHelpFormatter):
         self.write_text(click.style(heading, bold=True))
 
     def write_subheading(self, val):
-        self.write_text("%s:" % val)
+        self.write_text(f"{val}:")
 
     def write_description(self, val):
         for i, par in enumerate(val.split("\n")):
@@ -107,13 +107,13 @@ class RstFormatter(click_util.ClickBaseHelpFormatter):
     def _emph(s):
         if not s:
             return ""
-        return "*%s*" % s
+        return f"*{s}*"
 
     @staticmethod
     def _strong(s):
         if not s:
             return ""
-        return "**%s**" % s
+        return f"**{s}**"
 
 
 class MarkdownFormatter(click_util.ClickBaseHelpFormatter):
@@ -133,8 +133,8 @@ class MarkdownFormatter(click_util.ClickBaseHelpFormatter):
 
     def _heading(self, val):
         if self._heading_level <= 6:
-            return "%s %s" % ("#" * self._heading_level, val)
-        return "<h%i>%s</h%i>" % (self._heading_level, val, self._heading_level)
+            return f"{'#' * self._heading_level} {val}"
+        return f"<h{self._heading_level}>{val}</h{self._heading_level}>"
 
     def write_heading(self, heading):
         self.write_text(self._heading(heading))
@@ -153,8 +153,8 @@ class MarkdownFormatter(click_util.ClickBaseHelpFormatter):
     def write_dl(self, rows, col_max=None, col_spacing=None, preserve_paragraphs=False):
         self.write_text("<dl>")
         for name, desc in rows:
-            self.write_text("<dt>%s</dt>" % name)
-            self.write_text("<dd>%s</dd>" % desc)
+            self.write_text(f"<dt>{name}</dt>")
+            self.write_text(f"<dd>{desc}</dd>")
         self.write_text("</dl>")
 
     def indent(self):
@@ -167,13 +167,13 @@ class MarkdownFormatter(click_util.ClickBaseHelpFormatter):
     def _emph(s):
         if not s:
             return ""
-        return "*%s*" % s
+        return f"*{s}*"
 
     @staticmethod
     def _strong(s):
         if not s:
             return ""
-        return "**%s**" % s
+        return f"**{s}**"
 
 
 def guildfile_console_help(guildfile, model_desc=None, strip_ansi_format=False):
@@ -258,8 +258,8 @@ def _write_console_help_overview(guildfile, model_desc, out):
     model_desc = model_desc or _format_guildfile_dir(guildfile)
     out.write_text(
         textwrap.dedent(
-            """
-        You are viewing help for operations defined in %s.
+            f"""
+        You are viewing help for operations defined in {model_desc}.
 
         To run an operation use 'guild run OPERATION' where OPERATION
         is one of options listed below. If an operation is associated
@@ -276,7 +276,6 @@ def _write_console_help_overview(guildfile, model_desc, out):
 
         For general information, try 'guild --help'.
         """
-            % model_desc
         )
     )
 
@@ -287,7 +286,7 @@ def _format_guildfile_dir(mf):
     relpath = os.path.relpath(mf.dir)
     if relpath[0] != '.':
         relpath = os.path.join(".", relpath)
-    return "'%s'" % relpath
+    return f"'{relpath}'"
 
 
 def _is_cwd(path):
@@ -299,7 +298,7 @@ def _write_package_desc(pkg, out):
         out.write_description(pkg.description)
     if pkg.tags:
         out.write_paragraph()
-        out.write_text("Keywords: %s" % " ".join(pkg.tags))
+        out.write_text(f"Keywords: {' '.join(pkg.tags)}")
 
 
 def _split_models(guildfile):
@@ -408,11 +407,11 @@ def _format_flag_desc(flag, max_flag_len):
     lines = flag.description.split("\n")
     if flag.default is not None:
         fmt_default = flag_util.encode_flag_val(flag.default)
-        line1_suffix = "(default is %s)" % fmt_default
+        line1_suffix = f"(default is {fmt_default})"
     elif flag.required:
         line1_suffix = "(required)"
     elif flag.null_label:
-        line1_suffix = "(default is %s)" % flag.null_label
+        line1_suffix = f"(default is {flag.null_label})"
     else:
         line1_suffix = ""
     if lines[0]:
@@ -480,7 +479,7 @@ def flag_edit_help(flagdef):
     if flagdef.description:
         lines.append(flagdef.description.split("\n", 1)[0])
     if flagdef.choices:
-        lines.append("Choices: %s" % _format_choice_list(flagdef.choices))
+        lines.append(f"Choices: {_format_choice_list(flagdef.choices)}")
     return "\n".join(lines)
 
 
@@ -494,22 +493,20 @@ def _write_references(refs, out):
     out.write_paragraph()
     out.indent()
     for ref in refs:
-        out.write_text("\b\n- %s" % ref)
+        out.write_text(f"\b\n- {ref}")
     out.dedent()
 
 
 def print_model_help(modeldef):
     out = click_util.ClickBaseHelpFormatter()
-    out.write_usage(
-        "guild", "run [OPTIONS] {}:OPERATION [FLAG]...".format(modeldef.name)
-    )
+    out.write_usage("guild", f"run [OPTIONS] {modeldef.name}:OPERATION [FLAG]...")
     if modeldef.description:
         out.write_paragraph()
         out.write_text(modeldef.description.replace("\n", "\n\n"))
     out.write_paragraph()
     out.write_text(
-        "Use 'guild run {}:OPERATION --help-op' for help on "
-        "a particular operation.".format(modeldef.name)
+        f"Use 'guild run {modeldef.name}:OPERATION --help-op' "
+        "for help on a particular operation."
     )
     ops = _format_model_ops_dl(modeldef)
     if ops:
@@ -539,7 +536,7 @@ def _write_dl_section(name, dl, out):
 
 def print_op_help(opdef):
     out = click_util.ClickBaseHelpFormatter()
-    out.write_usage("guild", "run [OPTIONS] {} [FLAG]...".format(opdef.fullname))
+    out.write_usage("guild", f"run [OPTIONS] {opdef.fullname} [FLAG]...")
     if opdef.description:
         out.write_paragraph()
         out.write_text(opdef.description.replace("\n", "\n\n"))

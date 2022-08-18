@@ -67,7 +67,7 @@ class Run:
                     self._opref = opreflib.OpRef.parse(encoded)
                 except opreflib.OpRefError as e:
                     raise opreflib.OpRefError(
-                        "invalid opref for run %r (%s): %s" % (self.id, self.path, e)
+                        f"invalid opref for run {self.id!r} ({self.path}): {e}"
                     )
         return self._opref
 
@@ -185,11 +185,7 @@ class Run:
         return os.path.join(self._guild_dir, "attrs")
 
     def __repr__(self):
-        return "<%s.%s '%s'>" % (
-            self.__class__.__module__,
-            self.__class__.__name__,
-            self.id,
-        )
+        return f"<{self.__class__.__module__}.{self.__class__.__name__} '{self.id}'>"
 
     def init_skel(self):
         util.ensure_dir(self.guild_path("attrs"))

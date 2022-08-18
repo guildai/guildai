@@ -40,7 +40,7 @@ def cwd_desc(cwd=None):
     cwd = cwd or config.cwd()
     if os.path.abspath(cwd) == os.path.abspath(os.getcwd()):
         return "the current directory"
-    return "'%s'" % cwd
+    return f"'{cwd}'"
 
 
 def cwd_guildfile(cwd=None):
@@ -65,8 +65,8 @@ def _check_bad_guildfile(dist):
 
     if isinstance(dist, guild.model.BadGuildfileDistribution):
         cli.error(
-            "guildfile in %s contains an error (see above for details)"
-            % cwd_desc(dist.location)
+            f"guildfile in {cwd_desc(dist.location)} contains an "
+            "error (see above for details)"
         )
 
 
@@ -108,17 +108,17 @@ def one_run(runs, spec, ctx=None):
 
 
 def _no_matching_run_error(spec, ctx) -> typing.NoReturn:
-    help_msg = " or '%s' for more information" % click_util.cmd_help(ctx) if ctx else ""
+    more_help = f" or '{click_util.cmd_help(ctx)}' for more information" if ctx else ""
     cli.error(
-        "could not find a run matching '%s'\n"
-        "Try 'guild runs list' for a list%s." % (spec, help_msg)
+        f"could not find a run matching '{spec}'\n"
+        f"Try 'guild runs list' for a list{more_help}."
     )
 
 
 def _non_unique_run_id_error(matches, spec) -> typing.NoReturn:
-    cli.out("'%s' matches multiple runs:" % spec, err=True)
+    cli.out(f"'{spec}' matches multiple runs:", err=True)
     for m in matches:
-        cli.out("  %s" % _match_short_id(m), err=True)
+        cli.out(f"  {_match_short_id(m)}", err=True)
     cli.error()
 
 
@@ -134,7 +134,7 @@ def _match_short_id(m):
 def disallow_args(names, args, ctx, error_suffix=""):
     for name in names:
         if getattr(args, name, False):
-            cli.error("%s cannot be used%s" % (_arg_desc(name, ctx), error_suffix))
+            cli.error(f"{_arg_desc(name, ctx)} cannot be used{error_suffix}")
 
 
 def disallow_both(names, args, ctx, error_suffix=""):
@@ -143,8 +143,7 @@ def disallow_both(names, args, ctx, error_suffix=""):
     a, b = names
     if getattr(args, a, False) and getattr(args, b, False):
         cli.error(
-            "%s cannot be used with %s%s"
-            % (_arg_desc(a, ctx), _arg_desc(b, ctx), error_suffix)
+            f"{_arg_desc(a, ctx)} cannot be used with {_arg_desc(b, ctx)}{error_suffix}"
         )
 
 
@@ -174,13 +173,12 @@ def _dir_guildfile(dir, ctx):
         return guildfile.for_dir(dir)
     except guildfile.NoModels:
         if ctx:
-            help_suffix = " or '%s' for help" % click_util.cmd_help(ctx)
+            help_suffix = f" or '{click_util.cmd_help(ctx)}' for help"
         else:
             help_suffix = ""
         cli.error(
-            "%s does not contain a Guild file (guild.yml)\n"
-            "Try specifying a project path or package name%s."
-            % (cwd_desc(dir), help_suffix)
+            f"{cwd_desc(dir)} does not contain a Guild file (guild.yml)\n"
+            f"Try specifying a project path or package name{help_suffix}."
         )
     except guildfile.GuildfileError as e:
         cli.error(str(e))
@@ -202,13 +200,13 @@ def _package_guildfile(ref):
         return gf
     if not matches:
         cli.error(
-            "cannot find a package matching '%s'\n"
-            "Try 'guild packages' for a list of installed packages." % ref
+            f"cannot find a package matching '{ref}'\n"
+            "Try 'guild packages' for a list of installed packages."
         )
+    models_desc = ", ".join([name for name, _gf in matches])
     cli.error(
-        "multiple packages match '%s'\n"
-        "Try again with one of these models: %s"
-        % (ref, ", ".join([name for name, _gf in matches]))
+        f"multiple packages match '{ref}'\n"
+        f"Try again with one of these models: {models_desc}"
     )
 
 
@@ -234,11 +232,11 @@ def check_incompatible_args(incompatible, args, ctx=None):
         arg1_name, opt1, arg2_name, opt2 = _incompatible_arg_items(val)
         if getattr(args, arg1_name, None) and getattr(args, arg2_name):
             err_help = (
-                ("\nTry '%s --help' for more information." % ctx.command_path)
+                f"\nTry '{ctx.command_path} --help' for more information."
                 if ctx
                 else ""
             )
-            cli.error("%s and %s cannot both be specified%s" % (opt1, opt2, err_help))
+            cli.error(f"{opt1} and {opt2} cannot both be specified{err_help}")
 
 
 def _incompatible_arg_items(val):
@@ -265,7 +263,7 @@ def check_required_args(required, args, ctx, msg_template=None):
             return
         missing_args.append(arg)
     msg = msg_template % ", ".join(missing_args)
-    cli.error("%s\nTry `%s --help` for more information." % (msg, ctx.command_path))
+    cli.error(f"{msg}\nTry `{ctx.command_path} --help` for more information.")
 
 
 def format_warn(s):

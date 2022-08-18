@@ -313,7 +313,7 @@ def try_cached_sha(for_file):
 
 def _cached_sha_filename(for_file):
     parent, name = os.path.split(for_file)
-    return os.path.join(parent, ".guild-cache-%s.sha" % name)
+    return os.path.join(parent, f".guild-cache-{name}.sha")
 
 
 def write_cached_sha(sha, for_file):
@@ -741,7 +741,7 @@ def is_text_file(path, ignore_ext=False):
     # Adapted from https://github.com/audreyr/binaryornot under the
     # BSD 3-clause License
     if not os.path.exists(path):
-        raise OSError("%s does not exist" % path)
+        raise OSError(f"{path} does not exist")
     if not os.path.isfile(path):
         return False
     if not ignore_ext:
@@ -880,7 +880,7 @@ def local_server_url(host, port):
             socket.gethostbyname(host)
         except socket.gaierror:
             host = "localhost"
-    return "http://{}:{}".format(host, port)
+    return f"http://{host}:{port}"
 
 
 def format_duration(start_time, end_time=None):
@@ -888,10 +888,10 @@ def format_duration(start_time, end_time=None):
         return None
     if end_time is None:
         end_time = time.time() * 1000000
-    seconds = (end_time - start_time) // 1000000
+    seconds = int((end_time - start_time) // 1000000)
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
-    return "%d:%02d:%02d" % (h, m, s)
+    return f"{h}:{m:02d}:{s:02d}"
 
 
 def format_dir(dir):
@@ -1057,7 +1057,7 @@ def find_python_interpreter(version_spec):
     try:
         # Requirement.parse wants a package name, so we use 'python'
         # here, but anything would do.
-        req = pkg_resources.Requirement.parse("python%s" % version_spec)
+        req = pkg_resources.Requirement.parse(f"python{version_spec}")
     except pkg_resources.RequirementParseError as e:
         raise ValueError(version_spec) from e
     python_interps = {ver: path for path, ver in python_interpreters()}
@@ -1087,7 +1087,7 @@ def copytree(src, dest, preserve_links=True):
 
 def select_copytree(src, dest, config, copy_filter=None):
     if not isinstance(config, list):
-        raise ValueError("invalid config: expected list got %r" % config)
+        raise ValueError(f"invalid config: expected list got {config!r}")
     log.debug("copying files from %s to %s", src, dest)
     to_copy = _select_files_to_copy(src, config, copy_filter)
     if not to_copy:
@@ -1239,9 +1239,9 @@ def format_bytes(n):
         if abs(n) < 1024:
             if not unit:
                 return str(n)
-            return "%3.1f%s" % (n, unit)
+            return f"{n:.1f}{unit}"
         n /= 1024.0
-    return "%.1f%s" % (n, units[-1])
+    return f"{n:.1f}{units[-1]}"
 
 
 class Chdir:
@@ -1274,7 +1274,9 @@ class _log_apply_msg:
         self.kw = kw
 
     def __str__(self):
-        return "%s %s %s %s" % (self.f.__module__, self.f.__name__, self.args, self.kw)
+        f_mod = self.f.__module__
+        f_name = self.f.__name__
+        return f"{f_mod} {f_name} {self.args} {self.kw}"
 
 
 def dir_size(dir):
@@ -1319,12 +1321,7 @@ def guild_user_agent():
     import guild
 
     system, _node, release, _ver, machine, _proc = platform.uname()
-    return "python-guildai/%s (%s; %s; %s)" % (
-        guild.__version__,
-        system,
-        machine,
-        release,
-    )
+    return f"python-guildai/{guild.__version__} ({system}; {machine}; {release})"
 
 
 def nested_config(kv, nested=None):
@@ -1342,8 +1339,8 @@ def _apply_nested(name, val, nested):
         if not isinstance(cur, dict):
             conflicts_with = ".".join(parts[0 : i + 1])
             raise ValueError(
-                "%r cannot be nested: conflicts with {%r: %s}"
-                % (name, conflicts_with, cur)
+                f"{name!r} cannot be nested: conflicts with "
+                f"{{{conflicts_with!r}: {cur}}}"
             )
     cur[parts[-1]] = val
 
@@ -1511,7 +1508,7 @@ def _HTTPConnection(scheme, netloc, timeout):
         return http_client.HTTPConnection(netloc, timeout=timeout)
     if scheme == "https":
         return http_client.HTTPSConnection(netloc, timeout=timeout)
-    raise ValueError("unsupported scheme '%s' - must be 'http' or 'https'" % scheme)
+    raise ValueError(f"unsupported scheme '{scheme}' - must be 'http' or 'https'")
 
 
 class StdIOContextManager:
@@ -1528,9 +1525,9 @@ class StdIOContextManager:
 def check_env(env):
     for name, val in env.items():
         if not isinstance(name, six.string_types):
-            raise ValueError("non-string env name %r" % name)
+            raise ValueError(f"non-string env name {name!r}")
         if not isinstance(val, six.string_types):
-            raise ValueError("non-string env value for '%s': %r" % (name, val))
+            raise ValueError(f"non-string env value for '{name}': {val!r}")
 
 
 class SysArgv:

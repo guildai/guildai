@@ -59,7 +59,7 @@ class AzureBlobStorageRemote(meta_sync.MetaSyncRemote):
         return self.container + "/" + "/".join(all_parts)
 
     def _sync_runs_meta(self, force=False):
-        remote_util.remote_activity("Refreshing run info for %s" % self.name)
+        remote_util.remote_activity(f"Refreshing run info for {self.name}")
         if not force and meta_sync.meta_current(
             self.local_sync_dir, self._remote_meta_id
         ):
@@ -132,15 +132,15 @@ class AzureBlobStorageRemote(meta_sync.MetaSyncRemote):
         except remotelib.RemoteProcessError as e:
             self._handle_status_error(e)
         else:
-            sys.stdout.write("%s (%s) is available\n" % (self.name, path))
+            sys.stdout.write(f"{self.name} ({path}) is available\n")
 
     def _handle_status_error(self, e):
         output = e.output.decode()
         if "NoSuchBucket" in output:
             raise remotelib.OperationError(
-                "%s is not available - %s does not exist" % (self.name, self.container)
+                f"{self.name} is not available - {self.container} does not exist"
             )
-        raise remotelib.OperationError("%s is not available: %s" % (self.name, output))
+        raise remotelib.OperationError(f"{self.name} is not available: output")
 
     def push(self, runs, delete=False):
         for run in runs:

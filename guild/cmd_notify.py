@@ -20,7 +20,7 @@ log = logging.getLogger("guild")
 
 class MsgSendError(Exception):
     def __init__(self, error, port):
-        super().__init__("Error sending msg to port %i: %s" % (port, error))
+        super().__init__(f"Error sending msg to port {port}: {error}")
         self.error = error
         self.port = port
 

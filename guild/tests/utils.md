@@ -803,3 +803,25 @@ Test against current verion, minus any development component.
 
     >>> check_guild_version(f"=={guild_version_without_dev}")
     True
+
+## Format duration
+
+    >>> from guild.util import format_duration as fd
+
+    >>> fd(0, 0)
+    '0:00:00'
+
+    >>> fd(0, 60000000)
+    '0:01:00'
+
+    >>> fd(0, 600000000)
+    '0:10:00'
+
+    >>> fd(0, 3600000000)
+    '1:00:00'
+
+    >>> fd(0, 3601000000)
+    '1:00:01'
+
+    >>> fd(0, 3601000000.123)
+    '1:00:01'

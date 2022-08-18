@@ -216,7 +216,7 @@ def _popen_args(
     for dep in deps:
         args.extend(["--dep", dep])
     args.extend(op_util.flag_assigns(flags))
-    args.extend(["@%s" % path for path in (batch_files or [])])
+    args.extend([f"@{path}" for path in (batch_files or [])])
     env = dict(os.environ)
     env["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     if extra_env:
@@ -297,7 +297,7 @@ def _assert_empty_kw(kw, f):
     except StopIteration:
         pass
     else:
-        raise TypeError("%s got an unexpected keyword argument '%s'" % (f, arg))
+        raise TypeError(f"{f} got an unexpected keyword argument '{arg}'")
 
 
 def runs_delete(runs=None, permanent=False, cwd=".", guild_home=None, **kw):

@@ -312,12 +312,12 @@ class OutputScalars:
 
     def print_patterns(self):
         for key, p in self._patterns:
-            sys.stdout.write("{}: {}\n".format(key, p.pattern))
+            sys.stdout.write(f"{key}: {p.pattern}\n")
 
 
 def _init_patterns(config):
     if not isinstance(config, list):
-        raise TypeError("invalid output scalar config: %r" % config)
+        raise TypeError(f"invalid output scalar config: {config!r}")
     patterns = []
     for item in config:
         patterns.extend(_config_item_patterns(item))
@@ -429,25 +429,22 @@ class TestOutputLogger:
 
     @staticmethod
     def _format_pattern_no_matches(pattern):
-        return "  %r: <no matches>" % pattern
+        return f"  {pattern!r}: <no matches>"
 
     def pattern_matches(self, pattern, matches, vals):
         sys.stdout.write(self._format_pattern_matches(pattern, matches, vals))
         sys.stdout.write("\n")
 
     def _format_pattern_matches(self, pattern, matches, vals):
-        groups = [m.groups() for m in matches]
-        fmt_groups = self._strip_u(str(groups))
-        fmt_vals = "(%s)" % ", ".join(
-            ["%s=%s" % (name, val) for name, val in sorted(vals.items())]
-        )
-        return "  %r: %s %s" % (pattern, fmt_groups, fmt_vals)
+        groups = _strip_u(str([m.groups() for m in matches]))
+        assigns = ", ".join([f"{name}={val}" for name, val in sorted(vals.items())])
+        return f"  {pattern!r}: {groups} ({assigns})"
 
-    @staticmethod
-    def _strip_u(s):
-        s = re.sub(r"u'(.*?)'", "'\\1'", s)
-        s = re.sub(r"u\"(.*?)\"", "\"\\1\"", s)
-        return s
+
+def _strip_u(s):
+    s = re.sub(r"u'(.*?)'", "'\\1'", s)
+    s = re.sub(r"u\"(.*?)\"", "\"\\1\"", s)
+    return s
 
 
 def test_output(f, config, cb=None):

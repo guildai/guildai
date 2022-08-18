@@ -42,7 +42,7 @@ class FileCheck:
         path_glob = os.path.join(run.path, self.path)
         matches = glob.glob(path_glob)
         if not matches:
-            raise Failed("no files matching %s in run %s" % (self.path, run.id))
+            raise Failed(f"no files matching {self.path} in run {run.id}")
         for path in matches:
             self._check_path(path, run)
 
@@ -57,8 +57,8 @@ class FileCheck:
             out = _read(path)
             if not self.pattern_re.search(out):
                 raise Failed(
-                    "could not find pattern %r in run %s file %s"
-                    % (self.pattern, run.id, rel_path)
+                    f"could not find pattern {self.pattern!r} in "
+                    f"run {run.id} file {rel_path}"
                 )
 
 
@@ -76,7 +76,7 @@ class OutputCheck:
         out = _read(output_path)
         if not self.pattern_re.search(out):
             raise Failed(
-                "could not find pattern %r in run %s output" % (self.pattern, run.id)
+                f"could not find pattern {self.pattern!r} in run {run.id} output"
             )
 
 
@@ -86,7 +86,7 @@ def _compile_pattern(pattern):
     try:
         return re.compile(pattern)
     except Exception as e:
-        raise ValueError("invalid regular expression: %r" % pattern) from e
+        raise ValueError(f"invalid regular expression: {pattern!r}") from e
 
 
 def _compare_files(actual, expected):
@@ -108,7 +108,7 @@ def _read(path):
     try:
         return open(path, "r").read()
     except Exception as e:
-        raise Failed("error reading run output from %s" % path) from e
+        raise Failed(f"error reading run output from {path}") from e
 
 
 def _apply_env_to_path(path):
@@ -123,7 +123,5 @@ def init_check(data):
     for cls in check_classes:
         if cls.type_attr in data:
             return cls(data)
-    raise ValueError(
-        "invalid check config - expected one of: %s"
-        % ", ".join([cls.type_attr for cls in check_classes])
-    )
+    check_classes_desc = ", ".join([cls.type_attr for cls in check_classes])
+    raise ValueError(f"invalid check config - expected one of: {check_classes_desc}")

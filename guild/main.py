@@ -62,7 +62,7 @@ def _handle_click_exception(e):
 
 def _print_error_and_exit(msg, exit_status):
     if msg:
-        click.echo("guild: %s" % msg, err=True)
+        click.echo(f"guild: {msg}", err=True)
     sys.exit(exit_status)
 
 

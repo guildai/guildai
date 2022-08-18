@@ -238,7 +238,7 @@ def _table_item_out(
             click.echo(indent_padding, file=file, nl=False, err=err)
             formatted = _format_detail_val(formatted_item[key], indent, terminal_width)
             click.echo(
-                style("  %s:%s" % (key, formatted), **style_kw),
+                style(f"  {key}:{formatted}", **style_kw),
                 file=file,
                 err=err,
             )
@@ -253,7 +253,7 @@ def _format_detail_val(val, indent, terminal_width):
                 [click.wrap_text(x, val_width, val_indent, val_indent) for x in val]
             )
         return " -"
-    return " %s" % val
+    return f" {val}"
 
 
 def _pad_col_val(val, col, col_info):
@@ -264,7 +264,8 @@ def confirm(prompt, default=False, wrap=False):
     if wrap:
         prompt = wrap(prompt)
     click.echo(prompt, nl=False, err=True)
-    click.echo(" %s " % ("(Y/n)" if default else "(y/N)"), nl=False, err=True)
+    yes_no_opts = "(Y/n)" if default else "(y/N)"
+    click.echo(f" {yes_no_opts} ", nl=False, err=True)
     c = input()
     yes_vals = ["y", "yes"]
     if default:

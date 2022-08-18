@@ -80,7 +80,7 @@ class AzureVMRemote(ssh_remote.SSHRemote):
         self.start()
 
     def _taint_init(self):
-        cmd = ["terraform", "taint", "null_resource.guild_%s_init" % self._safe_name()]
+        cmd = ["terraform", "taint", f"null_resource.guild_{self._safe_name()}_init"]
         subprocess.check_call(cmd, cwd=self.working_dir)
 
     def _safe_name(self):
@@ -163,7 +163,7 @@ class AzureVMRemote(ssh_remote.SSHRemote):
                 connect_timeout=self.connect_timeout,
                 port=self.port,
             )
-            sys.stdout.write("%s (%s) is available\n" % (self.name, host))
+            sys.stdout.write(f"{self.name} ({host}) is available\n")
 
     def _has_state(self):
         state_filename = os.path.join(self.working_dir, "terraform.tfstate")
@@ -184,7 +184,7 @@ class AzureVMRemote(ssh_remote.SSHRemote):
             out = subprocess.check_output(cmd, cwd=self.working_dir)
         except subprocess.CalledProcessError as e:
             raise remotelib.OperationError(
-                "unable to get Terraform output in %s" % self.working_dir
+                f"unable to get Terraform output in {self.working_dir}"
             ) from e
         else:
             output = json.loads(out.decode())
@@ -198,40 +198,41 @@ class AzureVMRemote(ssh_remote.SSHRemote):
 
     def _init_config(self):
         remote_name = self._safe_name()
-        remote_key = "guild_%s" % remote_name
+        remote_key = f"guild_{remote_name}"
         resource_group = {
-            remote_key: {"name": "guild-%s-rg" % remote_name, "location": self.region}
+            remote_key: {"name": f"guild-{remote_name}-rg", "location": self.region}
         }
         vnet = {
             remote_key: {
-                "name": "guild-%s-vnet" % remote_name,
+                "name": f"guild-{remote_name}-vnet",
                 "address_space": ["10.0.0.0/16"],
                 "location": self.region,
-                "resource_group_name": "${azurerm_resource_group.%s.name}" % remote_key,
+                "resource_group_name": f"${{azurerm_resource_group.{remote_key}.name}}",
             }
         }
         subnet = {
             remote_key: {
-                "name": "guild-%s-subnet" % remote_name,
-                "resource_group_name": "${azurerm_resource_group.%s.name}" % remote_key,
-                "virtual_network_name": "${azurerm_virtual_network.%s.name}"
-                % remote_key,
+                "name": f"guild-{remote_name}-subnet",
+                "resource_group_name": f"${{azurerm_resource_group.{remote_key}.name}}",
+                "virtual_network_name": (
+                    f"${{azurerm_virtual_network.{remote_key}.name}}"
+                ),
                 "address_prefixes": ["10.0.1.0/24"],
             }
         }
         public_ip = {
             remote_key: {
-                "name": "guild-%s-public-ip" % remote_name,
+                "name": f"guild-{remote_name}-public-ip",
                 "location": self.region,
-                "resource_group_name": "${azurerm_resource_group.%s.name}" % remote_key,
+                "resource_group_name": f"${{azurerm_resource_group.{remote_key}.name}}",
                 "allocation_method": "Static",
             }
         }
         nsg = {
             remote_key: {
-                "name": "guild-%s-nsg" % remote_name,
+                "name": f"guild-{remote_name}-nsg",
                 "location": self.region,
-                "resource_group_name": "${azurerm_resource_group.%s.name}" % remote_key,
+                "resource_group_name": f"${{azurerm_resource_group.{remote_key}.name}}",
             }
         }
         nsr = {
@@ -245,21 +246,22 @@ class AzureVMRemote(ssh_remote.SSHRemote):
                 "destination_port_range": "22",
                 "source_address_prefix": "*",
                 "destination_address_prefix": "*",
-                "resource_group_name": "${azurerm_resource_group.%s.name}" % remote_key,
-                "network_security_group_name": "${azurerm_network_security_group.%s.name}"
-                % remote_key,
+                "resource_group_name": f"${{azurerm_resource_group.{remote_key}.name}}",
+                "network_security_group_name": (
+                    f"${{azurerm_network_security_group.{remote_key}.name}}"
+                ),
             }
         }
         nic = {
             remote_key: {
-                "name": "guild-%s-nic" % remote_name,
+                "name": f"guild-{remote_name}-nic",
                 "location": self.region,
-                "resource_group_name": "${azurerm_resource_group.%s.name}" % remote_key,
+                "resource_group_name": f"${{azurerm_resource_group.{remote_key}.name}}",
                 "ip_configuration": {
-                    "name": "guild-%s-nicconf" % remote_name,
-                    "subnet_id": "${azurerm_subnet.%s.id}" % remote_key,
+                    "name": f"guild-{remote_name}-nicconf",
+                    "subnet_id": f"${{azurerm_subnet.{remote_key}.id}}",
                     "private_ip_address_allocation": "dynamic",
-                    "public_ip_address_id": "${azurerm_public_ip.%s.id}" % remote_key,
+                    "public_ip_address_id": f"${{azurerm_public_ip.{remote_key}.id}}",
                 },
             }
         }
@@ -287,22 +289,22 @@ class AzureVMRemote(ssh_remote.SSHRemote):
             disk_type = "Premium_LRS"
         instance = {
             remote_key: {
-                "name": "guild-%s-vm" % remote_name,
+                "name": f"guild-{remote_name}-vm",
                 "location": self.region,
-                "resource_group_name": "${azurerm_resource_group.%s.name}" % remote_key,
+                "resource_group_name": f"${{azurerm_resource_group.{remote_key}.name}}",
                 "network_interface_ids": [
-                    "${azurerm_network_interface.%s.id}" % remote_key
+                    f"${{azurerm_network_interface.{remote_key}.id}}"
                 ],
                 "vm_size": self.instance_type,
                 "storage_os_disk": {
-                    "name": "guild-%s-osdisk" % remote_name,
+                    "name": f"guild-{remote_name}-osdisk",
                     "caching": "ReadWrite",
                     "create_option": "FromImage",
                     "managed_disk_type": disk_type,
                 },
                 "storage_image_reference": image_reference,
                 "os_profile": {
-                    "computer_name": "guild-%s-vm" % remote_name,
+                    "computer_name": f"guild-{remote_name}-vm",
                     "admin_username": "",
                 },
                 "os_profile_linux_config": {
@@ -315,7 +317,7 @@ class AzureVMRemote(ssh_remote.SSHRemote):
             instance[remote_key]["storage_os_disk"][
                 "disk_size_gb"
             ] = self.root_device_size
-        output = {"host": {"value": "${azurerm_public_ip.%s.ip_address}" % remote_key}}
+        output = {"host": {"value": f"${{azurerm_public_ip.{remote_key}.ip_address}}"}}
         config = {
             "provider": {"azurerm": {"features": {}}, "null": {}},
             "resource": {
@@ -347,30 +349,29 @@ class AzureVMRemote(ssh_remote.SSHRemote):
             config["resource"]["azurerm_virtual_machine"][remote_key][
                 "os_profile_linux_config"
             ]["ssh_keys"]["path"]
-        ) = ("/home/%s/.ssh/authorized_keys" % self.user)
+        ) = f"/home/{self.user}/.ssh/authorized_keys"
         init_script = self._init_script()
         if init_script:
             init_script_path = self._write_init_script(init_script)
             connection = {
                 "type": "ssh",
-                "host": "${azurerm_public_ip.%s.ip_address}" % remote_key,
+                "host": f"${{azurerm_public_ip.{remote_key}.ip_address}}",
             }
             if self.init_timeout:
                 if isinstance(self.init_timeout, int):
-                    connection["timeout"] = "%im" % self.init_timeout
+                    connection["timeout"] = f"{self.init_timeout}m"
                 else:
                     connection["timeout"] = self.init_timeout
             if self.private_key:
-                connection["private_key"] = "${file(\"%s\")}" % remote_util.config_path(
-                    self.private_key
-                )
+                private_key_path = remote_util.config_path(self.private_key)
+                connection["private_key"] = f"${{file(\"{private_key_path}\")}}"
             connection["user"] = self.user
             config["resource"]["null_resource"] = {
-                "%s_init"
-                % remote_key: {
+                f"{remote_key}_init": {
                     "triggers": {
-                        "cluster_instance_ids": "${azurerm_virtual_machine.%s.id}"
-                        % remote_key
+                        "cluster_instance_ids": (
+                            f"${{azurerm_virtual_machine.{remote_key}.id}}"
+                        )
                     },
                     "connection": connection,
                     "provisioner": [{"remote-exec": {"script": init_script_path}}],
@@ -402,7 +403,7 @@ class AzureVMRemote(ssh_remote.SSHRemote):
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
             raise remotelib.OperationError(
-                "unable to initialize Terraform in %s" % self.working_dir
+                f"unable to initialize Terraform in {self.working_dir}"
             )
 
     def _terraform_apply(self):
@@ -410,7 +411,7 @@ class AzureVMRemote(ssh_remote.SSHRemote):
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
             raise remotelib.OperationError(
-                "error applying Terraform config in %s" % self.working_dir
+                f"error applying Terraform config in {self.working_dir}"
             )
 
     def _terraform_destroy(self):
@@ -418,7 +419,7 @@ class AzureVMRemote(ssh_remote.SSHRemote):
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
             raise remotelib.OperationError(
-                "error destroying Terraform state in %s" % self.working_dir
+                f"error destroying Terraform state in {self.working_dir}"
             )
 
     def _ssh_host(self):
@@ -426,12 +427,12 @@ class AzureVMRemote(ssh_remote.SSHRemote):
             host = self._output("host")
         except LookupError as e:
             raise remotelib.OperationError(
-                "cannot get host for %s - is the remote started?" % self.name
+                f"cannot get host for {self.name} - is the remote started?"
             ) from e
         else:
             if not host:
                 raise remotelib.OperationError(
-                    "cannot get host for %s - the instance "
-                    "appears to be stopped" % self.name
+                    f"cannot get host for {self.name} - the instance "
+                    "appears to be stopped"
                 )
             return host

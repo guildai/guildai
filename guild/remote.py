@@ -124,10 +124,10 @@ class RunProxy:
         return self._data.items()
 
     def __repr__(self):
-        return "<guild.remote.RunProxy '%s'>" % self.id
+        return f"<guild.remote.RunProxy '{self.id}'>"
 
     def guild_path(self, _path):
-        raise TypeError("guild_path not supported by %s" % self)
+        raise TypeError(f"guild_path not supported by {self}")
 
 
 class RemoteType:

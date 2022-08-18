@@ -162,7 +162,7 @@ def _apply_scheme(repo_dir, cmd_template, pattern, ok_errors):
 
 
 def _format_commit(commit, scheme):
-    return "%s:%s" % (scheme.name, commit)
+    return f"{scheme.name}:{commit}"
 
 
 def _format_status(status):

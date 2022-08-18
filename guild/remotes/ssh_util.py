@@ -37,12 +37,12 @@ def ssh_ping(
     log.debug("ssh cmd: %r", cmd)
     result = subprocess.call(cmd)
     if result != 0:
-        raise remotelib.Down("cannot reach host %s" % host)
+        raise remotelib.Down(f"cannot reach host {host}")
 
 
 def _full_host(host, user):
     if user:
-        return "%s@%s" % (user, host)
+        return f"{user}@{host}"
     return host
 
 
@@ -97,11 +97,11 @@ def _ssh_opts(private_key, verbose, connect_timeout, port, proxy):
     if verbose:
         opts.append("-vvv")
     if connect_timeout:
-        opts.append("-oConnectTimeout=%s" % connect_timeout)
+        opts.append(f"-oConnectTimeout={connect_timeout}")
     if port:
         opts.extend(["-p", str(port)])
     if proxy:
-        opts.append("-oProxyCommand=%s" % proxy)
+        opts.append(f"-oProxyCommand={proxy}")
     return opts
 
 
@@ -127,8 +127,8 @@ def rsync_copy_to(
 
 def format_rsync_host_path(host, path, user):
     if user:
-        return "{}@{}:{}".format(user, host, path)
-    return "{}:{}".format(host, path)
+        return f"{user}@{host}:{path}"
+    return f"{host}:{path}"
 
 
 def rsync_ssh_opts(private_key=None, connect_timeout=None, port=None, proxy=None):
@@ -139,11 +139,11 @@ def rsync_ssh_opts(private_key=None, connect_timeout=None, port=None, proxy=None
 def _rsync_ssh_cmd(private_key, connect_timeout, port, proxy):
     parts = ["ssh"]
     if private_key:
-        parts.append("-i '%s'" % private_key)
+        parts.append(f"-i '{private_key}'")
     if connect_timeout:
-        parts.append("-oConnectTimeout=%s" % connect_timeout)
+        parts.append(f"-oConnectTimeout={connect_timeout}")
     if port:
-        parts.append("-p %s" % port)
+        parts.append(f"-p {port}")
     if proxy:
-        parts.append("-o 'ProxyCommand %s'" % proxy)
+        parts.append(f"-o 'ProxyCommand {proxy}'")
     return " ".join(parts)

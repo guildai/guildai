@@ -68,9 +68,9 @@ class Formatter(logging.Formatter):
         if not _isatty or not _shell:
             return s
         if level >= logging.ERROR:
-            return "\033[31m%s\033[0m" % s
+            return f"\033[31m{s}\033[0m"
         if level >= logging.WARNING:
-            return "\033[33m%s\033[0m" % s
+            return f"\033[33m{s}\033[0m"
         return s
 
     @staticmethod
@@ -158,4 +158,4 @@ def current_settings():
 def dim(text):
     if not _shell:
         return text
-    return "\x1b[2m%s\x1b[0m" % text
+    return f"\x1b[2m{text}\x1b[0m"

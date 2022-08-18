@@ -115,7 +115,7 @@ def _coerce_step_data(data):
     elif isinstance(data, dict):
         data = dict(data)
     else:
-        _error("invalid step data: %r" % data)
+        _error(f"invalid step data: {data!r}")
     if "flags" in data:
         data["flags"] = _coerce_flags_data(data["flags"])
     return data
@@ -126,7 +126,7 @@ def _coerce_flags_data(data):
         return data
     if isinstance(data, dict):
         return flag_util.flag_assigns(data)
-    _error("invalid flags value %r" % data)
+    _error(f"invalid flags value {data!r}")
 
 
 def _run_params_for_step_data(data):
@@ -134,12 +134,12 @@ def _run_params_for_step_data(data):
 
     run_spec = data.get("run", "").strip()
     if not run_spec:
-        _error("invalid step %r: must define run" % data)
+        _error(f"invalid step {data!r}: must define run")
     args = util.shlex_split(run_spec)
     try:
         ctx = run_cmd.make_context("run", args)
     except click.exceptions.ClickException as e:
-        _error("invalid run spec %r: %s" % (run_spec, e))
+        _error(f"invalid run spec {run_spec!r}: {e}")
     else:
         _apply_data_params(data, ctx, run_spec)
         return ctx.params
@@ -299,7 +299,7 @@ def _init_steps(run):
     if not data:
         return []
     if not isinstance(data, list):
-        _error("invalid steps data %r: expected list" % data)
+        _error(f"invalid steps data {data!r}: expected list")
     flags = run.get("flags")
     opref = run.opref
     params = run.get("run_params") or {}
@@ -396,7 +396,7 @@ def _step_options(step):
 
 
 def _step_batch_file_args(step):
-    return ["@%s" % file for file in step.batch_files]
+    return [f"@{file}" for file in step.batch_files]
 
 
 def _step_flag_args(step):
@@ -478,12 +478,12 @@ def _check_step_run(step, run):
 
 
 def _internal_error(msg):
-    sys.stderr.write("guild.steps_main: %s\n" % msg)
+    sys.stderr.write(f"guild.steps_main: {msg}\n")
     sys.exit(exit_code.INTERNAL_ERROR)
 
 
 def _error(msg, exit_code=exit_code.DEFAULT_ERROR) -> typing.NoReturn:
-    sys.stderr.write("guild: %s\n" % msg)
+    sys.stderr.write(f"guild: {msg}\n")
     sys.exit(exit_code)
 
 

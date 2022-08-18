@@ -51,18 +51,16 @@ class Model:
         return ep.name
 
     def __repr__(self):
-        return "<%s.%s '%s'>" % (
-            self.__class__.__module__,
-            self.__class__.__name__,
-            self.name,
-        )
+        class_module = self.__class__.__module__
+        class_name = self.__class__.__name__
+        return f"<{class_module}.{class_name} '{self.name}'>"
 
     @property
     def fullname(self):
         if self._fullname is None:
             pkg_name = namespace.apply_namespace(self.dist.project_name)
             if pkg_name and pkg_name != ".":
-                self._fullname = "%s/%s" % (pkg_name, self.name)
+                self._fullname = f"{pkg_name}/{self.name}"
             else:
                 self._fullname = self.name
         return self._fullname
@@ -112,7 +110,7 @@ class PackageModel(Model):
     def _init_modeldef(self):
         modeldef = _find_dist_modeldef(self.name, self.dist)
         if modeldef is None:
-            raise ValueError("undefined model '%s' in %s" % (self.name, self.dist))
+            raise ValueError(f"undefined model '{self.name}' in {self.dist}")
         return modeldef
 
     def _init_reference(self):
@@ -167,7 +165,7 @@ class GuildfileDistribution(pkg_resources.Distribution):
         self._entry_map = self._init_entry_map()
 
     def __repr__(self):
-        return "<guild.model.GuildfileDistribution '%s'>" % self.guildfile.dir
+        return f"<guild.model.GuildfileDistribution '{self.guildfile.dir}'>"
 
     def get_entry_map(self, group=None):
         if group is None:
@@ -202,7 +200,7 @@ class GuildfileDistribution(pkg_resources.Distribution):
         if pkg_path[0] != ".":
             pkg_path = os.path.join(".", pkg_path)
         safe_path = escape_project_name(pkg_path)
-        return ".guildfile.%s" % safe_path
+        return f".guildfile.{safe_path}"
 
     def _init_entry_map(self):
         return {
@@ -262,7 +260,7 @@ class GuildfileResource(resource.Resource):
 def _split_res_name(name):
     parts = name.split(":", 1)
     if len(parts) != 2:
-        raise ValueError("invalid resource name: %s" % name)
+        raise ValueError(f"invalid resource name: {name}")
     return parts
 
 
@@ -271,11 +269,11 @@ class PackageModelResource(resource.Resource):
         model_name, res_name = _split_res_name(self.name)
         modeldef = _find_dist_modeldef(model_name, self.dist)
         if modeldef is None:
-            raise ValueError("undefined model '%s' in %s" % (model_name, self.dist))
+            raise ValueError(f"undefined model '{model_name}' in {self.dist}")
         resdef = modeldef.get_resource(res_name)
         if resdef is None:
             raise ValueError(
-                "undefined resource '%s%s' in %s" % (model_name, res_name, self.dist)
+                f"undefined resource '{model_name}{res_name}' in {self.dist}"
             )
         return resdef
 
@@ -288,7 +286,7 @@ class BadGuildfileDistribution(pkg_resources.Distribution):
     """Distribution for a guildfile that can't be read."""
 
     def __repr__(self):
-        return "<guild.model.BadGuildfileDistribution '%s'>" % self.location
+        return f"<guild.model.BadGuildfileDistribution '{self.location}'>"
 
     def get_entry_map(self, group=None):
         return {}

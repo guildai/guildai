@@ -162,7 +162,7 @@ class InvalidOpDef(ValueError):
         self.msg = msg
 
     def __str__(self):
-        return "invalid definition for %s: %s" % (self.opdef.fullname, self.msg)
+        return f"invalid definition for {self.opdef.fullname}: {self.msg}"
 
 
 class OpCmdError(Exception):
@@ -176,7 +176,7 @@ class BatchFileError(Exception):
         self.msg = msg
 
     def __str__(self):
-        return "cannot read trials for %s: %s" % (self.path, self.msg)
+        return f"cannot read trials for {self.path}: {self.msg}"
 
 
 class ProcessError(Exception):
@@ -1138,13 +1138,13 @@ def _op_plugins(opdef):
             log.debug(
                 "plugin '%s' configured for operation but cannot be enabled%s",
                 name,
-                " (%s)" % reason if reason else "",
+                f" ({reason})" if reason else "",
             )
             continue
         log.debug(
             "plugin '%s' enabled for operation%s",
             name,
-            " (%s)" % reason if reason else "",
+            f" ({reason})" if reason else "",
         )
         op_plugins.append(name)
     return ",".join(sorted(op_plugins))
@@ -1293,7 +1293,7 @@ def _try_coerce_flag_val(val, funs, flagdef):
             return f(val)
         except ValueError as e:
             log.debug("value error applying %s to %r: %s", f, val, e)
-    raise ValueError("invalid value for type '%s'" % flagdef.type)
+    raise ValueError(f"invalid value for type '{flagdef.type}'")
 
 
 def _resolve_rel_path(val):
@@ -1400,18 +1400,16 @@ def _check_flag_choice(val, flag):
 def _check_flag_type(val, flag):
     if flag.type == "existing-path":
         if val and not os.path.exists(val):
-            raise InvalidFlagValue(val, flag, "%s does not exist" % val)
+            raise InvalidFlagValue(val, flag, f"{val} does not exist")
 
 
 def _check_flag_range(val, flag):
     if val is None:
         return
     if flag.min is not None and val < flag.min:
-        raise InvalidFlagValue(val, flag, "out of range (less than min %s)" % flag.min)
+        raise InvalidFlagValue(val, flag, f"out of range (less than min {flag.min})")
     if flag.max is not None and val > flag.max:
-        raise InvalidFlagValue(
-            val, flag, "out of range (greater than max %s)" % flag.max
-        )
+        raise InvalidFlagValue(val, flag, f"out of range (greater than max {flag.max})")
 
 
 def _apply_choice_vals(flagdefs, user_vals, target_vals):
@@ -1476,7 +1474,7 @@ def flag_assigns(flags, skip_none=False):
 
 
 def flag_assign(name, val):
-    return "%s=%s" % (name, flag_util.format_flag(val))
+    return f"{name}={flag_util.format_flag(val)}"
 
 
 def parse_flag_assigns(args, opdef=None):
@@ -1684,13 +1682,13 @@ def _coerce_trials_data(data, path):
             raise BatchFileError(
                 path,
                 "invalid data type for trials: expected list or dict"
-                ", got %s" % type(data).__name__,
+                f", got {type(data).__name__}",
             )
         data = [data]
     for item in data:
         if not isinstance(item, dict):
             raise BatchFileError(
-                path, "invalid data type for trial %r: expected dict" % item
+                path, f"invalid data type for trial {item!r}: expected dict"
             )
     return data
 
@@ -1819,7 +1817,7 @@ def _terminate(p, poll_interval, kill_delay):
         time.sleep(poll_interval)
     returncode = p.poll()
     if returncode not in (0, -15):
-        raise ProcessError("Process did not terminate gracefully (pid %i)" % p.pid)
+        raise ProcessError(f"Process did not terminate gracefully (pid {p.pid})")
     return returncode
 
 
