@@ -172,7 +172,7 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
         preserve_path=False,
         params=None,
         *args,
-        **kw
+        **kw,
     ):
         super().__init__(*args, **kw)
         self.resdef = resdef

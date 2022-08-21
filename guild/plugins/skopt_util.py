@@ -407,7 +407,7 @@ def ipy_gen_trials(
     minimize=None,
     maximize=None,
     suggest_x_opts=None,
-    **_kw
+    **_kw,
 ):
     objective_scalar, objective_negate = _ipy_objective(minimize, maximize)
     prev_trials_cb = _ipy_prev_trials_cb(prev_results_cb, objective_scalar)

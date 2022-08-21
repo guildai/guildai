@@ -326,7 +326,7 @@ def _compare_args_for_view_args(view_args):
         skip_op_cols=False,
         all_scalars=False,
         skip_unchanged=False,
-        **view_args.as_kw()
+        **view_args.as_kw(),
     )
 
 

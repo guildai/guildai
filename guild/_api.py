@@ -335,7 +335,7 @@ def runs_label(
     clear=False,
     cwd=".",
     guild_home=None,
-    **kw
+    **kw,
 ):
     from guild import click_util
     from guild.commands import runs_impl
@@ -368,7 +368,7 @@ def runs_tag(
     list_all=False,
     cwd=".",
     guild_home=None,
-    **kw
+    **kw,
 ):
     from guild import click_util
     from guild.commands import runs_impl
@@ -446,7 +446,7 @@ def compare(
     limit=None,
     cwd=".",
     guild_home=None,
-    **kw
+    **kw,
 ):
     from guild import click_util
     from guild.commands import compare_impl
@@ -489,7 +489,7 @@ def publish(
     refresh_index=False,
     cwd=".",
     guild_home=None,
-    **kw
+    **kw,
 ):
     from guild import click_util
     from guild.commands import publish_impl

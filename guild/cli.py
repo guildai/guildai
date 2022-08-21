@@ -101,7 +101,7 @@ def table(
     err=False,
     max_width_adj=0,
     file=None,
-    **style_kw
+    **style_kw,
 ):
     data = sorted(data, key=_table_row_sort_key(sort))
     formatted = _format_table_data(data, cols + (detail or []))
