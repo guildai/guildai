@@ -98,10 +98,10 @@ def _print_scalars(args):
     index = indexlib.RunIndex()
     index.refresh(runs, ["scalar"])
     for run in runs:
-        cli.out("[%s] %s" % (run.short_id, run_util.format_operation(run, nowarn=True)))
+        cli.out(f"[{run.short_id}] {run_util.format_operation(run, nowarn=True)}")
         for s in index.run_scalars(run):
             key, step, val = (run_util.run_scalar_key(s), s["last_step"], s["last_val"])
-            cli.out("  %s: %f (step %i)" % (key, val, step))
+            cli.out(f"  {key}: {val:.6f} (step {step})")
 
 
 def _write_csv(args):
@@ -111,7 +111,7 @@ def _write_csv(args):
         for row in data:
             writer.writerow([_csv_row_item(x) for x in row])
     if args.csv != "-":
-        cli.out("Wrote %i row(s) to %s" % (len(data) - 1, args.csv), err=True)
+        cli.out(f"Wrote {len(data) - 1} row(s) to {args.csv}", err=True)
 
 
 def _open_file(path):
@@ -121,7 +121,7 @@ def _open_file(path):
     try:
         return open(path, "w")
     except (OSError, IOError) as e:
-        cli.error("error opening %s: %s" % (path, e))
+        cli.error(f"error opening {path}: {e}")
 
 
 def _csv_row_item(x):
@@ -283,7 +283,7 @@ def _default_run_compare(run, index, args):
 
 def _flag_compares(run):
     flags = run.get("flags") or {}
-    return ["=%s" % name for name in sorted(flags)]
+    return [f"={name}" for name in sorted(flags)]
 
 
 def _scalar_compares(run, index, args):
@@ -307,7 +307,7 @@ def _scalar_cols(run, index, args):
 def _step_col(cols):
     if "loss" in cols:
         return "loss step as step"
-    return "%s step as step" % cols[0]
+    return f"{cols[0]} step as step"
 
 
 def _user_cols(args, parse_cache):
@@ -489,7 +489,7 @@ def _get_run_detail_cb(index):
                 "\nPress 'r' in the main screen to refresh the list.",
                 "There are no matching runs currently",
             )
-        title = "Run {}".format(run_short_id)
+        title = f"Run {run_short_id}"
         try:
             run_id, path = next(var.find_runs(run_short_id))
         except StopIteration:
@@ -514,14 +514,14 @@ def _format_run_detail(run, index):
 def _append_run_details_core(run, index, lines):
     lines.extend(
         [
-            "Id: %s" % run.id,
-            "Operation: %s" % run_util.format_operation(run),
-            "From: %s" % run_util.format_pkg_name(run),
-            "Status: %s" % run.status,
-            "Started: %s" % util.format_timestamp(run.get("started")),
-            "Stopped: %s" % util.format_timestamp(run.get("stopped")),
-            "Time: %s" % index.run_attr(run, "time"),
-            "Label: %s" % (run.get("label") or ""),
+            f"Id: {run.id}",
+            f"Operation: {run_util.format_operation(run)}",
+            f"From: {run_util.format_pkg_name(run)}",
+            f"Status: {run.status}",
+            f"Started: {util.format_timestamp(run.get('started'))}",
+            f"Stopped: {util.format_timestamp(run.get('stopped'))}",
+            f"Time: {index.run_attr(run, 'time')}",
+            f"Label: {run.get('label') or ''}",
         ]
     )
 
@@ -533,7 +533,7 @@ def _append_run_details_flags(run, lines):
     lines.append("Flags:")
     for name, val in sorted(flags.items()):
         val = val if val is not None else ""
-        lines.append("  {}: {}".format(name, val))
+        lines.append(f"  {name}: {val}")
 
 
 def _append_run_details_scalars(run, index, lines):
@@ -543,7 +543,7 @@ def _append_run_details_scalars(run, index, lines):
     lines.append("Scalars:")
     for s in scalars:
         key, step, val = (run_util.run_scalar_key(s), s["last_step"], s["last_val"])
-        lines.append("  %s: %f (step %i)" % (key, val, step))
+        lines.append(f"  {key}: {val:.6f} (step {step})")
 
 
 def _tabview_actions():
@@ -623,9 +623,8 @@ def _compare_with_tool(args):
         _compare_with_hiplot(args)
     else:
         cli.error(
-            "unknown compare tool '%s'\n"
+            f"unknown compare tool '{args.tool}'\n"
             "Refer to TOOLS in 'guild compare --help' for list of supported tools."
-            % args.tool
         )
 
 

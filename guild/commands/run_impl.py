@@ -393,7 +393,7 @@ def _cwd_remote_run(run):
 
 
 def _cwd_opspec(opref):
-    return "%s:%s" % (opref.model_name, opref.op_name)
+    return f"{opref.model_name}:{opref.op_name}"
 
 
 def opdef_for_opspec(opspec, for_run=None):
@@ -620,7 +620,7 @@ def _edit_op_flags(op):
         try:
             flag_vals = yaml_util.decode_yaml(edited)
         except ValueError as e:
-            cli.out("Error reading flags: %s" % e, err=True)
+            cli.out(f"Error reading flags: {e}", err=True)
             if not cli.confirm("Would you like to re-edit these flags?", default=True):
                 cli.error()
         else:
@@ -632,17 +632,15 @@ def _encode_flags_with_help(vals, opdef):
     if not opdef:
         return yaml_util.encode_yaml(vals)
     lines = []
-    lines.append("# Editing flags for %s" % opdef.fullname)
+    lines.append(f"# Editing flags for {opdef.fullname}")
     lf_needed = True
     for name, val in sorted(vals.items()):
         flag_help = _format_flag_help(opdef.get_flagdef(name))
         if lf_needed or flag_help:
             lines.append("")
-        lines.append(
-            "%s: %s" % (yaml_util.encode_yaml(name), yaml_util.encode_yaml(val))
-        )
+        lines.append(f"{yaml_util.encode_yaml(name)}: {yaml_util.encode_yaml(val)}")
         if flag_help:
-            lines.extend(["  # %s" % line for line in flag_help.split("\n")])
+            lines.extend([f"  # {line}" for line in flag_help.split("\n")])
         lf_needed = flag_help
     return "\n".join(lines)
 
@@ -783,7 +781,7 @@ def _label_template(label_arg, tags_arg):
     if label_arg is not None:
         return label_arg
     if tags_arg:
-        return "%s ${default_label}" % _format_tags_for_label(tags_arg)
+        return f"{_format_tags_for_label(tags_arg)} ${{default_label}}"
     return None
 
 
@@ -875,8 +873,10 @@ def _init_op_comment(comment, edit_comment, is_batch):
     if edit_comment:
         msg_lines = [
             comment or "",
-            "# Type a comment for the %s. Lines starting with '#' are ignored."
-            % run_type,
+            (
+                f"# Type a comment for the {run_type}. Lines starting "
+                "with '#' are ignored."
+            ),
             "# An empty comment aborts the command.",
         ]
         comment = util.edit(
@@ -946,7 +946,7 @@ def _generate_op_cmd(op_cmd, flag_vals, python_requires):
     except util.UndefinedReferenceError as e:
         _op_cmd_error(
             "invalid setting for operation: command contains "
-            "invalid reference '%s'" % e.args[0]
+            f"invalid reference '{e.args[0]}'"
         )
 
 
@@ -962,7 +962,7 @@ def _proc_python_exe(python_requires):
     matching = util.find_python_interpreter(python_requires)
     if not matching:
         _op_cmd_error(
-            "cannot find a python interpreter for " "requirement %r" % python_requires
+            f"cannot find a python interpreter for requirement {python_requires!r}"
         )
     path, _ver = matching
     return path
@@ -1038,9 +1038,7 @@ def _op_run_dir_for_args(args):
         return None
     run_dir = os.path.abspath(args.run_dir)
     if not args.stage and os.getenv("NO_WARN_RUNDIR") != "1":
-        cli.note(
-            "Run directory is '%s' (results will not be " "visible to Guild)" % run_dir
-        )
+        cli.note(f"Run directory is '{run_dir}' (results will not be visible to Guild)")
     return run_dir
 
 
@@ -1517,7 +1515,7 @@ def _check_stage_trials_for_batch(S):
     batch_opdef = S.batch_op._opdef
     if S.args.stage_trials and batch_opdef and not batch_opdef.can_stage_trials:
         raise SystemExit(
-            "operation '%s' does not support --stage-trials" % batch_opdef.fullname
+            f"operation '{batch_opdef.fullname}' does not support --stage-trials"
         )
 
 
@@ -1783,9 +1781,9 @@ def _open_output(path):
         return open(path, "rb")
     except (IOError, OSError) as e:
         if e.errno == 2:
-            cli.error("%s does not exist" % path)
+            cli.error(f"{path} does not exist")
         else:
-            cli.error("error opening %s: %s" % (path, e))
+            cli.error(f"error opening {path}: {e}")
 
 
 ###################################################################
@@ -1802,10 +1800,11 @@ def _test_sourcecode(S):
     op_util.copy_sourcecode(
         sourcecode_src, sourcecode_select, None, handler_cls=logger.handler_cls
     )
-    cli.out("Copying from %s" % cmd_impl_support.cwd_desc(logger.root))
+    cwd_desc = cmd_impl_support.cwd_desc(logger.root)
+    cli.out(f"Copying from {cwd_desc}")
     cli.out("Rules:")
     for rule in logger.select.rules if logger.select else []:
-        cli.out("  %s" % _format_file_select_rule(rule))
+        cli.out(f"  {_format_file_select_rule(rule)}")
     if logger.select and logger.select.disabled:
         assert not logger.selected, logger.selected
         assert not logger.skipped, logger.skipped
@@ -1813,10 +1812,10 @@ def _test_sourcecode(S):
     else:
         cli.out("Selected for copy:")
         for path in logger.selected:
-            cli.out(cli.style("  %s" % path, fg="yellow"))
+            cli.out(cli.style(f"  {path}", fg="yellow"))
         cli.out("Skipped:")
         for path in logger.skipped:
-            cli.out(cli.style("  %s" % path, dim=True))
+            cli.out(cli.style(f"  {path}", dim=True))
 
 
 class _CopyLogger:
@@ -1857,13 +1856,13 @@ def _format_file_select_rule_extras(rule):
     if rule.regex:
         parts.append("regex")
     if rule.sentinel:
-        parts.append("with %r" % rule.sentinel)
+        parts.append(f"with {rule.sentinel!r}")
     if rule.size_gt:
-        parts.append("size > %s" % rule.size_gt)
+        parts.append(f"size > {rule.size_gt}")
     if rule.size_lt:
-        parts.append("size < %s" % rule.size_lt)
+        parts.append(f"size < {rule.size_lt}")
     if rule.max_matches:
-        parts.append("max match %s" % rule.max_matches)
+        parts.append(f"max match {rule.max_matches}")
     return ", ".join(parts)
 
 
@@ -1878,19 +1877,21 @@ def _test_flags(S):
 
     def out(parent, attr, indent=0):
         val = getattr(parent, attr)
-        prefix = "%s%s:" % (" " * indent, attr.replace("_", "-"))
+        padding = " " * indent
+        attr_label = attr.replace("_", "-")
+        prefix = f"{padding}{attr_label}:"
         if val is None:
             cli.out(prefix)
         else:
             if attr == "choices":
                 val = [flag_util.encode_flag_val(c.value) for c in val]
-            cli.out("%s %s" % (prefix, flag_util.encode_flag_val(val)))
+            cli.out(f"{prefix} {flag_util.encode_flag_val(val)}")
 
     out(opdef, "flags_dest")
     out(opdef, "flags_import")
     cli.out("flags:")
     for f in opdef.flags:
-        cli.out("  %s:" % f.name)
+        cli.out(f"  {f.name}:")
         for attr in FLAG_TEST_ATTRS:
             out(f, attr, 4)
 
@@ -1947,7 +1948,7 @@ def _print_env(S):
 
 def _print_op_cmd_env(env):
     for name, val in sorted(env.items()):
-        cli.out("%s=%s" % (name, util.env_var_quote(val)))
+        cli.out(f"{name}={util.env_var_quote(val)}")
 
 
 def _print_trials(S):
@@ -1960,7 +1961,7 @@ def _save_trials(S):
     if not S.batch_op:
         _save_trials_for_non_batch_error()
     path = _save_trials_path(S.args.save_trials)
-    cli.out("Saving trials to %s" % util.format_dir(path))
+    cli.out(f"Saving trials to {util.format_dir(path)}")
     _run_tmp_batch(S, {"SAVE_TRIALS": os.path.abspath(os.path.expanduser(path))})
 
 
@@ -1976,7 +1977,7 @@ def _check_trials_path(path):
     _root, ext = os.path.splitext(path)
     if ext.lower() not in (".csv", ".json", ""):
         cli.error(
-            "Unsupported extension '%s' - use '.csv', '.json', or no extension" % ext
+            f"Unsupported extension '{ext}' - use '.csv', '.json', or no extension"
         )
 
 
@@ -1996,20 +1997,19 @@ def _confirm_and_run(S):
 
 
 def _confirm_run(S):
+    action = _preview_op_action(S)
+    subject = _preview_op_subject(S)
+    batch_suffix = _preview_batch_suffix(S)
+    remote_suffix = _preview_remote_suffix(S)
+    flags_note = _preview_flags_note(S)
+    user_flags = _preview_user_flags(S)
+    optimizer_flags = _preview_optimizer_flags(S)
     prompt = (
-        "You are about to {action} {subject}"
-        "{batch_suffix}{remote_suffix}{flags_note}\n"
-        "{user_flags}"
-        "{optimizer_flags}"
-        "Continue?".format(
-            action=_preview_op_action(S),
-            subject=_preview_op_subject(S),
-            batch_suffix=_preview_batch_suffix(S),
-            remote_suffix=_preview_remote_suffix(S),
-            flags_note=_preview_flags_note(S),
-            user_flags=_preview_user_flags(S),
-            optimizer_flags=_preview_optimizer_flags(S),
-        )
+        f"You are about to {action} {subject}"
+        f"{batch_suffix}{remote_suffix}{flags_note}\n"
+        f"{user_flags}"
+        f"{optimizer_flags}"
+        "Continue?"
     )
     return cli.confirm(prompt, default=True)
 
@@ -2027,7 +2027,7 @@ def _preview_op_action(S):
 def _preview_op_subject(S):
     op_desc = _fmt_opref(S.user_op.opref)
     if S.restart_run:
-        return "%s (%s)" % (S.restart_run.id, op_desc)
+        return f"{S.restart_run.id} ({op_desc})"
     return op_desc
 
 
@@ -2052,7 +2052,7 @@ def _batch_desc_preview_part(op):
         return " as a batch"
     if opt_name in ("random", "skopt:random"):
         return " with random search"
-    return " with %s optimizer" % opt_name
+    return f" with {opt_name} optimizer"
 
 
 def _batch_qualifier_preview_part(S):
@@ -2061,19 +2061,19 @@ def _batch_qualifier_preview_part(S):
     if batch_op.opref.op_name == "+":
         parts.append(_preview_trials_count(S))
     elif batch_op._max_trials:
-        parts.append("%i trials" % batch_op._max_trials)
+        parts.append(f"{batch_op._max_trials} trials")
     if _is_likey_optimizer(batch_op) and batch_op._objective:
         parts.append(_objective_preview_part(batch_op._objective))
     if not parts:
         return ""
-    return " (%s)" % ", ".join(parts)
+    return f" ({', '.join(parts)})"
 
 
 def _preview_trials_count(S):
     trials_count = _trials_count(S)
     if trials_count == 1:
         return "1 trial"
-    return "%i trials" % trials_count
+    return f"{trials_count} trials"
 
 
 def _trials_count(S):
@@ -2105,13 +2105,13 @@ def _is_likey_optimizer(op):
 
 def _objective_preview_part(obj):
     if obj[:1] == "-":
-        return "maximize %s" % obj[1:]
-    return "minimize %s" % obj
+        return f"maximize {obj[1:]}"
+    return f"minimize {obj}"
 
 
 def _preview_remote_suffix(S):
     if S.args.remote:
-        return " on %s" % S.args.remote
+        return f" on {S.args.remote}"
     return ""
 
 
@@ -2131,7 +2131,7 @@ def _preview_flags(flag_vals, null_labels):
     return (
         "\n".join(
             [
-                "  %s" % _format_flag(name, val, null_labels)
+                f"  {_format_flag(name, val, null_labels)}"
                 for name, val in sorted(flag_vals.items())
             ]
         )
@@ -2146,7 +2146,7 @@ def _format_flag(name, val, null_labels):
         formatted = util.find_apply(
             [_try_format_function, flag_util.encode_flag_val], val
         )
-    return "%s: %s" % (name, formatted)
+    return f"{name}: {formatted}"
 
 
 def _try_format_function(val):
@@ -2171,7 +2171,7 @@ def _preview_optimizer_flags(S):
     flags_preview = _preview_flags(
         S.batch_op._op_flag_vals, S.batch_op._flag_null_labels
     )
-    preview = "Optimizer flags:\n%s" % flags_preview
+    preview = f"Optimizer flags:\n{flags_preview}"
     return cli.style(preview, dim=True)
 
 
@@ -2194,10 +2194,11 @@ def _run_remote(S):
 
 def _check_remote_script(opref):
     if opref.pkg_type == "script":
+        opspec = opref.to_opspec(config.cwd())
         cli.error(
             "cannot run scripts remotely\n"
-            "Define an operation in guild.yml that uses %s as the main "
-            "module and run that operation instead." % opref.to_opspec(config.cwd())
+            f"Define an operation in guild.yml that uses {opspec} as the main "
+            "module and run that operation instead."
         )
 
 
@@ -2384,17 +2385,18 @@ def _handle_run_error(exit_status) -> typing.NoReturn:
 
 
 def _incompatible_options_error(a, b) -> typing.NoReturn:
+    a_label = a.replace("_", "-")
+    b_label = b.replace("_", "-")
     cli.error(
-        "--%s and --%s cannot both be used\n"
+        f"--{a_label} and --{b_label} cannot both be used\n"
         "Try 'guild run --help' for more information."
-        % (a.replace("_", "-"), b.replace("_", "-"))
     )
 
 
 def _incompatible_with_restart_error(option, restart_option) -> typing.NoReturn:
     cli.error(
-        "%s cannot be used with --%s\n"
-        "Try 'guild run --help' for more information." % (option, restart_option)
+        f"{option} cannot be used with --{restart_option}\n"
+        "Try 'guild run --help' for more information."
     )
 
 
@@ -2404,8 +2406,8 @@ def _background_on_windows_error() -> typing.NoReturn:
 
 def _invalid_opspec_error(opspec) -> typing.NoReturn:
     cli.error(
-        "invalid operation '%s'\n"
-        "Try 'guild operations' for a list of available operations." % opspec
+        f"invalid operation '{opspec}'\n"
+        "Try 'guild operations' for a list of available operations."
     )
 
 
@@ -2414,16 +2416,15 @@ def _guildfile_error(gf_path, msg) -> typing.NoReturn:
     if os.path.basename(gf_path) == "guild.yml":
         gf_path = os.path.dirname(gf_path)
     cli.error(
-        "guildfile in %s contains an error (see above for details)"
-        % cmd_impl_support.cwd_desc(gf_path)
+        f"guildfile in {cmd_impl_support.cwd_desc(gf_path)} "
+        "contains an error (see above for details)"
     )
 
 
 def _missing_run_opdef_error(opspec, run) -> typing.NoReturn:
     cli.error(
-        "cannot find definition for operation '%s' in run %s\n"
+        f"cannot find definition for operation '{opspec}' in run {run.id}\n"
         "The definition is required when setting flags for start or restart."
-        "" % (opspec, run.id)
     )
 
 
@@ -2431,14 +2432,14 @@ def _no_such_model_op_error(opspec) -> typing.NoReturn:
     if opspec:
         if ":" in opspec:
             cli.error(
-                "cannot find operation %s\n"
-                "Try 'guild operations' for a list of available operations." % opspec
+                f"cannot find operation {opspec}\n"
+                "Try 'guild operations' for a list of available operations."
             )
         else:
             cli.error(
-                "cannot find operation %s\n"
+                f"cannot find operation {opspec}\n"
                 "You may need to include a model in the form MODEL:OPERATION. "
-                "Try 'guild operations' for a list of available operations." % opspec
+                "Try 'guild operations' for a list of available operations."
             )
     else:
         cli.error("cannot find a default operation\nTry 'guild operations' for a list.")
@@ -2446,17 +2447,16 @@ def _no_such_model_op_error(opspec) -> typing.NoReturn:
 
 def _multiple_models_error(model_ref, models) -> typing.NoReturn:
     models_list = "\n".join(
-        ["  %s" % name for name in sorted([m.fullname for m in models])]
+        [f"  {name}" for name in sorted([m.fullname for m in models])]
     )
     cli.error(
-        "there are multiple models that match '%s'\n"
-        "Try specifying one of the following:\n"
-        "%s" % (model_ref, models_list)
+        f"there are multiple models that match '{model_ref}'\n"
+        f"Try specifying one of the following:\n{models_list}"
     )
 
 
 def _no_such_opdef_error(model, op_name) -> typing.NoReturn:
-    op = "operation '{0}'".format(op_name) if op_name else "a default operation"
+    op = f"operation '{op_name}'" if op_name else "a default operation"
     if model.name:
         cli.error(
             "{op} is not defined for model '{model}'\n"
@@ -2465,8 +2465,8 @@ def _no_such_opdef_error(model, op_name) -> typing.NoReturn:
         )
     else:
         cli.error(
-            "{op} is not defined for this project\n"
-            "Try 'guild operations' for a list of available operations.".format(op=op)
+            f"{op} is not defined for this project\n"
+            "Try 'guild operations' for a list of available operations."
         )
 
 
@@ -2479,14 +2479,14 @@ def _invalid_flag_arg_error(arg) -> typing.NoReturn:
 
 def _no_such_flag_error(name, opdef) -> typing.NoReturn:
     cli.error(
-        "unsupported flag '%s'\n"
-        "Try 'guild run %s --help-op' for a list of "
-        "flags or use --force-flags to skip this check." % (name, opdef.fullname)
+        f"unsupported flag '{name}'\n"
+        f"Try 'guild run {opdef.fullname} --help-op' for a list of "
+        "flags or use --force-flags to skip this check."
     )
 
 
 def _coerce_flag_val_error(e) -> typing.NoReturn:
-    cli.error("cannot apply %r to flag '%s': %s" % (e.value, e.flag_name, e.error))
+    cli.error(f"cannot apply {e.value!r} to flag '{e.flag_name}': {e.error}")
 
 
 def _missing_required_flags_error(e) -> typing.NoReturn:
@@ -2504,7 +2504,7 @@ def _missing_required_flags_error(e) -> typing.NoReturn:
 
 def _invalid_flag_choice_error(e) -> typing.NoReturn:
     cli.out(
-        "Unsupported value for '%s' - supported values are:\n" % e.flag.name, err=True
+        f"Unsupported value for '{e.flag.name}' - supported values are:\n", err=True
     )
     cli.table(
         [
@@ -2523,15 +2523,15 @@ def _invalid_flag_choice_error(e) -> typing.NoReturn:
 
 
 def _invalid_flag_value_error(e) -> typing.NoReturn:
-    cli.error("invalid value %s for %s: %s" % (e.value, e.flag.name, e.msg))
+    cli.error(f"invalid value {e.value} for {e.flag.name}: {e.msg}")
 
 
 def _invalid_opdef_error(opdef, msg) -> typing.NoReturn:
-    cli.error("invalid definition for operation '%s': %s" % (opdef.fullname, msg))
+    cli.error(f"invalid definition for operation '{opdef.fullname}': {msg}")
 
 
 def _model_op_proxy_error(e) -> typing.NoReturn:
-    cli.error("cannot run '%s': %s" % (e.opspec, e.msg))
+    cli.error(f"cannot run '{e.opspec}': {e.msg}")
 
 
 def _op_cmd_error(msg) -> typing.NoReturn:
@@ -2539,36 +2539,36 @@ def _op_cmd_error(msg) -> typing.NoReturn:
 
 
 def _op_dependency_error(e) -> typing.NoReturn:
-    cli.error("run failed because a dependency was not met: %s" % e)
+    cli.error(f"run failed because a dependency was not met: {e}")
 
 
 def _op_process_error(op, e) -> typing.NoReturn:
-    cli.error("error running %s: %s" % (_fmt_opref(op.opref), e))
+    cli.error(f"error running {_fmt_opref(op.opref)}: {e}")
 
 
 def _opt_flags_for_missing_batch_opdef_error(args) -> typing.NoReturn:
     assert args
-    cli.error("invalid optimizer flag %s: no optimizer specified" % args[0])
+    cli.error(f"invalid optimizer flag {args[0]}: no optimizer specified")
 
 
 def _missing_op_config_for_restart_error(run) -> typing.NoReturn:
     cli.error(
-        "cannot restart run in %s: missing op configuration\n"
+        f"cannot restart run in {run.dir}: missing op configuration\n"
         "The run may not have been initialized correctly. Try starting "
-        "the operation without the --start/--restart flag." % run.dir
+        "the operation without the --start/--restart flag."
     )
 
 
 def _invalid_op_config_for_restart_error(run) -> typing.NoReturn:
     cli.error(
-        "cannot restart run in %s: invalid op configuration\n"
+        f"cannot restart run in {run.dir}: invalid op configuration\n"
         "This may be an internal error. Please open an issue "
-        "https://github.com/guildai/guildai/issues." % run.dir
+        "https://github.com/guildai/guildai/issues."
     )
 
 
 def _no_such_batch_file_error(path) -> typing.NoReturn:
-    cli.error("batch file %s does not exist" % path)
+    cli.error(f"batch file {path} does not exist")
 
 
 def _batch_file_error(e) -> typing.NoReturn:
@@ -2577,8 +2577,8 @@ def _batch_file_error(e) -> typing.NoReturn:
 
 def _flag_for_resolved_dep_error(flag_name, run) -> typing.NoReturn:
     cli.error(
-        "cannot specify a value for '%s' when restarting %s - "
-        "resource has already been resolved" % (flag_name, run.short_id)
+        f"cannot specify a value for '{flag_name}' when restarting "
+        f"{run.short_id} - resource has already been resolved"
     )
 
 

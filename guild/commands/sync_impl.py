@@ -57,14 +57,14 @@ def _maybe_sync_run(run):
     remote_run = _remote_run_for_local_run(run)
     log.debug("remote run for %s: %s", run.id, _remote_run_desc(remote_run))
     if remote_run:
-        cli.out("Syncing %s" % run.id)
+        cli.out(f"Syncing {run.id}")
         _sync_remote_run(remote_run)
 
 
 def _remote_run_desc(remote_run):
     if not remote_run:
         return "not found"
-    return "%s (%s)" % (remote_run.id, remote_run.status)
+    return f"{remote_run.id} ({remote_run.status})"
 
 
 def _remote_run_for_local_run(local_run):

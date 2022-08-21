@@ -101,12 +101,12 @@ class ViewDataImpl(view.ViewData):
 
     @staticmethod
     def _single_run_title_label(run_id):
-        return "[{}]".format(run_id)
+        return f"[{run_id}]"
 
     @staticmethod
     def _all_title_label(args):
         if args.ops:
-            return "all {}".format(" ".join(args.ops))
+            return f"all {' '.join(args.ops)}"
         return "all"
 
     @staticmethod
@@ -242,7 +242,7 @@ def _file_type_info(path):
         if target.startswith(var.runs_dir()):
             typeDesc = "Link to operation output"
         elif target.startswith(var.cache_dir()):
-            typeDesc = "Link to resource {}".format(link_type)
+            typeDesc = f"Link to resource {link_type}"
         else:
             typeDesc = "Link"
         icon = "folder-move" if link_type == "directory" else "file-send"
@@ -303,7 +303,7 @@ def _op_source_info(path):
     try:
         run = _run_for_id(parts[0])
     except LookupError:
-        return "%s (deleted)" % parts[0][:8], None
+        return f"{parts[0]} (deleted)", None
     else:
         operation = run_util.format_operation(run, nowarn=True)
         return operation, run.short_id

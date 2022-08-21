@@ -54,28 +54,30 @@ def _format_op(op, model):
         "model_name": model.name,
         "name": op.name,
         "main": op.main,
-        "flags": [
-            "%s:%s%s" % (flag.name, _format_flag_desc(flag), _format_flag_default(flag))
-            for flag in op.flags
-        ],
+        "flags": [_format_flag_for_op(flag) for flag in op.flags],
         "_model": model,
     }
+
+def _format_flag_for_op(flag):
+    flag_desc = _format_flag_desc(flag)
+    flag_default = _format_flag_default(flag)
+    return f"{flag.name}:{flag_desc}{flag_default}"
 
 
 def format_op_fullname(op_name, model_fullname):
     if model_fullname:
         if model_fullname.endswith("/"):
-            return "%s%s" % (model_fullname, op_name)
-        return "%s:%s" % (model_fullname, op_name)
+            return f"{model_fullname}{op_name}"
+        return f"{model_fullname}:{op_name}"
     return op_name
 
 
 def _format_flag_desc(flag):
-    return " %s" % flag.description if flag.description else ""
+    return f" {flag.description}" if flag.description else ""
 
 
 def _format_flag_default(flag):
-    return " (default is %s)" % flag_util.encode_flag_val(flag.default)
+    return f" (default is {flag_util.encode_flag_val(flag.default)})"
 
 
 def _filter_op(op, args):

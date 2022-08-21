@@ -920,7 +920,7 @@ def _scalar_val(s, val_key, step_key, format_json):
 
 def _format_scalar_val(val, step):
     if isinstance(val, float):
-        return f"{val} (step {step})"
+        return f"{val:.6f} (step {step})"
     # Defensive here - val should None but we don't assert because
     # this is a summary op.
     val = "nan" if val is None else val

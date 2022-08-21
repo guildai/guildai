@@ -284,9 +284,7 @@ def _init_rename_spec(data):
         return RenameSpec(pattern, repl)
     if isinstance(data, dict):
         return RenameSpec(data.get("pattern", ""), data.get("repl", ""))
-    raise ResourceFormatError(
-        f"invalid rename spec {data!r}: expected string or map"
-    )
+    raise ResourceFormatError(f"invalid rename spec {data!r}: expected string or map")
 
 
 def _split_rename_spec(spec):

@@ -160,7 +160,7 @@ def _diff(path, other_path, args):
     try:
         subprocess.call(cmd)
     except OSError as e:
-        cli.error("error running '%s': %s" % (" ".join(cmd), e))
+        cli.error(f"error running '{' '.join(cmd)}': {e}")
 
 
 def _diff_cmd(args, path):

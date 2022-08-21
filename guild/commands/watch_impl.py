@@ -96,7 +96,7 @@ def _read_pid(path):
         try:
             return int(raw)
         except ValueError:
-            cli.error("pidfile %s does not contain a valid pid" % path)
+            cli.error(f"pidfile {path} does not contain a valid pid")
 
 
 def _run_for_pid(pid):
@@ -107,7 +107,7 @@ def _run_for_pid(pid):
         run = runlib.Run(run_id, run_dir)
         if run.pid and (run.pid == pid or _parent_pid(run.pid) == pid):
             return run
-    cli.error("cannot find run for pid %i" % pid)
+    cli.error(f"cannot find run for pid {pid}")
 
 
 def _try_int(pid):
@@ -127,8 +127,7 @@ def _parent_pid(pid):
 
 
 def _handle_no_run_for_pid_arg(pid_arg):
-    # Assume pid_arg is a pidfile path.
-    cli.error("%s does not exist" % pid_arg)
+    cli.error(f"{pid_arg} does not exist" % pid_arg)
 
 
 def _watch_run(run):
@@ -140,7 +139,7 @@ def _watch_run(run):
 
 
 def _stopped_msg(run):
-    msg = "\nStopped watching %s" % run.id
+    msg = f"\nStopped watching {run.id}"
     if run.pid and psutil.Process(run.pid).is_running():
         msg += " (still running)"
     cli.out(msg)
@@ -148,7 +147,7 @@ def _stopped_msg(run):
 
 def _tail(run):
     if os.getenv("NO_WATCHING_MSG") != "1":
-        cli.out("Watching run %s" % run.id, err=True)
+        cli.out(f"Watching run {run.id}", err=True)
     out = _stream_buffer(sys.stdout)
     if run.pid is None:
         _print_run_output(run, out)
@@ -230,7 +229,7 @@ def _wait_for_exit_status(run, timeout=DEFAULT_EXIT_STATUS_TIMEOUT):
 
 
 def _print_run_status(run):
-    cli.out("Run %s stopped with a status of '%s'" % (run.id, run.status), err=True)
+    cli.out(f"Run {run.id} stopped with a status of '{run.status}'", err=True)
 
 
 def _watch_default_running(args):

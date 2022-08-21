@@ -59,7 +59,7 @@ def _open_file(path):
     try:
         return open(path, "w")
     except (OSError, IOError) as e:
-        cli.error("error opening %s: %s" % (path, e))
+        cli.error(f"error opening {path}: {e}")
 
 
 def _run_tensorboard(args):
@@ -82,7 +82,7 @@ def _run_tensorboard(args):
         cli.out("Preparing runs for TensorBoard")
         monitor.run_once(exit_on_error=True)
         if args.test_logdir:
-            cli.out("Initialized log dir %s" % logdir)
+            cli.out(f"Initialized log dir {logdir}")
             return
         _maybe_log_prepare_time(t0)
         monitor.start()
@@ -106,7 +106,7 @@ def _run_tensorboard(args):
                 # exits.
                 log.debug("Removing logdir %s", logdir)
             else:
-                print("TensorBoard logs saved in %s" % logdir)
+                print(f"TensorBoard logs saved in {logdir}")
     if util.get_platform() != "Windows":
         cli.out()
 
@@ -142,7 +142,7 @@ def _tensorboard_options(args):
 def _parse_tensorboard_opt(opt):
     parts = opt.split("=", 1)
     if len(parts) != 2:
-        cli.error("invalid TensorBoard option %r - must be OPTION=VALUE" % opt)
+        cli.error(f"invalid TensorBoard option {opt!r} - must be OPTION=VALUE")
     return parts
 
 
@@ -167,7 +167,7 @@ def _run_label(label_template, flags):
 
 def _run_label_template(flags_arg):
     flags = _split_flags(flags_arg)
-    return " ".join(["%s=${%s}" % (flag, flag) for flag in flags])
+    return " ".join([f"{flag}=${{{flag}}}" for flag in flags])
 
 
 def _split_flags(flags_arg):

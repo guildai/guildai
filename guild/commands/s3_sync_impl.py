@@ -49,9 +49,9 @@ def start(args):
 def _check_cli():
     if not util.which("aws"):
         cli.error(
-            "%s requires the AWS Command Line Interface\n"
+            f"{NAME} requires the AWS Command Line Interface\n"
             "Refer to https://docs.aws.amazon.com/cli/latest/"
-            "userguide/installing.html for details." % NAME
+            "userguide/installing.html for details."
         )
 
 
@@ -74,8 +74,8 @@ def _s3_uri(args):
     if path[-1:] == "/":
         path = path[:-1]
     if path:
-        return "s3://{}/{}".format(bucket, path)
-    return "s3://{}".format(bucket)
+        return f"s3://{bucket}/{path}"
+    return f"s3://{bucket}"
 
 
 def _sync_once(state):

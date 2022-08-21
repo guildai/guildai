@@ -203,7 +203,7 @@ def _find_req_on_path(req, path):
 def _implicit_guild_version():
     reqs_file = _guild_reqs_file()
     if reqs_file:
-        return "from source (%s)" % os.path.dirname(reqs_file)
+        return f"from source ({os.path.dirname(reqs_file)})"
     return guild.__version__
 
 
@@ -218,9 +218,9 @@ def _error_if_active_env():
     active_env = os.getenv("VIRTUAL_ENV")
     if active_env:
         cli.error(
-            "cannot run init from an activated environment (%s)\n"
+            f"cannot run init from an activated environment ({active_env})\n"
             "Deactivate the environment by running 'deactivate' "
-            "and try again." % active_env
+            "and try again."
         )
 
 
@@ -228,11 +228,11 @@ def _confirm(config):
     cli.out("You are about to initialize a Guild environment:")
     for name, val in config.prompt_params:
         if isinstance(val, tuple):
-            cli.out("  {}:".format(name))
+            cli.out(f"  {name}:")
             for x in val:
-                cli.out("    {}".format(x))
+                cli.out(f"    {x}")
         else:
-            cli.out("  {}: {}".format(name, val))
+            cli.out(f"  {name}: {val}")
     return cli.confirm("Continue?", default=True)
 
 
@@ -260,13 +260,11 @@ def _test_symlinks():
 
 
 def _init_guild_env(config):
-    cli.out(
-        "Initializing Guild environment in {}".format(util.format_dir(config.env_dir))
-    )
+    cli.out(f"Initializing Guild environment in {util.format_dir(config.env_dir)}")
     try:
         init.init_env(config.env_dir, config.guild_home, config.isolate_resources)
     except init.PermissionError as e:
-        cli.error("unable to write to %s - do you have write permission?" % e.args[0])
+        cli.error(f"unable to write to {e.args[0]} - do you have write permission?")
     except init.InitError as e:
         cli.error(e)
 
@@ -370,10 +368,10 @@ def _install_guild_dist(config):
     # If config.guild can be parsed as a version, use as
     # 'guildai==VERSION'
     if config.guild[0].isdigit():
-        cli.out("Installing Guild %s" % config.guild)
-        req = "guildai==%s" % config.guild
+        cli.out(f"Installing Guild {config.guild}")
+        req = f"guildai=={config.guild}"
     else:
-        cli.out("Installing %s" % config.guild)
+        cli.out(f"Installing {config.guild}")
         req = config.guild
     # Install Guild dist ignoring installed. In some cases (behavior
     # seems to have landed in pip 19.3.1) pip will decide not to
@@ -404,8 +402,8 @@ def _install_guild_reqs(req_files, config):
 
 
 def _install_default_guild_dist(config):
-    req = "guildai==%s" % guild.__version__
-    cli.out("Installing Guild %s" % req)
+    req = f"guildai=={guild.__version__}"
+    cli.out(f"Installing Guild {req}")
     _install_reqs([req], config)
 
 
@@ -501,7 +499,7 @@ def _install_paths(config):
 def _env_site_packages(env_dir):
     python_bin = os.path.join(env_dir, "bin", "python")
     out = subprocess.check_output([python_bin, "-m", "site"])
-    site_packages_pattern = r"(%s.+?site-packages)" % env_dir
+    site_packages_pattern = rf"({env_dir}.+?site-packages)"
     m = re.search(site_packages_pattern, out)
     assert m, out
     return m.group(1)
@@ -515,7 +513,7 @@ def _write_path(path, target_dir):
 
 def _pth_filename(target_dir, path):
     digest = hashlib.md5(path).hexdigest()[:8]
-    pth_name = "%s-%s.pth" % (os.path.basename(path), digest)
+    pth_name = f"{os.path.basename(path)}-{digest}.pth"
     return os.path.join(target_dir, pth_name)
 
 
@@ -523,7 +521,7 @@ def _python_interpreter_for_arg(arg):
     if arg.startswith("python"):
         return arg
     # Assume arg is a version
-    return "python{}".format(arg)
+    return f"python{arg}"
 
 
 def _suggest_python_interpreter(user_reqs):
@@ -547,7 +545,7 @@ def _suggest_python_interpreter(user_reqs):
     matching = util.find_python_interpreter(python_requires)
     if matching:
         _path, ver = matching
-        return "python%s" % ver
+        return f"python{ver}"
     return None
 
 
@@ -583,13 +581,12 @@ def _python_requires_for_reqs(reqs):
 
 
 def _initialized_msg(config):
+    env_dir = util.format_dir(config.env_dir)
+    source_cmd = _source_cmd(env_dir)
     cli.out(
-        "Guild environment initialized in {}."
-        "\n".format(util.format_dir(config.env_dir))
+        f"Guild environment initialized in {env_dir}\n\n."
+        f"To activate it run:\n\n  {source_cmd}\n"
     )
-    cli.out("To activate it run:\n")
-    cli.out("  %s" % _source_cmd(util.format_dir(config.env_dir)))
-    cli.out()
 
 
 def _source_cmd(env_dir):
@@ -605,8 +602,8 @@ def _windows_activate_cmd(env_dir):
 def _default_source_cmd(env_dir):
     env_parent = os.path.dirname(env_dir)
     if env_parent != os.getcwd():
-        return "source guild-env {}".format(env_dir)
+        return f"source guild-env {env_dir}"
     env_name = os.path.basename(env_dir)
     if env_name == "venv":
         return "source guild-env"
-    return "source guild-env {}".format(env_name)
+    return f"source guild-env {env_name}"

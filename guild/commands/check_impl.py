@@ -119,14 +119,14 @@ def _check_version(req):
         match = util.check_guild_version(req)
     except ValueError:
         cli.error(
-            "invalid requirement spec '%s'\n"
-            "See https://bit.ly/guild-help-req-spec for more information." % req
+            f"invalid requirement spec '{req}'\n"
+            "See https://bit.ly/guild-help-req-spec for more information."
         )
     else:
         if not match:
             cli.error(
-                "version mismatch: current version '%s' does not match '%s'"
-                % (guild.__version__, req)
+                f"version mismatch: current version '{guild.__version__}' "
+                f"does not match '{req}'"
             )
 
 
@@ -200,7 +200,8 @@ def _print_guild_info(check):
 
 
 def _attr(name, val):
-    cli.out("%s:%s%s" % (name, (ATTR_COL_WIDTH - len(name)) * " ", val))
+    padding = (ATTR_COL_WIDTH - len(name)) * " "
+    cli.out(f"{name}:{padding}{val}")
 
 
 def _safe_apply(check, f, *args, **kw):
@@ -215,7 +216,7 @@ def _safe_apply(check, f, *args, **kw):
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("safe call: %r %r %r", f, args, kw)
         check.error()
-        return _warn("ERROR: %s" % e)
+        return _warn(f"ERROR: {e}")
 
 
 def _guild_install_location():
@@ -333,7 +334,7 @@ def _pytorch_cuda_devices(torch):
     if torch.cuda.device_count == 0:
         return "none"
     return ", ".join(
-        "%s (%i)" % (torch.cuda.get_device_name(i), i)
+        f"{torch.cuda.get_device_name(i)} ({i})"
         for i in range(torch.cuda.device_count())
     )
 
@@ -356,7 +357,8 @@ def _cuda_version_nvcc():
     try:
         out = subprocess.check_output([nvcc, "--version"])
     except subprocess.CalledProcessError as e:
-        return _warn("ERROR: %s" % e.output.strip().decode("utf-8"))
+        err_out = e.output.strip().decode("utf-8")
+        return _warn(f"ERROR: {err_out}")
     else:
         out = out.decode("utf-8")
         m = re.search(r"V([0-9\.]+)", out, re.MULTILINE)
@@ -373,7 +375,8 @@ def _cuda_version_nvidia_smi():
     try:
         out = subprocess.check_output([nvidia_smi, "--query"])
     except subprocess.CalledProcessError as e:
-        return _warn("ERROR: %s" % e.output.strip().decode("utf-8"))
+        err_out = e.output.strip().decode("utf-8")
+        return _warn(f"ERROR: {err_out}")
     else:
         out = out.decode("utf-8")
         m = re.search(r"CUDA Version\s+: ([0-9\.]+)", out, re.MULTILINE)
@@ -394,7 +397,8 @@ def _nvidia_smi_version():
     try:
         out = subprocess.check_output(cmd)
     except subprocess.CalledProcessError as e:
-        return _warn("ERROR: %s" % e.output.strip().decode("utf-8"))
+        err_out = e.output.strip().decode("utf-8")
+        return _warn(f"ERROR: {err_out}")
     else:
         out = out.decode("utf-8")
         m = re.search(r"NVIDIA-SMI ([0-9\.]+)", out)
@@ -407,7 +411,7 @@ def _nvidia_smi_version():
 def _print_mods_info(check):
     for mod, required in CHECK_MODS:
         ver = _try_module_version(mod, check, required)
-        _attr("%s_version" % mod, ver)
+        _attr(f"{mod}_version", ver)
 
 
 def _try_module_version(name, check, required=True, version_attr="__version__"):
@@ -434,7 +438,7 @@ def _try_module_version(name, check, required=True, version_attr="__version__"):
 def _not_installed_msg(e):
     if "No module named " in str(e):
         return "not installed"
-    return "not installed (%s)" % e
+    return f"not installed ({e})"
 
 
 def _format_version(ver):
@@ -524,7 +528,7 @@ def _print_disk_usage():
     max_disk_usage_width = max((len(s) for s in formatted_disk_usage))
     for (name, path), disk_usage in zip(paths, formatted_disk_usage):
         _attr(
-            "  %s" % name,
+            f"  {name}",
             _format_disk_usage_and_path(disk_usage, path, max_disk_usage_width),
         )
 
@@ -538,7 +542,8 @@ def _formatted_disk_usage(path):
 
 
 def _format_disk_usage_and_path(usage, path, max_usage_width):
-    return "%s%s%s" % (usage, " " * (max_usage_width - len(usage) + 1), path)
+    padding = " " * (max_usage_width - len(usage) + 1)
+    return f"{usage}{padding}{path}"
 
 
 def _print_error_and_exit(args):
@@ -590,8 +595,8 @@ def _notify_cmd_params(error):
         # SystemExit errors are used for 0 exit codes, which are not
         # actually errors.
         if code != 0:
-            body = "FAILED (%s)" % code
+            body = f"FAILED ({code})"
             if error_msg:
-                body += ": %s" % error_msg
+                body += f": {error_msg}"
                 urgency = "critical"
     return summary, body, urgency

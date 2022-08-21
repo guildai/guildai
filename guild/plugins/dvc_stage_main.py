@@ -91,9 +91,7 @@ def _ensure_project_dir_arg(args):
 
 
 def _missing_dvc_yaml_error(project_dir):
-    raise SystemExit(
-        f"invalid DvC config directory '{project_dir}' - missing dvc.yaml"
-    )
+    raise SystemExit(f"invalid DvC config directory '{project_dir}' - missing dvc.yaml")
 
 
 def _handle_stage(state):
@@ -157,9 +155,7 @@ def _resolve_stage_deps(stage, deps, state):
 
 def _no_suitable_run_for_stage_error(stage, deps):
     deps_desc = ", ".join(sorted(deps))
-    raise SystemExit(
-        f"no suitable run for stage '{stage}' (needed for {deps_desc})"
-    )
+    raise SystemExit(f"no suitable run for stage '{stage}' (needed for {deps_desc})")
 
 
 def _link_op_deps(run, deps, state):

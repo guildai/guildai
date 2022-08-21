@@ -90,9 +90,7 @@ def _ac_dir(_ctx, _param, incomplete):
     "-H",
     "guild_home",
     metavar="PATH",
-    help="Use PATH as Guild home (default is {}).".format(
-        util.format_dir(DEFAULT_GUILD_HOME)
-    ),
+    help=f"Use PATH as Guild home (default is {util.format_dir(DEFAULT_GUILD_HOME)}).",
     default=DEFAULT_GUILD_HOME,
     envvar="GUILD_HOME",
     shell_complete=_ac_dir,

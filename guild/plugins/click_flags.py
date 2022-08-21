@@ -105,9 +105,7 @@ def _cmd_for_call_f(call_f):
         raise SystemExit(f"unexpected closure len for {call_f}: {closure}")
     cmd = closure[1].cell_contents
     if not isinstance(cmd, click.Command):
-        raise SystemExit(
-            f"unexpected entry for group in closure for {call_f}: {cmd}"
-        )
+        raise SystemExit(f"unexpected entry for group in closure for {call_f}: {cmd}")
     return cmd
 
 

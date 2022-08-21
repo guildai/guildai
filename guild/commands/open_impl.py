@@ -95,9 +95,9 @@ def _open_f(args):
     if os.name == "posix":
         return _subproc_f("xdg-open")
     cli.error(
-        "unsupported platform: %s %s\n"
+        f"unsupported platform: {sys.platform} {os.name}\n"
         "Try --cmd to explicitly provide a command or "
-        "'guild open --help' for more information." % (sys.platform, os.name)
+        "'guild open --help' for more information."
     )
 
 
@@ -120,7 +120,7 @@ def _shell_f(shell_cmd):
     try:
         import pty
     except ImportError:
-        cli.error("shell is not supported on this platform (%s)" % util.get_platform())
+        cli.error(f"shell is not supported on this platform ({util.get_platform()})")
 
     shell_cmd = shell_cmd or os.getenv("SHELL", "bash")
 
@@ -128,8 +128,8 @@ def _shell_f(shell_cmd):
         if os.path.isfile(path):
             path = os.path.dirname(path)
         cli.note(
-            "Running a new shell in %s\n"
-            "To exit the shell, type 'exit' and press Enter." % path
+            f"Running a new shell in {path}\n"
+            "To exit the shell, type 'exit' and press Enter."
         )
         with util.Chdir(path):
             with _fix_shell_columns():

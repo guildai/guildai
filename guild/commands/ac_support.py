@@ -147,8 +147,8 @@ def _values_for_incomplete(incomplete, values):
 
 def _compgen_filenames(type, ext):
     if not ext:
-        return ["!!%s:*" % type]
-    return ["!!%s:*.@(%s)" % (type, "|".join(ext))]
+        return [f"!!{type}:*"]
+    return [f"!!{type}:*.@({'|'.join(ext)})"]
 
 
 def ac_nospace(values, incomplete):
@@ -203,7 +203,7 @@ def _gen_ac_command(directive_filter, regex_filter, incomplete):
 
     if _active_shell_supports_directives():
         if directive_filter:
-            return ["!!command:%s" % directive_filter]
+            return [f"!!command:{directive_filter}"]
         return ["!!command"]
 
     # TODO: how should we handle this on windows? call out to bash
@@ -225,7 +225,7 @@ def _gen_ac_command(directive_filter, regex_filter, incomplete):
 
 def ac_run_filepath(run_dir, incomplete):
     if _active_shell_supports_directives():
-        return ["!!runfiles:%s" % run_dir]
+        return [f"!!runfiles:{run_dir}"]
     return _list_dir(
         run_dir, filters=[_run_filepath_filter, _omit_pycache], incomplete=incomplete
     )

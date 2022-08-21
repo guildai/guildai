@@ -602,9 +602,7 @@ def _nbconvert_html(notebook, args):
     cmd.append(notebook_relpath)
     log.debug("jupyter-nbconvert cmd: %s", cmd)
     omitting_desc = " (omitting input cells)" if args.html_no_input else ""
-    log.info(
-        f"Saving HTML{omitting_desc}"
-    )
+    log.info(f"Saving HTML{omitting_desc}")
     returncode = subprocess.call(cmd)
     if returncode != 0:
         sys.exit(returncode)

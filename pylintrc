@@ -178,11 +178,8 @@ disable=raw-checker-failed,
         cyclic-import,                   # [False positives](https://github.com/PyCQA/pylint/issues/5168) from deferred imports
         duplicate-code,                  # DRY is not a goal
         unnecessary-lambda-assignment,
-        redefined-builtin,
-        invalid-name,                    # Tedious and generally unhelpful
-        # TEMP - disabled for incremental linting (TODO re-enable each to cleanup code)
-        consider-using-f-string,
-        #no-else-return
+        redefined-builtin
+        #invalid-name  # TODO: reinstate with fixed naming conventions
 
 
 # Enable the message, report, category or checker with the given id(s). You can

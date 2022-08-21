@@ -98,9 +98,7 @@ class PrefixNamespace(Namespace):
 
     def package_name(self, project_name):
         if not project_name.startswith(self.prefix):
-            raise TypeError(
-                f"{project_name} is not a member of {self.name} namespace"
-            )
+            raise TypeError(f"{project_name} is not a member of {self.name} namespace")
         return project_name[len(self.prefix) :]
 
 
