@@ -168,8 +168,7 @@ def _write_version(fname):
         pass
     with open(fname, "w") as f:
         f.write(
-            "# This file has been created by setup.py.\n"
-            f"version = '{__version__}'\n"
+            f"# This file has been created by setup.py.\nversion = '{__version__}'\n"
         )
 
 

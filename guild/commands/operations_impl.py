@@ -58,6 +58,7 @@ def _format_op(op, model):
         "_model": model,
     }
 
+
 def _format_flag_for_op(flag):
     flag_desc = _format_flag_desc(flag)
     flag_default = _format_flag_default(flag)
