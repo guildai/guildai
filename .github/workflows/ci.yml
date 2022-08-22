@@ -38,6 +38,7 @@ env:
 
 jobs:
   pre-commit-hooks:
+    name: Run pre-commit hooks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout out repository
@@ -46,6 +47,7 @@ jobs:
         uses: pre-commit/action@v2.0.3
 
   build-and-test:
+    name: Build and test package
     runs-on: ${{ matrix.sys.os }}
     needs:
       - pre-commit-hooks
@@ -71,6 +73,10 @@ jobs:
         shell: ${{ matrix.sys.shell }}
 
     steps:
+      - name: Init SSH
+        run: sudo touch /continue
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_with_ssh }}
+
       - name: Start SSH
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_with_ssh }}
@@ -112,3 +118,7 @@ jobs:
       #     guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
       #     source "$(find test-env -iname activate | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n 1)"
       #     guild check --uat --offline
+
+      - name: Wait for SSH connection
+        run: sleep infinity
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_with_ssh }}
