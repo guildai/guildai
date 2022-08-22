@@ -5,48 +5,54 @@ exclude: |
         ^guild/view/
         ^test/lib/
     )
+
 default_language_version:
-  python: python3
+  python: python3.8
+
 repos:
-- repo: https://github.com/psf/black
-  rev: 22.3.0
-  hooks:
-  - id: black
-- repo: https://github.com/pycqa/pylint
-  rev: v2.13.8
-  hooks:
-  -   id: pylint
-      args: ["-rn", "-f", "parseable", "-j", "0", "--rcfile", "pylintrc", "setup.py", "guild"]
-      additional_dependencies:
-        - chardet
-        - click
-        - daemonize
-        - filelock
-        - jinja2<3.1
-        - natsort
-        - Pillow>=5.0
-        - pip
-        - pkginfo
-        - psutil
-        - pydantic
-        - pytest
-        - pyyaml
-        - scikit-learn
-        - scikit-optimize
-        - setuptools
-        - sybil
-        - tabview
-        - tensorboard
-        - twine
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.2.0
-  hooks:
-  - id: check-merge-conflict
-  - id: debug-statements
-    exclude: ^guild/op_main.py
-  - id: end-of-file-fixer
-  - id: trailing-whitespace
-- repo: https://github.com/asottile/blacken-docs
-  rev: v1.12.1
-  hooks:
-  - id: blacken-docs
+
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pycqa/pylint
+    rev: v2.14.5
+    hooks:
+      - id: pylint
+        args: ["-rn", "-f", "parseable", "setup.py", "guild"]
+        additional_dependencies:
+          - Pillow>=5.0
+          - chardet
+          - click
+          - daemonize
+          - filelock
+          - jinja2<3.1
+          - natsort
+          - pip
+          - pkginfo
+          - psutil
+          - pydantic
+          - pytest
+          - pyyaml
+          - scikit-learn
+          - scikit-optimize
+          - setuptools
+          - sybil
+          - tabview
+          - tensorboard
+          - twine
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.2.0
+    hooks:
+      - id: check-merge-conflict
+      - id: debug-statements
+        exclude: ^guild/op_main.py
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/asottile/blacken-docs
+    rev: v1.12.1
+    hooks:
+      - id: blacken-docs
