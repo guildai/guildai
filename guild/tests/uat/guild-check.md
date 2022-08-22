@@ -81,15 +81,3 @@ Show with disk usage:
       remote_state:            ...
       cache:                   ...
     <exit 0>
-
-We should also see Guild environment files in our workspace:
-
-    >>> run("cd $WORKSPACE && find .guild | LC_ALL=C sort")  # doctest: -WINDOWS
-    .guild
-    .guild/.guild-nocopy
-    .guild/cache
-    .guild/cache/resources
-    .guild/cache/runs
-    .guild/runs
-    .guild/trash
-    <exit 0>
