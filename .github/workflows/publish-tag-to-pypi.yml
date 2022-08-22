@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Upload Python Package to PyPI
+name: Release to PyPI
 
 env:
   NON_INTERACTIVE_CI: true

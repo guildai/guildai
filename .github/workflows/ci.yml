@@ -1,23 +1,25 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+# This workflow will install Python dependencies, run tests and lint
+# with a variety of Python versions For more information see:
+# https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Run tests for CI
+name: Build, test and package
 
 on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
+
   workflow_dispatch:
     inputs:
-      debug_enabled:
-        description:
-          Run the build with tmate debugging enabled
-          (https://github.com/marketplace/actions/debugging-with-tmate)
+      run_with_ssh:
+        type: boolean
+        description: Run with SSH
         required: false
-        default: "false"
+        default: false
 
 concurrency:
   group: "${{ github.ref }}"
@@ -35,16 +37,18 @@ env:
   GUILD_SHELL: bash
 
 jobs:
-  lint:
+  pre-commit-hooks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: pre-commit/action@v2.0.3
+      - name: Checkout out repository
+        uses: actions/checkout@v3
+      - name: Run pre-commit hooks
+        uses: pre-commit/action@v2.0.3
 
-  build:
+  build-and-test:
     runs-on: ${{ matrix.sys.os }}
     needs:
-      - lint
+      - pre-commit-hooks
     strategy:
       fail-fast: false
       matrix:
@@ -67,46 +71,44 @@ jobs:
         shell: ${{ matrix.sys.shell }}
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Start SSH
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_with_ssh }}
 
-      - name: Get Git tags
-        run: git fetch --prune --unshallow --tags -f
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # - name: Get Git tags
+      #   run: git fetch --prune --unshallow --tags -f
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Add msys64 to PATH to pick up different bash.exe
-        # https://github.com/actions/runner/issues/497
-        # https://github.com/actions/toolkit/blob/main/docs/commands.md#environment-files
-        if: runner.os == 'Windows'
-        run: echo "C:\\msys64\\usr\\bin" >> $GITHUB_PATH
+      # - name: Add msys64 to PATH to pick up different bash.exe
+      #   # https://github.com/actions/runner/issues/497
+      #   # https://github.com/actions/toolkit/blob/main/docs/commands.md#environment-files
+      #   if: runner.os == 'Windows'
+      #   run: echo "C:\\msys64\\usr\\bin" >> $GITHUB_PATH
 
-      - name: Setup git user
-        run: |
-          git config --global user.name "$(git --no-pager log --format=format:'%an' -n 1)"
-          git config --global user.email "$(git --no-pager log --format=format:'%ae' -n 1)"
-          git config --global init.defaultBranch main
+      # - name: Setup git user
+      #   run: |
+      #     git config --global user.name "$(git --no-pager log --format=format:'%an' -n 1)"
+      #     git config --global user.email "$(git --no-pager log --format=format:'%ae' -n 1)"
+      #     git config --global init.defaultBranch main
 
-      - name: Install/update pip, wheel and then build, install wheel
+      - name: Build package
         run: |
           python -m pip install --upgrade pip wheel setuptools
           python setup.py bdist_wheel
-          python -m pip install --upgrade dist/*.whl
 
-      - name: Run UAT tests
-        env:
-          GUILD_CHECK_TIMEOUT: ${{ fromJSON('{"Linux":1800,"macOS":3600,"Windows":3600}')[runner.os] }}
-        run: |
-          guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
-          source "$(find test-env -iname activate | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n 1)"
-          guild check --uat --offline
+      #    ^^^^ python -m pip install --upgrade dist/*.whl
 
-      # Enable tmate debugging of manually-triggered workflows if the input option was provided
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ failure() && github.event_name == 'workflow_dispatch' && inputs.debug_enabled && runner.os == 'Linux' }}
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+      # - name: Run UAT tests
+      #   env:
+      #     GUILD_CHECK_TIMEOUT: ${{ fromJSON('{"Linux":1800,"macOS":3600,"Windows":3600}')[runner.os] }}
+      #   run: |
+      #     guild init -y --no-progress --name guild-test --guild dist/*.whl ./test-env
+      #     source "$(find test-env -iname activate | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n 1)"
+      #     guild check --uat --offline
