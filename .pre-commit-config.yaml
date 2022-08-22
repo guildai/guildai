@@ -1,4 +1,5 @@
 files: ^setup.py|^guild/|^examples/
+exclude: ^guild/tests/
 
 default_language_version:
   python: python3.8
@@ -8,7 +9,6 @@ repos:
     rev: 22.3.0
     hooks:
       - id: black
-        exclude: ^guild/tests/
         args: ['--diff']
         verbose: true
 
@@ -18,7 +18,7 @@ repos:
       - id: pylint
         args: ['--errors-only']
         verbose: true
-        exclude: ^examples/|^guild/tests/
+        exclude: ^examples/
         additional_dependencies:
           - Pillow>=5.0
           - chardet
