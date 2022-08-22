@@ -21,7 +21,6 @@ repos:
     hooks:
       - id: pylint
         args: ["-rn", "-f", "parseable", "setup.py", "guild"]
-        verbose: true
         additional_dependencies:
           - Pillow>=5.0
           - chardet
@@ -52,3 +51,7 @@ repos:
         exclude: ^guild/op_main.py
       - id: end-of-file-fixer
       - id: trailing-whitespace
+
+  - repo: meta
+    hooks:
+      - id: identity
