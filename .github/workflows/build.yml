@@ -1,0 +1,113 @@
+name: Build
+
+on:
+  # push:
+  #   branches:
+  #     - main
+
+  # pull_request:
+  #   branches:
+  #     - main
+
+  workflow_dispatch:
+    inputs:
+      run_with_ssh:
+        type: boolean
+        description: Run with SSH
+        required: false
+        default: false
+      skip_uat:
+        type: boolean
+        description: Run built-in tests only (skip full user acceptance)
+        required: false
+        default: false
+
+jobs:
+  build:
+    name: Build and test package
+    runs-on: ${{ matrix.sys.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        sys:
+          - os: ubuntu-latest
+            shell: bash
+          - os: macos-latest
+            shell: bash
+          # - os: windows-latest
+          #   shell: bash
+        python-version:
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
+    defaults:
+      run:
+        shell: ${{ matrix.sys.shell }}
+
+    steps:
+      - name: Configure SSH
+        run: sudo touch /continue
+        if: ${{ inputs.run_with_ssh }}
+
+      - name: Start SSH
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ inputs.run_with_ssh }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # - name: Add msys64 to PATH to pick up different bash.exe
+      #   # https://github.com/actions/runner/issues/497
+      #   # https://github.com/actions/toolkit/blob/main/docs/commands.md#environment-files
+      #   if: runner.os == 'Windows'
+      #   run: echo "C:\\msys64\\usr\\bin" >> $GITHUB_PATH
+
+      - name: Build package
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          python setup.py bdist_wheel
+
+      - name: Install package
+        run: |
+          python -m venv test-env
+          test-env/bin/pip install --upgrade pip
+          test-env/bin/pip install dist/*.whl
+
+      - name: Install test requirements
+        # uat tests install test requirements as a part of the test
+        # suite - these must not be installed ahead of time
+        if: ${{ inputs.skip_uat }}
+        run: |
+          test-env/bin/pip install -r guild/tests/requirements.txt
+
+      - name: Configure environment for tests
+        # git config required by Guild tests that run git commands
+        run: |
+          git config --global user.name unused
+          git config --global user.email unused@localhost
+          git config --global init.defaultBranch main
+
+      - name: Run built-in tests
+        if: ${{ inputs.skip_uat }}
+        run: |
+          test-env/bin/guild check -nT
+
+      - name: Run user acceptance tests
+        if: ${{ !inputs.skip_uat }}
+        env:
+          WORKSPACE: /tmp/guild-uat
+          EXAMPLES: examples
+          GUILD_START_THRESHOLD: 1.0
+        run: |
+          test-env/bin/guild check --force-uat
+
+      - name: Keep server alive for SSH (cancel job to terminate)
+        run: sleep infinity
+        if: ${{ (success() || failure()) && inputs.run_with_ssh }}

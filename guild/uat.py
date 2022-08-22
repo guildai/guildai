@@ -122,6 +122,7 @@ class UATContext:
     Note that the UAT Guild home is, by default, local to the UAT
     workspace and not the current process Guild home.
     """
+
     def __init__(self):
         self._env = util.Env(
             {
