@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Release to PyPI
+name: Release
 
 env:
   NON_INTERACTIVE_CI: true

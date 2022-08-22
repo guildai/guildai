@@ -2,7 +2,7 @@
 # with a variety of Python versions For more information see:
 # https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Build, test and package
+name: Build
 
 on:
   push:
@@ -45,19 +45,19 @@ jobs:
   pre-commit-hooks:
     name: Run pre-commit hooks
     runs-on: ubuntu-latest
-    if: ${{ !inputs.skip_pre_commit_hooks }}
     steps:
       - name: Checkout out repository
         uses: actions/checkout@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.skip_pre_commit_hooks }}
       - name: Run pre-commit hooks
         uses: pre-commit/action@v2.0.3
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.skip_pre_commit_hooks }}
 
   build-and-test:
     name: Build and test package
     runs-on: ${{ matrix.sys.os }}
     needs:
       - pre-commit-hooks
-    if: ${{ needs.pre-commit-hooks.result != 'failure' }}
     strategy:
       fail-fast: false
       matrix:
