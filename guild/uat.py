@@ -40,8 +40,8 @@ REQUIREMENTS_PATH = os.path.join(GUILD_PKG, "requirements.txt")
 EXAMPLES = os.path.abspath(os.getenv("EXAMPLES") or os.path.join(GUILD_PKG, "examples"))
 
 
-def run():
-    if not pip_util.running_under_virtualenv():
+def run(force=False):
+    if not force and not pip_util.running_under_virtualenv():
         sys.stderr.write("This command must be run in a virtual environment\n")
         sys.exit(1)
     tests = _tests_for_index()
@@ -57,6 +57,10 @@ def _tests_for_index():
 
 
 def _init_workspace():
+    if WORKSPACE is None:
+        raise ValueError(
+            "'WORKSPACE' environment variable not set - cannot run uat"
+        )
     print(f"Initializing workspace {WORKSPACE} under {sys.executable}")
     util.ensure_dir(os.path.join(WORKSPACE, "passed-tests"))
     util.ensure_dir(os.path.join(WORKSPACE, ".guild"))

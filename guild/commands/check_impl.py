@@ -103,8 +103,8 @@ def _check(args):
 def _check_impl(args):
     if args.version:
         _check_version(args.version)
-    if args.uat:
-        _uat_and_exit()
+    if args.uat or args.force_uat:
+        _uat_and_exit(args)
     check = Check(args)
     if not args.no_info:
         _print_info(check)
@@ -130,9 +130,9 @@ def _check_version(req):
             )
 
 
-def _uat_and_exit():
+def _uat_and_exit(args):
     os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
-    uat.run()
+    uat.run(args.force_uat)
     sys.exit(0)
 
 

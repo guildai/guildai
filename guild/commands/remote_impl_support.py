@@ -316,6 +316,7 @@ def _check_kw(args):
     ignore = [
         "all_tests",
         "check_url",
+        "force_uat",
         "no_info",
         "notify",
         "remote",
