@@ -57,6 +57,7 @@ jobs:
     runs-on: ${{ matrix.sys.os }}
     needs:
       - pre-commit-hooks
+    if: ${{ needs.pre-commit-hooks.result != 'failure' }}
     strategy:
       fail-fast: false
       matrix:
