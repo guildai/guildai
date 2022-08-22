@@ -2,7 +2,7 @@
 
 Generate some sample runs.
 
-    >>> project = Project(example("hello"))
+    >>> project = Project(sample("projects", "hello"))
 
     >>> project.run("hello-file")
     Resolving file dependency

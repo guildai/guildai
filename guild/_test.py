@@ -73,6 +73,11 @@ BASH_SHELL = doctest.register_optionflag("BASH_SHELL")
 
 _ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
+# Resolve relative to cwd on load as we change cwd for tests later.
+_EXAMPLES_DIR = (
+    os.path.abspath(os.environ["EXAMPLES"]) if "EXAMPLES" in os.environ else None
+)
+
 
 def run_all(skip=None):
     return run(all_tests(), skip)
@@ -653,7 +658,11 @@ def _example(name):
 
 
 def _examples_dir():
-    return os.path.abspath(os.getenv("EXAMPLES") or _default_examples_dir())
+    if _EXAMPLES_DIR is None:
+        raise ValueError(
+            "'EXAMPLES' environment variable not set - cannot run test on examples"
+        )
+    return _EXAMPLES_DIR
 
 
 def _default_examples_dir():

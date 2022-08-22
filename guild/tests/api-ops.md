@@ -2,7 +2,7 @@
 
 Generate some sample runs.
 
-    >>> project = Project(example("hello"))
+    >>> project = Project(sample("projects", "hello"))
 
     >>> project.run("hello-file")
     Resolving file dependency
@@ -29,14 +29,14 @@ Generate some sample runs.
         },
         "fullname": "hello",
         "guildfile": {
-          "dir": ".../examples/hello",
-          "src": ".../examples/hello/guild.yml"
+          "dir": ".../samples/projects/hello",
+          "src": ".../samples/projects/hello/guild.yml"
         },
         "name": "hello",
         "opref": {
           "modelName": "",
           "opName": "hello",
-          "pkgName": ".../examples/hello/guild.yml",
+          "pkgName": ".../samples/projects/hello/guild.yml",
           "pkgType": "guildfile",
           "pkgVersion": "bd3ca4e8bd044ab25c2ede36bd71e740"
         }
@@ -54,14 +54,14 @@ Generate some sample runs.
         },
         "fullname": "hello-file",
         "guildfile": {
-          "dir": ".../examples/hello",
-          "src": ".../examples/hello/guild.yml"
+          "dir": ".../samples/projects/hello",
+          "src": ".../samples/projects/hello/guild.yml"
         },
         "name": "hello-file",
         "opref": {
           "modelName": "",
           "opName": "hello-file",
-          "pkgName": ".../examples/hello/guild.yml",
+          "pkgName": ".../samples/projects/hello/guild.yml",
           "pkgType": "guildfile",
           "pkgVersion": "bd3ca4e8bd044ab25c2ede36bd71e740"
         }
@@ -71,14 +71,14 @@ Generate some sample runs.
         "flags": {},
         "fullname": "hello-op",
         "guildfile": {
-          "dir": ".../examples/hello",
-          "src": ".../examples/hello/guild.yml"
+          "dir": ".../samples/projects/hello",
+          "src": ".../samples/projects/hello/guild.yml"
         },
         "name": "hello-op",
         "opref": {
           "modelName": "",
           "opName": "hello-op",
-          "pkgName": ".../examples/hello/guild.yml",
+          "pkgName": ".../samples/projects/hello/guild.yml",
           "pkgType": "guildfile",
           "pkgVersion": "bd3ca4e8bd044ab25c2ede36bd71e740"
         }

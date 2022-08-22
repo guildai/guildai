@@ -2,7 +2,7 @@
 
 Generate some sample runs.
 
-    >>> project = Project(example("hello"))
+    >>> project = Project(sample("projects", "hello"))
 
     >>> project.run("hello-file")
     Resolving file dependency
@@ -62,13 +62,13 @@ Helper for running commands for the project.
         "opRef": {
           "modelName": "",
           "opName": "hello-file",
-          "pkgName": ".../examples/hello/guild.yml",
+          "pkgName": ".../samples/projects/hello/guild.yml",
           "pkgType": "guildfile",
           "pkgVersion": "..."
         },
         "operation": "hello-file",
         "otherAttrs": {},
-        "projectDir": ".../examples/hello",
+        "projectDir": ".../samples/projects/hello",
         "scalars": [],
         "shortId": "...",
         "sourcecode": {
