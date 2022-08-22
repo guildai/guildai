@@ -20,7 +20,8 @@ repos:
     rev: v2.14.5
     hooks:
       - id: pylint
-        args: ["-rn", "-f", "parseable", "setup.py", "guild"]
+        args: ['--version']
+        #args: ["-rn", "-f", "parseable", "setup.py", "guild"]
         additional_dependencies:
           - Pillow>=5.0
           - chardet
