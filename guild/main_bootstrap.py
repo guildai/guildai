@@ -14,14 +14,6 @@
 
 """Bootstraps env for guild.main.
 
-The primary bootstrap task is to configure sys.path with the location
-of Guild's external dependencies. This module supports two modes:
-distribution and dev.
-
-External dependencies in distribution mode are assumed to be located
-in a single `GUILD_PKG_HOME/external` directory where `GUILD_PKG_HOME`
-is the `guild` directory within the Guild distribution location.
-
 As the bootstrap process is used for every Guild command, it must
 execute as quickly as possible.
 """
