@@ -1088,6 +1088,7 @@ def _run(
 ):
     cmd = _run_shell_cmd(cmd)
     proc_env = dict(os.environ)
+    _apply_venv_bin_path(proc_env)
     if env:
         proc_env.update(env)
     proc_env["SYNC_RUN_OUTPUT"] = "1"
@@ -1176,6 +1177,13 @@ def _guild_exe_for_win_error():
 
 def _run_shell_posix_cmd(cmd):
     return f"set -eu && {cmd}"
+
+
+def _apply_venv_bin_path(env):
+    python_bin_dir = os.path.dirname(sys.executable)
+    path = env.get("PATH") or ""
+    if python_bin_dir not in path:
+        env["PATH"] = f"{python_bin_dir}{os.path.pathsep}${path}"
 
 
 def _popen(cmd, env, cwd):
