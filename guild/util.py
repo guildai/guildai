@@ -1057,6 +1057,9 @@ def find_python_interpreter(version_spec):
         # here, but anything would do.
         req = pkg_resources.Requirement.parse(f"python{version_spec}")
     except pkg_resources.RequirementParseError as e:
+        # pylint under pre-commit is having a hard time determining
+        # that `RequirementParseError` is a valie exception type.
+        # pylint: disable=bad-exception-context
         raise ValueError(version_spec) from e
     python_interps = {ver: path for path, ver in python_interpreters()}
     matching = list(req.specifier.filter(sorted(python_interps)))

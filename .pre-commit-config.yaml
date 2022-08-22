@@ -1,28 +1,24 @@
-exclude: |
-    (?x)(
-        ^guild/external/|
-        ^guild/tests/samples/|
-        ^guild/view/
-        ^test/lib/
-    )
+files: ^setup.py|^guild/|^examples/
 
 default_language_version:
   python: python3.8
 
 repos:
-
   - repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
       - id: black
+        exclude: ^guild/tests/
+        args: ['--diff']
+        verbose: true
 
   - repo: https://github.com/pycqa/pylint
     rev: v2.14.5
     hooks:
       - id: pylint
-        args: ['--version']
-        verbsose: true
-        #args: ["-rn", "-f", "parseable", "setup.py", "guild"]
+        args: ['--errors-only']
+        verbose: true
+        exclude: ^examples/|^guild/tests/
         additional_dependencies:
           - Pillow>=5.0
           - chardet
