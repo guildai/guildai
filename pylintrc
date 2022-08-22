@@ -51,7 +51,7 @@ ignore-paths=
 # Files or directories matching the regex patterns are skipped. The regex
 # matches against base names, not paths. The default value ignores Emacs file
 # locks
-ignore-patterns=^\.#,_version\.py
+ignore-patterns=^\.#
 
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime
@@ -144,42 +144,35 @@ confidence=HIGH,
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
-disable=raw-checker-failed,
-        bad-inline-option,
-        locally-disabled,
-        file-ignored,
-        suppressed-message,
-        useless-suppression,
-        deprecated-pragma,
-        use-symbolic-message-instead,
-        import-outside-toplevel,
-        missing-function-docstring,
-        missing-module-docstring,
-        missing-class-docstring,
-        protected-access,
-        too-few-public-methods,
-        unspecified-encoding,            # Punt on [this problem](https://peps.python.org/pep-0597/)
-        too-many-arguments,
-        too-many-return-statements,
-        consider-using-with,             # Brute force - applied for every call to open
-        no-member,                       # Too false positives and generated-members [does not work](https://github.com/PyCQA/pylint/issues/2498)
-        redefined-outer-name,
-        broad-except,
-        too-many-instance-attributes,
-        too-many-locals,
-        too-many-lines,
-        too-many-branches,
-        too-many-statements,
-        too-many-public-methods,
-        too-many-function-args,
-        fixme,
+disable=
         bare-except,
-        keyword-arg-before-vararg,       # DANGEROUS - changes function spec!
+        broad-except,
+        consider-using-with,             # Brute force - applied for every call to open
         cyclic-import,                   # [False positives](https://github.com/PyCQA/pylint/issues/5168) from deferred imports
         duplicate-code,                  # DRY is not a goal
-        unnecessary-lambda-assignment,
-        redefined-builtin
-        #invalid-name  # TODO: reinstate with fixed naming conventions
+        fixme,
+        import-outside-toplevel,         # Used extensively to defer import cost
+        invalid-name,                    # Hard to get right with low returns
+        keyword-arg-before-vararg,       # DANGEROUS - changes function spec!
+        missing-class-docstring,
+        missing-function-docstring,
+        missing-module-docstring,
+        no-member,                       # Too many false positives and generated-members [does not work](https://github.com/PyCQA/pylint/issues/2498)
+        protected-access,
+        redefined-builtin,
+        redefined-outer-name,
+        too-few-public-methods,
+        too-many-arguments,
+        too-many-branches,
+        too-many-function-args,
+        too-many-instance-attributes,
+        too-many-lines,
+        too-many-locals,
+        too-many-public-methods,
+        too-many-return-statements,
+        too-many-statements,
+        unnecessary-lambda-assignment,   # Lambdas are more convenient and readable than defs when possible
+        unspecified-encoding,            # Punt on [this problem](https://peps.python.org/pep-0597/)
 
 
 # Enable the message, report, category or checker with the given id(s). You can
@@ -267,9 +260,7 @@ callbacks=cb_,
 
 # A regular expression matching the name of dummy variables (i.e. expected to
 # not be used).
-#dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
-dummy-variables-rgx=_[^_].*
-
+dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore.
@@ -362,7 +353,7 @@ argument-naming-style=snake_case
 # Regular expression matching correct argument names. Overrides argument-
 # naming-style. If left empty, argument names will be checked with the set
 # naming style.
-argument-rgx=[a-z_][a-z0-9_]*$
+#argument-rgx=
 
 # Naming style matching correct attribute names.
 attr-naming-style=snake_case
@@ -370,7 +361,7 @@ attr-naming-style=snake_case
 # Regular expression matching correct attribute names. Overrides attr-naming-
 # style. If left empty, attribute names will be checked with the set naming
 # style.
-attr-rgx=[a-z_][a-z0-9_]*$
+#attr-rgx=
 
 # Bad variable names which should always be refused, separated by a comma.
 bad-names=foo,
@@ -425,7 +416,7 @@ function-naming-style=snake_case
 # Regular expression matching correct function names. Overrides function-
 # naming-style. If left empty, function names will be checked with the set
 # naming style.
-function-rgx=[a-z_][a-z0-9_]*$
+#function-rgx=
 
 # Good variable names which should always be accepted, separated by a comma.
 good-names=i,
@@ -455,7 +446,7 @@ method-naming-style=snake_case
 
 # Regular expression matching correct method names. Overrides method-naming-
 # style. If left empty, method names will be checked with the set naming style.
-method-rgx=[a-z_][a-z0-9_]*$
+#method-rgx=
 
 # Naming style matching correct module names.
 module-naming-style=snake_case
@@ -487,7 +478,7 @@ variable-naming-style=snake_case
 # Regular expression matching correct variable names. Overrides variable-
 # naming-style. If left empty, variable names will be checked with the set
 # naming style.
-variable-rgx=[a-z_][a-z0-9_]*$
+#variable-rgx=
 
 
 [TYPECHECK]
@@ -499,7 +490,7 @@ contextmanager-decorators=contextlib.contextmanager
 
 # List of members which are set dynamically and missed by pylint inference
 # system, and so shouldn't trigger E1101 when accessed. Python regular
-# expressions are accepted.#
+# expressions are accepted.
 generated-members=
 
 # Tells whether to warn about missing members when the owner of the attribute
