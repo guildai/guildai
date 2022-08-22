@@ -29,7 +29,7 @@ from guild import util
 log = logging.getLogger("guild")
 
 OP_RUNFILE_PATHS = [
-    ["guild", "external"],
+    ["guild"],
 ]
 
 PROC_TERM_TIMEOUT_SECONDS = 30

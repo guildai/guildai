@@ -38,13 +38,6 @@ from guild import var
 
 from guild.commands import runs_impl
 
-# ipy makes use of the full Guild API and so, like main_bootstrap,
-# requires the external modules.
-
-from guild import main_bootstrap
-
-main_bootstrap.ensure_external_path()
-
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", Warning)

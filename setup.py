@@ -15,11 +15,7 @@
 import os
 import platform
 import subprocess
-import sys
 
-sys.path.insert(0, "./guild/external")
-
-# pylint: disable=wrong-import-position
 from pkg_resources import Distribution as PkgDist
 from pkg_resources import PathMetadata
 from setuptools import find_packages, setup
@@ -76,7 +72,6 @@ class Build(cmdclass["build_py"]):
     In preparation for setuptool's default build, we perform these
     additional pre-processing steps:
 
-    - Ensure external dependencies
     - Build view distribution
 
     See MANIFEST.in for a complete list of data files includes in the
