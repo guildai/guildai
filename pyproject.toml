@@ -8,6 +8,8 @@ exclude = '''
     | guild/tests/samples/scripts
     | guild/view
     | test/lib
+    | .venv
+    | venv
 )/
 '''
 

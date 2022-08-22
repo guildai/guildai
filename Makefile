@@ -106,7 +106,7 @@ README.html: README.md
 
 format-code:
 	@echo Formatting guild code
-	@black guild
+	@black guild examples
 
 coverage-check:
 	@if [ -z "$(TESTS)" ]; then \
