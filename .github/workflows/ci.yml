@@ -20,6 +20,11 @@ on:
         description: Run with SSH
         required: false
         default: false
+      skip_pre_commit_hooks:
+        type: boolean
+        description: Skip pre-commit hooks
+        required: false
+        default: false
 
 concurrency:
   group: "${{ github.ref }}"
@@ -40,6 +45,7 @@ jobs:
   pre-commit-hooks:
     name: Run pre-commit hooks
     runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_pre_commit_hooks }}
     steps:
       - name: Checkout out repository
         uses: actions/checkout@v3
