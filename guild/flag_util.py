@@ -397,9 +397,7 @@ def _trunc_len(truncate_floats):
 
 
 def _is_path(val):
-    return (
-        isinstance(val, str) and os.path.sep in val and os.path.exists(val)
-    )
+    return isinstance(val, str) and os.path.sep in val and os.path.exists(val)
 
 
 def _path_len(shorten_paths):
@@ -419,11 +417,7 @@ def _quote_encoded(encoded, val):
 
 
 def _needs_quote(encoded, val):
-    return (
-        isinstance(val, str)
-        and encoded[0] not in ("'", "\"")
-        and " " in encoded
-    )
+    return isinstance(val, str) and encoded[0] not in ("'", "\"") and " " in encoded
 
 
 def _quote(s):

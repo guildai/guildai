@@ -812,12 +812,7 @@ def _t_basename(val):
 
 
 def _t_unquote(val):
-    if (
-        isinstance(val, str)
-        and len(val) >= 2
-        and val[0] == "'"
-        and val[-1] == "'"
-    ):
+    if isinstance(val, str) and len(val) >= 2 and val[0] == "'" and val[-1] == "'":
         return val[1:-1]
     return val
 

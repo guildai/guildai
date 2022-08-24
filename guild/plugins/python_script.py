@@ -416,11 +416,7 @@ def _apply_abs_paths(data, script_dir):
         if not isinstance(flag_data, dict):
             continue
         default = flag_data.get("default")
-        if (
-            not default
-            or not isinstance(default, str)
-            or os.path.sep not in default
-        ):
+        if not default or not isinstance(default, str) or os.path.sep not in default:
             continue
         abs_path = os.path.join(script_dir, default)
         if os.path.exists(abs_path):
