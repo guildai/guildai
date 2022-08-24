@@ -19,7 +19,6 @@ import sys
 import typing
 
 import click
-import six
 
 import guild.log
 
@@ -110,7 +109,7 @@ class Step:
 
 
 def _coerce_step_data(data):
-    if isinstance(data, six.string_types):
+    if isinstance(data, str):
         data = {"run": data}
     elif isinstance(data, dict):
         data = dict(data)

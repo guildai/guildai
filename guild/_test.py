@@ -31,8 +31,6 @@ import tempfile
 import threading
 import time
 
-import six
-
 import guild
 
 from guild import _api as gapi
@@ -643,7 +641,7 @@ def _sort_normalized_paths(paths):
 
 
 def _filter_ignored(paths, ignore):
-    if isinstance(ignore, six.string_types):
+    if isinstance(ignore, str):
         ignore = [ignore]
     return [
         p for p in paths if not any((fnmatch.fnmatch(p, pattern) for pattern in ignore))
@@ -849,7 +847,7 @@ class Project:
 
     @staticmethod
     def _filter_output(out, ignore):
-        if isinstance(ignore, six.string_types):
+        if isinstance(ignore, str):
             ignore = [ignore]
         return "\n".join(
             [

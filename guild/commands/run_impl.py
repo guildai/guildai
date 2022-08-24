@@ -17,8 +17,6 @@ import os
 import sys
 import typing
 
-import six
-
 from guild import batch_util
 from guild import cli
 from guild import click_util
@@ -590,7 +588,7 @@ def _apply_dep_run_id(run_id, dep_flag_name, flag_vals):
     val = flag_vals.get(dep_flag_name)
     if val is None:
         flag_vals[dep_flag_name] = run_id
-    elif isinstance(val, six.string_types):
+    elif isinstance(val, str):
         if run_id.startswith(val):
             flag_vals[dep_flag_name] = run_id
     elif isinstance(val, list):
@@ -1550,7 +1548,7 @@ def _op_init_objective(args, user_op, batch_op):
 
 def _objective_for_opdef(opdef):
     obj = opdef.objective
-    if isinstance(obj, six.string_types):
+    if isinstance(obj, str):
         return obj
     if isinstance(obj, dict):
         if "maximize" in obj:
@@ -2150,7 +2148,7 @@ def _format_flag(name, val, null_labels):
 
 
 def _try_format_function(val):
-    if not isinstance(val, six.string_types):
+    if not isinstance(val, str):
         return None
     try:
         flag_util.decode_flag_function(val)

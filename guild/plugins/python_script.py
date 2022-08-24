@@ -16,11 +16,9 @@ import hashlib
 import json
 import logging
 import os
+import shlex
 import subprocess
 import sys
-
-import six
-from six.moves import shlex_quote
 
 import yaml
 
@@ -118,7 +116,7 @@ class PythonScriptModelProxy:
         return gf.models[self.name]
 
     def _exec_attr(self):
-        quoted_module = shlex_quote(self._script_module())
+        quoted_module = shlex.quote(self._script_module())
         return f"${{python_exe}} -um guild.op_main {quoted_module} ${{flag_args}}"
 
     def _script_module(self):
@@ -420,7 +418,7 @@ def _apply_abs_paths(data, script_dir):
         default = flag_data.get("default")
         if (
             not default
-            or not isinstance(default, six.string_types)
+            or not isinstance(default, str)
             or os.path.sep not in default
         ):
             continue

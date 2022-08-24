@@ -167,14 +167,12 @@ def _apply_section_inherits(section, data, src):
 
 
 def _apply_section_item_inherits(item, section, data, src):
-    import six  # See note above about imports.
-
     try:
         parent_specs = item.pop("extends")
     except KeyError:
         pass
     else:
-        if isinstance(parent_specs, six.string_types):
+        if isinstance(parent_specs, str):
             parent_specs = [parent_specs]
         for spec in parent_specs:
             parent = _resolved_parent(spec, section, data, src)

@@ -23,7 +23,6 @@ import sys
 import threading
 import time
 
-import six
 import yaml
 
 from guild import _api
@@ -814,7 +813,7 @@ def _t_basename(val):
 
 def _t_unquote(val):
     if (
-        isinstance(val, six.string_types)
+        isinstance(val, str)
         and len(val) >= 2
         and val[0] == "'"
         and val[-1] == "'"
@@ -1280,7 +1279,7 @@ def _coerce_flag_val_split_parts(val, flagdef):
 
 
 def _ensure_encoded_flag_val(val):
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return val
     return flag_util.encode_flag_val(val)
 

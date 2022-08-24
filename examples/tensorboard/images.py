@@ -4,7 +4,6 @@ from datetime import datetime
 import io
 import itertools
 from packaging import version
-from six.moves import range
 
 import tensorflow as tf
 from tensorflow import keras

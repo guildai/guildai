@@ -17,8 +17,6 @@ import os
 import typing
 import warnings
 
-import six
-
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=Warning)
     import numpy.core.umath_tests  # pylint: disable=unused-import
@@ -129,7 +127,7 @@ def flag_dims(flags):
 def _flag_dim(val, flag_name):
     if isinstance(val, list):
         return _categorical_dim(val, None)
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return _try_function_dim(val, flag_name)
     raise ValueError(val, flag_name)
 
@@ -141,7 +139,7 @@ def _categorical_dim(vals, initial):
 
 
 def _try_function_dim(val, flag_name):
-    assert isinstance(val, six.string_types), val
+    assert isinstance(val, str), val
     try:
         func_name, func_args = flag_util.decode_flag_function(val)
     except ValueError as e:

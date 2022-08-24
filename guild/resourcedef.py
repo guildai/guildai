@@ -26,8 +26,6 @@ import pprint
 from typing import Dict, List, Optional, Any, Union
 from urllib.parse import ParseResult, ParseResultBytes
 
-import six
-
 from guild import guildfile_schema, util
 
 log = logging.getLogger("guild")
@@ -279,7 +277,7 @@ def _init_rename(data):
 
 
 def _init_rename_spec(data):
-    if isinstance(data, six.string_types):
+    if isinstance(data, str):
         pattern, repl = _split_rename_spec(data)
         return RenameSpec(pattern, repl)
     if isinstance(data, dict):
@@ -318,7 +316,7 @@ def _init_target_path(target_path_arg, path_arg, context):
 def _coerce_list(val, desc):
     if val is None:
         return []
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return [val]
     if isinstance(val, list):
         return val

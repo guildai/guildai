@@ -27,8 +27,6 @@ import tempfile
 import time
 import threading
 
-import six
-
 from guild import ansi_util  # lightweight
 
 # Avoid expensive imports.
@@ -532,7 +530,7 @@ def resolve_all_refs(kv, undefined=_raise_error_marker):
 
 
 def _resolve_refs_recurse(val, kv, undefined, stack):
-    if not isinstance(val, six.string_types):
+    if not isinstance(val, str):
         return val
     parts = [part for part in REF_P.split(val) if part != ""]
     resolved = list(_iter_resolved_ref_parts(parts, kv, undefined, stack))
@@ -542,7 +540,7 @@ def _resolve_refs_recurse(val, kv, undefined, stack):
 
 
 def _resolved_part_str(part):
-    if isinstance(part, six.string_types):
+    if isinstance(part, str):
         return part
     from guild import yaml_util  # expensive
 
@@ -1208,9 +1206,7 @@ def shlex_split(s):
 
 
 def shlex_quote(s):
-    # If s can't be None in case where pipes.quote is used by six.
-    s = s or ""
-    return _simplify_shlex_quote(six.moves.shlex_quote(s))
+    return _simplify_shlex_quote(shlex.quote(s or ""))
 
 
 def shlex_join(args):
@@ -1484,8 +1480,8 @@ def http_get(url, timeout=None):
 
 
 def _http_request(url, headers=None, data=None, method="GET", timeout=None):
+    import urllib
     import socket
-    from six.moves import urllib
 
     headers = headers or {}
     url_parts = urllib.parse.urlparse(url)
@@ -1502,7 +1498,7 @@ def _http_request(url, headers=None, data=None, method="GET", timeout=None):
 
 
 def _HTTPConnection(scheme, netloc, timeout):
-    from six.moves import http_client
+    from http import client as http_client
 
     if scheme == "http":
         return http_client.HTTPConnection(netloc, timeout=timeout)
@@ -1524,9 +1520,9 @@ class StdIOContextManager:
 
 def check_env(env):
     for name, val in env.items():
-        if not isinstance(name, six.string_types):
+        if not isinstance(name, str):
             raise ValueError(f"non-string env name {name!r}")
-        if not isinstance(val, six.string_types):
+        if not isinstance(val, str):
             raise ValueError(f"non-string env value for '{name}': {val!r}")
 
 

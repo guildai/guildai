@@ -26,8 +26,6 @@ import sys
 import token
 import tokenize
 
-import six
-
 from guild import op_util
 from guild import run as runlib
 from guild import util
@@ -217,7 +215,7 @@ def _iter_flag_replace_config(flags, flags_extra):
 
 
 def _coerce_repl_config_to_list(config):
-    if isinstance(config, six.string_types):
+    if isinstance(config, str):
         return [config]
     if isinstance(config, list):
         return config
@@ -317,7 +315,7 @@ def _tokenize_source_with_nl(source):
 
 
 def _tokenize_source(source):
-    return list(tokenize.generate_tokens(io.StringIO(six.text_type(source)).readline))
+    return list(tokenize.generate_tokens(io.StringIO(str(source)).readline))
 
 
 class _ReplaceAssignsState:
@@ -464,7 +462,7 @@ def _handle_replacement_value_for_replace_assigns(val, replaced_tokens, state):
 
 
 def _val_tokens(val):
-    val_repr = six.text_type(repr(val))
+    val_repr = str(repr(val))
     gen_tokens = tokenize.generate_tokens(io.StringIO(val_repr).readline)
     return _maybe_strip_newline(_strip_endmarker(gen_tokens))
 

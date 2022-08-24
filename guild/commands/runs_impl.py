@@ -14,12 +14,11 @@
 
 import datetime
 import inspect
+import io
 import json
 import logging
 import os
 import re
-
-import six
 
 # IMPORTANT: Keep expensive imports out of this list. This module is
 # used by several commands and any latency here will be automatically
@@ -1995,7 +1994,7 @@ def _get_comment_with_editor(initial_comment, runs):
 
 
 def _format_runs_for_comment_msg(runs):
-    out = six.StringIO()
+    out = io.StringIO()
     formatted = format_runs(runs)
     cols = [
         "short_index",

@@ -20,7 +20,6 @@ import shutil
 import typing
 
 import click
-import six
 
 from guild import ansi_util  # lightweight
 from guild import config  # lightweight
@@ -166,9 +165,9 @@ def _coerce_cmp_val(x, y):
         return x
     if isinstance(x, (int, float)) and isinstance(y, (int, float)):
         return x
-    if isinstance(x, six.string_types):
+    if isinstance(x, str):
         return x
-    if isinstance(y, six.string_types):
+    if isinstance(y, str):
         return ""
     return str(x)
 
@@ -180,7 +179,7 @@ def _format_table_data(data, cols):
 def _format_table_val(val):
     if val is None:
         return ""
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return val
     return str(val)
 

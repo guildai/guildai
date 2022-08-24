@@ -15,8 +15,6 @@
 import logging
 import os
 
-import six
-
 from guild import guildfile
 from guild import op_util
 from guild import plugin as pluginlib
@@ -137,7 +135,7 @@ def _read_typed_cfg(cfg, section, name):
 
 
 def _is_legal_flag_val(val):
-    return val is None or isinstance(val, (six.string_types, int, float, bool, list))
+    return val is None or isinstance(val, (str, int, float, bool, list))
 
 
 def _ensure_config_dep(config_src, opdef):

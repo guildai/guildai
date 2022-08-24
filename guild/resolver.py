@@ -21,7 +21,6 @@ import re
 import subprocess
 import tempfile
 
-import six
 import yaml
 
 import guild.opref
@@ -300,12 +299,12 @@ def _runs_filter(oprefs, run_id_prefix, status):
 
 
 def _is_full_run_id(s):
-    return s and isinstance(s, six.string_types) and len(s) == 32
+    return s and isinstance(s, str) and len(s) == 32
 
 
 def _run_id_prefix_filter(run_id_prefix):
     if run_id_prefix:
-        assert isinstance(run_id_prefix, six.string_types), run_id_prefix
+        assert isinstance(run_id_prefix, str), run_id_prefix
         return lambda run: run.id.startswith(run_id_prefix)
     return lambda _run: True
 
@@ -467,7 +466,7 @@ class ConfigResolver(FileResolver):
         if not arg_split:
             return
         val = flags.get(flag_name)
-        if not isinstance(val, six.string_types):
+        if not isinstance(val, str):
             return
         flags[flag_name] = self._split_encoded_list(val, arg_split)
 

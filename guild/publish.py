@@ -22,7 +22,6 @@ import shutil
 import stat
 
 import jinja2
-import six
 import yaml
 
 from guild import guildfile
@@ -119,7 +118,7 @@ class RunFilters:
             raise TemplateError(
                 "runfile_link cannot be used in this context (not publishing a run"
             )
-        if not isinstance(path, six.string_types):
+        if not isinstance(path, str):
             return ""
         maybe_runfile = os.path.join(self.run_dest, "runfiles", path)
         if os.path.isfile(maybe_runfile):
@@ -128,7 +127,7 @@ class RunFilters:
 
     @staticmethod
     def utc_date(val, unit="s"):
-        if not isinstance(val, (int, float) + six.string_types):
+        if not isinstance(val, (int, float, str)):
             return ""
         try:
             val = int(val)
@@ -147,7 +146,7 @@ class RunFilters:
 
     @staticmethod
     def file_size(val):
-        if not isinstance(val, (int, float) + six.string_types):
+        if not isinstance(val, (int, float, str)):
             return ""
         try:
             bytes = int(val)
@@ -173,7 +172,7 @@ class RunFilters:
 
     @staticmethod
     def short_id(id):
-        if not isinstance(id, six.string_types):
+        if not isinstance(id, str):
             return ""
         return id[:8]
 

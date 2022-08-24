@@ -18,8 +18,6 @@ import logging
 import os
 import sys
 
-import six
-
 from guild import batch_util
 from guild import cli
 from guild import cmd_impl_support
@@ -109,7 +107,7 @@ def _write_csv(args):
     with _open_file(args.csv) as out:
         writer = csv.writer(out, lineterminator="\n")
         for row in data:
-            writer.writerow([_csv_row_item(x) for x in row])
+            writer.writerow(row)
     if args.csv != "-":
         cli.out(f"Wrote {len(data) - 1} row(s) to {args.csv}", err=True)
 
@@ -122,12 +120,6 @@ def _open_file(path):
         return open(path, "w")
     except (OSError, IOError) as e:
         cli.error(f"error opening {path}: {e}")
-
-
-def _csv_row_item(x):
-    if isinstance(x, six.string_types):
-        return six.ensure_text(x)
-    return x
 
 
 def get_compare_data(args, format_cells=True, skip_header_if_empty=False):
@@ -426,8 +418,8 @@ def _format_cells(rows, col_names, runs):
                 row[i] = ""
             elif isinstance(val, float):
                 row[i] = _format_float(val)
-            elif isinstance(val, six.string_types):
-                row[i] = six.ensure_text(val)
+            elif isinstance(val, str):
+                row[i] = val
             elif val is True:
                 row[i] = "yes"
             elif val is False:

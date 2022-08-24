@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from six.moves import shlex_quote as q
+from shlex import quote as q
 
 
 class ParseError(Exception):

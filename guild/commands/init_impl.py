@@ -21,7 +21,6 @@ import sys
 
 import pkg_resources
 
-import six
 import yaml
 
 import guild
@@ -181,7 +180,7 @@ def _guildfile_data(src):
 
 def _pkg_requires(pkg_data, src):
     requires = pkg_data.get("requires") or []
-    if isinstance(requires, six.string_types):
+    if isinstance(requires, str):
         requires = [requires]
     if not isinstance(requires, list):
         log.warning(

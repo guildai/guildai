@@ -22,8 +22,6 @@ import sys
 import threading
 import warnings
 
-import six
-
 from guild import batch_util
 from guild import click_util
 from guild import config
@@ -157,7 +155,7 @@ class RunIndex:
 
     @staticmethod
     def _x_id(x):
-        if isinstance(x, six.string_types):
+        if isinstance(x, str):
             return x
         if isinstance(x, RunIndex):
             return x.value.id

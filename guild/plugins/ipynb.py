@@ -18,8 +18,6 @@ import logging
 import os
 import re
 
-import six
-
 from guild import config as configlib
 from guild import guildfile
 from guild import model as modellib
@@ -334,7 +332,7 @@ def _flag_data_for_val(val, ann_type=None):
 
 
 def _flag_type(val):
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return "string"
     if isinstance(val, bool):
         return "boolean"

@@ -16,8 +16,6 @@ import logging
 import os
 import re
 
-import six
-
 from guild import cli
 from guild import namespace
 from guild import pip_util
@@ -56,7 +54,7 @@ def _strip_guildai_suffix(summary):
 
 
 def _filter_model(pkg, args):
-    to_search = [six.u(pkg["name"]), six.u(pkg["summary"])]
+    to_search = [pkg["name"], pkg["summary"]]
     return util.match_filters(args.terms, to_search)
 
 

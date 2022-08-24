@@ -20,8 +20,6 @@ import os
 import re
 import shutil
 
-import six
-
 from guild import util
 
 log = logging.getLogger("guild")
@@ -114,7 +112,7 @@ class FileSelectRule:
         max_matches=None,
     ):
         self.result = result
-        if isinstance(patterns, six.string_types):
+        if isinstance(patterns, str):
             patterns = [patterns]
         if not regex:
             patterns = _native_paths(patterns)

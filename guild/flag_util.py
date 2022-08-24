@@ -16,7 +16,6 @@ import logging
 import os
 import re
 
-import six
 import yaml
 
 from guild import util
@@ -56,7 +55,7 @@ def _encode_list(val_list):
 
 def _encode_list_item(val):
     encoded = encode_flag_val(val)
-    if isinstance(val, six.string_types) and "," in encoded:
+    if isinstance(val, str) and "," in encoded:
         return repr(encoded)
     return encoded
 
@@ -119,7 +118,7 @@ def _string_type(s):
     # YAML.
     if s[:1] in ("[", "'", "\"", "{"):
         raise ValueError()
-    return six.text_type(s)
+    return str(s)
 
 
 def _boolean_type(s):
@@ -310,7 +309,7 @@ def _contains_non_numeric_chars(s):
 
 
 def decode_flag_function(s):
-    if not isinstance(s, six.string_types):
+    if not isinstance(s, str):
         raise ValueError("requires string")
     name, args_raw = _split_flag_function(s)
     args_encoded = args_raw.split(FUNCTION_ARG_DELIM) if args_raw else []
@@ -399,7 +398,7 @@ def _trunc_len(truncate_floats):
 
 def _is_path(val):
     return (
-        isinstance(val, six.string_types) and os.path.sep in val and os.path.exists(val)
+        isinstance(val, str) and os.path.sep in val and os.path.exists(val)
     )
 
 
@@ -421,7 +420,7 @@ def _quote_encoded(encoded, val):
 
 def _needs_quote(encoded, val):
     return (
-        isinstance(val, six.string_types)
+        isinstance(val, str)
         and encoded[0] not in ("'", "\"")
         and " " in encoded
     )
@@ -458,6 +457,6 @@ def join_splittable_flag_vals(vals, split_spec=None):
     encoded_vals = [encode_flag_val(val) for val in vals]
     if split_spec in (None, True, "shlex"):
         return " ".join([util.shlex_quote(x) for x in encoded_vals])
-    if isinstance(split_spec, six.string_types):
+    if isinstance(split_spec, str):
         return split_spec.join(encoded_vals)
     raise ValueError(f"split_spec must be None, True, or a string: {split_spec!r}")

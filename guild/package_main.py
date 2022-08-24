@@ -24,7 +24,6 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore", UserWarning)
     import setuptools
 
-import six
 import yaml
 
 from guild import file_util
@@ -371,7 +370,7 @@ def _coerce_pkg_data(data):
 
 
 def _coerce_pkg_attr(name, val):
-    if name == "requires" and isinstance(val, six.string_types):
+    if name == "requires" and isinstance(val, str):
         return [val]
     return val
 

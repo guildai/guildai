@@ -19,7 +19,6 @@ import os
 import re
 import sys
 
-import six
 from werkzeug import serving
 
 from guild import flag_util
@@ -148,7 +147,7 @@ def _experiment_hparams(runs):
 
 
 def _hparam_val_for_flag_val(val):
-    if isinstance(val, (six.string_types, int, float)):
+    if isinstance(val, (str, int, float)):
         return val
     return str(val)
 

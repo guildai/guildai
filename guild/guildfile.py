@@ -35,7 +35,6 @@ except ImportError:
     from typing_extensions import Literal
 
 import pydantic as schema
-import six
 import yaml
 
 from guild import config, guildfile_schema
@@ -264,7 +263,7 @@ class Guildfile(schema.BaseModel):
             )
         validated_type = used[0]
         name = item[validated_type]
-        if not isinstance(name, six.string_types):
+        if not isinstance(name, str):
             raise GuildfileError(
                 self, f"invalid {validated_type} name ${name!r}: expected a string"
             )
@@ -397,7 +396,7 @@ def _coerce_operation(
 ) -> Union[str, Dict[str, Any]]:
     if name == "$include":
         return data
-    if isinstance(data, six.string_types):
+    if isinstance(data, str):
         return {"main": data}
     if isinstance(data, dict):
         return {
@@ -456,7 +455,7 @@ def coerce_flag_data(
         return str(data)
     if isinstance(data, dict):
         return data
-    if isinstance(data, six.string_types + (int, float, bool, list)):
+    if isinstance(data, (str, int, float, bool, list)):
         return {"default": data}
     if data is None:
         return {"default": None}
@@ -494,7 +493,7 @@ def _coerce_output_scalars(
         return None
     if data is False:
         return []
-    if isinstance(data, six.string_types):
+    if isinstance(data, str):
         return [data]
     if isinstance(data, dict):
         return [data]
@@ -525,7 +524,7 @@ def _coerce_select_files(
         return _coerce_select_files_default()
     if data is False or data == []:
         return _coerce_select_files_disabled()
-    if isinstance(data, six.string_types):
+    if isinstance(data, str):
         return _coerce_select_files_one_include(data)
     if isinstance(data, dict):
         return _coerce_select_files_dict(data, guildfile)
@@ -576,7 +575,7 @@ def _coerce_select_files_list(
     all_strings = True
     items = []
     for item in data:
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             items.append({"include": item})
         elif isinstance(item, dict):
             items.append(item)
@@ -593,7 +592,7 @@ def _coerce_select_files_list(
 def _coerce_str_to_list(
     val: Optional[Union[List[str], str]], guildfile: Guildfile, name: str
 ) -> List[str]:
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         if val.startswith("[") and val.endswith("]"):
             val = yaml.safe_load(val)
         else:
@@ -854,7 +853,7 @@ def _params(data):
 
 def _resolve_param(name, params):
     val = params[name]
-    if not isinstance(val, six.string_types):
+    if not isinstance(val, str):
         return val
     iter_count = 0
     seen = set()
@@ -978,7 +977,7 @@ def _resolve_param_refs(val, params):
         return _resolve_dict_param_refs(val, params)
     if isinstance(val, list):
         return _resolve_list_param_refs(val, params)
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return _resolve_str_param_refs(val, params)
     return val
 
@@ -1071,7 +1070,7 @@ class OpDef(guildfile_schema.OpDefSchema):
                 modeldef.guildfile,
                 f"invalid operation def {data!r}: expected a mapping",
             )
-        if not isinstance(name, six.string_types):
+        if not isinstance(name, str):
             raise GuildfileError(
                 modeldef.guildfile,
                 f"invalid operation name {name!r}: expected a string",
@@ -1418,7 +1417,7 @@ class OpDependencyDef(schema.BaseModel):
 
         self.opdef = opdef
         self.modeldef = opdef.modeldef
-        if isinstance(data, six.string_types):
+        if isinstance(data, str):
             self.spec = data
             self.description = ""
         elif isinstance(data, dict):
@@ -1524,7 +1523,7 @@ def _coerce_single_optimizer(data, opdef: OpDef):
 
 
 def _coerce_opt_data_item(data):
-    if isinstance(data, six.string_types):
+    if isinstance(data, str):
         data = {"algorithm": data}
     return data
 
@@ -1653,7 +1652,7 @@ class FileSelectSpec(schema.BaseModel):
 
     def _init_patterns(self, data, name, guildfile):
         config = data[name]
-        if isinstance(config, (six.string_types, list)):
+        if isinstance(config, (str, list)):
             return (_coerce_str_to_list(config, guildfile, name), None)
         if isinstance(config, dict):
             return self._init_typed_patterns(config, guildfile, name)
