@@ -74,6 +74,7 @@ class SetGuildHome:
 def set_guild_home(path):
     with _guild_home_lock:
         globals()["_guild_home"] = path
+        os.environ["GUILD_HOME"] = path
 
 
 def cwd():
@@ -81,9 +82,12 @@ def cwd():
 
 
 def guild_home():
+    return _safe_guild_home() or default_guild_home()
+
+
+def _safe_guild_home():
     with _guild_home_lock:
-        maybe_home = _guild_home
-    return maybe_home or default_guild_home()
+        return _guild_home
 
 
 def default_guild_home():

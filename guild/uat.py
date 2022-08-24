@@ -21,6 +21,7 @@ import tempfile
 import guild
 
 from guild import _test as testlib
+from guild import config
 from guild import pip_util
 from guild import util
 
@@ -30,10 +31,10 @@ try:
     _workspace_env = os.environ["WORKSPACE"]
 except KeyError:
     WORKSPACE = None
-    GUILD_HOME = os.path.abspath(".")
+    GUILD_HOME = None
 else:
     WORKSPACE = os.path.abspath(_workspace_env)
-    GUILD_HOME = os.path.join(WORKSPACE, ".guild")
+    GUILD_HOME = os.getenv("GUILD_HOME") or os.path.join(WORKSPACE, ".guild")
 TEMP = tempfile.gettempdir()
 GUILD_PKG = os.path.abspath(guild.__pkgdir__)
 REQUIREMENTS_PATH = os.path.join(GUILD_PKG, "requirements.txt")
@@ -44,6 +45,8 @@ def run(force=False):
     if not force and not pip_util.running_under_virtualenv():
         sys.stderr.write("This command must be run in a virtual environment\n")
         sys.exit(1)
+    if WORKSPACE is None:
+        raise ValueError("'WORKSPACE' environment variable not set - cannot run uat")
     tests = _tests_for_index()
     _init_workspace()
     _mark_passed_tests()
@@ -57,10 +60,6 @@ def _tests_for_index():
 
 
 def _init_workspace():
-    if WORKSPACE is None:
-        raise ValueError(
-            "'WORKSPACE' environment variable not set - cannot run uat"
-        )
     print(f"Initializing workspace {WORKSPACE} under {sys.executable}")
     util.ensure_dir(os.path.join(WORKSPACE, "passed-tests"))
     util.ensure_dir(os.path.join(WORKSPACE, ".guild"))
@@ -77,25 +76,25 @@ def _mark_passed_tests():
 def _run_tests(tests):
     globs = _test_globals()
     to_skip = os.getenv("UAT_SKIP", "").split(",")
-    with _UATEnv():
-        for name in tests:
-            print(f"Running {name}:")
-            if _skip_test(name, to_skip):
-                print("  skipped (user requested)")
-                continue
-            if _test_passed(name):
-                print("  skipped (already passed)")
-                continue
-            filename = os.path.join("tests", "uat", name + ".md")
-            if testlib.front_matter_skip_test(filename):
-                print("  skipped (doctest options)")
-                continue
+    for name in tests:
+        print(f"Running {name}:")
+        if _skip_test(name, to_skip):
+            print("  skipped (user requested)")
+            continue
+        if _test_passed(name):
+            print("  skipped (already passed)")
+            continue
+        filename = os.path.join("tests", "uat", name + ".md")
+        if testlib.front_matter_skip_test(filename):
+            print("  skipped (doctest options)")
+            continue
+        with UATContext():
             failed, attempted = testlib.run_test_file(filename, globs)
-            if not failed:
-                print(f"  {attempted} test(s) passed")
-                _mark_test_passed(name)
-            else:
-                sys.exit(1)
+        if not failed:
+            print(f"  {attempted} test(s) passed")
+            _mark_test_passed(name)
+        else:
+            sys.exit(1)
 
 
 def _test_globals():
@@ -112,20 +111,40 @@ def _global_vars():
     }
 
 
-def _UATEnv():
-    return util.Env(
-        {
-            "COLUMNS": "999",
-            "EXAMPLES": EXAMPLES,
-            "GUILD_HOME": os.path.join(WORKSPACE, ".guild"),
-            "GUILD_PKG": GUILD_PKG,
-            "GUILD_PKGDIR": guild.__pkgdir__,
-            "LANG": os.getenv("LANG", "en_US.UTF-8"),
-            "REQUIREMENTS_PATH": REQUIREMENTS_PATH,
-            "TEMP": TEMP,
-            "WORKSPACE": WORKSPACE,
-        }
-    )
+class UATContext:
+    """Provides context for a user acceptance test.
+
+    Context consists of an environment suitable for run commands (used
+    extensively by the uat) and the setting of Guild home to the
+    global `GUILD_HOME` (required by in-process commands that use
+    Guild home).
+
+    Note that the UAT Guild home is, by default, local to the UAT
+    workspace and not the current process Guild home.
+    """
+    def __init__(self):
+        self._env = util.Env(
+            {
+                "COLUMNS": "999",
+                "EXAMPLES": EXAMPLES,
+                "GUILD_HOME": GUILD_HOME,
+                "GUILD_PKG": GUILD_PKG,
+                "GUILD_PKGDIR": guild.__pkgdir__,
+                "LANG": os.getenv("LANG", "en_US.UTF-8"),
+                "REQUIREMENTS_PATH": REQUIREMENTS_PATH,
+                "TEMP": TEMP,
+                "WORKSPACE": WORKSPACE,
+            }
+        )
+        self._guild_home = config.SetGuildHome(GUILD_HOME)
+
+    def __enter__(self):
+        self._env.__enter__()
+        self._guild_home.__enter__()
+
+    def __exit__(self, *args):
+        self._env.__exit__(*args)
+        self._guild_home.__exit__(*args)
 
 
 def _skip_test(name, skip_patterns):

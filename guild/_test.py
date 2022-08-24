@@ -1092,8 +1092,6 @@ def _run(
     if env:
         proc_env.update(env)
     proc_env["SYNC_RUN_OUTPUT"] = "1"
-    if not env or "GUILD_HOME" not in env:
-        proc_env["GUILD_HOME"] = configlib.guild_home()
     p = _popen(cmd, proc_env, cwd)
     with _kill_after(p, timeout):
         out, err = p.communicate()
