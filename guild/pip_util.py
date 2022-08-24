@@ -42,8 +42,6 @@ def install(
     args = [sys.executable, "-m", "pip", "install"]
     if pre_releases:
         args.append("--pre")
-    if not running_under_virtualenv() and not target:
-        args.append("--user")
     if upgrade:
         args.append("--upgrade")
     if no_cache:
