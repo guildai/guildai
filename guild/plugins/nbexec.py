@@ -588,7 +588,9 @@ def _iter_notebook_images(notebook):
 def _nbconvert_html(notebook, args):
     notebook_relpath = _relpath(notebook)
     cmd = [
-        "jupyter-nbconvert",
+        sys.executable,
+        "-m",
+        "nbconvert",
         "-y",
         "--log-level",
         "WARN",
