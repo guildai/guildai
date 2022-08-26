@@ -1,11 +1,11 @@
-name: Lint
+name: Pre-build checks
 
 # on:
 #   - push
 
 jobs:
-  lint:
-    name: Lint source code
+  checks:
+    name: Pre-build checks
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source code
