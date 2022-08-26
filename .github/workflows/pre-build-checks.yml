@@ -1,7 +1,9 @@
 name: Pre-build checks
 
-# on:
-#   - push
+on:
+  # - push
+  - workflow_dispatch
+
 
 jobs:
   checks:
