@@ -892,7 +892,7 @@ def format_dir(dir):
 
 def format_user_dir(s):
     if get_platform() == "Windows":
-        return s.replace("\\", "\\\\")
+        return s
     user_dir = os.path.expanduser("~")
     if s.startswith(user_dir):
         return os.path.join("~", s[len(user_dir) + 1 :])
