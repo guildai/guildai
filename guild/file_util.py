@@ -286,6 +286,10 @@ class FileCopyHandler:
     def handle_copy_error(_e, _src, _dest):
         return False
 
+    @staticmethod
+    def close():
+        pass
+
 
 def copytree(dest, select, root_start=None, followlinks=True, handler_cls=None):
     """Copies files to dest for a FileSelect.
@@ -312,6 +316,13 @@ def copytree(dest, select, root_start=None, followlinks=True, handler_cls=None):
     src = _copytree_src(root_start, select)
     # Instantiate handler as part of the copytree contract.
     handler = (handler_cls or FileCopyHandler)(src, dest, select)
+    try:
+        _copytree_impl(src, select, followlinks, handler)
+    finally:
+        handler.close()
+
+
+def _copytree_impl(src, select, followlinks, copy_handler):
     if select.disabled:
         return
     for root, dirs, files in os.walk(src, followlinks=followlinks):
@@ -320,14 +331,14 @@ def copytree(dest, select, root_start=None, followlinks=True, handler_cls=None):
         pruned = select.prune_dirs(src, relroot, dirs)
         for name in pruned:
             relpath = os.path.join(relroot, name)
-            handler.ignore(relpath, [])
+            copy_handler.ignore(relpath, [])
         for name in sorted(files):
             relpath = os.path.join(relroot, name)
             selected, results = select.select_file(src, relpath)
             if selected:
-                handler.copy(relpath, results)
+                copy_handler.copy(relpath, results)
             else:
-                handler.ignore(relpath, results)
+                copy_handler.ignore(relpath, results)
 
 
 def _copytree_src(root_start, select):
