@@ -17,6 +17,7 @@ import os
 import click
 
 from guild import click_util
+from guild import util
 
 from . import api_support
 from . import runs_merge
@@ -94,7 +95,7 @@ def _handle_merge_success(output, args):
 
 
 def _parse_copied_files(output):
-    return [_copied_file_for_output(line) for line in output.split('\n') if line]
+    return [_copied_file_for_output(line) for line in util.split_lines(output)]
 
 
 def _copied_file_for_output(line):

@@ -825,3 +825,43 @@ Test against current verion, minus any development component.
 
     >>> fd(0, 3601000000.123)
     '1:00:01'
+
+## Split lines
+
+    >>> from guild.util import split_lines
+
+    >>> split_lines("")
+    []
+
+    >>> split_lines("a")
+    ['a']
+
+    >>> split_lines("ab")
+    ['ab']
+
+    >>> split_lines("a\nb")
+    ['a', 'b']
+
+    >>> split_lines("\nab")
+    ['ab']
+
+    >>> split_lines("ab\n")
+    ['ab']
+
+    >>> split_lines("a\r\nb")
+    ['a', 'b']
+
+    >>> split_lines("\r\nab")
+    ['ab']
+
+    >>> split_lines("ab\r\n")
+    ['ab']
+
+    >>> split_lines("a\n\nb")
+    ['a', 'b']
+
+    >>> split_lines("\n\nab")
+    ['ab']
+
+    >>> split_lines("ab\n\n")
+    ['ab']
