@@ -1097,16 +1097,17 @@ def _run(
         out, err = p.communicate()
         assert err is None, err
         exit_code = p.returncode
-    if _capture or not quiet or exit_code != 0:
-        out = out.strip().decode("latin-1")
-        if ignore:
-            out = _strip_lines(out, ignore)
-        if cut:
-            out = _cut_cols(out, cut)
-        if _capture:
-            return out, exit_code
-        print(out)
-        print(f"<exit {exit_code}>")
+    if quiet and exit_code == 0:
+        return None
+    out = out.strip().decode("latin-1")
+    if ignore:
+        out = _strip_lines(out, ignore)
+    if cut:
+        out = _cut_cols(out, cut)
+    if _capture:
+        return out, exit_code
+    print(out)
+    print(f"<exit {exit_code}>")
     return None
 
 
