@@ -202,8 +202,7 @@ def _try_git_ls_files(dir, untracked=False):
 
 
 def _parse_git_ls_files(out):
-    lines = out.decode("utf-8", errors="ignore").rstrip().split("\n")
-    return [path for path in lines if path]
+    return util.split_lines(out.decode("utf-8", errors="ignore"))
 
 
 def status(dir, ignored=False):
@@ -228,8 +227,8 @@ def _try_git_status(dir, ignored):
 
 
 def _parse_git_status(out):
-    lines = out.decode("utf-8", errors="ignore").rstrip().split("\n")
-    return [_decode_git_status_line(line) for line in lines if line]
+    lines = util.split_lines(out.decode("utf-8", errors="ignore"))
+    return [_decode_git_status_line(line) for line in lines]
 
 
 def _decode_git_status_line(status_line):
