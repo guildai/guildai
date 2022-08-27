@@ -15,8 +15,8 @@ of the sample project to a temp location.
     >>> copytree(sample, tmp)
     >>> project = Project(tmp)
 
-Generate a run for the `default` operation. This operation resolves a
-number of dependencies and generates files.
+We generate a run for the `default` operation. This operation resolves a number
+of dependencies and generates files.
 
     >>> project.run("default")
     Resolving file:dep-1 dependency
@@ -57,11 +57,12 @@ run file. This index is generated with
 
     >>> index = _init_manifest_index(run)
 
-Pretty print the index (file hashes are left in the output to simplify
-comparisons on failure - these will change whenever the sample project
-source code files, causing this example to fail):
+We pretty print the index. Note that file hashes are left in the output to
+simplify comparisons on failure - these will change whenever the sample project
+source code files, causing this example to fail. Note also that paths are
+normalized to use '/' path delimiters.
 
-    >>> pprint(index, width=72)  # doctest: +REPORT_UDIFF
+    >>> pprint(index, width=72)  # doctest: +REPORT_UDIFF -NORMALIZE_PATHS
     {'.guild/sourcecode/guild.yml': _ManifestEntry(file_type='s', run_path='.guild/sourcecode/guild.yml', file_hash='679abb4272f4e3c9d10c2bcb07b82c6f95f025c1', source='guild.yml', source_subpath=None),
      '.guild/sourcecode/op.py': _ManifestEntry(file_type='s', run_path='.guild/sourcecode/op.py', file_hash='af2386f2c88a0c3c0a55b59008061a0bcf4f0a5a', source='op.py', source_subpath=None),
      '.guild/sourcecode/overlap.py': _ManifestEntry(file_type='s', run_path='.guild/sourcecode/overlap.py', file_hash='11487bbf901e4948ad9505ea3d50d02f28bb8cbe', source='overlap.py', source_subpath=None),

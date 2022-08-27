@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import re
 
 from guild import manifest
 from guild import util
@@ -27,10 +28,18 @@ def sourcecode_args(run_file, run_dir, project_file, project_dir):
         ['s', run_relative_path, sha1, project_relative_path]
 
     """
-    dest_arg = os.path.relpath(run_file, run_dir)
+    dest_arg = _relpath(run_file, run_dir)
     hash_arg = util.file_sha1(run_file)
-    src_arg = os.path.relpath(project_file, project_dir)
+    src_arg = _relpath(project_file, project_dir)
     return ["s", dest_arg, hash_arg, src_arg]
+
+
+def _relpath(path, context):
+    return normalize_path(os.path.relpath(path, context))
+
+
+def normalize_path(path):
+    return path.replace(os.sep, "/")
 
 
 def resolved_source_args(resolved):
@@ -55,7 +64,7 @@ def resolved_source_args(resolved):
     When a source is an archive, the URI is followed by the
     archive-relative subpath to the resolved source.
     """
-    dest_arg = os.path.relpath(resolved.target_path, resolved.target_root)
+    dest_arg = _relpath(resolved.target_path, resolved.target_root)
     hash_arg = _resolved_source_hash_manifest_arg(resolved.target_path)
     src_args = _resolved_source_src_manifest_args(resolved)
     return ["d", dest_arg, hash_arg] + src_args
@@ -78,7 +87,7 @@ def _is_project_local_source(resolved_source):
 
 
 def _project_relpath(resolved_source):
-    return os.path.relpath(resolved_source.source_path, resolved_source.source_origin)
+    return _relpath(resolved_source.source_path, resolved_source.source_origin)
 
 
 def _resolved_source_uri_args(resolved_source):
@@ -113,20 +122,21 @@ def _try_resource_cache_relpath(source_path):
     """
     resource_root = var.cache_dir("resources")
     if source_path.startswith(resource_root):
-        return _strip_resource_hash(os.path.relpath(source_path, resource_root))
+        return _strip_resource_hash(_relpath(source_path, resource_root))
     return None
 
 
 def _strip_resource_hash(relpath):
-    """Removes the first part of relpath, assuming it's s resource hash.
+    """Removes the first part of relpath, assuming it's a resource hash.
 
-    Asserts length of hash to validate this assumption.
+    Raises ValueError if path does not have the expected hash format.
     """
-    parts = relpath.split(os.path.sep)
+    parts = relpath.split("/")
     # If this assertion fails, the scheme used for resource caching
     # hash possibly changed (e.g. overridden to use another scheme or
     # the hash algorithm changed, etc.)
-    assert parts and len(parts[0]) == 56, parts
+    if not re.match(r"[0-9a-f]{56}$", parts[0]):
+        raise ValueError(f"path does not contain a resource hash {relpath}")
     return os.path.sep.join(parts[1:])
 
 

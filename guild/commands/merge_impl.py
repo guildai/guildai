@@ -40,7 +40,6 @@ class SystemExitWithDetail(Exception):
     the caller must handle the system exit if needed.
 
     For detail types, see `XxxDetail` classes below.
-
     """
 
     def __init__(self, code, detail):
@@ -244,7 +243,6 @@ def _check_vcs_status(vcs_status, merge):
       files, does nothing. This allows the merge to continue under the
       assumption that any replaced files can be recovered from the
       VCS.
-
     """
     all_source = set(vcs_util.ls_files(merge.target_dir))
     unstaged = _unstaged_source(vcs_status, all_source)
