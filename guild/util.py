@@ -326,11 +326,8 @@ def file_md5(path):
 
 
 def parse_url(url):
-    try:
-        from urlparse import urlparse
-    except ImportError:
-        # pylint: disable=import-error,no-name-in-module
-        from urllib.parse import urlparse
+    from urllib.parse import urlparse
+
     return urlparse(url)
 
 
@@ -769,16 +766,13 @@ def is_text_file(path, ignore_ext=False):
         and detected_encoding["encoding"] != "ascii"
     ):
         try:
-            try:
-                sample.decode(encoding=detected_encoding["encoding"])
-            except TypeError:
-                # pylint: disable=undefined-variable
-                unicode(sample, encoding=detected_encoding["encoding"])
-            decodable_as_unicode = True
+            sample.decode(encoding=detected_encoding["encoding"])
         except LookupError:
             pass
         except UnicodeDecodeError:
             pass
+        else:
+            decodable_as_unicode = True
     if likely_binary:
         return decodable_as_unicode
     if decodable_as_unicode:
