@@ -149,10 +149,14 @@ jobs:
           pwsh -Command 'test-env\scripts\pip install $(ls dist)'
 
       - name: Install test requirements
-        # uat tests install test requirements as a part of the test
-        # suite - these must not be installed ahead of time
-        if: ${{ !inputs.uat }}
+        # setuptools==58 is a workaround for an issue described in
+        # https://stackoverflow.com/questions/69100275/error-while-downloading-the-requirements-using-pip-install-setup-command-use-2
+        # In our case we get 'error in pywin32-ctypes setup command:
+        # use_2to3 is invalid' when installing test reqs on some
+        # versions of Windows. This can be removed when pywin32-ctypes
+        # drops Python 2 support.
         run: |
+          test-env\scripts\pip install setuptools==58
           test-env\scripts\pip install -r guild\tests\requirements.txt
 
       - name: Configure environment for tests
@@ -163,7 +167,6 @@ jobs:
           git config --global init.defaultBranch main
 
       - name: Run built-in tests
-        if: ${{ !inputs.uat }}
         env:
           GUILD_START_THRESHOLD: 1.0
         run: |
