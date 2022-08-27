@@ -51,12 +51,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Configure SSH
-        run: touch continue
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
+        # ssh action (below) waits for a 'continue' sentinel - we want
+        # the job to continue while ssh is available for connections
+        run: touch continue
 
       - name: Start SSH
-        uses: mxschmitt/action-tmate@v3
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
+        uses: mxschmitt/action-tmate@v3
 
       - name: Build package
         run: |
@@ -101,8 +103,8 @@ jobs:
           test-env/bin/guild check --force-uat
 
       - name: Keep server alive for SSH (cancel job to terminate)
-        run: sleep 3600
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
+        run: sleep 3600
 
   build-windows:
     name: Build - Windows
@@ -128,12 +130,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Configure SSH
-        run: touch continue
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
+        # ssh action (below) waits for a 'continue' sentinel - we want
+        # the job to continue while ssh is available for connections
+        run: touch continue
 
       - name: Start SSH
-        uses: mxschmitt/action-tmate@v3
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
+        uses: mxschmitt/action-tmate@v3
 
       - name: Build package
         run: |
@@ -178,5 +182,5 @@ jobs:
           test-env\scripts\guild check --force-uat
 
       - name: Keep server alive for SSH (cancel job to terminate)
-        run: Start-Sleep 3600
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
+        run: Start-Sleep 3600
