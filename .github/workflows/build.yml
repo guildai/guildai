@@ -1,13 +1,13 @@
 name: Build
 
 on:
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - main
 
-  # pull_request:
-  #   branches:
-  #     - main
+  pull_request:
+    branches:
+      - main
 
   workflow_dispatch:
     inputs:
@@ -26,8 +26,6 @@ jobs:
   build-posix:
     name: Build - POSIX
     runs-on: ${{ matrix.os }}
-    # TODO: disabled for Windows dev
-    if: ${{ false }}
     strategy:
       fail-fast: false
       matrix:
@@ -114,11 +112,11 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          # - '3.6'
-          # - '3.7'
+          - '3.6'
+          - '3.7'
           - '3.8'
-          # - '3.9'
-          # - '3.10'
+          - '3.9'
+          - '3.10'
 
     steps:
       - name: Checkout repository
@@ -170,16 +168,6 @@ jobs:
           GUILD_START_THRESHOLD: 1.0
         run: |
           test-env\scripts\guild check -nT
-
-      - name: Run user acceptance tests
-        if: ${{ inputs.uat }}
-        env:
-          EXAMPLES: examples
-          GUILD_START_THRESHOLD: 1.0
-          UAT_SKIP: remote-*,hiplot-*
-          WORKSPACE: /tmp/guild-uat
-        run: |
-          test-env\scripts\guild check --force-uat
 
       - name: Keep server alive for SSH (cancel job to terminate)
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
