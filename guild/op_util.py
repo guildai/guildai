@@ -1910,8 +1910,7 @@ def sourcecode_manifest_logger_cls(run_dir):
             super()._try_copy_file(src, dest)
             m.write(run_manifest.sourcecode_args(dest, run_dir, src, self.src_root))
 
-        @staticmethod
-        def close():
+        def close(self):
             m.close()
 
     return _Handler

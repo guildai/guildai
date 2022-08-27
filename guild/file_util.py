@@ -282,12 +282,10 @@ class FileCopyHandler:
     def ignore(self, _path, _rule_results):
         pass
 
-    @staticmethod
-    def handle_copy_error(_e, _src, _dest):
+    def handle_copy_error(self, _e, _src, _dest):
         return False
 
-    @staticmethod
-    def close():
+    def close(self):
         pass
 
 

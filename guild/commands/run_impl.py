@@ -1837,6 +1837,9 @@ class _CopyLogger:
     def ignore(self, path, _results):
         self.skipped.append(os.path.join(self.root, path))
 
+    def close(self):
+        pass
+
 
 def _format_file_select_rule(rule):
     parts = ["include" if rule.result else "exclude"]
