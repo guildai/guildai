@@ -1754,7 +1754,7 @@ class lazy_str:
         return self.f()
 
 
-_KNOWN_SHELLS = ("bash", "zsh", "fish", "dash", "sh", "powershell.exe")
+_KNOWN_SHELLS = ("bash", "zsh", "fish", "dash", "sh", "cmd.exe", "powershell.exe")
 _cached_active_shell = "__unset__"
 
 
