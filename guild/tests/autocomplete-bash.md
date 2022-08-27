@@ -1,4 +1,4 @@
-# Auto complete
+# Auto complete for bash
 
 ## Init
 

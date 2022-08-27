@@ -1,4 +1,8 @@
-# Auto complete
+---
+doctest: -WINDOWS
+---
+
+# Auto complete for zsh
 
 ## Init
 

@@ -67,7 +67,7 @@ Generate some sample runs.
         }
       },
       {
-        "description": "Show a message from a hello-file operation\nRelies on the output interface from `hello-file`, which is to write the message to `msg.out`.",
+        "description": "Show a message from a hello-file operation...",
         "flags": {},
         "fullname": "hello-op",
         "guildfile": {
