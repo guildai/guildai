@@ -49,7 +49,7 @@ Helper for running commands for the project.
             "operation": null,
             "path": "msg.out",
             "run": null,
-            "size": 20,
+            "size": ...,
             "type": "Text file",
             "viewer": "text"
           }
