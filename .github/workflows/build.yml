@@ -113,7 +113,7 @@ jobs:
         run: |
           test-env/bin/guild check --force-uat
 
-      - name: Keep server alive for SSH (cancel job to terminate)
+      - name: Keep server alive for SSH (cancel workflow to terminate)
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
         run: sleep 3600
 
@@ -193,6 +193,6 @@ jobs:
           mkdir test-env\Tmp -Force
           test-env\scripts\guild check -nT
 
-      - name: Keep server alive for SSH (cancel job to terminate)
+      - name: Keep server alive for SSH (cancel workflow to terminate)
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
         run: Start-Sleep 3600
