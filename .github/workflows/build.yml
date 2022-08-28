@@ -185,13 +185,13 @@ jobs:
           git config --global user.name unused
           git config --global user.email unused@localhost
           git config --global init.defaultBranch main
-          mkdir ..\Tmp -Force
+          mkdir \Tmp -Force
 
       - name: Run built-in tests
         if: ${{ !inputs.skip_tests }}
         env:
           GUILD_START_THRESHOLD: 1.0
-          TMPDIR: ..\Tmp
+          TMPDIR: \Tmp
         run: |
           test-env\scripts\guild check -nT
 
