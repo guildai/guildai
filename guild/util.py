@@ -1754,7 +1754,7 @@ class lazy_str:
         return self.f()
 
 
-_KNOWN_SHELLS = ("bash", "zsh", "fish", "dash", "sh", "cmd.exe", "powershell.exe")
+_KNOWN_SHELLS = ("bash", "zsh", "fish", "dash", "sh", "cmd", "powershell")
 _cached_active_shell = "__unset__"
 
 
@@ -1771,11 +1771,18 @@ def _active_shell():
 
     p = psutil.Process().parent()
     while p:
-        p_name = p.name()
+        p_name = _shell_for_proc(p)
         if p_name in _KNOWN_SHELLS:
             return p_name
         p = p.parent()
     return None
+
+
+def _shell_for_proc(p):
+    name = p.name()
+    if name.endswith(".exe"):
+        return name[:-4]
+    return name
 
 
 class StderrCapture:
