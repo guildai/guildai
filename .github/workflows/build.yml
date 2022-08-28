@@ -183,9 +183,9 @@ jobs:
       - name: Run built-in tests
         env:
           GUILD_START_THRESHOLD: 1.0
-          TMPDIR=: tmp
+          TMPDIR: test-env\Tmp
         run: |
-          mkdir tmp -Force
+          mkdir test-env\Tmp -Force
           test-env\scripts\guild check -nT
 
       - name: Keep server alive for SSH (cancel job to terminate)
