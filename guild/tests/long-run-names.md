@@ -25,7 +25,7 @@ Let's illustrate using a temp directory.
     >>> tmp = mkdtemp()
     >>> open(join_path(tmp, "a" * 374), "w").close()  # doctest: +WINDOWS_ONLY
     Traceback (most recent call last):
-    FileNotFoundError: [Errno 2] No such file or directory: '...aaaaaaaaaaaaaaaaaaaaaaaa'
+    OSError: [Errno ...] Invalid argument: '...aaaaaaaaaaaaaaaaaaaaaaaa'
 
     >>> open(join_path(tmp, "a" * 374), "w").close()  # doctest: -WINDOWS
     Traceback (most recent call last):
