@@ -720,13 +720,20 @@ with underscore.
 The active shell is provided as a shell string using
 `util.active_shell()`.
 
-    >>> from guild.util import active_shell, _KNOWN_SHELLS
-
-We assume that our tests are run under a known shell.
+    >>> from guild.util import active_shell
 
     >>> shell = active_shell()
-    >>> shell in _KNOWN_SHELLS, (shell, _KNOWN_SHELLS)
-    (True, ...)
+
+    >>> if shell is None:
+    ...     import psutil
+    ...     from guild.util import shlex_quote as _quote, _KNOWN_SHELLS
+    ...     proc_path = []
+    ...     p = psutil.Process().parent()
+    ...     while p:
+    ...         proc_path.append(_quote(p.name()))
+    ...         p = p.parent()
+    ...     print(f"Unknown active shell - proc path: {' < '.join(proc_path)}")
+    ...     print(f"Expexted one of: {', '.join(_KNOWN_SHELLS)}")
 
 ### Active shell caching
 
