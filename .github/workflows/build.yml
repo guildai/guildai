@@ -178,11 +178,14 @@ jobs:
           test-env\scripts\pip install -r guild\tests\requirements.txt
 
       - name: Configure environment for tests
-        # git config required by Guild tests that run git commands
+        # - git config required by Guild tests that run git commands
+        # - test-env\Tmp used as TMPDIR for tests (keeps tmp files on
+        #   same volume as project)
         run: |
           git config --global user.name unused
           git config --global user.email unused@localhost
           git config --global init.defaultBranch main
+          mkdir test-env\Tmp -Force
 
       - name: Run built-in tests
         if: ${{ !inputs.skip_tests }}
@@ -190,7 +193,6 @@ jobs:
           GUILD_START_THRESHOLD: 1.0
           TMPDIR: test-env\Tmp
         run: |
-          mkdir test-env\Tmp -Force
           test-env\scripts\guild check -nT
 
       - name: Keep server alive for SSH (cancel workflow to terminate)
