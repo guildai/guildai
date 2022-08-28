@@ -19,6 +19,10 @@ on:
         description: Run full test suite (user acceptance)
         type: boolean
         default: false
+      skip_tests:
+        description: Skip all tests (use with SSH to debug specific tests)
+        type: boolean
+        default: false
       skip_posix:
         description: Skip Linux and macOS
         type: boolean
@@ -93,14 +97,14 @@ jobs:
           git config --global init.defaultBranch main
 
       - name: Run built-in tests
-        if: ${{ !inputs.uat }}
+        if: ${{ !inputs.skip_tests && !inputs.uat }}
         env:
           GUILD_START_THRESHOLD: 1.0
         run: |
           test-env/bin/guild check -nT
 
       - name: Run user acceptance tests
-        if: ${{ inputs.uat }}
+        if: ${{ !inputs.skip_tests && inputs.uat }}
         env:
           EXAMPLES: examples
           GUILD_START_THRESHOLD: 1.0
@@ -181,6 +185,7 @@ jobs:
           git config --global init.defaultBranch main
 
       - name: Run built-in tests
+        if: ${{ !inputs.skip_tests }}
         env:
           GUILD_START_THRESHOLD: 1.0
           TMPDIR: test-env\Tmp
