@@ -19,20 +19,20 @@ on:
         description: Run full test suite (user acceptance)
         type: boolean
         default: false
-      build_posix:
-        description: Run workflow for POSIX systems (Linux and macOS)
+      skip_posix:
+        description: Skip Linux and macOS
         type: boolean
-        default: true
-      build_windows:
-        description: Run worflow for Windows
+        default: false
+      skip_windows:
+        description: Skip Windows
         type: boolean
-        default: true
+        default: false
 
 jobs:
   build-posix:
     name: Build - POSIX
     runs-on: ${{ matrix.os }}
-    if: ${{ inputs.build_posix }}
+    if: ${{ !inputs.skip_posix }}
     strategy:
       fail-fast: false
       matrix:
@@ -114,7 +114,7 @@ jobs:
   build-windows:
     name: Build - Windows
     runs-on: windows-latest
-    if: ${{ inputs.build_windows }}
+    if: ${{ !inputs.skip_windows }}
 
     strategy:
       fail-fast: false
