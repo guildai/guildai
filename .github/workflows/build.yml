@@ -1,13 +1,8 @@
-name: Build
+name: Build and test
 
 on:
-  # push:
-  #   branches:
-  #     - main
-
-  pull_request:
-    branches:
-      - main
+  schedule:
+    - cron:  '0 5 * * *'
 
   workflow_dispatch:
     inputs:
@@ -15,12 +10,12 @@ on:
         description: Run with SSH
         type: boolean
         default: false
-      uat:
-        description: Run full test suite (user acceptance)
+      skip_uat:
+        description: Skip user-acceptance tests (built-in tests still run)
         type: boolean
         default: false
       skip_tests:
-        description: Skip all tests (use with SSH to debug specific tests)
+        description: Skip all tests (use with SSH to manually test)
         type: boolean
         default: false
       skip_posix:
@@ -85,7 +80,7 @@ jobs:
       - name: Install test requirements
         # uat tests install test requirements as a part of the test
         # suite - these must not be installed ahead of time
-        if: ${{ !inputs.uat }}
+        if: ${{ inputs.skip_uat }}
         run: |
           test-env/bin/pip install -r guild/tests/requirements.txt
 
@@ -97,14 +92,14 @@ jobs:
           git config --global init.defaultBranch main
 
       - name: Run built-in tests
-        if: ${{ !inputs.skip_tests && !inputs.uat }}
+        if: ${{ !inputs.skip_tests && inputs.skip_uat }}
         env:
           GUILD_START_THRESHOLD: 1.0
         run: |
           test-env/bin/guild check -nT
 
       - name: Run user acceptance tests
-        if: ${{ !inputs.skip_tests && inputs.uat }}
+        if: ${{ !inputs.skip_tests && !inputs.skip_uat }}
         env:
           EXAMPLES: examples
           GUILD_START_THRESHOLD: 1.0
