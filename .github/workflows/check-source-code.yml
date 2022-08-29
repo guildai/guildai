@@ -1,4 +1,4 @@
-name: Pre-build checks
+name: Check source code
 
 on:
   - push
