@@ -22,6 +22,7 @@ class RScriptModelProxy:
     def __init__(self, script_path, op_name):
         assert script_path[-2:].upper() == ".R", script_path
         assert script_path.endswith(op_name), (script_path, op_name)
+        ensure_guildai_r_package_installled()
         self.script_path = script_path
         if os.path.isabs(op_name) or op_name.startswith(".."):
             self.op_name = os.path.basename(op_name)
@@ -109,7 +110,7 @@ def is_r_script(opspec):
     return os.path.isfile(opspec) and opspec[-2:].upper() == ".R"
 
 
-def check_guild_r_package_installled():
+def ensure_guildai_r_package_installled():
     installed = run_r('cat(requireNamespace("guildai", quietly = TRUE))') == "TRUE"
     if installed:
         return
