@@ -23,16 +23,16 @@ from . import remote_support
 def start(args):
     remote = remote_support.remote_for_args(args)
     if args.reinit:
-        prompt = "You are about to reinitialize %s" % remote.name
+        prompt = f"You are about to reinitialize {remote.name}"
         _remote_op(remote.reinit, prompt, True, args)
     else:
-        prompt = "You are about to start %s" % remote.name
+        prompt = f"You are about to start {remote.name}"
         _remote_op(remote.start, prompt, True, args)
 
 
 def stop(args):
     remote = remote_support.remote_for_args(args)
-    prompt = "You are about to STOP %s" % remote.name
+    prompt = f"You are about to STOP {remote.name}"
     stop_details = remote.stop_details()
     if stop_details:
         prompt += "\n" + stop_details
@@ -59,6 +59,6 @@ def status(args):
     try:
         remote.status(args.verbose)
     except guild.remote.Down as e:
-        cli.error("remote %s is not available (%s)" % (remote.name, e), exit_status=2)
+        cli.error(f"remote {remote.name} is not available {e}", exit_status=2)
     except guild.remote.OperationError as e:
         cli.error(e)

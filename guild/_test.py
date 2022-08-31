@@ -31,8 +31,6 @@ import tempfile
 import threading
 import time
 
-import six
-
 import guild
 
 from guild import _api as gapi
@@ -75,6 +73,11 @@ BASH_SHELL = doctest.register_optionflag("BASH_SHELL")
 
 _ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
+# Resolve relative to cwd on load as we change cwd for tests later.
+_EXAMPLES_DIR = (
+    os.path.abspath(os.environ["EXAMPLES"]) if "EXAMPLES" in os.environ else None
+)
+
 
 def run_all(skip=None):
     return run(all_tests(), skip)
@@ -104,13 +107,13 @@ def run(tests, skip=None):
             success = success and run_success
         else:
             sys.stdout.write(
-                "  %s:%s skipped\n" % (test, " " * (TEST_NAME_WIDTH - len(test)))
+                f"  {test}:{' ' * (TEST_NAME_WIDTH - len(test))} skipped\n"
             )
     return success
 
 
 def _run_test(name):
-    sys.stdout.write("  %s: " % name)
+    sys.stdout.write(f"  {name}: ")
     sys.stdout.flush()
     filename = _filename_for_test(name)
     if not os.path.exists(filename):
@@ -253,7 +256,7 @@ def _log_test_ok(name):
 
 def _log_general_error(name, error):
     sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
-    sys.stdout.write(cli.style("ERROR (%s)\n" % error, fg="red"))
+    sys.stdout.write(cli.style(f"ERROR ({error})\n", fg="red"))
     sys.stdout.flush()
 
 
@@ -400,7 +403,7 @@ def _run_test_file_with_config(filename, globs, optionflags):
         return _run_python_doctest(filename, globs, optionflags)
     if doctest_type == "bash":
         return _run_bash_doctest(filename, globs, optionflags)
-    raise RuntimeError("unsupported doctest type '%s'" % doctest_type)
+    raise RuntimeError(f"unsupported doctest type '{doctest_type}'")
 
 
 def _run_python_doctest(filename, globs, optionflags):
@@ -483,16 +486,15 @@ class BashDocTestParser(doctest.DocTestParser):
     @staticmethod
     def _wrap_bash(source):
         source = source.replace("\n", " ").replace("\"", "\\\"")
-        return "run(\"%s\")" % source
+        return f"run(\"{source}\")"
 
     @staticmethod
     def _check_prompt_blank(lines, indent, name, lineno, *_):
         for i, line in enumerate(lines):
             if len(line) >= indent + 2 and line[indent + 1] != " ":
                 raise ValueError(
-                    "line %r of the docstring for %s "
-                    "lacks blank after %s: %r"
-                    % (lineno + i + 1, name, line[indent : indent + 1], line)
+                    f"line {lineno + i + 1} of the docstring for {name} "
+                    f"lacks blank after {line[indent : indent + 1]}: {line!r}"
                 )
 
 
@@ -644,7 +646,7 @@ def _sort_normalized_paths(paths):
 
 
 def _filter_ignored(paths, ignore):
-    if isinstance(ignore, six.string_types):
+    if isinstance(ignore, str):
         ignore = [ignore]
     return [
         p for p in paths if not any((fnmatch.fnmatch(p, pattern) for pattern in ignore))
@@ -656,7 +658,11 @@ def _example(name):
 
 
 def _examples_dir():
-    return os.path.abspath(os.getenv("EXAMPLES") or _default_examples_dir())
+    if _EXAMPLES_DIR is None:
+        raise ValueError(
+            "'EXAMPLES' environment variable not set - cannot run test on examples"
+        )
+    return _EXAMPLES_DIR
 
 
 def _default_examples_dir():
@@ -839,7 +845,7 @@ class Project:
         try:
             _run, out = self.run_capture(*args, **kw)
         except gapi.RunError as e:
-            print("{}\n<exit {}>".format(e.output.strip(), e.returncode))
+            print(f"{e.output.strip()}\n<exit {e.returncode}>")
         else:
             print(out)
 
@@ -850,7 +856,7 @@ class Project:
 
     @staticmethod
     def _filter_output(out, ignore):
-        if isinstance(ignore, six.string_types):
+        if isinstance(ignore, str):
             ignore = [ignore]
         return "\n".join(
             [
@@ -1044,7 +1050,7 @@ def _strip_error_module(last_line):
     m = re.match(r"([\w\.]+): (.+)", last_line)
     if not m:
         return _strip_class_module(last_line)
-    return "{}: {}".format(_strip_class_module(m.group(1)), m.group(2))
+    return f"{_strip_class_module(m.group(1))}: {m.group(2)}"
 
 
 def _strip_class_module(class_name):
@@ -1082,26 +1088,26 @@ def _run(
 ):
     cmd = _run_shell_cmd(cmd)
     proc_env = dict(os.environ)
+    _apply_venv_bin_path(proc_env)
     if env:
         proc_env.update(env)
     proc_env["SYNC_RUN_OUTPUT"] = "1"
-    if not env or "GUILD_HOME" not in env:
-        proc_env["GUILD_HOME"] = configlib.guild_home()
     p = _popen(cmd, proc_env, cwd)
     with _kill_after(p, timeout):
         out, err = p.communicate()
         assert err is None, err
         exit_code = p.returncode
-    if _capture or not quiet or exit_code != 0:
-        out = out.strip().decode("latin-1")
-        if ignore:
-            out = _strip_lines(out, ignore)
-        if cut:
-            out = _cut_cols(out, cut)
-        if _capture:
-            return out, exit_code
-        print(out)
-        print("<exit %i>" % exit_code)
+    if quiet and exit_code == 0:
+        return None
+    out = out.strip().decode("latin-1")
+    if ignore:
+        out = _strip_lines(out, ignore)
+    if cut:
+        out = _cut_cols(out, cut)
+    if _capture:
+        return out, exit_code
+    print(out)
+    print(f"<exit {exit_code}>")
     return None
 
 
@@ -1169,7 +1175,14 @@ def _guild_exe_for_win_error():
 
 
 def _run_shell_posix_cmd(cmd):
-    return "set -eu && %s" % cmd
+    return f"set -eu && {cmd}"
+
+
+def _apply_venv_bin_path(env):
+    python_bin_dir = os.path.dirname(sys.executable)
+    path = env.get("PATH") or ""
+    if python_bin_dir not in path:
+        env["PATH"] = f"{python_bin_dir}{os.path.pathsep}${path}"
 
 
 def _popen(cmd, env, cwd):
@@ -1266,7 +1279,7 @@ def _chdir(s):
 
 def _set_guild_home(path):
     if os.getenv("DEBUG") == "1":
-        sys.stderr.write("Setting Guild home: %s\n" % path)
+        sys.stderr.write(f"Setting Guild home: {path}\n")
     configlib.set_guild_home(path)
 
 

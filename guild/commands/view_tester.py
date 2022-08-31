@@ -54,23 +54,23 @@ def _wait_for(url):
 
 
 def _test_runs(view_url):
-    runs_url = "{}/runs".format(view_url)
-    sys.stdout.write("Testing %s\n" % runs_url)
+    runs_url = f"{view_url}/runs"
+    sys.stdout.write(f"Testing {runs_url}\n")
     runs_str = _urlread(runs_url)
     runs = json.loads(runs_str.decode())
-    sys.stdout.write(" - Got %i Guild run(s)\n" % len(runs))
+    sys.stdout.write(f" - Got {len(runs)} Guild run(s)\n")
     sys.stdout.flush()
 
 
 def _test_tensorboard(view_url):
-    tb_init_url = "{}/tb/0/".format(view_url)
-    sys.stdout.write("Initializing TensorBoard at %s\n" % tb_init_url)
+    tb_init_url = f"{view_url}/tb/0/"
+    sys.stdout.write(f"Initializing TensorBoard at {tb_init_url}\n")
     _urlread(tb_init_url)
-    runs_url = "{}/tb/0/data/runs".format(view_url)
-    sys.stdout.write("Testing %s\n" % runs_url)
+    runs_url = f"{view_url}/tb/0/data/runs"
+    sys.stdout.write(f"Testing {runs_url}\n")
     runs_str = _urlread(runs_url)
     runs = json.loads(runs_str.decode())
-    sys.stdout.write(" - Got %i TensorBoard run(s)\n" % len(runs))
+    sys.stdout.write(f" - Got {len(runs)} TensorBoard run(s)\n")
     sys.stdout.flush()
 
 

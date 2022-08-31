@@ -17,8 +17,6 @@ import os
 import re
 import subprocess
 
-import six
-
 from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
@@ -160,7 +158,7 @@ def _diff(path, other_path, args):
     try:
         subprocess.call(cmd)
     except OSError as e:
-        cli.error("error running '%s': %s" % (" ".join(cmd), e))
+        cli.error(f"error running '{' '.join(cmd)}': {e}")
 
 
 def _diff_cmd(args, path):
@@ -206,7 +204,7 @@ def _safe_re_match(ext, pattern):
 def _coerce_config_diff_command(data):
     if data is None or isinstance(data, dict):
         return data
-    if isinstance(data, six.string_types):
+    if isinstance(data, str):
         return {"default": data}
     log.warning("unsupported configuration for diff command: %r", data)
     return None

@@ -311,7 +311,7 @@ error handling.
 
 Let's create a custom handler that simply logs information.
 
-    >>> class Handler(object):
+    >>> class Handler:
     ...
     ...   def __init__(self, src_root, dest_root, _select):
     ...     self.src_root = src_root
@@ -325,6 +325,9 @@ Let's create a custom handler that simply logs information.
     ...
     ...   def handle_copy_error(self, e, src, dest):
     ...     assert False, (e, src, dest)
+    ...
+    ...   def close(self):
+    ...     pass
 
 Our source directory:
 

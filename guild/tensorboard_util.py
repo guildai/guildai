@@ -70,23 +70,23 @@ def AsyncWriter(
 
 
 def event_filename(logdir, filename_base=None, filename_suffix=""):
+    filename_base = filename_base or _event_filename_base()
+    return (
+        os.path.join(logdir, f"events.out.tfevents.{filename_base}") + filename_suffix
+    )
+
+
+def _event_filename_base():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
         # pylint: disable=no-name-in-module
         from tensorboard.summary.writer import event_file_writer
 
-    filename_base = filename_base or (
-        "%010d.%s.%s.%s"
-        % (
-            time.time(),
-            socket.gethostname(),
-            os.getpid(),
-            event_file_writer._global_uid.get(),
-        )
-    )
-    return (
-        os.path.join(logdir, "events.out.tfevents.%s" % filename_base) + filename_suffix
-    )
+    timestamp = int(time.time())
+    hostname = socket.gethostname()
+    pid = os.getpid()
+    uid = event_file_writer._global_uid.get()
+    return f"{timestamp:010d}.{hostname}.{pid}.{uid}"
 
 
 def silence_info_logging():
@@ -244,7 +244,7 @@ def _extra_tb_args(options):
         return []
     args = []
     for name, val in sorted(options.items()):
-        args.extend(["--%s" % name, str(val)])
+        args.extend([f"--{name}", str(val)])
     return args
 
 

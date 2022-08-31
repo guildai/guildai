@@ -26,8 +26,6 @@ import pprint
 from typing import Dict, List, Optional, Any, Union
 from urllib.parse import ParseResult, ParseResultBytes
 
-import six
-
 from guild import guildfile_schema, util
 
 log = logging.getLogger("guild")
@@ -59,7 +57,7 @@ class ResourceDef(guildfile_schema.ResourceDefSchema):
         self.flag_name = data.get("flag-name")
         self.description = data.get("description", "")
         self.target_path = _init_target_path(
-            data.get("target-path"), data.get("path"), "resource %s" % self.fullname
+            data.get("target-path"), data.get("path"), f"resource {self.fullname}"
         )
         self.preserve_path = data.get("preserve-path")
         self.target_type = data.get("target-type")
@@ -69,17 +67,13 @@ class ResourceDef(guildfile_schema.ResourceDefSchema):
         self.sources = self._init_sources(data.get("sources", []))
 
     def __repr__(self):
-        return "<%s.%s '%s'>" % (
-            self.__class__.__module__,
-            self.__class__.__name__,
-            self.name,
-        )
+        return f"<{self.__class__.__module__}.{self.__class__.__name__} '{self.name}'>"
 
     def _init_sources(self, data):
         if isinstance(data, list):
             return [self._init_resource_source(src_data) for src_data in data]
         raise ResourceFormatError(
-            "invalid sources value for resource '%s': %r" % (self.fullname, data)
+            f"invalid sources value for resource '{self.fullname}': {data!r}"
         )
 
     def _init_resource_source(self, data):
@@ -88,7 +82,7 @@ class ResourceDef(guildfile_schema.ResourceDefSchema):
         if isinstance(data, str):
             return self._source_for_type(self.default_source_type, data, {})
         raise ResourceFormatError(
-            "invalid source for resource '%s': %s" % (self.fullname, data)
+            f"invalid source for resource '{self.fullname}': {data!r}"
         )
 
     def _resource_source_for_data(self, data):
@@ -97,16 +91,16 @@ class ResourceDef(guildfile_schema.ResourceDefSchema):
         type_items = zip(self.source_types, type_vals)
         type_count = sum((bool(val) for val in type_vals))
         if type_count == 0:
+            types_desc = ", ".join(self.source_types)
             raise ResourceFormatError(
-                "invalid source %s in resource '%s': missing required "
-                "attribute (one of %s)"
-                % (data, self.fullname, ", ".join(self.source_types))
+                f"invalid source {data} in resource '{self.fullname}': "
+                f"missing required attribute (one of {types_desc})"
             )
         if type_count > 1:
             conflicting = ", ".join([item[0] for item in type_items if item[1]])
             raise ResourceFormatError(
-                "invalid source %s in resource '%s': conflicting "
-                "attributes (%s)" % (pprint.pformat(data), self.fullname, conflicting)
+                f"invalid source {pprint.pformat(data)} in resource "
+                f"'{self.fullname}': conflicting attributes ({conflicting})"
             )
         type_name, type_val = next(item for item in type_items if item[1])
         return self._source_for_type(type_name, type_val, data_copy)
@@ -114,13 +108,13 @@ class ResourceDef(guildfile_schema.ResourceDefSchema):
     def _source_for_type(self, type, val, data):
         data = self._coerce_source_data(data)
         if type == "file":
-            return ResourceSource(self, "file:%s" % val, **data)
+            return ResourceSource(self, f"file:{val}", **data)
         if type == "url":
             return ResourceSource(self, val, **data)
         if type == "module":
-            return ResourceSource(self, "module:%s" % val, **data)
+            return ResourceSource(self, f"module:{val}", **data)
         if type == "config":
-            return ResourceSource(self, "config:%s" % val, **data)
+            return ResourceSource(self, f"config:{val}", **data)
         raise AssertionError(type, val, data)
 
     @staticmethod
@@ -147,8 +141,9 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
 
     class Config:
         underscore_attrs_are_private = True
-        # this is different from the schema base class, which errors on extra keys. Here we
-        #     want the warning to show up during parsing, but not to error.
+        # This is different from the schema base class, which errors
+        # on extra keys. Here we want the warning to show up during
+        # parsing, but not to error.
         extra = 'ignore'
 
     def __init__(
@@ -175,7 +170,7 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
         preserve_path=False,
         params=None,
         *args,
-        **kw
+        **kw,
     ):
         super().__init__(*args, **kw)
         self.resdef = resdef
@@ -192,7 +187,7 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
         self.fail_if_empty = fail_if_empty
         self.rename = _init_rename(rename)
         self.post_process = post_process
-        self.target_path = _init_target_path(target_path, path, "source %s" % self.name)
+        self.target_path = _init_target_path(target_path, path, f"source {self.name}")
         self.target_type = target_type
         self.replace_existing = replace_existing
         self.preserve_path = preserve_path
@@ -221,7 +216,7 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
         return self.name
 
     def __repr__(self):
-        return "<guild.resourcedef.ResourceSource '%s'>" % self.name
+        return f"<guild.resourcedef.ResourceSource '{self.name}'>"
 
     def __str__(self):
         return self.uri
@@ -282,14 +277,12 @@ def _init_rename(data):
 
 
 def _init_rename_spec(data):
-    if isinstance(data, six.string_types):
+    if isinstance(data, str):
         pattern, repl = _split_rename_spec(data)
         return RenameSpec(pattern, repl)
     if isinstance(data, dict):
         return RenameSpec(data.get("pattern", ""), data.get("repl", ""))
-    raise ResourceFormatError(
-        "invalid rename spec %r: expected string or map" % data
-    )
+    raise ResourceFormatError(f"invalid rename spec {data!r}: expected string or map")
 
 
 def _split_rename_spec(spec):
@@ -299,7 +292,7 @@ def _split_rename_spec(spec):
     if len(parts) == 1:
         return ".*", parts[0]
     raise ResourceFormatError(
-        "invalid rename spec %r: expected 'PATTERN REPL' or 'NAME'" % spec
+        f"invalid rename spec {spec!r}: expected 'PATTERN REPL' or 'NAME'"
     )
 
 
@@ -323,11 +316,11 @@ def _init_target_path(target_path_arg, path_arg, context):
 def _coerce_list(val, desc):
     if val is None:
         return []
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return [val]
     if isinstance(val, list):
         return val
-    raise ResourceFormatError("invalid %s val: %s" % (desc, val))
+    raise ResourceFormatError(f"invalid {desc} val: {val}")
 
 
 # See https://github.com/samuelcolvin/pydantic/issues/1298

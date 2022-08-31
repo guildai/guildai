@@ -41,16 +41,16 @@ def _handle_tensorflow_import_error(e):
             err=True,
         )
     else:
-        cli.out("Error loading TensorBoard: %s" % e, err=True)
+        cli.out(f"Error loading TensorBoard: {e}", err=True)
     cli.error()
 
 
 def _inspect_graph(args):
     graph = _load_graph(args.file_name)
     for op in graph.get_operations():
-        sys.stdout.write("%s\n" % op.name)
+        sys.stdout.write(f"{op.name}\n")
         for out in op.outputs:
-            sys.stdout.write("%s\n" % out.name)
+            sys.stdout.write(f"{out.name}\n")
 
 
 def _load_graph(filename):

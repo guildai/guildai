@@ -47,7 +47,7 @@ def _compare_args_with_id(args):
     """
     return click_util.Args(
         extra_cols=False,
-        cols=(".id",),
+        cols=".id",
         strict_cols=None,
         top=None,
         min_col=None,

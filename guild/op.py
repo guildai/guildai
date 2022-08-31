@@ -29,7 +29,7 @@ from guild import util
 log = logging.getLogger("guild")
 
 OP_RUNFILE_PATHS = [
-    ["guild", "external"],
+    ["guild"],
 ]
 
 PROC_TERM_TIMEOUT_SECONDS = 30
@@ -142,7 +142,7 @@ def _stage_run_proc_env(op, run):
         for name in sorted(env):
             if name in skip_env:
                 continue
-            out.write("export %s=%s\n" % (name, util.env_var_quote(env[name])))
+            out.write(f"export {name}={util.env_var_quote(env[name])}\n")
 
 
 ###################################################################

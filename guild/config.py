@@ -74,6 +74,7 @@ class SetGuildHome:
 def set_guild_home(path):
     with _guild_home_lock:
         globals()["_guild_home"] = path
+        os.environ["GUILD_HOME"] = path
 
 
 def cwd():
@@ -81,9 +82,12 @@ def cwd():
 
 
 def guild_home():
+    return _safe_guild_home() or default_guild_home()
+
+
+def _safe_guild_home():
     with _guild_home_lock:
-        maybe_home = _guild_home
-    return maybe_home or default_guild_home()
+        return _guild_home
 
 
 def default_guild_home():
@@ -167,14 +171,12 @@ def _apply_section_inherits(section, data, src):
 
 
 def _apply_section_item_inherits(item, section, data, src):
-    import six  # See note above about imports.
-
     try:
         parent_specs = item.pop("extends")
     except KeyError:
         pass
     else:
-        if isinstance(parent_specs, six.string_types):
+        if isinstance(parent_specs, str):
             parent_specs = [parent_specs]
         for spec in parent_specs:
             parent = _resolved_parent(spec, section, data, src)
@@ -184,7 +186,7 @@ def _apply_section_item_inherits(item, section, data, src):
 def _resolved_parent(spec, section, data, src):
     parent = _find_parent(spec, section, data)
     if parent is None:
-        raise ConfigError("cannot find '%s' in %s" % (spec, src))
+        raise ConfigError(f"cannot find '{spec}' in {src}")
     parent_item, parent_section = parent
     _apply_section_item_inherits(parent_item, parent_section, data, src)
     return parent_item

@@ -27,7 +27,7 @@ class CPUPlugin(SummaryPlugin):
             self.log.warning(
                 "cpu stats disabled because psutil cannot be imported (%s)", e
             )
-            return False, "error importing psutil: %s" % e
+            return False, f"error importing psutil: {e}"
         else:
             return True, ""
 
@@ -42,7 +42,7 @@ class CPUPlugin(SummaryPlugin):
         if self._cpu_percent_init:
             i = 0
             for percent in percents:
-                stats["sys/cpu%i/util" % i] = percent / 100
+                stats[f"sys/cpu{i}/util"] = percent / 100
                 i += 1
             if percents:
                 stats["sys/cpu/util"] = sum(percents) / len(percents) / 100

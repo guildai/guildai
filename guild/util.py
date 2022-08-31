@@ -27,8 +27,6 @@ import tempfile
 import time
 import threading
 
-import six
-
 from guild import ansi_util  # lightweight
 
 # Avoid expensive imports.
@@ -313,7 +311,7 @@ def try_cached_sha(for_file):
 
 def _cached_sha_filename(for_file):
     parent, name = os.path.split(for_file)
-    return os.path.join(parent, ".guild-cache-%s.sha" % name)
+    return os.path.join(parent, f".guild-cache-{name}.sha")
 
 
 def write_cached_sha(sha, for_file):
@@ -328,11 +326,8 @@ def file_md5(path):
 
 
 def parse_url(url):
-    try:
-        from urlparse import urlparse
-    except ImportError:
-        # pylint: disable=import-error,no-name-in-module
-        from urllib.parse import urlparse
+    from urllib.parse import urlparse
+
     return urlparse(url)
 
 
@@ -532,7 +527,7 @@ def resolve_all_refs(kv, undefined=_raise_error_marker):
 
 
 def _resolve_refs_recurse(val, kv, undefined, stack):
-    if not isinstance(val, six.string_types):
+    if not isinstance(val, str):
         return val
     parts = [part for part in REF_P.split(val) if part != ""]
     resolved = list(_iter_resolved_ref_parts(parts, kv, undefined, stack))
@@ -542,7 +537,7 @@ def _resolve_refs_recurse(val, kv, undefined, stack):
 
 
 def _resolved_part_str(part):
-    if isinstance(part, six.string_types):
+    if isinstance(part, str):
         return part
     from guild import yaml_util  # expensive
 
@@ -741,7 +736,7 @@ def is_text_file(path, ignore_ext=False):
     # Adapted from https://github.com/audreyr/binaryornot under the
     # BSD 3-clause License
     if not os.path.exists(path):
-        raise OSError("%s does not exist" % path)
+        raise OSError(f"{path} does not exist")
     if not os.path.isfile(path):
         return False
     if not ignore_ext:
@@ -771,16 +766,13 @@ def is_text_file(path, ignore_ext=False):
         and detected_encoding["encoding"] != "ascii"
     ):
         try:
-            try:
-                sample.decode(encoding=detected_encoding["encoding"])
-            except TypeError:
-                # pylint: disable=undefined-variable
-                unicode(sample, encoding=detected_encoding["encoding"])
-            decodable_as_unicode = True
+            sample.decode(encoding=detected_encoding["encoding"])
         except LookupError:
             pass
         except UnicodeDecodeError:
             pass
+        else:
+            decodable_as_unicode = True
     if likely_binary:
         return decodable_as_unicode
     if decodable_as_unicode:
@@ -880,7 +872,7 @@ def local_server_url(host, port):
             socket.gethostbyname(host)
         except socket.gaierror:
             host = "localhost"
-    return "http://{}:{}".format(host, port)
+    return f"http://{host}:{port}"
 
 
 def format_duration(start_time, end_time=None):
@@ -888,10 +880,10 @@ def format_duration(start_time, end_time=None):
         return None
     if end_time is None:
         end_time = time.time() * 1000000
-    seconds = (end_time - start_time) // 1000000
+    seconds = int((end_time - start_time) // 1000000)
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
-    return "%d:%02d:%02d" % (h, m, s)
+    return f"{h}:{m:02d}:{s:02d}"
 
 
 def format_dir(dir):
@@ -900,7 +892,7 @@ def format_dir(dir):
 
 def format_user_dir(s):
     if get_platform() == "Windows":
-        return s.replace("\\", "\\\\")
+        return s
     user_dir = os.path.expanduser("~")
     if s.startswith(user_dir):
         return os.path.join("~", s[len(user_dir) + 1 :])
@@ -1057,8 +1049,11 @@ def find_python_interpreter(version_spec):
     try:
         # Requirement.parse wants a package name, so we use 'python'
         # here, but anything would do.
-        req = pkg_resources.Requirement.parse("python%s" % version_spec)
+        req = pkg_resources.Requirement.parse(f"python{version_spec}")
     except pkg_resources.RequirementParseError as e:
+        # pylint under pre-commit is having a hard time determining
+        # that `RequirementParseError` is a valie exception type.
+        # pylint: disable=bad-exception-context
         raise ValueError(version_spec) from e
     python_interps = {ver: path for path, ver in python_interpreters()}
     matching = list(req.specifier.filter(sorted(python_interps)))
@@ -1087,7 +1082,7 @@ def copytree(src, dest, preserve_links=True):
 
 def select_copytree(src, dest, config, copy_filter=None):
     if not isinstance(config, list):
-        raise ValueError("invalid config: expected list got %r" % config)
+        raise ValueError(f"invalid config: expected list got {config!r}")
     log.debug("copying files from %s to %s", src, dest)
     to_copy = _select_files_to_copy(src, config, copy_filter)
     if not to_copy:
@@ -1208,9 +1203,7 @@ def shlex_split(s):
 
 
 def shlex_quote(s):
-    # If s can't be None in case where pipes.quote is used by six.
-    s = s or ""
-    return _simplify_shlex_quote(six.moves.shlex_quote(s))
+    return _simplify_shlex_quote(shlex.quote(s or ""))
 
 
 def shlex_join(args):
@@ -1239,9 +1232,9 @@ def format_bytes(n):
         if abs(n) < 1024:
             if not unit:
                 return str(n)
-            return "%3.1f%s" % (n, unit)
+            return f"{n:.1f}{unit}"
         n /= 1024.0
-    return "%.1f%s" % (n, units[-1])
+    return f"{n:.1f}{units[-1]}"
 
 
 class Chdir:
@@ -1274,7 +1267,9 @@ class _log_apply_msg:
         self.kw = kw
 
     def __str__(self):
-        return "%s %s %s %s" % (self.f.__module__, self.f.__name__, self.args, self.kw)
+        f_mod = self.f.__module__
+        f_name = self.f.__name__
+        return f"{f_mod} {f_name} {self.args} {self.kw}"
 
 
 def dir_size(dir):
@@ -1319,12 +1314,7 @@ def guild_user_agent():
     import guild
 
     system, _node, release, _ver, machine, _proc = platform.uname()
-    return "python-guildai/%s (%s; %s; %s)" % (
-        guild.__version__,
-        system,
-        machine,
-        release,
-    )
+    return f"python-guildai/{guild.__version__} ({system}; {machine}; {release})"
 
 
 def nested_config(kv, nested=None):
@@ -1342,8 +1332,8 @@ def _apply_nested(name, val, nested):
         if not isinstance(cur, dict):
             conflicts_with = ".".join(parts[0 : i + 1])
             raise ValueError(
-                "%r cannot be nested: conflicts with {%r: %s}"
-                % (name, conflicts_with, cur)
+                f"{name!r} cannot be nested: conflicts with "
+                f"{{{conflicts_with!r}: {cur}}}"
             )
     cur[parts[-1]] = val
 
@@ -1487,8 +1477,8 @@ def http_get(url, timeout=None):
 
 
 def _http_request(url, headers=None, data=None, method="GET", timeout=None):
+    import urllib
     import socket
-    from six.moves import urllib
 
     headers = headers or {}
     url_parts = urllib.parse.urlparse(url)
@@ -1505,13 +1495,13 @@ def _http_request(url, headers=None, data=None, method="GET", timeout=None):
 
 
 def _HTTPConnection(scheme, netloc, timeout):
-    from six.moves import http_client
+    from http import client as http_client
 
     if scheme == "http":
         return http_client.HTTPConnection(netloc, timeout=timeout)
     if scheme == "https":
         return http_client.HTTPSConnection(netloc, timeout=timeout)
-    raise ValueError("unsupported scheme '%s' - must be 'http' or 'https'" % scheme)
+    raise ValueError(f"unsupported scheme '{scheme}' - must be 'http' or 'https'")
 
 
 class StdIOContextManager:
@@ -1527,10 +1517,10 @@ class StdIOContextManager:
 
 def check_env(env):
     for name, val in env.items():
-        if not isinstance(name, six.string_types):
-            raise ValueError("non-string env name %r" % name)
-        if not isinstance(val, six.string_types):
-            raise ValueError("non-string env value for '%s': %r" % (name, val))
+        if not isinstance(name, str):
+            raise ValueError(f"non-string env name {name!r}")
+        if not isinstance(val, str):
+            raise ValueError(f"non-string env value for '{name}': {val!r}")
 
 
 class SysArgv:
@@ -1764,7 +1754,16 @@ class lazy_str:
         return self.f()
 
 
-_KNOWN_SHELLS = ("bash", "zsh", "fish", "dash", "sh")
+_KNOWN_SHELLS = (
+    "bash",
+    "zsh",
+    "fish",
+    "dash",
+    "sh",
+    "cmd",
+    "powershell",
+    "pwsh",
+)
 _cached_active_shell = "__unset__"
 
 
@@ -1781,11 +1780,18 @@ def _active_shell():
 
     p = psutil.Process().parent()
     while p:
-        p_name = p.name()
+        p_name = _shell_for_proc(p)
         if p_name in _KNOWN_SHELLS:
             return p_name
         p = p.parent()
     return None
+
+
+def _shell_for_proc(p):
+    name = p.name()
+    if name.endswith(".exe"):
+        return name[:-4]
+    return name
 
 
 class StderrCapture:
@@ -1868,3 +1874,7 @@ def check_guild_version(req):
 
     version_without_dev = re.match(r"(\d+\.\d+\.\d+).*", guild.__version__).group(1)
     return python_util.check_package_version(version_without_dev, req)
+
+
+def split_lines(s):
+    return [line for line in re.split(r"\r?\n", s) if line]

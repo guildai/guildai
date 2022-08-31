@@ -147,36 +147,6 @@ Show the skipped files using the '--preview' option.
       "toCopy": [],
       "toSkip": [
         {
-          "fileType": "d",
-          "reason": "npd",
-          "runPath": "zzz",
-          "targetPath": null
-        },
-        {
-          "fileType": "d",
-          "reason": "u",
-          "runPath": "dep-1",
-          "targetPath": "dep-1"
-        },
-        {
-          "fileType": "o",
-          "reason": "?",
-          "runPath": "b",
-          "targetPath": "b"
-        },
-        {
-          "fileType": "o",
-          "reason": "?",
-          "runPath": "a",
-          "targetPath": "a"
-        },
-        {
-          "fileType": "d",
-          "reason": "npd",
-          "runPath": "yyy",
-          "targetPath": null
-        },
-        {
           "fileType": "s",
           "reason": "u",
           "runPath": ".guild/sourcecode/guild.yml",
@@ -185,14 +155,38 @@ Show the skipped files using the '--preview' option.
         {
           "fileType": "s",
           "reason": "u",
-          "runPath": ".guild/sourcecode/overlap.py",
-          "targetPath": "overlap.py"
+          "runPath": ".guild/sourcecode/op.py",
+          "targetPath": "op.py"
         },
         {
           "fileType": "s",
           "reason": "u",
-          "runPath": ".guild/sourcecode/op.py",
-          "targetPath": "op.py"
+          "runPath": ".guild/sourcecode/overlap.py",
+          "targetPath": "overlap.py"
+        },
+        {
+          "fileType": "o",
+          "reason": "?",
+          "runPath": "a",
+          "targetPath": "a"
+        },
+        {
+          "fileType": "o",
+          "reason": "?",
+          "runPath": "b",
+          "targetPath": "b"
+        },
+        {
+          "fileType": "d",
+          "reason": "u",
+          "runPath": "dep-1",
+          "targetPath": "dep-1"
+        },
+        {
+          "fileType": "d",
+          "reason": "u",
+          "runPath": "dep-subdir/dep-2",
+          "targetPath": "dep-subdir/dep-2"
         },
         {
           "fileType": "o",
@@ -202,9 +196,15 @@ Show the skipped files using the '--preview' option.
         },
         {
           "fileType": "d",
-          "reason": "u",
-          "runPath": "dep-subdir/dep-2",
-          "targetPath": "dep-subdir/dep-2"
+          "reason": "npd",
+          "runPath": "yyy",
+          "targetPath": null
+        },
+        {
+          "fileType": "d",
+          "reason": "npd",
+          "runPath": "zzz",
+          "targetPath": null
         }
       ]
     }

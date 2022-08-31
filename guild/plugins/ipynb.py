@@ -18,8 +18,6 @@ import logging
 import os
 import re
 
-import six
-
 from guild import config as configlib
 from guild import guildfile
 from guild import model as modellib
@@ -107,8 +105,7 @@ def _init_modeldef(notebook_path, model_name, op_name):
             "model": model_name,
             "operations": {
                 op_name: {
-                    "main": "guild.plugins.nbexec %s"
-                    % _normpath_for_main(notebook_path),
+                    "main": f"guild.plugins.nbexec {_normpath_for_main(notebook_path)}",
                     "flags": _flags_data_for_notebook(notebook_path),
                 }
             },
@@ -335,7 +332,7 @@ def _flag_data_for_val(val, ann_type=None):
 
 
 def _flag_type(val):
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return "string"
     if isinstance(val, bool):
         return "boolean"

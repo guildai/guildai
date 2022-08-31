@@ -1,6 +1,19 @@
-# -*- coding: utf-8 -*-
-# This file is part of 'miniver': https://github.com/jbweston/miniver
+# Copyright 2017-2022 RStudio, PBC
 #
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This file is part of 'miniver': https://github.com/jbweston/miniver
+
 from collections import namedtuple
 import os
 
@@ -31,6 +44,7 @@ def get_version(version_file=STATIC_VERSION_FILE):
 def get_static_version_info(version_file=STATIC_VERSION_FILE):
     version_info = {}
     with open(os.path.join(package_root, version_file), "rb") as f:
+        # pylint: disable=exec-used
         exec(f.read(), {}, version_info)
     return version_info
 
@@ -47,7 +61,7 @@ def pep440_format(version_info):
         if release.endswith("-dev") or release.endswith(".dev"):
             version_parts.append(dev)
         else:  # prefer PEP440 over strict adhesion to semver
-            version_parts.append(".dev{}".format(dev))
+            version_parts.append(f".dev{dev}")
 
     if labels:
         version_parts.append("+")
@@ -71,11 +85,11 @@ def get_version_from_git():
                 stderr=subprocess.PIPE,
             )
         except OSError:
-            return
+            return None
         if p.wait() == 0:
             break
     else:
-        return
+        return None
 
     description = (
         p.communicate()[0]
@@ -89,7 +103,7 @@ def get_version_from_git():
         release, dev, git = description
     except ValueError:  # No tags, only the git hash
         # prepend 'g' to match with format returned by 'git describe'
-        git = "g{}".format(*description)
+        git = f"g{description[0]}"
         release = "unknown"
         dev = None
 
@@ -134,7 +148,7 @@ def get_version_from_git_archive(version_info):
     if version_tags:
         release, *_rest = sorted(version_tags)  # prefer e.g. "2.0" over "2.0rc1"
         return Version(release, dev=None, labels=None)
-    return Version("unknown", dev=None, labels=["g{}".format(git_hash)])
+    return Version("unknown", dev=None, labels=[f"g{git_hash}"])
 
 
 __version__ = get_version()
@@ -154,8 +168,7 @@ def _write_version(fname):
         pass
     with open(fname, "w") as f:
         f.write(
-            "# This file has been created by setup.py.\n"
-            "version = '{}'\n".format(__version__)
+            f"# This file has been created by setup.py.\nversion = '{__version__}'\n"
         )
 
 
@@ -163,6 +176,7 @@ def get_cmdclass(pkg_source_path):
     from setuptools.command.build_py import build_py as build_py_orig
     from setuptools.command.sdist import sdist as sdist_orig
 
+    # pylint: disable=too-many-ancestors
     class _build_py(build_py_orig):
         def run(self):
             super().run()

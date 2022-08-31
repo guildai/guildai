@@ -61,7 +61,7 @@ check:
 	COLUMNS=999 $(guild) check $$opts; \
 
 lint:
-	PYTHONPATH=guild/external pylint -rn -f parseable setup.py guild
+	pylint setup.py guild
 
 clean:
 	rm -rf guild/external/.psutil*
@@ -106,7 +106,7 @@ README.html: README.md
 
 format-code:
 	@echo Formatting guild code
-	@black guild
+	@black guild examples
 
 coverage-check:
 	@if [ -z "$(TESTS)" ]; then \

@@ -932,7 +932,7 @@ Let's start an operation in a separate thread.
 
 Use a queues to communicate with the thread.
 
-    >>> from six.moves import queue
+    >>> import queue
     >>> in_q = queue.Queue()
     >>> out_q = queue.Queue()
 

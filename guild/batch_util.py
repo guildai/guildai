@@ -22,8 +22,6 @@ import signal
 import threading
 import typing
 
-import six
-
 from guild import _api as gapi
 from guild import cli
 from guild import exit_code
@@ -327,7 +325,7 @@ def _expand_flag(name, val):
 
 
 def _flag_function_or_val(val, flag_name):
-    if not isinstance(val, six.string_types):
+    if not isinstance(val, str):
         return val
     try:
         name, args = flag_util.decode_flag_function(val)

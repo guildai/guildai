@@ -4,7 +4,7 @@
     >>> import os
     >>> import guild
 
-    >>> SKIP_DIRS = ["tests", "external", "examples"]
+    >>> SKIP_DIRS = ["tests", "examples"]
     >>> SKIP_MODS = []
 
     >>> def iter_mods():

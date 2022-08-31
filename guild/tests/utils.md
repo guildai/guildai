@@ -720,13 +720,20 @@ with underscore.
 The active shell is provided as a shell string using
 `util.active_shell()`.
 
-    >>> from guild.util import active_shell, _KNOWN_SHELLS
-
-We assume that our tests are run under a known shell.
+    >>> from guild.util import active_shell
 
     >>> shell = active_shell()
-    >>> shell in _KNOWN_SHELLS, (shell, _KNOWN_SHELLS)
-    (True, ...)
+
+    >>> if shell is None:
+    ...     import psutil
+    ...     from guild.util import shlex_quote as _quote, _KNOWN_SHELLS
+    ...     proc_path = []
+    ...     p = psutil.Process().parent()
+    ...     while p:
+    ...         proc_path.append(_quote(p.name()))
+    ...         p = p.parent()
+    ...     print(f"Unknown active shell - proc path: {' < '.join(proc_path)}")
+    ...     print(f"Expexted one of: {', '.join(_KNOWN_SHELLS)}")
 
 ### Active shell caching
 
@@ -803,3 +810,65 @@ Test against current verion, minus any development component.
 
     >>> check_guild_version(f"=={guild_version_without_dev}")
     True
+
+## Format duration
+
+    >>> from guild.util import format_duration as fd
+
+    >>> fd(0, 0)
+    '0:00:00'
+
+    >>> fd(0, 60000000)
+    '0:01:00'
+
+    >>> fd(0, 600000000)
+    '0:10:00'
+
+    >>> fd(0, 3600000000)
+    '1:00:00'
+
+    >>> fd(0, 3601000000)
+    '1:00:01'
+
+    >>> fd(0, 3601000000.123)
+    '1:00:01'
+
+## Split lines
+
+    >>> from guild.util import split_lines
+
+    >>> split_lines("")
+    []
+
+    >>> split_lines("a")
+    ['a']
+
+    >>> split_lines("ab")
+    ['ab']
+
+    >>> split_lines("a\nb")
+    ['a', 'b']
+
+    >>> split_lines("\nab")
+    ['ab']
+
+    >>> split_lines("ab\n")
+    ['ab']
+
+    >>> split_lines("a\r\nb")
+    ['a', 'b']
+
+    >>> split_lines("\r\nab")
+    ['ab']
+
+    >>> split_lines("ab\r\n")
+    ['ab']
+
+    >>> split_lines("a\n\nb")
+    ['a', 'b']
+
+    >>> split_lines("\n\nab")
+    ['ab']
+
+    >>> split_lines("ab\n\n")
+    ['ab']

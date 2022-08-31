@@ -35,7 +35,7 @@ def NUMBER(s):
         try:
             return float(s)
         except ValueError as e:
-            raise ValueError("%s is not a valid number") from e
+            raise ValueError(f"{s!r} is not a valid number") from e
 
 
 class Args:
@@ -45,7 +45,7 @@ class Args:
             setattr(self, name, val)
 
     def __repr__(self):
-        return "<guild.click_util.Args %s>" % self.as_kw()
+        return f"<guild.click_util.Args {self.as_kw()}>"
 
     def as_kw(self):
         return {name: getattr(self, name) for name in self.__names}
@@ -97,7 +97,7 @@ class ClickBaseHelpFormatter(click.formatting.HelpFormatter):
         first_col = min(widths[0], col_max) + col_spacing
 
         for first, second in click.formatting.iter_rows(rows, len(widths)):
-            self.write("{:>{w}}{}".format("", first, w=self.current_indent))
+            self.write(f"{'':>{self.current_indent}}{first}")
             if not second:
                 self.write("\n")
                 continue
@@ -114,14 +114,10 @@ class ClickBaseHelpFormatter(click.formatting.HelpFormatter):
             lines = wrapped_text.splitlines()
 
             if lines:
-                self.write("{}\n".format(lines[0]))
+                self.write(f"{lines[0]}\n")
 
                 for line in lines[1:]:
-                    self.write(
-                        "{:>{w}}{}\n".format(
-                            "", line, w=first_col + self.current_indent
-                        )
-                    )
+                    self.write(f"{'':>{first_col + self.current_indent}}{line}\n")
 
                 if len(lines) > 1:
                     # separate long help from next option
@@ -258,7 +254,7 @@ def format_error_message(e):
     msg_parts = [_format_click_error_message(e)]
     ctx = getattr(e, "ctx", None)
     if ctx:
-        msg_parts.append("\nTry '%s' for more information." % cmd_help(e.ctx))
+        msg_parts.append(f"\nTry '{cmd_help(e.ctx)}' for more information.")
     return "".join(msg_parts)
 
 
@@ -273,15 +269,15 @@ def _format_click_error_message(e):
 
 
 def _format_missing_parameter_error(e):
-    return "missing argument for %s" % e.param.human_readable_name
+    return f"missing argument for {e.param.human_readable_name}"
 
 
 def _format_no_such_option_error(e):
     if e.possibilities:
-        more_help = " (did you mean %s?)" % e.possibilities[0]
+        more_help = f" (did you mean {e.possibilities[0]}?)"
     else:
         more_help = ""
-    return "unrecognized option '%s'%s" % (e.option_name, more_help)
+    return f"unrecognized option '{e.option_name}'{more_help}"
 
 
 def _format_usage_error(e):
@@ -302,10 +298,9 @@ def _format_usage_error(e):
 
 
 def cmd_help(ctx):
-    return "%s %s" % (
-        normalize_command_path(ctx.command_path),
-        ctx.help_option_names[0],
-    )
+    cmd_path = normalize_command_path(ctx.command_path)
+    cmd_name = ctx.help_option_names[0]
+    return f"{cmd_path} {cmd_name}"
 
 
 def normalize_command_path(cmd_path):
@@ -363,7 +358,7 @@ def _patched_is_incomplete_option(ctx, all_args, cmd_param):
 
     assert last_option[:1] == "-", last_option
     for i in range(len(last_option), 0, -1):
-        if "-%s" % last_option[i:] in cmd_param.opts:
+        if f"-{last_option[i:]}" in cmd_param.opts:
             return True
     return False
 

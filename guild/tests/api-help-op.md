@@ -3,7 +3,7 @@
 The `api help-op` command shows operation details as JSON.
 
     >>> run(f"guild api help-op -f train.py",
-    ...     cwd=example("get-started"))  # doctest: +REPORT_UDIFF
+    ...     cwd=sample("projects", "get-started"))  # doctest: +REPORT_UDIFF
     {
       "description": "",
       "flags": {
@@ -24,14 +24,14 @@ The `api help-op` command shows operation details as JSON.
       },
       "fullname": "train.py",
       "guildfile": {
-        "dir": .../examples/get-started",
+        "dir": .../samples/projects/get-started",
         "src": null
       },
       "name": "train.py",
       "opref": {
         "modelName": "",
         "opName": "train.py",
-        "pkgName": .../examples/get-started",
+        "pkgName": .../samples/projects/get-started",
         "pkgType": "script",
         "pkgVersion": ""
       }
@@ -39,7 +39,7 @@ The `api help-op` command shows operation details as JSON.
     <exit 0>
 
     >>> run(f"guild api help-op -f args.py",
-    ...     cwd=example("flags"))  # doctest: +REPORT_UDIFF
+    ...     cwd=sample("projects", "flags-3"))  # doctest: +REPORT_UDIFF
     {
       "description": "",
       "flags": {
@@ -85,14 +85,14 @@ The `api help-op` command shows operation details as JSON.
       },
       "fullname": "args.py",
       "guildfile": {
-        "dir": ".../examples/flags",
+        "dir": ".../samples/projects/flags-3",
         "src": null
       },
       "name": "args.py",
       "opref": {
         "modelName": "",
         "opName": "args.py",
-        "pkgName": .../examples/flags",
+        "pkgName": .../samples/projects/flags-3",
         "pkgType": "script",
         "pkgVersion": ""
       }
@@ -100,7 +100,7 @@ The `api help-op` command shows operation details as JSON.
     <exit 0>
 
     >>> run(f"guild api help-op -f args_click.py",
-    ...     cwd=example("flags"))  # doctest: +REPORT_UDIFF
+    ...     cwd=sample("projects", "flags-3"))  # doctest: +REPORT_UDIFF
     {
       "description": "",
       "flags": {
@@ -163,14 +163,14 @@ The `api help-op` command shows operation details as JSON.
       },
       "fullname": "args_click.py",
       "guildfile": {
-        "dir": .../examples/flags",
+        "dir": .../samples/projects/flags-3",
         "src": null
       },
       "name": "args_click.py",
       "opref": {
         "modelName": "",
         "opName": "args_click.py",
-        "pkgName": .../examples/flags",
+        "pkgName": .../samples/projects/flags-3",
         "pkgType": "script",
         "pkgVersion": ""
       }
@@ -178,7 +178,7 @@ The `api help-op` command shows operation details as JSON.
     <exit 0>
 
     >>> run(f"guild api help-op -f namespace",
-    ...     cwd=example("flags"))  # doctest: +REPORT_UDIFF
+    ...     cwd=sample("projects", "flags-3"))  # doctest: +REPORT_UDIFF
     {
       "description": "Use a SimpleNamespace for flag values",
       "flags": {
@@ -220,14 +220,14 @@ The `api help-op` command shows operation details as JSON.
       },
       "fullname": "namespace",
       "guildfile": {
-        "dir": .../examples/flags",
-        "src": .../examples/flags/guild.yml"
+        "dir": .../samples/projects/flags-3",
+        "src": .../samples/projects/flags-3/guild.yml"
       },
       "name": "namespace",
       "opref": {
         "modelName": "",
         "opName": "namespace",
-        "pkgName": .../examples/flags/guild.yml",
+        "pkgName": .../samples/projects/flags-3/guild.yml",
         "pkgType": "guildfile",
         "pkgVersion": "17a5b78d3584b2ab57d8e1fe742aa912"
       }

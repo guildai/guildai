@@ -150,8 +150,7 @@ def run(args):
 def _handle_run_failed(e, remote):
     run_id = os.path.basename(e.remote_run_dir)
     cli.out(
-        "Try 'guild runs info %s -O -r %s' to view its output."
-        % (run_id[:8], remote.name),
+        f"Try 'guild runs info {run_id[:8]} -O -r {remote.name}' to view its output.",
         err=True,
     )
     cli.error()
@@ -317,6 +316,7 @@ def _check_kw(args):
     ignore = [
         "all_tests",
         "check_url",
+        "force_uat",
         "no_info",
         "notify",
         "remote",
@@ -436,7 +436,7 @@ def _handle_not_supported(remote, e) -> typing.NoReturn:
     if e.args:
         msg = e.args[0]
     else:
-        msg = "remote '%s' does not support this operation" % remote.name
+        msg = f"remote '{remote.name}' does not support this operation"
     cli.error(msg)
 
 

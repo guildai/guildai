@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from six.moves import shlex_quote as q
+from shlex import quote as q
 
 
 class ParseError(Exception):
@@ -24,7 +24,7 @@ class Select:
         self.cols = cols
 
     def __repr__(self):
-        return "<guild.query.Select %s>" % [str(c) for c in self.cols]
+        return f"<guild.query.Select {[str(c) for c in self.cols]}>"
 
 
 class Col:
@@ -33,13 +33,13 @@ class Col:
 
     def __repr__(self):
         cls = self.__class__
-        return "<%s.%s %s>" % (cls.__module__, cls.__name__, self)
+        return f"<{cls.__module__}.{cls.__name__} {self}>"
 
     def __str__(self):
         raise NotImplementedError()
 
     def _as_suffix(self):
-        return " as %s" % q(self.named_as) if self.named_as else ""
+        return f" as {q(self.named_as)}" if self.named_as else ""
 
     @property
     def header(self):
@@ -53,9 +53,9 @@ class Scalar(Col):
         self.step = step
 
     def __str__(self):
-        qual = "%s " % self.qualifier if self.qualifier else ""
+        qual = f"{self.qualifier} " if self.qualifier else ""
         step = " step" if self.step else ""
-        return "scalar:%s%s%s%s" % (qual, self.key, step, self._as_suffix())
+        return f"scalar:{qual}{self.key}{step}{self._as_suffix()}"
 
     @property
     def header(self):
@@ -63,7 +63,7 @@ class Scalar(Col):
             return self.named_as
         key = self.key.replace("#", " ").strip()
         step = " step" if self.step else ""
-        return "%s%s" % (key, step)
+        return f"{key}{step}"
 
     def split_key(self):
         parts = self.key.split("#", 1)
@@ -77,7 +77,7 @@ class Attr(Col):
         self.name = name
 
     def __str__(self):
-        return "attr:%s%s" % (self.name, self._as_suffix())
+        return f"attr:{self.name}{self._as_suffix()}"
 
     @property
     def header(self):
@@ -89,7 +89,7 @@ class Flag(Col):
         self.name = name
 
     def __str__(self):
-        return "flag:%s%s" % (self.name, self._as_suffix())
+        return f"flag:{self.name}{self._as_suffix()}"
 
     @property
     def header(self):
@@ -104,4 +104,5 @@ def parse(s):
 
 
 def parse_colspec(colspec):
-    return parse("select %s" % colspec)
+    assert isinstance(colspec, str), colspec
+    return parse(f"select {colspec}")

@@ -51,8 +51,7 @@ def runs(ctx, **kw):
     else:
         if _params_specified(kw):
             cli.error(
-                "options cannot be listed before command ('%s')"
-                % ctx.invoked_subcommand
+                f"options cannot be listed before command ('{ctx.invoked_subcommand}')"
             )
 
 

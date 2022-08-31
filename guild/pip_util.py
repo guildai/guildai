@@ -42,8 +42,6 @@ def install(
     args = [sys.executable, "-m", "pip", "install"]
     if pre_releases:
         args.append("--pre")
-    if not running_under_virtualenv() and not target:
-        args.append("--user")
     if upgrade:
         args.append("--upgrade")
     if no_cache:
@@ -259,7 +257,7 @@ def _distutils_scheme(
     # NOTE: setting user or home has the side-effect of creating the home dir
     # or user base for installations during finalize_options()
     # ideally, we'd prefer a scheme class that has no side-effects.
-    assert not (user and prefix), "user={} prefix={}".format(user, prefix)
+    assert not (user and prefix), f"user={user} prefix={prefix}"
     i.user = user or i.user
     if user:
         i.prefix = ""

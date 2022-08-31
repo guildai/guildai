@@ -15,8 +15,6 @@
 import logging
 import os
 
-import six
-
 from guild import guildfile
 from guild import op_util
 from guild import plugin as pluginlib
@@ -29,7 +27,7 @@ log = logging.getLogger("guild")
 class _ConfigNotSupported(Exception):
     def __str__(self):
         assert len(self.args) == 1
-        return "config type for %s not supported" % self.args[0]
+        return f"config type for {self.args[0]} not supported"
 
 
 class ConfigFlagsPlugin(pluginlib.Plugin):
@@ -119,7 +117,7 @@ def _load_flags_cfg(src):
     for section in config.sections():
         for name in config.options(section):
             val = _read_typed_cfg(config, section, name)
-            data["%s.%s" % (section, name)] = val
+            data[f"{section}.{name}"] = val
     return data
 
 
@@ -137,7 +135,7 @@ def _read_typed_cfg(cfg, section, name):
 
 
 def _is_legal_flag_val(val):
-    return val is None or isinstance(val, (six.string_types, int, float, bool, list))
+    return val is None or isinstance(val, (str, int, float, bool, list))
 
 
 def _ensure_config_dep(config_src, opdef):
@@ -150,7 +148,7 @@ def _ensure_config_dep(config_src, opdef):
 
 
 def _find_config_res_source(opdef, config_src):
-    config_source_uri = "config:%s" % config_src
+    config_source_uri = f"config:{config_src}"
     for resdef in op_util.iter_opdef_resources(opdef):
         for source in resdef.sources:
             if source.uri == config_source_uri:

@@ -26,8 +26,6 @@ import sys
 import token
 import tokenize
 
-import six
-
 from guild import op_util
 from guild import run as runlib
 from guild import util
@@ -168,9 +166,9 @@ def _find_notebook(notebook):
         if os.path.exists(maybe_notebook):
             return maybe_notebook
     log.error(
-        "cannot find notebook '%s' - make sure it's copied as source code\n"
+        f"cannot find notebook '{notebook}' - make sure it's copied as source code\n"
         "Use 'guild run <operation> --test-sourcecode to troubleshoot source code "
-        "configuration issues" % notebook
+        "configuration issues"
     )
     sys.exit(1)
 
@@ -217,7 +215,7 @@ def _iter_flag_replace_config(flags, flags_extra):
 
 
 def _coerce_repl_config_to_list(config):
-    if isinstance(config, six.string_types):
+    if isinstance(config, str):
         return [config]
     if isinstance(config, list):
         return config
@@ -317,7 +315,7 @@ def _tokenize_source_with_nl(source):
 
 
 def _tokenize_source(source):
-    return list(tokenize.generate_tokens(io.StringIO(six.text_type(source)).readline))
+    return list(tokenize.generate_tokens(io.StringIO(str(source)).readline))
 
 
 class _ReplaceAssignsState:
@@ -464,7 +462,7 @@ def _handle_replacement_value_for_replace_assigns(val, replaced_tokens, state):
 
 
 def _val_tokens(val):
-    val_repr = six.text_type(repr(val))
+    val_repr = str(repr(val))
     gen_tokens = tokenize.generate_tokens(io.StringIO(val_repr).readline)
     return _maybe_strip_newline(_strip_endmarker(gen_tokens))
 
@@ -538,7 +536,7 @@ def _iter_notebook_output(notebook):
                 for part in output.get("text", []):
                     yield stream, part
             elif output_type == "execute_result":
-                yield sys.stdout, "Out[%s]: " % cell_execution_count
+                yield sys.stdout, f"Out[{cell_execution_count}]: "
                 data = output.get("data", {})
                 for part in data.get("text/plain", []):
                     yield sys.stdout, part
@@ -582,11 +580,7 @@ def _iter_notebook_images(notebook):
                     e,
                 )
             else:
-                filename = "%s_%s_%i.png" % (
-                    notebook_base,
-                    cell_execution_count,
-                    output_pos,
-                )
+                filename = f"{notebook_base}_{cell_execution_count}_{output_pos}.png"
                 yield filename, img_bytes
             output_pos += 1
 
@@ -594,7 +588,9 @@ def _iter_notebook_images(notebook):
 def _nbconvert_html(notebook, args):
     notebook_relpath = _relpath(notebook)
     cmd = [
-        "jupyter-nbconvert",
+        sys.executable,
+        "-m",
+        "nbconvert",
         "-y",
         "--log-level",
         "WARN",
@@ -605,9 +601,8 @@ def _nbconvert_html(notebook, args):
         cmd.append("--no-input")
     cmd.append(notebook_relpath)
     log.debug("jupyter-nbconvert cmd: %s", cmd)
-    log.info(
-        "Saving HTML%s" % (" (omitting input cells)" if args.html_no_input else "")
-    )
+    omitting_desc = " (omitting input cells)" if args.html_no_input else ""
+    log.info(f"Saving HTML{omitting_desc}")
     returncode = subprocess.call(cmd)
     if returncode != 0:
         sys.exit(returncode)

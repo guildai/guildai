@@ -17,7 +17,6 @@ import logging
 import os
 import shutil
 
-import six
 import yaml
 
 from guild import flag_util
@@ -365,7 +364,7 @@ def _default_format_dir(dir, _cwd):
 def format_attr(val):
     if val is None:
         return ""
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return val
     if isinstance(val, (bool, int, float)):
         return flag_util.encode_flag_val(val)

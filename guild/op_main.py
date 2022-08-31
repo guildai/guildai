@@ -76,10 +76,10 @@ def _profile_main():
     finally:
         p.disable()
         _fd, tmp = tempfile.mkstemp(prefix="guild-op-profile-")
-        sys.stderr.write("Writing guild.op_main profile stats to %s\n" % tmp)
+        sys.stderr.write(f"Writing guild.op_main profile stats to {tmp}\n")
         p.dump_stats(tmp)
         sys.stderr.write(
-            "Use 'python -m pstats %s' or 'snakeviz %s' to view stats\n" % (tmp, tmp)
+            f"Use 'python -m pstats {tmp}' or 'snakeviz {tmp}' to view stats\n"
         )
 
 
@@ -202,11 +202,11 @@ def _find_module(module):
                 path = _find_package_main(path)
                 if path is None:
                     raise ImportError(
-                        "No module named %s.__main__ ('%s' is a package "
-                        "and cannot be directly executed)" % (module, module)
+                        f"No module named {module}.__main__ ('{module}' is "
+                        "a package and cannot be directly executed)"
                     )
             return ModuleInfo(path, package)
-    raise ImportError("No module named %s" % module)
+    raise ImportError(f"No module named {module}")
 
 
 def _find_package_main(mod_path):
@@ -374,7 +374,7 @@ def _pdb_commands(module_info):
 
 def _pdb_break_cmd(location):
     # Include \n as Python 2.7 assumes line ending
-    return "break %s\n" % location
+    return f"break {location}\n"
 
 
 def _pdb_continue_cmd():
@@ -405,9 +405,9 @@ def _module_break(path, want_line, main_mod=None):
         if want_line > 1:
             # Try first available breakpoint
             return _module_break(path, 1)
-        return "%s:%i" % (path, want_line)
+        return f"{path}:{want_line}"
     else:
-        return "%s:%i" % (path, next_line)
+        return f"{path}:{next_line}"
 
 
 def _resolve_path_for_break(path, main_mod):
@@ -428,17 +428,17 @@ def _module_name_for_info(module_info):
     otherwise returns `__main__`.
     """
     if module_info.package:
-        return "%s.__main__" % module_info.package
+        return f"{module_info.package}.__main__"
     return "__main__"
 
 
 def _internal_error(msg):
-    sys.stderr.write("guild.op_main: %s\n" % msg)
+    sys.stderr.write(f"guild.op_main: {msg}\n")
     sys.exit(exit_code.INTERNAL_ERROR)
 
 
 def _error(msg):
-    sys.stderr.write("guild: %s\n" % msg)
+    sys.stderr.write(f"guild: {msg}\n")
     sys.exit(exit_code.DEFAULT_ERROR)
 
 

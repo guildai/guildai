@@ -22,8 +22,6 @@ import sys
 import threading
 import warnings
 
-import six
-
 from guild import batch_util
 from guild import click_util
 from guild import config
@@ -39,13 +37,6 @@ from guild import util
 from guild import var
 
 from guild.commands import runs_impl
-
-# ipy makes use of the full Guild API and so, like main_bootstrap,
-# requires the external modules.
-
-from guild import main_bootstrap
-
-main_bootstrap.ensure_external_path()
 
 
 with warnings.catch_warnings():
@@ -157,7 +148,7 @@ class RunIndex:
 
     @staticmethod
     def _x_id(x):
-        if isinstance(x, six.string_types):
+        if isinstance(x, str):
             return x
         if isinstance(x, RunIndex):
             return x.value.id

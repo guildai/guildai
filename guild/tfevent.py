@@ -145,7 +145,7 @@ def _event_files_digest(dir):
     event_files = sorted(glob.glob(os.path.join(dir, "*.tfevents.*")))
     to_hash = "\n".join(
         [
-            "{}\n{}".format(filename, os.path.getsize(filename))
+            f"{filename}\n{os.path.getsize(filename)}"
             for filename in event_files
             if os.path.isfile(filename)
         ]

@@ -47,6 +47,10 @@ commands and helpfulness to the user for operations on missing models.
 - [guild-example-bash](guild-example-bash.md)
 - [guild-example-flags](guild-example-flags.md)
 
+Validate example schema:
+
+- [guild-examples-validate-schema](guild-examples-validate-schema.md)
+
 ## Training Guild package models
 
 *Installing and training a model from a Guild package.*

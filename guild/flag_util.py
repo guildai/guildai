@@ -16,7 +16,6 @@ import logging
 import os
 import re
 
-import six
 import yaml
 
 from guild import util
@@ -51,12 +50,12 @@ def encode_flag_val(val):
 
 def _encode_list(val_list):
     joined = ", ".join([_encode_list_item(val) for val in val_list])
-    return "[%s]" % joined
+    return f"[{joined}]"
 
 
 def _encode_list_item(val):
     encoded = encode_flag_val(val)
-    if isinstance(val, six.string_types) and "," in encoded:
+    if isinstance(val, str) and "," in encoded:
         return repr(encoded)
     return encoded
 
@@ -65,7 +64,8 @@ def _encode_dict(d):
     encoded_kv = [
         (encode_flag_val(k), encode_flag_val(v)) for k, v in sorted(d.items())
     ]
-    return "{%s}" % ", ".join(["%s: %s" % kv for kv in encoded_kv])
+    dict_body = ", ".join([f"{key}: {val}" for key, val in encoded_kv])
+    return f"{{{dict_body}}}"
 
 
 def decode_flag_val(s, flag_type=None):
@@ -118,7 +118,7 @@ def _string_type(s):
     # YAML.
     if s[:1] in ("[", "'", "\"", "{"):
         raise ValueError()
-    return six.text_type(s)
+    return str(s)
 
 
 def _boolean_type(s):
@@ -181,7 +181,7 @@ def _is_sequence_flag_function(name):
 
 
 def _expand_sequence(name, args):
-    f = globals().get("_expand_%s" % name)
+    f = globals().get(f"_expand_{name}")
     assert f, name
     return f(*args)
 
@@ -207,13 +207,13 @@ def _expand_range_args(start=None, end=None, step=1, *rest):
 def _assert_required_function_args(*args):
     for arg in args:
         if arg is None:
-            raise TypeError("function requires at least %i arg(s)" % len(args))
+            raise TypeError(f"function requires at least {len(args)} arg(s)")
 
 
 def _assert_numeric_function_args(*args):
     for arg in args:
         if not isinstance(arg, (int, float)):
-            raise TypeError("invalid arg %r: expected a number" % arg)
+            raise TypeError(f"invalid arg {arg!r}: expected a number")
 
 
 def _np_seq_val(x):
@@ -309,7 +309,7 @@ def _contains_non_numeric_chars(s):
 
 
 def decode_flag_function(s):
-    if not isinstance(s, six.string_types):
+    if not isinstance(s, str):
         raise ValueError("requires string")
     name, args_raw = _split_flag_function(s)
     args_encoded = args_raw.split(FUNCTION_ARG_DELIM) if args_raw else []
@@ -371,7 +371,8 @@ def flag_assigns(flags, truncate_floats=False, shorten_paths=False):
 
 
 def flag_assign(name, val, truncate_floats=False, shorten_paths=False):
-    return "%s=%s" % (name, format_flag(val, truncate_floats, shorten_paths))
+    formatted_val = format_flag(val, truncate_floats, shorten_paths)
+    return f"{name}={formatted_val}"
 
 
 def format_flag(val, truncate_floats=False, shorten_paths=False):
@@ -390,15 +391,13 @@ def _trunc_len(truncate_floats):
         return DEFAULT_FLOAT_TRUNC_LEN
     if not isinstance(truncate_floats, int):
         raise ValueError(
-            "invalid value for truncate_floats: %r (expected int)" % truncate_floats
+            f"invalid value for truncate_floats: {truncate_floats!r} (expected int)"
         )
     return truncate_floats
 
 
 def _is_path(val):
-    return (
-        isinstance(val, six.string_types) and os.path.sep in val and os.path.exists(val)
-    )
+    return isinstance(val, str) and os.path.sep in val and os.path.exists(val)
 
 
 def _path_len(shorten_paths):
@@ -406,7 +405,7 @@ def _path_len(shorten_paths):
         return DEFAULT_SHORTENED_PATH_LEN
     if not isinstance(shorten_paths, int):
         raise ValueError(
-            "invalid value for shorten_paths: %r (expected int)" % shorten_paths
+            f"invalid value for shorten_paths: {shorten_paths!r} (expected int)"
         )
     return shorten_paths
 
@@ -418,11 +417,7 @@ def _quote_encoded(encoded, val):
 
 
 def _needs_quote(encoded, val):
-    return (
-        isinstance(val, six.string_types)
-        and encoded[0] not in ("'", "\"")
-        and " " in encoded
-    )
+    return isinstance(val, str) and encoded[0] not in ("'", "\"") and " " in encoded
 
 
 def _quote(s):
@@ -456,6 +451,6 @@ def join_splittable_flag_vals(vals, split_spec=None):
     encoded_vals = [encode_flag_val(val) for val in vals]
     if split_spec in (None, True, "shlex"):
         return " ".join([util.shlex_quote(x) for x in encoded_vals])
-    if isinstance(split_spec, six.string_types):
+    if isinstance(split_spec, str):
         return split_spec.join(encoded_vals)
-    raise ValueError("split_spec must be None, True, or a string: %r" % split_spec)
+    raise ValueError(f"split_spec must be None, True, or a string: {split_spec!r}")

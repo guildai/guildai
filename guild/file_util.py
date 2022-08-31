@@ -20,8 +20,6 @@ import os
 import re
 import shutil
 
-import six
-
 from guild import util
 
 log = logging.getLogger("guild")
@@ -114,7 +112,7 @@ class FileSelectRule:
         max_matches=None,
     ):
         self.result = result
-        if isinstance(patterns, six.string_types):
+        if isinstance(patterns, str):
             patterns = [patterns]
         if not regex:
             patterns = _native_paths(patterns)
@@ -284,9 +282,11 @@ class FileCopyHandler:
     def ignore(self, _path, _rule_results):
         pass
 
-    @staticmethod
-    def handle_copy_error(_e, _src, _dest):
+    def handle_copy_error(self, _e, _src, _dest):
         return False
+
+    def close(self):
+        pass
 
 
 def copytree(dest, select, root_start=None, followlinks=True, handler_cls=None):
@@ -314,6 +314,13 @@ def copytree(dest, select, root_start=None, followlinks=True, handler_cls=None):
     src = _copytree_src(root_start, select)
     # Instantiate handler as part of the copytree contract.
     handler = (handler_cls or FileCopyHandler)(src, dest, select)
+    try:
+        _copytree_impl(src, select, followlinks, handler)
+    finally:
+        handler.close()
+
+
+def _copytree_impl(src, select, followlinks, copy_handler):
     if select.disabled:
         return
     for root, dirs, files in os.walk(src, followlinks=followlinks):
@@ -322,14 +329,14 @@ def copytree(dest, select, root_start=None, followlinks=True, handler_cls=None):
         pruned = select.prune_dirs(src, relroot, dirs)
         for name in pruned:
             relpath = os.path.join(relroot, name)
-            handler.ignore(relpath, [])
+            copy_handler.ignore(relpath, [])
         for name in sorted(files):
             relpath = os.path.join(relroot, name)
             selected, results = select.select_file(src, relpath)
             if selected:
-                handler.copy(relpath, results)
+                copy_handler.copy(relpath, results)
             else:
-                handler.ignore(relpath, results)
+                copy_handler.ignore(relpath, results)
 
 
 def _copytree_src(root_start, select):

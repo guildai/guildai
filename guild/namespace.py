@@ -46,7 +46,7 @@ class Namespace:
         self.name = ep.name
 
     def __repr__(self):
-        return "<guild.namespace.Namespace '%s'>" % self.name
+        return f"<guild.namespace.Namespace '{self.name}'>"
 
     def project_name_membership(self, _project_name):
         """Returns a Membership value for a project name.
@@ -98,9 +98,7 @@ class PrefixNamespace(Namespace):
 
     def package_name(self, project_name):
         if not project_name.startswith(self.prefix):
-            raise TypeError(
-                "%s is not a member of %s namespace" % (project_name, self.name)
-            )
+            raise TypeError(f"{project_name} is not a member of {self.name} namespace")
         return project_name[len(self.prefix) :]
 
 

@@ -69,8 +69,8 @@ def _check_activity(last_activity, log):
 
 def _format_duration(seconds):
     if seconds < 60:
-        return "%i second(s)" % seconds
-    return "%i minute(s)" % (seconds // 60)
+        return f"{seconds} second(s)"
+    return f"{seconds // 60} minute(s)"
 
 
 def _log_function(log, now, pids):
@@ -114,7 +114,7 @@ def _now():
 
 def _shutdown(args, log):
     log.info("RUN ACTIVITY TIMEOUT - SHUTTING DOWN SYSTEM")
-    cmd = ["shutdown", "+%s" % args.grace_period]
+    cmd = ["shutdown", f"+{args.grace_period}"]
     if args.su:
         cmd.insert(0, "sudo")
     log.debug("shutdown cmd: %r", cmd)

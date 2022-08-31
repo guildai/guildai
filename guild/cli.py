@@ -20,7 +20,6 @@ import shutil
 import typing
 
 import click
-import six
 
 from guild import ansi_util  # lightweight
 from guild import config  # lightweight
@@ -101,7 +100,7 @@ def table(
     err=False,
     max_width_adj=0,
     file=None,
-    **style_kw
+    **style_kw,
 ):
     data = sorted(data, key=_table_row_sort_key(sort))
     formatted = _format_table_data(data, cols + (detail or []))
@@ -166,9 +165,9 @@ def _coerce_cmp_val(x, y):
         return x
     if isinstance(x, (int, float)) and isinstance(y, (int, float)):
         return x
-    if isinstance(x, six.string_types):
+    if isinstance(x, str):
         return x
-    if isinstance(y, six.string_types):
+    if isinstance(y, str):
         return ""
     return str(x)
 
@@ -180,7 +179,7 @@ def _format_table_data(data, cols):
 def _format_table_val(val):
     if val is None:
         return ""
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return val
     return str(val)
 
@@ -238,7 +237,7 @@ def _table_item_out(
             click.echo(indent_padding, file=file, nl=False, err=err)
             formatted = _format_detail_val(formatted_item[key], indent, terminal_width)
             click.echo(
-                style("  %s:%s" % (key, formatted), **style_kw),
+                style(f"  {key}:{formatted}", **style_kw),
                 file=file,
                 err=err,
             )
@@ -253,7 +252,7 @@ def _format_detail_val(val, indent, terminal_width):
                 [click.wrap_text(x, val_width, val_indent, val_indent) for x in val]
             )
         return " -"
-    return " %s" % val
+    return f" {val}"
 
 
 def _pad_col_val(val, col, col_info):
@@ -264,7 +263,8 @@ def confirm(prompt, default=False, wrap=False):
     if wrap:
         prompt = wrap(prompt)
     click.echo(prompt, nl=False, err=True)
-    click.echo(" %s " % ("(Y/n)" if default else "(y/N)"), nl=False, err=True)
+    yes_no_opts = "(Y/n)" if default else "(y/N)"
+    click.echo(f" {yes_no_opts} ", nl=False, err=True)
     c = input()
     yes_vals = ["y", "yes"]
     if default:

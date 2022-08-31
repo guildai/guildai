@@ -1,0 +1,29 @@
+hello:
+  description: Say hello to my friends
+  main: say
+  default: yes
+  flags-import:
+    - msg
+
+hello-file:
+  description: Show a message from a file
+  main: cat
+  flags:
+    file:
+      default: hello.txt
+  requires:
+    - file: ${file}
+      name: file
+
+hello-op:
+  description:
+    Show a message from a hello-file operation
+
+    Relies on the output interface from `hello-file`, which is to
+    write the message to `msg.out`.
+
+  main: cat
+  requires:
+    - operation: hello-file
+      select: msg.out
+      name: op

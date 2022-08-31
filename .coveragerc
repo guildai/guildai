@@ -1,6 +1,6 @@
 [run]
+
 source=guild
 parallel=True
 omit =
     guild/tests/*
-    guild/external/*

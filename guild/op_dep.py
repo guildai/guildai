@@ -26,9 +26,9 @@ log = logging.getLogger("guild")
 
 RES_TERM = r"[a-zA-Z0-9_\-\.]+"
 
-MODEL_RES_P = re.compile(r"(%s)$" % RES_TERM)
-GUILDFILE_RES_P = re.compile(r"(%s):(%s)$" % (RES_TERM, RES_TERM))
-PACKAGE_RES_P = re.compile(r"(%s)/(%s)$" % (RES_TERM, RES_TERM))
+MODEL_RES_P = re.compile(rf"({RES_TERM})$")
+GUILDFILE_RES_P = re.compile(rf"({RES_TERM}):({RES_TERM})$")
+PACKAGE_RES_P = re.compile(rf"({RES_TERM})/({RES_TERM})$")
 
 DEFAULT_TARGET_TYPE = "copy"
 
@@ -112,8 +112,8 @@ def _modeldef_resource(modeldef, res_name, opdef):
     resdef = modeldef.get_resource(res_name)
     if resdef is None:
         raise OpDependencyError(
-            "resource '%s' required by operation '%s' is not defined"
-            % (res_name, opdef.fullname)
+            f"resource '{res_name}' required by operation "
+            f"'{opdef.fullname}' is not defined"
         )
     return resdef, modeldef.guildfile.dir
 
@@ -126,8 +126,8 @@ def _guildfile_resource(spec, depdef):
     modeldef = depdef.opdef.guildfile.models.get(model_name)
     if modeldef is None:
         raise OpDependencyError(
-            "model '%s' in resource '%s' required by operation "
-            "'%s' is not defined" % (model_name, spec, depdef.opdef.fullname)
+            f"model '{model_name}' in resource '{spec}' required by operation "
+            f"'{depdef.opdef.fullname}' is not defined"
         )
     res_name = m.group(2)
     return _modeldef_resource(modeldef, res_name, depdef.opdef)
@@ -142,8 +142,8 @@ def _package_resource(spec, depdef):
     res = _find_package_resource(pkg_name, res_name)
     if not res:
         raise OpDependencyError(
-            "resource '%s' required by operation '%s' is not installed"
-            % (spec, depdef.opdef.fullname)
+            f"resource '{spec}' required by operation "
+            f"'{depdef.opdef.fullname}' is not installed"
         )
     return res.resdef, _package_res_location(res)
 
@@ -169,7 +169,7 @@ def _package_res_location(res):
 
 def _invalid_dependency_error(spec, depdef):
     raise OpDependencyError(
-        "invalid dependency '%s' in operation '%s'" % (spec, depdef.opdef.fullname)
+        f"invalid dependency '{spec}' in operation '{depdef.opdef.fullname}'"
     )
 
 
@@ -184,8 +184,7 @@ def _resolve_dep_attr_refs(attr_val, flag_vals, resdef):
         return util.resolve_refs(attr_val, flag_vals)
     except util.UndefinedReferenceError as e:
         raise OpDependencyError(
-            "invalid flag reference '%s' in dependency '%s'"
-            % (resdef.name, e.reference)
+            f"invalid flag reference '{resdef.name}' in dependency '{e.reference}'"
         ) from e
 
 
@@ -211,7 +210,7 @@ def dep_for_path(path, resource_name=None):
         "sources": [{"file": path}],
         "target-type": "link",
     }
-    resource_name = resource_name or "file:%s" % path
+    resource_name = resource_name or f"file:{path}"
     resdef = resourcedef.ResourceDef(resource_name, res_data)
     return OpDependency(resdef, res_location=".", config=None)
 
@@ -272,7 +271,7 @@ def _resolve_source_for_location(source, dep, location, resolve_context):
     resolver = resolverlib.for_resdef_source(source, res_proxy)
     if not resolver:
         raise OpDependencyError(
-            "unsupported source '%s' in %s resource" % (source, dep.resdef.name)
+            f"unsupported source '{source}' in {dep.resdef.name} resource"
         )
     return resolver.resolve(resolve_context)
 
@@ -298,9 +297,9 @@ class ResourceProxy:
 
 
 def _source_resolution_error(source, dep, e) -> typing.NoReturn:
-    msg = "could not resolve '%s' in %s resource: %s" % (source, dep.resdef.name, e)
+    msg = f"could not resolve '{source}' in {dep.resdef.name} resource: {e}"
     if source.help:
-        msg += "\n%s" % cli.style(source.help, fg="yellow")
+        msg += "\n" + cli.style(source.help, fg="yellow")
     raise OpDependencyError(msg)
 
 
@@ -309,8 +308,7 @@ def _unknown_source_resolution_error(source, dep, e):
         "resolving required source '%s' in %s resource", source, dep.resdef.name
     )
     raise OpDependencyError(
-        "unexpected error resolving '%s' in %s resource: %r"
-        % (source, dep.resdef.name, e)
+        f"unexpected error resolving '{source}' in {dep.resdef.name} resource: {e!r}"
     )
 
 
@@ -355,10 +353,10 @@ def _resolve_source_for_path(source_path, source_origin, source, target_dir):
 
 def _target_type_for_source(source):
     if source.target_type:
-        return _validate_target_type(source.target_type, "source %s" % source.name)
+        return _validate_target_type(source.target_type, f"source {source.name}")
     if source.resdef.target_type:
         return _validate_target_type(
-            source.resdef.target_type, "resource %s" % source.resdef.name
+            source.resdef.target_type, f"resource {source.resdef.name}"
         )
     return DEFAULT_TARGET_TYPE
 
@@ -367,7 +365,7 @@ def _validate_target_type(val, desc):
     if val in ("link", "copy"):
         return val
     raise OpDependencyError(
-        "unsupported target-type '%s' in %s (expected 'link' or 'copy')" % (val, desc)
+        f"unsupported target-type '{val}' in {desc} (expected 'link' or 'copy')"
     )
 
 
@@ -380,8 +378,8 @@ def _target_path_for_source(source_path, source_origin, source, target_dir):
     target_path = _source_target_path(source, source_path, source_origin)
     if os.path.isabs(target_path):
         raise OpDependencyError(
-            "invalid path '%s' in %s resource (path must be relative)"
-            % (target_path, source.resdef.name)
+            f"invalid path '{target_path}' in {source.resdef.name} resource "
+            "(path must be relative)"
         )
     basename = os.path.basename(source_path)
     if source.rename:
@@ -428,7 +426,7 @@ def _source_rel_path(source, link):
 
 
 def _handle_source_link_error(e):
-    raise OpDependencyError("unable to link to dependency source: %s" % e)
+    raise OpDependencyError(f"unable to link to dependency source: {e}")
 
 
 def _rename_source(name, rename):
@@ -437,8 +435,7 @@ def _rename_source(name, rename):
             renamed = re.sub(spec.pattern, spec.repl, name, count=1)
         except Exception as e:
             raise OpDependencyError(
-                "error renaming source %s (%r %r): %s"
-                % (name, spec.pattern, spec.repl, e)
+                f"error renaming source {name} ({spec.pattern!r} {spec.repl!r}): {e}"
             ) from e
         else:
             if renamed != name:

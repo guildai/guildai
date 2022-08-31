@@ -22,7 +22,6 @@ import shutil
 import stat
 
 import jinja2
-import six
 import yaml
 
 from guild import guildfile
@@ -68,14 +67,14 @@ class GenerateError(PublishError):
         self._template = template
 
     def __str__(self):
-        return "%s: %s" % (_format_template_files(self._template), self._e.message)
+        return f"{_format_template_files(self._template)}: {self._e.message}"
 
 
 def _format_template_files(t):
     if len(t.files) == 1:
         basename = t.files[0]
     else:
-        basename = "{%s}" % ",".join(sorted(t.files))
+        basename = f"{{{','.join(sorted(t.files))}}}"
     return os.path.join(t.path, basename)
 
 
@@ -119,7 +118,7 @@ class RunFilters:
             raise TemplateError(
                 "runfile_link cannot be used in this context (not publishing a run"
             )
-        if not isinstance(path, six.string_types):
+        if not isinstance(path, str):
             return ""
         maybe_runfile = os.path.join(self.run_dest, "runfiles", path)
         if os.path.isfile(maybe_runfile):
@@ -128,7 +127,7 @@ class RunFilters:
 
     @staticmethod
     def utc_date(val, unit="s"):
-        if not isinstance(val, (int, float) + six.string_types):
+        if not isinstance(val, (int, float, str)):
             return ""
         try:
             val = int(val)
@@ -142,12 +141,12 @@ class RunFilters:
             elif unit == "us":
                 ts = val
             else:
-                raise ValueError("unsupported unit %r (expected s, ms, or us)" % unit)
+                raise ValueError(f"unsupported unit {unit!r} (expected s, ms, or us)")
             return util.utcformat_timestamp(ts)
 
     @staticmethod
     def file_size(val):
-        if not isinstance(val, (int, float) + six.string_types):
+        if not isinstance(val, (int, float, str)):
             return ""
         try:
             bytes = int(val)
@@ -173,7 +172,7 @@ class RunFilters:
 
     @staticmethod
     def short_id(id):
-        if not isinstance(id, six.string_types):
+        if not isinstance(id, str):
             return ""
         return id[:8]
 
@@ -187,7 +186,7 @@ class RunFilters:
 class Template:
     def __init__(self, path, run_dest=None, filters=None):
         if not os.path.exists(path):
-            raise RuntimeError("invalid template source: %s" % path)
+            raise RuntimeError(f"invalid template source: {path}")
         self.path = path
         self._file_templates = sorted(_init_file_templates(path, run_dest, filters))
 
@@ -226,7 +225,7 @@ def _init_file_template(path, run_dest=None, filters=None):
     a template.
     """
     if not os.path.exists(path):
-        raise TemplateError("%s does not exist" % path)
+        raise TemplateError(f"{path} does not exist")
     if not util.is_text_file(path):
         return None
     dirname, basename = os.path.split(path)
@@ -376,7 +375,7 @@ def _project_template(name, opdef):
 
 
 def _cannot_find_template_error(name):
-    raise PublishError("cannot find template %s" % name)
+    raise PublishError(f"cannot find template {name}")
 
 
 def _published_run_dest(dest_home, run):
@@ -428,16 +427,16 @@ def _publish_run_info(state):
     started = run.get("started")
     stopped = run.get("stopped")
     with codecs.open(path, "w", "utf-8") as f:
-        f.write("id: %s\n" % run.id)
-        f.write("operation: %s\n" % encode(frun["operation"]))
-        f.write("status: %s\n" % encode(frun["status"]))
-        f.write("started: %s\n" % fmt_ts(started))
-        f.write("stopped: %s\n" % fmt_ts(stopped))
-        f.write("time: %s\n" % _format_time(started, stopped))
-        f.write("marked: %s\n" % encode(frun["marked"]))
-        f.write("label: %s\n" % encode(run.get("label")))
-        f.write("command: %s\n" % encode(frun["command"]))
-        f.write("exit_status: %s\n" % encode(frun["exit_status"]))
+        f.write(f"id: {run.id}\n")
+        f.write(f"operation: {encode(frun['operation'])}\n")
+        f.write(f"status: {encode(frun['status'])}\n")
+        f.write(f"started: {fmt_ts(started)}\n")
+        f.write(f"stopped: {fmt_ts(stopped)}\n")
+        f.write(f"time: {_format_time(started, stopped)}\n")
+        f.write(f"marked: {encode(frun['marked'])}\n")
+        f.write(f"label: {encode(run.get('label'))}\n")
+        f.write(f"command: {encode(frun['command'])}\n")
+        f.write(f"exit_status: {encode(frun['exit_status'])}\n")
 
 
 def _format_time(started, stopped):
@@ -723,7 +722,7 @@ def _generate_template(state):
     except jinja2.TemplateRuntimeError as e:
         raise GenerateError(e, template) from e
     except jinja2.exceptions.TemplateNotFound as e:
-        e.message = "template not found: %s" % e.message
+        e.message = f"template not found: {e.message}"
         raise GenerateError(e, template) from e
 
 

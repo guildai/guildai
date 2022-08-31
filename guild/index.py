@@ -24,7 +24,7 @@ from guild import var
 log = logging.getLogger("guild")
 
 VERSION = 1
-DB_NAME = "index_v%i.db" % VERSION
+DB_NAME = f"index_v{VERSION}.db"
 
 
 class AttrReader:
@@ -227,7 +227,7 @@ class ScalarReader:
               WHERE run = ? AND prefix LIKE ? AND tag = ?
               ORDER BY prefix, tag
             """,
-                (run.id, "%s%%" % prefix, tag),
+                (run.id, f"{prefix}%", tag),
             )
         row = cur.fetchone()
         if not row:
@@ -239,7 +239,7 @@ class ScalarReader:
             return self._col_index_map[(qual or "last", step)]
         except KeyError as e:
             raise ValueError(
-                "unsupported scalar type qual=%r step=%s" % (qual, step)
+                f"unsupported scalar type qual={qual!r} step={step}"
             ) from e
 
     def iter_scalars(self, run):

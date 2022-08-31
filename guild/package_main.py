@@ -24,7 +24,6 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore", UserWarning)
     import setuptools
 
-import six
 import yaml
 
 from guild import file_util
@@ -49,7 +48,7 @@ class Pkg:
         try:
             return self.data[attr]
         except KeyError:
-            _exit("%s is missing required '%s' attribute" % (self.src, attr))
+            _exit(f"{self.src} is missing required '{attr}' attribute")
 
     def get(self, attr, default=None):
         return self.data.get(attr, default)
@@ -67,7 +66,7 @@ def _load_pkgdef():
     try:
         gf = guildfile.for_file(path)
     except (IOError, guildfile.GuildfileError) as e:
-        _exit("error reading %s\n%s" % (path, e))
+        _exit(f"error reading {path}\n{e}")
     else:
         if not gf.package:
             return _default_pkgdef(gf)
@@ -88,7 +87,7 @@ def _default_package_name(gf):
 
 
 def _anonymous_package_name(gf):
-    name = "gpkg.anonymous_%s" % _gf_digest(gf)
+    name = f"gpkg.anonymous_{_gf_digest(gf)}"
     log.warning("package name not defined in %s - using %s", gf.src, name)
     return name
 
@@ -196,9 +195,9 @@ def _default_python_packages(base_pkg, project_dir):
     found_pkgs = setuptools.find_packages()
     if base_pkg in found_pkgs:
         _exit(
-            "guild: package name '%s' in guild.yml conflicts with Python package '%s'\n"
-            "Provide a unique package name in guild.yml and try again."
-            % (base_pkg, base_pkg)
+            f"guild: package name '{base_pkg}' in guild.yml conflicts with "
+            f"Python package '{base_pkg}'\nProvide a unique package name in "
+            "guild.yml and try again."
         )
     all_pkgs = [base_pkg] + _apply_base_pkg(base_pkg, found_pkgs)
     pkg_dirs = _all_pkg_dirs(project_dir, base_pkg, found_pkgs)
@@ -206,7 +205,7 @@ def _default_python_packages(base_pkg, project_dir):
 
 
 def _apply_base_pkg(base_pkg, found_pkgs):
-    return ["%s.%s" % (base_pkg, pkg) for pkg in found_pkgs]
+    return [f"{base_pkg}.{pkg}" for pkg in found_pkgs]
 
 
 def _all_pkg_dirs(project_dir, base_pkg, found_pkgs):
@@ -277,7 +276,7 @@ def _entry_points(pkgdef):
 def _model_entry_points(pkgdef):
     models = sorted(pkgdef.guildfile.models.values(), key=lambda m: m.name)
     return [
-        "%s = guild.model:PackageModel" % _model_entry_point_name(model)
+        f"{_model_entry_point_name(model)} = guild.model:PackageModel"
         for model in models
     ]
 
@@ -292,10 +291,7 @@ def _resource_entry_points(pkgdef):
 
 def _model_resource_entry_points(pkgdef):
     return [
-        (
-            "%s:%s = guild.model:PackageModelResource"
-            % (resdef.modeldef.name, resdef.name)
-        )
+        f"{resdef.modeldef.name}:{resdef.name} = guild.model:PackageModelResource"
         for resdef in _iter_guildfile_resdefs(pkgdef)
     ]
 
@@ -355,7 +351,7 @@ def _maybe_print_kw_and_exit(kw):
 
 
 def _write_package_metadata(pkgdef, setup_kw):
-    egg_info_dir = "%s.egg-info" % setup_kw["name"]
+    egg_info_dir = f"{setup_kw['name']}.egg-info"
     util.ensure_dir(egg_info_dir)
     dest = os.path.join(egg_info_dir, "PACKAGE")
     with open(dest, "w") as f:
@@ -374,7 +370,7 @@ def _coerce_pkg_data(data):
 
 
 def _coerce_pkg_attr(name, val):
-    if name == "requires" and isinstance(val, six.string_types):
+    if name == "requires" and isinstance(val, str):
         return [val]
     return val
 
@@ -418,11 +414,11 @@ def _check_wheel_metadata_version(dist):
     metadata_ver = msg["Metadata-Version"]
     supported_vers = distribution.HEADER_ATTRS.keys()
     if metadata_ver not in supported_vers:
+        versions_desc = ", ".join(map(repr, supported_vers))
         raise AssertionError(
-            "wheel metadata version '%s' is not supported by pkginfo "
-            "(should be one of %s)\n"
+            f"wheel metadata version '{metadata_ver}' is not supported by pkginfo "
+            f"(should be one of {versions_desc})\n"
             "Try upgrading pkginfo to the latest version."
-            % (metadata_ver, ", ".join(map(repr, supported_vers)))
         )
 
 

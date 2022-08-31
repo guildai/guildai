@@ -37,7 +37,7 @@ class DiskPlugin(SummaryPlugin):
             self.log.warning(
                 "disk stats disabled because psutil cannot be imported (%s)", e
             )
-            return False, "error importing psutil: %s" % e
+            return False, f"error importing psutil: {e}"
         else:
             return True, ""
 
@@ -106,4 +106,4 @@ def _calc_disk_stats(last, cur):
 
 
 def _dev_stat_key(dev_name, stat_name):
-    return "sys/dev%s/%s" % (dev_name, stat_name)
+    return f"sys/dev{dev_name}/{stat_name}"

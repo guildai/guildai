@@ -150,9 +150,7 @@ def p_quoted_term(p):
 def p_error(t):
     if t is None:
         raise ParseError("query string cannot be empty")
-    raise ParseError(
-        "unexpected token '%s', line %i, pos %i" % (t.value, t.lineno, t.lexpos)
-    )
+    raise ParseError(f"unexpected token '{t.value}', line {t.lineno}, pos {t.lexpos}")
 
 
 class parser:

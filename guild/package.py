@@ -43,7 +43,7 @@ class PackageResource(resource.Resource):
         else:
             data = None
         if not data:
-            raise ValueError("undefined resource '%s' in %s" % (self.name, self.dist))
+            raise ValueError(f"undefined resource '{self.name}' in {self.dist}")
         fullname = pkg["package"] + "/" + self.name
         resdef = resourcedef.ResourceDef(self.name, data, fullname)
         resdef.dist = self.dist

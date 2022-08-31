@@ -269,7 +269,7 @@ def _exec_module(mod_path, package, base_args):
 
 def _exec_mod_name(package):
     if package:
-        return "%s.__main__" % package
+        return f"{package}.__main__"
     return "__main__"
 
 

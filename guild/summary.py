@@ -17,8 +17,6 @@ import logging
 import re
 import sys
 
-import six
-
 from guild import tensorboard_util
 from guild import util
 
@@ -209,7 +207,7 @@ def hparam_type(vals):
 
 
 def _hparam_val_type(val):
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return HPARAM_TYPE_STRING
     if type(val) in (float, int):
         return HPARAM_TYPE_NUMBER
@@ -229,7 +227,7 @@ def is_hparam_boolean(vals):
 
 
 def is_hparam_string(vals):
-    return all((isinstance(val, six.string_types) for val in vals))
+    return all((isinstance(val, str) for val in vals))
 
 
 def _HParamSessionStart(name, hparams):
@@ -251,7 +249,7 @@ def _legacy_hparams_pb(hparams, trial_id):
             info.hparams[name].bool_value = val
         elif isinstance(val, (float, int)):
             info.hparams[name].number_value = val
-        elif isinstance(val, six.string_types):
+        elif isinstance(val, str):
             info.hparams[name].string_value = val
         elif val is None:
             info.hparams[name].string_value = ""
@@ -312,12 +310,12 @@ class OutputScalars:
 
     def print_patterns(self):
         for key, p in self._patterns:
-            sys.stdout.write("{}: {}\n".format(key, p.pattern))
+            sys.stdout.write(f"{key}: {p.pattern}\n")
 
 
 def _init_patterns(config):
     if not isinstance(config, list):
-        raise TypeError("invalid output scalar config: %r" % config)
+        raise TypeError(f"invalid output scalar config: {config!r}")
     patterns = []
     for item in config:
         patterns.extend(_config_item_patterns(item))
@@ -327,7 +325,7 @@ def _init_patterns(config):
 def _config_item_patterns(item):
     if isinstance(item, dict):
         return _map_patterns(item)
-    if isinstance(item, six.string_types):
+    if isinstance(item, str):
         return _string_patterns(item)
     log.warning("invalid item config: %r", item)
     return []
@@ -345,7 +343,7 @@ def _string_patterns(s):
 
 
 def _compile_patterns(val, key):
-    if not isinstance(val, six.string_types):
+    if not isinstance(val, str):
         log.warning("invalid output scalar pattern: %r", val)
         return
     val = _replace_aliases(val)
@@ -429,25 +427,22 @@ class TestOutputLogger:
 
     @staticmethod
     def _format_pattern_no_matches(pattern):
-        return "  %r: <no matches>" % pattern
+        return f"  {pattern!r}: <no matches>"
 
     def pattern_matches(self, pattern, matches, vals):
         sys.stdout.write(self._format_pattern_matches(pattern, matches, vals))
         sys.stdout.write("\n")
 
     def _format_pattern_matches(self, pattern, matches, vals):
-        groups = [m.groups() for m in matches]
-        fmt_groups = self._strip_u(str(groups))
-        fmt_vals = "(%s)" % ", ".join(
-            ["%s=%s" % (name, val) for name, val in sorted(vals.items())]
-        )
-        return "  %r: %s %s" % (pattern, fmt_groups, fmt_vals)
+        groups = _strip_u(str([m.groups() for m in matches]))
+        assigns = ", ".join([f"{name}={val}" for name, val in sorted(vals.items())])
+        return f"  {pattern!r}: {groups} ({assigns})"
 
-    @staticmethod
-    def _strip_u(s):
-        s = re.sub(r"u'(.*?)'", "'\\1'", s)
-        s = re.sub(r"u\"(.*?)\"", "\"\\1\"", s)
-        return s
+
+def _strip_u(s):
+    s = re.sub(r"u'(.*?)'", "'\\1'", s)
+    s = re.sub(r"u\"(.*?)\"", "\"\\1\"", s)
+    return s
 
 
 def test_output(f, config, cb=None):

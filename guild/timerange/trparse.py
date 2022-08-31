@@ -447,7 +447,7 @@ def _reset_second(dt):
 def p_error(t):
     if t is None:
         raise ParseError("spec cannot be empty")
-    raise ParseError("unexpected '%s' at pos %i" % (t.value, t.lexpos))
+    raise ParseError(f"unexpected '{t.value}' at pos {t.lexpos}")
 
 
 def _shift(start, end, **delta_kw):

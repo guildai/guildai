@@ -1,0 +1,14 @@
+{
+    "folders": [
+        {
+            "name": "vscode-extension",
+            "path": "."
+        },
+        {
+            "name": "hello",
+            "path": "../hello"
+        }
+    ],
+    "settings": {
+    }
+}

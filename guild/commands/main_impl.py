@@ -51,9 +51,9 @@ def _validated_dir(path, abs=False, create=False, guild_nocopy=False):
         if create:
             util.ensure_dir(path)
         else:
-            cli.error("directory '%s' does not exist" % path)
+            cli.error(f"directory '{path}' does not exist")
     if not os.path.isdir(path):
-        cli.error("'%s' is not a directory" % path)
+        cli.error(f"'{path}' is not a directory")
     if guild_nocopy:
         util.ensure_file(os.path.join(path, ".guild-nocopy"))
     return path
@@ -98,6 +98,6 @@ def _try_cmd_notify_port():
         return int(port)
     except ValueError as e:
         raise SystemExit(
-            "invalid value for GUILD_CMD_NOTIFY_PORT %r: must "
-            "be a valid numeric port" % port
+            f"invalid value for GUILD_CMD_NOTIFY_PORT {port!r}: must "
+            "be a valid numeric port"
         ) from e

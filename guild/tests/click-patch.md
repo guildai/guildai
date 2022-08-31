@@ -46,7 +46,7 @@ With the patch:
 
 Without the patch:
 
-    >>> run("SKIP_PATCH_CLICK=1 guild tensorboard --help")  # doctest: +REPORT_UDIFF
+    >>> run("guild tensorboard --help", env={"SKIP_PATCH_CLICK": "1"})  # doctest: +REPORT_UDIFF
     Usage: guild tensorboard [OPTIONS] [RUN...]
     ...
     Options:

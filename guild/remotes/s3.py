@@ -62,8 +62,8 @@ def _parse_spec(spec):
 
 def _remote_name(bucket, root):
     if root != "/":
-        return "s3:%s%s" % (bucket, root)
-    return "s3:%s" % bucket
+        return f"s3:{bucket}{root}"
+    return f"s3:{bucket}"
 
 
 class S3Remote(meta_sync.MetaSyncRemote):
@@ -80,10 +80,10 @@ class S3Remote(meta_sync.MetaSyncRemote):
 
     def _s3_uri(self, *subpath):
         joined_path = _join_path(self.root, *subpath)
-        return "s3://%s/%s" % (self.bucket, joined_path)
+        return f"s3://{self.bucket}/{joined_path}"
 
     def _sync_runs_meta(self, force=False):
-        remote_util.remote_activity("Refreshing run info for %s" % self.name)
+        remote_util.remote_activity(f"Refreshing run info for {self.name}")
         if not force and self._meta_current():
             return
         meta_sync.clear_local_meta_id(self.local_sync_dir)
@@ -186,22 +186,20 @@ class S3Remote(meta_sync.MetaSyncRemote):
         except remotelib.RemoteProcessError as e:
             self._handle_status_error(e)
         else:
-            sys.stdout.write(
-                "%s (S3 bucket %s) is available\n" % (self.name, self.bucket)
-            )
+            sys.stdout.write(f"{self.name} (S3 bucket {self.bucket}) is available\n")
 
     def _handle_status_error(self, e):
         output = e.output.decode()
         if "NoSuchBucket" in output:
             raise remotelib.OperationError(
-                "%s is not available - %s does not exist" % (self.name, self.bucket)
+                f"{self.name} is not available - {self.bucket} does not exist"
             )
-        raise remotelib.OperationError("%s is not available: %s" % (self.name, output))
+        raise remotelib.OperationError(f"{self.name} is not available: {output}")
 
     def start(self):
         log.info("Creating S3 bucket %s", self.bucket)
         try:
-            self._s3_cmd("mb", ["s3://%s" % self.bucket])
+            self._s3_cmd("mb", [f"s3://{self.bucket}"])
         except remotelib.RemoteProcessError as e:
             raise remotelib.OperationError() from e
 
@@ -211,12 +209,12 @@ class S3Remote(meta_sync.MetaSyncRemote):
     def stop(self):
         log.info("Deleting S3 bucket %s", self.bucket)
         try:
-            self._s3_cmd("rb", ["--force", "s3://%s" % self.bucket])
+            self._s3_cmd("rb", ["--force", f"s3://{self.bucket}"])
         except remotelib.RemoteProcessError as e:
             raise remotelib.OperationError() from e
 
     def stop_details(self):
-        return "S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!" % self.bucket
+        return f"S3 bucket {self.bucket} will be deleted - THIS CANNOT BE UNDONE!"
 
     def push(self, runs, delete=False):
         for run in runs:

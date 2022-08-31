@@ -61,8 +61,8 @@ def _parse_spec(spec):
     m = re.match(r"(?:(\w+)@)?([^/:]+)(?::(\d+))?(?::(.+))?$", spec)
     if not m:
         raise remotelib.InvalidRemoteSpec(
-            "invalid ssh spec '%s' - "
-            "expected format [USER@]HOST[:PORT][/ENV_PATH]" % spec
+            f"invalid ssh spec '{spec}' - "
+            "expected format [USER@]HOST[:PORT][/ENV_PATH]"
         )
     return (
         m.group(1),
@@ -110,8 +110,8 @@ class SSHRemote(remotelib.Remote):
             return None
         if "/" not in val:
             raise remotelib.ConfigError(
-                "cannot determine Guild home from conda-env %r - "
-                "specify a path for conda-env or specify guild-home" % val
+                f"cannot determine Guild home from conda-env {val!r} - "
+                "specify a path for conda-env or specify guild-home"
             )
         return util.strip_trailing_sep(val) + "/.guild"
 
@@ -136,7 +136,7 @@ class SSHRemote(remotelib.Remote):
 
     def _push_run(self, run, delete):
         src = run.path + "/"
-        dest_path = "{}/runs/{}/".format(self.guild_home, run.id)
+        dest_path = f"{self.guild_home}/runs/{run.id}/"
         dest = ssh_util.format_rsync_host_path(self.host, dest_path, self.user)
         cmd = (
             ["rsync"]
@@ -159,7 +159,7 @@ class SSHRemote(remotelib.Remote):
     @staticmethod
     def _rsync_path_mkdir_opts(dest):
         dest_dir = os.path.dirname(dest)
-        return ["--rsync-path", "mkdir -p %s && rsync" % dest_dir]
+        return ["--rsync-path", f"mkdir -p {dest_dir} && rsync"]
 
     @staticmethod
     def _push_rsync_opts(delete):
@@ -177,7 +177,7 @@ class SSHRemote(remotelib.Remote):
             self._pull_run(run, delete)
 
     def _pull_run(self, run, delete):
-        src_path = "{}/runs/{}/".format(self.guild_home, run.id)
+        src_path = f"{self.guild_home}/runs/{run.id}/"
         src = ssh_util.format_rsync_host_path(self.host, src_path, self.user)
         dest = os.path.join(var.runs_dir(), run.id + "/")
         util.ensure_dir(os.path.dirname(dest))
@@ -228,7 +228,7 @@ class SSHRemote(remotelib.Remote):
             port=self.port,
             proxy=self.proxy,
         )
-        sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
+        sys.stdout.write(f"{self.name} ({self.host}) is available\n")
 
     def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
         with util.TempDir(prefix="guild-remote-stage-") as tmp:
@@ -320,7 +320,7 @@ class SSHRemote(remotelib.Remote):
 
     def _copy_package_dist(self, package_dist_dir, remote_run_dir):
         src = package_dist_dir + "/"
-        host_dest = "{}/.guild/job-packages/".format(remote_run_dir)
+        host_dest = f"{remote_run_dir}/.guild/job-packages/"
         log.info("Copying package")
         ssh_util.rsync_copy_to(
             src,
@@ -338,8 +338,8 @@ class SSHRemote(remotelib.Remote):
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.extend(
             [
-                "cd %s/.guild/job-packages" % remote_run_dir,
-                "pip install %s --upgrade *.whl --target ." % self._pre_flag(),
+                f"cd {remote_run_dir}/.guild/job-packages",
+                f"pip install{self._pre_flag()} --upgrade *.whl --target .",
             ]
         )
         cmd = "; ".join(cmd_lines)
@@ -348,12 +348,12 @@ class SSHRemote(remotelib.Remote):
 
     def _pre_flag(self):
         if self.use_prerelease:
-            return "--pre"
+            return " --pre"
         return ""
 
     def _start_op(self, remote_run_dir, opspec, restart, flags, run_id, stage, **opts):
-        pidfile = ("%s/.guild/JOB" % remote_run_dir) if not stage else None
-        python_path = "$(realpath %s)/.guild/job-packages:$PYTHONPATH" % remote_run_dir
+        pidfile = f"{remote_run_dir}/.guild/JOB" if not stage else None
+        python_path = f"$(realpath {remote_run_dir})/.guild/job-packages:$PYTHONPATH"
         args = _run_args(
             opspec=opspec if not restart else None,
             op_flags=flags,
@@ -379,9 +379,7 @@ class SSHRemote(remotelib.Remote):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
-            "NO_WATCHING_MSG=1 guild watch --pid {run_dir}/.guild/JOB".format(
-                run_dir=remote_run_dir
-            )
+            f"NO_WATCHING_MSG=1 guild watch --pid {remote_run_dir}/.guild/JOB"
         )
         cmd = "; ".join(cmd_lines)
         log.debug("watching remote run")
@@ -443,7 +441,7 @@ class SSHRemote(remotelib.Remote):
 
     def _default_venv_activate(self):
         if self.venv_path:
-            return ["source %s/bin/activate" % self.venv_path]
+            return [f"source {self.venv_path}/bin/activate"]
         return []
 
     def one_run(self, run_id_prefix):
@@ -470,11 +468,11 @@ class SSHRemote(remotelib.Remote):
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.extend(self._set_columns())
         assert self.guild_home is not None
-        cmd_lines.append("export GUILD_HOME=%s" % self.guild_home)
+        cmd_lines.append(f"export GUILD_HOME={self.guild_home}")
         if env:
             cmd_lines.extend(self._cmd_env(env))
         quoted_args = [_quote_arg(arg) for arg in args]
-        cmd_lines.append("guild %s %s" % (name, _join_args(quoted_args)))
+        cmd_lines.append(f"guild {name} {_join_args(quoted_args)}")
         return "; ".join(cmd_lines)
 
     def _guild_cmd_output(self, name, args, env=None):
@@ -484,11 +482,11 @@ class SSHRemote(remotelib.Remote):
     @staticmethod
     def _set_columns():
         w, _h = shutil.get_terminal_size()
-        return ["export COLUMNS=%i" % w]
+        return [f"export COLUMNS={w}"]
 
     @staticmethod
     def _cmd_env(env):
-        return ["export %s=%s" % (name, val) for name, val in sorted(env.items())]
+        return [f"export {name}={val}" for name, val in sorted(env.items())]
 
     def delete_runs(self, **opts):
         self._guild_cmd("runs delete", _delete_runs_args(**opts))
@@ -516,8 +514,8 @@ class SSHRemote(remotelib.Remote):
         self._guild_cmd("check", _check_args(**opts))
 
     def _print_remote_info(self):
-        sys.stdout.write("remote:                    %s (ssh)\n" % self.name)
-        sys.stdout.write("host:                      %s\n" % self.host)
+        sys.stdout.write(f"remote:                    {self.name} (ssh)\n")
+        sys.stdout.write(f"host:                      {self.host}\n")
         sys.stdout.flush()
 
     def stop_runs(self, **opts):
@@ -714,12 +712,12 @@ def _op_src(opspec):
         return None
     if not os.path.isdir(src):
         raise remotelib.OperationError(
-            "cannot find source location for operation '%s'" % opspec
+            f"cannot find source location for operation '{opspec}'"
         )
     if not os.path.exists(os.path.join(src, "guild.yml")):
         raise remotelib.OperationError(
-            "source location for operation '%s' (%s) does not "
-            "contain guild.yml" % (opspec, src)
+            f"source location for operation '{opspec}' ({src}) does not "
+            "contain guild.yml"
         )
     return src
 

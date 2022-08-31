@@ -25,17 +25,16 @@ from guild import package
 def main(args):
     if not os.path.exists(config.cwd()):
         cli.error(
-            "%s does not exist\n"
+            f"{cmd_impl_support.cwd_desc(config.cwd())} does not exist\n"
             "Try specifying a different directory."
-            % cmd_impl_support.cwd_desc(config.cwd())
         )
     package_file = guildfile.guildfile_path()
     if not os.path.exists(package_file):
         cli.error(
-            "%s does not contain a guild.yml file\n"
-            "A guild.yml file is required when creating a package. Create one "
+            f"{cmd_impl_support.cwd_desc(config.cwd())} does not contain "
+            "a guild.yml file\n"
+            "guild.yml is required when creating a package. Create one "
             "in this directory first or try specifying a different directory."
-            % cmd_impl_support.cwd_desc(config.cwd())
         )
     if args.upload:
         _check_upload_support(package_file)
@@ -74,16 +73,15 @@ def _check_upload_config(package_file):
     gf = guildfile.for_file(package_file)
     if not gf.package.author_email:
         cli.error(
-            "missing package author-email in %s - cannot upload\n"
+            f"missing package author-email in {package_file} - cannot upload\n"
             "Specify a valid email for package.author-email and try again."
-            % package_file
         )
 
     if not _valid_email(gf.package.author_email):
         cli.error(
-            "invalid package author-email %r in %s - cannot upload\n"
+            f"invalid package author-email {gf.package.author_email!r} "
+            "in {package_file} - cannot upload\n"
             "Specify a valid email for package.author-email and try again."
-            % (gf.package.author_email, package_file)
         )
 
 

@@ -23,7 +23,7 @@ class MemoryPlugin(SummaryPlugin):
             self.log.warning(
                 "memory stats disabled because psutil cannot be imported (%s)", e
             )
-            return False, "error importing psutil: %s" % e
+            return False, f"error importing psutil: {e}"
         else:
             return True, ""
 

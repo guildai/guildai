@@ -90,24 +90,24 @@ def remote_for_args(args):
         if inline_remote:
             return inline_remote
         cli.error(
-            "remote '%s' is not defined\n"
+            f"remote '{args.remote}' is not defined\n"
             "Show remotes by running 'guild remotes' or "
-            "'guild remotes --help' for more information." % args.remote
+            "'guild remotes --help' for more information."
         )
     except remotelib.UnsupportedRemoteType as e:
         cli.error(
-            "remote '%s' in ~/.guild/config.yml has unsupported "
-            "type: %s" % (args.remote, e.args[0])
+            f"remote '{args.remote}' in ~/.guild/config.yml has unsupported "
+            f"type: {e.args[0]}"
         )
     except remotelib.MissingRequiredConfig as e:
         cli.error(
-            "remote '%s' in ~/.guild/config.yml is missing required "
-            "config: %s" % (args.remote, e.args[0])
+            f"remote '{args.remote}' in ~/.guild/config.yml is missing required "
+            f"config: {e.args[0]}"
         )
     except remotelib.ConfigError as e:
         cli.error(
-            "remote '%s' in ~/.guild/config.yml has a configuration "
-            "error: %s" % (args.remote, e.args[0])
+            f"remote '{args.remote}' in ~/.guild/config.yml has a configuration "
+            f"error: {e.args[0]}"
         )
 
 
@@ -119,6 +119,6 @@ def _try_inline_remote(remote_arg):
     except remotelib.InvalidRemoteSpec as e:
         cli.error(e.args[0])
     except remotelib.RemoteForSpecNotImplemented as e:
-        cli.error("remote type '%s' does not support inline specifications" % e.args[0])
+        cli.error(f"remote type '{e.args[0]}' does not support inline specifications")
     except remotelib.UnsupportedRemoteType as e:
-        cli.error("unknown remote type '%s'" % e.args[0])
+        cli.error(f"unknown remote type '{e.args[0]}'")

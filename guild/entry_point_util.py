@@ -31,7 +31,7 @@ class Resource:
         return self._inst
 
     def __str__(self):
-        return "'%s' in %s" % (self._ep, self._ep.dist)
+        return f"'{self._ep}' in {self._ep.dist}"
 
 
 class EntryPointResources:

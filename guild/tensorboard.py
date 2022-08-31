@@ -19,7 +19,6 @@ import os
 import re
 import sys
 
-import six
 from werkzeug import serving
 
 from guild import flag_util
@@ -148,7 +147,7 @@ def _experiment_hparams(runs):
 
 
 def _hparam_val_for_flag_val(val):
-    if isinstance(val, (six.string_types, int, float)):
+    if isinstance(val, (str, int, float)):
         return val
     return str(val)
 
@@ -342,7 +341,7 @@ def _add_hparam_session(run, writer):
 
 def _hparam_session_name(run):
     operation = run_util.format_operation(run)
-    return "%s %s" % (run.short_id, operation)
+    return f"{run.short_id} {operation}"
 
 
 def _refresh_image_summaries(run, run_logdir, state):
@@ -411,7 +410,7 @@ def _image_updated_since_summary(img_path, tfevent_path):
 def _image_writer(logdir, digest):
     timestamp = _next_tfevent_timestamp(logdir)
     return summary.SummaryWriter(
-        logdir, filename_base="%0.10d.image" % timestamp, filename_suffix="." + digest
+        logdir, filename_base=f"{timestamp:010d}.image", filename_suffix=f".{digest}"
     )
 
 
@@ -521,7 +520,7 @@ def _remove_orphaned_run_file_links(run_logdir):
         for name in files:
             path = os.path.join(root, name)
             if os.path.islink(path) and not os.path.exists(path):
-                log.debug("Deleting orphaned path '%s'" % path)
+                log.debug(f"Deleting orphaned path '{path}'")
                 try:
                     os.remove(path)
                 except OSError as e:
@@ -599,8 +598,8 @@ def run_simple_server(tb_app, host, port, ready_cb):
     server, _url = make_simple_server(tb_app, host, port)
     url = util.local_server_url(host, port)
     sys.stderr.write(
-        "Running TensorBoard %s at %s (Type Ctrl+C to quit)\n"
-        % (tensorboard_util.tensorboard_version(), url)
+        f"Running TensorBoard {tensorboard_util.tensorboard_version()} "
+        f"at {url} (Type Ctrl+C to quit)\n"
     )
     sys.stderr.flush()
     if ready_cb:
@@ -612,7 +611,7 @@ def make_simple_server(app, host, port):
     server = serving.make_server(host, port, app, threaded=True)
     server.daemon_threads = True
     server.handle_error = _handle_error
-    tensorboard_url = "http://%s:%s" % (host, port)
+    tensorboard_url = f"http://{host}:{port}"
     return server, tensorboard_url
 
 
@@ -640,7 +639,7 @@ def test_output(out):
     plugins = _tensorboard_plugins()
     data = {
         "version": tensorboard_util.tensorboard_version(),
-        "plugins": ["%s.%s" % (p.__module__, p.__name__) for p in plugins],
+        "plugins": [f"{p.__module__}.{p.__name__}" for p in plugins],
     }
     json.dump(data, out)
 

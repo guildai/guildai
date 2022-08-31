@@ -1,2 +1,13 @@
 train:
   flags-import: all
+
+foo:
+  exec: bash -c 'echo "# ${msg}" | tee -a train.py'
+  flags:
+    msg: hello there!
+  requires:
+    - file: train.py
+
+titanic.ipynb:
+  requires:
+    - file: titanic3.csv

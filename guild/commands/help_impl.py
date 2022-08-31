@@ -44,7 +44,7 @@ def _guildfile_desc(gf):
     pkg = gf.package
     if pkg is None:
         return None
-    return "the '%s' package" % pkg.name
+    return f"the '{pkg.name}' package"
 
 
 def _format_guildfile_help(guildfile, desc, args):

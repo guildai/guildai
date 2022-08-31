@@ -17,8 +17,6 @@ import os
 import typing
 import warnings
 
-import six
-
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=Warning)
     import numpy.core.umath_tests  # pylint: disable=unused-import
@@ -129,7 +127,7 @@ def flag_dims(flags):
 def _flag_dim(val, flag_name):
     if isinstance(val, list):
         return _categorical_dim(val, None)
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return _try_function_dim(val, flag_name)
     raise ValueError(val, flag_name)
 
@@ -141,7 +139,7 @@ def _categorical_dim(vals, initial):
 
 
 def _try_function_dim(val, flag_name):
-    assert isinstance(val, six.string_types), val
+    assert isinstance(val, str), val
     try:
         func_name, func_args = flag_util.decode_flag_function(val)
     except ValueError as e:
@@ -158,7 +156,7 @@ def function_dim(func_name, args, flag_name):
     if func_name == "loguniform":
         return _real_dim(args, "log-uniform", func_name, flag_name)
     raise InvalidSearchDimension(
-        "unknown function '%s' used for flag %s" % (func_name, flag_name)
+        f"unknown function '{func_name}' used for flag {flag_name}"
     )
 
 
@@ -189,7 +187,7 @@ def _dim_args_and_initial(args, func_name, flag_name):
     if len(args) == 3:
         return args[:2], args[2]
     raise InvalidSearchDimension(
-        "%s requires 2 or 3 args, got %s for flag %s" % (func_name, args, flag_name)
+        f"{func_name} requires 2 or 3 args, got {args} for flag {flag_name}"
     )
 
 
@@ -304,11 +302,11 @@ def _objective_y_info(batch_run):
     try:
         colspec = qparse.parse_colspec(objective_spec)
     except qparse.ParseError as e:
-        raise InvalidObjective("invalid objective %r: %s" % (objective_spec, e)) from e
+        raise InvalidObjective(f"invalid objective {objective_spec!r}: {e}") from e
     else:
         if len(colspec.cols) > 1:
             raise InvalidObjective(
-                "invalid objective %r: too many columns" % objective_spec
+                f"invalid objective {objective_spec!r}: too many columns"
             )
         col = colspec.cols[0]
         prefix, key = col.split_key()
@@ -357,11 +355,11 @@ def _log_seq_trial(
 
 def _random_start_explanation(random_starts, runs_count, x0, prev_trials, objective):
     if runs_count < random_starts:
-        return "%s of %s" % (runs_count + 1, random_starts)
+        return f"{runs_count + 1} of {random_starts}"
     if not prev_trials:
         return "missing previous trials"
     if not x0:
-        return "cannot find objective '%s'" % _format_objective(objective)
+        return f"cannot find objective '{_format_objective(objective)}'"
     assert False, (random_starts, runs_count, x0, prev_trials, objective)
 
 
@@ -369,7 +367,7 @@ def _format_objective(objective):
     prefix, tag, _qual = objective
     if not prefix:
         return tag
-    return "%s#%s" % (prefix, tag)
+    return f"{prefix}#{tag}"
 
 
 def _suggest_x(suggest_x_cb, dims, x0, y0, is_random_start, random_state, suggest_opts):
@@ -407,7 +405,7 @@ def ipy_gen_trials(
     minimize=None,
     maximize=None,
     suggest_x_opts=None,
-    **_kw
+    **_kw,
 ):
     objective_scalar, objective_negate = _ipy_objective(minimize, maximize)
     prev_trials_cb = _ipy_prev_trials_cb(prev_results_cb, objective_scalar)
@@ -439,11 +437,11 @@ def _ipy_objective(minimize, maximize):
     try:
         cols = qparse.parse_colspec(colspec).cols
     except qparse.ParseError as e:
-        raise ValueError("cannot parse objective %r: %s" % (colspec, e)) from e
+        raise ValueError(f"cannot parse objective {colspec!r}: {e}") from e
     else:
         if len(cols) > 1:
             raise ValueError(
-                "invalid objective %r: only one column may " "be specified" % colspec
+                f"invalid objective {colspec!r}: only one column may be specified"
             )
         scalar = cols[0]
         prefix, tag = scalar.split_key()

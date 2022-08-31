@@ -14,12 +14,11 @@
 
 import datetime
 import inspect
+import io
 import json
 import logging
 import os
 import re
-
-import six
 
 # IMPORTANT: Keep expensive imports out of this list. This module is
 # used by several commands and any latency here will be automatically
@@ -343,7 +342,7 @@ def _parse_timerange(spec, ctx):
     try:
         return timerange.parse_spec(spec)
     except ValueError as e:
-        cli.error("invalid RANGE: %s%s" % (e, _range_help_suffix(ctx)))
+        cli.error(f"invalid RANGE: {e}{_range_help_suffix(ctx)}")
 
 
 def _apply_sourcecode_digest_filter(args, filters):
@@ -361,7 +360,7 @@ def _digest_filter(prefix):
 def _range_help_suffix(ctx):
     if not ctx:
         return ""
-    return "\nTry '%s --help' for help specifying time ranges." % ctx.command_path
+    return f"\nTry '{ctx.command_path} --help' for help specifying time ranges."
 
 
 def _started_filter(start, end):
@@ -457,7 +456,7 @@ def _check_list_runs_args(args, ctx):
 
 def _list_runs(args, ctx):
     if args.archive and not os.path.exists(args.archive):
-        cli.error("%s does not exist" % args.archive)
+        cli.error(f"{args.archive} does not exist")
     runs = filtered_runs(args, ctx=ctx)
     if args.comments:
         _list_runs_comments(_limit_runs(runs, args), comment_index_format=False)
@@ -540,8 +539,8 @@ def _limit_runs(runs, args):
     limited = runs[: (args.more + 1) * RUNS_PER_GROUP]
     if len(limited) < len(runs):
         cli.note(
-            "Showing the first %i runs (%i total) - use --all "
-            "to show all or -m to show more" % (len(limited), len(runs))
+            f"Showing the first {len(limited)} runs ({len(runs)} total) - use --all "
+            "to show all or -m to show more"
         )
     return limited
 
@@ -571,7 +570,8 @@ def _op_desc_base(fmt_run, apply_style=True):
     op_dir = run_util.run_op_dir(fmt_run["_run"])
     if not op_dir:
         return _empty_style(op, apply_style)
-    return "%s%s" % (op, _styled_op_dir_suffix(op_dir, apply_style))
+    op_dir_suffix = _styled_op_dir_suffix(op_dir, apply_style)
+    return f"{op}{op_dir_suffix}"
 
 
 def _empty_style(s, apply_style):
@@ -586,7 +586,7 @@ def _styled_op_dir_suffix(op_dir, apply_style):
     if util.compare_paths(op_dir, cwd):
         return _empty_style("", apply_style)
     shortened_op_dir = run_util.shorten_op_dir(op_dir, cwd)
-    return _dim_style(" (%s)" % shortened_op_dir, apply_style)
+    return _dim_style(f" ({shortened_op_dir})", apply_style)
 
 
 def _dim_style(s, apply_style):
@@ -598,7 +598,7 @@ def _dim_style(s, apply_style):
 def format_run(run):
     formatted = format_runs([run])
     if not formatted:
-        raise ValueError("error formatting %s" % run)
+        raise ValueError(f"error formatting {run}")
     assert len(formatted) == 1, formatted
     return formatted[0]
 
@@ -705,9 +705,9 @@ def _delete_runs(args, ctx):
             _stop_run(run, no_wait=True)
         var.delete_runs(selected, args.permanent)
         if args.permanent:
-            cli.out("Permanently deleted %i run(s)" % len(selected), err=True)
+            cli.out(f"Permanently deleted {len(selected)} run(s)", err=True)
         else:
-            cli.out("Deleted %i run(s)" % len(selected), err=True)
+            cli.out(f"Deleted {len(selected)} run(s)", err=True)
 
     runs_op(
         args,
@@ -736,7 +736,7 @@ def _purge_runs(args, ctx):
 
     def purge(selected):
         var.purge_runs(selected)
-        cli.out("Permanently deleted %i run(s)" % len(selected), err=True)
+        cli.out(f"Permanently deleted {len(selected)} run(s)", err=True)
 
     runs_op(args.copy(deleted=True), ctx, preview, confirm, no_runs_help, purge)
 
@@ -755,7 +755,7 @@ def _restore_runs(args, ctx):
 
     def restore(selected):
         var.restore_runs(selected)
-        cli.out("Restored %i run(s)" % len(selected), err=True)
+        cli.out(f"Restored {len(selected)} run(s)", err=True)
 
     runs_op(
         args.copy(deleted=True),
@@ -862,7 +862,7 @@ def _scalar_info(run, args):
     except Exception as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("get scalars")
-        return cmd_impl_support.format_warn("ERROR: %s" % e)
+        return cmd_impl_support.format_warn(f"ERROR: {e}")
 
 
 def _scalar_info_(run, args):
@@ -919,11 +919,11 @@ def _scalar_val(s, val_key, step_key, format_json):
 
 def _format_scalar_val(val, step):
     if isinstance(val, float):
-        return "%f (step %i)" % (val, step)
+        return f"{val:.6f} (step {step})"
     # Defensive here - val should None but we don't assert because
     # this is a summary op.
     val = "nan" if val is None else val
-    return "%s (step %i)" % (val, step)
+    return f"{val} (step {step})"
 
 
 def _comments_info(run, args):
@@ -935,11 +935,10 @@ def _comments_info(run, args):
 def _format_comment_info(comment, args):
     if args.json:
         return comment
-    return "%s %s\n%s" % (
-        _format_comment_user(comment),
-        util.format_timestamp(comment.get("time")),
-        comment.get("body") or "",
-    )
+    user = _format_comment_user(comment)
+    timestamp = util.format_timestamp(comment.get("time"))
+    body = comment.get("body") or ""
+    return f"{user} {timestamp}\n{body}"
 
 
 def _res_sources_paths(sources):
@@ -1014,38 +1013,38 @@ def _print_run_info_ordered(data):
         elif isinstance(val, dict):
             _print_run_info_dict(name, val)
         else:
-            cli.out("%s: %s" % (name, val))
+            cli.out(f"{name}: {val}")
 
 
 def _print_run_info_list(name, val):
-    cli.out("%s:" % name)
+    cli.out(f"{name}:")
     for item in val:
         if isinstance(item, dict):
             cli.out("  -")
             for item_name, item_val in sorted(item.items()):
                 encoded = _fix_quoted_string(flag_util.encode_flag_val(item_val))
                 if "\n" in encoded:
-                    cli.out(_indent("%s: |" % item_name, 4))
+                    cli.out(_indent(f"{item_name}: |", 4))
                     cli.out(_indent(_unindent(encoded), 6))
                 else:
-                    cli.out(_indent("%s: %s" % (item_name, encoded), 4))
+                    cli.out(_indent(f"{item_name}: {encoded}", 4))
         else:
-            cli.out("  - %s" % flag_util.encode_flag_val(item))
+            cli.out(f"  - {flag_util.encode_flag_val(item)}")
 
 
 def _print_run_info_dict(name, val):
-    cli.out("%s:" % name)
+    cli.out(f"{name}:")
     for item_name, item_val in _sort_run_info_attr(name, val):
         if isinstance(item_val, list):
-            cli.out("  %s:" % item_name)
+            cli.out(f"  {item_name}:")
             for item_item in item_val:
-                cli.out("    - %s" % flag_util.encode_flag_val(item_item))
+                cli.out(f"    - {flag_util.encode_flag_val(item_item)}")
         elif isinstance(item_val, dict):
-            cli.out("  %s:" % item_name)
+            cli.out(f"  {item_name}:")
             # Use full YAML formatting for config blocks.
             cli.out(_indent(yaml_util.encode_yaml(item_val), 4))
         else:
-            cli.out("  %s: %s" % (item_name, flag_util.encode_flag_val(item_val)))
+            cli.out(f"  {item_name}: {flag_util.encode_flag_val(item_val)}")
 
 
 def _sort_run_info_attr(name, val):
@@ -1061,7 +1060,7 @@ def _sort_run_info_scalars(val):
 
 def _indent(s, spaces):
     prefix = " " * spaces
-    return "\n".join(["%s%s" % (prefix, line) for line in s.split("\n")])
+    return "\n".join([f"{prefix}{line}" for line in s.split("\n")])
 
 
 def _fix_quoted_string(s):
@@ -1123,30 +1122,30 @@ def _set_labels(args, ctx):
             else:
                 run.write_attr("label", _label_for_run(run, args).strip())
         if args.clear:
-            cli.out("Cleared label for %i run(s)" % len(selected), err=True)
+            cli.out(f"Cleared label for {len(selected)} run(s)", err=True)
         else:
-            cli.out("Labeled %i run(s)" % len(selected), err=True)
+            cli.out(f"Labeled {len(selected)} run(s)", err=True)
 
     runs_op(args, ctx, preview, confirm, no_runs, set_labels, LATEST_RUN_ARG, True)
 
 
 def _set_labels_preview(args):
     if args.set:
-        return "You are about to label the following runs with '%s':" % args.set
+        return f"You are about to label the following runs with '{args.set}':"
     if args.prepend:
         return (
-            "You are about to prepend '%s' to the label of the following runs:"
-            % args.prepend
+            f"You are about to prepend '{args.prepend}' to the label of "
+            "the following runs:"
         )
     if args.append:
         return (
-            "You are about to append '%s' to the label of the following runs:"
-            % args.append
+            f"You are about to append '{args.append}' to the label of "
+            "the following runs:"
         )
     if args.remove:
         return (
-            "You are about to remove '%s' from the label of the following runs:"
-            % args.remove
+            f"You are about to remove '{args.remove}' from the label of "
+            "the following runs:"
         )
     if args.clear:
         return "You are about to clear the label of the following runs:"
@@ -1157,9 +1156,9 @@ def _label_for_run(run, args):
     if args.set:
         return format_run_label(args.set, run)
     if args.prepend:
-        return "%s %s" % (format_run_label(args.prepend, run), _run_label(run))
+        return f"{format_run_label(args.prepend, run)} {_run_label(run)}"
     if args.append:
-        return "%s %s" % (_run_label(run), format_run_label(args.append, run))
+        return f"{_run_label(run)} {format_run_label(args.append, run)}"
     if args.remove:
         return _remove_label_parts(args.remove, _run_label(run))
     assert False, args
@@ -1183,9 +1182,9 @@ def _remove_label_parts(parts, label):
 
 def _remove_label_part(part, label):
     try:
-        split_parts = re.split(r"(^|\s)%s($|\s)" % part, label)
+        split_parts = re.split(rf"(^|\s){part}($|\s)", label)
     except Exception as e:
-        cli.error("cannot remove label part %r: %s" % e)
+        cli.error(f"cannot remove label part {part!r}: {e}")
     else:
         return " ".join([s for s in [t.strip() for t in split_parts] if s])
 
@@ -1245,14 +1244,14 @@ def _try_stop_remote_run(run, remote_lock, no_wait):
             remote_lock.plugin_name,
         )
     else:
-        cli.out("Stopping %s (remote)" % run.id, err=True)
+        cli.out(f"Stopping {run.id} (remote)", err=True)
         plugin.stop_run(run, dict(no_wait=no_wait))
 
 
 def _try_stop_local_run(run):
     pid = run.pid
     if pid and util.pid_exists(pid):
-        cli.out("Stopping %s (pid %i)" % (run.id, run.pid), err=True)
+        cli.out(f"Stopping {run.id} (pid {run.pid})", err=True)
         _gone, alive = util.kill_process_tree(
             pid, timeout=STOP_TIMEOUT, child_term_timeout=CHILD_TERM_TIMEOUT
         )
@@ -1262,15 +1261,13 @@ def _try_stop_local_run(run):
 
 def _handle_non_stopped_pids(alive):
     alive_desc = ", ".join(alive)
-    cli.out("The following processes did not stop as expected: %s" % alive_desc)
+    cli.out(f"The following processes did not stop as expected: {alive_desc}")
     cli.error()
 
 
 def export(args, ctx):
-    preview = "You are about to %s the following runs to '%s':" % (
-        args.move and "move" or "copy",
-        args.location,
-    )
+    export_desc = "move" if args.move else "copy"
+    preview = f"You are about to {export_desc} the following runs to '{args.location}':"
     confirm = "Continue?"
     no_runs = "No runs to export."
 
@@ -1295,26 +1292,25 @@ def export(args, ctx):
         except run_util.RunsExportError as e:
             cli.error(e.args[0])
         else:
-            cli.out(
-                "Exported %i run(s) to %s" % (len(exported), args.location), err=True
-            )
+            cli.out(f"Exported {len(exported)} run(s) to {args.location}", err=True)
 
     runs_op(args, ctx, preview, confirm, no_runs, export_f, ALL_RUNS_ARG, True)
 
 
 def import_(args, ctx):
     if not os.path.exists(args.archive):
-        cli.error("archive '%s' does not exist" % args.archive)
+        cli.error(f"archive '{args.archive}' does not exist")
     if _is_zip_archive(args.archive):
         if args.move:
             cli.error("'--move' cannot be used with zip archives")
     elif os.path.isfile(args.archive):
         cli.error(
-            "invalid archive %s - expected a directory or a zip file" % args.archive
+            f"invalid archive {args.archive} - expected a directory or a zip file"
         )
-    preview = "You are about to import (%s) the following runs from '%s':" % (
-        args.move and "move" or "copy",
-        args.archive,
+    import_desc = "move" if args.move else "copy"
+    preview = (
+        f"You are about to import ({import_desc}) the following "
+        f"runs from '{args.archive}':"
     )
     confirm = "Continue?"
     no_runs = "No runs to import."
@@ -1338,7 +1334,7 @@ def import_(args, ctx):
             )
         except run_util.RunsImportError as e:
             cli.error(e.args[0])
-        cli.out("Imported %i run(s) from %s" % (len(imported), args.archive), err=True)
+        cli.out(f"Imported {len(imported)} run(s) from {args.archive}", err=True)
 
     runs_op(args, ctx, preview, confirm, no_runs, import_f, ALL_RUNS_ARG, True)
 
@@ -1348,9 +1344,9 @@ def _is_zip_archive(path):
 
 
 def push(args, ctx):
-    preview = "You are about to copy (push%s) the following runs to %s:" % (
-        _delete_clause(args),
-        args.remote,
+    preview = (
+        f"You are about to copy (push{_delete_clause(args)}) the "
+        f"following runs to {args.remote}:"
     )
     confirm = "Continue?"
     no_runs = "No runs to copy."
@@ -1377,9 +1373,9 @@ def _delete_clause(args):
 
 
 def pull(args, ctx):
-    preview = "You are about to copy (pull%s) the following runs from %s:" % (
-        _delete_clause(args),
-        args.remote,
+    preview = (
+        f"You are about to copy (pull{_delete_clause(args)}) the "
+        f"following runs from {args.remote}:"
     )
     confirm = "Continue?"
     no_runs = "No runs to copy."
@@ -1419,7 +1415,7 @@ def _clear_marked(args, ctx):
     def clear(selected):
         for run in selected:
             run.del_attr("marked")
-        cli.out("Unmarked %i run(s)" % len(selected), err=True)
+        cli.out(f"Unmarked {len(selected)} run(s)", err=True)
 
     if not args.runs:
         args.filter_marked = True
@@ -1434,7 +1430,7 @@ def _mark(args, ctx):
     def mark(selected):
         for run in selected:
             run.write_attr("marked", True)
-        cli.out("Marked %i run(s)" % len(selected), err=True)
+        cli.out(f"Marked {len(selected)} run(s)", err=True)
 
     if not args.runs:
         args.filter_marked = True
@@ -1524,11 +1520,11 @@ def _colspec_val_f(colspec):
     try:
         cols = query.parse_colspec(colspec).cols
     except query.ParseError as e:
-        cli.error("invalid col spec '%s': %s" % (colspec, e))
+        cli.error(f"invalid col spec '{colspec}': {e}")
     else:
         assert cols, colspec
         if len(cols) > 1:
-            cli.error("invalid col spec '%s': multiple cols not supported" % colspec)
+            cli.error(f"invalid col spec '{colspec}': multiple cols not supported")
         col = cols[0]
         if isinstance(col, query.Scalar):
             return _scalar_val_f(col)
@@ -1605,7 +1601,7 @@ def _try_print_raw_run_attr(run, attr_name):
 
 
 def _no_such_run_attr_error(attr_name):
-    cli.error("no such run attribute '%s'" % attr_name)
+    cli.error(f"no such run attribute '{attr_name}'")
 
 
 def tag(args, ctx):
@@ -1674,7 +1670,7 @@ def _set_tags(args, ctx):
             if args.sync_labels:
                 new_label = _synced_label_for_tags(run, old_tags, args)
                 run.write_attr("label", new_label)
-        cli.out("Modified tags for %i run(s)" % len(selected), err=True)
+        cli.out(f"Modified tags for {len(selected)} run(s)", err=True)
 
     runs_op(args, ctx, preview, confirm, no_runs, set_tags, LATEST_RUN_ARG, True)
 
@@ -1709,8 +1705,9 @@ def _synced_label_for_tags(run, old_tags, args):
     old_label = run.get("label") or ""
     new_label = _remove_label_parts(tags_to_delete, old_label)
     tags_to_prepend = _tags_not_in_label(args.add, old_label)
+    joined_tags = " ".join(tags_to_prepend)
     if tags_to_prepend:
-        new_label = "%s %s" % (" ".join(tags_to_prepend), new_label)
+        new_label = f"{joined_tags} {new_label}"
     return new_label
 
 
@@ -1849,8 +1846,8 @@ def _format_comment_header(index, comment, comment_index_format):
     user = _format_comment_user(comment)
     time = _format_comment_time(comment)
     if comment_index_format:
-        return "[%i] %s %s" % (index, user, time)
-    return "  %s %s" % (user, time)
+        return f"[{index}] {user} {time}"
+    return f"  {user} {time}"
 
 
 def _format_comment_user(comment):
@@ -1858,7 +1855,7 @@ def _format_comment_user(comment):
     host = comment.get("host") or ""
     if not host:
         return user
-    return "%s@%s" % (user, host)
+    return f"{user}@{host}"
 
 
 def _format_comment_time(comment):
@@ -1880,7 +1877,7 @@ def _print_no_comments(comment_index_format):
 
 def _delete_comment(comment_index, args, ctx):
     preview = (
-        "You are about to delete comment %i from the following runs:" % comment_index
+        f"You are about to delete comment {comment_index} from the following runs:"
     )
     confirm = "Continue?"
     no_runs = "No runs to modify."
@@ -1889,7 +1886,7 @@ def _delete_comment(comment_index, args, ctx):
         for run in selected:
             new_comments = _delete_run_comment(run, comment_index)
             run.write_attr("comments", new_comments)
-        cli.out("Deleted comment for %i run(s)" % len(selected), err=True)
+        cli.out(f"Deleted comment for {len(selected)} run(s)", err=True)
 
     runs_op(
         args,
@@ -1922,7 +1919,7 @@ def _clear_comments(args, ctx):
     def clear_comments(selected):
         for run in selected:
             run.del_attr("comments")
-        cli.out("Deleted all comments for %i run(s)" % len(selected), err=True)
+        cli.out(f"Deleted all comments for {len(selected)} run(s)", err=True)
 
     runs_op(
         args,
@@ -1946,7 +1943,7 @@ def _add_comment(args, ctx):
         for run in selected:
             new_comments = _add_run_comment(run, comment, args.user)
             run.write_attr("comments", new_comments)
-        cli.out("Added comment to %i run(s)" % len(selected), err=True)
+        cli.out(f"Added comment to {len(selected)} run(s)", err=True)
 
     if edited:
         # Skip prompt below because the editor serves as a prompt.
@@ -1988,7 +1985,7 @@ def _get_comment_with_editor(initial_comment, runs):
         "# Runs:",
     ]
     formatted_runs = _format_runs_for_comment_msg(runs)
-    msg_lines.extend(["#  %s" % line for line in formatted_runs.split("\n")])
+    msg_lines.extend([f"#  {line}" for line in formatted_runs.split("\n")])
     return util.edit(
         "\n".join(msg_lines),
         extension=".GUILD_COMMENT",
@@ -1997,7 +1994,7 @@ def _get_comment_with_editor(initial_comment, runs):
 
 
 def _format_runs_for_comment_msg(runs):
-    out = six.StringIO()
+    out = io.StringIO()
     formatted = format_runs(runs)
     cols = [
         "short_index",

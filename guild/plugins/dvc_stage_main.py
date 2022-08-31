@@ -91,9 +91,7 @@ def _ensure_project_dir_arg(args):
 
 
 def _missing_dvc_yaml_error(project_dir):
-    raise SystemExit(
-        "invalid DvC config directory '%s' - missing dvc.yaml" % project_dir
-    )
+    raise SystemExit(f"invalid DvC config directory '{project_dir}' - missing dvc.yaml")
 
 
 def _handle_stage(state):
@@ -157,9 +155,7 @@ def _resolve_stage_deps(stage, deps, state):
 
 def _no_suitable_run_for_stage_error(stage, deps):
     deps_desc = ", ".join(sorted(deps))
-    raise SystemExit(
-        "no suitable run for stage '%s' (needed for %s)" % (stage, deps_desc)
-    )
+    raise SystemExit(f"no suitable run for stage '{stage}' (needed for {deps_desc})")
 
 
 def _link_op_deps(run, deps, state):
@@ -226,8 +222,8 @@ def _copy_params_with_flags(state):
         src = os.path.join(state.project_dir, name)
         if not os.path.exists(src):
             raise SystemExit(
-                "cannot find config file '%s' in project directory %s"
-                % (name, state.project_dir)
+                f"cannot find config file '{name}' in project "
+                f"directory {state.project_dir}"
             )
         log.info("Copying %s", name)
         util.copyfile(src, dest)
@@ -252,8 +248,8 @@ def _repro_run(state):
     returncode = p.wait()
     if returncode != 0:
         raise SystemExit(
-            "'dvc repro %s' failed (exit code %i) - see above for details"
-            % (util.shlex_quote(state.target_stage), returncode)
+            f"'dvc repro {util.shlex_quote(state.target_stage)}' "
+            f"failed (exit code {returncode}) - see above for details"
         )
 
 

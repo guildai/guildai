@@ -27,36 +27,36 @@ def start(
     log_backups=service.DEFAULT_LOG_BACKUPS,
 ):
     title = title or name
-    status_cmd = status_cmd or "guild sys %s status" % name
-    stop_cmd = stop_cmd or "guild sys %s stop" % name
+    status_cmd = status_cmd or f"guild sys {name} status"
+    stop_cmd = stop_cmd or f"guild sys {name} stop"
     if not args.foreground:
-        cli.out("Starting %s (use '%s' to stop)" % (title, stop_cmd))
+        cli.out(f"Starting {title} (use '{stop_cmd}' to stop)")
     try:
         service.start(name, f, args.foreground, log_max_size, log_backups)
     except service.Running:
-        cli.error("%s is already running (use '%s' to verify)" % (title, status_cmd))
+        cli.error(f"{title} is already running (use '{status_cmd}' to verify)")
 
 
 def stop(name, title):
     try:
         service.stop(name, title)
     except service.NotRunning:
-        cli.out("%s is not running" % title)
+        cli.out(f"{title} is not running")
 
 
 def status(name, title, stop_cmd=None):
-    stop_cmd = stop_cmd or "guild sys %s stop" % name
+    stop_cmd = stop_cmd or f"guild sys {name} stop"
     try:
         status = service.status(name)
     except service.PidfileError as e:
-        cli.error("error reading pid in %s: %s" % (e.pidfile, e.error))
+        cli.error(f"error reading pid in {e.pidfile}: {e.error}")
     except service.OrphanedProcess as e:
         cli.out(
             "Shutdown timer is NOT running (orphaned pid in "
-            "%s - use '%s' to cleanup)" % (e.pidfile, stop_cmd)
+            f"{e.pidfile} - use '{stop_cmd}' to cleanup)"
         )
     else:
         if status.running:
-            cli.out("%s is running (pid %i)" % (title, status.pid))
+            cli.out(f"{title} is running (pid {status.pid})")
         else:
-            cli.out("%s is not running" % title)
+            cli.out(f"{title} is not running")

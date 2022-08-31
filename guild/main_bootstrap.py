@@ -14,14 +14,6 @@
 
 """Bootstraps env for guild.main.
 
-The primary bootstrap task is to configure sys.path with the location
-of Guild's external dependencies. This module supports two modes:
-distribution and dev.
-
-External dependencies in distribution mode are assumed to be located
-in a single `GUILD_PKG_HOME/external` directory where `GUILD_PKG_HOME`
-is the `guild` directory within the Guild distribution location.
-
 As the bootstrap process is used for every Guild command, it must
 execute as quickly as possible.
 """
@@ -49,44 +41,17 @@ def _profile_main():
     finally:
         p.disable()
         _fd, tmp = tempfile.mkstemp(prefix="guild-profile-")
-        sys.stderr.write("Writing guild profile stats to %s\n" % tmp)
+        sys.stderr.write(f"Writing guild profile stats to {tmp}\n")
         p.dump_stats(tmp)
         sys.stderr.write(
-            "Use 'python -m pstats %s' or 'snakeviz %s' to view stats\n" % (tmp, tmp)
+            f"Use 'python -m pstats {tmp}' or 'snakeviz {tmp}' to view stats\n"
         )
 
 
 def _main():
-    ensure_external_path()
     import guild.main
 
     guild.main.main()
-
-
-def ensure_external_path():
-    path = _external_libs_path()
-    if path not in sys.path:
-        sys.path.insert(0, path)
-
-
-def _external_libs_path():
-    guild_pkg_dir = os.path.dirname(__file__)
-    path = os.path.abspath(os.path.join(guild_pkg_dir, "external"))
-    if not os.path.exists(path):
-        import textwrap
-
-        sys.stderr.write("guild: {} does not exist\n".format(path))
-        sys.stderr.write(
-            textwrap.fill(
-                "If you're a Guild developer, run 'python setup.py build' "
-                "in the Guild project directory and try again. Otherwise "
-                "please report this as a bug at "
-                "https://github.com/guildai/guildai/issues."
-            )
-        )
-        sys.stderr.write("\n")
-        sys.exit(1)
-    return path
 
 
 if __name__ == "__main__":

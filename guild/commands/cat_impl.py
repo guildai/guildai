@@ -81,7 +81,7 @@ def _open_file(path, binary=False):
         return open(path, mode)
     except (IOError, OSError) as e:
         if e.errno == 2:
-            cli.error("%s does not exist" % path)
+            cli.error(f"{path} does not exist")
         else:
             cli.error(str(e))
 

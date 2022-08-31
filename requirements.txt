@@ -21,7 +21,6 @@ pydantic
 PyYAML>=2.12
 scikit-learn>=0.19.1
 scikit-optimize>=0.7.1
-six>=1.10.0
 tabview>=1.4.3
 tensorboard>=2.0.0
 typing-extensions;python_version<"3.8"

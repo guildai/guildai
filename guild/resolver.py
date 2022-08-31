@@ -21,7 +21,6 @@ import re
 import subprocess
 import tempfile
 
-import six
 import yaml
 
 import guild.opref
@@ -121,7 +120,7 @@ class FileResolver(Resolver):
             abs_path = os.path.abspath(os.path.join(root, source_path))
             if os.path.exists(abs_path):
                 return abs_path
-        raise ResolutionError("cannot find source file '%s'" % source_path)
+        raise ResolutionError(f"cannot find source file '{source_path}'")
 
     def _resolve_source_files(self, source_path, unpack_dir):
         """Resolves source files for file resolver.
@@ -167,8 +166,7 @@ class URLResolver(Resolver):
             )
         except pip_util.HashMismatch as e:
             raise ResolutionError(
-                "bad sha256 for '%s' (expected %s but got %s)"
-                % (e.path, e.expected, e.actual)
+                f"bad sha256 for '{e.path}' (expected {e.expected} but got {e.actual})"
             ) from e
         except Exception as e:
             if log.getEffectiveLevel() <= logging.DEBUG:
@@ -222,10 +220,8 @@ class OperationResolver(FileResolver):
         status = _matching_run_status(include_staged)
         run = resolve_run_cb(oprefs, run_id_prefix, status)
         if not run:
-            raise ResolutionError(
-                "no suitable run for %s"
-                % ",".join([self._opref_desc(opref) for opref in oprefs])
-            )
+            oprefs_desc = ",".join([self._opref_desc(opref) for opref in oprefs])
+            raise ResolutionError(f"no suitable run for {oprefs_desc}")
         return run
 
     def _source_oprefs(self):
@@ -234,7 +230,7 @@ class OperationResolver(FileResolver):
             try:
                 oprefs.append(guild.opref.OpRef.for_string(spec))
             except guild.opref.OpRefError as e:
-                raise ResolutionError("inavlid operation reference %r" % spec) from e
+                raise ResolutionError(f"inavlid operation reference {spec!r}") from e
         return oprefs
 
     @staticmethod
@@ -250,9 +246,7 @@ class OperationResolver(FileResolver):
         else:
             pkg = ""
         model_spec = pkg + (opref.model_name or "")
-        return (
-            "{}:{}".format(model_spec, opref.op_name) if model_spec else opref.op_name
-        )
+        return f"{model_spec}:{opref.op_name}" if model_spec else opref.op_name
 
 
 def _matching_run_status(include_staged):
@@ -281,7 +275,7 @@ def matching_runs(oprefs, run_id_prefix=None, status=None):
 
 def _resolve_opref(opref):
     if not opref.op_name:
-        raise RuntimeError("invalid opref: %s" % opref)
+        raise RuntimeError(f"invalid opref: {opref}")
     return guild.opref.OpRef(
         pkg_type=opref.pkg_type or "package" if opref.pkg_name else None,
         pkg_name=opref.pkg_name,
@@ -305,12 +299,12 @@ def _runs_filter(oprefs, run_id_prefix, status):
 
 
 def _is_full_run_id(s):
-    return s and isinstance(s, six.string_types) and len(s) == 32
+    return s and isinstance(s, str) and len(s) == 32
 
 
 def _run_id_prefix_filter(run_id_prefix):
     if run_id_prefix:
-        assert isinstance(run_id_prefix, six.string_types), run_id_prefix
+        assert isinstance(run_id_prefix, str), run_id_prefix
         return lambda run: run.id.startswith(run_id_prefix)
     return lambda _run: True
 
@@ -388,7 +382,7 @@ class ConfigResolver(FileResolver):
         try:
             config = self._load_config(path)
         except Exception as e:
-            raise ResolutionError("error loading config from %s: %s" % (path, e)) from e
+            raise ResolutionError(f"error loading config from {path}: {e}") from e
         else:
             log.debug("loaded config: %r", config)
             self._apply_params(config)
@@ -401,7 +395,7 @@ class ConfigResolver(FileResolver):
     def _load_config(self, path):
         decoder = self._decoder_for_path(path)
         if not decoder:
-            raise ResolutionError("unsupported file type for '%s'" % path)
+            raise ResolutionError(f"unsupported file type for '{path}'")
         return decoder(path)
 
     @classmethod
@@ -435,7 +429,7 @@ class ConfigResolver(FileResolver):
         for section in config.sections():
             for name in config.options(section):
                 val = config.get(section, name)
-                data["%s.%s" % (section, name)] = val
+                data[f"{section}.{name}"] = val
         return util.nested_config(data)
 
     def _apply_params(self, config):
@@ -472,7 +466,7 @@ class ConfigResolver(FileResolver):
         if not arg_split:
             return
         val = flags.get(flag_name)
-        if not isinstance(val, six.string_types):
+        if not isinstance(val, str):
             return
         flags[flag_name] = self._split_encoded_list(val, arg_split)
 
@@ -616,7 +610,7 @@ def _resolve_source_file_or_archive_files(source_path, source, unpack_dir):
 
 def _verify_path(path, sha256):
     if not os.path.exists(path):
-        raise ResolutionError("'%s' does not exist" % path)
+        raise ResolutionError(f"'{path}' does not exist")
     if sha256:
         if os.path.isdir(path):
             log.warning("cannot verify '%s' because it's a directory", path)
@@ -628,8 +622,7 @@ def _verify_file_hash(path, sha256):
     actual = util.file_sha256(path, use_cache=True)
     if actual != sha256:
         raise ResolutionError(
-            "'%s' has an unexpected sha256 (expected %s but got %s)"
-            % (path, sha256, actual)
+            f"'{path}' has an unexpected sha256 (expected {sha256} but got {actual})"
         )
 
 
@@ -689,7 +682,7 @@ def _read_cached_unpacked(source_path, unpack_dir):
 
 def _unpacked_cache_path(unpack_dir, source_path):
     name = os.path.basename(source_path)
-    return os.path.join(unpack_dir, ".guild-cache-%s.unpacked" % name)
+    return os.path.join(unpack_dir, f".guild-cache-{name}.unpacked")
 
 
 def _unpack(source_path, archive_type, unpack_dir):
@@ -700,8 +693,8 @@ def _unpack(source_path, archive_type, unpack_dir):
     if archive_type == "gzip":
         return _gunzip(source_path, unpack_dir)
     raise ResolutionError(
-        "'%s' cannot be unpacked "
-        "(unsupported archive type '%s')" % (source_path, archive_type)
+        f"'{source_path}' cannot be unpacked "
+        f"(unsupported archive type '{archive_type}')"
     )
 
 
@@ -820,7 +813,7 @@ def post_process(source, cwd, use_cache=True):
     cmd = _apply_source_script_functions(cmd_in, source)
     if use_cache:
         cmd_digest = hashlib.sha1(cmd.encode()).hexdigest()
-        process_marker = os.path.join(cwd, ".guild-cache-{}.post".format(cmd_digest))
+        process_marker = os.path.join(cwd, f".guild-cache-{cmd_digest}.post")
         if os.path.exists(process_marker):
             return
     log.info("Post processing %s resource in %s: %r", source.resdef.name, cwd, cmd)
@@ -828,7 +821,7 @@ def post_process(source, cwd, use_cache=True):
         subprocess.check_call(cmd, shell=True, cwd=cwd)
     except subprocess.CalledProcessError as e:
         raise ResolutionError(
-            "error post processing %s resource: %s" % (source.resdef.name, e)
+            f"error post processing {source.resdef.name} resource: {e}"
         ) from e
     else:
         util.touch(process_marker)
@@ -851,11 +844,11 @@ def _apply_source_script_function(name, fun, script):
 
 
 def _split_source_script(fun_name, script):
-    return re.split(r"(\$\(%s .*?\))" % fun_name, script)
+    return re.split(rf"(\$\({fun_name} .*?\))", script)
 
 
 def _apply_source_script_function_to_part(part, fun_name, fun):
-    m = re.match(r"\$\(%s (.*?)\)" % fun_name, part)
+    m = re.match(rf"\$\({fun_name} (.*?)\)", part)
     if m is None:
         return part
     args = util.shlex_split(m.group(1))
@@ -872,8 +865,8 @@ def _project_src_source_script(path, source):
             log.debug("Found %s under %s", path, root)
             return full_path
     raise ResolutionError(
-        "project-src failed: could not find '%s' in path '%s'"
-        % (path, os.path.pathsep.join(roots))
+        f"project-src failed: could not find '{path}' "
+        f"in path '{os.path.pathsep.join(roots)}'"
     )
 
 
@@ -934,7 +927,7 @@ def _file_source_digest(path):
 def _resolve_config_path(config, resource_name):
     config_path = os.path.abspath(str(config))
     if not os.path.exists(config_path):
-        raise ResolutionError("%s does not exist" % config_path)
+        raise ResolutionError(f"{config_path} does not exist")
     log.info("Using %s for %s resource", os.path.relpath(config_path), resource_name)
     return [config_path]
 
@@ -943,6 +936,6 @@ def _check_source_resolved(resolved, source):
     if resolved:
         return
     if source.fail_if_empty:
-        raise ResolutionError("nothing resolved for %s" % source.name)
+        raise ResolutionError(f"nothing resolved for {source.name}")
     if source.warn_if_empty:
         log.warning("nothing resolved for %s", source.name)

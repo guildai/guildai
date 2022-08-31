@@ -56,7 +56,7 @@ def _base_dir(run, args):
 
 def _print_header(dir, args):
     if not args.full_path and not args.no_format:
-        cli.out("%s:" % _header(dir, args))
+        cli.out(f"{_header(dir, args)}:")
 
 
 def _header(dir, args):
@@ -202,7 +202,7 @@ def _print_path(path, args):
     if args.no_format or args.full_path:
         cli.out(path)
     else:
-        cli.out("  %s" % path)
+        cli.out(f"  {path}")
 
 
 def _sourcecode_rel_path(path):

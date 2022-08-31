@@ -34,9 +34,8 @@ def publish(args, ctx=None):
 
 
 def _publish(args, ctx):
-    preview = "You are about to publish the following run(s) to %s:" % (
-        args.dest or publishlib.DEFAULT_DEST_HOME
-    )
+    dest = args.dest or publishlib.DEFAULT_DEST_HOME
+    preview = f"You are about to publish the following run(s) to {dest}:"
     confirm = "Continue?"
     no_runs = "No runs to publish."
 
@@ -71,9 +70,7 @@ def _publish_runs(runs, formatted, args):
     else:
         copy_files = None
     for run, frun in zip(runs, formatted):
-        cli.out(
-            "Publishing [%s] %s... " % (frun["short_id"], frun["operation"]), nl=False
-        )
+        cli.out(f"Publishing [{frun['short_id']}] {frun['operation']}... ", nl=False)
         frun["_run"] = run
         try:
             publishlib.publish_run(
@@ -86,24 +83,24 @@ def _publish_runs(runs, formatted, args):
                 formatted_run=frun,
             )
         except publishlib.PublishError as e:
-            cli.error("error publishing run %s:\n%s" % (run.id, e))
+            cli.error(f"error publishing run {run.id}:\n{e}")
         else:
             dest = args.dest or publishlib.DEFAULT_DEST_HOME
             size = util.dir_size(os.path.join(dest, run.id))
-            cli.out("using %s" % util.format_bytes(size))
+            cli.out(f"using {util.format_bytes(size)}")
 
 
 def _refresh_index(args, no_dest=False):
     if no_dest:
         dest_suffix = ""
     else:
-        dest_suffix = " in %s" % (args.dest or publishlib.DEFAULT_DEST_HOME)
-    print("Refreshing runs index%s" % dest_suffix)
+        dest_suffix = f" in {args.dest or publishlib.DEFAULT_DEST_HOME}"
+    print(f"Refreshing runs index{dest_suffix}")
     index_template = _index_template(args)
     try:
         publishlib.refresh_index(args.dest, index_template)
     except publishlib.TemplateError as e:
-        cli.error("error refreshing index: %s" % e)
+        cli.error(f"error refreshing index: {e}")
 
 
 def _index_template(args):
@@ -111,7 +108,7 @@ def _index_template(args):
         return None
     index_template = os.path.join(config.cwd(), args.index_template)
     if not os.path.exists(index_template):
-        cli.error("index template '%s' does not exist" % index_template)
+        cli.error(f"index template '{index_template}' does not exist")
     if os.path.isdir(index_template):
         return _index_template_readme(index_template)
     return index_template
@@ -121,11 +118,11 @@ def _index_template_readme(dir):
     assert os.path.isdir(dir), dir
     path = os.path.join(dir, "README.md")
     if not os.path.exists(path):
-        cli.error("index template '%s' is missing README.md" % dir)
+        cli.error(f"index template '{dir}' is missing README.md")
     return path
 
 
 def _report_dir_size(args):
     dest = args.dest or publishlib.DEFAULT_DEST_HOME
     size = util.dir_size(dest)
-    cli.out("Published runs using %s" % util.format_bytes(size))
+    cli.out(f"Published runs using {util.format_bytes(size)}")

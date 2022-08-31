@@ -1,0 +1,85 @@
+disabled:
+  description: Disable flag imports
+  flags-import: no
+
+globals-default:
+  description: Use all global variables
+  main: globals
+  flags-import: all
+
+globals-2:
+  description: Use some global variables and redefine defaults
+  main: globals
+  flags-import: [i, f]
+  flags:
+    i: 2
+    f: 2.2
+
+global:
+  description: Use a global dict for flag values
+  main: global_dict
+  flags-dest: global:params
+  flags-import: all
+
+namespace:
+  description: Use a SimpleNamespace for flag values
+  main: global_namespace
+  flags-dest: namespace:params
+  flags-import: all
+
+args-default:
+  description: Use all CLI options
+  main: args
+  flags-import: all
+
+args-2:
+  description: Use some CLI options and define defaults
+  main: args
+  flags-import: [f, b, s]
+  flags:
+    s: hola
+
+args-click-default:
+  description: Use Click API to define CLI
+  main: args_click
+  flags-dest: args:click
+  flags-import: all
+
+config:
+  description: Use YAML config file to define globals
+  main: config
+  flags-import: all
+  flags-dest: config:flags.yml
+
+config-2:
+  description: Use JSON config file to define globals
+  main: config2
+  flags-import: all
+  flags-dest: config:flags.json
+
+config-3:
+  description: Use INI config file to define globals
+  main: config3
+  flags-import: all
+  flags-dest: config:flags.ini
+  flags:
+    l:
+      arg-split: yes
+      type: auto  # type indicates the list part type, which
+                  # is imported as string based on the INI option
+                  # value. We need to explicitly set to auto to
+                  # tell Guild to decode parts to their YAML encoded
+                  # types rather than coerce to string.
+
+config-legacy:
+  description: Use config file to define globals (legacy method)
+  main: config
+  # With the legacy method (using config dependency below) we need to
+  # explicitly define flags here. They are not importable. See the
+  # config operation for the current recommended method.
+  flags:
+    i: 1
+    f: 1.123
+    b: no
+  requires:
+    - config: flags.yml

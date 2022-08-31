@@ -26,13 +26,13 @@ class Resource:
         self._fullname = None  # lazy
 
     def __repr__(self):
-        return "<guild.resource.Resource '%s'>" % self.fullname
+        return f"<guild.resource.Resource '{self.fullname}'>"
 
     @property
     def fullname(self):
         if self._fullname is None:
             package_name = namespace.apply_namespace(self.dist.project_name)
-            self._fullname = "%s/%s" % (package_name, self.name)
+            self._fullname = f"{package_name}/{self.name}"
         return self._fullname
 
     def _init_resdef(self):

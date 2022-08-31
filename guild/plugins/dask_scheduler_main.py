@@ -169,7 +169,7 @@ def _dashboard_address_for_typed_val(val):
     if val is False:
         return None
     if isinstance(val, int):
-        return ":%s" % val
+        return f":{val}"
     return val
 
 
@@ -178,7 +178,7 @@ def _workers_log_entry_suffix(args):
         return ""
     if args.workers == 1:
         return " with 1 worker"
-    return " with %i workers" % args.workers
+    return f" with {args.workers} workers"
 
 
 def _cluster_resources(args):
@@ -306,7 +306,7 @@ def _run_env(run):
 
 
 def _run_key(run):
-    return "run-%s" % run.id
+    return f"run-{run.id}"
 
 
 def _run_id_for_key(key):

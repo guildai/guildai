@@ -41,11 +41,11 @@ def main(args):
 
 
 def _completion_script(shell):
-    path = os.path.join(_completions_dir(), "%s-guild" % shell)
+    path = os.path.join(_completions_dir(), f"{shell}-guild")
     if log.getEffectiveLevel() <= logging.DEBUG:
         log.debug("completion script path for %s: %s", shell, path)
     if not os.path.exists(path):
-        cli.error("unsupported shell: %s" % shell)
+        cli.error(f"unsupported shell: {shell}")
     return open(path, "r").read()
 
 
@@ -59,8 +59,8 @@ def _install_completion_script(shell, script, args):
 
 
 def _write_completion_script_to_user_config(shell, script):
-    path = os.path.join(config.user_config_home(), "%s_completion" % shell)
-    cli.out("Writing completion script to %s" % util.format_dir(path), err=True)
+    path = os.path.join(config.user_config_home(), f"{shell}_completion")
+    cli.out(f"Writing completion script to {util.format_dir(path)}", err=True)
     util.ensure_dir(os.path.dirname(path))
     with open(path, "w") as f:
         f.write(script)
@@ -82,7 +82,7 @@ def _install_completion_script_to_shell_init(shell, script_path, args):
 def _install_completion_script_to_bash_init(script_path, args):
     init_script = args.shell_init or "~/.bashrc"
     user_dir_script_path = _user_dir_path(script_path)
-    sentinel = ". %s" % user_dir_script_path
+    sentinel = f". {user_dir_script_path}"
     lines = [
         "[ -s {script} ] && . {script}  # Enable completion for guild".format(
             script=user_dir_script_path
@@ -94,7 +94,7 @@ def _install_completion_script_to_bash_init(script_path, args):
 def _install_completion_script_to_zsh_init(script_path, args):
     init_script = args.shell_init or "~/.zshrc"
     user_dir_script_path = _user_dir_path(script_path)
-    sentinel = ". %s" % user_dir_script_path
+    sentinel = f". {user_dir_script_path}"
     lines = [
         "[[ -s {script} ]] && . {script}  # Enable completion for guild".format(
             script=user_dir_script_path
@@ -106,7 +106,7 @@ def _install_completion_script_to_zsh_init(script_path, args):
 def _install_completion_script_to_fish_init(script_path, args):
     init_script = args.shell_init or "~/.config/fish/completions/guild.fish"
     user_dir_script_path = _user_dir_path(script_path)
-    sentinel = ". %s" % user_dir_script_path
+    sentinel = f". {user_dir_script_path}"
     lines = ["test -s {script} ;and . {script}".format(script=user_dir_script_path)]
     _gen_install_completion_script_to_init(init_script, sentinel, lines, backup=False)
 
@@ -130,8 +130,8 @@ def _check_init_script(path, sentinel):
     for i, line in enumerate(lines):
         if sentinel in line:
             cli.out(
-                "Guild completion is already installed in %s on line %i:\n  %s"
-                % (util.format_dir(path), i + 1, line.rstrip()),
+                f"Guild completion is already installed in {util.format_dir(path)} "
+                f"(line {i + 1}):\n  {line.rstrip()}",
                 err=True,
             )
             raise SystemExit(0)
@@ -141,8 +141,7 @@ def _backup_init_script(init_script):
     if os.path.exists(init_script):
         backup = _init_script_backup(init_script)
         cli.out(
-            "Backing up %s to %s"
-            % (util.format_dir(init_script), util.format_dir(backup)),
+            f"Backing up {util.format_dir(init_script)} to {util.format_dir(backup)}",
             err=True,
         )
         shutil.copy(init_script, backup)
@@ -166,8 +165,7 @@ def _next_backup_suffix(dir):
 
 def _append_to_init_script(init_script, lines):
     cli.out(
-        "Updating %s to support Guild command completion"
-        % util.format_dir(init_script),
+        f"Updating {util.format_dir(init_script)} to support Guild command completion",
         err=True,
     )
     util.ensure_dir(os.path.dirname(init_script))

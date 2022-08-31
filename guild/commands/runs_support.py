@@ -85,7 +85,7 @@ def ac_label(ctx, _param, incomplete):
 
 
 def _quote_label(l):
-    return "\"%s\"" % l
+    return f"\"{l}\""
 
 
 def ac_tag(ctx, _param, incomplete):
@@ -434,8 +434,8 @@ def _validate_status_chars(ctx, _param, value):
     for char in value:
         if char not in "rcetps":
             raise SystemExit(
-                "unrecognized status char '%s' in option '-S'\n"
-                "Try '%s --help' for more information." % (char, ctx.command_path)
+                f"unrecognized status char '{char}' in option '-S'\n"
+                f"Try '{ctx.command_path} --help' for more information."
             )
     return value
 

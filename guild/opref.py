@@ -65,7 +65,7 @@ def _opref_for_string(s):
     """
     m = re.match(r"(?:(?:([^/]+)/)?([^:]+):)?([^/:]+)$", s)
     if not m:
-        raise OpRefError("invalid reference: %r" % s)
+        raise OpRefError(f"invalid reference: {s!r}")
     pkg_name, model_name, op_name = m.groups()
     return OpRef(None, pkg_name, None, model_name, op_name)
 
@@ -103,26 +103,24 @@ def _cmp(val, compare_to, regex):
     if not regex or compare_to == "+":
         return val == compare_to
     try:
-        return re.match(r"%s$" % compare_to, val)
+        return re.match(rf"{compare_to}$", val)
     except Exception as e:
         log.warning("error comparing %s using %s: %s", val, compare_to, e)
         return False
 
 
 def _opref_to_string(opref):
-    q = util.shlex_quote
-    return "%s:%s %s %s %s" % (
-        q(opref.pkg_type),
-        q(opref.pkg_name),
-        q(opref.pkg_version),
-        q(opref.model_name),
-        q(opref.op_name),
-    )
+    pkg_type = util.shlex_quote(opref.pkg_type)
+    pkg_name = util.shlex_quote(opref.pkg_name)
+    pkg_version = util.shlex_quote(opref.pkg_version)
+    model_name = util.shlex_quote(opref.model_name)
+    op_name = util.shlex_quote(opref.op_name)
+    return f"{pkg_type}:{pkg_name} {pkg_version} {model_name} {op_name}"
 
 
 def _maybe_quote(s):
     if s and re.search(r"\s", s):
-        return "'{}'".format(s)
+        return f"'{s}'"
     return s
 
 

@@ -177,7 +177,7 @@ def _manifest_index_entry(entry, run):
 
 
 def _apply_run_files_to_merge(run, manifest_index, merge):
-    for run_path in _iter_run_files(run):
+    for run_path in sorted(_iter_run_files(run)):
         _apply_run_file_to_merge(run_path, manifest_index, merge)
 
 
@@ -191,11 +191,12 @@ def _iter_run_files(run):
 
 
 def _apply_run_file_to_merge(run_path, manifest_index, merge):
-    manifest_entry = manifest_index.get(run_path)
+    normalized_run_path = run_manifest.normalize_path(run_path)
+    manifest_entry = manifest_index.get(normalized_run_path)
     if manifest_entry:
         _apply_manifest_entry_to_merge(manifest_entry, merge)
     else:
-        _apply_unknown_file_to_merge(run_path, merge)
+        _apply_unknown_file_to_merge(normalized_run_path, merge)
 
 
 def _apply_manifest_entry_to_merge(entry, merge):

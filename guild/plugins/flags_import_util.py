@@ -16,7 +16,6 @@ import logging
 import os
 
 from typing import List
-import six
 
 from guild import cli
 from guild import guildfile
@@ -130,7 +129,7 @@ def _encode_splittable_list(l):
 
 
 def _flag_type(val):
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return "string"
     if isinstance(val, bool):
         return "boolean"

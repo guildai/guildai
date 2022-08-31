@@ -59,5 +59,5 @@ def _ensure_unique_link(path_base):
         assert v < 1e6
         if not os.path.lexists(path):
             return path
-        path = "%s_%i" % (path_base, v)
+        path = f"{path_base}_{v}"
         v += 1

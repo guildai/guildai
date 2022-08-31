@@ -15,8 +15,6 @@
 import logging
 import pprint
 
-import six
-
 from guild import flag_util
 from guild import util
 from guild import yaml_util
@@ -96,7 +94,7 @@ def _args_for_flag(name, val, cmd_flag, flag_dest, cmd_args):
     if cmd_flag.arg_skip:
         return []
     arg_name = cmd_flag.arg_name or name
-    if "--%s" % arg_name in cmd_args:
+    if f"--{arg_name}" in cmd_args:
         log.warning(
             "ignoring flag '%s=%s' because it's shadowed "
             "in the operation cmd as --%s",
@@ -107,14 +105,14 @@ def _args_for_flag(name, val, cmd_flag, flag_dest, cmd_args):
         return []
     if cmd_flag.arg_switch is not None:
         if cmd_flag.arg_switch == val:
-            return ["--%s" % arg_name]
+            return [f"--{arg_name}"]
         return []
     if val is not None:
         if _splittable(val, cmd_flag):
             encoded = _encode_split_args(val, flag_dest, cmd_flag.arg_split)
-            return ["--%s" % arg_name] + encoded if encoded else []
+            return [f"--{arg_name}"] + encoded if encoded else []
         return [
-            "--%s" % arg_name,
+            f"--{arg_name}",
             _encode_flag_arg(val, flag_dest, cmd_flag.arg_split),
         ]
     return []
@@ -131,7 +129,7 @@ def _encode_split_args(val, dest, arg_split):
 
 
 def _encode_flag_val_for_split(val, dest, arg_split):
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return val
     return _encode_flag_arg(val, dest, arg_split)
 
@@ -187,7 +185,7 @@ def _encode_flag_arg_for_argparse(val, arg_split):
         return "1"
     if val is False or val is None:
         return ""
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         return val
     if isinstance(val, list):
         return flag_util.join_splittable_flag_vals(val, arg_split)
@@ -237,7 +235,7 @@ def _flag_env_name(flag_name, op_cmd):
 
 
 def _default_flag_env_name(flag_name):
-    return "FLAG_%s" % util.env_var_name(flag_name)
+    return f"FLAG_{util.env_var_name(flag_name)}"
 
 
 ###################################################################

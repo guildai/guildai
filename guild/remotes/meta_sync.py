@@ -37,7 +37,7 @@ class MetaSyncRemote(remotelib.Remote):
         deleted = opts.pop("deleted", False)
         if deleted and not self._deleted_runs_dir:
             raise remotelib.OperationNotSupported(
-                "remote '%s' does not support '--deleted' option" % self.name
+                f"remote '{self.name}' does not support '--deleted' option"
             )
         self._sync_runs_meta()
         runs_dir = self._deleted_runs_dir if deleted else self._runs_dir
@@ -64,19 +64,19 @@ class MetaSyncRemote(remotelib.Remote):
     def delete_runs(self, **opts):
         if not self._deleted_runs_dir and not opts.get("permanent"):
             raise remotelib.OperationNotSupported(
-                "remote '%s' does not support non permanent deletes\n"
-                "Use the '--permanent' with this command and try again." % self.name
+                f"remote '{self.name}' does not support non permanent deletes\n"
+                "Use the '--permanent' with this command and try again."
             )
         args = click_util.Args(archive=self._runs_dir, remote=None, **opts)
         self._sync_runs_meta()
         if args.permanent:
             preview = cmd_impl_support.format_warn(
                 "WARNING: You are about to permanently delete "
-                "the following runs on %s:" % self.name
+                f"the following runs on {self.name}:"
             )
             confirm = "Permanently delete these runs?"
         else:
-            preview = "You are about to delete the following runs on %s:" % self.name
+            preview = f"You are about to delete the following runs on {self.name}:"
             confirm = "Delete these runs?"
         no_runs_help = "Nothing to delete."
 
@@ -109,7 +109,7 @@ class MetaSyncRemote(remotelib.Remote):
             raise SystemExit(code)
         for cmd in cmds:
             maybe_changed = msg.replace(
-                "guild %s" % self.name, "guild %s -r %s" % (self.name, cmd)
+                f"guild {self.name}", f"guild {self.name} -r {cmd}"
             )
             if maybe_changed != msg:
                 msg = maybe_changed
@@ -121,7 +121,7 @@ class MetaSyncRemote(remotelib.Remote):
             raise remotelib.OperationNotSupported()
         self._sync_runs_meta()
         args = click_util.Args(archive=self._deleted_runs_dir, remote=None, **opts)
-        preview = "You are about to restore the following runs on %s:" % self.name
+        preview = f"You are about to restore the following runs on {self.name}:"
         confirm = "Restore these runs?"
         no_runs_help = "Nothing to restore."
 
@@ -152,7 +152,7 @@ class MetaSyncRemote(remotelib.Remote):
         args = click_util.Args(archive=self._deleted_runs_dir, remote=None, **opts)
         preview = (
             "WARNING: You are about to permanently delete "
-            "the following runs on %s:" % self.name
+            f"the following runs on {self.name}:"
         )
         confirm = "Permanently delete these runs?"
         no_runs_help = "Nothing to purge."

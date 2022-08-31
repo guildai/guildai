@@ -56,7 +56,7 @@ class BatchModelProxy:
             "operations": {
                 self.op_name: {
                     "description": self.op_description,
-                    "exec": "${python_exe} -um %s" % self.module_name,
+                    "exec": f"${{python_exe}} -um {self.module_name}",
                     "flag-encoder": self.flag_encoder,
                     "default-max-trials": self.default_max_trials,
                     "flags": self.flags_data,
@@ -68,7 +68,7 @@ class BatchModelProxy:
                 }
             }
         }
-        return modeldef(self.name, data, "<%s>" % self.__class__.__name__)
+        return modeldef(self.name, data, f"<{self.__class__.__name__}>")
 
     def _init_reference(self):
         return modellib.ModelRef("builtin", "guildai", guild.__version__, self.name)

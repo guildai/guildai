@@ -42,16 +42,14 @@ def _print_tensorflow_info(state):
     except ImportError as e:
         msg = _normalize_import_error_msg(e)
         if msg == "No module named 'tensorflow'":
-            click.echo("tensorflow_version:        %s" % _warn("not installed"))
+            click.echo(f"tensorflow_version:        {_warn('not installed')}")
         else:
-            click.echo(
-                "tensorflow_version:        %s" % _warn("not installed (%s)" % msg)
-            )
+            click.echo(f"tensorflow_version:        {_warn(f'not installed ({msg})')}")
             state.errors = True
     else:
-        click.echo("tensorflow_version:        %s" % _tf_version(tf, state))
-        click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
-        click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf))
+        click.echo(f"tensorflow_version:        {_tf_version(tf, state)}")
+        click.echo(f"tensorflow_cuda_support:   {_cuda_support(tf)}")
+        click.echo(f"tensorflow_gpu_available:  {_gpu_available(tf)}")
 
 
 def _tf_version(tf, state):
@@ -59,7 +57,7 @@ def _tf_version(tf, state):
         return tf.__version__
     except AttributeError as e:
         state.errors = True
-        return _warn("ERROR (%s)" % e)
+        return _warn(f"ERROR ({e})")
 
 
 def _cuda_support(tf):
@@ -100,7 +98,7 @@ def _print_linux_cuda_info():
         ("libcuda", "libcuda\\.so\\.([\\S]+)"),
         ("libcudnn", "libcudnn\\.so\\.([\\S]+)"),
     ]
-    proc_maps = "/proc/%s/maps" % os.getpid()
+    proc_maps = f"/proc/{os.getpid()}/maps"
     if not os.path.exists(proc_maps):
         return
     try:
@@ -113,18 +111,18 @@ def _print_linux_cuda_info():
 def _gen_print_lib_info(patterns, raw):
     for name, pattern in patterns:
         m = re.search(pattern, raw)
-        space = " " * (18 - len(name))
+        padding = " " * (18 - len(name))
         if m:
-            click.echo("%s_version:%s%s" % (name, space, m.group(1)))
+            click.echo(f"{name}_version:{padding}{m.group(1)}")
         else:
-            click.echo("%s_version:%snot loaded" % (name, space))
+            click.echo(f"{name}_version:{padding}not loaded")
 
 
 def _normalize_import_error_msg(e):
     msg = str(e)
     m = re.match("No module named ([^']+)", msg)
     if m:
-        return "No module named '%s'" % m.group(1)
+        return f"No module named '{m.group(1)}'"
     return msg
 
 
