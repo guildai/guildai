@@ -45,7 +45,7 @@ Show latest staged run:
     marked: no
     label: noise=0.1 x=3
     sourcecode_digest: ...
-    run_dir: .../.guild/runs/...
+    run_dir: .../runs/...
     command: ... -um guild.op_main train --noise 0.1 --x 3
     exit_status:
     pid:
@@ -59,7 +59,7 @@ Show latest staged run:
 List files for latest run:
 
     >>> run("guild ls -a")  # doctest: +REPORT_UDIFF
-    ???/.guild/runs/...:
+    ???/runs/...:
       .guild/
       .guild/ENV
       .guild/STAGED
