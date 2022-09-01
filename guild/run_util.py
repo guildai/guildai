@@ -292,7 +292,9 @@ def _format_pending_op(opref):
 
 
 def _format_test_op(opref):
-    return f"{opref.model_name}:{opref.op_name}"
+    if opref.model_name:
+        return f"{opref.model_name}:{opref.op_name}"
+    return opref.op_name
 
 
 def _format_func_op(opref):

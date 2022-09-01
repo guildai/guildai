@@ -1,0 +1,20 @@
+- model: ''
+  operations:
+    train:
+      flags-import: no
+      flags:
+        x: 0.1
+        noise: 0.1
+      output-scalars:
+        loss: 'loss: (\value)'
+      pip-freeze: no
+
+- model: util
+  operations:
+    test:
+      flags-import: no
+      requires:
+        - operation: '.*'
+          select: .guild
+          target-path: target
+          name: target

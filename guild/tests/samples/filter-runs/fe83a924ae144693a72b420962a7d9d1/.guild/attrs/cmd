@@ -1,0 +1,9 @@
+- /usr/bin/python
+- -um
+- guild.op_main
+- train
+- --
+- --noise
+- '0.1'
+- --x
+- '-1.0'
