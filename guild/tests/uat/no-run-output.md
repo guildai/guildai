@@ -19,7 +19,7 @@ First, the case when `NO_RUN_OUTPUT` is not set.
 Output files generated:
 
     >>> run("guild ls -a -p .guild/output*")
-    ???/.guild/runs/...:
+    ???/runs/...:
       .guild/output
       .guild/output.index
     <exit 0>
@@ -43,7 +43,7 @@ Next, set `NO_RUN_OUTPUT` to `1`:
 The generated output files:
 
     >>> run("guild ls -a -p .guild/output")
-    ???/.guild/runs/...:
+    ???/runs/...:
     <exit 0>
 
 And output:
