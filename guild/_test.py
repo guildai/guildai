@@ -536,6 +536,7 @@ def _load_testfile(filename):
 
 def test_globals():
     return {
+        "_dir": _py_dir,
         "PLATFORM": PLATFORM,
         "Chdir": util.Chdir,
         "Env": util.Env,
@@ -686,6 +687,8 @@ def cat_json(*parts):
         data = json.load(f)
         json.dump(data, sys.stdout, sort_keys=True, indent=4, separators=(",", ": "))
 
+
+_py_dir = dir
 
 def dir(path=".", ignore=None):
     return sorted(
