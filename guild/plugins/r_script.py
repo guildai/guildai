@@ -41,7 +41,7 @@ class RScriptModelProxy:
                 "model": self.name,
                 "operations": {
                     self.op_name: {
-                        "exec": """Rscript -e 'guildai:::run_with_global_flags("%s")' ${flag_args}"""
+                        "exec": """Rscript -e 'guildai:::do_guild_run("%s")' ${flag_args}"""
                         % (os.path.relpath(self.script_path)),
                         "flags-dest": 'globals',
                         "flags": script_data['global-flags'],
