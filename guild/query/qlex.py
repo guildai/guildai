@@ -45,6 +45,7 @@ t_ignore = " \t"
 
 # Use function defs to explicitly order lex matching.
 
+
 def t_SCALAR_PREFIX(t):
     r"scalar:"
     return t
