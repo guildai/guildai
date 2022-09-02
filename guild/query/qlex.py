@@ -43,6 +43,8 @@ tokens = reserved + (
 t_ignore = " \t"
 
 
+# Use function defs to explicitly order lex matching.
+
 def t_SCALAR_PREFIX(t):
     r"scalar:"
     return t
@@ -85,7 +87,7 @@ def t_UNQUOTED(t):
 t_QUOTED = r"(\"([^\\\n]|(\\.))*?\")|(\'([^\\\n]|(\\.))*?\')"
 
 
-def t_NEWLINE(t):
+def t_newline(t):
     r"\n+"
     t.lexer.lineno += len(t.value)
 
@@ -95,4 +97,4 @@ def t_error(t):
 
 
 def lexer():
-    return _lex.lex(module=sys.modules[__name__])
+    return _lex.lex()
