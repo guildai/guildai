@@ -1,4 +1,4 @@
-# Filtering Runs
+# Filter runs
 
 Runs can be selected using text expressions. This support is provided
 by the `guild.filter` module. In particular,

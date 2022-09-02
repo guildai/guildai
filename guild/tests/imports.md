@@ -156,9 +156,7 @@
     guild.exit_code
     guild.fail
     guild.file_util
-    guild.filter.__init__
-    guild.filter.flex
-    guild.filter.fparse
+    guild.filter
     guild.flag_util
     guild.guildfile
     guild.guildfile_schema

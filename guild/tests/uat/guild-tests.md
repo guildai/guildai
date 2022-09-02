@@ -57,7 +57,8 @@ tests).
       entry-points:                ok
       file-utils:                  ok
       filename-sorting:            ok
-      filter:                      ok
+      filter-parser:               ok
+      filter-runs:                 ok
       flag-functions:              ok
       flag-utils:                  ok
       flag-vals:                   ok
