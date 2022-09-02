@@ -2,6 +2,7 @@ import os
 import os.path
 import json
 import subprocess
+import yaml
 
 
 from guild import config
@@ -33,42 +34,19 @@ class RScriptModelProxy:
         self.modeldef = self._init_modeldef()
 
     def _init_modeldef(self):
-
-        script_data = peek_script_guild_info(self.script_path)
-
+        op_data = get_script_guild_data(os.path.relpath(self.script_path))
+        import debugpy; debugpy.breakpoint()
+        # data =
         data = [
             {
                 "model": self.name,
-                "operations": {
-                    self.op_name: {
-                        "exec": """Rscript -e 'guildai:::do_guild_run("%s")' ${flag_args}"""
-                        % (os.path.relpath(self.script_path)),
-                        "flags-dest": 'globals',
-                        "flags": script_data['global-flags'],
-                        # "output-scalars": self.output_scalars,
-                        # "objective": self.objective,
-                        # "plugins": self.plugins,
-                        "sourcecode": {
-                            "dest": ".",
-                            "select": [
-                                {"exclude": {"dir": "renv"}},
-                                {
-                                    "include": {
-                                        "text": [
-                                            "renv.lock",
-                                            ".Rprofile",
-                                            ".Renviron",
-                                            "**.[rR]",
-                                        ]
-                                    }
-                                },
-                            ],
-                        },
-                    }
-                },
+                "operations": {self.op_name: op_data},
             }
         ]
-        gf = guildfile.Guildfile(data, dir=os.path.dirname(self.script_path))
+
+        # gf = guildfile.Guildfile(data, dir=os.path.dirname(self.script_path))
+        gf = guildfile.Guildfile(data, dir=os.getcwd())
+        # TODO: instead of using os.getcwd(), consider here::here() or similar
         return gf.models[self.name]
 
 
@@ -101,9 +79,9 @@ def normalize_path(x):
     return x
 
 
-def peek_script_guild_info(r_script_path):
-    out = run_r("guildai:::peek_r_script_guild_info('%s')" % r_script_path)
-    return json.loads(out)
+def get_script_guild_data(r_script_path):
+    out = run_r("guildai:::emit_r_script_guild_data('%s')" % r_script_path)
+    return yaml.safe_load(out)
 
 
 def is_r_script(opspec):
@@ -181,3 +159,13 @@ def run_r(
 
     out = subprocess.run(cmd, **run_kwargs)
     return out.stdout.decode()
+
+
+def merge_dicts(dict1, dict2):
+    """Recursively merges dict2 into dict1. Modifies dict1 in place"""
+    for k in dict2:
+        if k in dict1:
+            dict1[k] = merge_dicts(dict1[k], dict2[k])
+        else:
+            dict1[k] = dict2[k]
+    return dict1
