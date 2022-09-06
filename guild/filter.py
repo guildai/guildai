@@ -13,9 +13,6 @@
 # limitations under the License.
 
 import re
-import sys
-
-from yaml import YAMLError
 
 from guild import _lex
 from guild import _yacc
@@ -143,7 +140,7 @@ def t_newline(t):
 
 
 def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
+    print(f"Illegal character '{t.value[0]}'")
     t.lexer.skip(1)
 
 
