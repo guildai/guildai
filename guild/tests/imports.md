@@ -157,6 +157,7 @@
     guild.fail
     guild.file_util
     guild.filter
+    guild.filter_util
     guild.flag_util
     guild.guildfile
     guild.guildfile_schema

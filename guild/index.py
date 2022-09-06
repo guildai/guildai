@@ -35,7 +35,10 @@ class AttrReader:
         self._data = _runs_data(runs)
 
     def read(self, run, attr):
-        run_data = self._data.get(run.id, {})
+        run_data = self._data.get(run.id)
+        if run_data is None:
+            # Require a refresh as an indication user wants run attrs.
+            return None
         try:
             return run_data[attr]
         except KeyError:
@@ -58,6 +61,7 @@ def _run_attr_data(run):
         "operation": run_util.format_operation(run),
         "from": run_util.format_pkg_name(run),
         "op": opref.op_name,
+        "short_id": run.short_id,
         "sourcecode": util.short_digest(run.get("sourcecode_digest")),
         "started": util.format_timestamp(started),
         "stopped": util.format_timestamp(stopped),
@@ -74,7 +78,11 @@ class FlagReader:
         self._data = {run.id: run.get("flags", {}) for run in runs}
 
     def read(self, run, flag):
-        return self._data.get(run.id, {}).get(flag)
+        run_data = self._data.get(run.id)
+        if run_data is None:
+            # Require a refresh as an indication user wants run flags.
+            return None
+        return run_data.get(flag)
 
 
 class ScalarReader:
@@ -103,7 +111,7 @@ class ScalarReader:
 
     def _maybe_refresh_run_scalars(self, run, path, cur_digest, scalars):
         log.debug("found events in %s (digest %s)", path, cur_digest)
-        prefix = self._scalar_prefix(path, run.path)
+        prefix = _scalar_prefix(path, run.path)
         last_digest = self._scalar_source_digest(run.id, prefix)
         if cur_digest != last_digest:
             log.debug(
@@ -114,18 +122,11 @@ class ScalarReader:
             self._refresh_run_scalars(run, prefix, cur_digest, last_digest, scalars)
 
     def _refresh_run_scalars(self, run, prefix, cur_digest, last_digest, scalars):
-        summarized = self._summarize_scalars(scalars)
+        summarized = _summarize_scalars(scalars)
         if last_digest:
             self._del_scalars(run.id, prefix)
         self._write_summarized(run.id, prefix, summarized)
         self._write_source_digest(run.id, prefix, cur_digest)
-
-    @staticmethod
-    def _scalar_prefix(scalars_path, root):
-        rel_path = os.path.relpath(scalars_path, root)
-        if rel_path == ".":
-            return ""
-        return rel_path.replace(os.sep, "/")
 
     def _scalar_source_digest(self, run_id, prefix):
         cur = self._db.execute(
@@ -139,19 +140,6 @@ class ScalarReader:
         if not row:
             return None
         return row[0]
-
-    @staticmethod
-    def _summarize_scalars(scalars):
-        summarized = {}
-        for tag, val, step in scalars:
-            # Don't use dict.setdefault to avoid repeated calls to
-            # TagSummary.
-            try:
-                tag_summary = summarized[tag]
-            except KeyError:
-                summarized[tag] = tag_summary = TagSummary()
-            tag_summary.add(val, step)
-        return summarized
 
     def _del_scalars(self, run_id, prefix):
         self._db.execute(
@@ -237,10 +225,10 @@ class ScalarReader:
     def _read_col_index(self, qual, step):
         try:
             return self._col_index_map[(qual or "last", step)]
-        except KeyError as e:
+        except KeyError:
             raise ValueError(
                 f"unsupported scalar type qual={qual!r} step={step}"
-            ) from e
+            ) from None
 
     def iter_scalars(self, run):
         cur = self._db.execute(
@@ -253,6 +241,26 @@ class ScalarReader:
         )
         for row in cur.fetchall():
             yield {col[0]: row[i] for i, col in enumerate(cur.description)}
+
+
+def _scalar_prefix(scalars_path, root):
+    rel_path = os.path.relpath(scalars_path, root)
+    if rel_path == ".":
+        return ""
+    return rel_path.replace(os.sep, "/")
+
+
+def _summarize_scalars(scalars):
+    summarized = {}
+    for tag, val, step in scalars:
+        # Don't use dict.setdefault to avoid repeated calls to
+        # TagSummary.
+        try:
+            tag_summary = summarized[tag]
+        except KeyError:
+            summarized[tag] = tag_summary = TagSummary()
+        tag_summary.add(val, step)
+    return summarized
 
 
 class TagSummary:
@@ -313,55 +321,11 @@ class RunIndex:
         db_path = self._db_path()
         util.ensure_dir(os.path.dirname(db_path))
         db = sqlite3.connect(db_path)
-        self._init_tables(db)
+        _init_run_index_tables(db)
         return db
 
     def _db_path(self):
         return os.path.join(self.path, DB_NAME)
-
-    @staticmethod
-    def _init_tables(db):
-        db.execute(
-            """
-          CREATE TABLE IF NOT EXISTS scalar (
-            run,
-            prefix,
-            tag,
-            first_val,
-            first_step,
-            last_val,
-            last_step,
-            min_val,
-            min_step,
-            max_val,
-            max_step,
-            avg_val,
-            total,
-            count
-          )
-        """
-        )
-        db.execute(
-            """
-          CREATE INDEX IF NOT EXISTS scalar_i
-          ON scalar (run, prefix, tag)
-        """
-        )
-        db.execute(
-            """
-          CREATE TABLE IF NOT EXISTS scalar_source (
-            run,
-            prefix,
-            path_digest
-          )
-        """
-        )
-        db.execute(
-            """
-          CREATE UNIQUE INDEX IF NOT EXISTS scalar_source_pk
-          ON scalar_source (run, prefix)
-        """
-        )
 
     def refresh(self, runs, types=None):
         """Refreshes the index for the specified runs.
@@ -391,6 +355,50 @@ class RunIndex:
 
     def run_scalars(self, run):
         return list(self._scalar_reader.iter_scalars(run))
+
+
+def _init_run_index_tables(db):
+    db.execute(
+        """
+      CREATE TABLE IF NOT EXISTS scalar (
+        run,
+        prefix,
+        tag,
+        first_val,
+        first_step,
+        last_val,
+        last_step,
+        min_val,
+        min_step,
+        max_val,
+        max_step,
+        avg_val,
+        total,
+        count
+      )
+    """
+    )
+    db.execute(
+        """
+      CREATE INDEX IF NOT EXISTS scalar_i
+      ON scalar (run, prefix, tag)
+    """
+    )
+    db.execute(
+        """
+      CREATE TABLE IF NOT EXISTS scalar_source (
+        run,
+        prefix,
+        path_digest
+      )
+    """
+    )
+    db.execute(
+        """
+      CREATE UNIQUE INDEX IF NOT EXISTS scalar_source_pk
+      ON scalar_source (run, prefix)
+    """
+    )
 
 
 def iter_run_scalars(run):

@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
-
 from guild import _lex
 from guild import _yacc
 from guild import yaml_util
@@ -120,7 +118,7 @@ def t_ID(t):
 
 
 def t_NUMBER(t):
-    r"-?\d+(\.\d+)?(e(\+|-)?(\d+))?"
+    r"-?\.?\d+(\.\d+)?(e(\+|-)?(\d+))?"
     t.value = yaml_util.decode_yaml(t.value)
     return t
 
@@ -342,17 +340,33 @@ class RunTest:
     def __call__(self, run):
         run_val = _get_run_val(run, self.run_valref)
         target_val = self.target_expr(run)
-        return self.cmp(run_val, target_val)
+        try:
+            return self.cmp(run_val, target_val)
+        except TypeError:
+            return False
 
 
 def _get_run_val(run, valref):
     if valref.startswith("attr:"):
-        return run.attrs.get(valref[5:])
+        return run.get_attr(valref[5:])
     if valref.startswith("flag:"):
-        return run.flags.get(valref[5:])
+        return run.get_flag(valref[5:])
     if valref.startswith("scalar:"):
-        return run.scalars.get(valref[7:])
-    return run.attrs.get(valref) or run.flags.get(valref) or run.scalars.get(valref)
+        return _get_scalar_val(run, valref[7:])
+    # Order of precedence: attr, flag, scalar
+    attr = run.get_attr(valref)
+    if attr is not None:
+        return attr
+    flag = run.get_flag(valref)
+    if flag is not None:
+        return flag
+    return _get_scalar_val(run, valref)
+
+
+def _get_scalar_val(run, scalar_spec):
+    """Only last scalar value is supported by filter."""
+    scalar = run.get_scalar(scalar_spec)
+    return scalar.get("last_val") if scalar else None
 
 
 class In:
@@ -454,6 +468,25 @@ class Contains:
 # =================================================================
 
 
+class FilterRun:
+    def get_attr(self, name):
+        """Returns attr value or None if attr doesn't exist."""
+        raise NotImplementedError()
+
+    def get_flag(self, name):
+        """Returns flag value for a run or None if flag is not defined."""
+        raise NotImplementedError()
+
+    def get_scalar(self, key):
+        """Returns scalar as dict or None if the scalar key doesn't exist.
+
+        Dict is expected to contain a value for 'last_val' entry. This
+        filter scheme currently only supports scalar filtering using
+        the last value.
+        """
+        raise NotImplementedError()
+
+
 class parser:
     def __init__(self, debug=False):
         self._l = lexer()
@@ -462,28 +495,3 @@ class parser:
     def parse(self, s):
         self._l.lineno = 1
         return self._p.parse(s, self._l)
-
-
-class FilterRun:
-    def __init__(self, attrs, flags, scalars):
-        self.attrs = attrs
-        self.flags = flags
-        self.scalars = scalars
-
-
-def runs_filter(expr):
-    # TODO!
-
-    if expr == "*":
-        return lambda run: run
-    return lambda run: _filter(run, expr)
-
-
-def _filter(run, pattern):
-    m = re.match(r"(.+?)=(.+)", pattern)
-    if not m:
-        return False
-    flag_name, flag_val_str = m.groups()
-    flag_val = yaml_util.decode_yaml(flag_val_str)
-    actual_val = run.get("flags", {}).get(flag_name)
-    return actual_val == flag_val

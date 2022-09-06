@@ -30,6 +30,9 @@ demonstrate the expected behavior of the lexer and parsing APIs.
     >>> tokenize("1.23")
     LexToken(NUMBER,1.23,1,0)
 
+    >>> tokenize(".23")
+    LexToken(NUMBER,0.23,1,0)
+
     >>> tokenize("=")
     LexToken(EQ,'=',1,0)
 
@@ -293,28 +296,43 @@ test a run. The function returns True if the run is accepted
 
 ### Run tests
 
-Test run:
+Provide an implemented of `filter.FilterRun`.
 
-    >>> run = filter.FilterRun(
-    ...     attrs={
+    >>> class FilterRun:
+    ...     attrs = {
     ...         "id": "abcd1234",
     ...         "started": 1661354455107621,
     ...         "label": "hello world a=1",
     ...         "l": [1, "two", 3.0]
-    ...     },
-    ...     flags={
+    ...     }
+    ...     flags = {
     ...         "a": 1,
     ...         "b": 1.2,
     ...         "c": "red",
     ...         "d": True,
     ...         "id": "4321dcba"
-    ...     },
-    ...     scalars={
+    ...     }
+    ...     scalars = {
     ...         "x": 0.456,
     ...         "y": 1.123,
     ...         "b": 1.3
     ...     }
-    ... )
+    ...
+    ...     def get_attr(self, name):
+    ...         return self.attrs.get(name)
+    ...
+    ...     def get_flag(self, name):
+    ...         return self.flags.get(name)
+    ...
+    ...     def get_scalar(self, key):
+    ...         try:
+    ...             return {"last_val": self.scalars[key]}
+    ...         except KeyError:
+    ...             return None
+
+Test run:
+
+    >>> run = FilterRun()
 
 #### Numeric comparison
 
