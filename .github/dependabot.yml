@@ -1,0 +1,20 @@
+# Basic dependabot.yml file with
+# minimum configuration for two package managers
+
+version: 2
+updates:
+  # npm is for guild view, which is effectively unmaintained. Disable these updates for now.
+  # - package-ecosystem: "npm"
+  #   directory: "/guild/view/"
+  #   schedule:
+  #     interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/guild/tests"
+    schedule:
+      interval: "weekly"
