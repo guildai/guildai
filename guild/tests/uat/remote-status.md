@@ -22,12 +22,10 @@ Delete remote and local runs prior to running tests.
 
     >>> quiet("guild runs rm -r guild-uat -y")
     >>> run("guild runs -r guild-uat")
-    <BLANKLINE>
     <exit 0>
 
     >>> quiet("guild runs rm -y")
     >>> run("guild runs")
-    <BLANKLINE>
     <exit 0>
 
 ## Completed
@@ -44,7 +42,6 @@ Complete is indicated by an absence of `LOCK.remote` or
 There are no lock markers:
 
     >>> run("guild ls -nap 'LOCK*'")
-    <BLANKLINE>
     <exit 0>
 
 The exit status is `0`, which indicates a success.
@@ -221,7 +218,6 @@ The remote `LOCK` file still exists, even though the process terminated.
 The remote exit status attribute is not written.
 
     >>> run("guild ls -nap .guild/attrs/exit_status -r guild-uat")
-    <BLANKLINE>
     <exit 0>
 
 Copy the runs from the remote.
@@ -239,5 +235,4 @@ Copy the runs from the remote.
 Remote runs do not copy `LOCK` files.
 
     >>> run("guild ls -np '.guild/LOCK*'")
-    <BLANKLINE>
     <exit 0>

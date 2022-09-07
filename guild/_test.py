@@ -1082,7 +1082,8 @@ def _run(
         out = _cut_cols(out, cut)
     if _capture:
         return out, exit_code
-    print(out)
+    if out:
+        print(out)
     print(f"<exit {exit_code}>")
     return None
 

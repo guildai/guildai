@@ -27,7 +27,6 @@ Verify the ops:
 Run the default:
 
     >>> run("guild run default -y")
-    <BLANKLINE>
     <exit 0>
 
     >>> run("guild cat -p .guild/attrs/pip_freeze")
@@ -37,7 +36,6 @@ Run the default:
 And the op with disabled pip freeze:
 
     >>> run("guild run no-pip-freeze -y")
-    <BLANKLINE>
     <exit 0>
 
     >>> run("guild cat -p .guild/attrs/pip_freeze")

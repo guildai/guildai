@@ -29,7 +29,6 @@ Let's use a simple project with an operation dependency as an example.
 Verify that there are no runs to satisfy downstream requirements:
 
     >>> run("guild runs -r guild-uat")
-    <BLANKLINE>
     <exit 0>
 
 Run the downstream op without an upstream op, which is required:

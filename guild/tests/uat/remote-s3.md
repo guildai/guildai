@@ -138,7 +138,6 @@ Delete local runs:
     <exit 0>
 
     >>> run("guild runs")
-    <BLANKLINE>
     <exit 0>
 
 Pull remote runs prompt:

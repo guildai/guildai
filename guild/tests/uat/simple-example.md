@@ -37,7 +37,6 @@ list. This is because we don't present anonymous models to the user -
 anonymous models merely make operations available.
 
     >>> run("guild models")
-    <BLANKLINE>
     <exit 0>
 
 However, we do see the operations:

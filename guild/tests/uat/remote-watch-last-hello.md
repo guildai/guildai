@@ -7,7 +7,6 @@ operation.
 First, list any running ops:
 
     >>> run("guild runs --running --remote guild-uat")
-    <BLANKLINE>
     <exit 0>
 
 And then try to watch an operation:
