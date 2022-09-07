@@ -9,7 +9,6 @@ from guild import config
 from guild import guildfile
 from guild import model as modellib
 from guild import plugin as pluginlib
-from guild import util
 from guild import cli
 
 
@@ -35,8 +34,6 @@ class RScriptModelProxy:
 
     def _init_modeldef(self):
         op_data = get_script_guild_data(os.path.relpath(self.script_path))
-        import debugpy; debugpy.breakpoint()
-        # data =
         data = [
             {
                 "model": self.name,
@@ -44,9 +41,11 @@ class RScriptModelProxy:
             }
         ]
 
-        # gf = guildfile.Guildfile(data, dir=os.path.dirname(self.script_path))
         gf = guildfile.Guildfile(data, dir=os.getcwd())
-        # TODO: instead of using os.getcwd(), consider here::here() or similar
+        # TODO: instead of using dir=os.getcwd(), consider
+        #   - here::here(), or
+        #   - os.path.dirname(self.script_path)
+        #   - or similar
         return gf.models[self.name]
 
 
