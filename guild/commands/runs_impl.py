@@ -471,6 +471,7 @@ def _check_list_runs_args(args, ctx):
             ("comments", "json"),
             ("json", "verbose"),
             ("archive", "deleted"),
+            ("all", "limit"),
         ],
         args,
         ctx,
@@ -554,8 +555,6 @@ def _list_runs_(runs, args):
 
 def _limit_runs(runs, args):
     if args.all:
-        if args.limit is not None:
-            cli.error("--all and --limit cannot both be used")
         return runs
     if args.limit and args.limit > 0:
         return runs[: args.limit]
