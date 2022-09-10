@@ -25,7 +25,7 @@ in `PKG_INFO/entry_points.txt` where `PKG_INFO` is the location of the
 `guild` package. Other packages can advertise Guild entry points in
 their own distributions in the same way.
 
-    >>> pprint(guild_entry_points("guild.plugins"))
+    >>> pprint(guild_entry_points("guild.plugins"))  # doctest: +REPORT_UDIFF
     [EntryPoint.parse('config_flags = guild.plugins.config_flags:ConfigFlagsPlugin'),
      EntryPoint.parse('cpu = guild.plugins.cpu:CPUPlugin'),
      EntryPoint.parse('dask = guild.plugins.dask:DaskPlugin'),
@@ -39,4 +39,5 @@ their own distributions in the same way.
      EntryPoint.parse('perf = guild.plugins.perf:PerfPlugin'),
      EntryPoint.parse('python_script = guild.plugins.python_script:PythonScriptPlugin'),
      EntryPoint.parse('queue = guild.plugins.queue:QueuePlugin'),
+     EntryPoint.parse('r_script = guild.plugins.r_script:RScriptPlugin'),
      EntryPoint.parse('skopt = guild.plugins.skopt:SkoptPlugin')]

@@ -77,6 +77,7 @@ Files that are the same:
      '.guild/opref',
      '.guild/output',
      '.guild/sourcecode/batch_fail.py',
+     '.guild/sourcecode/dummy.r',
      '.guild/sourcecode/echo.py',
      '.guild/sourcecode/echo2.py',
      '.guild/sourcecode/fail.py',
