@@ -52,6 +52,7 @@ Here's a function we can use to filter and print runs for a specified
 filter expression.
 
     >>> def filter(expr, sort=None, base_filter=None, **print_kw):
+    ...     sort = sort or ["-timestamp"]
     ...     runs = filtered_runs(
     ...         expr,
     ...         root=runs_root,
