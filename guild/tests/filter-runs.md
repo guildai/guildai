@@ -21,7 +21,7 @@ directory.
 Here's the default list of runs for the sample root:
 
     >>> from guild import var
-    >>> runs = var.runs(runs_root)
+    >>> runs = var.runs(runs_root, sort=["-timestamp"])
     >>> runs
     [<guild.run.Run 'e394b696ea204ade95ca29e4b868fdf9'>,
      <guild.run.Run 'a5520d132b4148a5bad3c4f795b7c362'>,
