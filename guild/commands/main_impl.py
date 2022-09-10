@@ -23,6 +23,7 @@ from guild import util
 
 def main(args):
     _init_logging(args)
+    _maybe_debug_listen(args)
     config.set_cwd(_cwd(args))
     config.set_guild_home(_guild_home(args))
     _apply_guild_patch()
@@ -33,6 +34,36 @@ def _init_logging(args):
     log_level = args.log_level or logging.INFO
     log.init_logging(log_level)
     log.disable_noisy_loggers(log_level)
+
+
+def _maybe_debug_listen(args):
+    if args.debug_listen:
+        _debug_listen(args)
+
+
+def _debug_listen(args):
+    import debugpy
+
+    log = logging.getLogger("guild")
+    debugpy.listen(_debug_listen_endpoint(args.debug_listen))
+    log.info(f"Debug server listerning on {args.debug_listen}")
+    log.info("Waiting for debug client")
+    debugpy.wait_for_client()
+    log.info("Debug client connected, resuming")
+
+
+def _debug_listen_endpoint(s):
+    parts = s.split(":", 1)
+    if len(parts) == 2:
+        return (parts[0], _debug_endpoint_port(parts[1]))
+    return ("127.0.0.1", _debug_endpoint_port(parts[0]))
+
+
+def _debug_endpoint_port(s):
+    try:
+        return int(s)
+    except ValueError:
+        raise SystemExit(f"invalid value for debug listen PORT {s!r}") from None
 
 
 def _cwd(args):

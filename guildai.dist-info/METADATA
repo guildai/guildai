@@ -36,6 +36,7 @@ Requires-Dist: Werkzeug>=0.15
 Requires-Dist: chardet>=3.0.4
 Requires-Dist: click>=8
 Requires-Dist: daemonize>=2.4.7
+Requires-Dist: debugpy
 Requires-Dist: filelock>=3.0.12
 Requires-Dist: importlib-metadata;python_version<"3.8"
 Requires-Dist: jinja2>=3.0.3
