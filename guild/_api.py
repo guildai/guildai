@@ -270,6 +270,7 @@ def runs_list(all=False, deleted=False, cwd=".", guild_home=None, limit=None, **
 
 
 def _apply_runs_filters(kw, args):
+    args.filter_expr = kw.pop("expr", None)
     args.filter_ops = kw.pop("ops", [])
     args.filter_labels = kw.pop("labels", [])
     args.filter_tags = kw.pop("tags", [])

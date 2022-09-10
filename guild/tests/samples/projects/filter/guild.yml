@@ -1,4 +1,9 @@
+- config: defaults
+  operation-defaults:
+    pip-freeze: no
+
 - model: ''
+  extends: defaults
   operations:
     train:
       flags-import: no
@@ -9,7 +14,10 @@
         loss: 'loss: (\value)'
       pip-freeze: no
 
+    fail: {}
+
 - model: util
+  extends: defaults
   operations:
     test:
       flags-import: no
@@ -18,3 +26,21 @@
           select: .guild
           target-path: target
           name: target
+
+- model: fixed
+  extends: defaults
+  operations:
+    train:
+      main: train_fixed
+      flags-import: all
+      flags:
+        seed: 1
+
+    test:
+      main: test_fixed
+      flags-import: all
+      requires:
+        - operation: train
+          warn-if-empty: no
+      flags:
+        seed: 1

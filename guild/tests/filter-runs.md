@@ -63,6 +63,26 @@ filter expression.
     ...     else:
     ...         print("<empty>")
 
+### Empty filter expressions
+
+If a filter is unspecified, the behavior of
+`guild.filter_util.filtered_runs()` is identical to that of
+`guild.var.runs()`.
+
+    >>> filter(None)
+    util:test  e394b696
+    util:test  a5520d13
+    train      2dc1529b
+    train      79ca9e64
+    train      fe83a924
+
+    >>> filter("")
+    util:test  e394b696
+    util:test  a5520d13
+    train      2dc1529b
+    train      79ca9e64
+    train      fe83a924
+
 ### Terms
 
 While not related to runs, the filter expression language supports
@@ -146,7 +166,37 @@ evaluation using boolean, numeric, and text terms.
     train  79ca9e64  noise=0.1 x=0.1
     train  fe83a924  noise=0.1 x=-1.0
 
+    >>> filter("op = train and x in [1.1,0.1,0.2]", flags=True)
+    train  2dc1529b  noise=0.1 x=1.1
+    train  79ca9e64  noise=0.1 x=0.1
+
+    >>> filter("op = train and x not in [1.1,0.1,0.2]", flags=True)
+    train  fe83a924  noise=0.1 x=-1.0
+
 ### Run scalars
+
+    >>> filter("loss >= 0.5", scalars=True)
+    util:test  e394b696  loss=0.52803
+    train      fe83a924  loss=0.52803
+
+    >>> filter("flag:x is undefined", flags=True)
+    util:test  e394b696  target=fe83a924ae144693a72b420962a7d9d1
+    util:test  a5520d13  target=2dc1529ba06c46fda486395a61475dbe
+
+    >>> filter("flag:x is not undefined", flags=True)
+    train  2dc1529b  noise=0.1 x=1.1
+    train  79ca9e64  noise=0.1 x=0.1
+    train  fe83a924  noise=0.1 x=-1.0
+
+    >>> filter("flag:xxx is undefined", flags=True)
+    util:test  e394b696  target=fe83a924ae144693a72b420962a7d9d1
+    util:test  a5520d13  target=2dc1529ba06c46fda486395a61475dbe
+    train      2dc1529b  noise=0.1 x=1.1
+    train      79ca9e64  noise=0.1 x=0.1
+    train      fe83a924  noise=0.1 x=-1.0
+
+    >>> filter("flag:xxx is not undefined", flags=True)
+    <empty>
 
 ### Multi-type filters
 
@@ -181,6 +231,18 @@ Filter runs by loss:
     util:test  e394b696  loss=0.52803
     train      fe83a924  loss=0.52803
 
+Note that `loss` is a valid scalar tag in both `train` and `util:test`
+operations. We can limit the result by specifying the operation we
+want to filter on.
+
+    >>> filter("loss > 0.5 and op = train", scalars=True)
+    train  fe83a924  loss=0.52803
+
+We can also include the scalar prefix associated with the test loss
+('target/.guild') to filter by the whole scalar key.
+
+    >>> filter("target/.guild#loss > 0.5", scalars=True)
+    util:test  e394b696  loss=0.52803
 
 ### No match filters
 
@@ -192,10 +254,6 @@ Non existing run values:
 ## Invalid filter rsyntax
 
 Syntax errors propogate as exceptions.
-
-    >>> filter("")
-    Traceback (most recent call last):
-    SyntaxError: Syntax error at EOF
 
     >>> filter("and id = foo")
     Traceback (most recent call last):

@@ -605,6 +605,7 @@ def _filtered_runs_filter_opts(**filters):
 
 
 def _filter_and_status_args(
+    filter_expr,
     filter_comments,
     filter_digest,
     filter_labels,
@@ -623,6 +624,7 @@ def _filter_and_status_args(
     status_chars,
 ):
     filter_args = _filter_args(
+        filter_expr,
         filter_comments,
         filter_digest,
         filter_labels,
@@ -646,6 +648,7 @@ def _filter_and_status_args(
 
 
 def _filter_args(
+    filter_expr,
     filter_comments,
     filter_digest,
     filter_labels,
@@ -657,6 +660,8 @@ def _filter_args(
     filter_unmarked,
 ):
     args = []
+    if filter_expr:
+        args.extend(["--filter", filter_expr])
     for val in filter_comments:
         args.extend(["--comment", val])
     if filter_digest:

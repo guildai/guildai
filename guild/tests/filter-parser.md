@@ -596,7 +596,7 @@ Some sample syntax errors:
 
     >>> parse("'")
     Traceback (most recent call last):
-    SyntaxError: Syntax error at EOF
+    SyntaxError: Syntax error at line 1, pos 0: unexpected character '''
 
     >>> parse("a == 123")
     Traceback (most recent call last):

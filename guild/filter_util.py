@@ -61,9 +61,11 @@ def filtered_runs(
     force_root=False,
     index=None,
 ):
+    runs = var.runs(root=root, sort=sort, filter=base_filter, force_root=force_root)
+    if not filter:
+        return runs
     if isinstance(filter, str):
         filter = filterlib.parser().parse(filter)
-    runs = var.runs(root=root, sort=sort, filter=base_filter, force_root=force_root)
     index = index or indexlib.RunIndex()
     index.refresh(runs, _index_refresh_types(filter))
     return [run for run in runs if _filter_run(filter, run, index)]

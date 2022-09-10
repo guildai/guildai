@@ -200,6 +200,61 @@ def common_filters(fn):
     Use `--unmarked` to only include unmarked runs. This option may
     not be used with `--marked`.
 
+    ### Filter by Expression
+
+    Use `--filter` to limit runs that match a filter
+    expressions. Filter expressions compare run attributes, flag
+    values, or scalars to target values. They may include multiple
+    expressions with logical operators.
+
+    For example, to match runs with flag `batch-size` equal to 100
+    that have `loss` less than 0.8, use:
+
+        --filter 'batch-size = 10 and loss < 0.8'
+
+    **IMPORTANT:** You must quote EXPR if it contains spaces or
+    characters that the shell uses (e.g. '<' or '>').
+
+    Target values may be numbers, strings or lists containing numbers
+    and strings. Strings that contain spaces must be quoted, otherwise
+    a target string values does not require quotes. Lists are defined
+    using square braces where each item is separated by a comma.
+
+    Comparisons may use the following operators: '=', '!=' (or '<>'),
+    '<', '<=', '>', '>='. Text comparisons may use 'contains' to test
+    for case-insensitive string membership. A value may be tested for
+    membership or not in a list using 'in' or 'not in'
+    respectively. An value may be tested for undefined using 'is
+    undefined' or defined using 'is not undefined'.
+
+    Logical operators include 'or' and 'and'. An expression may be
+    negated by preceding it with 'not'. Parentheses may be used to
+    control the order of precedence when expressions are evaluated.
+
+    If a value reference matches more than one type of run information
+    (e.g. a flag is named 'label', which is also a run attribute), the
+    value is read in order of run attribute, then flag value, then
+    scalar. To disambiguate the reference, use a prefix `attr:`,
+    `flag:`, or `scalar:` as needed. For example, to filter using a
+    flag value named 'label', use 'flag:label'.
+
+    Other examples:
+
+      \b
+      `operation = train and acc > 0.9`
+      `operation = train and (acc > 0.9 or loss < 0.3)`
+      `batch-size = 100 or batch-size = 200`
+      `batch-size in [100,200]`
+      `batch-size not in [400,800]`
+      `batch-size is undefined`
+      `batch-size is not undefined`
+      `label contains best and operation not in [test,deploy]`
+      `status in [error,terminated]`
+
+    **NOTE:** Comments and tags are not supported in filter
+    expressions at this time. Use `--comment` and `--tag` options
+    along with filter expressions to further refine a selection.
+
     ### Filter by Run Start Time
 
     Use `--started` to limit runs to those that have started within a
@@ -258,6 +313,14 @@ def common_filters(fn):
     click_util.append_params(
         fn,
         [
+            click.Option(
+                ("-F", "--filter", "filter_expr"),
+                metavar="EXPR",
+                help=(
+                    "Filter runs using a filter expression. See Filter by "
+                    "Expression above for details.."
+                ),
+            ),
             click.Option(
                 ("-Fo", "--operation", "filter_ops"),
                 metavar="VAL",

@@ -138,8 +138,10 @@ def t_newline(t):
 
 
 def t_error(t):
-    print(f"Illegal character '{t.value[0]}'")
-    t.lexer.skip(1)
+    raise SyntaxError(
+        f"Syntax error at line {t.lineno}, pos "
+        f"{t.lexpos}: unexpected character '{t.value[0]}'"
+    )
 
 
 def lexer():

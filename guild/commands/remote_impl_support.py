@@ -75,6 +75,7 @@ def _filter_and_status_names():
 
 def _filter_names():
     return [
+        "filter_expr",
         "filter_comments",
         "filter_digest",
         "filter_labels",
