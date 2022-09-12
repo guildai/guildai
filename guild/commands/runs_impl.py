@@ -19,6 +19,7 @@ import json
 import logging
 import os
 import re
+import typing
 
 # IMPORTANT: Keep expensive imports out of this list. This module is
 # used by several commands and any latency here will be automatically
@@ -31,6 +32,7 @@ from guild import cli
 from guild import cmd_impl_support
 from guild import config
 from guild import exit_code
+from guild import filter_util
 from guild import flag_util
 from guild import op_util
 from guild import remote_run_support
@@ -126,11 +128,32 @@ def runs_for_args(args, ctx=None):
 def filtered_runs(args, ctx=None):
     if getattr(args, "remote", None):
         return remote_impl_support.filtered_runs(args)
-    return var.runs(
-        _runs_root_for_args(args),
-        sort=["-timestamp"],
-        filter=_runs_filter(args, ctx),
-    )
+    try:
+        return filter_util.filtered_runs(
+            args.filter_expr,
+            root=_runs_root_for_args(args),
+            sort=["-timestamp"],
+            base_filter=_runs_filter(args, ctx),
+        )
+    except SyntaxError as e:
+        _filter_syntax_error(e)
+
+
+def _filter_syntax_error(e) -> typing.NoReturn:
+    e = str(e)
+    m = re.search(r"line (\d+), pos (\d+): (.*)", e)
+    if not m:
+        if e == "Syntax error at EOF":
+            cli.error("syntax error in filter - unexpected end of expresion")
+        else:
+            cli.error(f"invalid filter expression: {e}")
+    elif m.group(1) == "1":
+        cli.error("syntax error in filter at position " f"{m.group(2)}: {m.group(3)}")
+    else:
+        cli.error(
+            f"syntax error in filter on line {m.group(1)}, "
+            f"position {m.group(2)}: {m.group(3)}"
+        )
 
 
 def _runs_root_for_args(args):
@@ -448,6 +471,7 @@ def _check_list_runs_args(args, ctx):
             ("comments", "json"),
             ("json", "verbose"),
             ("archive", "deleted"),
+            ("all", "limit"),
         ],
         args,
         ctx,
@@ -531,8 +555,6 @@ def _list_runs_(runs, args):
 
 def _limit_runs(runs, args):
     if args.all:
-        if args.limit is not None:
-            cli.error("--all and --limit cannot both be used")
         return runs
     if args.limit and args.limit > 0:
         return runs[: args.limit]

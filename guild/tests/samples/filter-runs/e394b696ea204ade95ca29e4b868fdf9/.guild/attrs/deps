@@ -1,0 +1,6 @@
+target:
+  target:
+    config: fe83a924ae144693a72b420962a7d9d1
+    paths:
+    - ../fe83a924ae144693a72b420962a7d9d1/.guild
+    uri: operation:.*

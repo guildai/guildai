@@ -103,6 +103,7 @@ jobs:
         env:
           EXAMPLES: examples
           GUILD_START_THRESHOLD: 1.0
+          DASK_SPEEDUP_THRESHOLD: 0
           UAT_SKIP: remote-*,hiplot-*
           WORKSPACE: /tmp/guild-uat
         run: |

@@ -156,6 +156,7 @@ def init_trial_run(batch_run, trial_flag_vals, run_dir=None):
         proto_run
     ), f"proto_run not initialized for batch {batch_run.id} ({batch_run.dir})"
     util.copytree(proto_run.dir, run.dir)
+    run.write_attr("id", run.id)
     run.write_attr("flags", trial_flag_vals)
     run.write_attr("label", _trial_label(proto_run, trial_flag_vals))
     run.write_attr("op", _trial_op_attr(proto_run, trial_flag_vals))

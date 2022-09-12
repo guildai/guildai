@@ -1,0 +1,32 @@
+delete-on-success: false
+deps:
+- config: fe83a924ae144693a72b420962a7d9d1
+  location: /home/garrett/Code/guild/guild/tests/samples/projects/filter
+  name: target
+  sources:
+  - name: target
+    operation: .*
+    select: .guild
+    target-path: target
+flag-null-labels:
+  target: unspecified
+flags-extra: {}
+label-template: null
+op-cmd:
+  cmd-args:
+  - ${python_exe}
+  - -um
+  - guild.op_main
+  - test
+  - --
+  - __flag_args__
+  cmd-env:
+    GUILD_PLUGINS: ''
+    PROJECT_DIR: ''
+  cmd-flags:
+    target:
+      arg-skip: true
+  flags-dest: args
+output-scalars: null
+python-requires: null
+sourcecode-root: .guild/sourcecode

@@ -21,7 +21,6 @@ Default scalars captured when running `train.py` as a script:
     step: 2
     loss: 1.234
     accuracy: 0.456
-    <BLANKLINE>
     <exit 0>
 
     >>> run("guild runs info")

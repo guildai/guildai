@@ -536,6 +536,7 @@ def _load_testfile(filename):
 
 def test_globals():
     return {
+        "_dir": _py_dir,
         "PLATFORM": PLATFORM,
         "Chdir": util.Chdir,
         "Env": util.Env,
@@ -586,6 +587,7 @@ def test_globals():
         "not_used": object(),  # an uncooperative value
         "os": os,
         "path": os.path.join,
+        "print_runs": _print_runs,
         "printl": _printl,
         "pprint": pprint.pprint,
         "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
@@ -684,6 +686,9 @@ def cat_json(*parts):
     with open(os.path.join(*parts), "r") as f:
         data = json.load(f)
         json.dump(data, sys.stdout, sort_keys=True, indent=4, separators=(",", ": "))
+
+
+_py_dir = dir
 
 
 def dir(path=".", ignore=None):
@@ -873,58 +878,29 @@ class Project:
         self,
         runs=None,
         ids=False,
+        short_ids=False,
         flags=False,
         labels=False,
         tags=False,
         status=False,
+        scalars=False,
         cwd=None,
         limit=None,
     ):
+        runs = runs if runs is not None else self.list_runs(limit=limit)
         cwd = os.path.join(self.cwd, cwd) if cwd else self.cwd
-        if runs is None:
-            runs = self.list_runs(limit=limit)
-        cols = self._cols_for_print_runs(ids, flags, labels, tags, status)
-        rows = []
-        with util.Chdir(cwd):
-            for run in runs:
-                rows.append(
-                    self._row_for_print_run(run, ids, flags, labels, tags, status)
-                )
-        cli.table(rows, cols)
-
-    @staticmethod
-    def _cols_for_print_runs(ids, flags, labels, tags, status):
-        cols = ["opspec"]
-        if ids:
-            cols.append("id")
-        if flags:
-            cols.append("flags")
-        if labels:
-            cols.append("label")
-        if tags:
-            cols.append("tags")
-        if status:
-            cols.append("status")
-        return cols
-
-    @staticmethod
-    def _row_for_print_run(run, ids, flags, labels, tags, status):
-        from guild.commands import runs_impl
-
-        fmt_run = runs_impl.format_run(run)
-        row = {"opspec": fmt_run["op_desc"]}
-        if ids:
-            row["id"] = run.id
-        if flags:
-            flag_vals = run.get("flags") or {}
-            row["flags"] = op_util.flags_desc(flag_vals, delim=" ")
-        if labels:
-            row["label"] = run.get("label")
-        if tags:
-            row["tags"] = " ".join(sorted(run.get("tags") or []))
-        if status:
-            row["status"] = run.status
-        return row
+        with util.Chdir(cwd):  # cwd used to format labels
+            _print_runs(
+                runs,
+                ids=ids,
+                short_ids=short_ids,
+                flags=flags,
+                labels=labels,
+                tags=tags,
+                status=status,
+                scalars=scalars,
+                index=self.index,
+            )
 
     def delete_runs(self, runs=None, **kw):
         with PrintStderr():
@@ -1106,7 +1082,8 @@ def _run(
         out = _cut_cols(out, cut)
     if _capture:
         return out, exit_code
-    print(out)
+    if out:
+        print(out)
     print(f"<exit {exit_code}>")
     return None
 
@@ -1298,3 +1275,110 @@ def _compare_dirs(d1, d2):
     with util.StdoutCapture() as out:
         filecmp.dircmp(d1_link, d2_link).report_full_closure()
     print(out.get_value().replace(cmp_dir, ""), end="")
+
+
+def _print_runs(
+    runs,
+    ids=False,
+    short_ids=False,
+    flags=False,
+    labels=False,
+    tags=False,
+    status=False,
+    scalars=False,
+    index=None,
+):
+    index = index or _index_for_print_runs(scalars)
+    if scalars:
+        assert index
+        index.refresh(runs, ["scalar"])
+
+    cols = _cols_for_print_runs(ids, short_ids, flags, labels, tags, status, scalars)
+    rows = []
+
+    for run in runs:
+        rows.append(
+            _row_for_print_run(
+                run,
+                ids,
+                short_ids,
+                flags,
+                labels,
+                tags,
+                status,
+                scalars,
+                index,
+            )
+        )
+    cli.table(rows, cols)
+
+
+def _index_for_print_runs(scalars):
+    if not scalars:
+        return None
+
+    from guild import index as indexlib
+
+    return indexlib.RunIndex()
+
+
+def _cols_for_print_runs(ids, short_ids, flags, labels, tags, status, scalars):
+    cols = ["opspec"]
+    if ids:
+        cols.append("id")
+    if short_ids:
+        cols.append("short_id")
+    if flags:
+        cols.append("flags")
+    if labels:
+        cols.append("label")
+    if tags:
+        cols.append("tags")
+    if status:
+        cols.append("status")
+    if scalars:
+        cols.append("scalars")
+    return cols
+
+
+def _row_for_print_run(
+    run,
+    ids,
+    short_ids,
+    flags,
+    labels,
+    tags,
+    status,
+    scalars,
+    index,
+):
+    from guild.commands import runs_impl
+
+    fmt_run = runs_impl.format_run(run)
+    row = {"opspec": fmt_run["op_desc"]}
+    if ids:
+        row["id"] = run.id
+    if short_ids:
+        row["short_id"] = run.short_id
+    if flags:
+        row["flags"] = _print_run_flags(run)
+    if labels:
+        row["label"] = run.get("label")
+    if tags:
+        row["tags"] = " ".join(sorted(run.get("tags") or []))
+    if status:
+        row["status"] = run.status
+    if scalars:
+        row["scalars"] = _print_run_scalars(run, index)
+    return row
+
+
+def _print_run_flags(run):
+    flag_vals = run.get("flags") or {}
+    return op_util.flags_desc(flag_vals, delim=" ")
+
+
+def _print_run_scalars(run, index):
+    assert index
+    scalars = index.run_scalars(run)
+    return " ".join(f"{s['tag']}={s['last_val']:.5f}" for s in scalars)

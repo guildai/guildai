@@ -101,6 +101,13 @@ def _ac_dir(_ctx, _param, incomplete):
     help="Log more information during command.",
     flag_value=logging.DEBUG,
 )
+@click.option(
+    "-D",
+    "--debug-listen",
+    metavar="[HOST:]PORT",
+    help="Run Guild with a debug server listening on the specified port.",
+    hidden=True,
+)
 @click_util.use_args
 def main(args):
     """Guild AI command line interface."""

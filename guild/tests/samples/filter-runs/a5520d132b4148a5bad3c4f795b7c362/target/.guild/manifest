@@ -1,0 +1,3 @@
+s .guild/sourcecode/guild.yml cd759c7308dbaa6c8cd351771f8728a153fa2c7c guild.yml
+s .guild/sourcecode/test.py 62f38bd0decfacb3d092cdefeaebf9a43180da35 test.py
+s .guild/sourcecode/train.py 32001b882e707290cc988043abb9b99ddee94c25 train.py

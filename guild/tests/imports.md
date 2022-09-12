@@ -156,6 +156,8 @@
     guild.exit_code
     guild.fail
     guild.file_util
+    guild.filter
+    guild.filter_util
     guild.flag_util
     guild.guildfile
     guild.guildfile_schema
@@ -207,6 +209,7 @@
     guild.plugins.pytorch_flags
     guild.plugins.queue
     guild.plugins.queue_main
+    guild.plugins.r_script
     guild.plugins.random_main
     guild.plugins.skopt
     guild.plugins.skopt_forest_main

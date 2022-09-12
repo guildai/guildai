@@ -3,7 +3,6 @@
 Here are the packages after we uninstall `gpkg.mnist`:
 
     >>> run("guild packages")
-    <BLANKLINE>
     <exit 0>
 
 Here's the list of all packages matching `mnist`:

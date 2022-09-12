@@ -511,6 +511,7 @@ def runs(**kw):
 
 def _runs_cmd_args(
     operations=None,
+    filter_expr=None,
     labels=None,
     tags=None,
     comments=None,
@@ -534,6 +535,7 @@ def _runs_cmd_args(
     tags = tags or ()
     comments = comments or ()
     return click_util.Args(
+        filter_expr=filter_expr,
         filter_ops=operations,
         filter_labels=labels,
         filter_tags=tags,

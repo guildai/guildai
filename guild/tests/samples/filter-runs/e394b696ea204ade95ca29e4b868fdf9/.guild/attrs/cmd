@@ -1,0 +1,5 @@
+- /usr/bin/python
+- -um
+- guild.op_main
+- test
+- --

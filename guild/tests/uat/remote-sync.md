@@ -88,5 +88,4 @@ When we sync again, nothing is sync'd because there are no running
 ops.
 
     >>> run("guild sync")
-    <BLANKLINE>
     <exit 0>

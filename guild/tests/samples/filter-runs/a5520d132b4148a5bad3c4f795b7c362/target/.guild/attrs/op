@@ -1,0 +1,21 @@
+delete-on-success: false
+deps: []
+flag-null-labels: {}
+flags-extra: {}
+label-template: null
+op-cmd:
+  cmd-args:
+  - ${python_exe}
+  - -um
+  - guild.op_main
+  - train
+  - --
+  - __flag_args__
+  cmd-env:
+    GUILD_PLUGINS: ''
+    PROJECT_DIR: ''
+  flags-dest: args
+output-scalars:
+- loss: 'loss: (\value)'
+python-requires: null
+sourcecode-root: .guild/sourcecode

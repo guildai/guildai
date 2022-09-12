@@ -73,5 +73,15 @@ file finishes.
 
     >>> cd("samples")
 
-    >>> dir()
-    ['config', 'opref-runs', 'packages', 'projects', ...]
+    >>> pprint(dir())  # doctest: +REPORT_UDIFF
+    ['config',
+     'filter-runs',
+     'opref-runs',
+     'packages',
+     'projects',
+     'runs',
+     'scripts',
+     'select-files',
+     'serve',
+     'templates',
+     'textorbinary']

@@ -1,6 +1,5 @@
 import os
 import os.path
-import json
 import subprocess
 import yaml
 
@@ -56,7 +55,6 @@ class RScriptPlugin(pluginlib.Plugin):
     # must be less than exec_script level of 100
 
     def resolve_model_op(self, opspec):
-        # pylint: disable=unused-argument,no-self-use
         """Return a tuple of model, op_name for opspec.
 
         If opspec cannot be resolved to a model, the function should
@@ -79,7 +77,7 @@ def normalize_path(x):
 
 
 def get_script_guild_data(r_script_path):
-    out = run_r("guildai:::emit_r_script_guild_data('%s')" % r_script_path)
+    out = run_r(f"guildai:::emit_r_script_guild_data('{r_script_path}')")
     return yaml.safe_load(out)
 
 
@@ -114,7 +112,8 @@ def ensure_guildai_r_package_installled():
         #   run_r('remotes::install_local("%s")' % path_r_pkg_src_dir)
         # or we could pull from cran directly:
         #  'utils::install.packages("guildai", repos = c(CRAN = "https://cran.rstudio.com/"))'
-        #  or install w/o the remotes, but then we'll have to resolve R dep pkgs (e.g., jsonlite) manually first
+        #  or install w/o the remotes, but then we'll have to resolve
+        #  R dep pkgs (e.g., jsonlite) manually first
         # 'utils::install.packages("%s", repos = NULL, type = "source")' % path_to_r_pkg_src
 
         return
@@ -139,7 +138,7 @@ def run_r(
 
     cmd = ["Rscript"]
     if default_packages:
-        cmd.append("--default-packages=%s" % default_packages)
+        cmd.append(f"--default-packages={default_packages}")
     if vanilla:
         cmd.append("--vanilla")
 
@@ -156,7 +155,7 @@ def run_r(
     run_kwargs.setdefault("stdout", subprocess.PIPE)
     run_kwargs.setdefault("check", True)
 
-    out = subprocess.run(cmd, **run_kwargs)
+    out = subprocess.run(cmd, check=True, **run_kwargs)
     return out.stdout.decode()
 
 

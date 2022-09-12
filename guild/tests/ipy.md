@@ -105,7 +105,7 @@ Filter with status:
     Columns: [run, operation, started, status, label]
     Index: []
 
-With operation:
+With operation and status:
 
     >>> with guild_home:
     ...     ipy.runs(operations=["hello()"], completed=True)
@@ -119,6 +119,14 @@ With operation:
     Empty RunsDataFrame
     Columns: [run, operation, started, status, label]
     Index: []
+
+With an expression:
+
+    >>> with guild_home:
+    ...     ipy.runs(filter_expr="label contains run and status = completed")
+       run   operation  started  status     label
+    0  ...   hello()    ...      completed  run3 msg=Ya n=1
+    1  ...   hello()    ...      completed  run2
 
 ## Runs info
 

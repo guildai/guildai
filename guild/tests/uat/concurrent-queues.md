@@ -89,7 +89,6 @@ At least one run will have completed and we should no longer have any
 staged runs.
 
     >>> run("guild runs --staged")
-    <BLANKLINE>
     <exit 0>
 
 Our list of runs:

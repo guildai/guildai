@@ -49,3 +49,18 @@ These tests run various hello operations remotely.
     <BLANKLINE>
     Run ... stopped with a status of 'completed'
     <exit 0>
+
+List runs using various filter on remote.
+
+    >>> run("guild runs --filter operation=hello/hello:default -r guild-uat")
+    [1:...]  hello/hello:default  ...  completed  h1
+    <exit 0>
+
+    >>> run("guild runs --filter 'op contains from' -r guild-uat")
+    [1:...]  hello/hello:from-file  ...  completed  h2 file=msg.txt
+    [2:...]  hello/hello:from-flag  ...  completed  message='Howdy Guild!'
+    <exit 0>
+
+    >>> run("guild runs --filter 'label contains howdy' -r guild-uat")
+    [1:...]  hello/hello:from-flag  ...  completed  message='Howdy Guild!'
+    <exit 0>

@@ -7,6 +7,7 @@
 chardet>=3.0.4
 click>=8
 daemonize>=2.4.7
+debugpy
 filelock>=3.0.12
 importlib-metadata;python_version<"3.8"
 jinja2>=3.0.3
@@ -15,7 +16,7 @@ numpy>=1.16
 Pillow>=5.0
 pip
 pkginfo
-protobuf<4
+protobuf<5
 psutil>=5.6.3
 pydantic
 PyYAML>=2.12

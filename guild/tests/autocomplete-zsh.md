@@ -514,11 +514,9 @@ runnable file. Guild currently supports two runnable file types:
 
 - Python files (*.py)
 - Jupyter notebooks (*.ipynb)
+- R files (*.R, *.r)
 
-Runnable files are represented by the `!!file` directive, which is
-used by the bash completion handlers to find matching files.
-
-    >>> run_ac("opspec", [])
+    >>> run_ac("opspec", [])  # doctest: +REPORT_UDIFF
     echo
     fail
     flags
@@ -532,6 +530,7 @@ used by the bash completion handlers to find matching files.
     tune-echo
     tune-echo-2
     batch_fail.py
+    dummy.r
     echo.py
     echo2.py
     fail.py
@@ -629,8 +628,9 @@ Boolean flags support 'true' and 'false'.
 
 Paths types support file name completions.
 
-    >>> run_ac("flags", ["flags"], "p=")
+    >>> run_ac("flags", ["flags"], "p=")  # doctest: +REPORT_UDIFF
     p=batch_fail.py
+    p=dummy.r
     p=echo.py
     p=echo2.py
     p=fail.py
@@ -644,8 +644,9 @@ Paths types support file name completions.
     >>> run_ac("flags", ["flags"], "p=tune-")
     p=tune-echo
 
-    >>> run_ac("flags", ["flags"], "ep=")
+    >>> run_ac("flags", ["flags"], "ep=")  # doctest: +REPORT_UDIFF
     ep=batch_fail.py
+    ep=dummy.r
     ep=echo.py
     ep=echo2.py
     ep=fail.py
