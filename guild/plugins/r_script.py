@@ -155,7 +155,7 @@ def run_r(
     run_kwargs.setdefault("stdout", subprocess.PIPE)
     run_kwargs.setdefault("check", True)
 
-    out = subprocess.run(cmd, check=True, **run_kwargs)
+    out = subprocess.run(cmd, **run_kwargs)
     return out.stdout.decode()
 
 
