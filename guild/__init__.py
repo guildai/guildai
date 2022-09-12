@@ -17,17 +17,4 @@ import os
 __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 
 
-if os.environ.get("DEBUG", "0") == "1":
-
-    import debugpy
-
-    debugpy.listen(5678)
-    print("Waiting for debugger attach")
-    debugpy.wait_for_client()
-    print("Client connected!")
-# insert breakpoints by clicking line numbers in vscode left side gutter,
-# or insert breakpoint manually:
-#   import debugpy; debugpy.breakpoint()
-
-
 from ._version import __version__
