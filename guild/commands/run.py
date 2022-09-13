@@ -22,7 +22,7 @@ from . import remote_support
 
 def _ac_opspec(_ctx, param, incomplete):
     ops = _ac_operations(param, incomplete)
-    return ops + ac_support.ac_filename(["py", "ipynb", "R", "r"], incomplete)
+    return ops + ac_support.ac_filename(["py", "ipynb", "R", "r", "qmd"], incomplete)
 
 
 def _ac_operations(_param, incomplete):
