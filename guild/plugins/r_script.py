@@ -30,6 +30,7 @@ class RScriptModelProxy:
         script_base = script_path[: -len(self.op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
         self.modeldef = self._init_modeldef()
+        _apply_config_flags(self.modeldef, self.op_name)
 
     def _init_modeldef(self):
         op_data = get_script_guild_data(os.path.relpath(self.script_path))
@@ -46,6 +47,13 @@ class RScriptModelProxy:
         #   - os.path.dirname(self.script_path)
         #   - or similar
         return gf.models[self.name]
+
+
+def _apply_config_flags(modeldef, op_name):
+    from . import config_flags
+
+    opdef = modeldef.get_operation(op_name)
+    config_flags.apply_config_flags(opdef)
 
 
 class RScriptPlugin(pluginlib.Plugin):
