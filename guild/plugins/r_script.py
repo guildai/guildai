@@ -72,10 +72,10 @@ class RScriptPlugin(pluginlib.Plugin):
             path = opspec
         else:
             path = os.path.join(config.cwd(), opspec)
-        if is_r_script(path):
-            model = RScriptModelProxy(path, opspec)
-            return model, model.op_name
-        return None
+        if not is_r_script(path):
+            return None
+        model = RScriptModelProxy(path, opspec)
+        return model, model.op_name
 
 
 def normalize_path(x):
