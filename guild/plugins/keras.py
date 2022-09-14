@@ -44,7 +44,6 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
     def resolve_model_op(self, opspec):
         path = os.path.join(config.cwd(), opspec)
         if not python_util.is_python_script(path):
-            self.log.debug("%s is not a python script", path)
             return None
         try:
             script = python_util.Script(path)
