@@ -515,6 +515,7 @@ runnable file. Guild currently supports two runnable file types:
 - Python files (*.py)
 - Jupyter notebooks (*.ipynb)
 - R files (*.R, *.r)
+- Quarto docs
 
     >>> run_ac("opspec", [])  # doctest: +REPORT_UDIFF
     echo
@@ -530,6 +531,7 @@ runnable file. Guild currently supports two runnable file types:
     tune-echo
     tune-echo-2
     batch_fail.py
+    dummy.qmd
     dummy.r
     echo.py
     echo2.py
@@ -630,6 +632,7 @@ Paths types support file name completions.
 
     >>> run_ac("flags", ["flags"], "p=")  # doctest: +REPORT_UDIFF
     p=batch_fail.py
+    p=dummy.qmd
     p=dummy.r
     p=echo.py
     p=echo2.py
@@ -646,6 +649,7 @@ Paths types support file name completions.
 
     >>> run_ac("flags", ["flags"], "ep=")  # doctest: +REPORT_UDIFF
     ep=batch_fail.py
+    ep=dummy.qmd
     ep=dummy.r
     ep=echo.py
     ep=echo2.py

@@ -38,6 +38,7 @@ their own distributions in the same way.
      EntryPoint.parse('memory = guild.plugins.memory:MemoryPlugin'),
      EntryPoint.parse('perf = guild.plugins.perf:PerfPlugin'),
      EntryPoint.parse('python_script = guild.plugins.python_script:PythonScriptPlugin'),
+     EntryPoint.parse('quarto_document = guild.plugins.quarto_document:QuartoDocumentPlugin'),
      EntryPoint.parse('queue = guild.plugins.queue:QueuePlugin'),
      EntryPoint.parse('r_script = guild.plugins.r_script:RScriptPlugin'),
      EntryPoint.parse('skopt = guild.plugins.skopt:SkoptPlugin')]

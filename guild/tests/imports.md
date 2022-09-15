@@ -207,6 +207,7 @@
     guild.plugins.perf
     guild.plugins.python_script
     guild.plugins.pytorch_flags
+    guild.plugins.quarto_document
     guild.plugins.queue
     guild.plugins.queue_main
     guild.plugins.r_script

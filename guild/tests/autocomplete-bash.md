@@ -375,6 +375,7 @@ runnable file. Guild currently supports two runnable file types:
 - Python files (*.py)
 - Jupyter notebooks (*.ipynb)
 - R files (*.R, *.r)
+- Quarto docs
 
 Runnable files are represented by the `!!file` directive, which is
 used by the bash completion handlers to find matching files.
@@ -393,7 +394,7 @@ used by the bash completion handlers to find matching files.
     poly
     tune-echo
     tune-echo-2
-    !!file:*.@(py|ipynb|R|r)
+    !!file:*.@(py|ipynb|R|r|qmd)
 
 The list includes a directive to remove the colon from COMP_WORDBREAKS
 to support proper expansion for operations that contain colons.
@@ -403,7 +404,7 @@ If we specify something for opspec, we get matching ops and scripts.
     >>> run_ac("opspec", [], "ech")
     !!no-colon-wordbreak
     echo
-    !!file:*.@(py|ipynb|R|r)
+    !!file:*.@(py|ipynb|R|r|qmd)
 
 ### Flags
 
