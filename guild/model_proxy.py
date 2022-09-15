@@ -35,6 +35,14 @@ class OpSpecError(Exception):
     pass
 
 
+class ModelProxy:
+    """Stub for a model proxy.
+
+    Plugins should be able to use this to fulfill the contract
+    `resolve_model_op` or other model related interfaces.
+    """
+
+
 class BatchModelProxy:
 
     name = ""
