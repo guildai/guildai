@@ -2,7 +2,7 @@ import numpy as np
 
 # Hyperparameters
 x = 0.1
-noise = 0.2
+noise = 0.1
 
 print("x: %f" % x)
 print("noise: %f" % noise)
