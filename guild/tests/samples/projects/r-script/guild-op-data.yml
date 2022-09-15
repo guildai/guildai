@@ -1,0 +1,17 @@
+flags:
+  noise:
+    default: 3.0
+    type: float
+  layers:
+    default: 32
+    type: int
+  name:
+    default: foo
+    type: string
+  skip_connections:
+    default: yes
+    type: bool
+flags-dest: globals
+name: simple.R
+exec: Rscript -e guildai:::'do_guild_run("simple.R", flags_dest = "globals", echo
+  = TRUE)' ${flag_args}
