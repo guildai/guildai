@@ -222,6 +222,7 @@
     guild.query.__init__
     guild.query.qlex
     guild.query.qparse
+    guild.r_util
     guild.remote
     guild.remote_run_support
     guild.remote_util

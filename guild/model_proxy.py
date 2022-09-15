@@ -113,3 +113,35 @@ def _plugins_by_resolve_model_op_priority():
     return sorted(
         pluginlib.iter_plugins(), key=lambda x: x[1].resolve_model_op_priority
     )
+
+
+def modeldef_for_data(model_name="", operations=None):
+    """Returns a ModelDef instance for model-related data.
+
+    data is provided via kw args to this function. Each kw arg
+    corresponds to a top-level attribute in a Guild file defined
+    model (e.g parsed YAML to Python objects).
+
+    For example, for a model definition in YAML:
+
+    ``` yaml
+    - model: mninst
+      operations:
+        train:
+          main: mnist_train
+    ```
+
+    To generate a `ModelDef` for the 'mnist' model defined in the
+    sample above, the call to this function should be:
+
+      >>> modeldef_for_data("mnist", operations={"main": "mnist_train"})
+
+    """
+    data = [
+        {
+            "model": model_name,
+            "operations": operations or {},
+        }
+    ]
+    gf = guildfile.Guildfile(data, src="<model-proxy>")
+    return gf.models[model_name]

@@ -4,11 +4,12 @@ import subprocess
 import yaml
 
 
-from guild import config
-from guild import guildfile
-from guild import model as modellib
-from guild import plugin as pluginlib
 from guild import cli
+from guild import config
+from guild import model as modellib
+from guild import model_proxy
+from guild import plugin as pluginlib
+from guild import r_util
 
 
 class RScriptModelProxy:
@@ -21,7 +22,7 @@ class RScriptModelProxy:
     def __init__(self, script_path, op_name):
         assert script_path[-2:].upper() == ".R", script_path
         assert script_path.endswith(op_name), (script_path, op_name)
-        ensure_guildai_r_package_installled()
+        _ensure_guildai_r_package_installled()
         self.script_path = script_path
         if os.path.isabs(op_name) or op_name.startswith(".."):
             self.op_name = os.path.basename(op_name)
@@ -29,24 +30,17 @@ class RScriptModelProxy:
             self.op_name = op_name
         script_base = script_path[: -len(self.op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
-        self.modeldef = self._init_modeldef()
+        self.modeldef = _init_modeldef(self.script_path, self.op_name, self.name)
         _apply_config_flags(self.modeldef, self.op_name)
 
-    def _init_modeldef(self):
-        op_data = get_script_guild_data(os.path.relpath(self.script_path))
-        data = [
-            {
-                "model": self.name,
-                "operations": {self.op_name: op_data},
-            }
-        ]
 
-        gf = guildfile.Guildfile(data, dir=os.getcwd())
-        # TODO: instead of using dir=os.getcwd(), consider
-        #   - here::here(), or
-        #   - os.path.dirname(self.script_path)
-        #   - or similar
-        return gf.models[self.name]
+def _init_modeldef(script_path, op_name, model_name):
+    op_data = _get_script_guild_data(os.path.relpath(script_path))
+    # TODO: instead of using dir=os.getcwd(), consider
+    #   - here::here(), or
+    #   - os.path.dirname(self.script_path)
+    #   - or similar
+    return model_proxy.modeldef_for_data(model_name, operations={op_name: op_data})
 
 
 def _apply_config_flags(modeldef, op_name):
@@ -72,34 +66,39 @@ class RScriptPlugin(pluginlib.Plugin):
             path = opspec
         else:
             path = os.path.join(config.cwd(), opspec)
-        if not is_r_script(path):
+        if not r_util.is_r_script(path):
             return None
         model = RScriptModelProxy(path, opspec)
         return model, model.op_name
 
 
-def normalize_path(x):
-    x = os.path.expanduser(x)
-    x = os.path.abspath(x)
-    return x
-
-
-def get_script_guild_data(r_script_path):
+def _get_script_guild_data(r_script_path):
     out = run_r(f"guildai:::emit_r_script_guild_data('{r_script_path}')")
     return yaml.safe_load(out)
 
 
-def is_r_script(opspec):
-    return os.path.isfile(opspec) and opspec[-2:].upper() == ".R"
-
-
-def ensure_guildai_r_package_installled():
+def _ensure_guildai_r_package_installled():
     installed = run_r('cat(requireNamespace("guildai", quietly = TRUE))') == "TRUE"
     if installed:
         return
 
-    # TODO, consider vendoring r-pkg as part of pip pkg, auto-bootstrap R install
-    # into a stand-alone lib we inject via prefixing R_LIBS env var
+    # TODO, consider vendoring r-pkg as part of pip pkg,
+    # auto-bootstrap R install into a stand-alone lib we inject via
+    # prefixing R_LIBS env var
+
+    # TODO - we can't interact with the user here. Guild does not
+    # typically work this way, altering behavior based on user-input,
+    # unless that interaction is implemented in a command impl (this
+    # should be consistent across the code base - if there are
+    # exceptions that don't arise directly or indirectly from a
+    # command impl that's a design flaw/bug).
+    #
+    # We should look to extend the model def itself to include a set
+    # of checks to the env, any of which may query 'user input' (this
+    # could be a default answer for non-tty scenarios). Short of that,
+    # we should fail here with instructions rather than take action to
+    # modify the system.
+
     consent = cli.confirm(
         "The 'guildai' R package must be installed in the R library. Continue?", True
     )
@@ -126,19 +125,27 @@ def ensure_guildai_r_package_installled():
 
         return
 
-    raise ImportError
+    raise Exception("R is not available")
 
 
 def run_r(
-    *exprs, file=None, infile=None, vanilla=True, default_packages='base', **run_kwargs
+    *exprs,
+    file=None,
+    infile=None,
+    vanilla=True,
+    default_packages='base',
+    **run_kwargs,
 ):
-    """Run R code in a subprocess, return stderr+stdout output in a single string
+    """Run R code in a subprocess, return stderr+stdout output in a single string.
 
-    This has different defaults from `Rscript`, designed for isolated, fast invocations.
+    This has different defaults from `Rscript`, designed for isolated,
+    fast invocations.
+
     Args:
-      exprs: strings of individual R expressions to be evaluated sequentially
-      file: path to an R script
-      infile: multiline string of R code, piped into Rscript frontend via stdin.
+      `exprs`: strings of individual R expressions to be evaluated sequentially
+      `file`: path to an R script
+      `infile`: multiline string of R code, piped into Rscript frontend via stdin.
+
     """
     assert (
         sum(map(bool, [exprs, file, infile])) == 1
@@ -149,7 +156,6 @@ def run_r(
         cmd.append(f"--default-packages={default_packages}")
     if vanilla:
         cmd.append("--vanilla")
-
     if file:
         cmd.append(file)
     elif exprs:
