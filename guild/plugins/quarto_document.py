@@ -27,6 +27,7 @@ class QuartoDocumentModelProxy:
         script_base = script_path[: -len(self.op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
         self.modeldef = self._init_modeldef()
+        _apply_config_flags(self.modeldef, self.op_name)
 
     def _init_modeldef(self):
         # TODO: do file paths needs to be quoted for the shell?
@@ -70,6 +71,13 @@ class QuartoDocumentModelProxy:
 
         gf = guildfile.Guildfile(data, dir=os.getcwd())  # dir = GUILD_PROJECT
         return gf.models[self.name]
+
+
+def _apply_config_flags(modeldef, op_name):
+    from . import config_flags
+
+    opdef = modeldef.get_operation(op_name)
+    config_flags.apply_config_flags(opdef)
 
 
 class QuartoDocumentPlugin(pluginlib.Plugin):
