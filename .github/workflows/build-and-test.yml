@@ -104,7 +104,8 @@ jobs:
           EXAMPLES: examples
           GUILD_START_THRESHOLD: 1.0
           DASK_SPEEDUP_THRESHOLD: 0
-          UAT_SKIP: remote-*,hiplot-*
+          # TEMP disable of R tests   vvv
+          UAT_SKIP: remote-*,hiplot-*,r-*
           WORKSPACE: /tmp/guild-uat
         run: |
           test-env/bin/guild check --force-uat
