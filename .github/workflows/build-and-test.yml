@@ -18,30 +18,23 @@ on:
         description: Skip all tests (use with SSH to manually test)
         type: boolean
         default: false
-      skip_posix:
-        description: Skip Linux and macOS
-        type: boolean
-        default: false
-      skip_windows:
-        description: Skip Windows
-        type: boolean
-        default: false
       posix_os:
-        description: List of OSes to build for Posix
+        description: List of OSes for Posix
         type: string
         default: '["ubuntu-latest","macos-latest"]'
       posix_python:
-        description: List of Python versions to build for Posix
+        description: List of Python versions for Posix
         type: string
         default: '["3.6","3.7","3.8","3.9","3.10"]'
-
-
+      windows_python:
+        description: List of Python versions for Windows
+        type: string
+        default: '["3.7","3.8","3.9","3.10"]'
 
 jobs:
   build-posix:
     name: Build - POSIX
     runs-on: ${{ matrix.os }}
-    if: ${{ !inputs.skip_posix }}
     strategy:
       fail-fast: false
       matrix:
@@ -119,7 +112,6 @@ jobs:
   build-windows:
     name: Build - Windows
     runs-on: windows-latest
-    if: ${{ !inputs.skip_windows }}
 
     strategy:
       fail-fast: false
@@ -127,11 +119,7 @@ jobs:
         # Omitting 3.6 on Windows due to [issues installing test
         # reqs](https://github.com/guildai/guildai/runs/8052694671)
         # and 3.6 end-of-life.
-        python-version:
-          - '3.7'
-          - '3.8'
-          - '3.9'
-          - '3.10'
+        python-version: ${{ fromJSON(inputs.windows_python) }}
 
     steps:
       - name: Checkout repository
