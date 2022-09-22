@@ -45,8 +45,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ inputs.posix_os }}
-        python-version: ${{ inputs.posix_python }}
+        os: ${{ fromJSON(inputs.posix_os) }}
+        python-version: ${{ fromJSON(inputs.posix_python) }}
 
     steps:
       - name: Checkout repository
