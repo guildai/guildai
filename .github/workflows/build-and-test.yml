@@ -97,11 +97,11 @@ jobs:
       - name: Run user acceptance tests
         if: ${{ !inputs.skip_tests && !inputs.skip_uat }}
         env:
+          WORKSPACE: /tmp/guild-uat
           EXAMPLES: examples
+          UAT_SKIP: remote-*,hiplot-*
           GUILD_START_THRESHOLD: 1.0
           DASK_SPEEDUP_THRESHOLD: 0
-          UAT_SKIP: remote-*,hiplot-*
-          WORKSPACE: /tmp/guild-uat
         run: |
           test-env/bin/guild check --force-uat
 
