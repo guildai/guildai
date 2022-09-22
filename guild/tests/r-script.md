@@ -4,11 +4,11 @@ Guild provides support for R script via the `r_script` plugin.
 
 We'll use the `r-script` sample project in these tests.
 
-    >>> cd(sample("projects", "r-script"))
+    >> cd(sample("projects", "r-script"))
 
 We use a temp Guild home to isolate runs.
 
-    >>> set_guild_home(mkdtemp())
+    >> set_guild_home(mkdtemp())
 
 ## Run r script directory
 
@@ -16,7 +16,7 @@ The plugin lets us run an R script directly.
 
 TODO - fix!
 
-    >>> run("guild run simple.R -y")
+    >> run("guild run simple.R -y")
     WARNING: unknown flag type 'bool' for skip_connections - cannot coerce
     WARNING: unknown option '--layers'
     <BLANKLINE>
