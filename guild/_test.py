@@ -295,8 +295,9 @@ class Py23DocChecker(doctest.OutputChecker):
     """
 
     def check_output(self, want, got, optionflags):
-        got = self._got(got, optionflags)
-        want = self._want(want, optionflags)
+        if os.getenv("RAW_OUTPUT_CHECK") != "1":
+            got = self._got(got, optionflags)
+            want = self._want(want, optionflags)
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
     def _got(self, got, optionflags):
