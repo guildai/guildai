@@ -409,7 +409,7 @@ def current_run():
     """Returns an instance of guild.run.Run for the current run.
 
     The current run directory must be specified with the RUN_DIR
-    environment variable. If this variable is not defined, raised
+    environment variable. If this variable is not defined, raises
     NoCurrentRun.
     """
     import guild.run
