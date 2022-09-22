@@ -26,6 +26,16 @@ on:
         description: Skip Windows
         type: boolean
         default: false
+      posix_os:
+        description: List of OSes to build for Posix
+        type: string
+        default: '[ubuntu-latest,macos-latest]'
+      posix_python:
+        description: List of Python versions to build for Posix
+        type: string
+        default: "['3.6','3.7','3.8','3.9','3.10']"
+
+
 
 jobs:
   build-posix:
@@ -35,15 +45,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-        python-version:
-          - '3.6'
-          - '3.7'
-          - '3.8'
-          - '3.9'
-          - '3.10'
+        os: ${{ inputs.posix_os }}
+        python-version: ${{ inputs.posix_python }}
 
     steps:
       - name: Checkout repository
