@@ -109,7 +109,7 @@ def _check_impl(args):
     if not args.no_info:
         _print_info(check)
     if args.all_tests or args.tests:
-        _run_tests(check)
+        _run_tests(check, args)
     if check.has_error:
         _print_error_and_exit(args)
 
@@ -136,7 +136,7 @@ def _uat_and_exit(args):
     sys.exit(0)
 
 
-def _run_tests(check):
+def _run_tests(check, args):
     with util.Env(
         {
             "NO_IMPORT_FLAGS_PROGRESS": "1",
@@ -146,6 +146,7 @@ def _run_tests(check):
             # overridden for any tests that check the disabled behavior.
             "NO_PIP_FREEZE": "1",
             "NO_VCS_COMMIT": "1",
+            "REPORT_ONLY_FIRST_FAILURE": "1" if args.report_only_first else "",
         }
     ):
         _run_tests_(check)

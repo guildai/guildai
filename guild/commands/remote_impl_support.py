@@ -321,6 +321,7 @@ def _check_kw(args):
         "no_info",
         "notify",
         "remote",
+        "report_only_first",
         "skip",
         "tests",
         "uat",
