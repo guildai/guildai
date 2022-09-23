@@ -1,5 +1,5 @@
 ---
-doctest: -PY2 -PY3  # Disable tests until we have proper support for Azure.
+doctest: -FIXME
 ---
 
 # Azure Blob Storage remote

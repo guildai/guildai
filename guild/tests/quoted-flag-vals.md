@@ -122,12 +122,7 @@ Complex types can be passed through.
           --f3 '!!set {1: null, 2: null, 3: null}'
           --f4 '{a: [1, 2, 3], b: 123, c: !!set {1: null, 2: null, 3: null}}'
 
-    >>> project.run("globals.py", flag_vals) # doctest: -PY3
-    {'a': 1.123, 'b': 2.234} <dict>
-    set([1, 2, 3]) <set>
-    {'a': [1, 2, 3], 'b': 123, 'c': set([1, 2, 3])} <dict>
-
-    >>> project.run("globals.py", flag_vals) # doctest: -PY2
+    >>> project.run("globals.py", flag_vals)
     {'a': 1.123, 'b': 2.234} <dict>
     {1, 2, 3} <set>
     {'a': [1, 2, 3], 'b': 123, 'c': {1, 2, 3}} <dict>
@@ -252,17 +247,7 @@ using Python's `str` type contructor.
 We can use `force_args` to pass through unsupported options to
 `args.py`.
 
-    >>> project.run("args.py", flag_vals, force_flags=True, print_cmd=True) # doctest: -PY3
-    ??? -um guild.op_main args
-            --f1 1
-            --f2 1.1
-            --f3 hello
-            --f4 ''
-            --f5 '{'"'"'a'"'"': 1.123, '"'"'b'"'"': 2.234}'
-            --f6 'set([1, 2, 3])'
-            --f7 '{'"'"'a'"'"': [1, 2, 3], '"'"'b'"'"': 123, '"'"'c'"'"': set([1, 2, 3])}'
-
-    >>> project.run("args.py", flag_vals, force_flags=True, print_cmd=True) # doctest: -PY2
+    >>> project.run("args.py", flag_vals, force_flags=True, print_cmd=True)
     ??? -um guild.op_main args
             --f1 1
             --f2 1.1
@@ -274,19 +259,7 @@ We can use `force_args` to pass through unsupported options to
 
 The values printed from the script:
 
-    >>> project.run("args.py", flag_vals, force_flags=True) # doctest: -PY3
-    1 <int>
-    1.1 <float>
-    'hello' <str>
-    False <bool>
-    '--f5' <str>
-    "{'a': 1.123, 'b': 2.234}" <str>
-    '--f6' <str>
-    'set([1, 2, 3])' <str>
-    '--f7' <str>
-    "{'a': [1, 2, 3], 'b': 123, 'c': set([1, 2, 3])}" <str>
-
-    >>> project.run("args.py", flag_vals, force_flags=True) # doctest: -PY2
+    >>> project.run("args.py", flag_vals, force_flags=True)
     1 <int>
     1.1 <float>
     'hello' <str>

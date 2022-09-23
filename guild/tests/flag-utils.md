@@ -131,10 +131,7 @@ Dicts:
     >>> encoded
     '{a: [1, 2, 3], b: 123, c: !!set {1: null, 2: null, 3: null}}'
 
-    >>> pprint(decoded) # doctest: -PY3
-    {'a': [1, 2, 3], 'b': 123, 'c': set([1, 2, 3])}
-
-    >>> pprint(decoded) # doctest: -PY2
+    >>> pprint(decoded)
     {'a': [1, 2, 3], 'b': 123, 'c': {1, 2, 3}}
 
     >>> match

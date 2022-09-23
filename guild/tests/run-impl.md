@@ -36,9 +36,6 @@ Helpers:
 
 Stage Python op:
 
-    >>> import logging # doctest: +PYTEST_ONLY
-    >>> logging.basicConfig() # doctest: +PYTEST_ONLY
-    >>> logging.getLogger().setLevel(logging.INFO) # doctest: +PYTEST_ONLY
     >>> cwd = mkdtemp()
     >>> python_script = path(cwd, "run.py")
     >>> touch(python_script)

@@ -380,15 +380,8 @@ Using `_apply_flags_to_source_lines`:
 
     >>> _apply_flags_to_source_lines(
     ...     ["%cd ~\n", "%pwd"],
-    ...     _ApplyFlagsStateProxy({}, {}))  # doctest: -PY2 -NORMALIZE_PATHS
+    ...     _ApplyFlagsStateProxy({}, {}))  # doctest: -NORMALIZE_PATHS
     ["get_ipython().run_line_magic('cd', '~')\n", "get_ipython().run_line_magic('pwd', '')"]
-
-Python 2:
-
-    >>> _apply_flags_to_source_lines(
-    ...     ["%cd ~\n", "%pwd"],
-    ...     _ApplyFlagsStateProxy({}, {}))  # doctest: -PY3
-    ["get_ipython().magic('cd ~')\n", "get_ipython().magic('pwd')"]
 
 This works with flag assignments as well.
 
@@ -410,7 +403,7 @@ Mixed code including magics:
     ... !ls
     ... for _ in range(count):
     ...     print(msg)
-    ... """, count=2, msg="hello")  # doctest: -NORMALIZE_WHITESPACE -PY2
+    ... """, count=2, msg="hello")  # doctest: -NORMALIZE_WHITESPACE
     <BLANKLINE>
     get_ipython().run_line_magic('autoreload', '')
     # A comment
@@ -419,24 +412,3 @@ Mixed code including magics:
     get_ipython().system('ls')
     for _ in range(count):
         print(msg)
-
-Python 2:
-
-    >>> apply_flags_to_lines("""
-    ... %autoreload
-    ... # A comment
-    ... count = 1
-    ... msg = "hi"
-    ... !ls
-    ... for _ in range(count):
-    ...     print(msg)
-    ... """, count=2, msg="hello")  # doctest: -NORMALIZE_WHITESPACE -PY3
-    <BLANKLINE>
-    get_ipython().magic('autoreload')
-    # A comment
-    count = 2
-    msg = 'hello'
-    get_ipython().system('ls')
-    for _ in range(count):
-        print(msg)
-    <BLANKLINE>

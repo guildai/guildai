@@ -1,7 +1,3 @@
----
-doctest: -PY2
----
-
 # PyTorch Lightning Example
 
 Use the `pytorch-lightning` example.
@@ -11,7 +7,7 @@ Use the `pytorch-lightning` example.
 Show script help.
 
     >>> run("guild run mnist.py --help-op",
-    ...     env={"NO_IMPORT_FLAGS_CACHE": "1"})  # doctest: +REPORT_UDIFF -PY35 -PY2 -PY36
+    ...     env={"NO_IMPORT_FLAGS_CACHE": "1"})  # doctest: +REPORT_UDIFF -PY36
     Usage: guild run [OPTIONS] mnist.py [FLAG]...
     <BLANKLINE>
     Use 'guild run --help' for a list of options.
@@ -402,7 +398,7 @@ Show script help.
 Print the command.
 
     >>> run("guild run mnist.py --print-cmd | tr ' ' '\n'",
-    ...     env={"NO_IMPORT_FLAGS_CACHE": "1"})  # doctest: +REPORT_UDIFF -PY35 -PY2 -PY36
+    ...     env={"NO_IMPORT_FLAGS_CACHE": "1"})  # doctest: +REPORT_UDIFF -PY36
     ???
     -um
     guild.op_main
@@ -466,7 +462,7 @@ Print the command.
 Print the command using the `train` operation, which imports all flags.
 
     >>> run("guild run train --print-cmd | tr ' ' '\n'",
-    ...     env={"NO_IMPORT_FLAGS_CACHE": "1"}) # doctest: +REPORT_UDIFF -PY35 -PY2 -PY36
+    ...     env={"NO_IMPORT_FLAGS_CACHE": "1"}) # doctest: +REPORT_UDIFF -PY36
     ???
     -um
     guild.op_main

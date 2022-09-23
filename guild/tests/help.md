@@ -196,12 +196,12 @@ Guild supports Markdown rendering via `guildfile_markdown_help`.
 
 Guild supports console help rendering via `guildfile_console_help`.
 
-    >>> console_help = guild.help.guildfile_console_help(gf)
+    >>> print(guild.help.guildfile_console_help(gf))
 
 We strip ansi formatting for test output.
 
     >>> from guild.ansi_util import strip_ansi_format
-    >>> print(strip_ansi_format(console_help))  # doctest: +REPORT_UDIFF -NORMALIZE_WHITESPACE -PYTEST_ONLY
+    >>> print(strip_ansi_format(console_help))  # doctest: +REPORT_UDIFF
     OVERVIEW
     <BLANKLINE>
         You are viewing help for operations defined in...mnist-...pkg...

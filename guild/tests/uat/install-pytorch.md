@@ -1,7 +1,3 @@
----
-doctest: -PY2
----
-
 # Install PyTorch
 
     >>> quiet("pip install torch==1.10.0")  # doctest: -PY3 +PY36

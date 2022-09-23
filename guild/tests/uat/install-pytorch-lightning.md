@@ -1,7 +1,3 @@
----
-doctest: -PY2
----
-
 # Install PyTorch Lightning
 
     >>> quiet("pip install pytorch-lightning==1.5.10 torchvision==0.11.2") # doctest: -PY3 +PY36

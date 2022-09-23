@@ -48,28 +48,19 @@ PLATFORM = platform.system()
 
 TEST_NAME_WIDTH = 27
 
-NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
-STRIP_U = doctest.register_optionflag("STRIP_U")
-STRIP_L = doctest.register_optionflag("STRIP_L")
-WINDOWS = doctest.register_optionflag("WINDOWS")
-WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
-STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
-PY2 = doctest.register_optionflag("PY2")
-PY2_MACOS = doctest.register_optionflag("PY2_MACOS")
+FIXME = doctest.register_optionflag("FIXME")
 MACOS = doctest.register_optionflag("MACOS")
+NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
 PY3 = doctest.register_optionflag("PY3")
-PY27 = doctest.register_optionflag("PY27")
-PY35 = doctest.register_optionflag("PY35")
+PY310 = doctest.register_optionflag("PY310")
 PY36 = doctest.register_optionflag("PY36")
 PY37 = doctest.register_optionflag("PY37")
 PY38 = doctest.register_optionflag("PY38")
 PY39 = doctest.register_optionflag("PY39")
-PY310 = doctest.register_optionflag("PY310")
-ANNOTATIONS = doctest.register_optionflag("ANNOTATIONS")
-PYTEST_ONLY = doctest.register_optionflag("PYTEST_ONLY")
-NON_INTERACTIVE_CI = doctest.register_optionflag("NON_INTERACTIVE_CI")
-FIXME = doctest.register_optionflag("FIXME")
-BASH_SHELL = doctest.register_optionflag("BASH_SHELL")
+STRICT_OUTPUT = doctest.register_optionflag("STRICT_OUTPUT")
+STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
+WINDOWS = doctest.register_optionflag("WINDOWS")
+WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 
 _ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
@@ -172,8 +163,6 @@ def _skip_for_doctest_options(options):
     return (
         _skip_platform_for_doctest_options(options)
         or _skip_version_for_doctest_options(options)
-        or _skip_for_pytest(options)
-        or _skip_for_non_interactive_ci(options)
         or _skip_fixme(options)
     )
 
@@ -198,15 +187,12 @@ def _skip_version_for_doctest_options(options):
     py_major_ver = sys.version_info[0]
     py_minor_ver = sys.version_info[1]
     skip = None
-    # PY2 and PY3 are enabled by default - check if explicitly disabled.
-    if options.get(PY2) is False and py_major_ver == 2:
-        skip = True
+    # All Python 3 targets are enabled by default - check if
+    # explicitly disabled
     if options.get(PY3) is False and py_major_ver == 3:
         skip = True
     # Force tests on/off if more specific Python versions specified.
     for opt, maj_ver, min_ver in [
-        (options.get(PY27), 2, 7),
-        (options.get(PY35), 3, 5),
         (options.get(PY36), 3, 6),
         (options.get(PY37), 3, 7),
         (options.get(PY38), 3, 8),
@@ -215,21 +201,6 @@ def _skip_version_for_doctest_options(options):
     ]:
         if opt in (True, False) and py_major_ver == maj_ver and py_minor_ver == min_ver:
             skip = not opt
-    return skip
-
-
-def _skip_for_pytest(options):
-    skip = None
-    if options.get(PYTEST_ONLY) is not None and os.getenv("PYTEST_ONLY"):
-        skip = not options.get(PYTEST_ONLY)
-    return skip
-
-
-def _skip_for_non_interactive_ci(options):
-    """CI runs without interactive prompts can't show correct pdb prompts, so we skip those tests"""
-    skip = None
-    if options.get(NON_INTERACTIVE_CI) is not None and os.getenv("NON_INTERACTIVE_CI"):
-        skip = not options.get(NON_INTERACTIVE_CI)
     return skip
 
 
@@ -272,12 +243,7 @@ def run_test_file(filename, globs=None):
             | doctest.NORMALIZE_WHITESPACE
             | NORMALIZE_PATHS
             | WINDOWS
-            | STRIP_U
-            | STRIP_L
             | STRIP_ANSI_FMT
-            | PY2
-            | PY3
-            | ANNOTATIONS
         ),
     )
 
@@ -288,73 +254,48 @@ def _report_first_flag():
     return 0
 
 
-class Py23DocChecker(doctest.OutputChecker):
-    """Output checker that works around Python 2/3 unicode representations.
+class Checker(doctest.OutputChecker):
+    """Guild test checker
 
-    https://dirkjan.ochtman.nl/writing/2014/07/06/single-source-python-23-doctests.html
+    Transforms got and want for tests based:
+
+    - Remove ANSI formatting (disable with `-STRIP_ANSI_FMT`
+    - Normalizes paths on Windows (disable with `-NORMALIZE_PATHS`
+    - Support 'leading wildcard' of "???" as "..." is treated as block
+    - continuation
+
+    All transforms can be skipped with `-STRICT_OUTPUT`
     """
 
     def check_output(self, want, got, optionflags):
-        if os.getenv("RAW_OUTPUT_CHECK") != "1":
+        if not optionflags & STRICT_OUTPUT:
             got = self._got(got, optionflags)
             want = self._want(want, optionflags)
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
     def _got(self, got, optionflags):
-        if sys.version_info[0] < 3:
-            got = self._py2_got(got, optionflags)
-        if PLATFORM == "Windows":
-            got = self._windows_got(got, optionflags)
-        return got
-
-    def _py2_got(self, got, optionflags):
-        if optionflags & STRIP_U:
-            got = self._strip_u(got)
-        if optionflags & STRIP_L:
-            got = self._strip_L(got)
+        if PLATFORM == "Windows" and optionflags & NORMALIZE_PATHS:
+            got = _windows_normalize_paths(got)
         if optionflags & STRIP_ANSI_FMT:
-            got = self._strip_ansi_fmt(got)
-        return got
-
-    @staticmethod
-    def _strip_u(got):
-        # Strip unicode prefix
-        got = re.sub(r"([\W])u'(.*?)'", "\\1'\\2'", got)
-        got = re.sub(r"([\W])u\"(.*?)\"", "\\1\"\\2\"", got)
-        got = re.sub(r"^u'(.*?)'", "'\\1'", got)
-        got = re.sub(r"^u\"(.*?)\"", "\"\\1\"", got)
-        return got
-
-    @staticmethod
-    def _strip_L(got):
-        # Normalize long integers
-        return re.sub(r"([0-9]+)L", "\\1", got)
-
-    @staticmethod
-    def _strip_ansi_fmt(got):
-        return _ansi_p.sub("", got)
-
-    @staticmethod
-    def _windows_got(got, optionflags):
-        if optionflags & NORMALIZE_PATHS:
-            # Convert Windows paths to UNIXy paths
-            got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)
+            got = _strip_ansi_fmt(got)
         return got
 
     def _want(self, want, optionflags):
         want = _leading_wildcard_want(want)
-        if optionflags & ANNOTATIONS:
-            want = self._annotations_want(want)
         return want
 
-    @staticmethod
-    def _annotations_want(want):
-        return want.replace(":<pathsep>", os.path.pathsep)
+
+def _strip_ansi_fmt(s):
+    return _ansi_p.sub("", s)
+
+
+def _windows_normalize_paths(s):
+    return re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", s)
 
 
 def _leading_wildcard_want(want):
-    # Treat leading "???" like "..." (work around for "..." as
-    # code continuation token in doctest.
+    # Treat leading "???" like "..." (work around for "..." as code
+    # continuation token in doctest)
     return re.sub(r"^\?\?\?", "...", want)
 
 
@@ -421,17 +362,30 @@ def _gen_run_doctest(filename, globs, optionflags, parser=None, checker=None):
         globs = globs.copy()
     if "__name__" not in globs:
         globs["__name__"] = "__main__"
-    checker = checker or Py23DocChecker()
+    checker = checker or Checker()
     runner = TestRunner(checker=checker, verbose=None, optionflags=optionflags)
-    test = parser.get_doctest(text, globs, name, filename, 0)
-    flags = 0
-    runner.run(test, flags)
-    results = runner.summarize()
-    if doctest.master is None:
-        doctest.master = runner
+    try:
+        test = parser.get_doctest(text, globs, name, filename, 0)
+    except ValueError as e:
+        return _handle_doctest_value_error(e, name, filename)
     else:
-        doctest.master.merge(runner)
-    return results
+        runner.run(test)
+        results = runner.summarize()
+        if doctest.master is None:
+            doctest.master = runner
+        else:
+            doctest.master.merge(runner)
+        return results
+
+
+def _handle_doctest_value_error(e, name, filename):
+    print("*" * 70)
+    m = re.match(r"line (\d+) of the doctest for", str(e))
+    if m:
+        print(f"File \"{filename}\", line {m.group(1)}, in {name}")
+    print(e)
+    print("*" * 70)
+    return 1, []
 
 
 class BashDocTestParser(doctest.DocTestParser):

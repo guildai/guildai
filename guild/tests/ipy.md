@@ -376,27 +376,7 @@ data frame that has both flags and scalars.
     0  ...     op2()     ...   ...  completed  a=1.0 c=0.0  1.0  NaN  0.0     3  3.0  NaN  NaN
     1  ...     op1()     ...   ...  completed      a=1 b=2  1.0  2.0  NaN     0  3.0 -1.0  1.0
 
-    >>> compare.info()  # doctest: -PY3
-    <class 'pandas.core.frame.DataFrame'>
-    RangeIndex: 2 entries, 0 to 1
-    Data columns (total 13 columns):
-    run          2 non-null object
-    operation    2 non-null object
-    started      2 non-null datetime64[ns]
-    time         2 non-null timedelta64[ns]
-    status       2 non-null object
-    label        2 non-null object
-    a            2 non-null float64
-    b            1 non-null float64
-    c            1 non-null float64
-    step         2 non-null int64
-    x            2 non-null float64
-    y            1 non-null float64
-    z            1 non-null float64
-    dtypes: datetime64[ns](1), float64(6), int64(1), object(4), timedelta64[ns](1)
-    memory usage: ...
-
-    >>> compare.info()  # doctest: -PY2 -PY35 -PY37
+    >>> compare.info()  # doctest: -PY37
     <class 'pandas.core.frame.DataFrame'>
     RangeIndex: 2 entries, 0 to 1
     Data columns (total 13 columns):
