@@ -77,8 +77,13 @@ def _get_script_guild_data(r_script_path):
     return yaml.safe_load(out)
 
 
-def _ensure_guildai_r_package_installled():
-    installed = run_r('cat(requireNamespace("guildai", quietly = TRUE))') == "TRUE"
+def _ensure_guildai_r_package_installled(version="0.0.0.9000"):
+    expr = (
+        'cat(requireNamespace("guildai", quietly = TRUE) &&'
+        f' getNamespaceVersion("guildai") > "{version}")'
+    )
+
+    installed = run_r(expr) == "TRUE"
     if installed:
         return
 
