@@ -53,7 +53,7 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
             if not self.is_keras_script(script):
                 self.log.debug("%s is not a Keras script", path)
                 return None
-            model = KerasScriptModelProxy(script.src, opspec)
+            model = KerasScriptModelProxy(script.src)
             self.log.debug("%s is a Keras script", path)
             return model, model.op_name
 

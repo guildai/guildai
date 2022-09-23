@@ -14,8 +14,7 @@ Keras support includes a model proxy, which is generated from a Keras
 script.
 
     >>> script_path = os.path.join(project, "fashion_mnist_mlp.py")
-    >>> model_proxy = keras.KerasScriptModelProxy(
-    ...                   script_path, "fashion_mnist_mlp.py")
+    >>> model_proxy = keras.KerasScriptModelProxy(script_path)
 
 Model name:
 

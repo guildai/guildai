@@ -153,7 +153,7 @@ And the results:
     Spec          Run From  Shown From  Displayed As
     train.py      .         .           train.py
     train.py      .         a           train.py (../)
-    train.py      .         a/b         train.py (/.../op-desc)
+    train.py      .         a/b         train.py (/.../projects/op-desc)
     train.py      a         a           train.py
     train.py      a         .           train.py (a)
     train.py      a         a/b         train.py (../)
@@ -162,17 +162,17 @@ And the results:
     train.py      a/b       .           train.py (a/b)
     train.py      a/b       a           train.py (b)
     train.py      a/b       b           train.py (../a/b)
-    a/train.py    .         .           a/train.py
-    a/train.py    .         a           a/train.py (../)
-    a/train.py    .         a/b         a/train.py (/.../op-desc)
-    a/b/train.py  .         .           a/b/train.py
-    a/b/train.py  .         a           a/b/train.py (../)
-    a/b/train.py  .         a/b         a/b/train.py (/.../op-desc)
-    a/b/train.py  .         b           a/b/train.py (../)
+    a/train.py    .         .           train.py (a)
+    a/train.py    .         a           train.py
+    a/train.py    .         a/b         train.py (../)
+    a/b/train.py  .         .           train.py (a/b)
+    a/b/train.py  .         a           train.py (b)
+    a/b/train.py  .         a/b         train.py
+    a/b/train.py  .         b           train.py (../a/b)
     a:train       .         .           a:train
     a:train       .         a           a:train (../)
-    a:train       .         a/b         a:train (/.../op-desc)
+    a:train       .         a/b         a:train (/.../projects/op-desc)
     ../train.py   a         a           train.py (../)
     ../train.py   a         .           train.py
-    ../train.py   a         a/b         train.py (/.../op-desc)
+    ../train.py   a         a/b         train.py (/.../projects/op-desc)
     ../train.py   a         b           train.py (../)

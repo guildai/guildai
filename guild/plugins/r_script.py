@@ -1,8 +1,8 @@
+import logging
 import os
 import os.path
 import subprocess
 import yaml
-
 
 from guild import cli
 from guild import config
@@ -10,6 +10,8 @@ from guild import model as modellib
 from guild import model_proxy
 from guild import plugin as pluginlib
 from guild import r_util
+
+log = logging.getLogger("guild")  # TODO - use plugin logger
 
 
 class RScriptModelProxy:
@@ -35,12 +37,13 @@ class RScriptModelProxy:
 
 
 def _init_modeldef(script_path, op_name, model_name):
-    op_data = _get_script_guild_data(os.path.relpath(script_path))
-    # TODO: instead of using dir=os.getcwd(), consider
-    #   - here::here(), or
-    #   - os.path.dirname(self.script_path)
-    #   - or similar
-    return model_proxy.modeldef_for_data(model_name, operations={op_name: op_data})
+    return model_proxy.modeldef_for_data(
+        data_dir=os.path.dirname(script_path),
+        model_name=model_name,
+        operations={
+            op_name: op_data_for_script(script_path),
+        },
+    )
 
 
 def _apply_config_flags(modeldef, op_name):
@@ -72,9 +75,15 @@ class RScriptPlugin(pluginlib.Plugin):
         return model, model.op_name
 
 
-def _get_script_guild_data(r_script_path):
-    out = run_r(f"guildai:::emit_r_script_guild_data('{r_script_path}')")
-    return yaml.safe_load(out)
+def op_data_for_script(r_script_path):
+    try:
+        out = run_r(f"guildai:::emit_r_script_guild_data('{r_script_path}')")
+    except subprocess.CalledProcessError as e:
+        log.warning(e.output.rstrip().decode("utf-8"))
+
+        return {}
+    else:
+        return yaml.safe_load(out)
 
 
 def _ensure_guildai_r_package_installled(version="0.0.0.9000"):
