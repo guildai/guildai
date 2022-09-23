@@ -89,7 +89,7 @@ Expected output (Guild help):
 Our run time for the `guild` command:
 
     >>> run_time = time1 - time0
-    >>> run_time <= START_THRESHOLD, (run_time, START_THRESHOLD) # doctest: -PYTEST_ONLY
+    >>> run_time <= START_THRESHOLD, (run_time, START_THRESHOLD)
     (True, ...)
 
 If this test fails, look at the following:

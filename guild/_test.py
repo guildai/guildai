@@ -34,6 +34,7 @@ import time
 import guild
 
 from guild import _api as gapi
+from guild import ansi_util
 from guild import cli
 from guild import config as configlib
 from guild import file_util
@@ -51,18 +52,17 @@ TEST_NAME_WIDTH = 27
 FIXME = doctest.register_optionflag("FIXME")
 MACOS = doctest.register_optionflag("MACOS")
 NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
+NORMALIZE_PATHSEP = doctest.register_optionflag("NORMALIZE_PATHSEP")
 PY3 = doctest.register_optionflag("PY3")
 PY310 = doctest.register_optionflag("PY310")
 PY36 = doctest.register_optionflag("PY36")
 PY37 = doctest.register_optionflag("PY37")
 PY38 = doctest.register_optionflag("PY38")
 PY39 = doctest.register_optionflag("PY39")
-STRICT_OUTPUT = doctest.register_optionflag("STRICT_OUTPUT")
+STRICT = doctest.register_optionflag("STRICT")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
-
-_ansi_p = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
 # Resolve relative to cwd on load as we change cwd for tests later.
 _EXAMPLES_DIR = (
@@ -262,35 +262,57 @@ class Checker(doctest.OutputChecker):
     - Remove ANSI formatting (disable with `-STRIP_ANSI_FMT`
     - Normalizes paths on Windows (disable with `-NORMALIZE_PATHS`
     - Support 'leading wildcard' of "???" as "..." is treated as block
-    - continuation
+      continuation
 
-    All transforms can be skipped with `-STRICT_OUTPUT`
+    Optional transforms, enabled with `+<option>`:
+
+    - `+NORMALIZE_PATHSEP` - Replace '::' with with platform specific
+      path sep char
+
+    All transforms including ELLIPSIS support are disabled with
+    `+STRICT`.
+
+    Default doctest checker options enabled by default:
+
+    - doctest.ELLIPSIS
+    - doctest.NORMALIZE_WHITESPACE
+
+    The option `doctest.REPORT_ONLY_FIRST_FAILURE` may be enabled
+    globally for tests by setting the `REPORT_ONLY_FIRST_FAILURE`
+    environment variable to `1`.
+
     """
 
     def check_output(self, want, got, optionflags):
-        if not optionflags & STRICT_OUTPUT:
+        if optionflags & STRICT:
+            optionflags -= optionflags & doctest.ELLIPSIS
+        else:
             got = self._got(got, optionflags)
             want = self._want(want, optionflags)
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
     def _got(self, got, optionflags):
+        if optionflags & STRICT:
+            return got
         if PLATFORM == "Windows" and optionflags & NORMALIZE_PATHS:
             got = _windows_normalize_paths(got)
         if optionflags & STRIP_ANSI_FMT:
-            got = _strip_ansi_fmt(got)
+            got = ansi_util.strip_ansi_format(got)
         return got
 
     def _want(self, want, optionflags):
+        if optionflags & NORMALIZE_PATHSEP:
+            want = _normalize_pathsep(want)
         want = _leading_wildcard_want(want)
         return want
 
 
-def _strip_ansi_fmt(s):
-    return _ansi_p.sub("", s)
-
-
 def _windows_normalize_paths(s):
     return re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", s)
+
+
+def _normalize_pathsep(s):
+    return s.replace("::", os.path.pathsep)
 
 
 def _leading_wildcard_want(want):
@@ -497,6 +519,7 @@ def test_globals():
         "Env": util.Env,
         "LogCapture": util.LogCapture,
         "ModelPath": ModelPath,
+        "Platform": _Platform,
         "PrintStderr": PrintStderr,
         "Project": Project,
         "Proxy": Proxy,
@@ -1337,3 +1360,17 @@ def _print_run_scalars(run, index):
     assert index
     scalars = index.run_scalars(run)
     return " ".join(f"{s['tag']}={s['last_val']:.5f}" for s in scalars)
+
+
+class _Platform:
+    _platform_save = None
+
+    def __init__(self, platform):
+        self._platform = platform
+
+    def __enter__(self):
+        self._platform_save = PLATFORM
+        globals()["PLATFORM"] = self._platform
+
+    def __exit__(self, *_args):
+        globals()["PLATFORM"] = self._platform_save

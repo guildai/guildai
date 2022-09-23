@@ -1,66 +1,98 @@
 # Guild test support
 
-## Output checked
+## Test output cheker
 
 `guild._test.Py23DocChecker` applies various transformations to "want"
 and "got" strings used in doctests.
 
-    >>> from guild._test import Py23DocChecker
-    >>> checker = Py23DocChecker()
+    >>> from guild._test import Checker
+    >>> checker = Checker()
+
+Helper function to test *want* vs *got* with option flags:
+
+    >>> def check(want, got, optionflags=0):
+    ...     return checker.check_output(want, got, optionflags)
+
+Provide checker options, defined in `guild._test` under `opts`
+namespace.
+
+    >>> from guild import _test as opts
+
+Provide access to `doctest` options.
+
+    >>> import doctest
 
 ### Basics
 
-    >>> checker.check_output("1", "1", 0)
+    >>> check("1", "1")
     True
 
-    >>> checker.check_output("1", "2", 0)
+    >>> check("1", "2")
     False
 
-### Converting unicode "got" on Python 2
+    >>> check("1...", "1", doctest.ELLIPSIS)
+    True
 
-Python 2 represents unicode strings as `u'...'`. To normalize strings
-across Python versions, we convert such representations to `'...'` by
-removing the leading `u`.
+    >>> check("...", "1", doctest.ELLIPSIS)
+    True
 
-Single quote:
+### Checker transformation options
 
-    >>> checker._strip_u("u'x'") # doctest: -STRIP_U
-    "'x'"
+Stript ANSI format codes from 'got':
 
-    >>> checker._strip_u("(u'x')") # doctest: -STRIP_U
-    "('x')"
+    >>> check("hello", "\x1b[31mhello\x1b[0m")
+    False
 
-Double quote:
+    >>> check("hello", "\x1b[31mhello\x1b[0m", opts.STRIP_ANSI_FMT)
+    True
 
-    >>> checker._strip_u('u"x"') # doctest: -STRIP_U
-    '"x"'
+Normalize paths for Windows:
 
-    >>> checker._strip_u('(u"x")') # doctest: -STRIP_U
-    '("x")'
+    >>> with Platform("Windows"):
+    ...     check("/foo/bar", "\\foo\\bar")
+    False
 
-Not unicode:
+    >>> with Platform("Windows"):
+    ...     check("/foo/bar", "\\foo\\bar", opts.NORMALIZE_PATHS)
+    True
 
-    >>> checker._strip_u("") # doctest: -STRIP_U
-    ''
+    >>> with Platform("SomeOtherPlatform"):
+    ...     check("/foo/bar", "\\foo\\bar", opts.NORMALIZE_PATHS)
+    False
 
-    >>> checker._strip_u("1") # doctest: -STRIP_U
-    '1'
+Alternative leading wildcard:
 
-    >>> checker._strip_u("'x'") # doctest: -STRIP_U
-    "'x'"
+    >>> check("???", "1")
+    False
 
-    >>> checker._strip_u('"x"') # doctest: -STRIP_U
-    '"x"'
+    >>> check("???", "1", doctest.ELLIPSIS)
+    True
 
-    >>> checker._strip_u("('cpu', 'hi')") # doctest: -STRIP_U
-    "('cpu', 'hi')"
+    >>> check("1???", "1", doctest.ELLIPSIS)
+    False
 
-## Current directory
+    >>> check("1...", "1", doctest.ELLIPSIS)
+    True
+
+Using `STRICT` with other transform options to disable those options.
+
+    >>> check("hello", "\x1b[31mhello\x1b[0m", opts.STRIP_ANSI_FMT | opts.STRICT)
+    False
+
+    >>> with Platform("Windows"):
+    ...     check("/foo/bar", "\\foo\\bar", opts.NORMALIZE_PATHS | opts.STRICT)
+    False
+
+    >>> check("???", "1", doctest.ELLIPSIS | opts.STRICT)
+    False
+
+
+## Current directory when running a test
 
 Guild ensures that the current directory is the test file parent
 directory.
 
-    >>> cd(tests_dir()) # doctest: +PYTEST_ONLY
+    >>> cd(tests_dir())
 
     >>> cwd()
     '.../guild/tests'

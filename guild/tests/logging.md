@@ -108,4 +108,4 @@ Here we'll define the WARN and ERROR formats:
 
 We need to restore logging to its defaults:
 
-    >>> guild.log.init_logging(**original_log_settings)  # doctest: -PYTEST_ONLY
+    >>> guild.log.init_logging(**original_log_settings)

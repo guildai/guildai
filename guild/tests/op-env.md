@@ -46,7 +46,7 @@ With empty system env and op env:
     >>> env["GUILD_HOME"] == guild_home, (env, guild_home)
     (True, ...)
 
-    >>> env["LOG_LEVEL"] # doctest: -PYTEST_ONLY
+    >>> env["LOG_LEVEL"]
     '20'
 
     >>> env["RUN_DIR"] == run.dir, (env, run.dir)
@@ -149,7 +149,7 @@ This is applied to the run.
 
     >>> run, out = project.run_capture("test")
 
-    >>> print(out)
+    >>> print(out)  # doctest: +NORMALIZE_PATHSEP
     globals: 1 1.1 hello True False
     env BAR: 2
     env BAZ: 1 1.1 hello
@@ -159,12 +159,12 @@ This is applied to the run.
     env FLAG_I: 1
     env FLAG_S: hello
     env FOO: 1
-    env PYTHONPATH: hello:<pathsep>...
+    env PYTHONPATH: hello::...
 
 The environment is saved in the `env` run attribute.
 
     >>> env = run.get("env")
-    >>> for name in sorted(env):
+    >>> for name in sorted(env):  # doctest: +NORMALIZE_PATHSEP
     ...     if name.startswith("FLAG_") or name in ("FOO", "BAR", "BAZ", "PYTHONPATH"):
     ...         print("%s: %s" % (name, env[name]))
     BAR: 2
@@ -175,7 +175,7 @@ The environment is saved in the `env` run attribute.
     FLAG_I: 1
     FLAG_S: hello
     FOO: 1
-    PYTHONPATH: hello:<pathsep>...
+    PYTHONPATH: hello::...
 
 ## Secrets
 
