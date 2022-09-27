@@ -30,11 +30,11 @@ jobs:
           - ubuntu-latest
           - macos-latest
         python-version:
-          - 3.6
-          - 3.7
-          - 3.8
-          - 3.9
-          - 3.10
+          - '3.6'
+          - '3.7'
+          - '3.8'
+          - '3.9'
+          - '3.10'
 
     steps:
       - name: Checkout repository
@@ -115,10 +115,10 @@ jobs:
         # reqs](https://github.com/guildai/guildai/runs/8052694671)
         # and 3.6 end-of-life.
         python-version:
-          - 3.7
-          - 3.8
-          - 3.9
-          - 3.10
+          - '3.7'
+          - '3.8'
+          - '3.9'
+          - '3.10'
 
     steps:
       - name: Checkout repository
