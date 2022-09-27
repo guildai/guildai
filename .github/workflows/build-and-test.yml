@@ -18,20 +18,11 @@ on:
         description: Skip all tests (use with SSH to manually test)
         type: boolean
         default: false
-      skip_os:
-        description: Skip jobs for an OS - use space-delimited list of macos, ubuntu, or windows
-        type: string
-        default: ''
-      skip_python:
-        description: Skip jobs for a Python version - use space-delimited list of 3.6, 3.7, 3.8, 3.9, or 3.10
-        type: string
-        default: ''
 
 jobs:
   build-posix:
     name: Build - POSIX
     runs-on: ${{ matrix.os }}
-    if: "!contains(inputs.skip_os, matrix.os) && !contains(inputs.skip_python, matrix.python-version)"
     strategy:
       fail-fast: false
       matrix:
@@ -116,7 +107,6 @@ jobs:
   build-windows:
     name: Build - Windows
     runs-on: windows-latest
-    if: "!contains(inputs.skip_os, 'windows') && !contains(inputs.skip_python, matrix.python-version)"
 
     strategy:
       fail-fast: false
