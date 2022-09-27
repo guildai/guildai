@@ -18,28 +18,29 @@ on:
         description: Skip all tests (use with SSH to manually test)
         type: boolean
         default: false
-      posix_os:
-        description: List of OSes for Posix
+      skip_os:
+        description: Skip jobs for an OS - use space-delimited list of macos, ubuntu, or windows
         type: string
-        default: '["ubuntu-latest","macos-latest"]'
-      posix_python:
-        description: List of Python versions for Posix
-        type: string
-        default: '["3.6","3.7","3.8","3.9","3.10"]'
-      windows_python:
-        description: List of Python versions for Windows
-        type: string
-        default: '["3.7","3.8","3.9","3.10"]'
+        default: ''
+      skip_python: Skip jobs for a Python version - use space-delimited list of 3.6, 3.7, 3.8, 3.9, or 3.10
 
 jobs:
   build-posix:
     name: Build - POSIX
     runs-on: ${{ matrix.os }}
+    if: ${{ !contains(inputs.skip_os, matrix.os) && !contains(inputs.skip_python, matrix.python-version) }}
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(inputs.posix_os) }}
-        python-version: ${{ fromJSON(inputs.posix_python) }}
+        os:
+          - ubuntu-latest
+          - macos-latest
+        python-version:
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+          - 3.10
 
     steps:
       - name: Checkout repository
@@ -112,6 +113,7 @@ jobs:
   build-windows:
     name: Build - Windows
     runs-on: windows-latest
+    if: ${{ !contains(inputs.skip_os, 'windows') && !contains(inputs.skip_python, matrix.python-version) }}
 
     strategy:
       fail-fast: false
@@ -119,7 +121,11 @@ jobs:
         # Omitting 3.6 on Windows due to [issues installing test
         # reqs](https://github.com/guildai/guildai/runs/8052694671)
         # and 3.6 end-of-life.
-        python-version: ${{ fromJSON(inputs.windows_python) }}
+        python-version:
+          - 3.7
+          - 3.8
+          - 3.9
+          - 3.10
 
     steps:
       - name: Checkout repository
