@@ -22,7 +22,10 @@ on:
         description: Skip jobs for an OS - use space-delimited list of macos, ubuntu, or windows
         type: string
         default: ''
-      skip_python: Skip jobs for a Python version - use space-delimited list of 3.6, 3.7, 3.8, 3.9, or 3.10
+      skip_python:
+        description: Skip jobs for a Python version - use space-delimited list of 3.6, 3.7, 3.8, 3.9, or 3.10
+        type: string
+        default: ''
 
 jobs:
   build-posix:
