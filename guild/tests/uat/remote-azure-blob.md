@@ -1,5 +1,5 @@
 ---
-doctest: -FIXME
+doctest: +FIXME
 ---
 
 # Azure Blob Storage remote

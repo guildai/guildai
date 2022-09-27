@@ -1,3 +1,7 @@
+---
+doctest: +FIXME
+---
+
 # R script support
 
 Guild provides support for R script via the `r_script` plugin.
