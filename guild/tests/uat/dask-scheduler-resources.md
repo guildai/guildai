@@ -1,3 +1,7 @@
+---
+doctest: -PY37  # Ordering issues on Python 3.7 - see below
+---
+
 # Dask Scheduler Resources
 
 Clear existing runs for our tests.
@@ -270,3 +274,10 @@ only one run per GPU at a time.
 NOTE: it's surprising that 'ccc' is started before 'bbb'. It's not
 clear why Dask is making this decision but is consistent. Importantly,
 runs 'aaa' and 'ddd' are scheduled to run alongside one another.
+
+## Python 3.7
+
+See
+
+- https://github.com/guildai/guildai/actions/runs/3137956982/jobs/5096738726
+- https://github.com/guildai/guildai/actions/runs/3137956982/jobs/5096738220

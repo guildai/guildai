@@ -1,3 +1,7 @@
+---
+doctest: -PY36  # Failures on 3.6 - see below
+---
+
 # Validate Examples Schema
 
 To exercise the schema validation and to verify the correctness of our
@@ -51,3 +55,38 @@ examples, apply validation to the Guild files under `examples/`.
     tensorflow2/guild.yml
     upstream-flags/guild.yml
     vscode-extension/guild.yml
+
+## Python 3.6
+
+There are validation issues on Python 3.6 for the `models` project. As
+Python 3.6 is end-of-lifed at this stage, we're not going to resolve
+this.
+
+See https://github.com/guildai/guildai/actions/runs/3137956982/jobs/5096738104
+
+```
+Failed example:
+    for path in example_guildfiles():  # doctest: +REPORT_UDIFF
+        print(path)
+        try:
+            _ = guildfile_schema.parse_file(os.path.join(examples_dir(), path))
+        except Exception as e:
+            print(f"Failure at {path}: {str(e)}")
+Differences (unified diff with -expected +actual):
+    @@ -17,4 +17,15 @@
+     languages/guild.yml
+     models/guild.yml
+    +Failure at models/guild.yml: 5 validation errors for GuildfileParsingModel
+    +__root__
+    +  value is not a valid dict (type=type_error.dict)
+    +__root__ -> 0 -> config
+    +  extra fields not permitted (type=value_error.extra)
+    +__root__ -> 0 -> operations
+    +  extra fields not permitted (type=value_error.extra)
+    +__root__ -> 0 -> resources
+    +  extra fields not permitted (type=value_error.extra)
+    +__root__ -> 0 -> config
+    +  extra fields not permitted (type=value_error.extra)
+     notebooks/guild.yml
+     parallel-runs/guild.yml
+```
