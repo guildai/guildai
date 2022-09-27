@@ -28,7 +28,7 @@ jobs:
   build-posix:
     name: Build - POSIX
     runs-on: ${{ matrix.os }}
-    if: ${{ !contains(inputs.skip_os, matrix.os) && !contains(inputs.skip_python, matrix.python-version) }}
+    if: "!contains(inputs.skip_os, matrix.os) && !contains(inputs.skip_python, matrix.python-version)"
     strategy:
       fail-fast: false
       matrix:
@@ -113,7 +113,7 @@ jobs:
   build-windows:
     name: Build - Windows
     runs-on: windows-latest
-    if: ${{ !contains(inputs.skip_os, 'windows') && !contains(inputs.skip_python, matrix.python-version) }}
+    if: "!contains(inputs.skip_os, 'windows') && !contains(inputs.skip_python, matrix.python-version)"
 
     strategy:
       fail-fast: false
