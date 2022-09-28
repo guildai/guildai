@@ -6,7 +6,7 @@ Try to activate a non-existing environment.
 
     >>> tmp = mkdtemp()
 
-Activate from cwd:
+Activate non-existing from cwd:
 
     >>> cd(tmp)
     >>> run("bash -c 'source guild-env'")
@@ -14,13 +14,14 @@ Activate from cwd:
     Try 'source guild-env PATH'.
     <exit 1>
 
-Activate an explicit directory:
+Activate non-existing as an explicit directory:
 
     >>> run("bash -c 'source guild-env %s'" % tmp)
     guild-env: cannot find a Guild environment in ...
     <exit 1>
 
-Looking for `venv` and `env`.
+Guild activates `venv` first if it exsts. In this case we create fake
+envs under `venv` and `env`.
 
     >>> quiet("mkdir -p env/bin")
     >>> quiet("echo 'echo from_env' > env/bin/activate")
@@ -33,18 +34,7 @@ Looking for `venv` and `env`.
     >>> run("bash -c 'source guild-env'")
     from_venv
     ... is active.
-    <BLANKLINE>
-    To deactivate the environment, run:
-    <BLANKLINE>
-      deactivate
-    <BLANKLINE>
-    Common commands:
-    <BLANKLINE>
-      guild check   Check the environment
-      guild ops     List available operations
-      guild runs    List runs
-      guild run     Run an operation
-      guild --help  Show Guild help
+    ...
     <exit 0>
 
 Remove `venv` and activate again.
