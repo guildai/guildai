@@ -195,6 +195,6 @@ Syntax errors:
     guild: syntax error in filter - unexpected end of expresion
     <exit 1>
 
-    >>> filter("foo = \n 123")
+    >>> filter("foo = \n 123")  # doctest: -NORMALIZE_PATHS
     guild: syntax error in filter at position 6: unexpected character '\'
     <exit 1>
