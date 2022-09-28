@@ -36,7 +36,6 @@ fi
 if [ -e "$_guild_env/${BIN_DIR}/activate" ]; then
     . "$_guild_env/${BIN_DIR}/activate"
     if [ -z "$QUIET" ]; then
-        clear 2> /dev/null || true
         echo "$VIRTUAL_ENV is active."
         echo
         echo "To deactivate the environment, run:"
