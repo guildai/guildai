@@ -580,6 +580,7 @@ def test_globals():
         "samples_dir": samples_dir,
         "set_guild_home": _set_guild_home,
         "sha256": util.file_sha256,
+        "shlex_quote": util.shlex_quote,
         "sleep": time.sleep,
         "symlink": os.symlink,
         "sys": sys,

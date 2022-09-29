@@ -99,7 +99,7 @@ Helper function to show filtered runs:
 
     >>> def filter(expr, cols=""):
     ...     run(f"guild compare -t -cc .operation,{cols or '.label'} "
-    ...         f"--filter {expr!r}")
+    ...         f"--filter {shlex_quote(expr)}")
 
 List runs using various filters.
 
@@ -195,6 +195,6 @@ Syntax errors:
     guild: syntax error in filter - unexpected end of expresion
     <exit 1>
 
-    >>> filter("foo = \n 123")  # doctest: -NORMALIZE_PATHS
-    guild: syntax error in filter at position 6: unexpected character '\'
+    >>> filter("foo = \n 123")
+    guild: syntax error in filter - unexpected end of expresion
     <exit 1>
