@@ -194,7 +194,3 @@ Syntax errors:
     >>> filter("(")
     guild: syntax error in filter - unexpected end of expresion
     <exit 1>
-
-    >>> filter("foo = \n 123")
-    guild: syntax error in filter - unexpected end of expresion
-    <exit 1>
