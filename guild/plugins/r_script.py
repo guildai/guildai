@@ -179,11 +179,12 @@ def run_r(
         cmd.append("-")
         run_kwargs['input'] = infile.encode()
 
-    run_kwargs.setdefault("stderr", subprocess.STDOUT)
-    run_kwargs.setdefault("stdout", subprocess.PIPE)
+    run_kwargs.setdefault('capture_output', True)
 
-    out = subprocess.run(cmd, check=True, **run_kwargs)
-    return out.stdout.decode()
+    try:
+        return subprocess.run(cmd, check=True, **run_kwargs).stdout.decode()
+    except subprocess.CalledProcessError as ex:
+        raise Exception(ex.stderr.decode()) from ex
 
 
 def merge_dicts(dict1, dict2):
