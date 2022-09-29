@@ -583,7 +583,7 @@ def _initialized_msg(config):
     env_dir = util.format_dir(config.env_dir)
     source_cmd = _source_cmd(env_dir)
     cli.out(
-        f"Guild environment initialized in {env_dir}\n\n."
+        f"Guild environment initialized in {env_dir}\n\n"
         f"To activate it run:\n\n  {source_cmd}\n"
     )
 
