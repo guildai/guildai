@@ -106,7 +106,6 @@ jobs:
 
   build-windows:
     name: Build - Windows
-    if: false
     runs-on: windows-latest
 
     strategy:
