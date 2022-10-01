@@ -76,6 +76,20 @@ split-args:
       arg-split: ','
       default: 1,2,3
 
+arg-encoding:
+  main: arg_encoding
+  flags-dest: args
+  flags:
+    b:
+      default: yes
+      type: boolean
+      arg-encoding:
+        yes: 'yes'
+        no: 'no'
+      env-encoding:
+        yes: 'ON'
+        no: 'OFF'
+
 split-globals:
   main: globals3
   flags:

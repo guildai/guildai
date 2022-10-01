@@ -138,6 +138,27 @@ Params in non-flag template:
     ['1', '2.3', 'why hello there']
     {'FLAG_F': '2.3', 'FLAG_I': '1', 'FLAG_S': 'hello'}
 
+Arg encoding:
+
+    >>> generate(
+    ...     ["__flag_args__"], {},
+    ...     {"b1": CmdFlag(arg_encoding={True: "yes", False: "no"}),
+    ...      "b2": CmdFlag(arg_encoding={True: "yes", False: "no"})},
+    ...     {"b1": True, "b2": False})
+    ['--b1', 'yes', '--b2', 'no']
+    {'FLAG_B1': 'yes', 'FLAG_B2': 'no'}
+
+Env encoding:
+
+    >>> generate(
+    ...     ["__flag_args__"], {},
+    ...     {"b1": CmdFlag(env_encoding={True: "ON", False: "OFF"}),
+    ...      "b2": CmdFlag(env_encoding={True: "ON", False: "OFF"})},
+    ...     {"b1": True, "b2": False})
+    ['--b1', '1', '--b2', '']
+    {'FLAG_B1': 'ON', 'FLAG_B2': 'OFF'}
+
+
 ## Explicit env var names
 
     >>> generate([], {}, {"a": CmdFlag(env_name="A")}, {"a": 1})

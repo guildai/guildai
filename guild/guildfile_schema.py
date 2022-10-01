@@ -68,6 +68,7 @@ class FlagChoiceSchema(schema.BaseModel):
 class FlagDefSchema(schema.BaseModel):
     allow_other: OptionalBool
     arg_name: Optional[str]
+    arg_encoding: Optional[Dict[Any, str]]
     arg_skip: Optional[str]
     arg_split: Optional[str]
     arg_switch: Optional[str]
@@ -76,6 +77,7 @@ class FlagDefSchema(schema.BaseModel):
     description: Optional[str]
     distribution: Optional[str]
     env_name: Optional[str]
+    env_encoding: Optional[Dict[Any, str]]
     extra: Optional[dict]
     max: Optional[str]
     min: Optional[str]

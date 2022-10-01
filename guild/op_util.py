@@ -1170,6 +1170,8 @@ def _flag_cmd_for_flagdef(flagdef):
         arg_switch=flagdef.arg_switch,
         arg_split=flagdef.arg_split,
         env_name=flagdef.env_name,
+        arg_encoding=flagdef.arg_encoding,
+        env_encoding=flagdef.env_encoding,
     )
 
 

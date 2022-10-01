@@ -42,12 +42,16 @@ class CmdFlag:
         arg_switch=None,
         arg_split=None,
         env_name=None,
+        arg_encoding=None,
+        env_encoding=None,
     ):
         self.arg_name = arg_name
         self.arg_skip = arg_skip
         self.arg_switch = arg_switch
         self.arg_split = arg_split
         self.env_name = env_name
+        self.arg_encoding = arg_encoding or {}
+        self.env_encoding = env_encoding or {}
 
 
 ###################################################################
@@ -78,7 +82,7 @@ def _encode_arg_params(params):
 
 def _encode_general_arg(val):
     # Use same encoding used for env vals.
-    return _encode_env_val(val, arg_split=None)
+    return _encode_env_val(val)
 
 
 def _flag_args(flag_vals, flag_dest, cmd_flags, cmd_args):
@@ -113,7 +117,7 @@ def _args_for_flag(name, val, cmd_flag, flag_dest, cmd_args):
             return [f"--{arg_name}"] + encoded if encoded else []
         return [
             f"--{arg_name}",
-            _encode_flag_arg(val, flag_dest, cmd_flag.arg_split),
+            _encode_flag_arg(val, flag_dest, cmd_flag),
         ]
     return []
 
@@ -128,10 +132,10 @@ def _encode_split_args(val, dest, arg_split):
     return _split_args_for_dest(parts, dest)
 
 
-def _encode_flag_val_for_split(val, dest, arg_split):
+def _encode_flag_val_for_split(val, dest, cmd_flag):
     if isinstance(val, str):
         return val
-    return _encode_flag_arg(val, dest, arg_split)
+    return _encode_flag_arg(val, dest, cmd_flag)
 
 
 def _split_args_for_dest(parts, dest):
@@ -147,7 +151,7 @@ def _encode_yaml_list_for_globals_arg(parts):
     )
 
 
-def _encode_flag_arg(val, dest, arg_split):
+def _encode_flag_arg(val, dest, cmd_flag):
     if (
         dest == "globals"
         or dest.startswith("global:")
@@ -155,7 +159,7 @@ def _encode_flag_arg(val, dest, arg_split):
         or dest.startswith("namespace:")
     ):
         return _encode_flag_arg_for_globals(val)
-    return _encode_flag_arg_for_argparse(val, arg_split)
+    return _encode_flag_arg_for_argparse(val, cmd_flag)
 
 
 def _encode_flag_arg_for_globals(val):
@@ -168,8 +172,21 @@ def _encode_flag_arg_for_globals(val):
     return yaml_util.encode_yaml(val, default_flow_style=True)
 
 
-def _encode_flag_arg_for_argparse(val, arg_split):
+def _encode_flag_arg_for_argparse(val, cmd_flag):
     """Returns an encoded flag val for use by Python argparse.
+
+    If `val` is specified in `cmd_flag.arg_encoding`, returns the
+    corresponding value. Otherwise applies the default encoding using
+    `_default_encode_flag_arg_for_argparse()`.
+    """
+    try:
+        return cmd_flag.arg_encoding[val]
+    except (KeyError, TypeError):
+        return _default_flag_arg_for_argparse(val, cmd_flag)
+
+
+def _default_flag_arg_for_argparse(val, cmd_flag):
+    """Performs default encoding of val for use as argparse arg.
 
     argparse generally uses type functions (e.g. int, float, etc.) to
     decode string args. We use `pprint.pformat` to encode here with
@@ -178,8 +195,8 @@ def _encode_flag_arg_for_argparse(val, arg_split):
     chose non-empty string '1' to represent True along with the empty
     string '' to represent False.
 
-    `arg_split` is used to encode lists of values to a single string
-    argument.
+    `cmd_flag.arg_split` is used to encode lists of values to a single
+    string argument.
     """
     if val is True:
         return "1"
@@ -188,7 +205,7 @@ def _encode_flag_arg_for_argparse(val, arg_split):
     if isinstance(val, str):
         return val
     if isinstance(val, list):
-        return flag_util.join_splittable_flag_vals(val, arg_split)
+        return flag_util.join_splittable_flag_vals(val, cmd_flag.arg_split)
     return pprint.pformat(val)
 
 
@@ -200,17 +217,26 @@ def _gen_env(op_cmd, flag_vals):
 
 
 def _encoded_cmd_env(op_cmd):
-    return {name: _encode_env_val(val) for name, val in op_cmd.cmd_env.items()}
+    return {
+        name: _encode_env_val(val, op_cmd.cmd_flags.get(name))
+        for name, val in op_cmd.cmd_env.items()
+    }
 
 
-def _encode_env_val(val, arg_split=None):
+def _encode_env_val(val, cmd_flag=None):
     """Returns an encoded flag val for use as env values.
 
-    Uses the same encoding scheme as _encode_flag_arg_for_argparse
-    under the assumption that the same logic is used to decode env
-    values as as command arguments.
+    If `val` appears in `cmd_flag.env_encoding`, returns the
+    corresponding value unmodified. Otherwise uses the same encoding
+    scheme as _encode_flag_arg_for_argparse under the assumption that
+    the same logic is used to decode env values as as command
+    arguments.
     """
-    return _encode_flag_arg_for_argparse(val, arg_split)
+    cmd_flag = cmd_flag or CmdFlag()
+    try:
+        return cmd_flag.env_encoding[val]
+    except (KeyError, TypeError):
+        return _encode_flag_arg_for_argparse(val, cmd_flag)
 
 
 def _resolve_env_flag_refs(flag_vals, env):
@@ -219,19 +245,19 @@ def _resolve_env_flag_refs(flag_vals, env):
 
 
 def _apply_flag_env(flag_vals, op_cmd, env):
-    env.update(
-        {
-            _flag_env_name(name, op_cmd): _encode_env_val(val)
-            for name, val in flag_vals.items()
-        }
+    for name, val in flag_vals.items():
+        cmd_flag = op_cmd.cmd_flags.get(name)
+        env_name = _flag_env_name(name, cmd_flag)
+        env_val = _encode_env_val(val, cmd_flag)
+        env[env_name] = env_val
+
+
+def _flag_env_name(flag_name, cmd_flag):
+    return (
+        cmd_flag.env_name
+        if cmd_flag and cmd_flag.env_name
+        else _default_flag_env_name(flag_name)
     )
-
-
-def _flag_env_name(flag_name, op_cmd):
-    cmd_flag = op_cmd.cmd_flags.get(flag_name)
-    if cmd_flag and cmd_flag.env_name:
-        return cmd_flag.env_name
-    return _default_flag_env_name(flag_name)
 
 
 def _default_flag_env_name(flag_name):
@@ -271,6 +297,8 @@ def _cmd_flag_for_data(data):
         arg_switch=data.get("arg-switch"),
         arg_split=data.get("arg-split"),
         env_name=data.get("env-name"),
+        arg_encoding=data.get("arg-encoding"),
+        env_encoding=data.get("env-encoding"),
     )
 
 
@@ -309,4 +337,8 @@ def _cmd_flag_as_data(cmd_flag):
         data["arg-split"] = cmd_flag.arg_split
     if cmd_flag.env_name:
         data["env-name"] = cmd_flag.env_name
+    if cmd_flag.arg_encoding:
+        data["arg-encoding"] = cmd_flag.arg_encoding
+    if cmd_flag.env_encoding:
+        data["env-encoding"] = cmd_flag.env_encoding
     return data

@@ -37,7 +37,9 @@
         arg-skip:
         arg-switch:
         arg-split:
+        arg-encoding:
         env-name:
+        env-encoding:
         choices: []
         allow-other: no
         distribution:
@@ -81,7 +83,9 @@
         arg-skip:
         arg-switch:
         arg-split:
+        arg-encoding:
         env-name:
+        env-encoding:
         choices: []
         allow-other: no
         distribution:
@@ -96,7 +100,9 @@
         arg-skip:
         arg-switch: yes
         arg-split:
+        arg-encoding:
         env-name:
+        env-encoding:
         choices: ['yes', 'no']
         allow-other: no
         distribution:

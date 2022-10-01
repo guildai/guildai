@@ -37,7 +37,8 @@ The anonymous model:
 And its operations:
 
     >>> gf.default_model.operations
-    [<guild.guildfile.OpDef 'args'>,
+    [<guild.guildfile.OpDef 'arg-encoding'>,
+     <guild.guildfile.OpDef 'args'>,
      <guild.guildfile.OpDef 'args2'>,
      <guild.guildfile.OpDef 'args3'>,
      <guild.guildfile.OpDef 'globals'>,
@@ -378,6 +379,19 @@ Guild applies flag type to each part of a split flag value.
     INFO: [guild] Running trial ...: split-args (x="c 'd e'", y=1,2)
     ['c', 'd e']
     [1, 2]
+
+## Arg encoding
+
+The `arg-encoding` operation illustrates how flag values are mapped to
+command line args and to env vars.
+
+    >>> guild_run("arg-encoding", b=True)
+    args: ['--b', 'yes']
+    env: ON
+
+    >>> guild_run("arg-encoding", b=False)
+    args: ['--b', 'no']
+    env: OFF
 
 ## No flags interface
 
