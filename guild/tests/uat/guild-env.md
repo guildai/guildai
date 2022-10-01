@@ -33,7 +33,7 @@ envs under `venv` and `env`.
 
     >>> run("bash -c 'source guild-env'")
     from_venv
-    ... is active
+    ...is active
     <BLANKLINE>
     To deactivate the environment, run:
     <BLANKLINE>
@@ -53,6 +53,6 @@ Remove `venv` and activate again.
     >>> quiet("rm -rf venv")
     >>> run("bash -c 'source guild-env'")
     from_env
-    ... is active
+    ...is active
     ...
     <exit 0>
