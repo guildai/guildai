@@ -19,6 +19,9 @@ import subprocess
 from pkg_resources import Distribution as PkgDist
 from pkg_resources import PathMetadata
 from setuptools import find_packages, setup
+from setuptools.command.build_py import build_py
+
+import guild
 
 from guild import log
 
@@ -30,22 +33,6 @@ if platform.system() == "Windows":
     NPM_CMD = "npm.cmd"
 else:
     NPM_CMD = "npm"
-
-
-def get_version_and_cmdclass(pkg_path):
-    """Load version.py module without importing the whole package.
-
-    Template code from miniver
-    """
-    from importlib.util import module_from_spec, spec_from_file_location
-
-    spec = spec_from_file_location("version", os.path.join(pkg_path, "_version.py"))
-    module = module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module.__version__, module.get_cmdclass(pkg_path)
-
-
-version, cmdclass = get_version_and_cmdclass(r"guild")
 
 
 def guild_dist_info():
@@ -66,7 +53,7 @@ def guild_packages():
 PKG_INFO, ENTRY_POINTS = guild_dist_info()
 
 
-class Build(cmdclass["build_py"]):
+class Build(build_py):
     """Extension of default build with additional pre-processing.
 
     In preparation for setuptool's default build, we perform these
@@ -79,10 +66,10 @@ class Build(cmdclass["build_py"]):
     """
 
     def run(self):
-        super().run()
         if os.getenv("BUILD_GUILD_VIEW") == "1":
             _check_npm()
             _build_view_dist()
+        build_py.run(self)
 
 
 def _check_npm():
@@ -100,13 +87,10 @@ def _build_view_dist():
 
 setup(
     # Setup class config
-    cmdclass={
-        "sdist": cmdclass["sdist"],
-        "build_py": Build,
-    },
+    cmdclass={"build_py": Build},
     # Attributes from dist-info
     name="guildai",
-    version=version,
+    version=guild.__version__,
     description=PKG_INFO.get("Summary"),
     install_requires=PKG_INFO.get_all("Requires-Dist"),
     long_description=PKG_INFO.get_payload(),

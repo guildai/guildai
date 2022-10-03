@@ -18,6 +18,10 @@ on:
         description: Skip all tests (use with SSH to manually test)
         type: boolean
         default: false
+      release:
+        description: Publish wheel to PyPI on success
+        type: boolean
+        default: false
 
 jobs:
   build-posix:
@@ -28,12 +32,12 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest
+          # - macos-latest
         python-version:
-          - '3.6'
-          - '3.7'
-          - '3.8'
-          - '3.9'
+          # - '3.6'
+          # - '3.7'
+          # - '3.8'
+          # - '3.9'
           - '3.10'
 
     steps:
@@ -107,6 +111,7 @@ jobs:
   build-windows:
     name: Build - Windows
     runs-on: windows-latest
+    if: ${{ false }}
 
     strategy:
       fail-fast: false
@@ -184,3 +189,35 @@ jobs:
       - name: Keep server alive for SSH (cancel workflow to terminate)
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
         run: Start-Sleep 3600
+
+  publish-to-pypi:
+    name: Publish to PyPI
+    needs:
+      - build-posix
+      - build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          # Use oldest supported version of Python to create dist
+          python-version: 3.6
+
+      - name: Build package
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          python setup.py bdist_wheel
+
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Add GitHub Release entry
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
