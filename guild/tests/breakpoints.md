@@ -30,7 +30,7 @@ first breakable line it 5.
 Break accepts file names with line numbers.
 
     >>> run("guild run breakable_lines.py --break breakable_lines:41 -y",
-    ...     timeout=2)
+    ...     timeout=4)
     Breakpoint 1 at .../.guild/sourcecode/breakable_lines.py:41
     hello
     hello from loop
