@@ -19,7 +19,7 @@ on:
         type: boolean
         default: false
       release:
-        description: Publish wheel to PyPI on success
+        description: Publish to PyPI (select for release)
         type: boolean
         default: false
 
