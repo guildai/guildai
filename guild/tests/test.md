@@ -117,3 +117,13 @@ file finishes.
      'serve',
      'templates',
      'textorbinary']
+
+## Ignoring output
+
+    >>> with Ignore(["hello", "bye", "some .+ message"]):
+    ...     print("foo")
+    ...     print("bar")
+    ...     print("hello")
+    ...     print("some xxx message")
+    foo
+    bar

@@ -517,6 +517,7 @@ def test_globals():
         "PLATFORM": PLATFORM,
         "Chdir": util.Chdir,
         "Env": util.Env,
+        "Ignore": _Ignore,
         "LogCapture": util.LogCapture,
         "ModelPath": ModelPath,
         "Platform": _Platform,
@@ -1375,3 +1376,28 @@ class _Platform:
 
     def __exit__(self, *_args):
         globals()["PLATFORM"] = self._platform_save
+
+
+class _Ignore(util.StdoutCapture):
+    def __init__(self, ignore_patterns):
+        self.ignore_patterns = _compile_ignore_patterns(ignore_patterns)
+
+    def __exit__(self, *args):
+        super().__exit__(*args)
+        sys.stdout.write(_strip_ignored(self._captured, self.ignore_patterns))
+
+
+def _compile_ignore_patterns(patterns):
+    if not isinstance(patterns, list):
+        patterns = [patterns]
+    return [re.compile(p) for p in patterns]
+
+
+def _strip_ignored(captured, ignore_patterns):
+    lines = "".join(captured).split("\n")
+    filtered = [line for line in lines if not _capture_ignored(line, ignore_patterns)]
+    return "\n".join(filtered)
+
+
+def _capture_ignored(s, ignore_patterns):
+    return any(p.search(s) for p in ignore_patterns)

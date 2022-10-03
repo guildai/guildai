@@ -218,7 +218,8 @@ notebook.
 The operation `deps.ipynb` does not specify either `notebook` or
 `main` but is still run as a notebook.
 
-    >>> project.run("deps.ipynb")
+    >>> with Ignore("Assertion failed: pfd.revents & POLLIN"):
+    ...     project.run("deps.ipynb")
     Resolving file:dep.txt dependency
     INFO: [guild] Initializing deps.ipynb for run
     INFO: [guild] Executing deps.ipynb
