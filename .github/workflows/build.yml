@@ -215,8 +215,3 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
-
-      - name: Add GitHub Release entry
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/*
