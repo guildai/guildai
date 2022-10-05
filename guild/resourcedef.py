@@ -158,6 +158,7 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
         select_min=None,
         select_max=None,
         warn_if_empty=True,
+        optional=False,
         fail_if_empty=False,
         rename=None,
         help=None,
@@ -183,6 +184,7 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
             self.unpack = resdef.default_unpack
         self.type = type
         self.select = _init_resource_source_select(select, select_min, select_max)
+        self.optional = optional
         self.warn_if_empty = warn_if_empty
         self.fail_if_empty = fail_if_empty
         self.rename = _init_rename(rename)

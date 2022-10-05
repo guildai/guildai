@@ -53,6 +53,7 @@ tests).
       dependencies:                ok
       dependencies-2:              ok
       dependencies-3:              ok
+      dependencies-4:              ok
       disk-plugin:                 ok
       entry-points:                ok
       file-utils:                  ok

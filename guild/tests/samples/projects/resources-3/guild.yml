@@ -1,0 +1,11 @@
+missing-file:
+  main: guild.pass
+  requires:
+    - file: missing.txt
+      optional: yes
+
+self-ref:
+  requires:
+    - operation: self-ref
+      select: [file]
+      optional: yes

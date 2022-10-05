@@ -215,6 +215,7 @@ class ResourceSourceSchema(schema.BaseModel):
     unpack: Optional[bool]
     type: Optional[str]
     select: Optional[Union[str, List[str]]]
+    optional: bool = False
     warn_if_empty: bool = True
     fail_if_empty: bool = False
     rename: Optional[Union[str, List[str]]]

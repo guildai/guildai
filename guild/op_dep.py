@@ -487,10 +487,11 @@ def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
                 try:
                     run = resolver.resolve_op_run(run_id_prefix, include_staged=True)
                 except resolverlib.ResolutionError:
-                    log.warning(
-                        "cannot find a suitable run for required resource '%s'",
-                        dep.resdef.name,
-                    )
+                    if not source.optional:
+                        log.warning(
+                            "cannot find a suitable run for required resource '%s'",
+                            dep.resdef.name,
+                        )
                 else:
                     yield run, dep
 

@@ -506,15 +506,26 @@ def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolve
         if for_stage and _is_operation_source(source):
             log.info("Skipping resolution of %s because it's being staged", source.name)
             continue
-        run_rel_resolved_paths = _resolve_dep_source(
-            op, source, dep, resolve_context, run
-        )
-        resolved[source.name] = source_info = {
-            "uri": source.uri,
-            "paths": run_rel_resolved_paths,
-        }
-        if dep.config:
-            source_info["config"] = dep.config
+        try:
+            run_rel_resolved_paths = _resolve_dep_source(
+                op, source, dep, resolve_context, run
+            )
+        except op_dep.OpDependencyError as e:
+            if not source.optional:
+                raise
+            log.debug(e)
+            log.info(
+                "Could not resolve %s - skipping because dependency is optional",
+                source.name,
+            )
+            continue
+        else:
+            resolved[source.name] = source_info = {
+                "uri": source.uri,
+                "paths": run_rel_resolved_paths,
+            }
+            if dep.config:
+                source_info["config"] = dep.config
 
 
 def _resolve_dep_source(op, source, dep, resolve_context, run):
