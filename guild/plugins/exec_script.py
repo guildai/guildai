@@ -43,7 +43,11 @@ class ExecScriptModelProxy:
 
 class ExecScriptPlugin(plugin.Plugin):
 
-    resolve_model_op_priority = 100
+    # Place plugin at the of the sort priority to let other
+    # file-oriented plugins handle first - this plugin causes
+    # resolution to fail with an error for any file that's not
+    # executable.
+    resolve_model_op_priority = 999
 
     def resolve_model_op(self, opspec):
         path = os.path.join(config.cwd(), opspec)
