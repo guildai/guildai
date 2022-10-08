@@ -3,7 +3,9 @@
 -export([main/1]).
 
 %%| flags:
-%%|   who: Joe
+%%|   who:
+%%|     description: Who are we greeting?
+%%|     default: Joe
 %%| args: ${who}
 
 main([]) -> hello(["Joe"]);

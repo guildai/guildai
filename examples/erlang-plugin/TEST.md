@@ -21,12 +21,13 @@ Use `--help-op` with the `run` command to show help for the operation.
     Use 'guild run --help' for a list of options.
     <BLANKLINE>
     Flags:
-      who  (default is Joe)
+      who  Who are we greeting? (default is Joe)
 
 Use `--print-cmd` to show the underlying command that the plugin
 generates for running the operation.
 
-    $ guild run samples/hello --print-cmd
+    $ guild run samples/hello.erl --print-cmd
+    escript hello.erl Joe
 
 Run the operation with default flag values. These are defined in the
 script using a configuration block. Note that this scheme only applies
