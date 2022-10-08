@@ -7,11 +7,11 @@ Key points:
 
 - Define an [entry
   point](https://packaging.python.org/en/latest/specifications/entry-points/)
-  for `guild.plugins`. See [setup.py](setup.py) for details.
+  for `guild.plugins`. See [`setup.py`](setup.py) for details.
 
 - The entry point should specify a class that extends
   `guild.plugin.Plugin`. See
-  [erlang_guild/plugins/escript.py](erlang_guild/plugins/escript.py).
+  [`erlang_guild/plugins/escript.py`](erlang_guild/plugins/escript.py).
 
 - Install the package providing the entry point. For "editable"
   installs, use `pip install -e .` from the project directory
@@ -22,7 +22,7 @@ Key points:
 
 - To uninstall the plugin, uninstall the applicable package.
 
-Refer to the [guild.plugin.Plugin](../guild/plugin.py) class for the
+Refer to the [`guild.plugin.Plugin`](../../guild/plugin.py) class for the
 Plugin API. Each method defined for the `Plugin` class can be
 overridden by a plugin to provide plugin-specific functionality.
 
@@ -36,6 +36,23 @@ Configuration is defined using special comments starting with `%%| `
 config lines form a configuration block, which must contain valid
 YAML.
 
+For example:
+
+``` erlang
+-module(foo).
+
+-export([main/1]).
+
+%% The following comment block is parsed as YAML-defined config by the
+%% plugin:
+
+%%| flags:
+%%|   bar: 123
+%%| args: ${bar}
+
+main([Bar]) -> io:format("bar is ~s\n").
+```
+
 The plugin supports two configuration: `flags` and `args`. `flags`
 corresponds to the `flags` operation attribute. `args` is
 plugin-specific configuration that provides a string containing
@@ -43,12 +60,12 @@ references to flag values. The string is formatted as needed to pass
 flag values to the script.
 
 In support of running Erlang modules (files ending with `.erl`), the
-plugin handles op specs (the value used in `guild run`) matching that
-file format. It returns a model proxy and operation name that can be
-used to run the script.
+plugin handles op specs (i.e. the value used in `guild run`) matching
+that file format. It returns a model proxy and operation name that can
+be used to run the script.
 
-This is one example of a Guild AI plugin feature. Refer to
-[`guild.plugins`](../guild/plugins/) for a complete list of built-in
+This is but one application of a Guild AI plugin . Refer to
+[`guild.plugins`](../../guild/plugins/) for a complete list of built-in
 plugins and examples of how plugins are used to extend Guild.
 
 Note that the Guild AI plugin API is not an officially supported API
