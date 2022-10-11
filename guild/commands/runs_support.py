@@ -66,7 +66,7 @@ def run_for_ctx(ctx):
     return runs[0] if runs else None
 
 
-def ac_operation(ctx, incomplete):
+def ac_operation(ctx, _param, incomplete):
     from guild import run_util
 
     if ctx.params.get("remote"):
