@@ -1,5 +1,5 @@
 ---
-doctest: -PY37  # Ordering issues on Python 3.7 - see below
+doctest: -PY36 -PY37  # See 'Python 3.6 and 3.7' section below
 ---
 
 # Dask Scheduler Resources
@@ -275,7 +275,7 @@ NOTE: it's surprising that 'ccc' is started before 'bbb'. It's not
 clear why Dask is making this decision but is consistent. Importantly,
 runs 'aaa' and 'ddd' are scheduled to run alongside one another.
 
-## Python 3.7
+## Python 3.6 and 3.7
 
 See
 

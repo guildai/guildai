@@ -22,7 +22,7 @@ Simple value (used for scalars):
     >>> tb.Summary("tag", simple_value=1.123)
     value {
       tag: "tag"
-      simple_value: 1.123000...
+      simple_value: 1.123...
     }
     <BLANKLINE>
 
@@ -50,7 +50,7 @@ Images:
     summary {
       value {
         tag: "tag"
-        simple_value: 1.123000...
+        simple_value: 1.123...
       }
     }
 

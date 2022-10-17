@@ -1,5 +1,9 @@
 ---
-doctest: -PY3 +PY36 +PY37 # 2022-04-11 these tests fail on github actions because TF 1.14 fails to install. We need to update to a more current tensorflow version that has wheels available.
+# 2022-04-11 these tests fail on github actions because TF 1.14 fails
+# to install. We need to update to a more current tensorflow version
+# that has wheels available.
+
+doctest: +FIXME
 ---
 
 # TensorFlow 2.0
