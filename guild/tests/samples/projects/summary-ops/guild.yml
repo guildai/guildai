@@ -1,0 +1,8 @@
+up:
+  flags-dest: globals
+  flags:
+    x: 1
+
+down:
+  requires:
+    - runs: upstream

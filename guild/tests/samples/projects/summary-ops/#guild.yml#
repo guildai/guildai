@@ -5,5 +5,5 @@ up:
 
 down:
   requires:
-    - operation: up
-      multi-run: yes
+    - runs: upstream
+k

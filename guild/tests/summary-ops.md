@@ -1,4 +1,6 @@
-# Multi-run Dependencies
+# Summary Operations
+
+These tests exercise the functionality described in the [Summary Ops RFC]()
 
     >> cd(sample("projects", "multi-run"))
     >> set_guild_home(mkdtemp())
