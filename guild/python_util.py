@@ -418,22 +418,6 @@ def scripts_for_dir(dir, exclude=None):
     ]
 
 
-class MainModuleContext:
-
-    _main_globals_save = None
-
-    def __init__(self, globals):
-        self._main_globals = globals
-
-    def __enter__(self):
-        self._main_globals_save = sys.modules["__main__"]
-        sys.modules["__main__"] = self._main_globals
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        assert self._main_globals_save
-        sys.modules["__main__"] = self._main_globals_save
-
-
 def exec_script(filename, globals=None, mod_name="__main__"):
     """Execute a Python script.
 
@@ -464,9 +448,7 @@ def exec_script(filename, globals=None, mod_name="__main__"):
             "__file__": filename,
         }
     )
-    with MainModuleContext(script_globals):
-        # pylint: disable=exec-used
-        exec(code, script_globals)
+    exec(code, script_globals)
     return script_globals
 
 
