@@ -1,12 +1,15 @@
-from distutils.log import warn
+import logging
 import os
-import os.path
+
 import yaml
 
 from guild import config
 from guild import guildfile
 from guild import model as modellib
 from guild import plugin as pluginlib
+
+
+log = logging.getLogger("guild")
 
 
 class QuartoDocumentModelProxy:
@@ -114,7 +117,7 @@ def get_qmd_frontmatter(path):
             data.append(line)
 
         if line.rstrip() != "---":
-            warn("qmd missing closing delimmiter for document frontmatter")
+            log.warning("qmd missing closing delimmiter for document frontmatter")
 
         return yaml.safe_load("".join(data))
 

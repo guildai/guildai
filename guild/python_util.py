@@ -448,6 +448,7 @@ def exec_script(filename, globals=None, mod_name="__main__"):
             "__file__": filename,
         }
     )
+    # pylint: disable=exec-used
     exec(code, script_globals)
     return script_globals
 
