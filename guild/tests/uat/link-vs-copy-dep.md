@@ -56,9 +56,9 @@ Create a nested list of subdirectories with a file:
 Run `op-1`:
 
     >>> run("guild run op-1 -y")
-    Resolving copy-default dependency
-    Resolving link-explicit dependency
-    Resolving copy-explicit dependency
+    Resolving copy-default
+    Resolving link-explicit
+    Resolving copy-explicit
     <exit 0>
 
     >>> run("guild ls")
@@ -105,8 +105,8 @@ Here are the three run files again:
 Run op-1:
 
     >>> run("guild run op-2 -y")
-    Resolving link dependency
-    Resolving copy dependency
+    Resolving link
+    Resolving copy
     <exit 0>
 
 The files:

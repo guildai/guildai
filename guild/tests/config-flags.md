@@ -141,7 +141,7 @@ The original config file:
 Results with default flags:
 
     >>> guild("run yaml -y")
-    Resolving config:flags.yml dependency
+    Resolving config:flags.yml
     {'b': False,
      'd': {},
      'f': 1.123,
@@ -153,7 +153,7 @@ Results with default flags:
 Results with modified flags:
 
     >>> guild("run yaml b=yes f=4.456 l='a b 123' s=hi -y")
-    Resolving config:flags.yml dependency
+    Resolving config:flags.yml
     {'b': True, 'd': {}, 'f': 4.456, 'i': 123, 'l': ['a', 'b', 123], 's': 'hi'}
     <exit 0>
 
@@ -206,7 +206,7 @@ The original config file:
 Results with default flags:
 
     >>> guild("run json -y")
-    Resolving config:flags.json dependency
+    Resolving config:flags.json
     {'b': True,
      'd': {'a': 'A', 'b': 'B'},
      'f': 2.234,
@@ -218,7 +218,7 @@ Results with default flags:
 Results with modified flags:
 
     >>> guild("run json s=abc l=\"2 1 'a b' d\" -y")
-    Resolving config:flags.json dependency
+    Resolving config:flags.json
     {'b': True,
      'd': {'a': 'A', 'b': 'B'},
      'f': 2.234,
@@ -243,7 +243,7 @@ The `json-2` operation maps flags names to different locations in the
 JSON file.
 
     >>> guild("run json-2 -y")
-    Resolving config:flags.json dependency
+    Resolving config:flags.json
     {'b': True,
      'd': {'a': 'A', 'b': 'BB'},
      'f': 2.234,
@@ -253,7 +253,7 @@ JSON file.
     <exit 0>
 
     >>> guild("run json-2 aa=AAA bb=B -y")
-    Resolving config:flags.json dependency
+    Resolving config:flags.json
     {'b': True,
      'd': {'a': 'AAA', 'b': 'B'},
      'f': 2.234,
@@ -283,7 +283,7 @@ When run with default values we get the same content. Note the order
 of options is sorted.
 
     >>> guild("run cfg -y")
-    Resolving config:flags.cfg dependency
+    Resolving config:flags.cfg
     [DEFAULT]
     b = True
     f = 1.123
@@ -300,7 +300,7 @@ of options is sorted.
 Run with modified flags.
 
     >>> guild("run cfg b=no i=321 foo.b=yes foo.f=432.2 foo.s='hej hej' -y")
-    Resolving config:flags.cfg dependency
+    Resolving config:flags.cfg
     [DEFAULT]
     b = False
     f = 1.123
@@ -339,7 +339,7 @@ Guild generates a run specific config file.
 The `cfg-2` operation maps alternative flag names to various INI entries.
 
     >>> guild("run cfg-2 i=222 -y")
-    Resolving config:flags.cfg dependency
+    Resolving config:flags.cfg
     [DEFAULT]
     b = yes
     f = 1.123
@@ -378,7 +378,7 @@ The json input 'flags.json.in':
 Results with default flags:
 
     >>> guild("run json-in -y")
-    Resolving config:flags.json.in dependency
+    Resolving config:flags.json.in
     {'b': True,
      'd': {'a': 'A', 'b': 'B'},
      'f': 2.234,
@@ -390,7 +390,7 @@ Results with default flags:
 Results with modified flags:
 
     >>> guild("run json-in s=abc l=\"2 1 'a b' d\" -y")
-    Resolving config:flags.json.in dependency
+    Resolving config:flags.json.in
     {'b': True,
      'd': {'a': 'A', 'b': 'B'},
      'f': 2.234,
@@ -420,7 +420,7 @@ re-writes the config file with the new flag values.
     >>> last_run_id = out.strip()
 
     >>> guild(f"run --restart {last_run_id} b=no f=3.345 -y")
-    Resolving config:flags.json.in dependency
+    Resolving config:flags.json.in
     {'b': False,
      'd': {'a': 'A', 'b': 'B'},
      'f': 3.345,
@@ -434,7 +434,7 @@ on restart, Guild fails on restart. We can use the
 'explicit-no-replace' operation to test this.
 
     >>> guild("run explicit-no-replace -y")
-    Resolving config:flags.json dependency
+    Resolving config:flags.json
     <exit 0>
 
 Get the last run ID.
@@ -447,7 +447,7 @@ Get the last run ID.
 Restar the run.
 
     >>> guild(f"run --restart {last_run_id} -y")
-    Resolving config:flags.json dependency
+    Resolving config:flags.json
     Skipping resolution of config:flags.json because it's already resolved
     <exit 0>
 
@@ -475,7 +475,7 @@ Includes need to specify the path to the config file relative to the
 importing source.
 
     >>> guild("run yaml-subdir -y")
-    Resolving config:subdir/flags.yaml dependency
+    Resolving config:subdir/flags.yaml
     <exit 0>
 
     >>> guild("ls -n")
@@ -501,13 +501,13 @@ The `test-args-1` operation doesn't define any base args in
 `guild.yml`.
 
     >>> guild("run test-args-1 -y")
-    Resolving config:empty.json dependency
+    Resolving config:empty.json
     []
     <exit 0>
 
 The `test-args-2` operation defines three base args in `guild.yml`.
 
     >>> guild("run test-args-2 -y")
-    Resolving config:empty.json dependency
+    Resolving config:empty.json
     ['foo', 'bar', 'baz']
     <exit 0>

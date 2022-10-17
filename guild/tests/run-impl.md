@@ -278,7 +278,7 @@ Try to start downstream without required upstream op:
 
     >>> gh = run_gh(cwd, opspec="downstream")
     WARNING: cannot find a suitable run for required resource 'upstream'
-    Resolving upstream dependency
+    Resolving upstream
     run failed because a dependency was not met: could not resolve
     'operation:upstream' in upstream resource: no suitable run for upstream
     <exit 1>
@@ -295,7 +295,7 @@ A run is create, but it has an error.
 Try to start upstream without required file:
 
     >>> run(cwd, opspec="upstream")
-    Resolving file:src.txt dependency
+    Resolving file:src.txt
     run failed because a dependency was not met: could not resolve
     'file:src.txt' in file:src.txt resource: cannot find source file 'src.txt'
     <exit 1>
@@ -307,7 +307,7 @@ Provide required file `src.txt`.
 Run upstream again.
 
     >>> gh = run_gh(cwd, opspec="upstream")
-    Resolving file:src.txt dependency
+    Resolving file:src.txt
 
     >>> runs = var.runs(path(gh, "runs"))
     >>> len(runs)
@@ -322,7 +322,7 @@ Run upstream again.
 Run downstream again.
 
     >>> run(cwd, gh, opspec="downstream")
-    Resolving upstream dependency
+    Resolving upstream
     Using run ... for upstream resource
 
     >>> runs = var.runs(path(gh, "runs"), sort=["-timestamp"])
@@ -349,7 +349,7 @@ Run upstream again - this generates a new run that is used by
 downstream by default.
 
     >>> run(cwd, gh, opspec="upstream")
-    Resolving file:src.txt dependency
+    Resolving file:src.txt
 
 Mark the upstream runs to differentiate them from the previous
 upstream run.
@@ -371,14 +371,14 @@ upstream run.
 Run downstream with the default (second) upstream.
 
     >>> run(cwd, gh, opspec="downstream")
-    Resolving upstream dependency
+    Resolving upstream
     Using run ... for upstream resource
 
 Run downstream again but with the first upstream.
 
     >>> run(cwd, gh, opspec="downstream",
     ...     flags=["upstream=%s" % upstream_1.id])
-    Resolving upstream dependency
+    Resolving upstream
     Using run ... for upstream resource
 
 Verify that our two downstreams are using the expected upstreams by
@@ -424,7 +424,7 @@ Guild doesn't attempt to resolve operation dependencies when staging.
 
     >>> gh = run_gh(cwd, opspec="downstream", stage=True)
     WARNING: cannot find a suitable run for required resource 'upstream'
-    Resolving upstream dependency
+    Resolving upstream
     Skipping resolution of operation:upstream because it's being staged
     downstream staged as ...
     To start the operation, use 'guild run --start ...'
@@ -437,7 +437,7 @@ there's not suitable upstream run.
     1
 
     >>> run(cwd, gh, restart=runs[0].short_id)
-    Resolving upstream dependency
+    Resolving upstream
     run failed because a dependency was not met: could not resolve
     'operation:upstream' in upstream resource: no suitable run for upstream
     <exit 1>
@@ -463,7 +463,7 @@ And stage upstream again.
 Let's stage downstream again.
 
     >>> run(cwd, gh, opspec="downstream", stage=True)
-    Resolving upstream dependency
+    Resolving upstream
     Skipping resolution of operation:upstream because it's being staged
     downstream staged as ...
     To start the operation, use 'guild run --start ...'
@@ -481,12 +481,12 @@ This staged run is configured to use the currently staged upstream.
 If we run upstream, this will not effect the staged downstream.
 
     >>> run(cwd, gh, opspec="upstream")
-    Resolving file:src.txt dependency
+    Resolving file:src.txt
 
 Let's run the staged downstream.
 
     >>> run(cwd, gh, restart=staged_downstream.id)
-    Resolving upstream dependency
+    Resolving upstream
     Using run ... for upstream resource
 
 The resolved dep for the downstream corresponds to the staged
@@ -520,7 +520,7 @@ Create an upstream run.
 Create a downstream run.
 
     >>> run(cwd, gh, opspec="downstream")
-    Resolving upstream dependency
+    Resolving upstream
     Using run ... for upstream resource
     WARNING: nothing resolved for operation:upstream
 
@@ -536,7 +536,7 @@ Restart the downstream run.
     'downstream'
 
     >>> run(cwd, gh, restart=downstream.id)
-    Resolving upstream dependency
+    Resolving upstream
     Skipping resolution of operation:upstream because it's already resolved
 
 Note that a new run was NOT generated.

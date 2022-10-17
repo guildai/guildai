@@ -20,7 +20,7 @@ Warning when missing required op:
 Stage a required op.
 
     >>> run("guild run file --stage -y")
-    Resolving file:file.txt dependency
+    Resolving file:file.txt
     file staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>
@@ -45,7 +45,7 @@ When we don't preview the operation or otherwise specify a run for
 `file`, the operation staging is skipped.
 
     >>> run("guild run file-op --stage --yes")
-    Resolving file dependency
+    Resolving file
     Skipping resolution of operation:file because it's being staged
     file-op staged as ...
     To start the operation, use 'guild run --start ...'
@@ -62,7 +62,7 @@ Start staged upstream op.
     'staged'
 
     >>> run("guild run --start %s --yes" % upstream.id)
-    Resolving file:file.txt dependency
+    Resolving file:file.txt
     Skipping resolution of file:file.txt because it's already resolved
     <exit 0>
 
@@ -80,6 +80,6 @@ Start staged downstream op.
     'staged'
 
     >>> run("guild run --start %s --yes" % downstream.id)
-    Resolving file dependency
+    Resolving file
     Using run ... for file resource
     <exit 0>

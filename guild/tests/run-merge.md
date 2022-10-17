@@ -19,9 +19,9 @@ We generate a run for the `default` operation. This operation resolves a number
 of dependencies and generates files.
 
     >>> project.run("default")
-    Resolving file:dep-1 dependency
-    Resolving file:dep-subdir/dep-2 dependency
-    Resolving file:files.zip dependency
+    Resolving file:dep-1
+    Resolving file:dep-subdir/dep-2
+    Resolving file:files.zip
     Unpacking .../files.zip
     Generating files
 

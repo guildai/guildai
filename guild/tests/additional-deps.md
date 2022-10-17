@@ -17,5 +17,5 @@ available in the run directory.
 We can provide this file as an additional dependency.
 
     >>> project.run("op.py", deps=("file1",))
-    Resolving file1 dependency
+    Resolving file1
     Hello from file1

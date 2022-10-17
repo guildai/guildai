@@ -496,7 +496,7 @@ def _resolve_deps(op, run, for_stage=False, continue_on_error=False):
 
 
 def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolved):
-    log.info(loglib.dim("Resolving %s dependency"), dep.resdef.name)
+    log.info(loglib.dim("Resolving %s"), dep.resdef.name)
     for source in dep.resdef.sources:
         if not source.always_resolve and source.name in resolved:
             log.info(

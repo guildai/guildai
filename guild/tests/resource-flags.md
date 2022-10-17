@@ -10,7 +10,7 @@ Operation defined with only `foo` flag:
 Operation defined with only `foo` resource:
 
     >>> project.run("resource")
-    Resolving foo dependency
+    Resolving foo
     hello resource
 
 Run files:
@@ -22,7 +22,7 @@ We can use the resource flag name to specify a different resoure
 source.
 
     >>> project.run("resource", flags={"foo": "bar.txt"})
-    Resolving foo dependency
+    Resolving foo
     Using bar.txt for foo resource
     hello resource --foo bar.txt
 
@@ -32,7 +32,7 @@ source.
 Operation defined with both flag and resource named `foo`:
 
     >>> project.run("flag-and-resource")
-    Resolving foo dependency
+    Resolving foo
     guild: run failed because a dependency was not met: could not
     resolve 'file:foo.txt' in foo resource: .../resource-flags/123
     does not exist
@@ -42,7 +42,7 @@ Note that the flag default `123` took precedence over the resource
 default. We can set the flag howerver.
 
     >>> project.run("flag-and-resource", flags={"foo": "foo.txt"})
-    Resolving foo dependency
+    Resolving foo
     Using foo.txt for foo resource
     hello flag-and-resource --foo foo.txt
 
@@ -52,7 +52,7 @@ default. We can set the flag howerver.
 Operation that requires a `flag` run:
 
     >>> project.run("requires-flag")
-    Resolving flag dependency
+    Resolving flag
     Using run ... for flag resource
     hello requires-flag
 
@@ -67,7 +67,7 @@ case we'll specify an invalid run ID.
 
     >>> project.run("requires-flag", flags={"flag": "invalid"})
     WARNING: cannot find a suitable run for required resource 'flag'
-    Resolving flag dependency
+    Resolving flag
     guild: run failed because a dependency was not met: could not resolve
     'operation:flag' in flag resource: no suitable run for flag
     <exit 1>
@@ -77,7 +77,7 @@ the same as the resource name. In this case, the flag assumes the role
 of the interface to the resource run ID.
 
     >>> project.run("requires-flag-2")
-    Resolving flag dependency
+    Resolving flag
     Using run ... for flag resource
     hello requires-flag-2 --flag ...
 
@@ -88,13 +88,13 @@ defined as a flag.
 used for the resource.
 
     >>> project.run("requires-flag-3")
-    Resolving foo dependency
+    Resolving foo
     Using run ... for foo resource
     hello requires-flag-3
 
     >>> project.run("requires-flag-3", flags={"foo": "invalid"})
     WARNING: cannot find a suitable run for required resource 'foo'
-    Resolving foo dependency
+    Resolving foo
     guild: run failed because a dependency was not met: could not resolve
     'operation:flag' in foo resource: no suitable run for flag
     <exit 1>
@@ -105,7 +105,7 @@ invalid default value for the required resource and a rename argument.
 
     >>> project.run("requires-flag-4")
     WARNING: cannot find a suitable run for required resource 'foo'
-    Resolving foo dependency
+    Resolving foo
     guild: run failed because a dependency was not met: could not resolve
     'operation:flag' in foo resource: no suitable run for flag
     <exit 1>
@@ -113,7 +113,7 @@ invalid default value for the required resource and a rename argument.
 We can force a lookup by setting `foo` to an empty string.
 
     >>> project.run("requires-flag-4", {"foo": ""})
-    Resolving foo dependency
+    Resolving foo
     Using run ... for foo resource
     hello requires-flag-4 --FOO ...
 

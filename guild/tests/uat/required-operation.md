@@ -22,7 +22,7 @@ Try to run `train` without a required run:
 
     >>> run("guild run train -y")
     WARNING: cannot find a suitable run for required resource 'prepared-data'
-    Resolving prepared-data dependency
+    Resolving prepared-data
     guild: run failed because a dependency was not met: could not
     resolve 'operation:prepare-data' in prepared-data resource: no
     suitable run for prepare-data
@@ -36,7 +36,7 @@ Run `prepare-data`:
 Run `train` again:
 
     >>> run("guild run train -y")
-    Resolving prepared-data dependency
+    Resolving prepared-data
     Using run ... for prepared-data resource
     <exit 0>
 
@@ -89,7 +89,7 @@ Get the run ID for the original data prep:
 Specify that `train` use the first data prep run:
 
     >>> run("guild run train prepared-data=%s -y" % first_data_prep_run)
-    Resolving prepared-data dependency
+    Resolving prepared-data
     Using run ... for prepared-data resource
     <exit 0>
 
@@ -143,10 +143,10 @@ Run train using the two run IDs:
     >>> run("guild run train prepared-data=[%s,%s] -y"
     ...     % (data_prep_1, data_prep_2))
     INFO: [guild] Running trial ...: train (prepared-data=...)
-    INFO: [guild] Resolving prepared-data dependency
+    INFO: [guild] Resolving prepared-data
     INFO: [guild] Using run ... for prepared-data resource
     INFO: [guild] Running trial ...: train (prepared-data=...)
-    INFO: [guild] Resolving prepared-data dependency
+    INFO: [guild] Resolving prepared-data
     INFO: [guild] Using run ... for prepared-data resource
     <exit 0>
 
@@ -166,10 +166,10 @@ the batch error.
     ...     "--fail-on-trial-error -y" % data_prep_1)
     WARNING: cannot find a suitable run for required resource 'prepared-data'
     INFO: [guild] Running trial ...: train (prepared-data=...)
-    INFO: [guild] Resolving prepared-data dependency
+    INFO: [guild] Resolving prepared-data
     INFO: [guild] Using run ... for prepared-data resource
     INFO: [guild] Running trial ...: train (prepared-data=xxx_invalid)
-    INFO: [guild] Resolving prepared-data dependency
+    INFO: [guild] Resolving prepared-data
     ERROR: [guild] Trial ... exited with an error: (1) run failed because a dependency
     was not met: could not resolve 'operation:prepare-data' in prepared-data resource:
     no suitable run for prepare-data

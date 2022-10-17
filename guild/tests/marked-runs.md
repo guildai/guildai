@@ -14,7 +14,7 @@ In this project, the `serve` operation requires a `train` operation.
 
     >>> project.run("serve")
     WARNING: cannot find a suitable run for required resource 'train'
-    Resolving train dependency
+    Resolving train
     guild: run failed because a dependency was not met: could not resolve
     'operation:train' in train resource: no suitable run for train
     <exit 1>
@@ -32,7 +32,7 @@ We satisfy the dependency by running train:
 And now serve again:
 
     >>> project.run("serve")
-    Resolving train dependency
+    Resolving train
     Using run ... for train resource
     Serving ./trained-model
 
@@ -85,7 +85,7 @@ Next we'll run train again, generating a more recent train op.
 And run serve again:
 
     >>> project.run("serve")
-    Resolving train dependency
+    Resolving train
     Using run ... for train resource
     Serving ./trained-model
 
@@ -123,7 +123,7 @@ Next we explicitly specify a different train operation for serve:
     {'lr': 0.1}
 
     >>> project.run("serve", flags={"train": explicit_train_run.id})
-    Resolving train dependency
+    Resolving train
     Using run ... for train resource
     Serving ./trained-model
 
@@ -158,7 +158,7 @@ And the `marked` attribute:
 And run serve, this time without an explicit train run:
 
     >>> project.run("serve")
-    Resolving train dependency
+    Resolving train
     Using run ... for train resource
     Serving ./trained-model
 
@@ -215,7 +215,7 @@ earlier:
 Let's run the serve op:
 
     >>> project.run("serve")
-    Resolving train dependency
+    Resolving train
     Using run ... for train resource
     Serving ./trained-model
 

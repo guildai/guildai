@@ -115,8 +115,8 @@ Let's run `a/model:test`.
     ...   run_dir=a_test_run_dir,
     ...   extra_env={"NO_WARN_RUNDIR": "1"})
     >>> print(output)
-    Resolving msg_file dependency
-    Resolving lib dependency
+    Resolving msg_file
+    Resolving lib
     Hello from a/model
     File from model/a
 
@@ -154,8 +154,8 @@ system path:
     ...   extra_env={"PYTHONPATH": projects,
     ...              "NO_WARN_RUNDIR": "1"})
     >>> print(output)
-    Resolving msg_file dependency
-    Resolving lib dependency
+    Resolving msg_file
+    Resolving lib
     Hello from b/model
     File from model/a
 
@@ -173,8 +173,8 @@ Next we'll run `c/model:test`:
     ...   extra_env={"PYTHONPATH": projects,
     ...              "NO_WARN_RUNDIR": "1"})
     >>> print(output)
-    Resolving msg_file dependency
-    Resolving lib dependency
+    Resolving msg_file
+    Resolving lib
     Hello from c/model
     File from model/c
 

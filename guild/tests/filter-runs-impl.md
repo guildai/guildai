@@ -53,11 +53,11 @@ gives us predictable results given a seed.
 
     >>> run("guild run fixed:test seed=[2,3] -y")
     INFO: [guild] Running trial ...: fixed:test (seed=2, train=...)
-    INFO: [guild] Resolving train dependency
+    INFO: [guild] Resolving train
     INFO: [guild] Using run ... for train resource
     test-acc: 50
     INFO: [guild] Running trial ...: fixed:test (seed=3, train=...)
-    INFO: [guild] Resolving train dependency
+    INFO: [guild] Resolving train
     INFO: [guild] Using run ... for train resource
     test-acc: 84
     <exit 0>

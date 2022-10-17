@@ -7,7 +7,7 @@ The tests below run code defined in the `resource-flag-refs` project.
 Default resource resolution:
 
     >>> run = project.run("op1")
-    Resolving file dependency
+    Resolving file
 
     >>> project.ls(run)
     ['foo-file.txt']
@@ -15,7 +15,7 @@ Default resource resolution:
 Use flag to specify a file via a resource ref:
 
     >>> run = project.run("op1", flags={"filename": "bar"})
-    Resolving file dependency
+    Resolving file
 
     >>> project.ls(run)
     ['bar-file.txt']
@@ -23,7 +23,7 @@ Use flag to specify a file via a resource ref:
 Flag that can't be resolved to a file:
 
     >>> run = project.run("op1", flags={"filename": "baz"})
-    Resolving file dependency
+    Resolving file
     guild: run failed because a dependency was not met: could not resolve
     'file:baz-file.txt' in file resource: cannot find source file
     'baz-file.txt'
@@ -41,7 +41,7 @@ We can force the flag however.
     >>> run = project.run("op2",
     ...                   flags={"undefined": "foo-file.txt"},
     ...                   force_flags=True)
-    Resolving file dependency
+    Resolving file
 
     >>> project.ls(run)
     ['foo-file.txt']
@@ -49,7 +49,7 @@ We can force the flag however.
 The `op3` uses a flag ref in a rename.
 
     >>> run = project.run("op3")
-    Resolving file:foo-file.txt dependency
+    Resolving file:foo-file.txt
 
     >>> project.ls(run)
     ['baz.txt']
@@ -57,7 +57,7 @@ The `op3` uses a flag ref in a rename.
 Specifying the value for the renamed file.
 
     >>> run = project.run("op3", flags={"name": "bam"})
-    Resolving file:foo-file.txt dependency
+    Resolving file:foo-file.txt
 
     >>> project.ls(run)
     ['bam.txt']

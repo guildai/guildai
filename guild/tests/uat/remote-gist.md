@@ -65,7 +65,7 @@ Generate some sample runs.
     <exit 0>
 
     >>> run("guild run hello-file -y")
-    Resolving file dependency
+    Resolving file
     Using hello.txt for file resource
     Reading message from hello.txt
     Hello, from a file!

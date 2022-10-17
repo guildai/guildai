@@ -73,7 +73,7 @@ And its result:
 
     >>> project.run("_test-file-1")
     INFO: [guild] running gen-files: gen-files count=1 msg='hello bus'
-    Resolving file:sample.txt dependency
+    Resolving file:sample.txt
     INFO: [guild] checking run ... files 'file-1'
     INFO: [guild] checking run ... file file-1 for 'hello bus'
     INFO: [guild] checking run ... files 'sample.txt'
@@ -116,7 +116,7 @@ does this:
     INFO: [guild] 2 of 2 checks passed
     INFO: [guild] running _test-file-1: _test-file-1
     INFO: [guild] running gen-files: gen-files count=1 msg='hello bus'
-    Resolving file:sample.txt dependency
+    Resolving file:sample.txt
     INFO: [guild] checking run ... files 'file-1'
     INFO: [guild] checking run ... file file-1 for 'hello bus'
     INFO: [guild] checking run ... files 'sample.txt'

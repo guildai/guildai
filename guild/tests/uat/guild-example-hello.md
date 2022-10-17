@@ -24,7 +24,7 @@ List operations:
 ## `hello-file`
 
     >>> run("guild run hello-file -y")
-    Resolving file dependency
+    Resolving file
     Using hello.txt for file resource
     Reading message from hello.txt
     Hello, from a file!
@@ -68,7 +68,7 @@ List operations:
     >>> write(tmp_file, "A temp file!")
 
     >>> run("guild run hello-file file=%s -y" % tmp_file)
-    Resolving file dependency
+    Resolving file
     Using .../hello for file resource
     Reading message from .../hello
     A temp file!
@@ -78,14 +78,14 @@ List operations:
 ## `hello-op`
 
     >>> run("guild run hello-op -y")
-    Resolving op dependency
+    Resolving op
     Using run ... for op resource
     Reading message from msg.out
     A temp file!
     <exit 0>
 
     >>> run("guild run hello-op op=`guild select -Fo hello-file 2` -y")
-    Resolving op dependency
+    Resolving op
     Using run ... for op resource
     Reading message from msg.out
     Hello, from a file!

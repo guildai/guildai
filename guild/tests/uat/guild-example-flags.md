@@ -160,7 +160,7 @@
     <exit 0>
 
     >>> run("guild run config b=yes i=456 l='no green 2' -y")
-    Resolving config:flags.yml dependency
+    Resolving config:flags.yml
     {'b': True, 'f': 1.123, 'i': 456, 'l': [False, 'green', 2], 's': 'Howdy Guild'}
     <exit 0>
 
@@ -175,7 +175,7 @@ Legacy support:
     <exit 0>
 
     >>> run("guild run config-legacy i=456 b=yes -y")
-    Resolving config:flags.yml dependency
+    Resolving config:flags.yml
     {'b': True,
      'f': 1.123,
      'i': 456,

@@ -56,7 +56,7 @@
 YAML based:
 
     >>> run("guild run config -y")
-    Resolving config:flags.yml dependency
+    Resolving config:flags.yml
     {'b': False,
      'f': 1.123,
      'i': 123,
@@ -65,7 +65,7 @@ YAML based:
     <exit 0>
 
     >>> run("guild run config b=yes i=321 l='2 2.3 green no' -y")
-    Resolving config:flags.yml dependency
+    Resolving config:flags.yml
     {'b': True,
      'f': 1.123,
      'i': 321,
@@ -88,7 +88,7 @@ YAML based:
 JSON based:
 
     >>> run("guild run config-2 -y")
-    Resolving config:flags.json dependency
+    Resolving config:flags.json
     {'b': False,
      'f': 1.123,
      'i': 123,
@@ -97,7 +97,7 @@ JSON based:
     <exit 0>
 
     >>> run("guild run config-2 b=yes i=321 l='2 2.3 green no' -y")
-    Resolving config:flags.json dependency
+    Resolving config:flags.json
     {'b': True,
      'f': 1.123,
      'i': 321,
@@ -112,7 +112,7 @@ JSON based:
 INI based:
 
     >>> run("guild run config-3 -y")
-    Resolving config:flags.ini dependency
+    Resolving config:flags.ini
     [DEFAULT]
     b = False
     f = 1.123
@@ -122,7 +122,7 @@ INI based:
     <exit 0>
 
     >>> run("guild run config-3 b=yes i=321 l='2 2.3 green no' -y")
-    Resolving config:flags.ini dependency
+    Resolving config:flags.ini
     [DEFAULT]
     b = True
     f = 1.123

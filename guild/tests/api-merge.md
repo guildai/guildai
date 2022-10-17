@@ -65,9 +65,9 @@ Verify the project ops.
 Generate a run from the sample project.
 
     >>> project_run("guild run default -y")
-    Resolving file:dep-1 dependency
-    Resolving file:dep-subdir/dep-2 dependency
-    Resolving file:files.zip dependency
+    Resolving file:dep-1
+    Resolving file:dep-subdir/dep-2
+    Resolving file:files.zip
     Unpacking .../files.zip
     Generating files
     <exit 0>
@@ -624,8 +624,8 @@ The `overlap` operation creates a target path overlap example.
   content
 
     >> project_run("guild run overlap -y")
-    Resolving file:dep-1 dependency
-    Resolving file:dep-subdir/dep-2 dependency
+    Resolving file:dep-1
+    Resolving file:dep-subdir/dep-2
     Generating files
     <exit 0>
 

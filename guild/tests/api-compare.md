@@ -5,7 +5,7 @@ Generate some sample runs.
     >>> project = Project(sample("projects", "hello"))
 
     >>> project.run("hello-file")
-    Resolving file dependency
+    Resolving file
     Using hello.txt for file resource
     Reading message from hello.txt
     Hello, from a file!

@@ -28,7 +28,7 @@ These tests run various hello operations remotely.
     Installing collected packages: gpkg.hello
     Successfully installed gpkg.hello-0.1
     Starting hello-file on guild-uat as ...
-    Resolving packaged-files dependency
+    Resolving packaged-files
     Reading message from hello-2.txt
     Hello, from a 2nd file!
     <BLANKLINE>
@@ -47,7 +47,7 @@ These tests run various hello operations remotely.
     Installing collected packages: gpkg.hello
     Successfully installed gpkg.hello-0.1
     Starting hello-op on guild-uat as ...
-    Resolving op dependency
+    Resolving op
     Using run ... for op resource
     Reading message from msg.out
     Hello, from a 2nd file!

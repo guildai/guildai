@@ -48,7 +48,7 @@ The `hello-file` operation prints a message contained in a file. By
 default it will print the contents of a default file:
 
     >>> run("guild run hello-file -y")
-    Resolving file dependency
+    Resolving file
     Using hello.txt for file resource
     Reading message from hello.txt
     Hello, from a file!
@@ -60,7 +60,7 @@ We can provide an alternative file.
 
     >>> quiet("echo 'Yo yo, what up Guild!' > $WORKSPACE/alt-msg")
     >>> run("guild run hello-file file=$WORKSPACE/alt-msg -y")
-    Resolving file dependency
+    Resolving file
     Using .../alt-msg for file resource
     Reading message from .../alt-msg
     Yo yo, what up Guild!
@@ -73,7 +73,7 @@ We can provide an alternative file.
 When we run `hello-op`, we get the latest output from `hello-file`:
 
     >>> run("guild run hello-op -y")
-    Resolving op dependency
+    Resolving op
     Using run ... for op resource
     Reading message from msg.out
     Yo yo, what up Guild!
@@ -122,7 +122,7 @@ Here's a preview of the command:
 Let's use the first run for `hello-file`, rather than the latest.
 
     >>> run("guild run hello-op op=`guild select -Fo hello-file 2` -y")
-    Resolving op dependency
+    Resolving op
     Using run ... for op resource
     Reading message from msg.out
     Hello, from a file!

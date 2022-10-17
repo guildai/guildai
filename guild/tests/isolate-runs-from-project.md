@@ -42,13 +42,13 @@ The other project files:
 Run `op`:
 
     >>> project.run("op")
-    Resolving file:a.txt dependency
+    Resolving file:a.txt
     1 123
 
 Stage `op`:
 
     >>> project.run("op", stage=True, flags={"a": 2})
-    Resolving file:a.txt dependency
+    Resolving file:a.txt
     op staged as ...
     To start the operation, use ...
 
@@ -68,7 +68,7 @@ Start the staged run. We can change flag values at this point.
 
     >>> runs = project.list_runs()
     >>> project.run(start=runs[0].id)
-    Resolving file:a.txt dependency
+    Resolving file:a.txt
     Skipping resolution of file:a.txt because it's already resolved
     2 123
 
@@ -79,7 +79,7 @@ Start the staged run. We can change flag values at this point.
 Restart the initial run.
 
     >>> project.run(restart=runs[1].id)
-    Resolving file:a.txt dependency
+    Resolving file:a.txt
     Skipping resolution of file:a.txt because it's already resolved
     1 123
 

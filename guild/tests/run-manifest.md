@@ -34,9 +34,9 @@ Manifests also contain resolved dependencies.
 
     >>> project = Project(sample("projects", "run-manifest"))
     >>> project.run("file-deps")
-    Resolving file:file1.txt dependency
-    Resolving file:file2.txt dependency
-    Resolving file:files.zip dependency
+    Resolving file:file1.txt
+    Resolving file:file2.txt
+    Resolving file:files.zip
     Unpacking .../samples/projects/run-manifest/files.zip
 
     >>> run = project.list_runs()[0]

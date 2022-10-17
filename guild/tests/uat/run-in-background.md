@@ -104,7 +104,7 @@ Wait for operation:
     Watching run ...
     INFO: [guild] running upstream: upstream
     INFO: [guild] running downstream: downstream
-    Resolving upstream dependency
+    Resolving upstream
     Using run ... for upstream resource
     WARNING: nothing resolved for operation:upstream
     Run ... stopped with a status of 'completed'

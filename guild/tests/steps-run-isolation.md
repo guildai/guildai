@@ -13,7 +13,7 @@ provided by the parent operation.
     >>> project.run("m6:steps-all")
     INFO: [guild] running upstream: m6:upstream
     INFO: [guild] running downstream: m6:downstream
-    Resolving upstream dependency
+    Resolving upstream
     Using run ... for upstream resource
     WARNING: nothing resolved for operation:upstream
 
@@ -29,7 +29,7 @@ the step parent.
     >>> project.run("m6:steps-downstream-broken")
     INFO: [guild] running downstream: m6:downstream
     WARNING: cannot find a suitable run for required resource 'upstream'
-    Resolving upstream dependency
+    Resolving upstream
     guild: run failed because a dependency was not met: could not resolve
     'operation:upstream' in upstream resource: no suitable run for upstream
     <exit 1>
@@ -49,7 +49,7 @@ its upstream requirement from all available runs.
 
     >>> project.run("m6:steps-downstream-fixed")
     INFO: [guild] running downstream: m6:downstream
-    Resolving upstream dependency
+    Resolving upstream
     Using run ... for upstream resource
     WARNING: nothing resolved for operation:upstream
 

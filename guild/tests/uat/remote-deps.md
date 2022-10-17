@@ -40,7 +40,7 @@ Run the downstream op without an upstream op, which is required:
     ...
     Starting downstream on guild-uat as ...
     WARNING: cannot find a suitable run for required resource 'upstream'
-    Resolving upstream dependency
+    Resolving upstream
     guild: run failed because a dependency was not met: could not resolve
     'operation:upstream' in upstream resource: no suitable run for upstream
     <exit 1>
@@ -80,7 +80,7 @@ Run downstream again:
     ...
     Successfully installed gpkg.anonymous-...-0.0.0
     Starting downstream on guild-uat as ...
-    Resolving upstream dependency
+    Resolving upstream
     Using run ... for upstream resource
     Run ... stopped with a status of 'completed'
     <exit 0>
@@ -114,7 +114,7 @@ but it fails.
     Successfully installed gpkg.anonymous-...-0.0.0
     Starting downstream on guild-uat as ...
     WARNING: cannot find a suitable run for required resource 'upstream'
-    Resolving upstream dependency
+    Resolving upstream
     guild: run failed because a dependency was not met: could not resolve
     'operation:upstream' in upstream resource: no suitable run for upstream
     <exit 1>

@@ -220,7 +220,7 @@ The operation `deps.ipynb` does not specify either `notebook` or
 
     >>> with Ignore("Assertion failed: pfd.revents & POLLIN"):
     ...     project.run("deps.ipynb")
-    Resolving file:dep.txt dependency
+    Resolving file:dep.txt
     INFO: [guild] Initializing deps.ipynb for run
     INFO: [guild] Executing deps.ipynb
     Hello!

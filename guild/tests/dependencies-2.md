@@ -224,7 +224,7 @@ The `print-msg-2` operation requires `print-msg`, which we don't have.
 
     >>> project.run("print-msg-2")
     WARNING: cannot find a suitable run for required resource 'print-msg'
-    Resolving print-msg dependency
+    Resolving print-msg
     guild: run failed because a dependency was not met: could not resolve
     'operation:print-msg' in print-msg resource: no suitable run for print-msg
     <exit 1>
@@ -233,7 +233,7 @@ We can force a run even in such cases using `force_deps`.
 
     >>> project.run("print-msg-2", force_deps=True)
     WARNING: cannot find a suitable run for required resource 'print-msg'
-    Resolving print-msg dependency
+    Resolving print-msg
     WARNING: a dependency was not met: could not resolve 'operation:print-msg'
     in print-msg resource: no suitable run for print-msg
     cat: no such file 'msg.txt'
@@ -243,7 +243,7 @@ The same behavior applies to staging runs. We use `missing-file-dep`
 to test this, which relies on a file that doesn't exist.
 
     >>> project.run("missing-file-dep", stage=True)
-    Resolving file:missing.txt dependency
+    Resolving file:missing.txt
     guild: run failed because a dependency was not met: could not resolve
     'file:missing.txt' in file:missing.txt resource: cannot find source file 'missing.txt'
     <exit 1>
@@ -251,10 +251,10 @@ to test this, which relies on a file that doesn't exist.
 Using `force_deps` we can bypass the check and stage the run anyway.
 
     >>> project.run("missing-file-dep", stage=True, force_deps=True)
-    Resolving file:missing.txt dependency
+    Resolving file:missing.txt
     WARNING: a dependency was not met: could not resolve 'file:missing.txt' in
     file:missing.txt resource: cannot find source file 'missing.txt'
-    Resolving file:msg.txt dependency
+    Resolving file:msg.txt
     missing-file-dep staged as ...
     To start the operation, use 'guild run --start ...'
 
@@ -268,21 +268,21 @@ also requires `msg.txt`, which does exist and can be resooved.
 
     >>> project.run("test-all")
     INFO: [guild] running print-msg: print-msg
-    Resolving file:msg.txt dependency
+    Resolving file:msg.txt
     hola
     INFO: [guild] checking run ... files 'msg.txt'
     INFO: [guild] comparing run ... file msg.txt to .../inline-resources/msg.txt
     INFO: [guild] 1 of 1 checks passed
     INFO: [guild] running print-msg-2: print-msg-2
-    Resolving print-msg dependency
+    Resolving print-msg
     Using run ... for print-msg resource
     hola
     INFO: [guild] checking run ... files 'msg.txt'
     INFO: [guild] comparing run ... file msg.txt to .../inline-resources/msg.txt
     INFO: [guild] 1 of 1 checks passed
     INFO: [guild] running print-msg-3: print-msg-3
-    Resolving file:msg.txt dependency
-    Resolving file:msg-2.txt dependency
+    Resolving file:msg.txt
+    Resolving file:msg-2.txt
     hola
     adios
     INFO: [guild] checking run ... files 'msg-1.txt'
@@ -291,7 +291,7 @@ also requires `msg.txt`, which does exist and can be resooved.
     INFO: [guild] comparing run ... file msg-2.txt to .../inline-resources/msg-2.txt
     INFO: [guild] 2 of 2 checks passed
     INFO: [guild] running print-msg-4: print-msg-4
-    Resolving file:msg.txt,file:msg-2.txt dependency
+    Resolving file:msg.txt,file:msg-2.txt
     hola
     adios
     INFO: [guild] checking run ... files 'messages/msg.txt'

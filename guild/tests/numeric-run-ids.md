@@ -75,36 +75,36 @@ Generate dowstream runs using various run ID references, each of which
 is a YAML encoded number.
 
     >>> run("guild run downstream upstream=1 -y")
-    ???Resolving upstream dependency
+    ???Resolving upstream
     Using run 1e123 for upstream resource
     <exit 0>
 
     >>> run("guild run downstream upstream=10 -y")
-    Resolving upstream dependency
+    Resolving upstream
     Using run 100 for upstream resource
     <exit 0>
 
     >>> run("guild run downstream upstream=100 -y")
-    Resolving upstream dependency
+    Resolving upstream
     Using run 100 for upstream resource
     <exit 0>
 
     >>> run("guild run downstream upstream=1e12 -y")
-    Resolving upstream dependency
+    Resolving upstream
     Using run 1e123 for upstream resource
     <exit 0>
 
     >>> run("guild run downstream upstream=02 -y")
-    Resolving upstream dependency
+    Resolving upstream
     Using run 02e234abc for upstream resource
     <exit 0>
 
     >>> run("guild run downstream upstream=2 -y")
-    Resolving upstream dependency
+    Resolving upstream
     Using run 2e234abc for upstream resource
     <exit 0>
 
     >>> run("guild run downstream upstream=2e234 -y")
-    Resolving upstream dependency
+    Resolving upstream
     Using run 2e234abc for upstream resource
     <exit 0>

@@ -247,7 +247,7 @@ to ensure our sort order below.
     >>> sleep(1)
 
     >>> project.run("op3")
-    Resolving file:src.txt dependency
+    Resolving file:src.txt
     x: 3
     y: 1
 

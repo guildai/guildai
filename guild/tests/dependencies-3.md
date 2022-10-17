@@ -32,14 +32,14 @@ replace existing, Guild prints a wanting and skips the resolution.
 Link target version:
 
     >>> run("guild run no-replace-dep-link -y")
-    Resolving file:file-1 dependency
+    Resolving file:file-1
     WARNING: .../file-1 already exists, skipping link
     <exit 0>
 
 Copy target version:
 
     >>> run("guild run no-replace-dep-copy -y")
-    Resolving file:file-1 dependency
+    Resolving file:file-1
     WARNING: .../file-1 already exists, skipping copy
     <exit 0>
 
@@ -49,11 +49,11 @@ cases Guild overwrites the source code copies.
 Link target version:
 
     >>> run("guild run replace-dep-link -y")
-    Resolving file:file-1 dependency
+    Resolving file:file-1
     <exit 0>
 
 Copy target version:
 
     >>> run("guild run replace-dep-copy -y")
-    Resolving file:file-1 dependency
+    Resolving file:file-1
     <exit 0>

@@ -7,7 +7,7 @@ These are general dependency tests.
 ## File
 
     >>> run("guild run file -y")
-    Resolving file:file.txt dependency
+    Resolving file:file.txt
     <exit 0>
 
     >>> run("guild ls -n")
@@ -38,7 +38,7 @@ Change dependency source using default source name - not allowed.
 flag.
 
     >>> run("guild run customizable-file src=guild.yml -y")
-    Resolving src dependency
+    Resolving src
     Using guild.yml for src resource
     <exit 0>
 
@@ -63,21 +63,21 @@ flag.
 Missing file dependency:
 
     >>> run("guild run missing-file -y")
-    Resolving file:missing.txt dependency
+    Resolving file:missing.txt
     guild: run failed because a dependency was not met: could not resolve
     'file:missing.txt' in file:missing.txt resource: cannot find source
     file 'missing.txt'
     <exit 1>
 
     >>> run("guild run missing-named-file -y")
-    Resolving missing-file dependency
+    Resolving missing-file
     guild: run failed because a dependency was not met: could not resolve
     'file:missing.txt' in missing-file resource: cannot find source file
     'missing.txt'
     <exit 1>
 
     >>> run("guild run customizable-file src=missing.txt -y")
-    Resolving src dependency
+    Resolving src
     guild: run failed because a dependency was not met: could not resolve
     'file:file.txt' in src resource: .../missing.txt does not exist
     <exit 1>
@@ -85,7 +85,7 @@ Missing file dependency:
 ## Directory
 
     >>> run("guild run dir -y")
-    Resolving data dependency
+    Resolving data
     <exit 0>
 
     >>> run("guild ls -n -L")
@@ -112,7 +112,7 @@ Note that we can't assert the resolution message as the resource may
 be cached, which prints a different message.
 
     >>> run("guild run url -y")
-    Resolving https://guild-pub.s3.amazonaws.com/uat/file.txt dependency...
+    Resolving https://guild-pub.s3.amazonaws.com/uat/file.txt...
     <exit 0>
 
     >>> run("guild ls -n")
@@ -136,7 +136,7 @@ be cached, which prints a different message.
 Required file op:
 
     >>> run("guild run file-op -y")
-    Resolving file dependency
+    Resolving file
     Using run ... for file resource
     <exit 0>
 
@@ -161,7 +161,7 @@ Required file op:
 Required dir op:
 
     >>> run("guild run dir-op -y")
-    Resolving dir dependency
+    Resolving dir
     Using run ... for dir resource
     <exit 0>
 
@@ -195,7 +195,7 @@ Run without specifying flag values.
     dropout: 0.2
 
     >>> run("guild run config -y")
-    Resolving config:config.yml dependency
+    Resolving config:config.yml
     <exit 0>
 
     >>> run("guild ls -n")
@@ -226,7 +226,7 @@ Run without specifying flag values.
 Set two of the three flag values.
 
     >>> run("guild run config lr=0.2 dropout=0.3 -y")
-    Resolving config:config.yml dependency
+    Resolving config:config.yml
     <exit 0>
 
     >>> run("guild ls -n")
@@ -257,7 +257,7 @@ Set two of the three flag values.
 Use modified config.
 
     >>> run("guild run modified-config -y")
-    Resolving config:config.yml dependency
+    Resolving config:config.yml
     <exit 0>
 
     >>> run("guild ls -n")
@@ -273,7 +273,7 @@ Use modified config.
 Change modified config with flags:
 
     >>> run("guild run modified-config dropout=0.5 -y")
-    Resolving config:config.yml dependency
+    Resolving config:config.yml
     <exit 0>
 
     >>> run("guild ls -n")
@@ -296,7 +296,7 @@ JSON format:
     }
 
     >>> run("guild run json-config -y")
-    Resolving config:config.json dependency
+    Resolving config:config.json
     <exit 0>
 
     >>> run("guild ls -n")
@@ -310,7 +310,7 @@ JSON format:
 JSON format with flags:
 
     >>> run("guild run json-config lr=1e-2 -y")
-    Resolving config:config.json dependency
+    Resolving config:config.json
     <exit 0>
 
     >>> run("guild ls -n")
@@ -324,8 +324,8 @@ JSON format with flags:
 ## Modules
 
     >>> run("guild run modules -y")
-    Resolving module:pandas dependency
-    Resolving module:sklearn dependency
+    Resolving module:pandas
+    Resolving module:sklearn
     <exit 0>
 
     >>> run("guild runs info -d")
@@ -344,7 +344,7 @@ JSON format with flags:
     <exit 0>
 
     >>> run("guild run missing-module -y")
-    Resolving module:missing.module dependency
+    Resolving module:missing.module
     guild: run failed because a dependency was not met: could not
     resolve 'module:missing.module' in module:missing.module resource:
     ...
@@ -356,33 +356,33 @@ Make sure `all-ops` runs:
 
     >>> run("guild run all-ops -y")
     INFO: [guild] running file: file
-    Resolving file:file.txt dependency
+    Resolving file:file.txt
     INFO: [guild] running dir: dir
-    Resolving data dependency
+    Resolving data
     INFO: [guild] running url: url
-    Resolving https://guild-pub.s3.amazonaws.com/uat/file.txt dependency
+    Resolving https://guild-pub.s3.amazonaws.com/uat/file.txt
     Using cached file .../file.txt
     INFO: [guild] running file-op: file-op
-    Resolving file dependency
+    Resolving file
     Using run ... for file resource
     INFO: [guild] running dir-op: dir-op
-    Resolving dir dependency
+    Resolving dir
     Using run ... for dir resource
     INFO: [guild] running config: config
-    Resolving config:config.yml dependency
+    Resolving config:config.yml
     INFO: [guild] running modules: modules
-    Resolving module:pandas dependency
-    Resolving module:sklearn dependency
+    Resolving module:pandas
+    Resolving module:sklearn
     INFO: [guild] running downstream: downstream
-    Resolving upstream dependency
+    Resolving upstream
     Using run ... for upstream resource
     INFO: [guild] running customizable-file: customizable-file src=guild.yml
-    Resolving src dependency
+    Resolving src
     Using guild.yml for src resource
     INFO: [guild] running modified-config: modified-config
-    Resolving config:config.yml dependency
+    Resolving config:config.yml
     INFO: [guild] running json-config: json-config
-    Resolving config:config.json dependency
+    Resolving config:config.json
     <exit 0>
 
 ## All resources
@@ -391,21 +391,21 @@ Make sure `all-ops` runs:
 named resources.
 
     >>> run("guild run all-resources -y") # doctest: +REPORT_UDIFF
-    Resolving file dependency
-    Resolving dir dependency
-    Resolving url dependency
+    Resolving file
+    Resolving dir
+    Resolving url
     Using cached file .../file.txt
-    Resolving file-op dependency
+    Resolving file-op
     Using run ... for file-op resource
-    Resolving dir-op dependency
+    Resolving dir-op
     Using run ... for dir-op resource
-    Resolving config dependency
-    Resolving modules dependency
-    Resolving downstream dependency
+    Resolving config
+    Resolving modules
+    Resolving downstream
     Using run ... for downstream resource
-    Resolving customizable-file dependency
-    Resolving modified-config dependency
-    Resolving json-config dependency
+    Resolving customizable-file
+    Resolving modified-config
+    Resolving json-config
     <exit 0>
 
     >>> run("guild ls")

@@ -19,14 +19,14 @@ Flag (using full package ref):
 From file:
 
     >>> run("guild run -y hello:from-file --label test-3")
-    Resolving msg-file dependency
+    Resolving msg-file
     Hello Guild, from a required file!
     <exit 0>
 
 From file output:
 
     >>> run("guild run -y gpkg.hello/hello:from-file-output --label test-4")
-    Resolving from-file-run dependency
+    Resolving from-file-run
     Using run ... for from-file-run resource
     Latest from-file output:
     Hello Guild, from a required file!

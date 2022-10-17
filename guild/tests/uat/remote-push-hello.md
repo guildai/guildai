@@ -7,7 +7,7 @@ This test runs a local hello operation and pushes the run to a remote.
 Run the op locally:
 
     >>> run("guild run hello-file -y")
-    Resolving file dependency
+    Resolving file
     Using hello.txt for file resource
     Reading message from hello.txt
     Hello, from a file!
