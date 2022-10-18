@@ -326,11 +326,20 @@ def _maybe_render_doc(s, vars):
 
 
 def patch_click():
-    shell_completion._is_incomplete_option = _patched_is_incomplete_option
-    python_util.listen_method(click.Option, "get_help_record", _patched_get_help_record)
+    _patch_is_incomplete_option()
+    _patch_get_help_record()
 
 
-def _patched_is_incomplete_option(ctx, all_args, cmd_param):
+def _patch_is_incomplete_option():
+    from inspect import signature
+
+    required_args = len(signature(shell_completion._is_incomplete_option).parameters)
+    if required_args in (2, 3):
+        # Only supporting API with 2 or 3 args
+        shell_completion._is_incomplete_option = _patched_is_incomplete_option
+
+
+def _patched_is_incomplete_option(*args):
     """Patched version of is_complete_option.
 
     Fixes issue testing a cmd param against the current list of
@@ -338,8 +347,12 @@ def _patched_is_incomplete_option(ctx, all_args, cmd_param):
     and so a command like `guild check -nt <auto>` doesn't work. The
     patched version considers that `t` above is the current param
     option.
-    """
 
+    Patch supports two API versions: one with two args and another
+    with three args. See `_is_incomplete_option_api_for_args()` for
+    handling of `*args`.
+    """
+    all_args, cmd_param, start_of_option = _is_incomplete_option_api_for_args(args)
     if not isinstance(cmd_param, shell_completion.Option):
         return False
     if cmd_param.is_flag:
@@ -348,7 +361,7 @@ def _patched_is_incomplete_option(ctx, all_args, cmd_param):
     for index, arg_str in enumerate(reversed([arg for arg in all_args if arg != " "])):
         if index + 1 > cmd_param.nargs:
             break
-        if shell_completion._start_of_option(ctx, arg_str):
+        if start_of_option(arg_str):
             last_option = arg_str
 
     if not last_option:
@@ -361,6 +374,37 @@ def _patched_is_incomplete_option(ctx, all_args, cmd_param):
         if f"-{last_option[i:]}" in cmd_param.opts:
             return True
     return False
+
+
+def _is_incomplete_option_api_for_args(args):
+    """Returns state for args passed to _is_incomplete_option.
+
+    Use to support two API versions.
+
+    Returns tuple of `all_args`, `arg_str`, and a function that tests
+    for start of option for a given arg string.
+    """
+    if len(args) == 2:
+        # Legacy API
+        all_args, cmd_param = args
+        return (
+            all_args,
+            cmd_param,
+            shell_completion._start_of_option,
+        )
+    if len(args) == 3:
+        ctx, all_args, cmd_param = args
+        return (
+            all_args,
+            cmd_param,
+            lambda arg_str: shell_completion._start_of_option(ctx, arg_str),
+        )
+    # arg count should have been checked in _patch_is_incomplete_option above
+    assert False, args
+
+
+def _patch_get_help_record():
+    python_util.listen_method(click.Option, "get_help_record", _patched_get_help_record)
 
 
 def _patched_get_help_record(get_help_record, *args, **kw):
