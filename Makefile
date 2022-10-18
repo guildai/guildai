@@ -30,7 +30,6 @@ build:
 
 install-reqs:
 	 pip install --user -r requirements.txt
-	 pip3 install --user -r requirements.txt
 
 pip-package:
 	rm -rf build
