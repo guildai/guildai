@@ -361,6 +361,7 @@ def _patched_is_incomplete_option(*args):
     for index, arg_str in enumerate(reversed([arg for arg in all_args if arg != " "])):
         if index + 1 > cmd_param.nargs:
             break
+        # pylint: disable=no-value-for-parameter
         if start_of_option(arg_str):
             last_option = arg_str
 
@@ -399,7 +400,8 @@ def _is_incomplete_option_api_for_args(args):
             cmd_param,
             lambda arg_str: shell_completion._start_of_option(ctx, arg_str),
         )
-    # arg count should have been checked in _patch_is_incomplete_option above
+    # arg count should have been checked in
+    # _patch_is_incomplete_option above
     assert False, args
 
 
