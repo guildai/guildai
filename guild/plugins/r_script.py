@@ -77,7 +77,7 @@ class RScriptPlugin(pluginlib.Plugin):
 
 def op_data_for_script(r_script_path):
     try:
-        out = run_r(f"guildai:::emit_r_script_guild_data('{r_script_path}')")
+        out = run_r("guildai:::emit_r_script_guild_data()", args = [r_script_path])
     except subprocess.CalledProcessError as e:
         log.warning(e.output.rstrip().decode("utf-8"))
 
@@ -86,7 +86,7 @@ def op_data_for_script(r_script_path):
         return yaml.safe_load(out)
 
 
-def _ensure_guildai_r_package_installled(version="0.0.0.9000"):
+def _ensure_guildai_r_package_installled(version="0.0.0.9001"):
     is_installed_expr = (
         'cat(requireNamespace("guildai", quietly = TRUE) &&'
         f' getNamespaceVersion("guildai") >= "{version}")'
@@ -147,6 +147,7 @@ def run_r(
     file=None,
     infile=None,
     vanilla=True,
+    args=None,
     default_packages='base',
     **run_kwargs,
 ):
@@ -178,6 +179,9 @@ def run_r(
     elif infile:
         cmd.append("-")
         run_kwargs['input'] = infile.encode()
+
+    if args:
+        cmd.extend(args)
 
     run_kwargs.setdefault('capture_output', True)
 
