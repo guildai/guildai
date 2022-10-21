@@ -77,7 +77,7 @@ class RScriptPlugin(pluginlib.Plugin):
 
 def op_data_for_script(r_script_path):
     try:
-        out = run_r("guildai:::emit_r_script_guild_data()", args = [r_script_path])
+        out = run_r("guildai:::emit_r_script_guild_data()", args=[r_script_path])
     except subprocess.CalledProcessError as e:
         log.warning(e.output.rstrip().decode("utf-8"))
 
