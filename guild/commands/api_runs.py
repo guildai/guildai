@@ -28,7 +28,11 @@ from . import runs_support
 @click.option("--include-batch", is_flag=True, help="Include batch runs.")
 @click_util.render_doc
 def main(args):
-    """Show runs as JSON."""
+    """Show runs as JSON.
+
+    IMPORTANT: This command is experimental and subject to change without
+    notice.
+    """
     api_support.out(_runs_data(args), args)
 
 

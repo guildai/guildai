@@ -25,7 +25,11 @@ from .api_runs import main as runs
 
 @click.group(cls=click_util.Group)
 def api(**_kw):
-    """CLI based API calls."""
+    """CLI based API calls.
+
+    IMPORTANT: These commands are experimental and subject to change without
+    notice.
+    """
 
 
 api.add_command(compare)

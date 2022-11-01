@@ -28,7 +28,11 @@ from . import runs_support
 @click_util.use_args
 @click_util.render_doc
 def main(args):
-    """Show comparison matric as JSON."""
+    """Show comparison matric as JSON.
+
+    IMPORTANT: This command is experimental and subject to change without
+    notice.
+    """
     api_support.out(_compare_data(args), args)
 
 

@@ -32,7 +32,10 @@ from . import run as run_cmd
 @click_util.use_args
 @click_util.render_doc
 def main(args):
-    """Shows help info for an operation.
+    """Shows help info for an operation as JSON.
+
+    IMPORTANT: This command is experimental and subject to change without
+    notice.
 
     `OPSPEC` is either a model operation for the current project or
     the path to Guild executable file.
