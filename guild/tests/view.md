@@ -53,6 +53,7 @@ Available run data:
      'flags',
      'id',
      'label',
+     'marked',
      'opRef',
      'operation',
      'otherAttrs',

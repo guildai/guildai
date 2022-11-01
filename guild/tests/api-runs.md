@@ -59,6 +59,7 @@ Helper for running commands for the project.
         },
         "id": "...",
         "label": "file=hello.txt",
+        "marked": false,
         "opRef": {
           "modelName": "",
           "opName": "hello-file",
@@ -82,11 +83,10 @@ Helper for running commands for the project.
           ],
           "root": ".guild/sourcecode"
         },
-        "started": "...",
+        "started": ...,
         "status": "completed",
-        "stopped": "...",
-        "tags": "",
-        "time": "0:00:..."
+        "stopped": ...,
+        "tags": []
       }
     ]
     <exit 0>

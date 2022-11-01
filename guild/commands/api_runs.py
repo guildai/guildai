@@ -25,6 +25,14 @@ from . import runs_support
 @runs_support.runs_arg
 @runs_support.all_filters
 @click_util.use_args
+@click.option(
+    "-v",
+    "--api-version",
+    type=click.Choice(["1", "2"]),
+    default="2",
+    help="API version.",
+)
+@click.option("-d", "--deleted", is_flag=True, help="Show deleted runs.")
 @click.option("--include-batch", is_flag=True, help="Include batch runs.")
 @click_util.render_doc
 def main(args):
@@ -39,4 +47,4 @@ def main(args):
 def _runs_data(args):
     from .view_impl import ViewDataImpl
 
-    return ViewDataImpl(args).runs_data()
+    return ViewDataImpl(args).runs_data(api_version=int(args.api_version))

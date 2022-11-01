@@ -876,6 +876,7 @@ def local_server_url(host, port):
 
 
 def format_duration(start_time, end_time=None):
+    """Returns formatted H:MM:SS time for start and end in microseconds."""
     if start_time is None:
         return None
     if end_time is None:

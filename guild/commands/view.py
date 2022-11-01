@@ -32,6 +32,7 @@ from . import server_support
 @click.option("--dev", is_flag=True, hidden=True)
 @click.option("--test", is_flag=True, hidden=True)
 @click.option("--test-runs-data", is_flag=True, hidden=True)
+@click.option("--deleted", is_flag=True, default=False, hidden=True)
 @click_util.use_args
 @click_util.render_doc
 def view(args):

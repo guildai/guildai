@@ -46,12 +46,21 @@ class ViewDataImpl(view.ViewData):
 
     def runs(self):
         runs = runs_impl.runs_for_args(self._args)
-        if self._args.include_batch:
+        return self._filter_batch_runs(runs)
+
+    def _filter_batch_runs(self, runs):
+        """Filter out batch runs unless otherwise configured.
+
+        Batch runs are included if `include_batch` or `deleted` is specified in
+        args. We include batch runs when listing deleted for consistency with
+        'guild runs list'.
+        """
+        if self._args.include_batch or self._args.deleted:
             return runs
         return [run for run in runs if not batch_util.is_batch(run)]
 
-    def runs_data(self):
-        return list(self._runs_data_iter(self.runs()))
+    def runs_data(self, api_version=1):
+        return list(self._runs_data_iter(self.runs(), api_version))
 
     @staticmethod
     def one_run(run_id_prefix, *_):
@@ -69,11 +78,11 @@ class ViewDataImpl(view.ViewData):
         index = self._init_index([run])
         return run_data(run, index)
 
-    def _runs_data_iter(self, runs):
+    def _runs_data_iter(self, runs, api_version):
         index = self._init_index(runs)
         for run in runs:
             try:
-                yield run_data(run, index)
+                yield run_data(run, index, api_version)
             except Exception as e:
                 if log.getEffectiveLevel() <= logging.DEBUG:
                     log.exception("error processing run data for %s", run.id)
@@ -121,7 +130,15 @@ class ViewDataImpl(view.ViewData):
         return compare_impl.get_compare_data(compare_args, format_cells=False)
 
 
-def run_data(run, index=None):
+def run_data(run, index=None, api_version=1):
+    if api_version == 1:
+        return _run_data_v1(run, index)
+    if api_version == 2:
+        return _run_data_v2(run, index)
+    assert False, api_version
+
+
+def _run_data_v1(run, index):
     formatted = run_util.format_run(run)
     data = {
         "id": run.id,
@@ -145,9 +162,19 @@ def run_data(run, index=None):
         "sourcecode": _sourcecode_data(run),
         "projectDir": run_util.run_op_dir(run),
         "opRef": _opref_data(run),
+        "marked": run.get("marked") or False
     }
     if index:
         data["scalars"] = _run_scalars(run, index)
+    return data
+
+
+def _run_data_v2(run, index):
+    data = _run_data_v1(run, index)
+    data["tags"] = run.get("tags") or []
+    data["started"] = run.get("started")
+    data["stopped"] = run.get("stopped")
+    del data["time"]
     return data
 
 
