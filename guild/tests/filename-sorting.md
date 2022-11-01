@@ -45,8 +45,8 @@ Files returned for view.
 
     >>> out, exit = run_capture("guild view --test-runs-data")
 
-    >>> exit
-    0
+    >>> (exit, out)
+    (0, ...)
 
     >>> data = json.loads(out)
     >>> len(data)
