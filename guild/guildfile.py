@@ -37,7 +37,8 @@ except ImportError:
 import pydantic as schema
 import yaml
 
-from guild import config, guildfile_schema
+from guild import config
+from guild import guildfile_schema
 from guild import opref
 from guild import resourcedef
 from guild import util

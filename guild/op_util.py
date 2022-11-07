@@ -1109,52 +1109,12 @@ def _apply_other_args(args, opdef):
 def _op_cmd_env(opdef, extra_env):
     env = dict(opdef.env or {})
     env.update(extra_env or {})
-    env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["PROJECT_DIR"] = opdef.guildfile.dir or ""
     if opdef.flags_dest:
         env["FLAGS_DEST"] = opdef.flags_dest
     if opdef.handle_keyboard_interrupt:
         env["HANDLE_KEYBOARD_INTERRUPT"] = "1"
     return env
-
-
-def _op_plugins(opdef):
-    from guild import plugin as pluginlib  # expensive
-
-    project_plugins = _project_plugins(opdef)
-    op_plugins = []
-    for name, plugin in pluginlib.iter_plugins():
-        if not _plugin_selected(plugin, project_plugins):
-            log.debug("plugin '%s' not configured for operation", name)
-            continue
-        enabled, reason = plugin.enabled_for_op(opdef)
-        if not enabled:
-            log.debug(
-                "plugin '%s' configured for operation but cannot be enabled%s",
-                name,
-                f" ({reason})" if reason else "",
-            )
-            continue
-        log.debug(
-            "plugin '%s' enabled for operation%s",
-            name,
-            f" ({reason})" if reason else "",
-        )
-        op_plugins.append(name)
-    return ",".join(sorted(op_plugins))
-
-
-def _project_plugins(opdef):
-    if opdef.plugins is not None:
-        return opdef.plugins or []
-    return opdef.modeldef.plugins or []
-
-
-def _plugin_selected(plugin, selected):
-    for name in selected:
-        if name == plugin.name or name in plugin.provides:
-            return True
-    return False
 
 
 def _op_cmd_flags(opdef):

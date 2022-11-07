@@ -411,8 +411,8 @@ def _op_proc_op_env(op):
     env["GUILD_HOME"] = config.guild_home()
     env["GUILD_SOURCECODE"] = _guild_sourcecode_env(op)
     env["LOG_LEVEL"] = _log_level()
-    env["PYTHONPATH"] = _python_path(op)
     env["CMD_DIR"] = os.getcwd()
+    _apply_plugins_env(op, env)
     return env
 
 
@@ -434,39 +434,55 @@ def _log_level():
         return str(logging.getLogger().getEffectiveLevel())
 
 
-def _python_path(op):
-    paths = _op_pythonpath_env(op) + op.sourcecode_paths + _guild_paths() + _env_paths()
-    return os.path.pathsep.join(paths)
+def _apply_plugins_env(op, env):
+    from guild import plugin as pluginlib  # expensive
+
+    plugins = _enabled_plugins(op)
+    for name, plugin in sorted(plugins, key=_plugin_env_sort_key):
+        env.update(plugin.op_env(op))
+    env["GUILD_PLUGINS"] = _guild_plugins_env(plugins)
 
 
-def _op_pythonpath_env(op):
-    env = op.cmd_env.get("PYTHONPATH")
-    if not env:
-        return []
-    return env.split(os.path.pathsep)
+def _enabled_plugins(op):
+    plugins = []
+    for name, plugin in pluginlib.iter_plugins():
+        enabled, reason = _plugin_enabled_for_op(name, plugin, op)
+        log.debug(
+            "plugin '%s' %s for operation%s",
+            name,
+            "enabled" if enabled else "disabled" f" ({reason})" if reason else "",
+        )
+        if enabled:
+            plugins.append((name, plugin))
+    return plugins
 
 
-def _guild_paths():
-    guild_path = os.path.dirname(os.path.dirname(__file__))
-    abs_guild_path = os.path.abspath(guild_path)
-    return _runfile_paths() + [abs_guild_path]
+def _plugin_enabled_for_op(name, plugin, op):
+    if _project_configured_plugin(plugin, op):
+        return True, "configured in project"
+    return plugin.enabled_for_op(op)
 
 
-def _runfile_paths():
-    return [os.path.abspath(path) for path in sys.path if _is_runfile_pkg(path)]
-
-
-def _is_runfile_pkg(path):
-    for runfile_path in OP_RUNFILE_PATHS:
-        split_path = path.split(os.path.sep)
-        if split_path[-len(runfile_path) :] == runfile_path:
+def _project_configured_plugin(plugin, op):
+    configured = _project_configured_plugins(op.opdef)
+    for name in configured:
+        if name == plugin.name or name in plugin.provides:
             return True
     return False
 
 
-def _env_paths():
-    env = os.getenv("PYTHONPATH")
-    return env.split(os.path.pathsep) if env else []
+def _project_configured_plugins(opdef):
+    if opdef.plugins is not None:
+        return opdef.plugins
+    return opdef.modeldef.plugins or []
+
+
+def _plugin_env_sort_key(plugin):
+    return plugin.op_env_priority
+
+
+def _guild_plugins_env(plugins):
+    return ",".join(sorted([name for name, _ in plugins]))
 
 
 # =================================================================

@@ -286,6 +286,51 @@ class PythonScriptPlugin(pluginlib.Plugin):
         with open(path, "w") as f:
             json.dump(data, f)
 
+    def enabled_for_op(self, opdef):
+        if opdef.main:
+            return True, "main attribute specified"
+        return False, "main attribute not specified"
+
+    def op_env(self, op):
+        return {"PYTHONPATH": _python_path_env(op)}
+
+
+def _python_path_env(op):
+    paths = (
+        _opdef_env_pythonpath(op) + op.sourcecode_paths + _guild_paths() + _env_paths()
+    )
+    return os.path.pathsep.join(paths)
+
+
+def _opdef_env_pythonpath(op):
+    env = op.cmd_env.get("PYTHONPATH")
+    if not env:
+        return []
+    return env.split(os.path.pathsep)
+
+
+def _guild_paths():
+    guild_path = os.path.dirname(os.path.dirname(__file__))
+    abs_guild_path = os.path.abspath(guild_path)
+    return _runfile_paths() + [abs_guild_path]
+
+
+def _runfile_paths():
+    return [os.path.abspath(path) for path in sys.path if _is_runfile_pkg(path)]
+
+
+def _is_runfile_pkg(path):
+    split_path = path.split(os.path.sep)
+    for runfile_path in OP_RUNFILE_PATHS:
+        if split_path[-len(runfile_path) :] == runfile_path:
+            return True
+    return False
+
+
+def _env_paths():
+    env = os.getenv("PYTHONPATH")
+    return env.split(os.path.pathsep) if env else []
+
 
 def _split_main_spec(main_spec):
     parts = op_util.split_cmd(main_spec)

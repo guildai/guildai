@@ -17,7 +17,6 @@ import os
 import sys
 import typing
 
-from guild import batch_util
 from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
@@ -1623,6 +1622,7 @@ def _check_unused_batch_args(args):
 
 
 def main(args):
+    assert False
     _init_env(args)
     S = _init_state(args)
     _dispatch_op(S)
@@ -2087,6 +2087,8 @@ def _trials_count(S):
 
 
 def _op_trials(op):
+    from guild import batch_util  # Expensive
+
     if op._batch_trials:
         return batch_util.expand_trial_flags(
             op._batch_trials, op._op_flag_vals, op._user_flag_vals, op._random_seed

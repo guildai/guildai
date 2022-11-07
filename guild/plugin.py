@@ -35,6 +35,7 @@ class Plugin:
     provides = []
 
     resolve_model_op_priority = 100
+    op_env_priority = 100
 
     def __init__(self, ep):
         self.name = ep.name
@@ -94,6 +95,11 @@ class Plugin:
         Return None if resolution for the source is not supported by the plugin.
         """
         return None
+
+    def op_env(self, op):
+        # pylint: disable=unused-argument
+        """Return process env for an operation."""
+        return {}
 
 
 def iter_plugins():
