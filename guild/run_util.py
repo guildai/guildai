@@ -145,7 +145,12 @@ def run_name(run, label):
     return util.safe_filename(" ".join(parts))
 
 
-def format_run(run, index=None):
+def format_run(run, run_index=None):
+    """Returns a dict of formatted run attributes.
+
+    `run_index` is an optional integer for the 1-based position of the run in a
+    list.
+    """
     status = run.status
     started = run.get("started")
     stopped = run.get("stopped")
@@ -156,7 +161,7 @@ def format_run(run, index=None):
         "exit_status": _format_exit_status(run),
         "from": format_pkg_name(run),
         "id": run.id,
-        "index": _format_run_index(run, index),
+        "index": _format_run_index(run, run_index),
         "label": run.get("label") or "",
         "marked": format_attr(bool(run.get("marked"))),
         "model": run.opref.model_name,

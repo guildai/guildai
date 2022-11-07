@@ -162,7 +162,7 @@ def _run_data_v1(run, index):
         "sourcecode": _sourcecode_data(run),
         "projectDir": run_util.run_op_dir(run),
         "opRef": _opref_data(run),
-        "marked": run.get("marked") or False
+        "marked": run.get("marked") or False,
     }
     if index:
         data["scalars"] = _run_scalars(run, index)
@@ -175,7 +175,17 @@ def _run_data_v2(run, index):
     data["started"] = run.get("started")
     data["stopped"] = run.get("stopped")
     del data["time"]
+    _apply_scalars_camel_case(data)
     return data
+
+
+def _apply_scalars_camel_case(data):
+    try:
+        scalars = data["scalars"]
+    except KeyError:
+        pass
+    else:
+        data["scalars"] = [util.dict_to_camel_case(scalar) for scalar in scalars]
 
 
 def _run_duration(run):

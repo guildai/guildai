@@ -1879,3 +1879,29 @@ def check_guild_version(req):
 
 def split_lines(s):
     return [line for line in re.split(r"\r?\n", s) if line]
+
+
+def dict_to_camel_case(d):
+    return {to_camel_case(k): v for k, v in d.items()}
+
+
+def to_camel_case(s):
+    parts = tokenize_snake_case_for_camel_case(s)
+    in_upper = False
+    for i, part in enumerate(parts):
+        if part == "":
+            parts[i] = "_"
+        elif not in_upper:
+            parts[i] = part
+            in_upper = True
+        else:
+            parts[i] = f"{part[0].upper()}{part[1:]}"
+    return "".join(parts)
+
+
+def tokenize_snake_case_for_camel_case(s):
+    under_split = s.split("_")
+    # If all underscores, remove extra token
+    if not any(iter(under_split)):
+        return under_split[1:]
+    return under_split

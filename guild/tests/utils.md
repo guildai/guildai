@@ -872,3 +872,46 @@ Test against current verion, minus any development component.
 
     >>> split_lines("ab\n\n")
     ['ab']
+
+## Converting dict keys to camel case
+
+Use `dict_to_camel_case` to convert pascal case dict keys to camel case. This
+can be used when interfacing with JavaScript applications.
+
+    >>> from guild.util import dict_to_camel_case
+
+    >>> dict_to_camel_case({})
+    {}
+
+    >>> pprint(dict_to_camel_case({"foo": 123, "bar": 456}))
+    {'bar': 456, 'foo': 123}
+
+    >>> pprint(dict_to_camel_case({"foo_bar": 123, "bar_baz": 456}))
+    {'barBaz': 456, 'fooBar': 123}
+
+    >>> dict_to_camel_case({"_foo": 123})
+    {'_foo': 123}
+
+    >>> dict_to_camel_case({"_foo_": 123})
+    {'_foo_': 123}
+
+    >>> dict_to_camel_case({"__foo__": 123})
+    {'__foo__': 123}
+
+    >>> dict_to_camel_case({"__foo_bar__": 123})
+    {'__fooBar__': 123}
+
+    >>> dict_to_camel_case({"__foo__bar__": 123})
+    {'__foo_Bar__': 123}
+
+    >>> dict_to_camel_case({"__foo___bar__": 123})
+    {'__foo__Bar__': 123}
+
+    >>> dict_to_camel_case({"_": 123})
+    {'_': 123}
+
+    >>> dict_to_camel_case({"__": 123})
+    {'__': 123}
+
+    >>> dict_to_camel_case({"": 123})
+    {'': 123}
