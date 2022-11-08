@@ -22,7 +22,6 @@
 import copy
 import logging
 import os
-from typing import Optional
 
 from guild import config
 from guild import guildfile
@@ -188,9 +187,6 @@ class DvcPlugin(pluginlib.Plugin):
 
 
 class DvcResourceSource(resourcedef.ResourceSource):
-    always_pull: bool = False
-    remote: Optional[str]
-
     def __init__(self, resdef, uri, always_pull=False, remote="", **kw):
         super().__init__(resdef, uri, **kw)
         self.always_pull = always_pull

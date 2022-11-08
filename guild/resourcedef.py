@@ -23,15 +23,10 @@ import copy
 import logging
 import operator
 import pprint
-from typing import Dict, List, Optional, Any, Union
-from urllib.parse import ParseResult, ParseResultBytes
 
-from guild import guildfile_schema, util
+from guild import util
 
 log = logging.getLogger("guild")
-
-
-RenameSpec = collections.namedtuple("RenameSpec", ["pattern", "repl"])
 
 
 class ResourceFormatError(ValueError):
@@ -42,15 +37,17 @@ class ResourceDefValueError(ValueError):
     pass
 
 
-class ResourceDef(guildfile_schema.ResourceDefSchema):
-    _data: Optional[dict]
-    sources: Optional[List['ResourceSource']]
+class ResourceDef:
 
-    class Config:
-        underscore_attrs_are_private = True
+    source_types = [
+        "config",
+        "file",
+        "module",
+        "url",
+    ]
+    default_source_type = "file"
 
-    def __init__(self, name, data, fullname=None, *args, **kw):
-        super().__init__(*args, **kw)
+    def __init__(self, name, data, fullname=None):
         self.name = name
         self._data = data = _coerce_resdef(data)
         self.fullname = fullname or name
@@ -126,7 +123,7 @@ class ResourceDef(guildfile_schema.ResourceDefSchema):
         return key.replace("_", "-")
 
 
-def _coerce_resdef(data) -> Dict[str, Any]:
+def _coerce_resdef(data):
     if isinstance(data, dict):
         return data
     if isinstance(data, list):
@@ -134,18 +131,7 @@ def _coerce_resdef(data) -> Dict[str, Any]:
     raise ResourceDefValueError()
 
 
-class ResourceSource(guildfile_schema.ResourceSourceSchema):
-    resdef: Optional[ResourceDef]
-    _parsed_uri: Optional[Union[ParseResult, ParseResultBytes]] = None
-    rename: Optional[List[RenameSpec]]
-
-    class Config:
-        underscore_attrs_are_private = True
-        # This is different from the schema base class, which errors
-        # on extra keys. Here we want the warning to show up during
-        # parsing, but not to error.
-        extra = 'ignore'
-
+class ResourceSource:
     def __init__(
         self,
         resdef,
@@ -170,12 +156,11 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
         path=None,
         preserve_path=False,
         params=None,
-        *args,
         **kw,
     ):
-        super().__init__(*args, **kw)
         self.resdef = resdef
         self.uri = uri
+        self._parsed_uri = None
         self.name = name or uri
         self.sha256 = sha256
         if unpack is not None:
@@ -202,15 +187,11 @@ class ResourceSource(guildfile_schema.ResourceSourceSchema):
                 self.resdef._uncoerce_attr_key(key),
                 self.name,
             )
-        if hasattr(self, "path"):
-            del self.path
 
     @property
-    def parsed_uri(self) -> Union[ParseResult, ParseResultBytes]:
+    def parsed_uri(self):
         if self._parsed_uri is None:
             self._parsed_uri = util.parse_url(self.uri)
-            # type hint that it is not None
-            assert self._parsed_uri
         return self._parsed_uri
 
     @property
@@ -278,6 +259,9 @@ def _init_rename(data):
     return [_init_rename_spec(item) for item in data]
 
 
+RenameSpec = collections.namedtuple("RenameSpec", ["pattern", "repl"])
+
+
 def _init_rename_spec(data):
     if isinstance(data, str):
         pattern, repl = _split_rename_spec(data)
@@ -323,8 +307,3 @@ def _coerce_list(val, desc):
     if isinstance(val, list):
         return val
     raise ResourceFormatError(f"invalid {desc} val: {val}")
-
-
-# See https://github.com/samuelcolvin/pydantic/issues/1298
-ResourceDef.update_forward_refs()
-ResourceSource.update_forward_refs()

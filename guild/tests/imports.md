@@ -123,7 +123,6 @@
     guild.commands.runs_tag
     guild.commands.s3_sync
     guild.commands.s3_sync_impl
-    guild.commands.schema
     guild.commands.search
     guild.commands.select
     guild.commands.server_support
@@ -158,7 +157,6 @@
     guild.filter_util
     guild.flag_util
     guild.guildfile
-    guild.guildfile_schema
     guild.help
     guild.index
     guild.init

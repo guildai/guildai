@@ -18,26 +18,10 @@ import logging
 import os
 import re
 import sys
-from typing import (
-    Dict,
-    Hashable,
-    Iterable,
-    List,
-    Optional,
-    Union,
-    Any,
-    Tuple,
-)
 
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
-
-import pydantic as schema
 import yaml
 
-from guild import config, guildfile_schema
+from guild import config
 from guild import opref
 from guild import resourcedef
 from guild import util
@@ -127,10 +111,10 @@ def _required(name, data, guildfile, pop=False):
         if pop:
             return data.pop(name)
         return data[name]
-    except KeyError as e:
+    except KeyError:
         raise GuildfileError(
             guildfile, f"missing required '{name}' attribute in {data!r}"
-        ) from e
+        ) from None
 
 
 def _string_source(src):
@@ -142,26 +126,15 @@ def _string_source(src):
 ###################################################################
 
 
-class Guildfile(schema.BaseModel):
-    src: Optional[str]
-    dir: Optional[str]
-    models: Dict[str, 'ModelDef'] = {}
-    package: Optional['PackageDef']
-    coerced: List[Dict[str, Any]] = []
-    data: List[Dict[str, Any]] = []
-
-    class Config:
-        arbitrary_types_allowed = True
-
+class Guildfile:
     def __init__(
         self,
-        data: Union[dict, List[dict]],
-        src: Optional[str] = None,
-        dir: Optional[str] = None,
+        data,
+        src=None,
+        dir=None,
         included=None,
         extends_seen=None,
     ):
-        super().__init__()
         if not dir and src and not _string_source(src):
             dir = os.path.dirname(src)
         if src is None and dir is None:
@@ -172,7 +145,6 @@ class Guildfile(schema.BaseModel):
         self.package = None
         coerced = _coerce_guildfile_data(data, self)
         self.data = self._expand_data_includes(coerced, included or [])
-
         try:
             self._apply_data(extends_seen or [])
         except (GuildfileError, resourcedef.ResourceFormatError):
@@ -181,9 +153,7 @@ class Guildfile(schema.BaseModel):
             log.error("loading %s: %r", self.src, e)
             raise
 
-    def _expand_data_includes(
-        self, data: List[Dict[str, Any]], included: List[str]
-    ) -> List[Dict[str, Any]]:
+    def _expand_data_includes(self, data, included):
         i = 0
         while i < len(data):
             item = data[i]
@@ -312,9 +282,7 @@ class Guildfile(schema.BaseModel):
 ###################################################################
 
 
-def _coerce_guildfile_data(
-    data: Optional[Union[dict, List]], guildfile: Guildfile
-) -> List[Dict[str, Any]]:
+def _coerce_guildfile_data(data, guildfile):
     if data is None:
         return []
     if isinstance(data, dict):
@@ -349,7 +317,7 @@ def _coerce_guildfile_item_data(data, guildfile):
     return coerced
 
 
-def _coerce_top_level_attr(name, val, guildfile: Guildfile):
+def _coerce_top_level_attr(name, val, guildfile):
     """Coerces top-level object attributes by name.
 
     This function is unaware of context so an attribute "flags" under
@@ -372,15 +340,15 @@ def _coerce_top_level_attr(name, val, guildfile: Guildfile):
     return val
 
 
-def _coerce_include(data, guildfile: Guildfile):
+def _coerce_include(data, guildfile):
     return _coerce_str_to_list(data, guildfile, "include")
 
 
-def _coerce_extends(data, guildfile: Guildfile):
+def _coerce_extends(data, guildfile):
     return _coerce_str_to_list(data, guildfile, "extends")
 
 
-def _coerce_operations(data, guildfile: Guildfile) -> Dict[str, Any]:
+def _coerce_operations(data, guildfile):
     if not isinstance(data, dict):
         raise GuildfileError(
             guildfile, f"invalid operations value {data!r}: expected a mapping"
@@ -391,9 +359,7 @@ def _coerce_operations(data, guildfile: Guildfile) -> Dict[str, Any]:
     }
 
 
-def _coerce_operation(
-    name, data: Union[str, dict], guildfile: Guildfile
-) -> Union[str, Dict[str, Any]]:
+def _coerce_operation(name, data, guildfile):
     if name == "$include":
         return data
     if isinstance(data, str):
@@ -409,20 +375,7 @@ def _coerce_operation(
     )
 
 
-def _coerce_operation_attr(
-    name, val, guildfile: Guildfile
-) -> Union[
-    Dict[str, Union[str, Dict[str, Optional[Union[str, int, float, bool, List]]]]],
-    bool,
-    Optional[List[str]],  # _coerce_op_python_path
-    Optional[List[Union[str, dict]]],  # coerce_output_scalars
-    Union[
-        List, Literal[False], Union[List[Dict[str, str]], Literal[False]]
-    ],  # _coerce_select_files, List is overly broad because of recursion
-    Dict[
-        str, Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]]
-    ],  # _coerce_publish, result encompasses _coerce_select_files call
-]:
+def _coerce_operation_attr(name, val, guildfile):
     if name == "flags":
         return _coerce_flags(val, guildfile)
     if name == "flags-import":
@@ -438,9 +391,7 @@ def _coerce_operation_attr(
     return val
 
 
-def _coerce_flags(
-    data, guildfile: Guildfile
-) -> Dict[str, Union[str, Dict[str, Optional[Union[str, int, float, bool, List]]]]]:
+def _coerce_flags(data, guildfile):
     if not isinstance(data, dict):
         raise GuildfileError(
             guildfile, f"invalid flags value {data!r}: expected a mapping"
@@ -448,9 +399,7 @@ def _coerce_flags(
     return {name: coerce_flag_data(name, val, guildfile) for name, val in data.items()}
 
 
-def coerce_flag_data(
-    name, data: Optional[Union[dict, str, int, float, bool, List]], guildfile: Guildfile
-) -> Union[str, Dict[str, Optional[Union[str, int, float, bool, List]]]]:
+def coerce_flag_data(name, data, guildfile):
     if name == "$include":
         return str(data)
     if isinstance(data, dict):
@@ -466,7 +415,7 @@ def coerce_flag_data(
     )
 
 
-def _coerce_flags_import(data, guildfile: Guildfile) -> Union[Literal[True], List]:
+def _coerce_flags_import(data, guildfile):
     if data in (True, "all"):
         return True
     if data is False:
@@ -480,15 +429,13 @@ def _coerce_flags_import(data, guildfile: Guildfile) -> Union[Literal[True], Lis
     )
 
 
-def _coerce_op_python_path(data, guildfile: Guildfile) -> Optional[List[str]]:
+def _coerce_op_python_path(data, guildfile):
     if data is None:
         return None
     return _coerce_str_to_list(data, guildfile, "python-path")
 
 
-def _coerce_output_scalars(
-    data: Optional[Union[bool, str, dict, List]], guildfile: Guildfile
-) -> Optional[List[Union[str, dict]]]:
+def _coerce_output_scalars(data, guildfile):
     if data is None:
         return None
     if data is False:
@@ -505,11 +452,7 @@ def _coerce_output_scalars(
     )
 
 
-def _coerce_publish(
-    data: dict, guildfile: Guildfile
-) -> Dict[
-    str, Union[List, Literal[False], Union[List[Dict[str, str]], Literal[False]]]
-]:
+def _coerce_publish(data, guildfile):
     files = data.get("files")
     if files:
         data = dict(data)
@@ -517,9 +460,7 @@ def _coerce_publish(
     return data
 
 
-def _coerce_select_files(
-    data, guildfile: Guildfile
-) -> Union[List, Literal[False], Dict[str, Any], Literal[False]]:
+def _coerce_select_files(data, guildfile):
     if data is None:
         return _coerce_select_files_default()
     if data is False or data == []:
@@ -545,32 +486,30 @@ def _coerce_select_files_disabled():
     return False
 
 
-def _coerce_select_files_one_include(data: str) -> List[Dict[str, str]]:
+def _coerce_select_files_one_include(data):
     return [{"exclude": "*"}, {"include": data}]
 
 
-def _coerce_select_files_dict(data: dict, gf: Guildfile) -> Dict[str, Any]:
+def _coerce_select_files_dict(data: dict, guildfile):
     assert isinstance(data, dict)
-    _data = dict(data)  # used for pop/validation
+    data = dict(data)  # used for pop/validation
     coerced = {
-        "select": _coerce_select_files(_data.pop("select", None), gf),
-        "root": _data.pop("root", None),
-        "digest": _data.pop("digest", None),
-        "dest": _data.pop("dest", None),
+        "select": _coerce_select_files(data.pop("select", None), guildfile),
+        "root": data.pop("root", None),
+        "digest": data.pop("digest", None),
+        "dest": data.pop("dest", None),
     }
-    if _data:
-        gf_path = os.path.relpath(gf.src or gf.dir or "")
+    if data:
+        guildfile_path = os.path.relpath(guildfile.src or guildfile.dir or "")
         log.warning(
             "unexpected sourcecode attribute(s) in %s: %s",
-            gf_path,
-            ", ".join(sorted(_data)),
+            guildfile_path,
+            ", ".join(sorted(data)),
         )
     return coerced
 
 
-def _coerce_select_files_list(
-    data: List[Union[str, Dict[str, str]]], guildfile: Guildfile
-) -> List[Dict[str, str]]:
+def _coerce_select_files_list(data, guildfile):
     assert isinstance(data, list), data
     all_strings = True
     items = []
@@ -589,9 +528,7 @@ def _coerce_select_files_list(
     return items
 
 
-def _coerce_str_to_list(
-    val: Optional[Union[List[str], str]], guildfile: Guildfile, name: str
-) -> List[str]:
+def _coerce_str_to_list(val, guildfile, name):
     if isinstance(val, str):
         if val.startswith("[") and val.endswith("]"):
             val = yaml.safe_load(val)
@@ -615,7 +552,7 @@ def _coerce_str_to_list(
 ###################################################################
 
 
-def _resolve_includes(data, section_name, guildfiles: Iterable[Guildfile]):
+def _resolve_includes(data, section_name, guildfiles):
     assert isinstance(data, dict), data
     resolved = {}
     seen_includes = set()
@@ -676,7 +613,7 @@ def _assert_guildfile_data(guildfile):
     assert hasattr(guildfile, "data"), "modesfile data not initialized"
 
 
-def _split_include_ref(ref: str, src: Guildfile) -> Tuple[str, Optional[str], str]:
+def _split_include_ref(ref, src):
     m = INCLUDE_REF_P1.match(ref)
     if m:
         groups = m.groups()
@@ -697,11 +634,11 @@ def _split_include_ref(ref: str, src: Guildfile) -> Tuple[str, Optional[str], st
 
 
 def _find_include_data(
-    model_name: str,
-    op_name: Optional[str],
-    section_name: str,
-    guildfile_path: List[Guildfile],
-) -> Optional[dict]:
+    model_name,
+    op_name,
+    section_name,
+    guildfile_path,
+):
     for guildfile in guildfile_path:
         for top_level_data in guildfile.data:
             if _item_name(top_level_data, MODEL_TYPES) == model_name:
@@ -714,7 +651,7 @@ def _find_include_data(
     return None
 
 
-def _item_name(data: dict, types: Iterable[Hashable]):
+def _item_name(data, types):
     for attr in types:
         try:
             return data[attr]
@@ -723,7 +660,7 @@ def _item_name(data: dict, types: Iterable[Hashable]):
     return None
 
 
-def _op_data(model_data: dict, op_name: Hashable):
+def _op_data(model_data, op_name):
     return model_data.get("operations", {}).get(op_name)
 
 
@@ -731,7 +668,7 @@ def _filter_data(data, attrs):
     return {name: data[name] for name in data if name in attrs}
 
 
-def _apply_data(name: str, data: Union[dict, str], resolved: dict):
+def _apply_data(name, data, resolved):
     if isinstance(data, dict):
         # Safe to merge data items into resolved
         try:
@@ -747,7 +684,7 @@ def _apply_data(name: str, data: Union[dict, str], resolved: dict):
         resolved[name] = data
 
 
-def _apply_missing_vals(target: dict, source: dict):
+def _apply_missing_vals(target, source):
     for name in source:
         target[name] = source[name]
 
@@ -757,28 +694,22 @@ def _apply_missing_vals(target: dict, source: dict):
 ###################################################################
 
 
-class ModelDef(guildfile_schema.ModelDefSchema):
-    name: str = schema.Field("", alias="model")
-    op_default_config: Optional[Union[str, Dict[str, Any]]]
-    operations: List['OpDef'] = []
-    resources: List['ResourceDef'] = []
-
-    def __init__(self, name, data, guildfile, extends_seen=None, *args, **kw):
-        super().__init__(*args, **kw)
-        _data = _extended_data(data, guildfile, extends_seen or [])
+class ModelDef:
+    def __init__(self, name, data, guildfile, extends_seen=None):
+        data = _extended_data(data, guildfile, extends_seen or [])
         self.guildfile = guildfile
         self.name = name
-        self.op_default_config = _init_op_default_config(_data, guildfile)
-        self.default = bool(_data.get("default"))
-        self.parents = _dedup_parents(_data.get("__parents__", []))
-        self.description = (_data.get("description") or "").strip()
-        self.references = _data.get("references") or []
-        self.operations = _init_ops(_data, self)
-        self.resources = _init_resources(_data, self)
-        self.plugins = _init_plugins(_data.get("plugins"), guildfile)
-        self.extra = _data.get("extra") or {}
-        self.sourcecode = _init_sourcecode(_data.get("sourcecode"), guildfile)
-        self.python_requires = _data.get("python-requires")
+        self.op_default_config = _init_op_default_config(data, guildfile)
+        self.default = bool(data.get("default"))
+        self.parents = _dedup_parents(data.get("__parents__", []))
+        self.description = (data.get("description") or "").strip()
+        self.references = data.get("references") or []
+        self.operations = _init_ops(data, self)
+        self.resources = _init_resources(data, self)
+        self.plugins = _init_plugins(data.get("plugins"), guildfile)
+        self.extra = data.get("extra") or {}
+        self.sourcecode = _init_sourcecode(data.get("sourcecode"), guildfile)
+        self.python_requires = data.get("python-requires")
 
     @property
     def guildfile_search_path(self):
@@ -825,24 +756,13 @@ class ModelDef(guildfile_schema.ModelDefSchema):
         return default
 
 
-class ConfigDef(ModelDef):
-    name: str = schema.Field("", alias="config")
-
-    def __init__(self, name, data, guildfile, extends_seen=None):
-        super().__init__(name, data, guildfile, extends_seen=extends_seen)
-
-
-def _extended_data(
-    config_data: Dict[str, Any], guildfile: Guildfile, seen=None, resolve_params=True
-) -> Dict[str, Any]:
+def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
     data = copy.deepcopy(config_data)
     extends = config_data.get("extends") or []
     if extends:
         _apply_parents_data(extends, guildfile, seen, data)
     if resolve_params:
         data = _resolve_param_refs(data, _params(data))
-        # Type hint - _resolve_param_refs always returns a dict if the data input is a dict.
-        assert isinstance(data, dict)
     return data
 
 
@@ -1009,7 +929,7 @@ def _resolve_param_ref(val, params):
         return val
 
 
-def _init_op_default_config(data, guildfile) -> Union[str, Dict[str, Any]]:
+def _init_op_default_config(data, guildfile):
     config = data.get("operation-defaults")
     if not config:
         return {}
@@ -1027,17 +947,17 @@ def _dedup_parents(parents):
     return deduped
 
 
-def _init_ops(data, modeldef) -> List['OpDef']:
+def _init_ops(data, modeldef):
     ops_data = _resolve_includes(data, "operations", modeldef.guildfile_search_path)
     return [OpDef(key, ops_data[key], modeldef) for key in sorted(ops_data)]
 
 
-def _init_resources(data, modeldef) -> List['ResourceDef']:
+def _init_resources(data, modeldef):
     data = _resolve_includes(data, "resources", modeldef.guildfile_search_path)
     return [ResourceDef(key, data[key], modeldef) for key in sorted(data)]
 
 
-def _init_plugins(data, guildfile) -> Optional[Union[Literal[False], List[str]]]:
+def _init_plugins(data, guildfile):
     if data is None:
         return None
     if data is False:
@@ -1045,7 +965,7 @@ def _init_plugins(data, guildfile) -> Optional[Union[Literal[False], List[str]]]
     return _coerce_str_to_list(data, guildfile, "plugins")
 
 
-def _init_sourcecode(data, guildfile) -> 'FileSelectDef':
+def _init_sourcecode(data, guildfile):
     return FileSelectDef(data, guildfile)
 
 
@@ -1054,17 +974,8 @@ def _init_sourcecode(data, guildfile) -> 'FileSelectDef':
 ###################################################################
 
 
-class OpDef(guildfile_schema.OpDefSchema):
-    _data: dict = {}
-    _flag_vals: dict = {}
-    _modelref: Optional['ModelDef']
-    dependencies: List['OpDependencyDef'] = schema.Field([], alias="requires")
-    flags: Optional[List['FlagDef']]
-    modeldef: Optional['ModelDef']
-    optimizers: Optional[List['OptimizerDef']]
-    steps: Optional[List[Dict[str, Any]]]
-
-    def __init__(self, name, data, modeldef, *args, **kw):
+class OpDef:
+    def __init__(self, name, data, modeldef):
         if not isinstance(data, dict):
             raise GuildfileError(
                 modeldef.guildfile,
@@ -1075,9 +986,6 @@ class OpDef(guildfile_schema.OpDefSchema):
                 modeldef.guildfile,
                 f"invalid operation name {name!r}: expected a string",
             )
-
-        super().__init__(*args, **kw)
-
         _apply_op_default_config(modeldef, data)
         self.name = name
         self._data = data
@@ -1160,9 +1068,7 @@ class OpDef(guildfile_schema.OpDefSchema):
             if val is not None or include_none:
                 yield name, val
 
-    # TODO: remove on op2 promote
-    # Not sure where this is being used. It's ugly because it means mutating
-    # the guildfile in place, which is not sane
+    # TODO: remove this - it's a hack - Guildfile should be immutable
     def set_flag_value(self, name, val):
         self._flag_vals[name] = val
 
@@ -1215,15 +1121,22 @@ class OpDef(guildfile_schema.OpDefSchema):
         return None
 
     @property
-    def default_optimizer(self) -> Optional['OptimizerDef']:
-        optimizer = None
-        for opt in self.optimizers or []:
-            if opt.default:
-                optimizer = opt
-                break
-        if not optimizer and self.optimizers:
-            optimizer = next(iter(self.optimizers))
-        return optimizer
+    def default_optimizer(self):
+        return _default_optimizer(self.optimizers) or _first_optimizer(self.optimizers)
+
+
+def _default_optimizer(optimizers):
+    for opt in optimizers or []:
+        if opt.default:
+            return opt
+    return None
+
+
+def _first_optimizer(optimizers):
+    try:
+        return next(iter(optimizers))
+    except StopIteration:
+        return None
 
 
 def _apply_op_default_config(modeldef, data):
@@ -1235,7 +1148,7 @@ def _apply_op_default_config(modeldef, data):
             data[key] = copy.copy(config[key])
 
 
-def _init_flags(data, opdef) -> List['FlagDef']:
+def _init_flags(data, opdef):
     data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_search_path)
     return [FlagDef(name, data[name], opdef) for name in sorted(data)]
 
@@ -1249,8 +1162,8 @@ def _new_merged_flag(src_flag, opdef):
 def _apply_flag_attrs(src_flag, dest_flag):
     # Use a baseline flag def to get default values for empty data.
     baseline_flag = FlagDef("", {}, None)
-    for name in set(dir(src_flag)):
-        if name.startswith("_"):
+    for name in dir(src_flag):
+        if name[:1] == "_":
             continue
         dest_val = getattr(dest_flag, name, None)
         baseline_val = getattr(baseline_flag, name, None)
@@ -1258,12 +1171,8 @@ def _apply_flag_attrs(src_flag, dest_flag):
             setattr(dest_flag, name, getattr(src_flag, name))
 
 
-class FlagDef(guildfile_schema.FlagDefSchema):
-    choices: List['FlagChoice'] = []
-    opdef: Optional[OpDef]
-
-    def __init__(self, name, data, opdef, *args, **kw):
-        super().__init__(*args, **kw)
+class FlagDef:
+    def __init__(self, name, data, opdef):
         if not isinstance(data, dict):
             raise GuildfileError(
                 opdef.guildfile, f"invalid flag data {data!r}: expected a mapping"
@@ -1293,15 +1202,12 @@ class FlagDef(guildfile_schema.FlagDefSchema):
     def __repr__(self):
         return f"<guild.guildfile.FlagDef '{self.name}'>"
 
-    def __dir__(self) -> Iterable[str]:
-        return sorted(set(self.__dict__.keys()) - set(dir(schema.BaseModel())))
 
-
-def _init_flag_values(flagdefs: List[FlagDef]):
+def _init_flag_values(flagdefs):
     return {flag.name: flag.default for flag in flagdefs}
 
 
-def _init_flag_choices(data, flagdef) -> List['FlagChoice']:
+def _init_flag_choices(data, flagdef):
     if not data:
         return []
     if not isinstance(data, list):
@@ -1312,12 +1218,8 @@ def _init_flag_choices(data, flagdef) -> List['FlagChoice']:
     return [FlagChoice(choice_data, flagdef) for choice_data in data]
 
 
-class FlagChoice(guildfile_schema.FlagChoiceSchema):
-    flagdef: Optional[FlagDef]
-    flags: Optional[Dict[str, str]]
-
-    def __init__(self, data, flagdef, *args, **kw):
-        super().__init__(*args, **kw)
+class FlagChoice:
+    def __init__(self, data, flagdef):
         self.flagdef = flagdef
         if isinstance(data, dict):
             self.value = _required("value", data, flagdef.opdef.guildfile)
@@ -1347,7 +1249,7 @@ def _maybe_nbexec_main(data):
         return f"guild.plugins.nbexec {notebook}"
 
 
-def _steps_data(data: Dict[str, Any], opdef) -> Optional[List[Dict[str, Any]]]:
+def _steps_data(data, opdef):
     """Return steps data for opdef data.
 
     Supports `$include` for flag mappings, where used.
@@ -1406,17 +1308,13 @@ def _init_dependencies(requires, opdef):
     return [OpDependencyDef(data, opdef) for data in requires]
 
 
-class OpDependencyDef(schema.BaseModel):
+class OpDependencyDef:
 
-    spec: Optional[str]
-    description: Optional[str]
-    inline_resource: Optional['ResourceDef'] = None
-    opdef: Optional['OpDef']
-    modeldef: Optional['ModelDef']
+    spec = None
+    description = None
+    inline_resource = None
 
     def __init__(self, data, opdef):
-        super().__init__()
-
         self.opdef = opdef
         self.modeldef = opdef.modeldef
         if isinstance(data, str):
@@ -1480,7 +1378,7 @@ class NoSuchResourceError(ValueError):
         self.dependency = dep
 
 
-def _init_optimizers(data, opdef: OpDef) -> List['OptimizerDef']:
+def _init_optimizers(data, opdef):
     opts_data = _coerce_opts_data(data, opdef)
     return [
         OptimizerDef(name, opt_data, opdef)
@@ -1488,7 +1386,7 @@ def _init_optimizers(data, opdef: OpDef) -> List['OptimizerDef']:
     ]
 
 
-def _coerce_opts_data(data, opdef: OpDef):
+def _coerce_opts_data(data, opdef):
     if "optimizer" in data and "optimizers" in data:
         raise GuildfileError(
             opdef.modeldef.guildfile,
@@ -1516,7 +1414,7 @@ def _coerce_opts_data(data, opdef: OpDef):
     }
 
 
-def _coerce_single_optimizer(data, opdef: OpDef):
+def _coerce_single_optimizer(data, opdef):
     if data is None:
         return None
     coerced = _coerce_opt_data_item(data)
@@ -1530,15 +1428,8 @@ def _coerce_opt_data_item(data):
     return data
 
 
-class OptimizerDef(guildfile_schema.OptimizerDefSchema):
-    opdef: Optional['OpDef']
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    def __init__(self, name, data, opdef, *args, **kw):
-        super().__init__(*args, **kw)
-
+class OptimizerDef:
+    def __init__(self, name, data, opdef):
         data = dict(data)
         self.name = name
         self.opdef = opdef
@@ -1555,16 +1446,12 @@ class OptimizerDef(guildfile_schema.OptimizerDefSchema):
     def __repr__(self):
         return f"<guild.guildfile.OptimizerDef '{self.name}'>"
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.__repr__()
 
 
-class PublishDef(guildfile_schema.PublishDefSchema):
-    opdef: Optional[OpDef]
-    files: Optional['FileSelectDef']
-
-    def __init__(self, data, opdef, *args, **kw):
-        super().__init__(*args, **kw)
+class PublishDef:
+    def __init__(self, data, opdef):
         self.opdef = opdef
         if data is None:
             data = {}
@@ -1581,12 +1468,8 @@ def _init_publish(data, opdef):
 ###################################################################
 
 
-class FileSelectDef(guildfile_schema.FileSelectDefSchema):
-    specs: Optional[List['FileSelectSpec']]
-
-    def __init__(self, data, guildfile, *args, **kw):
-        super().__init__(*args, **kw)
-
+class FileSelectDef:
+    def __init__(self, data, guildfile):
         if isinstance(data, dict):
             self._dict_init(data, guildfile)
         else:
@@ -1619,11 +1502,7 @@ class FileSelectDef(guildfile_schema.FileSelectDefSchema):
         self.dest = dest
 
 
-class FileSelectSpec(schema.BaseModel):
-    patterns: List[str] = []
-    patterns_type: Optional[str]
-    type: Optional[str]
-
+class FileSelectSpec:
     def __init__(self, data, guildfile):
         if not isinstance(data, dict):
             raise GuildfileError(
@@ -1678,18 +1557,17 @@ class FileSelectSpec(schema.BaseModel):
 
 
 class ResourceDef(resourcedef.ResourceDef):
-    modeldef: Optional['ModelDef']
+
+    source_types = resourcedef.ResourceDef.source_types + ["operation"]
 
     def __init__(self, name, data, modeldef):
         try:
-            super().__init__(
-                name=name, data=data, fullname=_resdef_fullname(name, modeldef.name)
-            )
-        except resourcedef.ResourceDefValueError as e:
+            super().__init__(name, data, _resdef_fullname(name, modeldef.name))
+        except resourcedef.ResourceDefValueError:
             raise GuildfileError(
                 modeldef.guildfile,
                 f"invalid resource value {data!r}: expected a mapping or a list",
-            ) from e
+            ) from None
         except resourcedef.ResourceFormatError as e:
             raise GuildfileError(modeldef.guildfile, e) from e
         if not self.name:
@@ -1707,7 +1585,7 @@ class ResourceDef(resourcedef.ResourceDef):
                 raise
             return source
 
-    def _source_for_type(self, type, val, data) -> resourcedef.ResourceSource:
+    def _source_for_type(self, type, val, data):
         data = self._coerce_source_data(data)
         if type == "operation":
             return resourcedef.ResourceSource(self, f"operation:{val}", **data)
@@ -1744,12 +1622,8 @@ def _resdef_name_part_for_source(s):
 ###################################################################
 
 
-class PackageDef(guildfile_schema.PackageDefSchema):
-    # version is overridden here to constrain that the type must be string
-    version: Optional[str]
-
-    def __init__(self, name, data, guildfile, *args, **kw):
-        super().__init__(*args, **kw)
+class PackageDef:
+    def __init__(self, name, data, guildfile):
         self.name = name
         self.guildfile = guildfile
         self.description = (data.get("description") or "").strip()
@@ -1795,7 +1669,7 @@ def guildfile_path(*paths):
     return os.path.join(*(paths + (NAME,)))
 
 
-def for_file(src: str, extends_seen=None, no_cache=False):
+def for_file(src, extends_seen=None, no_cache=False):
     cache_key = _cache_key(src)
     if not no_cache:
         cached = _cache.get(cache_key)
@@ -1807,7 +1681,7 @@ def for_file(src: str, extends_seen=None, no_cache=False):
     return guildfile
 
 
-def _cache_key(src: str):
+def _cache_key(src):
     return os.path.abspath(src)
 
 
