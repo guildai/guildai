@@ -14,17 +14,23 @@ ensure we are only working with built-ins:
 
 Use `iter_plugins` to iterate through the list of available plugins:
 
-    >>> sorted(guild.plugin.iter_plugins())
-    [('config_flags', <guild.plugins.config_flags.ConfigFlagsPlugin ...>),
-     ('cpu', <guild.plugins.cpu.CPUPlugin ...>),
-     ('disk', <guild.plugins.disk.DiskPlugin ...>),
-     ('exec_script', <guild.plugins.exec_script.ExecScriptPlugin ...>),
-     ('gpu', <guild.plugins.gpu.GPUPlugin ...>),
-     ('keras', <guild.plugins.keras.KerasPlugin ...>),
-     ('memory', <guild.plugins.memory.MemoryPlugin ...>),
-     ('perf', <guild.plugins.perf.PerfPlugin ...>),
-     ('python_script', <guild.plugins.python_script.PythonScriptPlugin ...>),
-     ('skopt', <guild.plugins.skopt.SkoptPlugin ...>)]
+    >>> sorted([name for name, _ in guild.plugin.iter_plugins()])
+    ['config_flags',
+     'cpu',
+     'dask',
+     'disk',
+     'dvc',
+     'exec_script',
+     'gpu',
+     'ipynb',
+     'keras',
+     'memory',
+     'perf',
+     'python_script',
+     'quarto_document',
+     'queue',
+     'r_script',
+     'skopt']
 
 ## Plugin instances
 

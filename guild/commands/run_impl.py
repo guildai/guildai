@@ -138,6 +138,7 @@ class Operation(oplib.Operation):
         self._flags_extra = None
         self._delete_on_success = None
         self._additional_deps = []
+        self._plugins = []
 
 
 def _state_for_args(args):
@@ -269,6 +270,7 @@ def _state_init_user_op(S):
     _op_init_force_sourcecode(S.args.force_sourcecode, S.user_op)
     _op_init_opdef(S.args.opspec, S.user_op, S.args)
     _op_init_user_flags(S.args.flags, S.user_op)
+    _op_init_plugins(S.user_op)
     _op_init_op_cmd(S.user_op, S.args)
     _op_init_op_flags(S.args, S.user_op)
     _op_init_config(
@@ -421,24 +423,86 @@ def _default_opdef():
 
 
 # =================================================================
+# Op - op plugins
+# =================================================================
+
+
+def _op_init_plugins(op):
+    if not op._opdef:
+        return
+    op._plugins = _op_plugins(op._opdef)
+    op.run_attrs["plugins"] = [p.name for p in op._plugins]
+
+
+def _op_plugins(opdef):
+    configured_plugins = _configured_plugins(opdef)
+    return [
+        plugin
+        for plugin in _iter_plugins()
+        if _plugin_selected_for_op(plugin, opdef, configured_plugins)
+    ]
+
+
+def _configured_plugins(opdef):
+    if opdef.plugins is not None:
+        return opdef.plugins or []
+    return opdef.modeldef.plugins or []
+
+
+def _iter_plugins():
+    from guild import plugin as pluginlib  # Expensive
+
+    return [p for _name, p in pluginlib.iter_plugins()]
+
+
+def _plugin_selected_for_op(plugin, opdef, configured_plugins):
+    return _configured_plugin(plugin, configured_plugins) or _plugin_enabled_for_op(
+        plugin, opdef
+    )
+
+
+def _configured_plugin(plugin, selected):
+    for name in selected:
+        if name == plugin.name or name in plugin.provides:
+            return True
+    return False
+
+
+def _plugin_enabled_for_op(plugin, opdef):
+    enabled, reason = plugin.enabled_for_op(opdef)
+    log.debug(
+        "plugin '%s' %s for operation: %s",
+        plugin.name,
+        "enabled" if enabled else "not enabled",
+        reason or "unspecified reason",
+    )
+    return enabled
+
+
+# =================================================================
 # Op - op cmd
 # =================================================================
 
 
 def _op_init_op_cmd(op, args):
-    if op._opdef:
-        op._op_cmd, run_attrs = _op_cmd_for_opdef(op._opdef)
-        _apply_gpu_arg_env(args, op._op_cmd.cmd_env)
-        _apply_no_output_env(op._op_cmd.cmd_env)
-        if run_attrs:
-            op._op_cmd_run_attrs.update(run_attrs)
+    if not op._opdef:
+        return
+    op._op_cmd, run_attrs = _op_cmd(op)
+    _apply_gpu_arg_env(args, op._op_cmd.cmd_env)
+    _apply_no_output_env(op._op_cmd.cmd_env)
+    op._op_cmd_run_attrs.update(run_attrs or [])
 
 
-def _op_cmd_for_opdef(opdef):
+def _op_cmd(op):
+    extra_env = {"GUILD_PLUGINS": _guild_plugins_env(op._plugins)}
     try:
-        return op_util.op_cmd_for_opdef(opdef)
+        return op_util.op_cmd_for_opdef(op._opdef, extra_env)
     except op_util.InvalidOpDef as e:
-        _invalid_opdef_error(opdef, e.msg)
+        _invalid_opdef_error(op._opdef, e.msg)
+
+
+def _guild_plugins_env(plugins):
+    return ",".join([p.name for p in plugins])
 
 
 def _apply_no_output_env(op_env):
@@ -1158,26 +1222,6 @@ def _apply_system_attrs(op, attrs):
     attrs["host"] = util.hostname()
     attrs["user"] = util.user()
     attrs["platform"] = util.platform_info()
-    if _pip_freeze_required(op):
-        attrs["pip_freeze"] = _pip_freeze()
-
-
-def _pip_freeze_required(op):
-    return (
-        op._opdef.pip_freeze is not False
-        and os.getenv("NO_PIP_FREEZE") != "1"
-        and _is_python_op(op)
-    )
-
-
-def _is_python_op(op):
-    return "python" in " ".join(op.cmd_args)
-
-
-def _pip_freeze():
-    from guild import pip_util
-
-    return pip_util.freeze()
 
 
 def _apply_opdef_run_attrs(op, attrs):
@@ -1206,16 +1250,18 @@ def _op_init_callbacks(op):
             _op_init_callbacks_for_restart(op)
     else:
         assert op._opdef
-        _op_init_callbacks_for_opdef(op._opdef, op)
+        _op_init_callbacks_for_op(op)
 
 
 def _op_init_callbacks_for_restart(op):
     if op._force_sourcecode:
         assert op._opdef
-        _op_init_callbacks_for_opdef(op._opdef, op)
+        _op_init_callbacks_for_op(op)
     else:
         op.callbacks = oplib.OperationCallbacks(
-            init_output_summary=_init_output_summary
+            init_output_summary=_init_output_summary,
+            run_starting=_on_run_starting,
+            run_stopped=_on_run_stopped,
         )
 
 
@@ -1239,25 +1285,25 @@ def _output_scalars_summary(output_scalars, flag_vals, run):
     return summary.OutputScalars(output_scalars, summary_path, ignore)
 
 
-def _op_init_callbacks_for_opdef(opdef, op):
+def _op_init_callbacks_for_op(op):
     op.callbacks = oplib.OperationCallbacks(
         init_output_summary=_init_output_summary,
-        run_initialized=_run_init_cb_for_opdef(opdef),
-        dep_source_resolved=_dep_source_resolved,
+        run_initialized=_on_run_initialized,
+        dep_source_resolved=_on_dep_source_resolved,
+        run_staged=_on_run_staged,
+        run_starting=_on_run_starting,
+        run_stopped=_on_run_stopped,
     )
 
 
-def _dep_source_resolved(_op, resolved_source):
+def _on_dep_source_resolved(_op, resolved_source):
     op_util.log_manifest_resolved_source(resolved_source)
 
 
-def _run_init_cb_for_opdef(opdef):
-    def f(op, run):
-        _copy_opdef_sourcecode(opdef, op, run)
-        _write_run_sourcecode_digest(op, run)
-        _write_run_vcs_commit(opdef, run)
-
-    return f
+def _on_run_initialized(op, run):
+    _copy_opdef_sourcecode(op._opdef, op, run)
+    _write_run_sourcecode_digest(op, run)
+    _write_run_vcs_commit(op._opdef, run)
 
 
 def _copy_opdef_sourcecode(opdef, op, run):
@@ -1307,16 +1353,19 @@ def _write_run_vcs_commit(opdef, run):
 def _op_init_callbacks_for_run_with_proto(op):
     if op._force_sourcecode:
         assert op._opdef
-        _op_init_callbacks_for_opdef(op._opdef, op)
+        _op_init_callbacks_for_op(op)
     else:
         op.callbacks = oplib.OperationCallbacks(
             init_output_summary=_init_output_summary,
-            run_initialized=_run_init_cb_for_run_with_proto,
-            dep_source_resolved=_dep_source_resolved,
+            run_initialized=_on_run_initialized_with_proto,
+            dep_source_resolved=_on_dep_source_resolved,
+            run_staged=_on_run_staged,
+            run_starting=_on_run_starting,
+            run_stopped=_on_run_stopped,
         )
 
 
-def _run_init_cb_for_run_with_proto(op, run):
+def _on_run_initialized_with_proto(op, run):
     _copy_run_proto_sourcecode(op._run, op, run)
     _copy_run_proto_attrs(op._run, run)
 
@@ -1354,6 +1403,21 @@ def _copy_run_proto_attrs(proto_run, dest_run):
         dest_run.write_attr(attr, proto_run.get(attr))
 
 
+def _on_run_staged(op, run):
+    for plugin in op._plugins:
+        plugin.run_staged(run, op)
+
+
+def _on_run_starting(op, run, pidfile):
+    for plugin in op._plugins:
+        plugin.run_starting(run, op, pidfile)
+
+
+def _on_run_stopped(op, run, exit_code):
+    for plugin in op._plugins:
+        plugin.run_stopped(run, op, exit_code)
+
+
 # =================================================================
 # State - batch op
 # =================================================================
@@ -1376,6 +1440,7 @@ def _state_init_batch_op(S):
     _check_batch_args_for_missing_batch_op(S)
     _check_stage_trials_for_batch(S)
     if S.batch_op:
+        _op_init_plugins(S.batch_op)
         _op_init_op_cmd(S.batch_op, S.args)
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)

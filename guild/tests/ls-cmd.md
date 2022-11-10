@@ -95,15 +95,16 @@ List all files with `--all`.
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
-      .guild/attrs/pip_freeze
       .guild/attrs/platform
+      .guild/attrs/plugins
       .guild/attrs/random_seed
       .guild/attrs/run_params
       .guild/attrs/sourcecode_digest
       .guild/attrs/started
       .guild/attrs/stopped
       .guild/attrs/user
-      .guild/attrs/user_flags...
+      .guild/attrs/user_flags
+      .guild/manifest
       .guild/opref
       .guild/output
       .guild/output.index
@@ -136,15 +137,16 @@ If `--path` wants a hidden file, it's included.
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
-      .guild/attrs/pip_freeze
       .guild/attrs/platform
+      .guild/attrs/plugins
       .guild/attrs/random_seed
       .guild/attrs/run_params
       .guild/attrs/sourcecode_digest
       .guild/attrs/started
       .guild/attrs/stopped
       .guild/attrs/user
-      .guild/attrs/user_flags...
+      .guild/attrs/user_flags
+      .guild/manifest
       .guild/opref
       .guild/output
       .guild/output.index
@@ -168,15 +170,16 @@ If `--path` wants a hidden file, it's included.
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
-      .guild/attrs/pip_freeze
       .guild/attrs/platform
+      .guild/attrs/plugins
       .guild/attrs/random_seed
       .guild/attrs/run_params
       .guild/attrs/sourcecode_digest
       .guild/attrs/started
       .guild/attrs/stopped
       .guild/attrs/user
-      .guild/attrs/user_flags...
+      .guild/attrs/user_flags
+      .guild/manifest
       .guild/opref
       .guild/output
       .guild/output.index
@@ -199,8 +202,8 @@ If `--path` wants a hidden file, it's included.
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
-      .guild/attrs/pip_freeze
       .guild/attrs/platform
+      .guild/attrs/plugins
       .guild/attrs/random_seed
       .guild/attrs/run_params
       .guild/attrs/sourcecode_digest
@@ -250,15 +253,16 @@ Follow links applies to `--all`.
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
-      .guild/attrs/pip_freeze
       .guild/attrs/platform
+      .guild/attrs/plugins
       .guild/attrs/random_seed
       .guild/attrs/run_params
       .guild/attrs/sourcecode_digest
       .guild/attrs/started
       .guild/attrs/stopped
       .guild/attrs/user
-      .guild/attrs/user_flags...
+      .guild/attrs/user_flags
+      .guild/manifest
       .guild/opref
       .guild/output
       .guild/output.index

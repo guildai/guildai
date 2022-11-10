@@ -23,8 +23,8 @@ class PerfPlugin(SummaryPlugin):
         self._last_step = None
         self._last_time = None
 
-    def enabled_for_op(self, _op):
-        return True, ""
+    def enabled_for_op(self, _opdef):
+        return True, "always enabled"
 
     def read_summary_values(self, step):
         cur_time = time.time()

@@ -286,6 +286,14 @@ class PythonScriptPlugin(pluginlib.Plugin):
         with open(path, "w") as f:
             json.dump(data, f)
 
+    def enabled_for_op(self, opdef):
+        if opdef.main:
+            return True, f"main Python module '{opdef.main}' specified"
+        return False, "main Python module not specified"
+
+    def run_starting(self, run, op, _pidfile):
+        _maybe_pip_freeze(run, op)
+
 
 def _split_main_spec(main_spec):
     parts = op_util.split_cmd(main_spec)
@@ -551,3 +559,19 @@ def _strip_debug_tag(s):
     if s.startswith("DEBUG: "):
         return s[7:]
     return s
+
+
+def _maybe_pip_freeze(run, op):
+    if not _pip_freeze_required(op):
+        return
+    run.write_attr("pip_freeze", _pip_freeze())
+
+
+def _pip_freeze_required(op):
+    return op._opdef.pip_freeze is not False and os.getenv("NO_PIP_FREEZE") != "1"
+
+
+def _pip_freeze():
+    from guild import pip_util
+
+    return pip_util.freeze()

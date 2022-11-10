@@ -83,6 +83,7 @@ CORE_RUN_ATTRS = [
     "op",
     "pip_freeze",
     "platform",
+    "plugins",
     "random_seed",
     "run_params",
     "sourcecode_digest",
@@ -836,6 +837,8 @@ def _run_info_data(run, args):
         data.append(("manifest", _format_run_manifest(run)))
     if args.deps:
         data.append(("dependencies", run.get("deps") or {}))
+    if args.plugins:
+        data.append(("plugins", run.get("plugins") or []))
     if args.private_attrs and args.json:
         _maybe_append_proto_data(run, data)
     return data

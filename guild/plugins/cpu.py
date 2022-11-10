@@ -20,7 +20,7 @@ class CPUPlugin(SummaryPlugin):
         super().__init__(ep)
         self._cpu_percent_init = False
 
-    def enabled_for_op(self, _op):
+    def enabled_for_op(self, _opdef):
         try:
             import psutil as _unused
         except ImportError as e:
@@ -29,7 +29,7 @@ class CPUPlugin(SummaryPlugin):
             )
             return False, f"error importing psutil: {e}"
         else:
-            return True, ""
+            return True, "psutil available"
 
     def read_summary_values(self, _step):
         return self._cpu_stats()

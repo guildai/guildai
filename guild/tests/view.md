@@ -67,9 +67,14 @@ Available run data:
      'tags',
      'time']
 
+We're only interested in scalar tags `x`, `y`, and `z` - remove everything
+else.
+
+    >>> scalars = [s for s in run_data["scalars"] if s["tag"] in ("x", "y", "z")]
+
 Scalars:
 
-    >>> pprint(run_data["scalars"])
+    >>> pprint(scalars)
     [{'avg_val': 'Infinity',
       'count': 3,
       'first_step': 1,

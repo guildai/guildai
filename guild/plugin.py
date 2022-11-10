@@ -56,12 +56,13 @@ class Plugin:
         the Guild file, use `guildfile_data`.
         """
 
-    def enabled_for_op(self, op):
+    def enabled_for_op(self, opdef):
         # pylint: disable=unused-argument
         """Returns a tuple of boolean and reason.
 
         The boolean indicates whether or not the plugin is enabled for
-        `op`. The reason is used to provide additional information to the user.
+        `opdef`. The reason is used to provide additional information to the
+        user.
         """
         return False, "not applicable to operation"
 
@@ -94,6 +95,24 @@ class Plugin:
         Return None if resolution for the source is not supported by the plugin.
         """
         return None
+
+    def run_staged(self, run, op):
+        """Called when a run is staged.
+
+        This called by the Guild parent process before the run system process
+        is called and before the run is marked as STAGED.
+
+        This is called regardless of whether the run is started.
+
+        Note the plugin must be enabled for the applicable run operation to be
+        called.
+        """
+
+    def run_starting(self, run, op, pidfile):
+        """Called when a run is starting."""
+
+    def run_stopped(self, run, op, exit_code):
+        """Called when a run stops."""
 
 
 def iter_plugins():

@@ -48,8 +48,8 @@ The files generated for our run:
     .guild/attrs/initialized
     .guild/attrs/label
     .guild/attrs/op
-    .guild/attrs/pip_freeze
     .guild/attrs/platform
+    .guild/attrs/plugins
     .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/sourcecode_digest
@@ -154,8 +154,8 @@ The latest run is the trial:
     .guild/attrs/initialized
     .guild/attrs/label
     .guild/attrs/op
-    .guild/attrs/pip_freeze
     .guild/attrs/platform
+    .guild/attrs/plugins
     .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/sourcecode_digest
@@ -205,8 +205,8 @@ Its files:
     .guild/attrs/initialized
     .guild/attrs/objective
     .guild/attrs/op
-    .guild/attrs/pip_freeze
     .guild/attrs/platform
+    .guild/attrs/plugins
     .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/sourcecode_digest
@@ -225,8 +225,8 @@ Its files:
     .guild/proto/.guild/attrs/initialized
     .guild/proto/.guild/attrs/label
     .guild/proto/.guild/attrs/op
-    .guild/proto/.guild/attrs/pip_freeze
     .guild/proto/.guild/attrs/platform
+    .guild/proto/.guild/attrs/plugins
     .guild/proto/.guild/attrs/random_seed
     .guild/proto/.guild/attrs/run_params
     .guild/proto/.guild/attrs/sourcecode_digest

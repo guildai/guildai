@@ -14,11 +14,19 @@
 
 import re
 
-from guild import config as configlib
-from guild import entry_point_util
 from guild import opref
 
-_remote_types = entry_point_util.EntryPointResources("guild.remotetypes", "remotetype")
+__remote_types = None
+
+
+def _remote_types():
+    if __remote_types is None:
+        from guild import entry_point_util  # Expensive
+
+        globals()["__remote_types"] = entry_point_util.EntryPointResources(
+            "guild.remotetypes", "remotetype"
+        )
+    return __remote_types
 
 
 class NoSuchRemote(ValueError):
@@ -218,6 +226,8 @@ class Remote:
 
 
 def for_name(name):
+    from guild import config as configlib
+
     user_config = configlib.user_config()
     remotes = user_config.get("remotes", {})
     try:
@@ -228,7 +238,7 @@ def for_name(name):
         remote_config = RemoteConfig(remote)
         remote_type = remote_config["type"]
         try:
-            T = _remote_types.one_for_name(remote_type)
+            T = _remote_types().one_for_name(remote_type)
         except LookupError as e:
             raise UnsupportedRemoteType(remote_type) from e
         else:
@@ -241,7 +251,7 @@ def for_spec(spec):
         return None
     remote_type, remote_spec = m.groups()
     try:
-        T = _remote_types.one_for_name(remote_type)
+        T = _remote_types().one_for_name(remote_type)
     except LookupError as e:
         raise UnsupportedRemoteType(remote_type) from e
     else:

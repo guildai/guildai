@@ -28,7 +28,7 @@ class DiskPlugin(SummaryPlugin):
         super().__init__(ep)
         self._last_disk = None
 
-    def enabled_for_op(self, _op):
+    def enabled_for_op(self, _opdef):
         if sys.platform == "darwin":
             return False, "disk stats not supported on darwin platform (Mac)"
         try:
@@ -39,7 +39,7 @@ class DiskPlugin(SummaryPlugin):
             )
             return False, f"error importing psutil: {e}"
         else:
-            return True, ""
+            return True, "psutil available"
 
     def read_summary_values(self, _step):
         return self._disk_stats()
