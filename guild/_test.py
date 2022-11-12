@@ -950,6 +950,9 @@ class Project:
     def stop_runs(self, runs, **kw):
         gapi.runs_stop(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
 
+    def guild_cmd(self, cmd):
+        _run(f"guild -H {util.shlex_quote(self.guild_home)} {cmd}", cwd=self.cwd)
+
 
 def _is_run_sourcecode(path):
     return path.startswith(os.path.join(".guild", "sourcecode"))

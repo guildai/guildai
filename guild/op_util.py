@@ -1882,3 +1882,35 @@ def log_manifest_resolved_source(resolved_source):
     run_dir = resolved_source.target_root
     with manifest.Manifest(run_manifest.run_manifest_path(run_dir), "a") as m:
         m.write(run_manifest.resolved_source_args(resolved_source))
+
+
+def python_path_env(op):
+    """Returns values for 'PYTHONPATH' for an operation and command env.
+
+    Paths include the operation source code paths, the Guild path, and
+    'PYTHONPATH' in the current process env.
+    """
+    paths = _remove_duplicate_paths(op.sourcecode_paths + [_guild_path()] + _os_env())
+    return os.path.pathsep.join(paths)
+
+
+def _guild_path():
+    guild_path = os.path.dirname(os.path.dirname(__file__))
+    return os.path.abspath(guild_path)
+
+
+def _os_env():
+    env = os.getenv("PYTHONPATH")
+    return env.split(os.path.pathsep) if env else []
+
+
+def _remove_duplicate_paths(paths):
+    # Tedious but intentional
+    seen = set()
+    result = []
+    for path in paths:
+        if path in seen:
+            continue
+        seen.add(path)
+        result.append(path)
+    return result

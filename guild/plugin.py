@@ -99,20 +99,45 @@ class Plugin:
     def run_staged(self, run, op):
         """Called when a run is staged.
 
-        This called by the Guild parent process before the run system process
-        is called and before the run is marked as STAGED.
+        This called immediately before the run is marked as STAGED.
 
-        This is called regardless of whether the run is started.
-
-        Note the plugin must be enabled for the applicable run operation to be
+        The plugin must be enabled for the applicable run operation to be
         called.
+
         """
 
     def run_starting(self, run, op, pidfile):
-        """Called when a run is starting."""
+        """Called when a run is starting.
+
+        This called immediately before the run is marked as started.
+
+        `pidfile` is provided when the run is started in the background. The
+        plugin should poll the pidfile for creation and deletion to infer the
+        run process start and end. `run_stopped()` is not called when a pidfile
+        is provided.
+
+        If `pidfile` is None, the operation is run in the foreground and
+        `run_stopped()` is called, provided the parent process shuts down
+        cleanly.
+        """
 
     def run_stopped(self, run, op, exit_code):
-        """Called when a run stops."""
+        """Called when a run stops.
+
+        `exit_code` is the numeric process exit code. 0 indicates that the
+        process ended normally while a non-zero value indicates that an error
+        occurred. The exit code is determined by the run process.
+
+        This function is not called if the operation is started in the
+        background (see `run_starting()` for details).
+        """
+
+    def apply_cmd_env(self, op, cmd_env):
+        """Called in preparation of an operation command environment.
+
+        Plugins should implement this to provide operation specific environment
+        variables for use in a run.
+        """
 
 
 def iter_plugins():

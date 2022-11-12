@@ -39,7 +39,8 @@ Helper functions:
 
     >>> def generate(cmd_args, cmd_env, cmd_flags, flag_vals, flags_dest="args"):
     ...     cmd = op_cmd.OpCmd(cmd_args, cmd_env, cmd_flags, flags_dest)
-    ...     args, env = op_cmd.generate(cmd, flag_vals, resolve_params=flag_vals)
+    ...     args, env = op_cmd.generate_op_args_and_env(
+    ...         cmd, flag_vals, resolve_params=flag_vals)
     ...     print(args)
     ...     pprint(env)
 

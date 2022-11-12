@@ -12,6 +12,11 @@ args and a run directory.
     >>> op.cmd_args = [sys.executable, "-m", "guild.pass"]
     >>> op.run_dir = mkdtemp()
 
+We need to configure the op env with `PYTHONPATH` to find `guild.pass`.
+
+    >>> from guild import op_util
+    >>> op.cmd_env["PYTHONPATH"] = op_util.python_path_env(op)
+
 Run the operation without capturing output (tests rely on a spoofed
 stdout to test output, which we don't want to interfere with).
 

@@ -59,7 +59,8 @@ class CmdFlag:
 ###################################################################
 
 
-def generate(op_cmd, flag_vals, resolve_params):
+def generate_op_args_and_env(op_cmd, flag_vals, resolve_params):
+    """Generates command args and env, returning them as a tuple."""
     return (_gen_args(op_cmd, flag_vals, resolve_params), _gen_env(op_cmd, flag_vals))
 
 

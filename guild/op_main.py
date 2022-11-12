@@ -140,9 +140,12 @@ def _try_module(arg1, args):
     module_spec = arg1.replace(os.path.sep, "/")
     package_path, module = _parse_module_spec(module_spec)
     if package_path:
+        # This move is controversial - see *Python path and sub-directories* in
+        # [pythonpath.md](../tests/pythonpath.md) for behavior and a note on
+        # why we might want to rethink this.
         package_path = _try_resolve_package_path(package_path)
         log.debug("using package path '%s'", package_path)
-        sys.path.insert(0, package_path)
+        sys.path.insert(1, package_path)
     log.debug("finding module '%s'", module)
     try:
         module_info = _find_module(module)

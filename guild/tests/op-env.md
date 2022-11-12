@@ -38,7 +38,7 @@ With empty system env and op env:
     ...         env = op_env(op, run)
 
     >>> sorted(env)
-    ['CMD_DIR', 'GUILD_HOME', 'GUILD_SOURCECODE', 'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID']
+    ['CMD_DIR', 'GUILD_HOME', 'GUILD_SOURCECODE', 'LOG_LEVEL', 'RUN_DIR', 'RUN_ID']
 
     >>> env["CMD_DIR"] == cwd, (env, cwd)
     (True, ...)
@@ -74,7 +74,7 @@ With some system env - a new var and a var that Guild defines.
 
     >>> sorted(env)
     ['CMD_DIR', 'FOO', 'GUILD_HOME', 'GUILD_OP', 'GUILD_SOURCECODE',
-     'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID']
+     'LOG_LEVEL', 'RUN_DIR', 'RUN_ID']
 
 `FOO` is as set in system env:
 
@@ -109,7 +109,7 @@ The env contains the expected vars:
 
     >>> sorted(env)
     ['BAR', 'CMD_DIR', 'FOO', 'GUILD_HOME', 'GUILD_OP', 'GUILD_SOURCECODE',
-     'LOG_LEVEL', 'PYTHONPATH', 'RUN_DIR', 'RUN_ID']
+     'LOG_LEVEL', 'RUN_DIR', 'RUN_ID']
 
 As `FOO` is defined by the op, it overrides the system env:
 
@@ -159,7 +159,7 @@ This is applied to the run.
     env FLAG_I: 1
     env FLAG_S: hello
     env FOO: 1
-    env PYTHONPATH: hello::...
+    env PYTHONPATH: hello:...
 
 The environment is saved in the `env` run attribute.
 
@@ -175,7 +175,7 @@ The environment is saved in the `env` run attribute.
     FLAG_I: 1
     FLAG_S: hello
     FOO: 1
-    PYTHONPATH: hello::...
+    PYTHONPATH: hello:...
 
 ## Secrets
 

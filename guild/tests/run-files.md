@@ -48,6 +48,7 @@ The files generated for our run:
     .guild/attrs/initialized
     .guild/attrs/label
     .guild/attrs/op
+    .guild/attrs/pip_freeze
     .guild/attrs/platform
     .guild/attrs/plugins
     .guild/attrs/random_seed
@@ -205,6 +206,7 @@ Its files:
     .guild/attrs/initialized
     .guild/attrs/objective
     .guild/attrs/op
+    .guild/attrs/pip_freeze
     .guild/attrs/platform
     .guild/attrs/plugins
     .guild/attrs/random_seed

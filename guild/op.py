@@ -15,7 +15,6 @@
 import logging
 import os
 import subprocess
-import sys
 import time
 
 from guild import config
@@ -27,10 +26,6 @@ from guild import run as runlib
 from guild import util
 
 log = logging.getLogger("guild")
-
-OP_RUNFILE_PATHS = [
-    ["guild"],
-]
 
 PROC_TERM_TIMEOUT_SECONDS = 30
 LOG_WAITING_DELAY_SECONDS = 2
@@ -420,7 +415,6 @@ def _op_proc_op_env(op):
     env["GUILD_HOME"] = config.guild_home()
     env["GUILD_SOURCECODE"] = _guild_sourcecode_env(op)
     env["LOG_LEVEL"] = _log_level()
-    env["PYTHONPATH"] = _python_path(op)
     env["CMD_DIR"] = os.getcwd()
     return env
 
@@ -441,41 +435,6 @@ def _log_level():
         return os.environ["LOG_LEVEL"]
     except KeyError:
         return str(logging.getLogger().getEffectiveLevel())
-
-
-def _python_path(op):
-    paths = _op_pythonpath_env(op) + op.sourcecode_paths + _guild_paths() + _env_paths()
-    return os.path.pathsep.join(paths)
-
-
-def _op_pythonpath_env(op):
-    env = op.cmd_env.get("PYTHONPATH")
-    if not env:
-        return []
-    return env.split(os.path.pathsep)
-
-
-def _guild_paths():
-    guild_path = os.path.dirname(os.path.dirname(__file__))
-    abs_guild_path = os.path.abspath(guild_path)
-    return _runfile_paths() + [abs_guild_path]
-
-
-def _runfile_paths():
-    return [os.path.abspath(path) for path in sys.path if _is_runfile_pkg(path)]
-
-
-def _is_runfile_pkg(path):
-    for runfile_path in OP_RUNFILE_PATHS:
-        split_path = path.split(os.path.sep)
-        if split_path[-len(runfile_path) :] == runfile_path:
-            return True
-    return False
-
-
-def _env_paths():
-    env = os.getenv("PYTHONPATH")
-    return env.split(os.path.pathsep) if env else []
 
 
 # =================================================================

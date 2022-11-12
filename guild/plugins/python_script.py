@@ -38,6 +38,9 @@ from . import flags_import_util
 
 IMPLICIT_ALL_FLAGS = object()
 
+OP_RUNFILE_PATHS = [
+    ["guild"],
+]
 
 _flag_importers = entry_point_util.EntryPointResources(
     "guild.python.flags", "Python flag importer"
@@ -289,10 +292,22 @@ class PythonScriptPlugin(pluginlib.Plugin):
     def enabled_for_op(self, opdef):
         if opdef.main:
             return True, f"main Python module '{opdef.main}' specified"
-        return False, "main Python module not specified"
+        if opdef.exec_ and opdef.exec_.startswith("${python_exe}"):
+            return True, f"command '{opdef.exec_}' is a Python operation"
+        return False, "not a Python operation"
 
     def run_starting(self, run, op, _pidfile):
         _maybe_pip_freeze(run, op)
+
+    def apply_cmd_env(self, op, cmd_env):
+        existing = cmd_env.get("PYTHONPATH")
+        cmd_env["PYTHONPATH"] = _maybe_prepend_python_path(
+            existing, op_util.python_path_env(op)
+        )
+
+
+def _maybe_prepend_python_path(to_prepend, path):
+    return os.path.pathsep.join([to_prepend, path]) if to_prepend else path
 
 
 def _split_main_spec(main_spec):
@@ -574,4 +589,4 @@ def _pip_freeze_required(op):
 def _pip_freeze():
     from guild import pip_util
 
-    return pip_util.freeze()
+    return pip_util.freeze()  # Very expensive!

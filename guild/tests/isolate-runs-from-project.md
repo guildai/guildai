@@ -92,12 +92,12 @@ error. In this case, we need the Guild file.
 
     >>> project.run(restart=runs[0].id, flags={"a": 33, "b": 44})
     guild: cannot find definition for operation 'op' in run ...
-    The definition is required when setting flags for start or restart.
+    The definition is required when setting flags for restart or a new run.
     <exit 1>
 
     >>> project.run(restart=runs[1].id, flags={"a": "55", "b": True})
     guild: cannot find definition for operation 'op' in run ...
-    The definition is required when setting flags for start or restart.
+    The definition is required when setting flags for restart or a new run.
     <exit 1>
 
 Runs have not changed.

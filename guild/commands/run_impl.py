@@ -271,8 +271,6 @@ def _state_init_user_op(S):
     _op_init_opdef(S.args.opspec, S.user_op, S.args)
     _op_init_user_flags(S.args.flags, S.user_op)
     _op_init_plugins(S.user_op)
-    _op_init_op_cmd(S.user_op, S.args)
-    _op_init_op_flags(S.args, S.user_op)
     _op_init_config(
         S.args.label,
         S.args.tags,
@@ -281,6 +279,9 @@ def _state_init_user_op(S):
         S.args.keep_run,
         S.user_op,
     )
+    _op_init_sourcecode_paths(S.user_op, S.args)
+    _op_init_op_cmd(S.user_op, S.args)
+    _op_init_op_flags(S.args, S.user_op)
     _op_init_core(S.args, S.user_op)
 
 
@@ -487,13 +488,20 @@ def _plugin_enabled_for_op(plugin, opdef):
 def _op_init_op_cmd(op, args):
     if not op._opdef:
         return
-    op._op_cmd, run_attrs = _op_cmd(op)
-    _apply_gpu_arg_env(args, op._op_cmd.cmd_env)
-    _apply_no_output_env(op._op_cmd.cmd_env)
+    op_cmd, run_attrs = _op_cmd(op, args)
+    op._op_cmd = op_cmd
     op._op_cmd_run_attrs.update(run_attrs or [])
 
 
-def _op_cmd(op):
+def _op_cmd(op, args):
+    op_cmd, run_attrs = _base_op_cmd(op)
+    _apply_gpu_arg_env(args, op_cmd.cmd_env)
+    _apply_no_output_env(op_cmd.cmd_env)
+    _apply_plugin_cmd_env(op, op_cmd.cmd_env)
+    return op_cmd, run_attrs
+
+
+def _base_op_cmd(op):
     extra_env = {"GUILD_PLUGINS": _guild_plugins_env(op._plugins)}
     try:
         return op_util.op_cmd_for_opdef(op._opdef, extra_env)
@@ -517,6 +525,11 @@ def _apply_no_output_env(op_env):
     """
     if "NO_RUN_OUTPUT" in op_env and not "NO_RUN_OUTPUT" in os.environ:
         os.environ["NO_RUN_OUTPUT"] = str(op_env["NO_RUN_OUTPUT"])
+
+
+def _apply_plugin_cmd_env(op, cmd_env):
+    for plugin in op._plugins:
+        plugin.apply_cmd_env(op, cmd_env)
 
 
 # =================================================================
@@ -965,9 +978,8 @@ def _delete_on_success(opdef, keep_run):
 
 def _op_init_core(args, op):
     _op_init_opref(op)
-    _op_init_cmd(args, op)
+    _op_init_cmd_args_and_env(args, op)
     _op_init_private_env(op)
-    _op_init_sourcecode_paths(args, op)
     _op_init_run_dir(args, op)
     _op_init_label(op)
     _op_init_random_seed(args.random_seed, op)
@@ -994,19 +1006,19 @@ def _op_init_opref(op):
 # =================================================================
 
 
-def _op_init_cmd(args, op):
+def _op_init_cmd_args_and_env(args, op):
     assert op._op_cmd
-    op.cmd_args, op.cmd_env = _generate_op_cmd(
+    op.cmd_args, op.cmd_env = _generate_op_args_and_env(
         op._op_cmd, op._op_flag_vals, op._python_requires
     )
     _apply_gpu_arg_env(args, op.cmd_env)  # Enable GPU override on restart.
     _apply_break_args_env(args, op.cmd_env)
 
 
-def _generate_op_cmd(op_cmd, flag_vals, python_requires):
+def _generate_op_args_and_env(op_cmd, flag_vals, python_requires):
     resolve_params = _op_cmd_resolve_params(flag_vals, python_requires)
     try:
-        return op_cmd_lib.generate(op_cmd, flag_vals, resolve_params)
+        return op_cmd_lib.generate_op_args_and_env(op_cmd, flag_vals, resolve_params)
     except util.UndefinedReferenceError as e:
         _op_cmd_error(
             "invalid setting for operation: command contains "
@@ -1060,7 +1072,7 @@ def _op_init_private_env(op):
 # =================================================================
 
 
-def _op_init_sourcecode_paths(args, op):
+def _op_init_sourcecode_paths(op, args):
     op.sourcecode_paths = _sourcecode_paths(op, args)
 
 
@@ -1441,9 +1453,6 @@ def _state_init_batch_op(S):
     _check_stage_trials_for_batch(S)
     if S.batch_op:
         _op_init_plugins(S.batch_op)
-        _op_init_op_cmd(S.batch_op, S.args)
-        _op_init_user_flags(S.args.opt_flags, S.batch_op)
-        _op_init_op_flags(S.args, S.batch_op)
         _op_init_config(
             S.args.batch_label,
             S.args.batch_tags,
@@ -1453,6 +1462,10 @@ def _state_init_batch_op(S):
             S.batch_op,
             is_batch=True,
         )
+        _op_init_sourcecode_paths(S.batch_op, S.args)
+        _op_init_op_cmd(S.batch_op, S.args)
+        _op_init_user_flags(S.args.opt_flags, S.batch_op)
+        _op_init_op_flags(S.args, S.batch_op)
         _op_init_batch_config(S.args, S.user_op, S.batch_op)
         _apply_batch_flag_encoder(S.batch_op, S.user_op)
         _op_init_core(S.args, S.batch_op)
@@ -2492,7 +2505,7 @@ def _guildfile_error(gf_path, msg) -> typing.NoReturn:
 def _missing_run_opdef_error(opspec, run) -> typing.NoReturn:
     cli.error(
         f"cannot find definition for operation '{opspec}' in run {run.id}\n"
-        "The definition is required when setting flags for start or restart."
+        "The definition is required when setting flags for restart or a new run."
     )
 
 

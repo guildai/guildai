@@ -95,6 +95,7 @@ List all files with `--all`.
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
+      .guild/attrs/pip_freeze
       .guild/attrs/platform
       .guild/attrs/plugins
       .guild/attrs/random_seed
@@ -124,7 +125,7 @@ List all files with `--all`.
 
 If `--path` wants a hidden file, it's included.
 
-    >>> guild_run("ls --path .guild")  # doctest: +REPORT_UDIFF
+    e>>> guild_run("ls --path .guild")  # doctest: +REPORT_UDIFF
     ???/runs/aaaa:
       .guild/
       .guild/attrs/
@@ -137,6 +138,7 @@ If `--path` wants a hidden file, it's included.
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
+      .guild/attrs/pip_freeze
       .guild/attrs/platform
       .guild/attrs/plugins
       .guild/attrs/random_seed
@@ -170,6 +172,7 @@ If `--path` wants a hidden file, it's included.
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
+      .guild/attrs/pip_freeze
       .guild/attrs/platform
       .guild/attrs/plugins
       .guild/attrs/random_seed
@@ -202,6 +205,7 @@ If `--path` wants a hidden file, it's included.
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
+      .guild/attrs/pip_freeze
       .guild/attrs/platform
       .guild/attrs/plugins
       .guild/attrs/random_seed
@@ -253,6 +257,7 @@ Follow links applies to `--all`.
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
+      .guild/attrs/pip_freeze
       .guild/attrs/platform
       .guild/attrs/plugins
       .guild/attrs/random_seed
