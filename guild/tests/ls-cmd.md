@@ -23,29 +23,65 @@ Helper function to run Guild commands for project runs.
     >>> def guild_run(cmd, ignore=None):
     ...     run("guild -H %s %s" % (project.guild_home, cmd), ignore=ignore)
 
-By default ls prints all non-Guild files without following links.
+By default ls prints all non-hidden files without following links.
 
     >>> guild_run("ls")
     ???/runs/aaaa:
+      README.md
       a
       b
       c/
       c/d.txt
       c/e.txt
       c/f.bin
+      guild.yml
       l/
+      make_fs.py
+    <exit 0>
+
+We can limit results to source code with the `-s/--sourcecode` option.
+
+    >>> guild_run("ls -s")
+    ???/runs/aaaa:
+      README.md
+      guild.yml
+      make_fs.py
+    <exit 0>
+
+We can show dependencies using `-d/--dependencies`. In this case,
+there are no dependencies.
+
+    >>> guild_run("ls -d")
+    ???/runs/aaaa:
+    <exit 0>
+
+We can show generated files (files that are neither source code nor
+dependencies) using the `-g/--generated` option.
+
+    >>> guild_run("ls -g")
+    ???/runs/aaaa:
+      .foo/.bar
+      .foo/baz
+      a
+      b
+      c/d.txt
+      c/e.txt
+      c/f.bin
     <exit 0>
 
 The directory header can be dropped with `-n, --no-format`.
 
     >>> guild_run("ls -n")
+    README.md
     a
     b
     c/
     c/d.txt
     c/e.txt
     c/f.bin
+    guild.yml
     l/
+    make_fs.py
     <exit 0>
 
 By default, Guild does not follow links in lists. Use `-L,
@@ -53,28 +89,34 @@ By default, Guild does not follow links in lists. Use `-L,
 
     >>> guild_run("ls --follow-links")
     ???/runs/aaaa:
+      README.md
       a
       b
       c/
       c/d.txt
       c/e.txt
       c/f.bin
+      guild.yml
       l/
       l/d.txt
       l/e.txt
       l/f.bin
+      make_fs.py
     <exit 0>
 
 Show the full path for a list with `--full-path`.
 
     >>> guild_run("ls --full-path")
-    ???/runs/aaaa/a
+    ???/runs/aaaa/README.md
+    .../runs/aaaa/a
     .../runs/aaaa/b
     .../runs/aaaa/c
     .../runs/aaaa/c/d.txt
     .../runs/aaaa/c/e.txt
     .../runs/aaaa/c/f.bin
+    .../runs/aaaa/guild.yml
     .../runs/aaaa/l
+    .../runs/aaaa/make_fs.py
     <exit 0>
 
 List all files with `--all`.
@@ -110,17 +152,16 @@ List all files with `--all`.
       .guild/output
       .guild/output.index
       .guild/some-guild-file
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/make_fs.py
+      README.md
       a
       b
       c/
       c/d.txt
       c/e.txt
       c/f.bin
+      guild.yml
       l/
+      make_fs.py
     <exit 0>
 
 If `--path` wants a hidden file, it's included.
@@ -187,10 +228,6 @@ If `--path` wants a hidden file, it's included.
       .guild/output
       .guild/output.index
       .guild/some-guild-file
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/make_fs.py
     <exit 0>
 
     >>> guild_run("ls -p .guild/attrs/")  # doctest: +REPORT_UDIFF
@@ -272,41 +309,43 @@ Follow links applies to `--all`.
       .guild/output
       .guild/output.index
       .guild/some-guild-file
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/guild.yml
-      .guild/sourcecode/make_fs.py
+      README.md
       a
       b
       c/
       c/d.txt
       c/e.txt
       c/f.bin
+      guild.yml
       l/
       l/d.txt
       l/e.txt
       l/f.bin
+      make_fs.py
     <exit 0>
 
 And to `--full-path` options.
 
     >>> guild_run("ls -Lf")
-    ???/runs/aaaa/a
+    ???/runs/aaaa/README.md
+    .../runs/aaaa/a
     .../runs/aaaa/b
     .../runs/aaaa/c
     .../runs/aaaa/c/d.txt
     .../runs/aaaa/c/e.txt
     .../runs/aaaa/c/f.bin
+    .../runs/aaaa/guild.yml
     .../runs/aaaa/l
     .../runs/aaaa/l/d.txt
     .../runs/aaaa/l/e.txt
     .../runs/aaaa/l/f.bin
+    .../runs/aaaa/make_fs.py
     <exit 0>
 
 List source code with `--sourcecode`.
 
     >>> guild_run("ls --sourcecode")
-    ???/runs/aaaa/.guild/sourcecode:
+    ???/runs/aaaa:
       README.md
       guild.yml
       make_fs.py
@@ -315,9 +354,9 @@ List source code with `--sourcecode`.
 Source code with full path.
 
     >>> guild_run("ls --sourcecode --full-path")
-    ???/runs/aaaa/.guild/sourcecode/README.md
-    .../runs/aaaa/.guild/sourcecode/guild.yml
-    .../runs/aaaa/.guild/sourcecode/make_fs.py
+    ???/runs/aaaa/README.md
+    .../runs/aaaa/guild.yml
+    .../runs/aaaa/make_fs.py
     <exit 0>
 
 Results can be filtered using a `--path` option.
@@ -357,12 +396,12 @@ Patterns apply through to following links.
 Paths are applied to the source code location.
 
     >>> guild_run("ls --sourcecode -p README.md")
-    ???/runs/aaaa/.guild/sourcecode:
+    ???/runs/aaaa:
       README.md
     <exit 0>
 
     >>> guild_run("ls --sourcecode -p README.md -f")
-    ???/runs/aaaa/.guild/sourcecode/README.md
+    ???/runs/aaaa/README.md
     <exit 0>
 
 ## Alt Source Code Dest
@@ -396,10 +435,10 @@ the private `.guild` directory.
     >>> project.run("alt-sourcecode-2", run_id="cccc")
 
     >>> guild_run("ls --sourcecode")
-    ???/runs/cccc/src:
-      README.md
-      guild.yml
-      make_fs.py
+    ???/runs/cccc:
+      src/README.md
+      src/guild.yml
+      src/make_fs.py
     <exit 0>
 
     >>> guild_run("ls")

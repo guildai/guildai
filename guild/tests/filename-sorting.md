@@ -18,7 +18,7 @@ Run the operation to generate the files.
 
 Output from `ls`:
 
-    >>> run("guild ls -n")
+    >>> run("guild ls -ng")
     img0
     img1
     img2
@@ -74,3 +74,4 @@ Files returned for view.
     img17
     img18
     img19
+    op.py
