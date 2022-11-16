@@ -489,15 +489,26 @@ def _iter_linkable_run_files(run, run_logdir):
     link parent dir.
     """
     top_level = True
+    sourcecode = _run_sourcecode_index(run)
     for root, dirs, files in os.walk(run.dir):
         _maybe_remove_guild_dir(top_level, dirs)
         top_level = False
         rel_root = os.path.relpath(root, run.dir)
         for name in files:
+            if _run_file_relpath(name, root, run.dir) in sourcecode:
+                continue
             src = os.path.join(root, name)
             link_dir = os.path.join(run_logdir, rel_root)
             link = os.path.join(link_dir, name)
             yield src, link, link_dir
+
+
+def _run_sourcecode_index(run):
+    return set(run_util.sourcecode_files(run))
+
+
+def _run_file_relpath(name, root, run_dir):
+    return os.path.relpath(os.path.join(root, name), run_dir)
 
 
 def _maybe_remove_guild_dir(remove, dirs):
