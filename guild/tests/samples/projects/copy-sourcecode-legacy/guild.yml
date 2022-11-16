@@ -1,5 +1,8 @@
 - model: ''
   flags-import: off
+  sourcecode:
+    dest: .guild/sourcecode
+
   operations:
 
     default:
@@ -79,7 +82,9 @@
 
 - model: m1
   sourcecode:
-    - include: subdir/logo.png
+    dest: .guild/sourcecode
+    select:
+      - include: subdir/logo.png
   operations:
     op:
       main: guild.pass
@@ -87,7 +92,9 @@
         - exclude: ['*.py', 'a.*']
 
 - model: m2
-  sourcecode: no
+  sourcecode:
+    dest: .guild/sourcecode
+    select: no
   operations:
     op1:
       main: guild.pass
@@ -96,7 +103,9 @@
       sourcecode: ['*.py', '*.yml']
 
 - model: m3
-  sourcecode: '*'
+  sourcecode:
+    dest: .guild/sourcecode
+    select: '*'
   operations:
     op1:
       main: guild.pass
