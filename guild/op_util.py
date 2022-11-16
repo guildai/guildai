@@ -37,6 +37,7 @@ from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import run as runlib
 from guild import run_manifest
+from guild import run_util
 from guild import util
 from guild import var
 from guild import vcs_util
@@ -626,9 +627,8 @@ def clear_run_pending(run):
     clear_run_marker(run, "PENDING")
 
 
-def write_sourcecode_digest(run, sourcecode_root):
-    src = os.path.join(run.dir, sourcecode_root)
-    digest = file_util.files_digest(src)
+def write_sourcecode_digest(run):
+    digest = run_util.sourcecode_digest(run)
     run.write_attr("sourcecode_digest", digest)
 
 
@@ -843,7 +843,7 @@ def _select_rules_for_opdef(opdef):
         return [file_util.exclude("*")]
     root = _opdef_select_rules_root(opdef)
     return (
-        _base_sourcecode_select_rules()
+        _base_sourcecode_select_rules(root)
         + _sourcecode_config_rules(opdef.modeldef.sourcecode, root)
         + _sourcecode_config_rules(opdef.sourcecode, root)
     )
@@ -867,7 +867,37 @@ def opdef_sourcecode_root(opdef):
     return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
 
 
-def _base_sourcecode_select_rules():
+def _base_sourcecode_select_rules(src_dir):
+    return _ignorefile_select_rules(src_dir) or _legacy_default_select_rules()
+
+
+def _ignorefile_select_rules(src_dir):
+    return _guildignore_select_rules(src_dir) or _gitignore_select_rules(src_dir)
+
+
+def _guildignore_select_rules(src_dir):
+    if _gitignore_supported(src_dir, ".guildignore"):
+        return vcs_util.gitignore_select_rules(src_dir, ".guildignore")
+    return []
+
+
+def _gitignore_supported(src_dir, ignore_pattern_file=".gitignore"):
+    return (
+        os.path.exists(os.path.join(src_dir, ignore_pattern_file)) and _git_available()
+    )
+
+
+def _git_available():
+    return util.which("git") is not None
+
+
+def _gitignore_select_rules(src_dir):
+    if _gitignore_supported(src_dir):
+        return vcs_util.gitignore_select_rules(src_dir)
+    return []
+
+
+def _legacy_default_select_rules():
     return [
         _rule_exclude_pycache_dirs(),
         _rule_exclude_dot_dirs(),

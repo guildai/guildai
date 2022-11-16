@@ -5,8 +5,6 @@ Generate some sample runs.
     >>> project = Project(sample("projects", "hello"))
 
     >>> project.run("hello-file")
-    Resolving file
-    Using hello.txt for file resource
     Reading message from hello.txt
     Hello, from a file!
     <BLANKLINE>
@@ -38,7 +36,7 @@ Generate some sample runs.
           "opName": "hello",
           "pkgName": ".../samples/projects/hello/guild.yml",
           "pkgType": "guildfile",
-          "pkgVersion": "bd3ca4e8bd044ab25c2ede36bd71e740"
+          "pkgVersion": "08585644f5a54d1efea04ecdf1b666b0"
         }
       },
       {
@@ -63,7 +61,7 @@ Generate some sample runs.
           "opName": "hello-file",
           "pkgName": ".../samples/projects/hello/guild.yml",
           "pkgType": "guildfile",
-          "pkgVersion": "bd3ca4e8bd044ab25c2ede36bd71e740"
+          "pkgVersion": "08585644f5a54d1efea04ecdf1b666b0"
         }
       },
       {
@@ -80,7 +78,7 @@ Generate some sample runs.
           "opName": "hello-op",
           "pkgName": ".../samples/projects/hello/guild.yml",
           "pkgType": "guildfile",
-          "pkgVersion": "bd3ca4e8bd044ab25c2ede36bd71e740"
+          "pkgVersion": "08585644f5a54d1efea04ecdf1b666b0"
         }
       }
     ]

@@ -889,22 +889,15 @@ class Project:
     def print_trials(self, *args, **kw):
         print(self._run(print_trials=True, *args, **kw))
 
-    def ls(self, run=None, all=False, sourcecode=False, ignore_compiled_source=False):
-        # TODO: remove ignore_compiled_source for op2 promo
-        if not run:
-            runs = self.list_runs()
-            if not runs:
-                raise RuntimeError("no runs")
-            run = runs[0]
+    def ls(self, run=None, all=False, sourcecode=False):
+        run = run or self._first_run()
+        sourcecode_files = run_util.sourcecode_files(run) if sourcecode else None
 
         def filter(path):
-            default_select = (
+            return (
                 all
                 or not path.startswith(".guild")
-                or (sourcecode and _is_run_sourcecode(path))
-            )
-            return default_select and not (
-                ignore_compiled_source and _is_compiled_source(path)
+                or (sourcecode and path in sourcecode_files)
             )
 
         return [path for path in file_util.find(run.path) if filter(path)]
@@ -953,9 +946,11 @@ class Project:
     def guild_cmd(self, cmd):
         _run(f"guild -H {util.shlex_quote(self.guild_home)} {cmd}", cwd=self.cwd)
 
-
-def _is_run_sourcecode(path):
-    return path.startswith(os.path.join(".guild", "sourcecode"))
+    def _first_run(self):
+        runs = self.list_runs()
+        if not runs:
+            raise RuntimeError("no runs")
+        return runs[0]
 
 
 def _is_compiled_source(path):

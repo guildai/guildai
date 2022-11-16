@@ -977,7 +977,7 @@ def _format_run_manifest(run):
     from guild import run_manifest
 
     try:
-        m = run_manifest.manfiest_for_run(run)
+        m = run_manifest.manifest_for_run(run)
     except Exception as e:
         log.error("cannot read run manifest: %s", e)
         return {}

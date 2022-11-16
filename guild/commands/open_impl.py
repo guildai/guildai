@@ -21,6 +21,7 @@ import sys
 
 from guild import cli
 from guild import cmd_impl_support
+from guild import run_util
 from guild import util
 
 from . import runs_impl
@@ -78,9 +79,7 @@ def _check_non_output_args(args):
 
 
 def _path_root(args, run):
-    if args.sourcecode:
-        return run.guild_path("sourcecode")
-    return run.path
+    return run_util.sourcecode_dir(run) if args.sourcecode else run.dir
 
 
 def _open_f(args):

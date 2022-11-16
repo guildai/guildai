@@ -40,6 +40,9 @@ class FileSelect:
     def _init_disabled(self):
         """Returns True if file select is disabled.
 
+        This is an optimization to disable file select by appending an exclude
+        '*' to a rule set.
+
         Assumes not disabled until finds a disable all pattern (untyped
         match of '*'). Disable pattern can be reset by any include
         pattern.
@@ -92,7 +95,14 @@ class FileSelect:
 
 
 def reduce_file_select_results(results):
-    """Reduces a list of file select results to a single determining result."""
+    """Reduces a list of file select results to a single determining result.
+
+    The last non-None result from results is used to determine the reduced
+    result, otherwise returns None, None, indicating that the results are
+    indeterminate.
+
+    Returns a tuple of result and determining-test.
+    """
     for (result, test), _rule in reversed(results):
         if result is not None:
             return result, test
@@ -126,6 +136,30 @@ class FileSelectRule:
         self.max_matches = max_matches
         self._matches = 0
 
+    def __str__(self):
+        parts = ["include" if self.result else "exclude"]
+        if self.type:
+            parts.append(self.type)
+        parts.append(", ".join([repr(p) for p in self.patterns]))
+        extras = self._format_file_select_rule_extras()
+        if extras:
+            parts.append(extras)
+        return " ".join(parts)
+
+    def _format_file_select_rule_extras(self):
+        parts = []
+        if self.regex:
+            parts.append("regex")
+        if self.sentinel:
+            parts.append(f"with {self.sentinel!r}")
+        if self.size_gt:
+            parts.append(f"size > {self.size_gt}")
+        if self.size_lt:
+            parts.append(f"size < {self.size_lt}")
+        if self.max_matches:
+            parts.append(f"max match {self.max_matches}")
+        return ", ".join(parts)
+
     def _patterns_match_f(self, patterns, regex):
         if regex:
             return self._regex_match_f(patterns)
@@ -157,6 +191,7 @@ class FileSelectRule:
         self._matches = 0
 
     def test(self, src_root, relpath):
+        """Returns a tuple of result and xxx??"""
         fullpath = os.path.join(src_root, relpath)
         tests = [
             FileSelectTest("max matches", self._test_max_matches),
@@ -350,48 +385,6 @@ def _relpath(path, start):
     if path == start:
         return ""
     return os.path.relpath(path, start)
-
-
-def files_digest(root):
-    files = _files_for_digest(root)
-    if not files:
-        return None
-    md5 = hashlib.md5()
-    for path in files:
-        normpath = _normalize_path_for_digest(path, root)
-        md5.update(_encode_file_path_for_digest(normpath))
-        md5.update(b"\x00")
-        _apply_digest_file_bytes(path, md5)
-        md5.update(b"\x00")
-    return md5.hexdigest()
-
-
-def _files_for_digest(root):
-    files = []
-    for path, _dirs, names in os.walk(root, followlinks=False):
-        for name in names:
-            files.append(os.path.join(path, name))
-    files.sort()
-    return files
-
-
-def _normalize_path_for_digest(path, root):
-    relpath = os.path.relpath(path, root)
-    return relpath.replace(os.path.sep, "/")
-
-
-def _encode_file_path_for_digest(path):
-    return path.encode("UTF-8")
-
-
-def _apply_digest_file_bytes(path, d):
-    buf_size = 1024 * 1024
-    with open(path, "rb") as f:
-        while True:
-            buf = f.read(buf_size)
-            if not buf:
-                break
-            d.update(buf)
 
 
 def disk_usage(path):

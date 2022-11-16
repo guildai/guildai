@@ -179,7 +179,7 @@ Path completions using an operation filter:
 Path completion with `--sourcecode` option:
 
     >>> cmd_ac(cat.cat, "path", ["-Fo", "b", "--sourcecode"])
-    !!runfiles:.../runs/bbb/.guild/sourcecode
+    !!runfiles:.../runs/bbb
 
 ### `cat` label
 
@@ -211,7 +211,7 @@ Labels for operation filter:
 Digests for no args:
 
     >>> cmd_ac(cat.cat, "filter_digest", [])
-    44e4e89b8b83aa85d48c3bab1948cd00
+    f28b7f252e1a4319d7e2b5141437776c
 
     >>> cmd_ac(cat.cat, "filter_digest", [], incomplete="a")
     <empty>
@@ -259,7 +259,7 @@ Path completion for valid run arg:
 Path completion for `--sourcecode` option.
 
     >>> cmd_ac(ls.ls, "path", ["--sourcecode"])
-    !!runfiles:.../runs/ccc/.guild/sourcecode
+    !!runfiles:.../runs/ccc
 
 ## Completions for `diff`
 
@@ -299,16 +299,16 @@ The first run is used for completions when two runs are specified.
 Source code paths:
 
     >>> cmd_ac(diff.diff, "paths", ["--sourcecode"])
-    !!runfiles:.../runs/ccc/.guild/sourcecode
+    !!runfiles:.../runs/ccc
 
     >>> cmd_ac(diff.diff, "paths", ["b", "--sourcecode"])
-    !!runfiles:.../bbb/.guild/sourcecode
+    !!runfiles:.../bbb
 
     >>> cmd_ac(diff.diff, "paths", ["--sourcecode", "b"])
-    !!runfiles:.../bbb/.guild/sourcecode
+    !!runfiles:.../bbb
 
     >>> cmd_ac(diff.diff, "paths", ["aaa", "bbb", "--sourcecode"])
-    !!runfiles:.../runs/aaa/.guild/sourcecode
+    !!runfiles:.../runs/aaa
 
 Path completion with `--working` refers to project path:
 

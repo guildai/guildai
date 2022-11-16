@@ -5,8 +5,8 @@ Additional deps can be specified for the `run` command as '-D' or
 
     >>> project = Project(sample("projects", "additional-deps"))
 
-When running `op.py` directly, the required file `file1` is not
-available in the run directory.
+The project is configured to explicitly exclude `file` from the source code
+copy.
 
     >>> project.run("op.py")
     Traceback (most recent call last):

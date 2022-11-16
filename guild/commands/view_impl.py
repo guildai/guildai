@@ -176,6 +176,7 @@ def _run_data_v2(run, index):
     data["stopped"] = run.get("stopped")
     del data["time"]
     _apply_scalars_camel_case(data)
+    _remove_v1_file_attrs(data)
     return data
 
 
@@ -186,6 +187,14 @@ def _apply_scalars_camel_case(data):
         pass
     else:
         data["scalars"] = [util.dict_to_camel_case(scalar) for scalar in scalars]
+
+
+def _remove_v1_file_attrs(run_data):
+    for file_data in run_data.get("files") or []:
+        file_data.pop("icon", None)
+        file_data.pop("iconTooltip", None)
+        file_data.pop("type", None)
+        file_data.pop("viewer", None)
 
 
 def _run_duration(run):
@@ -368,25 +377,10 @@ def _compare_args_for_view_args(view_args):
 
 
 def _sourcecode_data(run):
-    rel_root = _sourcecode_root(run)
-    root = os.path.join(run.dir, rel_root)
-    files = sorted(_iter_sourcecode_files(root))
     return {
-        "root": rel_root,
-        "files": files,
+        "root": os.path.relpath(run_util.sourcecode_dir(run), run.dir),
+        "files": sorted(run_util.sourcecode_files(run)),
     }
-
-
-def _sourcecode_root(run):
-    op = run.get("op")
-    # pylint: disable=consider-using-ternary
-    return (op and op.get("sourcecode-root")) or ".guild/sourcecode"
-
-
-def _iter_sourcecode_files(path):
-    for root, _dirs, files in os.walk(path):
-        for name in files:
-            yield os.path.relpath(os.path.join(root, name), path)
 
 
 def _opref_data(run):

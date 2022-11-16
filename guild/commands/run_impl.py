@@ -938,7 +938,7 @@ def _sourcecode_empty(opdef):
 
 
 def _default_sourcecode_path():
-    return os.path.join(".guild", "sourcecode")
+    return "."
 
 
 def _opdef_flags_extra(opdef):
@@ -1313,9 +1313,14 @@ def _on_dep_source_resolved(_op, resolved_source):
 
 
 def _on_run_initialized(op, run):
+    _init_run_manifest(run)
     _copy_opdef_sourcecode(op._opdef, op, run)
-    _write_run_sourcecode_digest(op, run)
+    _write_run_sourcecode_digest(run)
     _write_run_vcs_commit(op._opdef, run)
+
+
+def _init_run_manifest(run):
+    util.touch(run.guild_path("manifest"))
 
 
 def _copy_opdef_sourcecode(opdef, op, run):
@@ -1349,9 +1354,8 @@ def _sourcecode_dest(run, op):
     return os.path.join(run.dir, op._sourcecode_root or _default_sourcecode_path())
 
 
-def _write_run_sourcecode_digest(op, run):
-    if op._sourcecode_root:
-        op_util.write_sourcecode_digest(run, op._sourcecode_root)
+def _write_run_sourcecode_digest(run):
+    op_util.write_sourcecode_digest(run)
 
 
 def _write_run_vcs_commit(opdef, run):
@@ -1882,7 +1886,7 @@ def _test_sourcecode(S):
     cli.out(f"Copying from {cwd_desc}")
     cli.out("Rules:")
     for rule in logger.select.rules if logger.select else []:
-        cli.out(f"  {_format_file_select_rule(rule)}")
+        cli.out(f"  {rule}")
     if logger.select and logger.select.disabled:
         assert not logger.selected, logger.selected
         assert not logger.skipped, logger.skipped
@@ -1919,32 +1923,6 @@ class _CopyLogger:
 
     def close(self):
         pass
-
-
-def _format_file_select_rule(rule):
-    parts = ["include" if rule.result else "exclude"]
-    if rule.type:
-        parts.append(rule.type)
-    parts.append(", ".join([repr(p) for p in rule.patterns]))
-    extras = _format_file_select_rule_extras(rule)
-    if extras:
-        parts.append(extras)
-    return " ".join(parts)
-
-
-def _format_file_select_rule_extras(rule):
-    parts = []
-    if rule.regex:
-        parts.append("regex")
-    if rule.sentinel:
-        parts.append(f"with {rule.sentinel!r}")
-    if rule.size_gt:
-        parts.append(f"size > {rule.size_gt}")
-    if rule.size_lt:
-        parts.append(f"size < {rule.size_lt}")
-    if rule.max_matches:
-        parts.append(f"max match {rule.max_matches}")
-    return ", ".join(parts)
 
 
 ###################################################################

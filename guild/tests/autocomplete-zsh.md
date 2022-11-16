@@ -116,13 +116,16 @@ number of runs.
     >>> runs = project.list_runs()
 
     >>> runs[0].id, project.ls(runs[0])
-    ('ccc', ['bar.txt', 'c.out', 'foo.txt', 'foo/xxx.txt', 'foo/yyy.txt'])
+    ('ccc', ['bar.txt', 'c.out', 'c.src.out', 'echo.py', 'foo.txt',
+             'foo/xxx.txt', 'foo/yyy.txt', 'guild.yml'])
 
     >>> runs[1].id, project.ls(runs[1])
-    ('bbb', ['b.out', 'bar.txt', 'foo.txt', 'foo/xxx.txt', 'foo/yyy.txt'])
+    ('bbb', ['b.out', 'b.src.out', 'bar.txt', 'echo.py', 'foo.txt',
+             'foo/xxx.txt', 'foo/yyy.txt', 'guild.yml'])
 
     >>> runs[2].id, project.ls(runs[2])
-    ('aaa', ['a.out', 'bar.txt', 'foo.txt', 'foo/xxx.txt', 'foo/yyy.txt'])
+    ('aaa', ['a.out', 'a.src.out', 'bar.txt', 'echo.py', 'foo.txt',
+             'foo/xxx.txt', 'foo/yyy.txt', 'guild.yml'])
 
 A helper to show completions:
 

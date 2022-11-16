@@ -48,6 +48,8 @@
       main: guild.pass
       flags-dest: config:flags.json
       flags-import: all
+      sourcecode:
+        - exclude: flags.json
       requires:
         - config: flags.json
           replace-existing: false

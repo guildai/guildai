@@ -24,6 +24,7 @@ from guild import guildfile
 from guild import opref as opreflib
 from guild import resolver
 from guild import run as runlib
+from guild import run_manifest
 from guild import util
 from guild import var
 
@@ -489,7 +490,16 @@ def sourcecode_dir(run):
     sourcecode_root = op_data.get("sourcecode-root")
     if sourcecode_root:
         return os.path.normpath(os.path.join(run.dir, sourcecode_root))
-    return run.guild_path("sourcecode")
+    return run.dir
+
+
+def sourcecode_files(run):
+    manifest_path = run_manifest.run_manifest_path(run.dir)
+    if not os.path.exists(manifest_path):
+        log.debug("missing manifest %s - assuming no source code files", manifest_path)
+        return []
+    with run_manifest.manifest_for_run(run) as m:
+        return [entry[1] for entry in m if entry[0] == "s"]
 
 
 def export_runs(runs, dest, move=False, copy_resources=False, quiet=False):
@@ -699,3 +709,46 @@ def run_op_dir(run):
 def run_for_id(id, runs_dir=None):
     runs_dir = runs_dir or var.runs_dir()
     return runlib.Run(id, os.path.join(runs_dir, id))
+
+
+def sourcecode_digest(run):
+    import hashlib
+
+    files = sorted(sourcecode_files(run))
+    if not files:
+        return None
+    md5 = hashlib.md5()
+    for path in files:
+        normpath = _normalize_path_for_digest(path)
+        md5.update(_encode_file_path_for_digest(normpath))
+        md5.update(b"\x00")
+        _apply_digest_file_bytes(os.path.join(run.dir, path), md5)
+        md5.update(b"\x00")
+    return md5.hexdigest()
+
+
+def _files_for_digest(root):
+    files = []
+    for path, _dirs, names in os.walk(root, followlinks=False):
+        for name in names:
+            files.append(os.path.join(path, name))
+    files.sort()
+    return files
+
+
+def _normalize_path_for_digest(path):
+    return path.replace(os.path.sep, "/")
+
+
+def _encode_file_path_for_digest(path):
+    return path.encode("UTF-8")
+
+
+def _apply_digest_file_bytes(path, d):
+    buf_size = 1024 * 1024
+    with open(path, "rb") as f:
+        while True:
+            buf = f.read(buf_size)
+            if not buf:
+                break
+            d.update(buf)

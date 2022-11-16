@@ -157,11 +157,7 @@ Results with modified flags:
     {'b': True, 'd': {}, 'f': 4.456, 'i': 123, 'l': ['a', 'b', 123], 's': 'hi'}
     <exit 0>
 
-The config file is generated for the run.
-
-    >>> guild("ls -n")
-    flags.yml
-    <exit 0>
+The config file generated for the run contains the user-specified flag values.
 
     >>> guild("cat -p flags.yml")
     b: true
@@ -228,10 +224,6 @@ Results with modified flags:
     <exit 0>
 
 Guild generates a run specific config file.
-
-    >>> guild("ls -n")
-    flags.json
-    <exit 0>
 
     >>> guild("cat -p flags.json")
     {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456, "l": [2, 1, "a b", "d"], "s": "abc"}
@@ -316,10 +308,6 @@ Run with modified flags.
 
 Guild generates a run specific config file.
 
-    >>> guild("ls -n")
-    flags.cfg
-    <exit 0>
-
     >>> guild("cat -p flags.cfg")
     [DEFAULT]
     b = False
@@ -401,10 +389,6 @@ Results with modified flags:
 
 Guild generates a run specific config file.
 
-    >>> guild("ls -n")
-    flags.json
-    <exit 0>
-
     >>> guild("cat -p flags.json")
     {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456, "l": [2, 1, "a b", "d"], "s": "abc"}
     <exit 0>
@@ -429,9 +413,9 @@ re-writes the config file with the new flag values.
      's': 'abc'}
     <exit 0>
 
-If an operation explicitly defines a config resource to not re-resolve
-on restart, Guild fails on restart. We can use the
-'explicit-no-replace' operation to test this.
+If an operation explicitly defines a config resource to not re-resolve on
+restart, Guild fails on restart. We can use the 'explicit-no-replace' operation
+to test this.
 
     >>> guild("run explicit-no-replace -y")
     Resolving config:flags.json
@@ -474,12 +458,21 @@ a new project.
 Includes need to specify the path to the config file relative to the
 importing source.
 
-    >>> guild("run yaml-subdir -y")
+Here's the project source.
+
+    >>> cat("subdir/flags.yaml")
+    msg: hello
+
+Run with a different value for `msg`.
+
+    >>> guild("run yaml-subdir msg=hola -y")
     Resolving config:subdir/flags.yaml
     <exit 0>
 
-    >>> guild("ls -n")
-    flags.yaml
+The run config file:
+
+    >>> guild("cat -p flags.yaml")
+    msg: hola
     <exit 0>
 
 If the path is relative to the imported source, Guild cannot find the
@@ -488,8 +481,17 @@ config file.
     >>> guild("run yaml-subdir-broken -y")
     <exit 0>
 
-    >>> guild("ls -n")
-    <BLANKLINE>
+    >>> guild("cat -p flags.yml")
+    i: 123
+    f: 1.123
+    s: Howdy Guild
+    b: no
+    l:
+      - 1
+      - 1.2
+      - blue
+      - yes
+    d: {}
     <exit 0>
 
 ### Args Test

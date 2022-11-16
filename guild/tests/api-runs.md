@@ -5,8 +5,6 @@ Generate some sample runs.
     >>> project = Project(sample("projects", "hello"))
 
     >>> project.run("hello-file")
-    Resolving file
-    Using hello.txt for file resource
     Reading message from hello.txt
     Hello, from a file!
     <BLANKLINE>
@@ -19,7 +17,7 @@ Helper for running commands for the project.
 
 ## `api runs`
 
-    >>> project_cmd("api runs -f")  # doctest: +REPORT_UDIFF
+    >>> project_cmd("api runs -f")
     [
       {
         "command": "... -um guild.op_main cat -- --file hello.txt",
@@ -32,26 +30,53 @@ Helper for running commands for the project.
         "exitStatus": 0,
         "files": [
           {
-            "icon": "file-document",
-            "iconTooltip": "Text file",
+            "mtime": ...,
+            "operation": null,
+            "path": "README.md",
+            "run": null,
+            "size": 135
+          },
+          {
+            "mtime": ...,
+            "operation": null,
+            "path": "cat.py",
+            "run": null,
+            "size": 294
+          },
+          {
+            "mtime": ...,
+            "operation": null,
+            "path": "guild.yml",
+            "run": null,
+            "size": 502
+          },
+          {
             "mtime": ...,
             "operation": null,
             "path": "hello.txt",
             "run": null,
-            "size": 20,
-            "type": "Text file",
-            "viewer": "text"
+            "size": 20
           },
           {
-            "icon": "file-document",
-            "iconTooltip": "Text file",
             "mtime": ...,
             "operation": null,
             "path": "msg.out",
             "run": null,
-            "size": ...,
-            "type": "Text file",
-            "viewer": "text"
+            "size": 20
+          },
+          {
+            "mtime": ...,
+            "operation": null,
+            "path": "repeat.py",
+            "run": null,
+            "size": 103
+          },
+          {
+            "mtime": ...,
+            "operation": null,
+            "path": "say.py",
+            "run": null,
+            "size": 36
           }
         ],
         "flags": {
@@ -63,13 +88,13 @@ Helper for running commands for the project.
         "opRef": {
           "modelName": "",
           "opName": "hello-file",
-          "pkgName": ".../samples/projects/hello/guild.yml",
+          "pkgName": ".../guild/tests/samples/projects/hello/guild.yml",
           "pkgType": "guildfile",
           "pkgVersion": "..."
         },
         "operation": "hello-file",
         "otherAttrs": {},
-        "projectDir": ".../samples/projects/hello",
+        "projectDir": ".../guild/tests/samples/projects/hello",
         "scalars": [],
         "shortId": "...",
         "sourcecode": {
@@ -81,7 +106,7 @@ Helper for running commands for the project.
             "repeat.py",
             "say.py"
           ],
-          "root": ".guild/sourcecode"
+          "root": "."
         },
         "started": ...,
         "status": "completed",

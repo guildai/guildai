@@ -70,6 +70,7 @@ tests).
       gpus:                        ok
       guild-home:                  ok
       guildfiles:                  ok
+      guildignore:                 ok
       help:                        ok
       help-op:                     ok
       hiplot:                      ok

@@ -19,6 +19,7 @@ import sys
 import click
 
 from guild import cli
+from guild import run_util
 
 from . import remote_impl_support
 from . import runs_impl
@@ -65,9 +66,7 @@ def _check_non_output_args(args):
 
 
 def _path_root(args, run):
-    if args.sourcecode:
-        return run.guild_path("sourcecode")
-    return run.path
+    return run_util.sourcecode_dir(run) if args.sourcecode else run.dir
 
 
 def _page(path):
