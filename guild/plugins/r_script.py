@@ -139,7 +139,7 @@ def _ensure_guildai_r_package_installled(version="0.0.0.9001"):
 
         return
 
-    raise Exception("R is not available")
+    cli.error("The 'guildai' R package is not available.")
 
 
 def run_r(
