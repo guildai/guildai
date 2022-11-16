@@ -632,11 +632,9 @@ def write_sourcecode_digest(run):
     run.write_attr("sourcecode_digest", digest)
 
 
-def write_vcs_commit(opdef, run):
-    if not opdef.guildfile.dir:
-        return
+def write_vcs_commit(run, project_dir):
     try:
-        commit, status = vcs_util.commit_for_dir(opdef.guildfile.dir)
+        commit, status = vcs_util.commit_for_dir(project_dir)
     except vcs_util.NoCommit:
         pass
     except vcs_util.CommitReadError as e:
@@ -990,10 +988,16 @@ def _apply_dir_glob(root, pattern):
     return pattern
 
 
-def copy_sourcecode(sourcecode_src, sourcecode_select, dest_dir, handler_cls=None):
+def copy_sourcecode(
+    sourcecode_src, sourcecode_select, dest_dir, ignore=None, handler_cls=None
+):
     handler_cls = handler_cls or SourceCodeCopyHandler
     file_util.copytree(
-        dest_dir, sourcecode_select, sourcecode_src, handler_cls=handler_cls
+        dest_dir,
+        sourcecode_select,
+        sourcecode_src,
+        ignore=ignore,
+        handler_cls=handler_cls,
     )
 
 

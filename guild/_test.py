@@ -746,7 +746,7 @@ class Project:
     def __init__(self, cwd, guild_home=None, env=None):
         from guild import index as indexlib  # expensive
 
-        self.cwd = cwd
+        self.cwd = self.dir = cwd
         self.guild_home = guild_home or mkdtemp()
         self._env = env
         runs_cache_path = os.path.join(self.guild_home, "cache", "runs")

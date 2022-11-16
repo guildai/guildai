@@ -1314,16 +1314,18 @@ def _on_dep_source_resolved(_op, resolved_source):
 
 def _on_run_initialized(op, run):
     _init_run_manifest(run)
-    _copy_opdef_sourcecode(op._opdef, op, run)
+    _copy_run_sourcecode(run, op)
     _write_run_sourcecode_digest(run)
-    _write_run_vcs_commit(op._opdef, run)
+    _write_run_vcs_commit(run, op)
 
 
 def _init_run_manifest(run):
     util.touch(run.guild_path("manifest"))
 
 
-def _copy_opdef_sourcecode(opdef, op, run):
+def _copy_run_sourcecode(run, op):
+    assert op._opdef
+    opdef = op._opdef
     if os.getenv("NO_SOURCECODE") == "1":
         log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
         return
@@ -1346,8 +1348,27 @@ def _copy_opdef_sourcecode(opdef, op, run):
         sourcecode_src,
         sourcecode_select,
         dest,
-        op_util.sourcecode_manifest_logger_cls(run.dir),
+        ignore=_project_local_dependencies(op),
+        handler_cls=op_util.sourcecode_manifest_logger_cls(run.dir),
     )
+
+
+def _project_local_dependencies(op):
+    return [
+        _dep_source_project_local_path(source)
+        for dep in op.deps
+        for source in dep.resdef.sources
+        if _is_dep_source_project_local_file(source)
+    ]
+
+
+def _is_dep_source_project_local_file(source):
+    return source.parsed_uri.scheme == "file"
+
+
+def _dep_source_project_local_path(source):
+    assert source.parsed_uri.scheme == "file", source.parsed_uri
+    return source.parsed_uri.path
 
 
 def _sourcecode_dest(run, op):
@@ -1358,12 +1379,13 @@ def _write_run_sourcecode_digest(run):
     op_util.write_sourcecode_digest(run)
 
 
-def _write_run_vcs_commit(opdef, run):
+def _write_run_vcs_commit(run, op):
     if os.getenv("NO_VCS_COMMIT") == "1":
         log.debug("NO_VCS_COMMIT=1, skipping VCS commit")
         return
 
-    op_util.write_vcs_commit(opdef, run)
+    assert op._opdef
+    op_util.write_vcs_commit(run, op._opdef.guildfile.dir)
 
 
 def _op_init_callbacks_for_run_with_proto(op):
@@ -1874,13 +1896,17 @@ def _open_output(path):
 
 
 def _test_sourcecode(S):
+    assert S.user_op._opdef
     opdef = S.user_op._opdef
-    assert opdef
     logger = _CopyLogger()
     sourcecode_src = opdef.guildfile.dir
     sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
     op_util.copy_sourcecode(
-        sourcecode_src, sourcecode_select, None, handler_cls=logger.handler_cls
+        sourcecode_src,
+        sourcecode_select,
+        None,
+        ignore=_project_local_dependencies(S.user_op),
+        handler_cls=logger.handler_cls,
     )
     cwd_desc = cmd_impl_support.cwd_desc(logger.root)
     cli.out(f"Copying from {cwd_desc}")

@@ -324,7 +324,14 @@ class FileCopyHandler:
         pass
 
 
-def copytree(dest, select, root_start=None, followlinks=True, handler_cls=None):
+def copytree(
+    dest,
+    select,
+    root_start=None,
+    followlinks=True,
+    ignore=None,
+    handler_cls=None,
+):
     """Copies files to dest for a FileSelect.
 
     root_start is an optional location from which select.root, if
@@ -350,14 +357,15 @@ def copytree(dest, select, root_start=None, followlinks=True, handler_cls=None):
     # Instantiate handler as part of the copytree contract.
     handler = (handler_cls or FileCopyHandler)(src, dest, select)
     try:
-        _copytree_impl(src, select, followlinks, handler)
+        _copytree_impl(src, select, followlinks, ignore, handler)
     finally:
         handler.close()
 
 
-def _copytree_impl(src, select, followlinks, copy_handler):
+def _copytree_impl(src, select, followlinks, ignore, copy_handler):
     if select.disabled:
         return
+    ignore = set(ignore or [])
     for root, dirs, files in os.walk(src, followlinks=followlinks):
         dirs.sort()
         relroot = _relpath(root, src)
@@ -367,11 +375,28 @@ def _copytree_impl(src, select, followlinks, copy_handler):
             copy_handler.ignore(relpath, [])
         for name in sorted(files):
             relpath = os.path.join(relroot, name)
-            selected, results = select.select_file(src, relpath)
+            selected, results = _select_file_to_copy(src, relpath, select, ignore)
             if selected:
                 copy_handler.copy(relpath, results)
             else:
                 copy_handler.ignore(relpath, results)
+
+
+def _select_file_to_copy(src, relpath, select, ignore):
+    if relpath in ignore:
+        return _ignored_path_select_result(relpath)
+    return select.select_file(src, relpath)
+
+
+def _ignored_path_select_result(path):
+    """Proxies a select result.
+
+    Returns a tuple of select and a select results. Select is false because
+    we're explicitly ignoring the path. Results is a list of rules that
+    determined the select outcome. In this there's a single False result from a
+    matching pattern.
+    """
+    return False, [[False, FileSelectRule(False, [path])]]
 
 
 def _copytree_src(root_start, select):

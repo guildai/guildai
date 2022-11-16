@@ -191,29 +191,27 @@ resource path, if a resource path is defined.
 
     >>> print_deps(gf.default_model["train"].dependencies) # doctest: -NORMALIZE_PATHS
     <guild.guildfile.OpDependencyDef foo>
-      inline-resource: {'sources': [{'operation': 'foo', 'select': '.+\\.txt', 'target-path': 'bar'}]}
-
-    <guild.guildfile.OpDependencyDef foo>
       inline-resource: {'sources': [{'operation': 'foo',
-                                     'path': 'bar',
-                                     'select': '.+\\.txt'}]}
+                                     'select': '.+\\.txt',
+                                     'target-path': 'bar'}]}
 
 ## Project tests
 
-The sample project `inline-resources` contains a variety of inline
-resource definitions. We can test the resolution of all of the
-resources by running the `test-all` operation, which serves as a
-validation of the expected results.
-
-Note we skip running the operations on Windows because they use POSIX
-executables.
+The sample project `inline-resources` contains a variety of inline resource
+definitions. We can test the resolution of all of the resources by running the
+`test-all` operation, which serves as a validation of the expected results.
 
     >>> project = Project(sample("projects", "inline-resources"))
 
+This project is configured with `.guildignore` so that required resources are
+not inadvertently resolved by copying source code files to the run directory.
+
+    >>> cat(path(project.dir, ".guildignore"))
+    msg*.txt
+
 ### Force run on dependency error
 
-When a dependency cannot be met, Guild stops the run with an error
-message.
+When a dependency cannot be met, Guild stops the run with an error message.
 
 The `print-msg-2` operation requires `print-msg`, which we don't have.
 
@@ -239,8 +237,8 @@ We can force a run even in such cases using `force_deps`.
     cat: no such file 'msg.txt'
     <exit 1>
 
-The same behavior applies to staging runs. We use `missing-file-dep`
-to test this, which relies on a file that doesn't exist.
+The same behavior applies to staging runs. We use `missing-file-dep` to test
+this, which relies on a file that doesn't exist.
 
     >>> project.run("missing-file-dep", stage=True)
     Resolving file:missing.txt
@@ -258,15 +256,15 @@ Using `force_deps` we can bypass the check and stage the run anyway.
     missing-file-dep staged as ...
     To start the operation, use 'guild run --start ...'
 
-Dependencies that can be resolved are resolved. `missing-file-dep`
-also requires `msg.txt`, which does exist and can be resooved.
+Dependencies that can be resolved are resolved. `missing-file-dep` also
+requires `msg.txt`, which does exist and can be resolved.
 
     >>> dir(project.list_runs()[0].dir)
-    ['.guild', 'msg.txt']
+    ['.guild', 'cat.py', 'guild.yml', 'msg.txt']
 
 ### test-all
 
-    >>> project.run("test-all")
+    >>> project.run("test-all")  # doctest: +REPORT_UDIFF
     INFO: [guild] running print-msg: print-msg
     Resolving file:msg.txt
     hola
