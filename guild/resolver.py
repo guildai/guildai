@@ -333,7 +333,7 @@ def _resolve_run_files(run, source, unpack_dir):
         # If select not specified, ensure that result does not contain source
         # code files (i.e. contains only dependencies and generated files)
         return _filter_non_sourcecode_files(resolved, run)
-    assert resolved
+    return resolved
 
 
 def _filter_non_sourcecode_files(paths, run):
