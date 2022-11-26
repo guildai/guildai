@@ -1,0 +1,18 @@
+default:
+  main: guild.pass
+
+no-sourcecode:
+  main: guild.pass
+  sourcecode: no
+
+explicit-sourcecode:
+  main: guild.pass
+  sourcecode:
+    - exclude: '*'
+    - hello.py
+
+explicit-sourcecode-2:
+  main: guild.pass
+  sourcecode:
+    - exclude: '*.py'
+    - exclude: '*.yml'

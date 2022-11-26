@@ -92,9 +92,9 @@ Generate a run from the sample project.
         - yyy
         - zzz
       sourcecode:
-        - .guild/sourcecode/guild.yml
-        - .guild/sourcecode/op.py
-        - .guild/sourcecode/overlap.py
+        - guild.yml
+        - op.py
+        - overlap.py
     <exit 0>
 
     >>> project_run("guild ls -n")
@@ -103,6 +103,9 @@ Generate a run from the sample project.
     dep-1
     dep-subdir/
     dep-subdir/dep-2
+    guild.yml
+    op.py
+    overlap.py
     subdir/
     subdir/c
     yyy
@@ -154,7 +157,8 @@ Let's modify some of the project files.
     >>> compare_dirs((run_dir, "run-dir"), (project_dir, "project-dir"))
     diff /run-dir /project-dir
     Only in /run-dir : ['.guild', 'a', 'b', 'subdir', 'yyy', 'zzz']
-    Only in /project-dir : ['.gitignore', 'files.zip', 'guild.yml', 'op.py', 'overlap.py']
+    Only in /project-dir : ['.gitignore', 'files.zip']
+    Identical files : ['guild.yml', 'op.py', 'overlap.py']
     Differing files : ['dep-1']
     Common subdirectories : ['dep-subdir']
     <BLANKLINE>
@@ -219,8 +223,8 @@ Compare files after the merge.
     >>> compare_dirs((run_dir, "run-dir"), (project_dir, "project-dir"))
     diff /run-dir /project-dir
     Only in /run-dir : ['.guild', 'a', 'b', 'subdir', 'yyy', 'zzz']
-    Only in /project-dir : ['.gitignore', 'files.zip', 'guild.yml', 'op.py', 'overlap.py']
-    Identical files : ['dep-1']
+    Only in /project-dir : ['.gitignore', 'files.zip']
+    Identical files : ['dep-1', 'guild.yml', 'op.py', 'overlap.py']
     Common subdirectories : ['dep-subdir']
     <BLANKLINE>
     diff /run-dir/dep-subdir /project-dir/dep-subdir
@@ -546,14 +550,17 @@ The `overlap` operation creates a target path overlap example.
     Generating files
     <exit 0>
 
-The manifest shows the overlap of source code and dependencies.
+When a dependency collides with a source code file, Guild treats the
+file as a dependency, not a source code file.
+
+If a generated file replaces an existing file, Guild does not consider
+that file generated - the manifest entry is used as the authoritative
+designation of the file type.
 
     >>> project_run("guild cat -p .guild/manifest")
-    s .guild/sourcecode/dep-1 ... dep-1
-    s .guild/sourcecode/guild.yml ... guild.yml
-    s .guild/sourcecode/op.py ... op.py
-    s .guild/sourcecode/overlap.py ... overlap.py
-    s .guild/sourcecode/dep-subdir/dep-2 ... dep-subdir/dep-2
+    s guild.yml ... guild.yml
+    s op.py ... op.py
+    s overlap.py ... overlap.py
     d dep-1 ... file:dep-1
     d dep-subdir/dep-2 ... file:dep-subdir/dep-2
     <exit 0>

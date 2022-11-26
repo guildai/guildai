@@ -915,3 +915,36 @@ can be used when interfacing with JavaScript applications.
 
     >>> dict_to_camel_case({"": 123})
     {'': 123}
+
+## Flatten list
+
+    >>> from guild.util import flatten
+
+    >>> flatten([])
+    []
+
+    >>> flatten([[], []])
+    []
+
+    >>> flatten([[], [], []])
+    []
+
+    >>> flatten([[1]])
+    [1]
+
+    >>> flatten([[1, 2]])
+    [1, 2]
+
+    >>> flatten([[1, 2], [3, 4]])
+    [1, 2, 3, 4]
+
+    >>> flatten([[1, 2], [3, 4, 5], []])
+    [1, 2, 3, 4, 5]
+
+    >>> flatten([[1, 2], [3, 4, 5], [6]])
+    [1, 2, 3, 4, 5, 6]
+
+Only flattens to one level.
+
+    >>> flatten([[1, 2], [3, 4, 5], [[6]]])
+    [1, 2, 3, 4, 5, [6]]

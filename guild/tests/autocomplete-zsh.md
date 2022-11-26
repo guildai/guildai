@@ -196,18 +196,25 @@ Path completions for no args:
     >>> cmd_ac(cat.cat, "path", [])
     bar.txt
     c.out
+    c.src.out
+    echo.py
     foo.txt
+    guild.yml
     foo/
 
     >>> cmd_ac(cat.cat, "path", [], "c")
     c.out
+    c.src.out
 
 Path completions for a run arg:
 
     >>> cmd_ac(cat.cat, "path", ["bbb"])
     b.out
+    b.src.out
     bar.txt
+    echo.py
     foo.txt
+    guild.yml
     foo/
 
     >>> cmd_ac(cat.cat, "path", ["bbb"], "f")
@@ -220,14 +227,18 @@ Path completions for a run arg:
 
     >>> cmd_ac(cat.cat, "path", ["bbb"], "b")
     b.out
+    b.src.out
     bar.txt
 
 Path completions using an operation filter:
 
     >>> cmd_ac(cat.cat, "path", ["-Fo", "a"])
     a.out
+    a.src.out
     bar.txt
+    echo.py
     foo.txt
+    guild.yml
     foo/
 
     >>> cmd_ac(cat.cat, "path", ["-Fo", "a"], "foo")
@@ -238,15 +249,37 @@ Path completions using an operation filter:
     foo/xxx.txt
     foo/yyy.txt
 
-Path completion with `--sourcecode` option:
+Path completion with `--sourcecode` option does not strictly work as
+one would expect. The `--sourcecode` option filters to only list
+source code files. However, completion in this case shows all files
+for the run directory in the case where source code files are copied
+to the run directory.
 
     >>> cmd_ac(cat.cat, "path", ["-Fo", "b", "--sourcecode"])
+    b.out
     b.src.out
+    bar.txt
     echo.py
+    foo.txt
     guild.yml
+    foo/
 
     >>> cmd_ac(cat.cat, "path", ["-Fo", "b", "--sourcecode"], "ec")
     echo.py
+
+Note that we can autocomplete on non-source code files.
+
+    >>> cmd_ac(cat.cat, "path", ["-Fo", "b", "--sourcecode"], "b.out")
+    b.out
+
+While we could fix this for zsh, we cannot easily fix this for bash or
+other completion schemes that rely on compgen utils. These external
+calls would require complex filters to hide non-applicable files (or
+worse, dynamically generatred mirrored directories wiht the applicable
+files). For consistency across shell environments, we currently
+maintain this behavior, even though it's technically incorrect. Note
+that this applied only to autocompletion paths and does not impact the
+command behavior itself.
 
 ### `cat` label
 
@@ -278,7 +311,7 @@ Labels for operation filter:
 Digests for no args:
 
     >>> cmd_ac(cat.cat, "filter_digest", [])
-    44e4e89b8b83aa85d48c3bab1948cd00
+    f28b7f252e1a4319d7e2b5141437776c
 
     >>> cmd_ac(cat.cat, "filter_digest", [], "a")
     <empty>
@@ -318,7 +351,10 @@ Path completion for no args:
     >>> cmd_ac(ls.ls, "path", [])
     bar.txt
     c.out
+    c.src.out
+    echo.py
     foo.txt
+    guild.yml
     foo/
 
     >>> cmd_ac(ls.ls, "path", [], "b")
@@ -328,28 +364,66 @@ Path completion for valid run arg:
 
     >>> cmd_ac(ls.ls, "path", ["2"])
     b.out
+    b.src.out
     bar.txt
+    echo.py
     foo.txt
+    guild.yml
     foo/
 
     >>> cmd_ac(ls.ls, "path", ["2"], "b")
     b.out
+    b.src.out
     bar.txt
 
-Path completion for `--sourcecode` option.
+Path completion for `--sourcecode` option has the same issues as
+outlined above with `cat`.
 
     >>> cmd_ac(ls.ls, "path", ["--sourcecode"])
+    bar.txt
+    c.out
     c.src.out
     echo.py
+    foo.txt
     guild.yml
+    foo/
 
     >>> cmd_ac(ls.ls, "path", ["bbb", "--sourcecode"])
+    b.out
     b.src.out
+    bar.txt
     echo.py
+    foo.txt
     guild.yml
+    foo/
 
     >>> cmd_ac(ls.ls, "path", ["bbb", "--sourcecode"], "g")
     guild.yml
+
+Note that we can complete on non-source code files.
+
+    >>> cmd_ac(ls.ls, "path", ["bbb", "--sourcecode"], "b.out")
+    b.out
+
+The same behavior holds for `--dependencies` and `--generated`.
+
+    >>> cmd_ac(ls.ls, "path", ["--generated"])
+    bar.txt
+    c.out
+    c.src.out
+    echo.py
+    foo.txt
+    guild.yml
+    foo/
+
+    >>> cmd_ac(ls.ls, "path", ["--dependencies"])
+    bar.txt
+    c.out
+    c.src.out
+    echo.py
+    foo.txt
+    guild.yml
+    foo/
 
 ## Completions for `diff`
 
@@ -376,7 +450,10 @@ No args - completes paths for latest run:
     >>> cmd_ac(diff.diff, "paths", [])
     bar.txt
     c.out
+    c.src.out
+    echo.py
     foo.txt
+    guild.yml
     foo/
 
     >>> cmd_ac(diff.diff, "paths", [], "z")
@@ -390,64 +467,111 @@ A run is specified:
 
     >>> cmd_ac(diff.diff, "paths", ["2"])
     b.out
+    b.src.out
     bar.txt
+    echo.py
     foo.txt
+    guild.yml
     foo/
 
 The first run is used for completions when two runs are specified.
 
     >>> cmd_ac(diff.diff, "paths", ["aaa", "bbb"])
     a.out
+    a.src.out
     bar.txt
+    echo.py
     foo.txt
+    guild.yml
     foo/
 
     >>> cmd_ac(diff.diff, "paths", ["bbb", "aaa"])
     b.out
+    b.src.out
     bar.txt
+    echo.py
     foo.txt
+    guild.yml
     foo/
 
-Source code paths:
+Source code paths (see notes above about unexpected behavior here):
 
     >>> cmd_ac(diff.diff, "paths", ["--sourcecode"])
+    bar.txt
+    c.out
     c.src.out
     echo.py
+    foo.txt
     guild.yml
+    foo/
 
     >>> cmd_ac(diff.diff, "paths", ["b", "--sourcecode"])
+    b.out
     b.src.out
+    bar.txt
     echo.py
+    foo.txt
     guild.yml
+    foo/
 
     >>> cmd_ac(diff.diff, "paths", ["--sourcecode", "a"])
+    a.out
     a.src.out
+    bar.txt
     echo.py
+    foo.txt
     guild.yml
+    foo/
 
     >>> cmd_ac(diff.diff, "paths", ["aaa", "bbb", "--sourcecode"])
+    a.out
     a.src.out
+    bar.txt
     echo.py
+    foo.txt
     guild.yml
+    foo/
 
     >>> cmd_ac(diff.diff, "paths", ["bbb", "aaa", "--sourcecode"])
+    b.out
     b.src.out
+    bar.txt
     echo.py
+    foo.txt
     guild.yml
+    foo/
 
 Path completion with `--working` refers to project path:
 
     >>> cmd_ac(diff.diff, "paths", ["--working"])
+    .gitignore
+    bar.txt
     echo.py
+    foo.txt
     guild.yml
+    unset.out
+    unset.src.out
+    foo/
 
     >>> cmd_ac(diff.diff, "paths", ["--working", "-Fo", "a"])
+    .gitignore
+    bar.txt
     echo.py
+    foo.txt
     guild.yml
+    unset.out
+    unset.src.out
+    foo/
 
     >>> cmd_ac(diff.diff, "paths", ["--working", "aaa", "bbb"])
+    .gitignore
+    bar.txt
     echo.py
+    foo.txt
     guild.yml
+    unset.out
+    unset.src.out
+    foo/
 
 Completions with `--dir` refer to the specified run path:
 
@@ -634,6 +758,7 @@ Boolean flags support 'true' and 'false'.
 Paths types support file name completions.
 
     >>> run_ac("flags", ["flags"], "p=")  # doctest: +REPORT_UDIFF
+    p=.guildignore
     p=batch_fail.py
     p=dummy.qmd
     p=dummy.r
@@ -651,6 +776,7 @@ Paths types support file name completions.
     p=tune-echo
 
     >>> run_ac("flags", ["flags"], "ep=")  # doctest: +REPORT_UDIFF
+    ep=.guildignore
     ep=batch_fail.py
     ep=dummy.qmd
     ep=dummy.r

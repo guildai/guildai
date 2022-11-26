@@ -27,6 +27,10 @@ class UnsupportedRepo(Exception):
     pass
 
 
+class NoVCS(Exception):
+    pass
+
+
 class Scheme:
     def __init__(
         self,
@@ -260,85 +264,27 @@ def _split_git_file_status_path(path):
     return parts[0], None
 
 
-def gitignore_select_rules(root_dir, exclude_patterns_file=None):
+def project_select_rules(project_dir):
+    # Only supporting Git based rules
+    return git_project_select_rules(project_dir)
+
+
+def git_project_select_rules(project_dir):
+    ignored = _git_ls_ignored(project_dir, extended_patterns_file=".guildignore")
+    if not ignored:
+        return []
     return [
-        GitExcludeDirsRule(root_dir, exclude_patterns_file),
-        GitignoreSelectRule(root_dir, exclude_patterns_file),
+        _GitIgnoredDirsRule(_dirs_for_git_ignored(ignored, project_dir)),
+        _GitignoreSelectRule(project_dir, ignored),
         FileSelectRule(False, [".git*", ".guild*"]),
     ]
 
 
-def GitExcludeDirsRule(root_dir, exclude_patterns_file):
-    exclude_dirs = _exclude_dirs_for_patterns_file(root_dir, exclude_patterns_file)
-    return FileSelectRule(False, [".git"] + exclude_dirs, "dir")
-
-
-def _exclude_dirs_for_patterns_file(root_dir, patterns_file):
-    patterns_path = os.path.join(root_dir, patterns_file or ".gitignore")
-    if not os.path.exists(patterns_path):
-        return []
-    return _dirs_for_exclude_patterns_file(patterns_path, root_dir)
-
-
-def _dirs_for_exclude_patterns_file(exclude_patterns_file, root_dir):
-    return [
-        path
-        for path in _exclude_patterns_file_paths(exclude_patterns_file)
-        if _is_dir(path, root_dir)
-    ]
-
-
-def _exclude_patterns_file_paths(src):
-    return [_rel_path(path) for path in _exclude_patterns_file_entries(src)]
-
-
-def _exclude_patterns_file_entries(src):
-    return [line.strip() for line in open(src) if not line.startswith("#")]
-
-
-def _is_dir(path, parent_dir):
-    return os.path.isdir(os.path.join(parent_dir, path))
-
-
-def _rel_path(path):
-    return path[1:] if path[:1] == "/" else path
-
-
-class GitignoreSelectRule(FileSelectRule):
-
-    _ignored = None
-
-    def __init__(self, root_dir, exclude_patterns_file=None):
-        super().__init__(True, [])
-        self.root_dir = root_dir
-        self.exclude_patterns_file = exclude_patterns_file
-
-    def __str__(self):
-        if self.exclude_patterns_file:
-            return f"standard gitignore rules + rules for {self.exclude_patterns_file}"
-        return "standard gitignore rules"
-
-    def _ensure_ignored(self):
-        if self._ignored is None:
-            self._ignored = set(
-                _git_ls_ignored(self.root_dir, self.exclude_patterns_file)
-            )
-        return self._ignored
-
-    def test(self, src_root, relpath):
-        ignored = self._ensure_ignored()
-        if relpath not in ignored:
-            return True, None
-        return None, None
-
-
-def _git_ls_ignored(root_dir, exclude_patterns_file):
-    cmd = ["git", "ls-files", "-ioc"] + _exclude_args_for_patterns_file(
-        exclude_patterns_file
-    )
-    log.debug("cmd for ls ignored in %s: %s", root_dir, cmd)
+def _git_ls_ignored(cwd, extended_patterns_file=None):
+    cmd = _git_ls_cmd(extended_patterns_file)
+    log.debug("cmd for ls ignored in %s: %s", cwd, cmd)
     try:
-        out = subprocess.check_output(cmd, cwd=root_dir, stderr=subprocess.STDOUT)
+        out = subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         if e.returncode not in (128,):
             # 128: not a git repo -> ignore
@@ -349,19 +295,120 @@ def _git_ls_ignored(root_dir, exclude_patterns_file):
             )
             if log.getEffectiveLevel() <= logging.DEBUG:
                 log.error(e.stdout)
-        return []
+        raise NoVCS(cwd, (e.returncode, e.stdout))
     else:
         return _parse_git_ls_files(out)
 
 
+def _git_ls_cmd(extended_patterns_file):
+    # `--directory` is important here to avoid listing potentially
+    # huge numbers of ignored files in directories. This is also
+    # relied upon downstream by `_dirs_for_git_ignored()` to list
+    # ignored directories that can be skipped by Guild's select rules
+    # as a substantial performance optimization.
+    cmd = ["git", "ls-files", "-ioc", "--exclude-standard", "--directory"]
+    if extended_patterns_file:
+        cmd.extend(_exclude_args_for_patterns_file(extended_patterns_file))
+    return cmd
+
+
 def _exclude_args_for_patterns_file(patterns_file):
-    if not patterns_file:
-        return ["--exclude-standard"]
-    return ["--exclude-standard"] + _exclude_pattern_args(patterns_file)
+    return [
+        arg
+        for pattern in _exclude_patterns_file_entries(patterns_file)
+        for arg in ["-x", pattern]
+    ]
 
 
-def _exclude_pattern_args(patterns_file):
-    args = []
-    for line in open(patterns_file):
-        args.extend(["-x", line.rstrip()])
-    return args
+def _exclude_patterns_file_entries(src):
+    try:
+        f = open(src)
+    except FileNotFoundError:
+        return []
+    else:
+        with f:
+            lines = [line.strip() for line in f]
+        return [line for line in lines if line and not line.startswith("#")]
+
+
+def _dirs_for_git_ignored(ignored, root_dir):
+    return [path for path in ignored if os.path.isdir(os.path.join(root_dir, path))]
+
+
+class _GitIgnoredDirsRule(FileSelectRule):
+    def __init__(self, excluded_dirs):
+        super().__init__(False, [".git"] + excluded_dirs, "dir")
+
+    def __str__(self):
+        return "gitignore + guildignore directories"
+
+
+class _GitignoreSelectRule(FileSelectRule):
+    def __init__(self, root_dir, ignored):
+        super().__init__(True, [])
+        self.ignored = set(ignored)
+
+    def __str__(self):
+        return "gitignore + guildignore files"
+
+    def test(self, _src_root, relpath):
+        if relpath not in self.ignored:
+            return True, None
+        return None, None
+
+
+# ==============================================================================
+
+# def _exclude_dirs_for_patterns_file(root_dir, patterns_file):
+#     patterns_path = os.path.join(root_dir, patterns_file or ".gitignore")
+#     if not os.path.exists(patterns_path):
+#         return []
+#     return _dirs_for_exclude_patterns_file(patterns_path, root_dir)
+
+
+# def _dirs_for_exclude_patterns_file(exclude_patterns_file, root_dir):
+#     return [
+#         path
+#         for path in _exclude_patterns_file_paths(exclude_patterns_file)
+#         if _is_dir(path, root_dir)
+#     ]
+
+
+# def _exclude_patterns_file_paths(src):
+#     return [_rel_path(path) for path in _exclude_patterns_file_entries(src)]
+
+
+# def _is_dir(path, parent_dir):
+#     return os.path.isdir(os.path.join(parent_dir, path))
+
+
+# def _rel_path(path):
+#     return path[1:] if path[:1] == "/" else path
+
+
+# class GitignoreSelectRule(FileSelectRule):
+
+#     _ignored = None
+
+#     def __init__(self, root_dir, exclude_patterns_file=None):
+#         super().__init__(True, [])
+#         self.root_dir = root_dir
+#         self.exclude_patterns_file = exclude_patterns_file
+
+#     def __str__(self):
+#         if self.exclude_patterns_file:
+#             return f"standard gitignore rules + rules for {self.exclude_patterns_file}"
+#         return "standard gitignore rules"
+
+#     def _ensure_ignored(self):
+#         if self._ignored is None:
+#             self._ignored = set(
+#                 _git_ls_ignored(self.root_dir, self.exclude_patterns_file)
+#             )
+#         return self._ignored
+
+#     def test(self, src_root, relpath):
+#         ignored = self._ensure_ignored()
+#         if relpath not in ignored:
+#             return True, None
+#         return None, None

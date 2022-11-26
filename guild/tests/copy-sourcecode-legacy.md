@@ -1,8 +1,8 @@
 # Copying source code
 
-These tests confirm that Guild continues to support alternative source code
-destinations. While this may be an anti-pattern, we will support this behavior
-for backward compatibility until it's obvious that changing it is safe for all
+These tests confirm that Guild continues to support alternative source
+code destinations. We will support this behavior for backward
+compatibility until it's obvious that changing it is safe for all
 users.
 
 These tests exercise each of the operations defined in the
@@ -11,11 +11,12 @@ These tests exercise each of the operations defined in the
     >>> project_dir_src = sample("projects/copy-sourcecode-legacy")
 
 We configure the default source code dest as the legacy value
-`.guild/sourcecode` for the default model, which is shown below when we print
-operation source code configuration.
+`.guild/sourcecode` for the default model, which is shown below when
+we print operation source code configuration.
 
-To control the files that are under the project, we copy the project source to
-a new location, taking care to copy only the following files:
+To control the files that are under the project, we copy the project
+source to a new location, taking care to copy only the following
+files:
 
     >>> project_files = [
     ...   ".dotdir",
@@ -101,9 +102,9 @@ Helper function for printing operation sourcecode config:
     ...     else:
     ...         print("<none>")
 
-Helper function that runs the specified operation outside of Guild home
-(i.e. to a new, temp run directory) and prints the list of copied files for the
-generated run:
+Helper function that runs the specified operation outside of Guild
+home (i.e. to a new, temp run directory) and prints the list of copied
+files for the generated run:
 
     >>> def run(op, sourcecode_root=".guild/sourcecode"):
     ...     run_dir = mkdtemp()
@@ -128,29 +129,29 @@ Here's a preview of the copy, which shows the rules that are applied:
     >>> preview("default")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
     Selected for copy:
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./guild.yml
-      ./hello.py
-      ./subdir/b.txt
+      .gitattributes
+      a.txt
+      empty
+      guild.yml
+      hello.py
+      subdir/b.txt
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./hello.pyc
-      ./subdir/logo.png
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
+      hello.pyc
+      subdir/logo.png
 
 Note that Guild doesn't consider files under ignored directories for
 selected/ignored preview. This is an optimization to avoid evaluating
@@ -179,15 +180,15 @@ Specify `root` to change the directory that files are copied from.
     >>> preview("alt-root")
     Copying from 'subdir'
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
     Selected for copy:
       subdir/b.txt
     Skipped:
@@ -212,32 +213,32 @@ This rule is applied after the default rules:
     >>> preview("include-png")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      include '*.png'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      include *.png
     Selected for copy:
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./guild.yml
-      ./hello.py
-      ./subdir/b.txt
-      ./subdir/logo.png
+      .gitattributes
+      a.txt
+      empty
+      guild.yml
+      hello.py
+      subdir/b.txt
+      subdir/logo.png
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./hello.pyc
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
+      hello.pyc
 
-The `png` file is copied along with the default files:
+The `png` file is copied along containing the default files:
 
     >>> run("include-png")
     <BLANKLINE>
@@ -251,7 +252,7 @@ The `png` file is copied along with the default files:
 
 ## Override defaults
 
-Defaults can be overridden with explicit string patterns.
+Defaults can be overridden containing explicit string patterns.
 
 Only png files:
 
@@ -261,37 +262,38 @@ Only png files:
     op-sourcecode: '*.png'
 
 When only string patterns are specified for an include, Guild
-implicitly inserts an exclude '*' before adding the patterns. This
-ensures that only those files matching the specified patterns are selected.
+implicitly inserts an exclude * before adding the patterns. This
+ensures that only those files matching the specified patterns are
+selected.
 
     >>> preview("only-png")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      exclude '*'
-      include '*.png'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      exclude *
+      include *.png
     Selected for copy:
-      ./subdir/logo.png
+      subdir/logo.png
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./guild.yml
-      ./hello.py
-      ./hello.pyc
-      ./subdir/b.txt
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
+      .gitattributes
+      a.txt
+      empty
+      guild.yml
+      hello.py
+      hello.pyc
+      subdir/b.txt
 
     >>> run("only-png")
     subdir/logo.png
@@ -347,30 +349,30 @@ exclude specs.
     >>> preview("exclude-py")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      exclude '*.py'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      exclude *.py
     Selected for copy:
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./guild.yml
-      ./subdir/b.txt
+      .gitattributes
+      a.txt
+      empty
+      guild.yml
+      subdir/b.txt
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./hello.py
-      ./hello.pyc
-      ./subdir/logo.png
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
+      hello.py
+      hello.pyc
+      subdir/logo.png
 
     >>> run("exclude-py")
     .gitattributes
@@ -396,29 +398,29 @@ In the preview, 'subdir' is not mentioned:
     >>> preview("no-subdir")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      exclude dir 'subdir'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      exclude dir subdir
     Selected for copy:
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./guild.yml
-      ./hello.py
+      .gitattributes
+      a.txt
+      empty
+      guild.yml
+      hello.py
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./subdir
-      ./hello.pyc
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
+      subdir
+      hello.pyc
 
 And the copied files:
 
@@ -444,31 +446,31 @@ The preview:
     >>> preview("only-subdir")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      exclude '*'
-      include 'subdir/*'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      exclude *
+      include subdir/*
     Selected for copy:
-      ./subdir/b.txt
-      ./subdir/logo.png
+      subdir/b.txt
+      subdir/logo.png
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./guild.yml
-      ./hello.py
-      ./hello.pyc
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
+      .gitattributes
+      a.txt
+      empty
+      guild.yml
+      hello.py
+      hello.pyc
 
 And the copied files:
 
@@ -486,36 +488,36 @@ This is illustrated by the `only-subdir2` operation.
       dest: .guild/sourcecode
     op-sourcecode: subdir
 
-The preview shows that Guild modified the pattern with the glob:
+The preview shows that Guild modified the pattern containing the glob:
 
     >>> preview("only-subdir2")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      exclude '*'
-      include 'subdir/*'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      exclude *
+      include subdir/*
     Selected for copy:
-      ./subdir/b.txt
-      ./subdir/logo.png
+      subdir/b.txt
+      subdir/logo.png
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./guild.yml
-      ./hello.py
-      ./hello.pyc
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
+      .gitattributes
+      a.txt
+      empty
+      guild.yml
+      hello.py
+      hello.pyc
 
 And the copied files:
 
@@ -539,30 +541,30 @@ included.
     >>> preview("include-dotdir")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      include dir '.dotdir'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      include dir .dotdir
     Selected for copy:
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./guild.yml
-      ./hello.py
-      ./.dotdir/a.txt
-      ./subdir/b.txt
+      .gitattributes
+      a.txt
+      empty
+      guild.yml
+      hello.py
+      .dotdir/a.txt
+      subdir/b.txt
     Skipped:
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./hello.pyc
-      ./subdir/logo.png
+      __pycache__
+      env
+      nocopy_dir
+      hello.pyc
+      subdir/logo.png
 
     >>> run("include-dotdir")
     .dotdir/a.txt
@@ -587,7 +589,7 @@ Using no (False):
     >>> preview("disabled")
     Copying from the current directory
     Rules:
-      exclude '*'
+      exclude *
     Source code copy disabled
 
     >>> run("disabled")
@@ -603,7 +605,7 @@ Specifying an emty list of specs:
     >>> preview("disabled2")
     Copying from the current directory
     Rules:
-      exclude '*'
+      exclude *
     Source code copy disabled
 
     >>> run("disabled2")
@@ -620,16 +622,16 @@ Using an exclude spec:
     >>> preview("disabled3")
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      exclude '*'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      exclude *
     Source code copy disabled
 
     >>> run("disabled3")
@@ -658,31 +660,31 @@ Model adds png and operation excludes `*.py` and `a.*` files:
     >>> preview("m1:op")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      include 'subdir/logo.png'
-      exclude '*.py', 'a.*'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      include subdir/logo.png
+      exclude *.py, a.*
     Selected for copy:
-      ./.gitattributes
-      ./empty
-      ./guild.yml
-      ./subdir/b.txt
-      ./subdir/logo.png
+      .gitattributes
+      empty
+      guild.yml
+      subdir/b.txt
+      subdir/logo.png
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./a.txt
-      ./hello.py
-      ./hello.pyc
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
+      a.txt
+      hello.py
+      hello.pyc
 
     >>> run("m1:op")
     .gitattributes
@@ -701,7 +703,7 @@ Model disables source code copy:
     >>> preview("m2:op1")
     Copying from the current directory
     Rules:
-      exclude '*'
+      exclude *
     Source code copy disabled
 
     >>> run("m2:op1")
@@ -721,32 +723,32 @@ only py and yml files.
     >>> preview("m2:op2")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      exclude '*'
-      include '*.py'
-      include '*.yml'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      exclude *
+      include *.py
+      include *.yml
     Selected for copy:
-      ./guild.yml
-      ./hello.py
+      guild.yml
+      hello.py
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./hello.pyc
-      ./subdir/b.txt
-      ./subdir/logo.png
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
+      .gitattributes
+      a.txt
+      empty
+      hello.pyc
+      subdir/b.txt
+      subdir/logo.png
 
     >>> run("m2:op2")
     guild.yml
@@ -762,31 +764,31 @@ Model enables all files to copy:
     >>> preview("m3:op1")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
-      exclude '*'
-      include '*'
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+      exclude *
+      include *
     Selected for copy:
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./guild.yml
-      ./hello.py
-      ./hello.pyc
-      ./subdir/b.txt
-      ./subdir/logo.png
+      .gitattributes
+      a.txt
+      empty
+      guild.yml
+      hello.py
+      hello.pyc
+      subdir/b.txt
+      subdir/logo.png
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
 
     >>> run("m3:op1")  # doctest: +REPORT_UDIFF
     <BLANKLINE>
@@ -810,7 +812,7 @@ Model enables all files to copy, operation disables source code copy:
     >>> preview("m3:op2")
     Copying from the current directory
     Rules:
-      exclude '*'
+      exclude *
     Source code copy disabled
 
     >>> run("m3:op2")
@@ -838,29 +840,29 @@ Here's the preview:
     >>> preview("hello.py")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
     Selected for copy:
-      ./.gitattributes
-      ./a.txt
-      ./empty
-      ./guild.yml
-      ./hello.py
-      ./subdir/b.txt
+      .gitattributes
+      a.txt
+      empty
+      guild.yml
+      hello.py
+      subdir/b.txt
     Skipped:
-      ./.dotdir
-      ./__pycache__
-      ./env
-      ./nocopy_dir
-      ./hello.pyc
-      ./subdir/logo.png
+      .dotdir
+      __pycache__
+      env
+      nocopy_dir
+      hello.pyc
+      subdir/logo.png
 
 Files copied to the legacy location (`.guild/sourcecode` - configured above):
 

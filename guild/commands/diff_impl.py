@@ -120,7 +120,7 @@ def _working_dir(run, args):
 
 
 def _working_dir_for_run(run):
-    working_dir = util.find_apply([_opdef_sourcecode_root, _script_source], run)
+    working_dir = util.find_apply([_run_sourcecode_dir, _script_source], run)
     if not working_dir:
         cli.error(
             "cannot find working source code directory for run {run_id}\n"
@@ -130,11 +130,8 @@ def _working_dir_for_run(run):
     return working_dir
 
 
-def _opdef_sourcecode_root(run):
-    opdef = run_util.run_opdef(run)
-    if opdef:
-        return os.path.join(opdef.guildfile.dir, opdef.sourcecode.root or "")
-    return None
+def _run_sourcecode_dir(run):
+    return run_util.run_sourcecode_dir(run)
 
 
 def _script_source(run):

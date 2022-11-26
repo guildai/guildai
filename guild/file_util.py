@@ -140,7 +140,7 @@ class FileSelectRule:
         parts = ["include" if self.result else "exclude"]
         if self.type:
             parts.append(self.type)
-        parts.append(", ".join([repr(p) for p in self.patterns]))
+        parts.append(", ".join([_quote_pattern(p) for p in self.patterns]))
         extras = self._format_file_select_rule_extras()
         if extras:
             parts.append(extras)
@@ -151,7 +151,7 @@ class FileSelectRule:
         if self.regex:
             parts.append("regex")
         if self.sentinel:
-            parts.append(f"with {self.sentinel!r}")
+            parts.append(f"containing {_quote_pattern(self.sentinel)}")
         if self.size_gt:
             parts.append(f"size > {self.size_gt}")
         if self.size_lt:
@@ -250,6 +250,10 @@ class FileSelectRule:
         if self.size_lt and size < self.size_lt:
             return True
         return False
+
+
+def _quote_pattern(p):
+    return util.shlex_quote(p) if " " in p else p
 
 
 def _native_paths(patterns):
@@ -400,10 +404,12 @@ def _ignored_path_select_result(path):
 
 
 def _copytree_src(root_start, select):
-    root_start = root_start or os.curdir
-    if select.root:
-        return os.path.join(root_start, select.root)
-    return root_start
+    assert root_start
+    return (
+        os.path.normpath(os.path.join(root_start, select.root))
+        if select.root
+        else root_start
+    )
 
 
 def _relpath(path, start):

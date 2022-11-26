@@ -752,3 +752,16 @@ def _apply_digest_file_bytes(path, d):
             if not buf:
                 break
             d.update(buf)
+
+
+def run_sourcecode_root(run):
+    opdef = run_opdef(run)
+    if not opdef:
+        return None
+    sourcecode_root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root or ""
+    guildfile_dir = opdef.guildfile.dir
+    return (
+        os.path.join(guildfile_dir, sourcecode_root)
+        if sourcecode_root
+        else guildfile_dir
+    )

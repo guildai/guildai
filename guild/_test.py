@@ -890,6 +890,8 @@ class Project:
         print(self._run(print_trials=True, *args, **kw))
 
     def ls(self, run=None, all=False, sourcecode=False):
+        from guild import run_util
+
         run = run or self._first_run()
         sourcecode_files = run_util.sourcecode_files(run) if sourcecode else None
 

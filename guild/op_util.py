@@ -827,32 +827,29 @@ def _rendered_str(s):
 
 
 def sourcecode_select_for_opdef(opdef):
-    root = _opdef_sourcecode_root(opdef)
-    rules = _select_rules_for_opdef(opdef)
-    return file_util.FileSelect(root, rules)
-
-
-def _opdef_sourcecode_root(opdef):
-    return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+    rules, sourcecode_root = _select_rules_for_opdef(opdef)
+    return file_util.FileSelect(sourcecode_root, rules)
 
 
 def _select_rules_for_opdef(opdef):
+    sourcecode_root = _sourcecode_root(opdef)
+    return _select_rules_for_opdef_(opdef, sourcecode_root), sourcecode_root
+
+
+def _sourcecode_root(opdef):
+    guildfile_dir = opdef.guildfile.dir
+    opdef_root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+    return os.path.join(guildfile_dir, opdef_root) if opdef_root else guildfile_dir
+
+
+def _select_rules_for_opdef_(opdef, sourcecode_root):
     if _sourcecode_disabled(opdef):
         return [file_util.exclude("*")]
-    root = _opdef_select_rules_root(opdef)
     return (
-        _base_sourcecode_select_rules(root)
-        + _sourcecode_config_rules(opdef.modeldef.sourcecode, root)
-        + _sourcecode_config_rules(opdef.sourcecode, root)
+        _base_sourcecode_select_rules(opdef, sourcecode_root)
+        + _sourcecode_config_rules(opdef.modeldef.sourcecode, sourcecode_root)
+        + _sourcecode_config_rules(opdef.sourcecode, sourcecode_root)
     )
-
-
-def _opdef_select_rules_root(opdef):
-    root_base = opdef.guildfile.dir
-    sourcecode_root = opdef_sourcecode_root(opdef)
-    if not sourcecode_root:
-        return root_base
-    return os.path.join(root_base, sourcecode_root)
 
 
 def _sourcecode_disabled(opdef):
@@ -861,93 +858,28 @@ def _sourcecode_disabled(opdef):
     return op_config.disabled or model_config.disabled and not op_config.specs
 
 
-def opdef_sourcecode_root(opdef):
-    return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+def _base_sourcecode_select_rules(opdef, sourcecode_root):
+    try:
+        return vcs_util.project_select_rules(sourcecode_root)
+    except vcs_util.NoVCS:
+        return _default_select_rules(opdef)
 
 
-def _base_sourcecode_select_rules(src_dir):
-    return _ignorefile_select_rules(src_dir) or _legacy_default_select_rules()
+def _default_select_rules(opdef):
+    return _base_default_select_rules() + _plugin_default_select_rules(opdef)
 
 
-def _ignorefile_select_rules(src_dir):
-    return _guildignore_select_rules(src_dir) or _gitignore_select_rules(src_dir)
-
-
-def _guildignore_select_rules(src_dir):
-    if _gitignore_supported(src_dir, ".guildignore"):
-        return vcs_util.gitignore_select_rules(src_dir, ".guildignore")
-    return []
-
-
-def _gitignore_supported(src_dir, ignore_pattern_file=".gitignore"):
-    return (
-        os.path.exists(os.path.join(src_dir, ignore_pattern_file)) and _git_available()
-    )
-
-
-def _git_available():
-    return util.which("git") is not None
-
-
-def _gitignore_select_rules(src_dir):
-    if _gitignore_supported(src_dir):
-        return vcs_util.gitignore_select_rules(src_dir)
-    return []
-
-
-def _legacy_default_select_rules():
+def _base_default_select_rules():
     return [
-        _rule_exclude_pycache_dirs(),
-        _rule_exclude_dot_dirs(),
-        _rule_exclude_nocopy_dirs(),
-        _rule_exclude_venv_dirs(),
-        _rule_exclude_venv_dirs_win(),
-        _rule_exclude_build_dirs(),
-        _rule_exclude_dist_dirs(),
-        _rule_exclude_egg_info_dirs(),
-        _rule_include_limited_text_files(),
+        file_util.exclude(".*", type="dir"),
+        file_util.exclude("*", type="dir", sentinel=".guild-nocopy"),
+        file_util.include(
+            "*",
+            type="text",
+            size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1,
+            max_matches=MAX_DEFAULT_SOURCECODE_COUNT,
+        ),
     ]
-
-
-def _rule_exclude_pycache_dirs():
-    return file_util.exclude("__pycache__", type="dir")
-
-
-def _rule_exclude_dot_dirs():
-    return file_util.exclude(".*", type="dir")
-
-
-def _rule_exclude_nocopy_dirs():
-    return file_util.exclude("*", type="dir", sentinel=".guild-nocopy")
-
-
-def _rule_exclude_venv_dirs():
-    return file_util.exclude("*", type="dir", sentinel="bin/activate")
-
-
-def _rule_exclude_venv_dirs_win():
-    return file_util.exclude("*", type="dir", sentinel="Scripts/activate")
-
-
-def _rule_exclude_build_dirs():
-    return file_util.exclude("build", type="dir")
-
-
-def _rule_exclude_dist_dirs():
-    return file_util.exclude("dist", type="dir")
-
-
-def _rule_exclude_egg_info_dirs():
-    return file_util.exclude("*.egg-info", type="dir")
-
-
-def _rule_include_limited_text_files():
-    return file_util.include(
-        "*",
-        type="text",
-        size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1,
-        max_matches=MAX_DEFAULT_SOURCECODE_COUNT,
-    )
 
 
 def _sourcecode_config_rules(config, root):
@@ -988,8 +920,34 @@ def _apply_dir_glob(root, pattern):
     return pattern
 
 
+def _plugin_default_select_rules(opdef):
+    return util.flatten(
+        [
+            plugin.default_sourcecode_select_rules_for_op(opdef)
+            for plugin in _plugins_for_default_select_rules(opdef)
+        ]
+    )
+
+
+def _plugins_for_default_select_rules(opdef):
+    from guild import plugin as pluginlib
+
+    return sorted(
+        [
+            plugin
+            for _name, plugin in pluginlib.iter_plugins()
+            if plugin.enabled_for_op(opdef)[0]
+        ],
+        key=lambda plugin: plugin.sourcecode_select_rules_priority,
+    )
+
+
 def copy_sourcecode(
-    sourcecode_src, sourcecode_select, dest_dir, ignore=None, handler_cls=None
+    sourcecode_src,
+    sourcecode_select,
+    dest_dir,
+    ignore=None,
+    handler_cls=None,
 ):
     handler_cls = handler_cls or SourceCodeCopyHandler
     file_util.copytree(

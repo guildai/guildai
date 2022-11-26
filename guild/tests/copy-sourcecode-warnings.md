@@ -55,11 +55,11 @@ Let's confirm that Guild only copied the first
     100
     >>> for s in sourcecode_copied:
     ...     print(s)
-    .guild/sourcecode/001.txt
-    .guild/sourcecode/002.txt
+    001.txt
+    002.txt
     ...
-    .guild/sourcecode/099.txt
-    .guild/sourcecode/100.txt
+    099.txt
+    100.txt
 
 We can override this behavior with explicit Guild file config.
 
@@ -82,11 +82,11 @@ And get the list of copied soure code files:
     110
     >>> for s in sourcecode_copied:
     ...     print(s)
-    .guild/sourcecode/001.txt
-    .guild/sourcecode/002.txt
+    001.txt
+    002.txt
     ...
-    .guild/sourcecode/109.txt
-    .guild/sourcecode/110.txt
+    109.txt
+    110.txt
 
 ## Max source code file size
 
@@ -141,9 +141,9 @@ Here are our run source files:
 
     >>> for s in project.ls(run, sourcecode=True):
     ...     print(s)
-    .guild/sourcecode/empty.txt
-    .guild/sourcecode/max.txt
-    .guild/sourcecode/no_op.py
+    empty.txt
+    max.txt
+    no_op.py
 
 Let's now provide config to override this behavior. In this case, we
 extend the file select logic to include any `*.txt` file.
@@ -163,11 +163,11 @@ And the run source code:
 
     >>> for s in project.ls(run, sourcecode=True):
     ...     print(s)
-    .guild/sourcecode/empty.txt
-    .guild/sourcecode/guild.yml
-    .guild/sourcecode/max.txt
-    .guild/sourcecode/no_op.py
-    .guild/sourcecode/too-big.txt
+    empty.txt
+    guild.yml
+    max.txt
+    no_op.py
+    too-big.txt
 
 ## Guarding against both file count and max size
 
@@ -205,8 +205,8 @@ The run source code:
 
     >>> for s in project.ls(run, sourcecode=True):
     ...     print(s)
-    .guild/sourcecode/001.txt
-    .guild/sourcecode/002.txt
+    001.txt
+    002.txt
     ...
-    .guild/sourcecode/099.txt
-    .guild/sourcecode/100.txt
+    099.txt
+    100.txt
