@@ -860,9 +860,14 @@ def _sourcecode_disabled(opdef):
 
 def _base_sourcecode_select_rules(opdef, sourcecode_root):
     try:
-        return vcs_util.project_select_rules(sourcecode_root)
+        vcs_rules = vcs_util.project_select_rules(sourcecode_root)
     except vcs_util.NoVCS:
         return _default_select_rules(opdef)
+    else:
+        return [
+            file_util.exclude(".guild", type="dir"),
+            file_util.exclude("*", type="dir", sentinel=".guild-nocopy"),
+        ] + vcs_rules
 
 
 def _default_select_rules(opdef):

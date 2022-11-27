@@ -893,16 +893,16 @@ class Project:
         from guild import run_util
 
         run = run or self._first_run()
-        sourcecode_files = run_util.sourcecode_files(run) if sourcecode else None
+        sourcecode_files = set(run_util.sourcecode_files(run)) if sourcecode else {}
 
-        def filter(path):
+        def filter_path(path):
             return (
                 all
                 or not path.startswith(".guild")
                 or (sourcecode and path in sourcecode_files)
             )
 
-        return [path for path in file_util.find(run.path) if filter(path)]
+        return [path for path in file_util.find(run.path) if filter_path(path)]
 
     @staticmethod
     def cat(run, path):
@@ -953,10 +953,6 @@ class Project:
         if not runs:
             raise RuntimeError("no runs")
         return runs[0]
-
-
-def _is_compiled_source(path):
-    return _is_run_sourcecode(path) and path.endswith(".pyc")
 
 
 class _MockConfig:

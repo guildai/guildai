@@ -141,6 +141,7 @@ class Plugin:
         """
 
     def default_sourcecode_select_rules_for_op(self, opdef):
+        # pylint: disable=unused-argument
         """Returns a default list of source code select rules for an operation.
 
         This is called only when the plugin is enabled for the operation and Guild.

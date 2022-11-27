@@ -313,7 +313,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
             file_util.exclude("*", type="dir", sentinel="Scripts/activate"),
             file_util.exclude("build", type="dir"),
             file_util.exclude("dist", type="dir"),
-            file_util.exclude("*.egg-info", type="dir")
+            file_util.exclude("*.egg-info", type="dir"),
         ]
 
 

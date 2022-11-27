@@ -270,13 +270,11 @@ def project_select_rules(project_dir):
 
 
 def git_project_select_rules(project_dir):
-    ignored = _git_ls_ignored(project_dir, extended_patterns_file=".guildignore")
-    if not ignored:
-        return []
+    git_ignored = _git_ls_ignored(project_dir, extended_patterns_file=".guildignore")
+    ignored_dirs = _dirs_for_git_ignored(git_ignored, project_dir)
     return [
-        _GitIgnoredDirsRule(_dirs_for_git_ignored(ignored, project_dir)),
-        _GitignoreSelectRule(project_dir, ignored),
-        FileSelectRule(False, [".git*", ".guild*"]),
+        FileSelectRule(False, [".git"] + ignored_dirs, "dir"),
+        _GitignoreSelectRule(git_ignored),
     ]
 
 
@@ -295,7 +293,7 @@ def _git_ls_ignored(cwd, extended_patterns_file=None):
             )
             if log.getEffectiveLevel() <= logging.DEBUG:
                 log.error(e.stdout)
-        raise NoVCS(cwd, (e.returncode, e.stdout))
+        raise NoVCS(cwd, (e.returncode, e.stdout)) from None
     else:
         return _parse_git_ls_files(out)
 
@@ -332,19 +330,19 @@ def _exclude_patterns_file_entries(src):
 
 
 def _dirs_for_git_ignored(ignored, root_dir):
-    return [path for path in ignored if os.path.isdir(os.path.join(root_dir, path))]
+    return [
+        _strip_trailing_slash(path)
+        for path in ignored
+        if os.path.isdir(os.path.join(root_dir, path))
+    ]
 
 
-class _GitIgnoredDirsRule(FileSelectRule):
-    def __init__(self, excluded_dirs):
-        super().__init__(False, [".git"] + excluded_dirs, "dir")
-
-    def __str__(self):
-        return "gitignore + guildignore directories"
+def _strip_trailing_slash(path):
+    return path[:-1] if path[-1:] in ("/", "\\") else path
 
 
 class _GitignoreSelectRule(FileSelectRule):
-    def __init__(self, root_dir, ignored):
+    def __init__(self, ignored):
         super().__init__(True, [])
         self.ignored = set(ignored)
 

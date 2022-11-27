@@ -6,7 +6,7 @@ no-sourcecode:
   sourcecode: no
 
 explicit-sourcecode:
-  main: guild.pass
+  main: hello
   sourcecode:
     - exclude: '*'
     - hello.py

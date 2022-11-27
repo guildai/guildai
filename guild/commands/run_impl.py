@@ -1920,15 +1920,30 @@ def _test_sourcecode(S):
     else:
         cli.out("Selected for copy:")
         for path in logger.selected:
-            cli.out(cli.style(f"  {_format_sourcecode_path(path)}", fg="yellow"))
+            cli.out(
+                cli.style(
+                    f"  {_format_sourcecode_path(path, logger.root)}", fg="yellow"
+                )
+            )
         cli.out("Skipped:")
         for path in logger.skipped:
-            cli.out(cli.style(f"  {_format_sourcecode_path(path)}", dim=True))
+            cli.out(
+                cli.style(f"  {_format_sourcecode_path(path, logger.root)}", dim=True)
+            )
 
 
-def _format_sourcecode_path(s):
+def _format_sourcecode_path(path, base_dir):
+    return _append_dir_slash(_strip_dot_slash(path), base_dir)
+
+
+def _strip_dot_slash(path):
     # Strips leading './' from path if exists
-    return os.path.relpath(s, ".")
+    return os.path.relpath(path, ".")
+
+
+def _append_dir_slash(path, base_dir):
+    # appends `os.path.sep` to end of path if it's a directory
+    return path + os.path.sep if os.path.isdir(os.path.join(base_dir, path)) else path
 
 
 class _CopyLogger:

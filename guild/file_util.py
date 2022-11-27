@@ -14,7 +14,6 @@
 
 import fnmatch
 import glob
-import hashlib
 import logging
 import os
 import re
