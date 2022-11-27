@@ -313,13 +313,13 @@ Source code paths:
 Path completion with `--working` refers to project path:
 
     >>> cmd_ac(diff.diff, "paths", ["--working"])
-    !!runfiles:.../samples/projects/autocomplete/
+    !!runfiles:.../samples/projects/autocomplete
 
     >>> cmd_ac(diff.diff, "paths", ["--working", "-Fo", "a"])
-    !!runfiles:.../samples/projects/autocomplete/
+    !!runfiles:.../samples/projects/autocomplete
 
     >>> cmd_ac(diff.diff, "paths", ["--working", "aaa", "bbb"])
-    !!runfiles:.../samples/projects/autocomplete/
+    !!runfiles:.../samples/projects/autocomplete
 
 Completions with `--dir` refer to the specified dir:
 

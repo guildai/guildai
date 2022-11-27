@@ -307,7 +307,8 @@ containing the sentinel `.guild-nocopy`.
       exclude dir .guild
       exclude dir * containing .guild-nocopy
       exclude dir .git
-      gitignore + guildignore files
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
     Selected for copy:
       config.in.yml
       config.yml
@@ -357,9 +358,9 @@ patterns.
       exclude dir .guild
       exclude dir * containing .guild-nocopy
       exclude dir .git, __pycache__, data
-      gitignore + guildignore files
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
     Selected for copy:
-      .gitignore
       config.yml
       empty
       guild.yml
@@ -376,6 +377,7 @@ patterns.
       __pycache__/
       data/
       nocopy_dir/
+      .gitignore
       config.in.yml
     <exit 0>
 
@@ -406,10 +408,9 @@ Let's create `.guildignore` to exclude non Python source files.
       exclude dir .guild
       exclude dir * containing .guild-nocopy
       exclude dir .git, __pycache__, data
-      gitignore + guildignore files
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
     Selected for copy:
-      .gitignore
-      .guildignore
       config.yml
       empty
       guild.yml
@@ -423,6 +424,8 @@ Let's create `.guildignore` to exclude non Python source files.
       __pycache__/
       data/
       nocopy_dir/
+      .gitignore
+      .guildignore
       config.in.yml
       hello.R
       hello.erl
@@ -442,10 +445,9 @@ Here we append a rule to re-enable `data` as source code.
       exclude dir .guild
       exclude dir * containing .guild-nocopy
       exclude dir .git, __pycache__
-      gitignore + guildignore files
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
     Selected for copy:
-      .gitignore
-      .guildignore
       config.yml
       empty
       guild.yml
@@ -461,6 +463,8 @@ Here we append a rule to re-enable `data` as source code.
       .git/
       __pycache__/
       nocopy_dir/
+      .gitignore
+      .guildignore
       config.in.yml
       hello.R
       hello.erl
@@ -495,7 +499,8 @@ based rules generated when a project is under VCS control.
       exclude dir .guild
       exclude dir * containing .guild-nocopy
       exclude dir .git, __pycache__
-      gitignore + guildignore files
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
       exclude *
       include hello.py
     Selected for copy:
@@ -530,12 +535,11 @@ based rules generated when a project is under VCS control.
       exclude dir .guild
       exclude dir * containing .guild-nocopy
       exclude dir .git, __pycache__
-      gitignore + guildignore files
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
       exclude *.py
       exclude *.yml
     Selected for copy:
-      .gitignore
-      .guildignore
       empty
       .hidden/file-1
       .hidden/file-2
@@ -548,6 +552,8 @@ based rules generated when a project is under VCS control.
       .git/
       __pycache__/
       nocopy_dir/
+      .gitignore
+      .guildignore
       config.in.yml
       config.yml
       guild.yml

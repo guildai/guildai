@@ -504,7 +504,7 @@ def _publish_output(state):
 
 
 def _publish_sourcecode_list(state):
-    src = run_util.sourcecode_dir(state.run)
+    src = run_util.sourcecode_dest(state.run)
     dest = os.path.join(state.run_dest, "sourcecode.csv")
     paths = _dir_paths(src, skip_guildfiles=True)
     with open(dest, "w") as f:
@@ -607,7 +607,7 @@ def _publish_runfiles_list(state):
 
 
 def _copy_sourcecode(state):
-    src = run_util.sourcecode_dir(state.run)
+    src = run_util.sourcecode_dest(state.run)
     if not os.path.isdir(src):
         return
     dest = os.path.join(state.run_dest, "sourcecode")

@@ -150,27 +150,21 @@ def _relpath(path):
     return os.path.relpath(os.path.realpath(path))
 
 
-def _init_run_notebook(notebook, flags, run):
-    src = _find_notebook(notebook)
-    basename = os.path.basename(src)
-    dest = os.path.join(run.dir, basename)
+def _init_run_notebook(notebook_path, flags, run):
+    if not os.path.exists(notebook_path):
+        log.error(
+            f"cannot find notebook '{notebook}' - make sure it's copied as source code\n"
+            "Use 'guild run <operation> --test-sourcecode to troubleshoot source code "
+            "configuration issues"
+        )
+        sys.exit(1)
+    basename = os.path.basename(notebook_path)
     log.info("Initializing %s for run", basename)
-    shutil.copyfile(src, dest)
+    dest = os.path.join(run.dir, basename)
+    if not util.compare_paths(notebook_path, dest):
+        shutil.copyfile(notebook_path, dest)
     _apply_flags_to_notebook(ApplyFlagsState(dest, flags, run))
     return dest
-
-
-def _find_notebook(notebook):
-    for path in sys.path:
-        maybe_notebook = os.path.join(path, notebook)
-        if os.path.exists(maybe_notebook):
-            return maybe_notebook
-    log.error(
-        f"cannot find notebook '{notebook}' - make sure it's copied as source code\n"
-        "Use 'guild run <operation> --test-sourcecode to troubleshoot source code "
-        "configuration issues"
-    )
-    sys.exit(1)
 
 
 def _apply_flags_to_notebook(state):

@@ -9,22 +9,22 @@ associated with Guild.
 
     >>> project.run("exception.py")
     Traceback (most recent call last):
-      File ".../.guild/sourcecode/exception.py", line 1, in <module>
+      File ".../exception.py", line 1, in <module>
         raise Exception("big time fail")
     Exception: big time fail
     <exit 1>
 
     >>> project.run("stack.py")
     Traceback (most recent call last):
-      File ".../.guild/sourcecode/stack.py", line 13, in <module>
+      File ".../stack.py", line 13, in <module>
         fail()
-      File ".../.guild/sourcecode/stack.py", line 2, in fail
+      File ".../stack.py", line 2, in fail
         c1()
-      File ".../.guild/sourcecode/stack.py", line 6, in c1
+      File ".../stack.py", line 6, in c1
         c2()
-      File ".../.guild/sourcecode/stack.py", line 10, in c2
+      File ".../stack.py", line 10, in c2
         import exception
-      File ".../.guild/sourcecode/exception.py", line 1, in <module>
+      File ".../exception.py", line 1, in <module>
         raise Exception("big time fail")
     Exception: big time fail
     <exit 1>
@@ -43,7 +43,7 @@ fails. The trial in this case shows the abbreviated tracback.
     >>> project.run("exception.py", flags={"dummy": [1]}, force_flags=True)
     INFO: [guild] Running trial ...: exception.py (dummy=1)
     Traceback (most recent call last):
-      File ".../.guild/sourcecode/exception.py", line 1, in <module>
+      File ".../exception.py", line 1, in <module>
         raise Exception("big time fail")
     Exception: big time fail
     ERROR: [guild] Trial ... exited with an error (1) - see log for details
@@ -54,7 +54,7 @@ If we run with `fail_on_trial_error` the batch will also fail.
     ...             fail_on_trial_error=True)
     INFO: [guild] Running trial ...: exception.py (dummy=1)
     Traceback (most recent call last):
-      File ".../.guild/sourcecode/exception.py", line 1, in <module>
+      File ".../exception.py", line 1, in <module>
         raise Exception("big time fail")
     Exception: big time fail
     ERROR: [guild] Trial ... exited with an error (1) - see log for details

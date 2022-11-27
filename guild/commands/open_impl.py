@@ -79,7 +79,7 @@ def _check_non_output_args(args):
 
 
 def _path_root(args, run):
-    return run_util.sourcecode_dir(run) if args.sourcecode else run.dir
+    return run_util.sourcecode_dest(run) if args.sourcecode else run.dir
 
 
 def _open_f(args):

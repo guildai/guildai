@@ -107,7 +107,7 @@ def _diff_dirs(dir, other_dir, args):
 
 def _diff_working(args, ctx):
     run = _one_run_for_args(args, ctx)
-    run_sourcecode_dir = run_util.sourcecode_dir(run)
+    run_sourcecode_dir = run_util.sourcecode_dest(run)
     working_dir = _working_dir(run, args)
     _diff_dirs(run_sourcecode_dir, working_dir, args)
 
@@ -120,7 +120,7 @@ def _working_dir(run, args):
 
 
 def _working_dir_for_run(run):
-    working_dir = util.find_apply([_run_sourcecode_dir, _script_source], run)
+    working_dir = util.find_apply([run_util.sourcecode_root, _script_source], run)
     if not working_dir:
         cli.error(
             "cannot find working source code directory for run {run_id}\n"
@@ -128,10 +128,6 @@ def _working_dir_for_run(run):
             "--working-dir DIR'.".format(run_id=run.short_id)
         )
     return working_dir
-
-
-def _run_sourcecode_dir(run):
-    return run_util.run_sourcecode_dir(run)
 
 
 def _script_source(run):
@@ -288,8 +284,8 @@ def _output_paths(run, other_run):
 
 
 def _sourcecode_paths(run, other_run, args):
-    run_sourcecode_dir = run_util.sourcecode_dir(run)
-    other_run_sourcecode_dir = run_util.sourcecode_dir(other_run)
+    run_sourcecode_dir = run_util.sourcecode_dest(run)
+    other_run_sourcecode_dir = run_util.sourcecode_dest(other_run)
     if args.paths:
         return [
             (

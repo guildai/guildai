@@ -485,12 +485,21 @@ def marked_or_latest_run_for_opspec(opspec):
         return resolver.marked_or_latest_run([opref])
 
 
-def sourcecode_dir(run):
-    op_data = run.get("op", {})
-    sourcecode_root = op_data.get("sourcecode-root")
-    if sourcecode_root:
-        return os.path.normpath(os.path.join(run.dir, sourcecode_root))
-    return run.dir
+def sourcecode_dest(run):
+    dest = run.get("op", {}).get("sourcecode", {}).get("dest")
+    if not dest:
+        return run.dir
+    return os.path.normpath(os.path.join(run.dir, dest))
+
+
+def sourcecode_root(run):
+    opdef = run_opdef(run)
+    if not opdef:
+        return None
+    root = run.get("op", {}).get("sourcecode", {}).get("root")
+    if not root:
+        return opdef.guildfile.dir
+    return os.path.join(opdef.guildfile.dir, root)
 
 
 def sourcecode_files(run):
@@ -752,16 +761,3 @@ def _apply_digest_file_bytes(path, d):
             if not buf:
                 break
             d.update(buf)
-
-
-def run_sourcecode_root(run):
-    opdef = run_opdef(run)
-    if not opdef:
-        return None
-    sourcecode_root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root or ""
-    guildfile_dir = opdef.guildfile.dir
-    return (
-        os.path.join(guildfile_dir, sourcecode_root)
-        if sourcecode_root
-        else guildfile_dir
-    )

@@ -32,7 +32,7 @@ def _ac_path(ctx, _param, incomplete):
 
     open_args = click_util.Args(**ctx.params)
     run = runs_impl.one_run(open_args, ctx)
-    dir_base = run_util.sourcecode_dir(run) if open_args.sourcecode else run.dir
+    dir_base = run_util.sourcecode_dest(run) if open_args.sourcecode else run.dir
     return ac_support.ac_run_filepath(dir_base, incomplete)
 
 

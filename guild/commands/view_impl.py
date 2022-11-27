@@ -378,7 +378,7 @@ def _compare_args_for_view_args(view_args):
 
 def _sourcecode_data(run):
     return {
-        "root": os.path.relpath(run_util.sourcecode_dir(run), run.dir),
+        "root": os.path.relpath(run_util.sourcecode_dest(run), run.dir),
         "files": sorted(run_util.sourcecode_files(run)),
     }
 

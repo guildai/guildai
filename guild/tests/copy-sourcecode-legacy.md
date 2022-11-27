@@ -146,10 +146,10 @@ Here's a preview of the copy, which shows the rules that are applied:
       hello.py
       subdir/b.txt
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
       hello.pyc
       subdir/logo.png
 
@@ -232,10 +232,10 @@ This rule is applied after the default rules:
       subdir/b.txt
       subdir/logo.png
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
       hello.pyc
 
 The `png` file is copied along containing the default files:
@@ -283,10 +283,10 @@ selected.
     Selected for copy:
       subdir/logo.png
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
       .gitattributes
       a.txt
       empty
@@ -366,10 +366,10 @@ exclude specs.
       guild.yml
       subdir/b.txt
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
       hello.py
       hello.pyc
       subdir/logo.png
@@ -415,11 +415,11 @@ In the preview, 'subdir' is not mentioned:
       guild.yml
       hello.py
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
-      subdir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
+      subdir/
       hello.pyc
 
 And the copied files:
@@ -461,10 +461,10 @@ The preview:
       subdir/b.txt
       subdir/logo.png
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
       .gitattributes
       a.txt
       empty
@@ -508,10 +508,10 @@ The preview shows that Guild modified the pattern containing the glob:
       subdir/b.txt
       subdir/logo.png
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
       .gitattributes
       a.txt
       empty
@@ -560,9 +560,9 @@ included.
       .dotdir/a.txt
       subdir/b.txt
     Skipped:
-      __pycache__
-      env
-      nocopy_dir
+      __pycache__/
+      env/
+      nocopy_dir/
       hello.pyc
       subdir/logo.png
 
@@ -678,10 +678,10 @@ Model adds png and operation excludes `*.py` and `a.*` files:
       subdir/b.txt
       subdir/logo.png
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
       a.txt
       hello.py
       hello.pyc
@@ -739,10 +739,10 @@ only py and yml files.
       guild.yml
       hello.py
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
       .gitattributes
       a.txt
       empty
@@ -785,10 +785,10 @@ Model enables all files to copy:
       subdir/b.txt
       subdir/logo.png
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
 
     >>> run("m3:op1")  # doctest: +REPORT_UDIFF
     <BLANKLINE>
@@ -857,10 +857,10 @@ Here's the preview:
       hello.py
       subdir/b.txt
     Skipped:
-      .dotdir
-      __pycache__
-      env
-      nocopy_dir
+      .dotdir/
+      __pycache__/
+      env/
+      nocopy_dir/
       hello.pyc
       subdir/logo.png
 

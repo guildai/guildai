@@ -119,6 +119,10 @@ number of runs.
     ('ccc', ['bar.txt', 'c.out', 'c.src.out', 'echo.py', 'foo.txt',
              'foo/xxx.txt', 'foo/yyy.txt', 'guild.yml'])
 
+    ('ccc', ['.gitignore', 'bar.txt', 'c.out', 'c.src.out', 'echo.py', 'foo.txt',
+             'foo/xxx.txt', 'foo/yyy.txt', 'guild.yml'])
+
+
     >>> runs[1].id, project.ls(runs[1])
     ('bbb', ['b.out', 'b.src.out', 'bar.txt', 'echo.py', 'foo.txt',
              'foo/xxx.txt', 'foo/yyy.txt', 'guild.yml'])

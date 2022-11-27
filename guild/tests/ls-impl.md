@@ -22,6 +22,9 @@ Create a sample directory structure to test.
     >>> mkdir(join_path(dir, ".eee", ".jj"))
     >>> touch(join_path(dir, ".eee", ".jj", "k"))
 
+    >>> from guild import run as runlib
+    >>> run_proxy = runlib.for_dir(dir)
+
     >>> find(dir)
     .eee/.jj/k
     .eee/ff
@@ -41,8 +44,11 @@ Create a helper function to list files.
     ...         path=path,
     ...         all=all,
     ...         follow_links=follow_links,
-    ...         full_path=full_path)
-    ...     for name in sorted(_list(dir, args)):
+    ...         full_path=full_path,
+    ...         sourcecode=False,
+    ...         generated=False,
+    ...         dependencies=False)
+    ...     for name in sorted(_list(run_proxy, args)):
     ...         print(name)
 
 Default file listing:

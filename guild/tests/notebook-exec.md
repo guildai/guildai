@@ -87,7 +87,9 @@ When we run this notebook, the defaults are used.
 Guild saves a copy of the generated notebook and generates an HTML report.
 
     >>> project.ls()
-    ['flags.html', 'flags.ipynb']
+    ['add.ipynb', 'dep.txt', 'deps.ipynb', 'flags.html',
+     'flags.ipynb', 'guild.yml', 'invalid_language.ipynb',
+     'magic.ipynb', 'params.ipynb', 'reg_301.ipynb']
 
 Run with different flag values.
 

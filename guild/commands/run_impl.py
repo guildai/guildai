@@ -135,6 +135,7 @@ class Operation(oplib.Operation):
         self._comment = None
         self._output_scalars = None
         self._sourcecode_root = None
+        self._sourcecode_dest = None
         self._flags_extra = None
         self._delete_on_success = None
         self._additional_deps = []
@@ -184,10 +185,19 @@ def _op_config_data(op):
         "label-template": op._label_template,
         "output-scalars": op._output_scalars,
         "deps": op_util.op_deps_as_data(op.deps),
-        "sourcecode-root": op._sourcecode_root,
+        "sourcecode": _op_sourcecode_data(op),
         "flags-extra": op._flags_extra,
         "delete-on-success": op._delete_on_success,
     }
+
+
+def _op_sourcecode_data(op):
+    data = {
+        "dest": op._sourcecode_dest,
+    }
+    if op._sourcecode_root:
+        data["root"] = op._sourcecode_root
+    return data
 
 
 def _apply_op_config_data(data, op):
@@ -196,10 +206,25 @@ def _apply_op_config_data(data, op):
     op._python_requires = data.get("python-requires")
     op._label_template = data.get("label-template")
     op._output_scalars = data.get("output-scalars")
-    op._sourcecode_root = data.get("sourcecode-root")
+    op._sourcecode_root = data.get("sourcecode", {}).get("root")
+    op._sourcecode_dest = data.get("sourcecode", {}).get(
+        "dest"
+    ) or _backward_compatible_sourcecode_dest(data)
     op._flags_extra = data.get("flags-extra")
     op._delete_on_success = data.get("delete-on-success")
     op.deps = op_util.op_deps_for_data(data.get("deps"))
+
+
+def _backward_compatible_sourcecode_dest(op_data):
+    """Returns the pre-0.9 value for source code dest.
+
+    Prior to 0.9 Guild stored sourcecode *dest* as `sourcecode-root`
+    and did not otherwise differentiate 'dest' (the target for source
+    code under the run directory) from 'root' (the source location
+    under the project). 0.9 and beyond stores the two values under
+    'sourcecode' map/dict.
+    """
+    return op_data("sourcecode-root")
 
 
 # =================================================================
@@ -896,7 +921,8 @@ def _op_init_config_for_opdef(
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_template if label_template is not None else opdef.label
     op._output_scalars = opdef.output_scalars
-    op._sourcecode_root = _opdef_sourcecode_dest(opdef)
+    op._sourcecode_dest = _opdef_sourcecode_dest(opdef)
+    op._sourcecode_root = _opdef_sourcecode_root(opdef)
     op._flags_extra = _opdef_flags_extra(opdef)
     op._tags = list(tags) + opdef.tags
     op._comment = _init_op_comment(comment, edit_comment, is_batch)
@@ -916,29 +942,11 @@ def _python_requires_for_opdef(opdef):
 
 
 def _opdef_sourcecode_dest(opdef):
-    return _opdef_explicit_sourcecode_dest(opdef) or _opdef_default_sourcecode_dest(
-        opdef
-    )
+    return opdef.sourcecode.dest or opdef.modeldef.sourcecode.dest or "."
 
 
-def _opdef_explicit_sourcecode_dest(opdef):
-    return opdef.sourcecode.dest or opdef.modeldef.sourcecode.dest
-
-
-def _opdef_default_sourcecode_dest(opdef):
-    if _sourcecode_empty(opdef):
-        return None
-    return _default_sourcecode_path()
-
-
-def _sourcecode_empty(opdef):
-    return opdef.sourcecode.disabled or (
-        opdef.sourcecode.empty_def and opdef.modeldef.sourcecode.disabled
-    )
-
-
-def _default_sourcecode_path():
-    return "."
+def _opdef_sourcecode_root(opdef):
+    return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
 
 
 def _opdef_flags_extra(opdef):
@@ -1090,9 +1098,9 @@ def _resolve_sourcecode_paths(s):
 
 
 def _op_sourcecode_paths(op):
-    if op._sourcecode_root is None:
+    if op._sourcecode_dest is None:
         return []
-    return [op._sourcecode_root]
+    return [op._sourcecode_dest]
 
 
 # =================================================================
@@ -1372,7 +1380,7 @@ def _dep_source_project_local_path(source):
 
 
 def _sourcecode_dest(run, op):
-    return os.path.join(run.dir, op._sourcecode_root or _default_sourcecode_path())
+    return os.path.join(run.dir, op._sourcecode_dest or _default_sourcecode_path())
 
 
 def _write_run_sourcecode_digest(run):
@@ -1412,11 +1420,11 @@ def _copy_run_proto_sourcecode(proto_run, proto_op, dest_run):
     if os.getenv("NO_SOURCECODE") == "1":
         log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
         return
-    src = os.path.join(proto_run.dir, proto_op._sourcecode_root)
+    src = _sourcecode_dest(proto_run, proto_op)
     if not os.path.exists(src):
         log.debug("no sourcecode source (%s), skipping sourcecode copy", src)
         return
-    dest = os.path.join(dest_run.dir, proto_op._sourcecode_root)
+    dest = _sourcecode_dest(dest_run, proto_op)
     log.debug(
         "copying source code files for run %s from %s to %s",
         dest_run.id,
