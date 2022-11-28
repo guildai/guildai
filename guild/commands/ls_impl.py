@@ -60,11 +60,15 @@ def _header(run, args):
 
 
 def _print_file_listing(run, args):
-    for val in util.natsorted(_list(run, args)):
+    for val in list_run_files(run, args):
         _print_path(val, args)
 
 
-def _list(run, args):
+def list_run_files(run, args):
+    return util.natsorted(_iter_files(run, args))
+
+
+def _iter_files(run, args):
     path_filter = _path_filter(run, args)
     for root, dirs, files in os.walk(run.dir, followlinks=args.follow_links):
         for name in dirs + files:

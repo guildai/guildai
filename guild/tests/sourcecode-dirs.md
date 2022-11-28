@@ -24,8 +24,8 @@ located.
       exclude dir .guild
       exclude dir * containing .guild-nocopy
       exclude dir .git
-      exclude .git*, .guildignore
       gitignore + guildignore patterns
+      exclude .git*, .guildignore
     Selected for copy:
       guild.yml
       src/hello
@@ -56,8 +56,8 @@ subdirectory within the run root.
       exclude dir .guild
       exclude dir * containing .guild-nocopy
       exclude dir .git
-      exclude .git*, .guildignore
       gitignore + guildignore patterns
+      exclude .git*, .guildignore
     Selected for copy:
       guild.yml
       src/hello
@@ -89,8 +89,8 @@ directory root.
       exclude dir .guild
       exclude dir * containing .guild-nocopy
       exclude dir .git
-      exclude .git*, .guildignore
       gitignore + guildignore patterns
+      exclude .git*, .guildignore
     Selected for copy:
       src/hello
     Skipped:
@@ -119,8 +119,8 @@ directory root.
       exclude dir .guild
       exclude dir * containing .guild-nocopy
       exclude dir .git
-      exclude .git*, .guildignore
       gitignore + guildignore patterns
+      exclude .git*, .guildignore
     Selected for copy:
       src/hello
     Skipped:

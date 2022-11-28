@@ -1081,7 +1081,40 @@ def copytree(src, dest, preserve_links=True):
         dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
 
 
+class CopyFilter:
+    """Interface of `copy_filter` used with `select_copytree()`."""
+
+    def delete_excluded_dirs(self, root, dirs):
+        """Delete excluded dirs prior to copy tree traversal.
+
+        Use as optimization to avoid traversing into directories that
+        don't contain files to copy.
+        """
+        pass
+
+    def default_select_path(self, path):
+        """Return the default selection result for `path`.
+
+        This value is used to determine the selection if no other
+        selection rule from `config` returns a non-None value.
+        """
+        raise NotImplemented()
+
+    def pre_copy(self, path):
+        """Perform an action prior to copying a selected file."""
+        pass
+
+
 def select_copytree(src, dest, config, copy_filter=None):
+    """Copies files from src to dest using select configuration.
+
+    `config` is an instance of `guild.guildfile.FileSelectDef`. If the
+    files spec is empty, all files are selected. Otherwise, the select
+    rules are applied to each file to determine if it's copied.
+
+    `copy_filter` is an optional filter that is applied after the file
+    select process.
+    """
     if not isinstance(config, list):
         raise ValueError(f"invalid config: expected list got {config!r}")
     log.debug("copying files from %s to %s", src, dest)
@@ -1114,7 +1147,7 @@ def _select_files_to_copy(src_dir, config, copy_filter):
             if _select_to_copy(path, rel_path, config, copy_filter):
                 log.debug("seleted file to copy %s", path)
                 to_copy.append((path, rel_path))
-    # Sort before notifying copy_filter to have deterministic result.
+    # Sort before notifying copy_filter to have deterministic result
     to_copy.sort()
     if copy_filter:
         copy_filter.pre_copy(to_copy)

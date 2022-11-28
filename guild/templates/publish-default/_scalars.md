@@ -3,9 +3,9 @@
 {% if rows -%}
 | Key | Step | Value |
 | --- | ---- | ----- |
-{% for row in rows %} | {{ row|scalar_key }} | {{ row.last_step|nbsp }} | {{ row.last_val|nbsp }} |
+{% for row in rows %}| {{ row|scalar_key }} | {{ row.last_step|nbsp }} | {{ row.last_val|nbsp }} |
 {% endfor %}
 [scalars.csv](scalars.csv)
-{% else -%}
+{%- else -%}
 There are no scalars for this run.
 {%- endif %}

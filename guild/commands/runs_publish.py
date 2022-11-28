@@ -16,7 +16,12 @@ import click
 
 from guild import click_util
 
+from . import ac_support
 from . import runs_support
+
+
+def _ac_dir(_ctx, _param, incomplete):
+    return ac_support.ac_dir(incomplete)
 
 
 def publish_params(fn):
@@ -25,7 +30,10 @@ def publish_params(fn):
         [
             runs_support.runs_arg,
             click.Option(
-                ("-d", "--dest"), metavar="DIR", help="Destination to publish runs."
+                ("-d", "--dest"),
+                metavar="DIR",
+                help="Destination to publish runs.",
+                shell_complete=_ac_dir,
             ),
             click.Option(
                 ("-t", "--template"),
@@ -38,10 +46,23 @@ def publish_params(fn):
                 help="Index template used to publish runs.",
             ),
             click.Option(
-                ("-f", "--files"), help="Publish default run files.", is_flag=True
+                ("-f", "--files"),
+                help=(
+                    "Copy run files as configured by the operation. "
+                    "By default, run files are not copied. Use `--all-files` "
+                    "to copy all files regardless of how the operation is "
+                    "configured."
+                ),
+                is_flag=True,
             ),
             click.Option(
-                ("-a", "--all-files"), help="Publish all run files.", is_flag=True
+                ("-a", "--all-files"),
+                help=(
+                    "Copy all run files. By default, run files are not copied. "
+                    "Use `--files` to copy only files as configured by the "
+                    "operation."
+                ),
+                is_flag=True,
             ),
             click.Option(
                 ("-L", "--include-links"),
@@ -63,7 +84,9 @@ def publish_params(fn):
             ),
             runs_support.all_filters,
             click.Option(
-                ("-y", "--yes"), help="Do not prompt before publishing.", is_flag=True
+                ("-y", "--yes"),
+                help="Do not prompt before publishing.",
+                is_flag=True,
             ),
         ],
     )
@@ -95,8 +118,8 @@ def publish_runs(ctx, args):
 
     - `files.csv` - list of files associated with the run
 
-    - `code/` - subdirectory containing project source code at the
-      time run was started
+    - `sourcecode/` - subdirectory containing project source code at
+      the time run was started
 
     - `runfiles/` - files associated with the run
 

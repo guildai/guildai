@@ -542,6 +542,7 @@ def test_globals():
         "copytree": util.copytree,
         "cd": _chdir,
         "cwd": os.getcwd,
+        "diff": _diff,
         "dir": dir,
         "dirname": os.path.dirname,
         "ensure_dir": util.ensure_dir,
@@ -623,8 +624,9 @@ def find(root, followlinks=False, includedirs=False, ignore=None):
 
 
 def _sort_normalized_paths(paths):
-    key = lambda p: p.replace(os.path.sep, "/")
-    paths.sort(key=key)
+    import natsort
+
+    paths.sort(key=natsort.natsort_keygen(lambda p: p.replace(os.path.sep, "/")))
 
 
 def _filter_ignored(paths, ignore):
@@ -633,6 +635,15 @@ def _filter_ignored(paths, ignore):
     return [
         p for p in paths if not any((fnmatch.fnmatch(p, pattern) for pattern in ignore))
     ]
+
+
+def _diff(path1, path2):
+    import difflib
+
+    lines1 = [s.rstrip() for s in open(path1).readlines()]
+    lines2 = [s.rstrip() for s in open(path2).readlines()]
+    for line in difflib.unified_diff(lines1, lines2, path1, path2, lineterm=""):
+        print(line)
 
 
 def _example(name):
@@ -896,13 +907,13 @@ class Project:
         sourcecode_files = set(run_util.sourcecode_files(run)) if sourcecode else {}
 
         def filter_path(path):
-            return (
-                all
-                or not path.startswith(".guild")
-                or (sourcecode and path in sourcecode_files)
-            )
+            if all:
+                return True
+            if sourcecode:
+                return path in sourcecode_files
+            return not path.startswith(".guild")
 
-        return [path for path in file_util.find(run.path) if filter_path(path)]
+        return [path for path in file_util.find(run.dir) if filter_path(path)]
 
     @staticmethod
     def cat(run, path):

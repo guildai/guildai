@@ -1,9 +1,9 @@
 {% extends "publish-default/README.md" %}
 
-{% block header %}
+{% block header -%}
 Ze header
-{% endblock %}
+{%- endblock -%}
 
 {% block footer %}
 Ze footer
-{% endblock %}
+{%- endblock %}
