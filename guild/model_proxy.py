@@ -123,12 +123,16 @@ def _plugins_by_resolve_model_op_priority():
     )
 
 
-def modeldef_for_data(data_dir, model_name="", operations=None):
+def modeldef_for_data(guildfile_dir, model_name="", operations=None):
     """Returns a ModelDef instance for model-related data.
 
-    `data_dir` is a directory from which the model data is
-    derrived. This location is used to resolve any operation sources,
-    for example source code and project-local dependencies.
+    `guildfile_dir` is the directory associated with the model def
+    Guild file, whether the Guild file exists or not. Since this
+    function is used to generate model proxies, the typical case is
+    that the specified `guildfile_dir` does not contain `guild.yml`
+    but is directory that would otherwise be associated with that file
+    for purposes of running the model operations. This location is
+    used to resolve source code files and project local dependencies.
 
     data is provided via kw args to this function. Each kw arg
     corresponds to a top-level attribute in a Guild file defined
@@ -155,5 +159,5 @@ def modeldef_for_data(data_dir, model_name="", operations=None):
             "operations": operations or {},
         }
     ]
-    gf = guildfile.Guildfile(data, dir=data_dir)
+    gf = guildfile.Guildfile(data, dir=guildfile_dir)
     return gf.models[model_name]

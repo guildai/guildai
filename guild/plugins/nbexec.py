@@ -153,9 +153,10 @@ def _relpath(path):
 def _init_run_notebook(notebook_path, flags, run):
     if not os.path.exists(notebook_path):
         log.error(
-            f"cannot find notebook '{notebook}' - make sure it's copied as source code\n"
-            "Use 'guild run <operation> --test-sourcecode to troubleshoot source code "
-            "configuration issues"
+            f"cannot find notebook '{notebook_path}' - make sure it's copied as "
+            "source code\n"
+            "Use 'guild run <operation> --test-sourcecode to troubleshoot source "
+            "code configuration issues."
         )
         sys.exit(1)
     basename = os.path.basename(notebook_path)

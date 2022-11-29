@@ -1084,13 +1084,12 @@ def copytree(src, dest, preserve_links=True):
 class CopyFilter:
     """Interface of `copy_filter` used with `select_copytree()`."""
 
-    def delete_excluded_dirs(self, root, dirs):
+    def delete_excluded_dirs(self, parent, dirs):
         """Delete excluded dirs prior to copy tree traversal.
 
         Use as optimization to avoid traversing into directories that
         don't contain files to copy.
         """
-        pass
 
     def default_select_path(self, path):
         """Return the default selection result for `path`.
@@ -1098,11 +1097,10 @@ class CopyFilter:
         This value is used to determine the selection if no other
         selection rule from `config` returns a non-None value.
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def pre_copy(self, path):
         """Perform an action prior to copying a selected file."""
-        pass
 
 
 def select_copytree(src, dest, config, copy_filter=None):

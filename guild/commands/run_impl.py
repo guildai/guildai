@@ -1380,7 +1380,7 @@ def _dep_source_project_local_path(source):
 
 
 def _sourcecode_dest(run, op):
-    return os.path.join(run.dir, op._sourcecode_dest or _default_sourcecode_path())
+    return os.path.join(run.dir, op._sourcecode_dest or ".")
 
 
 def _write_run_sourcecode_digest(run):
@@ -1955,6 +1955,21 @@ def _append_dir_slash(path, base_dir):
 
 
 class _CopyLogger:
+    """Utility for logging decisions by `op_util.copy_sourcecode()`.
+
+    Works via side effects from a call to `handler_cls`, which
+    simulates the creation of a logger. In this case, the logger
+    returns an instance of itself. This pattern is used to reference
+    handler activity after a call to `op_util.copy_sourcecode()`.
+
+    Calling `copy_sourcecode(..., handler_cls=logger.handler_cls)` has
+    the side effect of defining `selected` and `skipped`
+    attributes. These can be used to show which files are selected for
+    copy and which are skipped.
+
+    No files are copied when this pattern is used. The activity
+    perfomed by `copy_sourecode()` is only logged.
+    """
 
     root = None
     select = None

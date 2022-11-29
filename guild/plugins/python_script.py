@@ -90,8 +90,9 @@ class PythonScriptModelProxy:
         assert script_path[-3:] == ".py", script_path
         self.script_path = script_path
         self.op_name = os.path.basename(script_path)
+        guildfile_dir, _ = _guildfile_dir_and_script_path(script_path)
         self.modeldef = model_proxy.modeldef_for_data(
-            data_dir=os.path.dirname(script_path),
+            guildfile_dir=guildfile_dir,
             model_name=self.name,
             operations={
                 self.op_name: op_data_for_script(
@@ -109,6 +110,13 @@ class PythonScriptModelProxy:
         )
 
 
+def _guildfile_dir_and_script_path(script_path):
+    script_realpath = os.path.realpath(script_path)
+    guildfile_dir = os.path.commonpath([script_realpath, os.getcwd()])
+    rel_script_path = os.path.relpath(script_realpath, guildfile_dir)
+    return guildfile_dir, rel_script_path
+
+
 def op_data_for_script(
     script_path,
     output_scalars=None,
@@ -116,11 +124,12 @@ def op_data_for_script(
     plugins=None,
     sourcecode=None,
 ):
+    _, rel_script_path = _guildfile_dir_and_script_path(script_path)
     plugins = plugins or []
     flags_data = _flags_data(script_path)
     flags_dest = flags_data.pop("$dest", None)
     return {
-        "exec": _exec_attr(script_path),
+        "exec": _exec_attr(rel_script_path),
         "flags": flags_data,
         "flags-dest": flags_dest,
         "output-scalars": output_scalars,

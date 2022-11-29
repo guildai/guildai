@@ -24,7 +24,6 @@ import stat
 import jinja2
 import yaml
 
-from guild import guildfile
 from guild import run_util
 from guild import util
 from guild import yaml_util
@@ -497,7 +496,6 @@ def _publish_sourcecode_list(state):
 
 def _write_sourcecode_csv(run, md5s, out):
     paths = util.natsorted(run_util.sourcecode_files(run))
-    sourcecode_dest = run_util.sourcecode_dest(run)
     csv_out = csv.writer(out, lineterminator="\n")
     csv_out.writerow(["path", "type", "size", "mtime", "md5"])
     for path in paths:
@@ -546,7 +544,6 @@ def _path_md5(path, st):
 
 def _publish_runfiles_list(state):
     dest = os.path.join(state.run_dest, "runfiles.csv")
-    paths = run_util.sourcecode_files(state.run)
     with open(dest, "w") as out:
         _write_runfile_csv(state.run, state.md5s, out)
 
@@ -750,6 +747,7 @@ class _CopyRunFilesFilter(util.CopyFilter):
     value is `True` if the candidate is not a link or
     `state.include_links` is true.
     """
+
     def __init__(self, state):
         self.state = state
         self.sourcecode_files = set(run_util.sourcecode_files(state.run))
