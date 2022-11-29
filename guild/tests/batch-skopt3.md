@@ -200,13 +200,8 @@ To simulate a missing sourcecode digest, delete the proto run
 
 Get the batch run dir and ID.
 
-    >>> batch_rundir, returncode = run_capture("guild select -p")
-    >>> returncode
-    0
-
-    >>> batch_id, returncode = run_capture("guild select")
-    >>> returncode
-    0
+    >>> batch_rundir = run_capture("guild select -p")
+    >>> batch_id = run_capture("guild select")
 
 Delete the proto sourcecode_digest attribute.
 

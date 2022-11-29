@@ -12,6 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Python language support plugin.
+
+Design notes:
+
+There's an uncomfortable coupling between this plugin and the core
+(primarily defined in `guild.op_util`) both of which are aware of and
+required to execute any of Guild's Python based operations. This
+includes operations that define `main` or `steps`.
+
+The logic specific to handling `main` in the core ought to be moved to
+this plugin. I.e. support for `main` should be defined by and handled
+exlusively by the Python script plugin or similar Python language
+plugin.
+
+The logic specific to handling `steps` in the core ought to be moved
+to a new `steps` plugin.
+
+This refactoring is a matter of cleanup and not strictly needed as the
+Python plugin will ship with Guild for the forseeable future. The
+strict separation of concerns would have Guild core only responsible
+for executing an OS command as specified by an `op_cmd` structure
+(command args, cwd, and environment). Any alternative configuration
+(e.g. language specific configuration, workflow, etc.)  should be
+implemenyted by a plugin that's responsible for generating the
+appropriate op command structure.
+
+See design notes in `guild.guildfile` and `guild.op_util` module
+source code for similar thoughts.
+"""
+
 import hashlib
 import json
 import logging
@@ -304,7 +334,9 @@ class PythonScriptPlugin(pluginlib.Plugin):
             return True, f"main Python module '{opdef.main}' specified"
         if opdef.exec_ and opdef.exec_.startswith("${python_exe}"):
             return True, f"command '{opdef.exec_}' is a Python operation"
-        return False, "not a Python operation"
+        if opdef.steps:
+            return True, "operation defines 'steps'"
+        return False, "not a recognized Python operation"
 
     def run_starting(self, run, op, _pidfile):
         _maybe_pip_freeze(run, op)
@@ -316,14 +348,26 @@ class PythonScriptPlugin(pluginlib.Plugin):
         )
 
     def default_sourcecode_select_rules_for_op(self, opdef):
-        return [
-            file_util.exclude("__pycache__", type="dir"),
-            file_util.exclude("*", type="dir", sentinel="bin/activate"),
-            file_util.exclude("*", type="dir", sentinel="Scripts/activate"),
-            file_util.exclude("build", type="dir"),
-            file_util.exclude("dist", type="dir"),
-            file_util.exclude("*.egg-info", type="dir"),
-        ]
+        if opdef.steps:
+            return _steps_sourcecode_select_rules()
+        return _python_sourcecode_select_rules()
+
+
+def _steps_sourcecode_select_rules():
+    # Support for 'steps' is built-in and doesn't require user source
+    # code
+    return False
+
+
+def _python_sourcecode_select_rules():
+    return [
+        file_util.exclude("__pycache__", type="dir"),
+        file_util.exclude("*", type="dir", sentinel="bin/activate"),
+        file_util.exclude("*", type="dir", sentinel="Scripts/activate"),
+        file_util.exclude("build", type="dir"),
+        file_util.exclude("dist", type="dir"),
+        file_util.exclude("*.egg-info", type="dir"),
+    ]
 
 
 def _maybe_prepend_python_path(to_prepend, path):

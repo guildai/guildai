@@ -12,6 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Provides support for the Guild file.
+
+Design notes:
+
+There are aspects to the Guild file that are language or plugin
+specific -- e.g. `main`, `notebook`, and arguably `steps` operation
+attributes. These features highlight a need to add Guild file parsing
+logic to plugins. This exists to some extent already, via the plugin
+`guildfile_data()`, `guildfile_loaded()`, and
+`resolve_model_op()`. This API may be sufficient to correctly decouple
+non-core features from the core and move them into plugins. For the
+time being, such features are either encoded in the core or are
+supported through an uncomfortable coupling between the core and
+plugins (e.g. the Python script plugin is required to configure
+`PYTHONPATH` when `main` and `steps` attributes are specified for an
+operation).
+"""
+
 import copy
 import errno
 import logging

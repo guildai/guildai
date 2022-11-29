@@ -43,11 +43,7 @@ Output from `ls`:
 
 Files returned for view.
 
-    >>> out, exit = run_capture("guild view --test-runs-data")
-
-    >>> (exit, out)
-    (0, ...)
-
+    >>> out = run_capture("guild view --test-runs-data")
     >>> data = json.loads(out)
     >>> len(data)
     1

@@ -108,6 +108,15 @@ def reduce_file_select_results(results):
     return None, None
 
 
+class DisabledFileSelect(FileSelect):
+    def __init__(self):
+        super().__init__(None, None)
+
+    @property
+    def disabled(self):
+        return True
+
+
 class FileSelectRule:
     def __init__(
         self,

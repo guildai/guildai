@@ -111,17 +111,13 @@ Invalid scalar spec:
 
 Full run ID (32 chars) are shown by default.
 
-    >>> out, code = run_capture("guild select 1")
-    >>> code, out
-    (0, ...)
-    >>> len(out.split("\n")[0])
-    32
+    >>> out = run_capture("guild select 1")
+    >>> (len(out.split("\n")[0]), out)
+    (32, ...)
 
 Use -s/--short-id to show only the short run ID.
 
-    >>> out, code = run_capture("guild select 2 -s")
-    >>> code, out
-    (0, ...)
+    >>> out = run_capture("guild select 2 -s")
     >>> len(out.split("\n")[0]), out
     (8, ...)
 
@@ -145,10 +141,7 @@ Use -a/--attr to show a run attribute.
 
 Use -p/--path to show run directory.
 
-    >>> out, code = run_capture("guild select 3 --path")
-    >>> code
-    0
-
+    >>> out = run_capture("guild select 3 --path")
     >>> out == runs[2].dir
     True
 

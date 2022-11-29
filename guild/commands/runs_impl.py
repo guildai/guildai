@@ -543,15 +543,26 @@ def _apply_batch_proto(run, data):
 
 def _list_runs_(runs, args):
     formatted = format_runs(_limit_runs(runs, args))
-    cols = [
+    cols = _cols_for_list(args)
+    detail = RUN_DETAIL if args.verbose else None
+    cli.table(formatted, cols, detail=detail, max_width_adj=STYLE_TABLE_WIDTH_ADJ)
+
+
+def _cols_for_list(args):
+    if args.simplified:
+        return [
+            "num_index",
+            "op_desc",
+            "status_with_remote",
+            "label",
+        ]
+    return [
         "index",
         "op_desc",
         "started",
         "status_with_remote",
         "label",
     ]
-    detail = RUN_DETAIL if args.verbose else None
-    cli.table(formatted, cols, detail=detail, max_width_adj=STYLE_TABLE_WIDTH_ADJ)
 
 
 def _limit_runs(runs, args):

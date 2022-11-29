@@ -186,10 +186,7 @@ Source code for the second run:
 
 Restart the first run without `--force-sourcecode`.
 
-    >>> out, exit = run_capture("guild select 2")
-    >>> exit
-    0
-    >>> run_id = out.rstrip()
+    >>> run_id = run_capture("guild select 2")
 
     >>> run("guild run --restart %s -y" % run_id)
     hello-1

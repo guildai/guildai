@@ -12,6 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Operation utility functions.
+
+This module is heavily relied on to configure operations for execution.
+
+Design notes:
+
+There is an uncomfortable coupling between some logic in this module
+and logic provided by language plugins. Correct support for the `main`
+operation attribute, for example, is provided both here (e.g. see
+`_opdef_exec_and_run_attrs()`) and the Python script plugin.
+
+Any support for `exec` configuration -- as in the case of `main`,
+`steps`, and `notebook` attributes -- ought to be the exclusive domain
+of applicable plugins. What we see here is a partial decoupling where
+some functionality lives in plugins and some lives in core.
+
+This is true of Guild file configuration as well. Refer to "design
+notes" in `guild.guildfile` module source code for additional thougts.
+"""
+
 import csv
 import importlib
 import io
@@ -827,6 +847,18 @@ def _rendered_str(s):
 
 
 def sourcecode_select_for_opdef(opdef):
+    return _builtin_sourcecode_select_rules(opdef) or _project_sourcecode_select_rules(
+        opdef
+    )
+
+
+def _builtin_sourcecode_select_rules(opdef):
+    if opdef.steps:
+        return file_util.DisabledFileSelect()
+    return None
+
+
+def _project_sourcecode_select_rules(opdef):
     rules, sourcecode_root = _select_rules_for_opdef(opdef)
     return file_util.FileSelect(sourcecode_root, rules)
 
@@ -853,16 +885,22 @@ def _select_rules_for_opdef_(opdef, sourcecode_root):
 
 
 def _sourcecode_disabled(opdef):
-    op_config = opdef.sourcecode
-    model_config = opdef.modeldef.sourcecode
-    return op_config.disabled or model_config.disabled and not op_config.specs
+    return (
+        opdef.sourcecode.disabled
+        or opdef.modeldef.sourcecode.disabled
+        and not opdef.sourcecode.specs
+    )
 
 
 def _base_sourcecode_select_rules(opdef, sourcecode_root):
+    return _try_vcs_select_rules(sourcecode_root) or _default_select_rules(opdef)
+
+
+def _try_vcs_select_rules(sourcecode_root):
     try:
         vcs_rules = vcs_util.project_select_rules(sourcecode_root)
     except vcs_util.NoVCS:
-        return _default_select_rules(opdef)
+        return None
     else:
         return [
             file_util.exclude(".guild", type="dir"),
@@ -885,6 +923,28 @@ def _base_default_select_rules():
             max_matches=MAX_DEFAULT_SOURCECODE_COUNT,
         ),
     ]
+
+
+def _plugin_default_select_rules(opdef):
+    return util.flatten(
+        [
+            plugin.default_sourcecode_select_rules_for_op(opdef)
+            for plugin in _plugins_for_default_select_rules(opdef)
+        ]
+    )
+
+
+def _plugins_for_default_select_rules(opdef):
+    from guild import plugin as pluginlib
+
+    return sorted(
+        [
+            plugin
+            for _name, plugin in pluginlib.iter_plugins()
+            if plugin.enabled_for_op(opdef)[0]
+        ],
+        key=lambda plugin: plugin.sourcecode_select_rules_priority,
+    )
 
 
 def _sourcecode_config_rules(config, root):
@@ -923,28 +983,6 @@ def _apply_dir_glob(root, pattern):
     if os.path.isdir(os.path.join(root, pattern)):
         pattern = os.path.join(pattern, "*")
     return pattern
-
-
-def _plugin_default_select_rules(opdef):
-    return util.flatten(
-        [
-            plugin.default_sourcecode_select_rules_for_op(opdef)
-            for plugin in _plugins_for_default_select_rules(opdef)
-        ]
-    )
-
-
-def _plugins_for_default_select_rules(opdef):
-    from guild import plugin as pluginlib
-
-    return sorted(
-        [
-            plugin
-            for _name, plugin in pluginlib.iter_plugins()
-            if plugin.enabled_for_op(opdef)[0]
-        ],
-        key=lambda plugin: plugin.sourcecode_select_rules_priority,
-    )
 
 
 def copy_sourcecode(

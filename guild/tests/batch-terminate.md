@@ -49,9 +49,7 @@ Wait for the runs to stop;
 
 Show the runs after stopping the batch.
 
-    >>> out, exit_code = run_capture("guild runs")
-    >>> (out, exit_code)
-    (..., 0)
+    >>> out = run_capture("guild runs")
 
     >>> re.search(r"sleep.py   .*?  (?:terminated|completed)\s+seconds=99", out, re.MULTILINE) is not None, out
     (True, ...)
@@ -62,11 +60,10 @@ Show the runs after stopping the batch.
     >>> re.search(r"sleep.py\+  .*?  (?:terminated|completed)", out, re.MULTILINE) is not None, out
     (True, ...)
 
-Show output for the batch.
+Show output for the batch. We assert content in the output without
+specifying the order as the order is non-deterministic.
 
-    >>> out, exit_code = run_capture("guild cat 3 --output")
-    >>> (out, exit_code)
-    (..., 0)
+    >>> out = run_capture("guild cat 3 --output")
 
     >>> print(out)
     INFO: [guild] Running trial ...: sleep.py (seconds=99)

@@ -50,10 +50,7 @@ for Guild commands.
     ...     quiet(cmd, cwd=project_dir, env={"GUILD_HOME": guild_home}, **kw)
 
     >>> def project_capture(cmd, **kw):
-    ...     out, code = run_capture(cmd, cwd=project_dir,
-    ...                             env={"GUILD_HOME": guild_home}, **kw)
-    ...     assert code == 0, (code, out)
-    ...     return out
+    ...     return run_capture(cmd, cwd=project_dir, env={"GUILD_HOME": guild_home}, **kw)
 
 Verify the project ops.
 

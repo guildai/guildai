@@ -61,6 +61,7 @@ PY38 = doctest.register_optionflag("PY38")
 PY39 = doctest.register_optionflag("PY39")
 STRICT = doctest.register_optionflag("STRICT")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
+STRIP_EXIT_0 = doctest.register_optionflag("STRIP_EXIT_0")
 WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 
@@ -244,6 +245,7 @@ def run_test_file(filename, globs=None):
             | NORMALIZE_PATHS
             | WINDOWS
             | STRIP_ANSI_FMT
+            | STRIP_EXIT_0
         ),
     )
 
@@ -298,13 +300,30 @@ class Checker(doctest.OutputChecker):
             got = _windows_normalize_paths(got)
         if optionflags & STRIP_ANSI_FMT:
             got = ansi_util.strip_ansi_format(got)
+        if optionflags & STRIP_EXIT_0:
+            got = _strip_exit_0(got)
         return got
 
     def _want(self, want, optionflags):
+        if optionflags & STRICT:
+            return want
         if optionflags & NORMALIZE_PATHSEP:
             want = _normalize_pathsep(want)
         want = _leading_wildcard_want(want)
+        if optionflags & STRIP_EXIT_0:
+            want = _strip_exit_0(want)
         return want
+
+
+def _strip_exit_0(s):
+    """Removes trailing '\n<exit 0>' from s.
+
+    Use to optionally omit `<exit 0>` at the end of run output that is
+    expected to succed.
+    """
+    if s.endswith("\n<exit 0>\n"):
+        return s[:-9]
+    return s
 
 
 def _windows_normalize_paths(s):
@@ -1068,7 +1087,9 @@ def _run(
     if cut:
         out = _cut_cols(out, cut)
     if _capture:
-        return out, exit_code
+        if exit_code != 0:
+            raise RuntimeError(out, exit_code)
+        return out
     if out:
         print(out)
     print(f"<exit {exit_code}>")

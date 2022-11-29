@@ -11,11 +11,11 @@ Generate runs with tags.
     >>> print(run1.get("tags"))
     ['foo']
 
-    >>> run2, _ = project.run_capture("echo.py", tags=["bar"])
+    >>> run2, _out = project.run_capture("echo.py", tags=["bar"])
     >>> print(run2.get("tags"))
     ['bar']
 
-    >>> run3, _ = project.run_capture("echo.py", tags=["baz", "bam"])
+    >>> run3, _out = project.run_capture("echo.py", tags=["baz", "bam"])
     >>> print(run3.get("tags"))
     ['baz', 'bam']
 

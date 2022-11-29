@@ -398,10 +398,7 @@ Guild generates a run specific config file.
 When a run is restarted with flags destined for a config file, Guild
 re-writes the config file with the new flag values.
 
-    >>> out, exit_code = run_capture(f"guild -H {gh} select")
-    >>> exit_code, out
-    (0, ...)
-    >>> last_run_id = out.strip()
+    >>> last_run_id = run_capture(f"guild -H {gh} select")
 
     >>> guild(f"run --restart {last_run_id} b=no f=3.345 -y")
     Resolving config:flags.json.in
@@ -423,10 +420,7 @@ to test this.
 
 Get the last run ID.
 
-    >>> out, exit_code = run_capture(f"guild -H {gh} select")
-    >>> exit_code, out
-    (0, ...)
-    >>> last_run_id = out.strip()
+    >>> last_run_id = run_capture(f"guild -H {gh} select")
 
 Restar the run.
 
