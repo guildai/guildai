@@ -63,6 +63,11 @@ def _yaml_front_matter_s(filename):
     return "\n".join(lines) if lines else None
 
 
+def patch_yaml():
+    patch_yaml_resolver()
+    patch_yaml_bool_vals()
+
+
 def patch_yaml_resolver():
     """Patch yaml parsing to support Guild specific resolution rules.
 
@@ -92,5 +97,32 @@ def patch_yaml_resolver():
     )
 
 
+def patch_yaml_bool_vals():
+    """Extends bool values to include single char variants.
+
+    The YAML spec calls for bool values to support single char
+    variants 'y', 'Y', 'n', and 'N'.
+
+    The use of `bool_values` assumes `CANDIDATE.lower()` as input.
+    """
+    from yaml.constructor import SafeConstructor
+    from yaml.resolver import Resolver
+
+    SafeConstructor.bool_values = {
+        "yes": True,
+        "no": False,
+        "true": True,
+        "false": False,
+        "on": True,
+        "off": False,
+        "y": True,
+        "n": False,
+    }
+
+    Resolver.add_implicit_resolver(
+        'tag:yaml.org,2002:bool', re.compile(r"^(?:y|Y|n|N)$", re.X), list("yYnN")
+    )
+
+
 if os.getenv("NO_PATCH_YAML") != "1":
-    patch_yaml_resolver()
+    patch_yaml()

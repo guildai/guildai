@@ -149,3 +149,25 @@
     ... """)
     >>> pprint(yfm(working))
     ['foo', 'bar', {'bam': 456, 'baz': 123}]
+
+## Decoding 'y/Y' and 'n/N'
+
+The [YAML spec for bool](https://yaml.org/type/bool.html) includes
+single char alternative spellings for true and false: 'y/Y' and 'n/N'
+respectively.
+
+The `PyYAML` library [does not support
+these](https://github.com/yaml/pyyaml/issues/247) and so we patch the
+library.
+
+    >>> decode_yaml("y")
+    True
+
+    >>> decode_yaml("n")
+    False
+
+    >>> decode_yaml("Y")
+    True
+
+    >>> decode_yaml("N")
+    False
