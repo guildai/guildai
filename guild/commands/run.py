@@ -213,7 +213,7 @@ def run_params(fn):
             click.Option(
                 ("--no-gpus",),
                 is_flag=True,
-                help="Disable GPUs for run. Cannot be used with --gpu.",
+                help="Disable GPUs for run. Cannot be used with --gpus.",
             ),
             click.Option(
                 ("-bl", "--batch-label"),
