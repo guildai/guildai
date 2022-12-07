@@ -6,7 +6,7 @@ schemes that were added to simplify dependency definitions.
 The primary goal of this simplification is to support inline
 dependencies that do not require separate resource definitions.
 
-We'll use a helper to print depepdencies:
+We use a helper to print depepdencies:
 
     >>> def print_deps(deps):
     ...     for dep in deps:
@@ -151,10 +151,10 @@ implicitly named by their operation.
     ...       name: FOO
     ... """)
 
-    >>> gf.default_model["op1"].dependencies[0].inline_resource.name
-    'foo'
+    >>> gf.default_model["op1"].dependencies[0].inline_resource.resolving_name
+    'operation:foo'
 
-    >>> gf.default_model["op2"].dependencies[0].inline_resource.name
+    >>> gf.default_model["op2"].dependencies[0].inline_resource.resolving_name
     'FOO'
 
 ## Inline list
@@ -172,7 +172,7 @@ to a dependency where `sources` contains a list containing the item.
     >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependencyDef http://my.co/stuff.gz>
       inline-resource: {'sources': [{'url': 'http://my.co/stuff.gz'}]}
-    <guild.guildfile.OpDependencyDef foo>
+    <guild.guildfile.OpDependencyDef operation:foo>
       inline-resource: {'sources': [{'operation': 'foo'}]}
 
 ## Source paths
@@ -190,7 +190,7 @@ resource path, if a resource path is defined.
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies) # doctest: -NORMALIZE_PATHS
-    <guild.guildfile.OpDependencyDef foo>
+    <guild.guildfile.OpDependencyDef operation:foo>
       inline-resource: {'sources': [{'operation': 'foo',
                                      'select': '.+\\.txt',
                                      'target-path': 'bar'}]}
@@ -221,19 +221,19 @@ The `print-msg-2` operation requires `print-msg`, which we don't have.
 `print-msg-2` fails with an error message.
 
     >>> project.run("print-msg-2")
-    WARNING: cannot find a suitable run for required resource 'print-msg'
-    Resolving print-msg
+    WARNING: cannot find a suitable run for required resource 'operation:print-msg'
+    Resolving operation:print-msg
     guild: run failed because a dependency was not met: could not resolve
-    'operation:print-msg' in print-msg resource: no suitable run for print-msg
+    'operation:print-msg' in operation:print-msg resource: no suitable run for print-msg
     <exit 1>
 
 We can force a run even in such cases using `force_deps`.
 
     >>> project.run("print-msg-2", force_deps=True)
-    WARNING: cannot find a suitable run for required resource 'print-msg'
-    Resolving print-msg
+    WARNING: cannot find a suitable run for required resource 'operation:print-msg'
+    Resolving operation:print-msg
     WARNING: a dependency was not met: could not resolve 'operation:print-msg'
-    in print-msg resource: no suitable run for print-msg
+    in operation:print-msg resource: no suitable run for print-msg
     cat: no such file 'msg.txt'
     <exit 1>
 
@@ -272,8 +272,8 @@ requires `msg.txt`, which does exist and can be resolved.
     INFO: [guild] comparing run ... file msg.txt to .../inline-resources/msg.txt
     INFO: [guild] 1 of 1 checks passed
     INFO: [guild] running print-msg-2: print-msg-2
-    Resolving print-msg
-    Using run ... for print-msg resource
+    Resolving operation:print-msg
+    Using run ... for operation:print-msg
     hola
     INFO: [guild] checking run ... files 'msg.txt'
     INFO: [guild] comparing run ... file msg.txt to .../inline-resources/msg.txt

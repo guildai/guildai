@@ -55,19 +55,27 @@ def _ac_flag(ctx, param, incomplete):
     opdef = _opdef_for_opspec(args.opspec)
     if not opdef:
         return []
+    flag_vals = _parse_flag_vals(args.flags, opdef, incomplete)
+    _apply_resource_flagdefs(opdef, flag_vals)
     if "=" in incomplete:
         return _ac_flag_choices(incomplete, opdef)
     unused_flag_assigns = [
-        f"{flag_name}=" for flag_name in _unused_flags_for_args(args, opdef)
+        f"{flag_name}=" for flag_name in _unused_flags(opdef, flag_vals)
     ]
     return ac_support.ac_nospace(unused_flag_assigns, incomplete)
 
 
-def _unused_flags_for_args(args, opdef):
-    from . import run_impl
+def _parse_flag_vals(flag_args, opdef, incomplete):
+    from guild.commands import run_impl
 
-    used, _batch_files = run_impl.split_flag_args(args.flags, opdef)
-    return sorted([f.name for f in opdef.flags if f.name not in used])
+    flag_vals, _batch_files = run_impl.split_flag_args(
+        flag_args, opdef, incomplete, raise_parse_errors=False
+    )
+    return flag_vals
+
+
+def _unused_flags(opdef, used_flags):
+    return sorted([f.name for f in opdef.flags if f.name not in used_flags])
 
 
 def _ac_batch_files(_ctx, _param, incomplete):
@@ -84,6 +92,68 @@ def _opdef_for_opspec(opspec):
         if os.getenv("_GUILD_COMPLETE_DEBUG") == "1":
             raise
         return None
+
+
+def _apply_resource_flagdefs(opdef, flag_vals):
+    from guild import op_dep
+
+    for depdef in opdef.dependencies:
+        dep = op_dep.dep_for_depdef(depdef, flag_vals)
+        for source in dep.resdef.sources:
+            candidate_flag_names = _candidate_flag_names_for_source(source)
+            if not candidate_flag_names:
+                break
+            flagdef = _flagdef_for_candidate_names(opdef, candidate_flag_names)
+            if flagdef:
+                _maybe_apply_run_id_choices(source, flag_vals, flagdef)
+                break
+            # Apply the first candidate name as a new flag def
+            _apply_resource_flagdef(candidate_flag_names[0], opdef, source, flag_vals)
+
+
+def _candidate_flag_names_for_source(source):
+    return [
+        name
+        for name in [
+            source.flag_name,
+            source.name,
+            source.uri,
+            source.parsed_uri.path,
+        ]
+        if name
+    ]
+
+
+def _flagdef_for_candidate_names(opdef, names):
+    for name in names:
+        flagdef = opdef.get_flagdef(name)
+        if flagdef:
+            return flagdef
+    return None
+
+
+def _apply_resource_flagdef(flag_name, opdef, for_source, flag_vals):
+    from guild import guildfile
+
+    assert not opdef.get_flagdef(flag_name), flag_name
+    flagdef = guildfile.FlagDef(flag_name, {}, opdef)
+    opdef.flags.append(flagdef)
+    _maybe_apply_run_id_choices(for_source, flag_vals, flagdef)
+
+
+def _maybe_apply_run_id_choices(source, flag_vals, flagdef):
+    from guild import guildfile
+    from guild import resolver
+
+    if source.parsed_uri.scheme != "operation" or flagdef.choices:
+        return
+    oprefs = resolver.oprefs_for_source(source)
+    run_id_prefix = flag_vals.get(flagdef.name)
+    candidate_runs = resolver.matching_runs(oprefs, run_id_prefix)
+    if candidate_runs:
+        flagdef.choices = [
+            guildfile.FlagChoice(run.id, flagdef) for run in candidate_runs
+        ]
 
 
 def _ac_flag_choices(incomplete, opdef):

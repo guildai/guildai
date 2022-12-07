@@ -1354,7 +1354,10 @@ class OpDependencyDef:
 
     def __repr__(self):
         if self.inline_resource:
-            return f"<guild.guildfile.OpDependencyDef {self.inline_resource.name}>"
+            return (
+                "<guild.guildfile.OpDependencyDef "
+                f"{self.inline_resource.resolving_name}>"
+            )
         return f"<guild.guildfile.OpDependencyDef '{self.spec}'>"
 
     def __str__(self):

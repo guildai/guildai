@@ -66,7 +66,7 @@ class Plugin:
         user.
 
         When a plugin is enabled for an operation, it participates in
-        operation related callbacks:
+        the following:
 
           - Listed in `GUILD_PLUGINS` run env
           - Listed in `plugins` run attr
@@ -75,6 +75,9 @@ class Plugin:
           - Called for `run_starting()`
           - Called for `run_stopping()`
 
+        If a plugin does not return True for an op def, it will not be
+        listed as a plugin for the run and will not be called for the
+        functions above.
         """
         return False, "not applicable to operation"
 
@@ -107,16 +110,6 @@ class Plugin:
         Return None if resolution for the source is not supported by the plugin.
         """
         return None
-
-    def run_staged(self, run, op):
-        """Called when a run is staged.
-
-        This called immediately before the run is marked as STAGED.
-
-        The plugin must be enabled for the applicable run operation to be
-        called.
-
-        """
 
     def run_starting(self, run, op, pidfile):
         """Called when a run is starting.

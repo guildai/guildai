@@ -206,9 +206,7 @@ class OperationResolver(FileResolver):
     def _resolve_run(self):
         run_spec = str(self.resource.config) if self.resource.config else ""
         if run_spec and os.path.isdir(run_spec):
-            log.info(
-                "Using run %s for %s", run_spec, self.source.resdef.resolving_name
-            )
+            log.info("Using run %s for %s", run_spec, self.source.resdef.resolving_name)
             return run_spec
         run = self.resolve_op_run(run_spec)
         log.info("Using run %s for %s", run.id, self.source.resdef.resolving_name)
@@ -218,37 +216,38 @@ class OperationResolver(FileResolver):
         return self._resolve_op_run(run_id_prefix, include_staged, marked_or_latest_run)
 
     def _resolve_op_run(self, run_id_prefix, include_staged, resolve_run_cb):
-        oprefs = self._source_oprefs()
+        oprefs = oprefs_for_source(self.source)
         status = _matching_run_status(include_staged)
         run = resolve_run_cb(oprefs, run_id_prefix, status)
         if not run:
-            oprefs_desc = ",".join([self._opref_desc(opref) for opref in oprefs])
+            oprefs_desc = ",".join([_opref_desc(opref) for opref in oprefs])
             raise ResolutionError(f"no suitable run for {oprefs_desc}")
         return run
 
-    def _source_oprefs(self):
-        oprefs = []
-        for spec in self._split_opref_specs(self.source.parsed_uri.path):
-            try:
-                oprefs.append(guild.opref.OpRef.for_string(spec))
-            except guild.opref.OpRefError as e:
-                raise ResolutionError(f"inavlid operation reference {spec!r}") from e
-        return oprefs
 
-    @staticmethod
-    def _split_opref_specs(spec):
-        return [part.strip() for part in spec.split(",")]
+def _opref_desc(opref):
+    if opref.pkg_type == "guildfile":
+        pkg = "./"
+    elif opref.pkg_name:
+        pkg = opref.pkg_name + "/"
+    else:
+        pkg = ""
+    model_spec = pkg + (opref.model_name or "")
+    return f"{model_spec}:{opref.op_name}" if model_spec else opref.op_name
 
-    @staticmethod
-    def _opref_desc(opref):
-        if opref.pkg_type == "guildfile":
-            pkg = "./"
-        elif opref.pkg_name:
-            pkg = opref.pkg_name + "/"
-        else:
-            pkg = ""
-        model_spec = pkg + (opref.model_name or "")
-        return f"{model_spec}:{opref.op_name}" if model_spec else opref.op_name
+
+def oprefs_for_source(source):
+    oprefs = []
+    for spec in _split_opref_specs(source.parsed_uri.path):
+        try:
+            oprefs.append(guild.opref.OpRef.for_string(spec))
+        except guild.opref.OpRefError as e:
+            raise ResolutionError(f"inavlid operation reference {spec!r}") from e
+    return oprefs
+
+
+def _split_opref_specs(spec):
+    return [part.strip() for part in spec.split(",")]
 
 
 def _matching_run_status(include_staged):
@@ -835,12 +834,14 @@ def post_process(source, cwd, use_cache=True):
         process_marker = os.path.join(cwd, f".guild-cache-{cmd_digest}.post")
         if os.path.exists(process_marker):
             return
-    log.info("Post processing %s resource in %s: %r", source.resdef.name, cwd, cmd)
+    log.info(
+        "Post processing %s resource in %s: %r", source.resdef.resolving_name, cwd, cmd
+    )
     try:
         subprocess.check_call(cmd, shell=True, cwd=cwd)
     except subprocess.CalledProcessError as e:
         raise ResolutionError(
-            f"error post processing {source.resdef.name} resource: {e}"
+            f"error post processing {source.resdef.resolving_name} resource: {e}"
         ) from e
     else:
         util.touch(process_marker)
@@ -955,6 +956,6 @@ def _check_source_resolved(resolved, source):
     if resolved:
         return
     if source.fail_if_empty:
-        raise ResolutionError(f"nothing resolved for {source.name}")
+        raise ResolutionError(f"nothing resolved for {source.resolving_name}")
     if source.warn_if_empty:
-        log.warning("nothing resolved for %s", source.name)
+        log.warning("nothing resolved for %s", source.resolving_name)

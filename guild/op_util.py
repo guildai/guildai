@@ -1302,15 +1302,9 @@ def _resource_flagdefs(opdef, flag_vals):
 
 def _iter_resource_flagdefs(opdef, flag_vals):
     for resdef in iter_opdef_resources(opdef, flag_vals):
-        if resdef.flag_name:
-            yield _ResourceFlagDefProxy(resdef.flag_name, opdef)
-        else:
-            for source in resdef.sources:
-                if source.flag_name:
-                    yield _ResourceFlagDefProxy(source.flag_name, opdef)
-            op_name = _required_operation_name(resdef)
-            if op_name:
-                yield _ResourceFlagDefProxy(op_name, opdef)
+        for flag_name in op_dep.resdef_flag_name_candidates(resdef):
+            if flag_name in flag_vals:
+                yield _ResourceFlagDefProxy(flag_name, opdef)
 
 
 def iter_opdef_resources(opdef, flag_vals=None):

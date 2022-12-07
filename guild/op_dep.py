@@ -70,7 +70,7 @@ def dep_for_depdef(depdef, flag_vals):
 
 
 def _resdef_config(resdef, flag_vals):
-    for name in _resdef_flag_name_candidates(resdef):
+    for name in resdef_flag_name_candidates(resdef):
         try:
             return flag_vals[name]
         except KeyError:
@@ -78,15 +78,32 @@ def _resdef_config(resdef, flag_vals):
     return None
 
 
-def _resdef_flag_name_candidates(resdef):
+def resdef_flag_name_candidates(resdef):
+    return list(_iter_resdef_flag_name_candidates(resdef))
+
+
+def _iter_resdef_flag_name_candidates(resdef):
     # Use resdef fullname first because it's the most explicit
-    for name in (resdef.fullname, resdef.flag_name, resdef.name):
+    for name in (
+        _flag_name_candidate_for_resdef_fullname(resdef),
+        resdef.flag_name,
+        resdef.name,
+    ):
         if name:
             yield name
     for source in resdef.sources:
         for name in (source.flag_name, source.name, source.uri, source.parsed_uri.path):
             if name:
                 yield name
+
+
+def _flag_name_candidate_for_resdef_fullname(resdef):
+    if not resdef.fullname:
+        return None
+    parts = resdef.fullname.split(":", 1)
+    if len(parts) == 1 or parts[0]:
+        return resdef.fullname
+    return None
 
 
 def resource_def(depdef, flag_vals):
@@ -500,7 +517,7 @@ def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
     resolver_factory = resolver_factory or resolver_for_source
     for dep in deps:
         run_id_candidates = _run_id_flag_val_candidates(dep.resdef, flag_vals)
-        for op_source in _op_sources_for_deps(deps):
+        for op_source in _op_sources_for_dep(dep):
             resolver = resolver_factory(op_source, dep)
             resolved = _resolve_runs_for_run_id_candidates(run_id_candidates, resolver)
             if not resolved:
@@ -512,18 +529,13 @@ def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
 def _run_id_flag_val_candidates(resdef, flag_vals):
     return [
         str(val)
-        for val in [
-            flag_vals.get(name) for name in _resdef_flag_name_candidates(resdef)
-        ]
+        for val in [flag_vals.get(name) for name in resdef_flag_name_candidates(resdef)]
         if val
     ]
 
 
-def _op_sources_for_deps(deps):
-    for dep in deps:
-        for source in dep.resdef.sources:
-            if is_operation_source(source):
-                yield source
+def _op_sources_for_dep(dep):
+    return [source for source in dep.resdef.sources if is_operation_source(source)]
 
 
 def _resolve_runs_for_run_id_candidates(run_id_candidates, resolver):

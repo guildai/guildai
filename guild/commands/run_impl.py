@@ -646,7 +646,7 @@ def _apply_default_dep_runs(opdef, op_cmd, args, flag_vals):
     for run, dep in op_dep.resolved_op_runs_for_opdef(
         opdef, flag_vals, resolver_factory
     ):
-        dep_flag_name = _dep_flag_name(dep)
+        dep_flag_name = _dep_flag_name(dep, opdef)
         _ensure_dep_flag_op_cmd_arg_skip(dep_flag_name, opdef, op_cmd)
         _apply_dep_run_id(run.id, dep_flag_name, flag_vals)
 
@@ -657,7 +657,17 @@ def _resolver_factory(args):
     return None
 
 
-def _dep_flag_name(dep):
+def _dep_flag_name(dep, opdef):
+    """Returns the name used for a dependency flag.
+
+    This is a function of the dependency resource def and the
+    operation def. If the operation provides a flag that corresponds
+    to a dependency source, that flag name is used. Otherwise the
+    resource's `resolving_name` property is used.
+    """
+    for name in op_dep.resdef_flag_name_candidates(dep.resdef):
+        if opdef.get_flagdef(name):
+            return name
     return dep.resdef.resolving_name
 
 
@@ -1308,7 +1318,6 @@ def _op_init_callbacks_for_op(op):
         init_output_summary=_init_output_summary,
         run_initialized=_on_run_initialized,
         dep_source_resolved=_on_dep_source_resolved,
-        run_staged=_on_run_staged,
         run_starting=_on_run_starting,
         run_stopped=_on_run_stopped,
     )
@@ -1445,11 +1454,6 @@ def _copy_run_proto_attrs(proto_run, dest_run):
         if not proto_run.has_attr(attr):
             continue
         dest_run.write_attr(attr, proto_run.get(attr))
-
-
-def _on_run_staged(op, run):
-    for plugin in op._plugins:
-        plugin.run_staged(run, op)
 
 
 def _on_run_starting(op, run, pidfile):

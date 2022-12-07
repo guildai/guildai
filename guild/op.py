@@ -73,14 +73,12 @@ class OperationCallbacks:
         init_output_summary=None,
         run_initialized=None,
         dep_source_resolved=None,
-        run_staged=None,
         run_starting=None,
         run_stopped=None,
     ):
         self.init_output_summary = init_output_summary
         self.run_initialized = run_initialized
         self.dep_source_resolved = dep_source_resolved
-        self.run_staged = run_staged
         self.run_starting = run_starting
         self.run_stopped = run_stopped
 
@@ -131,7 +129,6 @@ def stage(op, continue_on_deps_error=False):
         _stage_run_proc_env(op, run)
         _resolve_deps(op, run, for_stage=True, continue_on_error=continue_on_deps_error)
         op_util.set_run_staged(run)
-        _callback("run_staged", op, run)
     finally:
         op_util.clear_run_pending(run)
     return run
@@ -466,13 +463,17 @@ def _resolve_deps(op, run, for_stage=False, continue_on_error=False):
 def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolved):
     log.info(loglib.dim("Resolving %s"), dep.resdef.resolving_name)
     for source in dep.resdef.sources:
-        if not source.always_resolve and source.name in resolved:
+        if not source.always_resolve and source.resolving_name in resolved:
             log.info(
-                "Skipping resolution of %s because it's already resolved", source.name
+                "Skipping resolution of %s because it's already resolved",
+                source.resolving_name,
             )
             continue
         if for_stage and _is_operation_source(source):
-            log.info("Skipping resolution of %s because it's being staged", source.name)
+            log.info(
+                "Skipping resolution of %s because it's being staged",
+                source.resolving_name,
+            )
             continue
         try:
             run_rel_resolved_paths = _resolve_dep_source(
@@ -484,7 +485,7 @@ def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolve
             log.debug(e)
             log.info(
                 "Could not resolve %s - skipping because dependency is optional",
-                source.name,
+                source.resolving_name,
             )
             continue
         else:

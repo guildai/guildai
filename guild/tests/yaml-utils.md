@@ -2,6 +2,16 @@
 
 ## Encode
 
+    >>> "TODO: serialize quoting single char bools"
+
+    >>> "TODO: core attrs support in plugin"
+
+    >>> "TODO: check custom attr naming convention - e.g. `r_sys_info` - etc - use underscores"
+
+    >>> "TODO: consult plugin for initial random seed - or don't set one - need to fix conflicvt between Guild's Python-generated random seed and non Python ops"
+
+    >>> "TODO: use signed 32 for random int - ragen -2147483646, 2147483647 - still think about platform specific issues"
+
     >>> from guild.yaml_util import encode_yaml
 
     >>> encode_yaml(1)

@@ -730,7 +730,7 @@ The `downstream-conflict` operation defines a dependency on the
 Guild treats `config.yml` as source code for `downstream-conflict`.
 
     >>> run("guild run downstream-conflict --test-sourcecode")  # doctest: +REPORT_UDIFF
-    WARNING: cannot find a suitable run for required resource 'upstream'
+    WARNING: cannot find a suitable run for required resource 'operation:upstream'
     Copying from the current directory
     Rules:
       exclude dir .guild
@@ -787,8 +787,8 @@ source code.
 When we run `downstream-conflict` we see the conflict.
 
     >>> run("guild run downstream-conflict -y")
-    Resolving upstream
-    Using run ... for upstream resource
+    Resolving operation:upstream
+    Using run ... for operation:upstream
     WARNING: .../config.yml already exists, skipping copy
 
 The `downstream-fixed` operation is configured to exclude `config.yml`
@@ -829,5 +829,5 @@ as source code.
 When we run the operation, it runs without conflicts.
 
     >>> run("guild run downstream-fixed -y")
-    Resolving upstream
-    Using run ... for upstream resource
+    Resolving operation:upstream
+    Using run ... for operation:upstream

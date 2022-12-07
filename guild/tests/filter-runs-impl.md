@@ -3,21 +3,11 @@
 These tests demonstrate how the `--filter` option works when running
 Guild commands.
 
-Create a new Guild home to isolate runs.
+Tests use the `filter` project.
 
-    >>> gh = mkdtemp()
-    >>> set_guild_home(gh)
+    >>> use_project("filter")
 
-Verify we're running in an empty environment.
-
-    >>> run("guild runs")
-    <exit 0>
-
-Change to sample directory.
-
-    >>> cd(sample("projects", "filter"))
-
-Verify the operations we'll be running.
+The operations we'll be running:
 
     >>> run("guild run fixed:train --help-op")
     ???
@@ -25,13 +15,11 @@ Verify the operations we'll be running.
       batch  (default is 100)
       lr     (default is 0.1)
       seed   (default is 1)
-    <exit 0>
 
     >>> run("guild run fixed:test --help-op")
     ???
     Flags:
       seed  (default is 1)
-    <exit 0>
 
 Generate run training runs using `fixed:train` and `fixed:test`. This
 gives us predictable results given a seed.
@@ -49,18 +37,16 @@ gives us predictable results given a seed.
     INFO: [guild] Running trial ...: fixed:train (batch=100, lr=0.1, seed=2)
     loss: 2
     acc: 83
-    <exit 0>
 
     >>> run("guild run fixed:test seed=[2,3] -y")
-    INFO: [guild] Running trial ...: fixed:test (seed=2, train=...)
-    INFO: [guild] Resolving train
-    INFO: [guild] Using run ... for train resource
+    INFO: [guild] Running trial ...: fixed:test (operation:train=..., seed=2)
+    INFO: [guild] Resolving operation:train
+    INFO: [guild] Using run ... for operation:train
     test-acc: 50
-    INFO: [guild] Running trial ...: fixed:test (seed=3, train=...)
-    INFO: [guild] Resolving train
-    INFO: [guild] Using run ... for train resource
+    INFO: [guild] Running trial ...: fixed:test (operation:train=..., seed=3)
+    INFO: [guild] Resolving operation:train
+    INFO: [guild] Using run ... for operation:train
     test-acc: 84
-    <exit 0>
 
 Run an operation that will fail (we use the error status below for
 filtering).
@@ -73,8 +59,8 @@ List the runs.
 
     >>> run("guild runs")
     [1:...]  fail         ...  error      oops
-    [2:...]  fixed:test   ...  completed  seed=3 train=...
-    [3:...]  fixed:test   ...  completed  seed=2 train=...
+    [2:...]  fixed:test   ...  completed  seed=3 operation:train=...
+    [3:...]  fixed:test   ...  completed  seed=2 operation:train=...
     [4:...]  fixed:train  ...  completed  batch=100 lr=0.1 seed=2
     [5:...]  fixed:train  ...  completed  batch=100 lr=0.1 seed=1
     [6:...]  fixed:train  ...  completed  batch=100 lr=0.01 seed=2
