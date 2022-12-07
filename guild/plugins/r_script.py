@@ -74,6 +74,10 @@ class RScriptPlugin(pluginlib.Plugin):
         model = RScriptModelProxy(path, opspec)
         return model, model.op_name
 
+    def enabled_for_op(self, opdef):
+        if r_util.is_r_script(opdef.name):
+            return True, "operation is an R script"
+        return False, "not applicable to operation"
 
 def op_data_for_script(r_script_path):
     try:
