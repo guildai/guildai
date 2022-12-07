@@ -93,6 +93,8 @@ CORE_RUN_ATTRS = [
     "user",
     "user_flags",
     "vcs_commit",
+    "r_sys_info",
+    "r_packages_loaded",
 ]
 
 LEGACY_RUN_ATTRS = [

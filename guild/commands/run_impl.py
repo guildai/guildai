@@ -94,6 +94,8 @@ CORE_RUN_ATTRS = {
     "user",
     "user_flags",
     "vcs_commit",
+    "r_sys_info",
+    "r_packages_loaded",
 }
 
 
@@ -1416,6 +1418,7 @@ def _copy_run_proto_attrs(proto_run, dest_run):
 
 
 def _on_run_staged(op, run):
+    import debugpy; debugpy.breakpoint()
     for plugin in op._plugins:
         plugin.run_staged(run, op)
 
