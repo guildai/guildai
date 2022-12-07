@@ -1418,7 +1418,6 @@ def _copy_run_proto_attrs(proto_run, dest_run):
 
 
 def _on_run_staged(op, run):
-    import debugpy; debugpy.breakpoint()
     for plugin in op._plugins:
         plugin.run_staged(run, op)
 
