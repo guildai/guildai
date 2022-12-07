@@ -262,7 +262,6 @@ If `--path` wants a hidden file, it's included.
 A path must match a directory or fully match the name.
 
     >>> guild_run("ls --path .fo -n")
-    <BLANKLINE>
     <exit 0>
 
 You can use a wildcard to match partial paths.

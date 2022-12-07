@@ -133,9 +133,9 @@ Let's run an operation with the default source code settings.
     >>> project = Project(project_dir)
     >>> run, out = project.run_capture("no_op.py")
     >>> print(out)
-    WARNING: Skipping potential source code file ./too-big.txt
-    because it's too big. To control which files are copied,
-    define 'sourcecode' for the operation in a Guild file.
+    WARNING: Skipping source code file too-big.txt because it's too big.
+    To control which files are copied, define 'sourcecode' for the
+    operation in a Guild file.
 
 Here are our run source files:
 

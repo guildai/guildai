@@ -70,12 +70,23 @@ def dep_for_depdef(depdef, flag_vals):
 
 
 def _resdef_config(resdef, flag_vals):
-    for name in [resdef.fullname, (resdef.flag_name or resdef.name)]:
+    for name in _resdef_flag_name_candidates(resdef):
         try:
             return flag_vals[name]
         except KeyError:
             pass
     return None
+
+
+def _resdef_flag_name_candidates(resdef):
+    # Use resdef fullname first because it's the most explicit
+    for name in (resdef.fullname, resdef.flag_name, resdef.name):
+        if name:
+            yield name
+    for source in resdef.sources:
+        for name in (source.flag_name, source.name, source.uri, source.parsed_uri.path):
+            if name:
+                yield name
 
 
 def resource_def(depdef, flag_vals):
@@ -297,7 +308,7 @@ class ResourceProxy:
 
 
 def _source_resolution_error(source, dep, e) -> typing.NoReturn:
-    msg = f"could not resolve '{source}' in {dep.resdef.name} resource: {e}"
+    msg = f"could not resolve '{source}' in {dep.resdef.resolving_name} resource: {e}"
     if source.help:
         msg += "\n" + cli.style(source.help, fg="yellow")
     raise OpDependencyError(msg)
@@ -476,34 +487,73 @@ def resolved_op_runs_for_opdef(opdef, flag_vals, resolver_factory=None):
 
 
 def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
+    """Returns an interation over resolved runs for deps and flag values.
+
+    Each iteration is a tuple of run and associated dependency from
+    `deps`.
+
+    If there are flag values that can be used to resolve a run for a
+    given resource in deps, they're used, otherwise tries the default
+    run. Logs a warning message for each resource def that cannot be
+    resolved with at least one run.
+    """
     resolver_factory = resolver_factory or resolver_for_source
     for dep in deps:
+        run_id_candidates = _run_id_flag_val_candidates(dep.resdef, flag_vals)
+        for op_source in _op_sources_for_deps(deps):
+            resolver = resolver_factory(op_source, dep)
+            resolved = _resolve_runs_for_run_id_candidates(run_id_candidates, resolver)
+            if not resolved:
+                _warn_no_resolved_runs_for_op_source(op_source)
+            for run in resolved:
+                yield run, dep
+
+
+def _run_id_flag_val_candidates(resdef, flag_vals):
+    return [
+        str(val)
+        for val in [
+            flag_vals.get(name) for name in _resdef_flag_name_candidates(resdef)
+        ]
+        if val
+    ]
+
+
+def _op_sources_for_deps(deps):
+    for dep in deps:
         for source in dep.resdef.sources:
-            if not is_operation_source(source):
-                continue
-            resolver = resolver_factory(source, dep)
-            assert isinstance(resolver, resolverlib.OperationResolver), resolver
-            for run_id_prefix in _iter_flag_val_items(flag_vals.get(dep.resdef.name)):
-                try:
-                    run = resolver.resolve_op_run(run_id_prefix, include_staged=True)
-                except resolverlib.ResolutionError:
-                    if not source.optional:
-                        log.warning(
-                            "cannot find a suitable run for required resource '%s'",
-                            dep.resdef.name,
-                        )
-                else:
-                    yield run, dep
+            if is_operation_source(source):
+                yield source
+
+
+def _resolve_runs_for_run_id_candidates(run_id_candidates, resolver):
+    # If there are no run ID candidates, try the default run for
+    # resolver, which is represented by `None`
+    run_id_candidates = run_id_candidates or [None]
+    return [
+        run
+        for run in [
+            _try_resolved_run(run_id_prefix, resolver)
+            for run_id_prefix in run_id_candidates
+        ]
+        if run
+    ]
+
+
+def _try_resolved_run(run_id_prefix, resolver):
+    try:
+        return resolver.resolve_op_run(run_id_prefix, include_staged=True)
+    except resolverlib.ResolutionError:
+        return None
+
+
+def _warn_no_resolved_runs_for_op_source(op_source):
+    log.warning(
+        "cannot find a suitable run for required resource '%s'",
+        op_source.resolving_name,
+    )
 
 
 def is_operation_source(source):
     cls = resolverlib.resolver_class_for_source(source)
     return cls is not None and issubclass(cls, resolverlib.OperationResolver)
-
-
-def _iter_flag_val_items(val):
-    if isinstance(val, list):
-        for item in val:
-            yield item
-    else:
-        yield val

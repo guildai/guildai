@@ -53,6 +53,10 @@ source code copy rules in effect for versions prior to 0.9.
 
 The tests below illustrate the various scenarios for source code copy.
 
+Isolate our runs using a unique Guild home:
+
+    >>> set_guild_home(mkdtemp())
+
 ## Default rules for non-VCS project
 
 The default rules for a project that isn't configured with version
@@ -156,6 +160,39 @@ Default sourcecode copy for shell script:
       __pycache__/hello.pyc
       subdir/logo.png
     <exit 0>
+
+Source code copy for `default` operation:
+
+    >>> run("guild run default --test-sourcecode")  # doctest: +REPORT_UDIFF
+    Copying from the current directory
+    Rules:
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+    Selected for copy:
+      config.in.yml
+      config.yml
+      empty
+      guild.yml
+      hello.R
+      hello.erl
+      hello.py
+      hello.sh
+      data/file1
+      data/file2
+      data/file3
+    Skipped:
+      .hidden/
+      __pycache__/
+      nocopy_dir/
+      venv/
+      subdir/logo.png
 
 ### Operation overrides to default rules
 
@@ -330,6 +367,38 @@ containing the sentinel `.guild-nocopy`.
       .git/
       nocopy_dir/
     <exit 0>
+
+We see the same behavior for the `default` operation, which does not
+define additional rules.
+
+    >>> run("guild run default --test-sourcecode")  # doctest: +REPORT_UDIFF
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      config.in.yml
+      config.yml
+      empty
+      guild.yml
+      hello.R
+      hello.erl
+      hello.py
+      hello.sh
+      .hidden/file-1
+      .hidden/file-2
+      __pycache__/hello.pyc
+      data/file1
+      data/file2
+      data/file3
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      nocopy_dir/
 
 ### gitignore
 
@@ -562,3 +631,203 @@ based rules generated when a project is under VCS control.
       hello.py
       hello.sh
     <exit 0>
+
+## Source code and dependencies
+
+There may be a conflict between a file considered as source code and a
+file (or link) written to the run directory during dependency
+resolution.
+
+Files may conflict with source code as dependencies for a number of
+reasons:
+
+- Project local dependency (`file` type)
+- Selected from an upstream run (`operation` type)
+- Selected from an archive (`file` or remote URL type)
+
+Guild indentifies project-local dependencies -- i.e. files specified
+with the `file` type -- and removes them from source code file lists,
+regardless of the source code rules.
+
+As a baseline, the `default` operation, using the current project
+configuration (gitignore and guildignore) copies `config.yml`.
+
+    >>> run("guild run default --test-sourcecode")  # doctest: +REPORT_UDIFF
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git, __pycache__
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      config.yml
+      empty
+      guild.yml
+      hello.py
+      .hidden/file-1
+      .hidden/file-2
+      data/file1
+      data/file2
+      data/file3
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      __pycache__/
+      nocopy_dir/
+      .gitignore
+      .guildignore
+      config.in.yml
+      hello.R
+      hello.erl
+      hello.sh
+
+The `upstream` operation in the project requires `config.yml` and so
+this file is not copied as source code.
+
+    >>> run("guild run upstream --test-sourcecode")  # doctest: +REPORT_UDIFF
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git, __pycache__
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      empty
+      guild.yml
+      hello.py
+      .hidden/file-1
+      .hidden/file-2
+      data/file1
+      data/file2
+      data/file3
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      __pycache__/
+      nocopy_dir/
+      .gitignore
+      .guildignore
+      config.in.yml
+      config.yml
+      hello.R
+      hello.erl
+      hello.sh
+
+### Non-project local dependencies
+
+Guild, however, does not exclude non-project local dependencies from
+source code. This includes files resolved from upstream runs or
+extracted from archives.
+
+The `downstream-conflict` operation defines a dependency on the
+`upstream` operation. The conflict arises because Guild copies
+`config.yml` as source code for `downstream-conflict`.
+
+Guild treats `config.yml` as source code for `downstream-conflict`.
+
+    >>> run("guild run downstream-conflict --test-sourcecode")  # doctest: +REPORT_UDIFF
+    WARNING: cannot find a suitable run for required resource 'upstream'
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git, __pycache__
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      config.yml
+      empty
+      guild.yml
+      hello.py
+      .hidden/file-1
+      .hidden/file-2
+      data/file1
+      data/file2
+      data/file3
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      __pycache__/
+      nocopy_dir/
+      .gitignore
+      .guildignore
+      config.in.yml
+      hello.R
+      hello.erl
+      hello.sh
+
+To show the problem, we create the required `upstream` run.
+
+    >>> run("guild run upstream -y")
+    Resolving file:config.yml
+
+In this case, Guild treats `config.yml` as a dependency and not as
+source code.
+
+    >>> run("guild ls -n --dependencies")
+    config.yml
+
+    >>> run("guild ls -n --sourcecode")
+    .hidden/file-1
+    .hidden/file-2
+    data/file1
+    data/file2
+    data/file3
+    empty
+    guild.yml
+    hello.py
+    subdir/logo.png
+    venv/bin/activate
+
+When we run `downstream-conflict` we see the conflict.
+
+    >>> run("guild run downstream-conflict -y")
+    Resolving upstream
+    Using run ... for upstream resource
+    WARNING: .../config.yml already exists, skipping copy
+
+The `downstream-fixed` operation is configured to exclude `config.yml`
+as source code.
+
+    >>> run("guild run downstream-fixed --test-sourcecode")
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git, __pycache__
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+      exclude config.yml
+    Selected for copy:
+      empty
+      guild.yml
+      hello.py
+      .hidden/file-1
+      .hidden/file-2
+      data/file1
+      data/file2
+      data/file3
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      __pycache__/
+      nocopy_dir/
+      .gitignore
+      .guildignore
+      config.in.yml
+      config.yml
+      hello.R
+      hello.erl
+      hello.sh
+
+When we run the operation, it runs without conflicts.
+
+    >>> run("guild run downstream-fixed -y")
+    Resolving upstream
+    Using run ... for upstream resource

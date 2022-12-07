@@ -31,6 +31,8 @@ import tempfile
 import threading
 import time
 
+import yaml
+
 import guild
 
 from guild import _api as gapi
@@ -579,6 +581,7 @@ def test_globals():
         "islink": os.path.islink,
         "join_path": os.path.join,
         "json": json,
+        "make_executable": util.make_executable,
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,
         "mktemp_guild_dir": mktemp_guild_dir,
@@ -607,8 +610,10 @@ def test_globals():
         "sys": sys,
         "tests_dir": tests_dir,
         "touch": util.touch,
+        "use_project": use_project,
         "which": util.which,
         "write": write,
+        "yaml": yaml,
     }
 
 
@@ -773,6 +778,13 @@ class ModelPath:
 
 
 class Project:
+    """Project abstraction used in tests.
+
+    This facility is deprecated and should not be used by tests moving
+    forward.  In cases where it makes sense, tests that use this
+    facility should be refactored to use the pattern described in
+    `guild/tests/test-template.md` using `use_project()`.
+    """
     def __init__(self, cwd, guild_home=None, env=None):
         from guild import index as indexlib  # expensive
 
@@ -1088,7 +1100,7 @@ def _run(
         out = _cut_cols(out, cut)
     if _capture:
         if exit_code != 0:
-            raise RuntimeError(out, exit_code)
+            raise gapi.RunError((cmd, cwd, proc_env), exit_code, out)
         return out
     if out:
         print(out)
@@ -1429,3 +1441,9 @@ def _strip_ignored(captured, ignore_patterns):
 
 def _capture_ignored(s, ignore_patterns):
     return any(p.search(s) for p in ignore_patterns)
+
+
+def use_project(project_name, guild_home=None):
+    guild_home = guild_home or mkdtemp()
+    _chdir(sample("projects", project_name))
+    _set_guild_home(guild_home)

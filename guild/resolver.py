@@ -106,7 +106,7 @@ def _try_plugins_for_resolver_class(source):
 class FileResolver(Resolver):
     def resolve(self, resolve_context):
         if self.resource.config:
-            return _resolve_config_path(self.resource.config, self.source.resdef.name)
+            return _resolve_config_path(self.resource.config, self.source.resdef)
         source_path = self._abs_source_path()
         unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)
         resolved = self._resolve_source_files(source_path, unpack_dir)
@@ -157,7 +157,7 @@ class URLResolver(Resolver):
         from guild import pip_util  # expensive
 
         if self.resource.config:
-            return _resolve_config_path(self.resource.config, self.source.resdef.name)
+            return _resolve_config_path(self.resource.config, self.source.resdef)
         download_dir = url_source_download_dir(self.source)
         util.ensure_dir(download_dir)
         try:
@@ -206,10 +206,12 @@ class OperationResolver(FileResolver):
     def _resolve_run(self):
         run_spec = str(self.resource.config) if self.resource.config else ""
         if run_spec and os.path.isdir(run_spec):
-            log.info("Using run %s for %s resource", run_spec, self.source.resdef.name)
+            log.info(
+                "Using run %s for %s", run_spec, self.source.resdef.resolving_name
+            )
             return run_spec
         run = self.resolve_op_run(run_spec)
-        log.info("Using run %s for %s resource", run.id, self.source.resdef.name)
+        log.info("Using run %s for %s", run.id, self.source.resdef.resolving_name)
         return run
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
@@ -941,11 +943,11 @@ def _file_source_digest(path):
     return hashlib.sha224(key).hexdigest()
 
 
-def _resolve_config_path(config, resource_name):
+def _resolve_config_path(config, resdef):
     config_path = os.path.abspath(str(config))
     if not os.path.exists(config_path):
         raise ResolutionError(f"{config_path} does not exist")
-    log.info("Using %s for %s resource", os.path.relpath(config_path), resource_name)
+    log.info("Using %s for %s", os.path.relpath(config_path), resdef.resolving_name)
     return [config_path]
 
 

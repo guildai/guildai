@@ -1,58 +1,89 @@
-- operations:
+flag:
+  description: Defines a flag but no resource.
+  main: guild.pass
+  flags-dest: args
+  flags:
+    foo: 123
+
+resource-default:
+  description: Defines a resource using the default name,
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - file: foo.txt
+
+resource-name:
+  description: Defines a resource with a name.
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - file: foo.txt
+      name: infile
+
+resource-flag-name:
+  description: Defines a resource with a flag name.
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - file: foo.txt
+      flag-name: infile
+
+resource-name-and-flag-name:
+  description: Defines a resource with a both a name and a flag name.
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - file: foo.txt
+      name: input file
+      flag-name: input-file
+
+flag-and-resource:
+  description: Provides flag def for a resource.
+  main: guild.pass
+  flags-dest: args
+  flags:
+    infile:
+      description: Path to infile
+      default: foo.txt
+  requires:
+    - file: foo.txt
+      flag-name: infile
+
+resource-op:
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - operation: flag
+      warn-if-empty: false
+
+resource-op-with-flag:
+  main: guild.pass
+  flags-dest: args
+  flags:
     flag:
-      main: guild.pass hello flag
-      flags-dest: args
-      flags:
-        foo: 123
+      description: Run ID for 'flag' run (defaults to latest non-error run)
+      default: null
+  requires:
+    - operation: flag
+      warn-if-empty: false
 
-    resource:
-      main: guild.pass hello resource
-      flags-dest: args
-      requires:
-        - file: foo.txt
-          flag-name: foo
+resource-op-with-name:
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - operation: flag
+      name: flag-run
+      warn-if-empty: false
 
-    flag-and-resource:
-      main: guild.pass hello flag-and-resource
-      flags-dest: args
-      flags:
-        foo: 123
-      requires:
-        - file: foo.txt
-          flag-name: foo
-
-    requires-flag:
-      main: guild.pass hello requires-flag
-      flags-dest: args
-      requires:
-        - operation: flag
-          warn-if-empty: false
-
-    requires-flag-2:
-      main: guild.pass hello requires-flag-2
-      flags-dest: args
-      flags:
-        flag: null
-      requires:
-        - operation: flag
-          warn-if-empty: false
-
-    requires-flag-3:
-      main: guild.pass hello requires-flag-3
-      flags-dest: args
-      requires:
-        - operation: flag
-          name: foo
-          warn-if-empty: false
-
-    requires-flag-4:
-      main: guild.pass hello requires-flag-4
-      flags-dest: args
-      flags:
-        foo:
-          default: invalid
-          arg-name: FOO
-      requires:
-        - operation: flag
-          name: foo
-          warn-if-empty: false
+resource-op-with-name-and-flag:
+  main: guild.pass
+  flags-dest: args
+  flags:
+    flag-run:
+      description: Run ID for 'flag' run (defaults to latest non-error run)
+      default: null
+      arg-name: FLAG_RUN
+  requires:
+    - operation: flag
+      name: flag-run
+      warn-if-empty: false

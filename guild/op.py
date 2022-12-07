@@ -446,7 +446,7 @@ def _resolve_deps(op, run, for_stage=False, continue_on_error=False):
     resolve_context = op_dep.ResolveContext(run)
     deps_attr = run.get("deps") or {}
     for dep in op.deps or []:
-        resolved_sources = deps_attr.setdefault(dep.resdef.name, {})
+        resolved_sources = deps_attr.setdefault(dep.resdef.resolving_name, {})
         try:
             _apply_resolve_dep_sources(
                 op,
@@ -464,7 +464,7 @@ def _resolve_deps(op, run, for_stage=False, continue_on_error=False):
 
 
 def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolved):
-    log.info(loglib.dim("Resolving %s"), dep.resdef.name)
+    log.info(loglib.dim("Resolving %s"), dep.resdef.resolving_name)
     for source in dep.resdef.sources:
         if not source.always_resolve and source.name in resolved:
             log.info(
@@ -488,7 +488,7 @@ def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolve
             )
             continue
         else:
-            resolved[source.name] = source_info = {
+            resolved[source.resolving_name] = source_info = {
                 "uri": source.uri,
                 "paths": run_rel_resolved_paths,
             }

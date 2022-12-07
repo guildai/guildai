@@ -658,7 +658,7 @@ def _resolver_factory(args):
 
 
 def _dep_flag_name(dep):
-    return dep.resdef.flag_name or dep.resdef.name
+    return dep.resdef.resolving_name
 
 
 def _ensure_dep_flag_op_cmd_arg_skip(flag_name, opdef, op_cmd):
@@ -692,19 +692,17 @@ def _apply_dep_run_id(run_id, dep_flag_name, flag_vals):
     val = flag_vals.get(dep_flag_name)
     if val is None:
         flag_vals[dep_flag_name] = run_id
-    elif isinstance(val, str):
-        if run_id.startswith(val):
-            flag_vals[dep_flag_name] = run_id
     elif isinstance(val, list):
         _apply_dep_run_id_to_list(run_id, val)
         flag_vals[dep_flag_name] = val
     else:
-        assert False, (type(val), dep_flag_name, flag_vals)
+        if run_id.startswith(str(val)):
+            flag_vals[dep_flag_name] = run_id
 
 
 def _apply_dep_run_id_to_list(run_id, l):
     for i, x in enumerate(l):
-        if run_id.startswith(x):
+        if run_id.startswith(str(x)):
             l[i] = run_id
             break
 

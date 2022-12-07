@@ -63,8 +63,20 @@ class ResourceDef:
         self.references = data.get("references", [])
         self.sources = self._init_sources(data.get("sources", []))
 
+    @property
+    def resolving_name(self):
+        return (
+            self.name
+            or self.flag_name
+            or _joined_resdef_source_desc(self)
+            or _unnamed_resource_desc()
+        )
+
     def __repr__(self):
-        return f"<{self.__class__.__module__}.{self.__class__.__name__} '{self.name}'>"
+        return (
+            f"<{self.__class__.__module__}.{self.__class__.__name__} "
+            f"'{self.resolving_name}'>"
+        )
 
     def _init_sources(self, data):
         if isinstance(data, list):
@@ -131,6 +143,10 @@ def _coerce_resdef(data):
     raise ResourceDefValueError()
 
 
+def _joined_resdef_source_desc(resdef):
+    return ",".join([source.resolving_name for source in resdef.sources])
+
+
 class ResourceSource:
     def __init__(
         self,
@@ -156,12 +172,14 @@ class ResourceSource:
         path=None,
         preserve_path=False,
         params=None,
+        flag_name=None,
         **kw,
     ):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
-        self.name = name or uri
+        self.name = name
+        self.flag_name = flag_name
         self.sha256 = sha256
         if unpack is not None:
             self.unpack = unpack
@@ -199,10 +217,18 @@ class ResourceSource:
         return self.name
 
     def __repr__(self):
-        return f"<guild.resourcedef.ResourceSource '{self.name}'>"
+        return f"<guild.resourcedef.ResourceSource '{self.resolving_name}'>"
 
     def __str__(self):
         return self.uri
+
+    @property
+    def resolving_name(self):
+        return self.name or self.flag_name or self.uri
+
+
+def _unnamed_resource_desc():
+    return "resource"
 
 
 SelectSpec = collections.namedtuple("SelectSpec", ["pattern", "reduce"])

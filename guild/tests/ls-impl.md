@@ -6,7 +6,7 @@ doctest: -WINDOWS
 
 These tests show the behavior of the list run file implementation.
 
-    >>> from guild.commands.ls_impl import _list
+    >>> from guild.commands.ls_impl import list_run_files
 
 Create a sample directory structure to test.
 
@@ -48,7 +48,7 @@ Create a helper function to list files.
     ...         sourcecode=False,
     ...         generated=False,
     ...         dependencies=False)
-    ...     for name in sorted(_list(run_proxy, args)):
+    ...     for name in sorted(list_run_files(run_proxy, args)):
     ...         print(name)
 
 Default file listing:

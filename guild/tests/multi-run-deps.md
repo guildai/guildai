@@ -1,5 +1,7 @@
 # Multi-run Dependencies
 
+Stub for tests (TODO):
+
     >> cd(sample("projects", "multi-run"))
     >> set_guild_home(mkdtemp())
 

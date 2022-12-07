@@ -65,8 +65,10 @@ from guild import yaml_util
 
 log = logging.getLogger("guild")
 
-MAX_DEFAULT_SOURCECODE_FILE_SIZE = 1024 * 1024
-MAX_DEFAULT_SOURCECODE_COUNT = 100
+MAX_DEFAULT_SOURCECODE_FILE_SIZE = (
+    util.try_env("MAX_DEFAULT_SOURCECODE_FILE_SIZE", int) or 1024 * 1024
+)
+MAX_DEFAULT_SOURCECODE_COUNT = util.try_env("MAX_DEFAULT_SOURCECODE_COUNT", int) or 100
 
 DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
 STEPS_EXEC = "${python_exe} -um guild.steps_main"
@@ -1046,10 +1048,10 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
         )
         self._warned_max_matches = True
 
-    def _warn_max_size(self, path):
+    def _warn_max_size(self, fullpath):
         log.warning(
-            "Skipping potential source code file %s because it's too big.%s",
-            path,
+            "Skipping source code file %s because it's too big.%s",
+            os.path.relpath(fullpath),
             self._warning_help_suffix,
         )
 
@@ -1303,6 +1305,9 @@ def _iter_resource_flagdefs(opdef, flag_vals):
         if resdef.flag_name:
             yield _ResourceFlagDefProxy(resdef.flag_name, opdef)
         else:
+            for source in resdef.sources:
+                if source.flag_name:
+                    yield _ResourceFlagDefProxy(source.flag_name, opdef)
             op_name = _required_operation_name(resdef)
             if op_name:
                 yield _ResourceFlagDefProxy(op_name, opdef)
@@ -1611,7 +1616,7 @@ def _op_dep_as_data(dep):
 
 def _resdef_data(resdef):
     data = dict(resdef._data)
-    data["name"] = resdef.name
+    data["name"] = resdef.resolving_name
     return data
 
 

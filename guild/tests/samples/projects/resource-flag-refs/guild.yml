@@ -1,5 +1,6 @@
 op1:
   main: guild.pass
+  sourcecode: no
   flags:
     filename:
       default: foo
@@ -7,14 +8,17 @@ op1:
   requires:
     - file: ${filename}-file.txt
       name: file
+
 op2:
   main: guild.pass
+  sourcecode: no
   requires:
     - file: ${undefined}
       name: file
 
 op3:
   main: guild.pass
+  sourcecode: no
   flags:
     name:
       default: baz
@@ -25,12 +29,14 @@ op3:
 
 op4:
   main: guild.pass
+  sourcecode: no
   requires:
     - file: foo-file.txt
       rename: foo-file.txt ${undefined}
 
 op5:
   main: guild.pass
+  sourcecode: no
   requires:
     - file: foo-file.txt
       rename: ${undefined} bar.txt

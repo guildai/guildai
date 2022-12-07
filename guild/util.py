@@ -1948,3 +1948,12 @@ class NopContext:
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
+
+def try_env(name, cvt=None):
+    val_str = os.getenv(name)
+    if val_str is None:
+        return None
+    try:
+        return cvt(val_str)
+    except (TypeError, ValueError):
+        return None
