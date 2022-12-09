@@ -554,11 +554,15 @@ def _resolve_rel_path(maybe_path):
     return maybe_path
 
 
-class ReferenceCycleError(Exception):
+class ReferenceResolutionError(Exception):
     pass
 
 
-class UndefinedReferenceError(Exception):
+class ReferenceCycleError(ReferenceResolutionError):
+    pass
+
+
+class UndefinedReferenceError(ReferenceResolutionError):
     def __init__(self, reference):
         super().__init__(reference)
         self.reference = reference
@@ -1948,6 +1952,7 @@ class NopContext:
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
+
 
 def try_env(name, cvt=None):
     val_str = os.getenv(name)

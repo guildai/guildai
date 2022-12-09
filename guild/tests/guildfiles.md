@@ -732,7 +732,7 @@ If both attritubtes are specified, Guild logs a warning.
     ... """)
 
     >>> log.print_all()
-    WARNING: target-path and path both specified for resource :foo
+    WARNING: target-path and path both specified for resource foo
     - using target-path
 
 ### Unrecognized Source Attrs

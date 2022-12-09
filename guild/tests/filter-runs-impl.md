@@ -57,15 +57,14 @@ filtering).
 
 List the runs.
 
-    >>> run("guild runs")
-    [1:...]  fail         ...  error      oops
-    [2:...]  fixed:test   ...  completed  seed=3 operation:train=...
-    [3:...]  fixed:test   ...  completed  seed=2 operation:train=...
-    [4:...]  fixed:train  ...  completed  batch=100 lr=0.1 seed=2
-    [5:...]  fixed:train  ...  completed  batch=100 lr=0.1 seed=1
-    [6:...]  fixed:train  ...  completed  batch=100 lr=0.01 seed=2
-    [7:...]  fixed:train  ...  completed  batch=100 lr=0.01 seed=1
-    <exit 0>
+    >>> run("guild runs -s")
+    [1]  fail         error      oops
+    [2]  fixed:test   completed  operation:train=... seed=3
+    [3]  fixed:test   completed  operation:train=... seed=2
+    [4]  fixed:train  completed  batch=100 lr=0.1 seed=2
+    [5]  fixed:train  completed  batch=100 lr=0.1 seed=1
+    [6]  fixed:train  completed  batch=100 lr=0.01 seed=2
+    [7]  fixed:train  completed  batch=100 lr=0.01 seed=1
 
 Use the compare command to show scalar values. We filter on these
 values below.
@@ -87,37 +86,33 @@ Helper function to show filtered runs:
     ...     run(f"guild compare -t -cc .operation,{cols or '.label'} "
     ...         f"--filter {shlex_quote(expr)}")
 
-List runs using various filters.
+List runs using various filters:
 
     >>> filter("true")
     run  operation    label
     ...  fail
-    ...  fixed:test   seed=3 train=...
-    ...  fixed:test   seed=2 train=...
+    ...  fixed:test   operation:train=... seed=3
+    ...  fixed:test   operation:train=... seed=2
     ...  fixed:train  batch=100 lr=0.1 seed=2
     ...  fixed:train  batch=100 lr=0.1 seed=1
     ...  fixed:train  batch=100 lr=0.01 seed=2
     ...  fixed:train  batch=100 lr=0.01 seed=1
-    <exit 0>
 
     >>> filter("false")
     <exit 0>
 
     >>> filter("op = test")
     run  operation   label
-    ...  fixed:test  seed=3 train=...
-    ...  fixed:test  seed=2 train=...
-    <exit 0>
+    ...  fixed:test  operation:train=... seed=3
+    ...  fixed:test  operation:train=... seed=2
 
     >>> filter("op = test and seed = 3")
     run  operation   label
-    ...  fixed:test  seed=3 train=...
-    <exit 0>
+    ...  fixed:test  operation:train=... seed=3
 
     >>> filter("op = train and seed in [1,3] and lr > 0.01 and lr < 0.2")
     run  operation    label
     ...  fixed:train  batch=100 lr=0.1 seed=1
-    <exit 0>
 
     >>> filter(
     ...     "(operation = fixed:train and lr = 0.1 and loss < 2) "
@@ -127,19 +122,16 @@ List runs using various filters.
     run  operation    lr   loss  test-acc
     ...  fixed:test              84.0
     ...  fixed:train  0.1  1.0
-    <exit 0>
 
     >>> filter("model = ''")
     run  operation  label
     ...  fail       oops
-    <exit 0>
 
     >>> filter("acc is undefined", "acc")
     run  operation   acc
     ...  fail
     ...  fixed:test
     ...  fixed:test
-    <exit 0>
 
     >>> filter("acc is not undefined", "acc")
     run  operation    acc
@@ -147,24 +139,20 @@ List runs using various filters.
     ...  fixed:train  95.0
     ...  fixed:train  83.0
     ...  fixed:train  95.0
-    <exit 0>
 
     >>> filter("label contains oop")
     run  operation  label
     ...  fail       oops
-    <exit 0>
 
     >>> filter("label = oops")
     run  operation  label
     ...  fail       oops
-    <exit 0>
 
     >>> filter("label not contains batch")
     run  operation   label
     ...  fail        oops
-    ...  fixed:test  seed=3 train=...
-    ...  fixed:test  seed=2 train=...
-    <exit 0>
+    ...  fixed:test  operation:train=... seed=3
+    ...  fixed:test  operation:train=... seed=2
 
 The 'op' attribute is just the operation name, not the model.
 

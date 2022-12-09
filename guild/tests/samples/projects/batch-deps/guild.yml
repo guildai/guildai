@@ -6,4 +6,4 @@ train:
 serve:
   requires:
     - operation: train
-  label: model=${train}
+  label: model=${operation:train}

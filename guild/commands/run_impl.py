@@ -1400,7 +1400,8 @@ def _write_run_vcs_commit(run, op):
         return
 
     assert op._opdef
-    op_util.write_vcs_commit(run, op._opdef.guildfile.dir)
+    if op._opdef.guildfile.dir:
+        op_util.write_vcs_commit(run, op._opdef.guildfile.dir)
 
 
 def _op_init_callbacks_for_run_with_proto(op):

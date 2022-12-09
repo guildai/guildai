@@ -4,23 +4,13 @@ These tests cover optional dependencies, added in 0.8.2.
 
 Tests use the `resources-3` project.
 
-    >>> cd(sample("projects", "resources-3"))
-
-Use an isolated Guild env.
-
-    >>> set_guild_home(mkdtemp())
+    >>> use_project("resources-3")
 
 Verify project operations.
 
     >>> run("guild ops")
     missing-file
     self-ref
-    <exit 0>
-
-The env is empty.
-
-    >>> run("guild runs")
-    <exit 0>
 
 The `missing-file` operation defines a dependency on a single missing file. The
 source is marked as optional.
@@ -28,13 +18,11 @@ source is marked as optional.
     >>> run("guild run missing-file -y")
     Resolving file:missing.txt
     Could not resolve file:missing.txt - skipping because dependency is optional
-    <exit 0>
 
 The run succeeds.
 
-    >>> run("guild runs")
-    [1:...]  missing-file  ...  completed
-    <exit 0>
+    >>> run("guild runs -s")
+    [1]  missing-file  completed
 
 The debug option can be used to show resolution error detail.
 
@@ -51,31 +39,26 @@ The `self-ref` operation requires a run of 'self-ref'. It is also marked as
 optional.
 
     >>> run("guild run self-ref -y")
-    Resolving self-ref
+    Resolving operation:self-ref
     Could not resolve operation:self-ref - skipping because dependency is optional
     file not found - creating
-    <exit 0>
 
-    >>> run("guild runs -n1")
-    [1:...]  self-ref  ...  completed
-    <exit 0>
+    >>> run("guild runs -sn1")
+    [1]  self-ref  completed
 
 The run generated a new 'file'.
 
     >>> run("guild ls -ng")
     file
-    <exit 0>
 
 When we run `self-ref` again, it finds a required run and links 'file'.
 
     >>> run("guild run self-ref -y")
-    Resolving self-ref
-    Using run ... for self-ref resource
+    Resolving operation:self-ref
+    Using run ... for operation:self-ref
     file found
-    <exit 0>
 
 We can see resolved dependencies using the `-d/--dependencies` option to `ls`.
 
     >>> run("guild ls -nd")
     file
-    <exit 0>

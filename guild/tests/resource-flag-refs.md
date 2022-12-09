@@ -2,11 +2,7 @@
 
 The tests below run code defined in the `resource-flag-refs` project.
 
-    >>> cd(sample("projects", "resource-flag-refs"))
-
-Isolate the test runs.
-
-    >>> set_guild_home(mkdtemp())
+    >>> use_project("resource-flag-refs")
 
 Default resource resolution:
 
@@ -29,15 +25,15 @@ Flag that can't be resolved to a file:
     >>> run("guild run op1 filename=baz -y")
     Resolving file
     guild: run failed because a dependency was not met: could not resolve
-    'file:baz-file.txt' in file resource: cannot find source file
-    'baz-file.txt'
+    'file' in file resource: cannot find source file 'baz-file.txt'
     <exit 1>
 
 Op with a reference to a missing flag:
 
     >>> run("guild run op2 -y")
-    guild: invalid definition for operation 'op2': invalid flag reference
-    'file' in dependency 'undefined'
+    Resolving file
+    guild: run failed because a dependency was not met: could not resolve 'file'
+    in file resource: cannot resolve '${undefined}' in file: undefined reference 'undefined'
     <exit 1>
 
 We can force the flag however.
@@ -67,11 +63,15 @@ Specifying the value for the renamed file.
 `op4` and `op5` contain undefined flag ref in rename specs.
 
     >>> run("guild run op4 -y")
-    guild: invalid definition for operation 'op4': invalid flag
-    reference 'file:foo-file.txt' in dependency 'undefined'
+    Resolving file:foo-file.txt
+    guild: run failed because a dependency was not met: error renaming
+    source foo-file.txt ('foo-file.txt' -> '${undefined}'): resolution error:
+    cannot resolve '${undefined}': undefined reference 'undefined'
     <exit 1>
 
     >>> run("guild run op5 -y")
-    guild: invalid definition for operation 'op5': invalid flag
-    reference 'file:foo-file.txt' in dependency 'undefined'
+    Resolving file:foo-file.txt
+    guild: run failed because a dependency was not met: error renaming source
+    foo-file.txt ('${undefined}' -> 'bar.txt'): resolution error: cannot resolve
+    '${undefined}': undefined reference 'undefined'
     <exit 1>

@@ -47,9 +47,33 @@ class ResolutionError(Exception):
 
 
 class ResolveContext:
+    _flag_vals = None
+
     def __init__(self, run=None, unpack_dir=None):
         self.run = run
         self.unpack_dir = unpack_dir
+
+    def resolve_flag_refs(self, s, val_desc=None):
+        flag_vals = self._ensure_flag_vals()
+        try:
+            return util.resolve_refs(s, flag_vals)
+        except util.UndefinedReferenceError as e:
+            raise ResolutionError(
+                f"cannot resolve {s!r}{_in_desc(val_desc)}: undefined reference '{e}'"
+            ) from None
+        except util.ReferenceResolutionError as e:
+            raise ResolutionError(
+                f"cannot resolve {s!r}{_in_desc(val_desc)}: {e!r}"
+            ) from None
+
+    def _ensure_flag_vals(self):
+        if self._flag_vals is None:
+            self._flag_vals = (self.run.get("flags") or {}) if self.run else {}
+        return self._flag_vals
+
+
+def _in_desc(desc):
+    return f" in {desc}" if desc else ""
 
 
 class Resolver:
@@ -57,7 +81,7 @@ class Resolver:
         self.source = source
         self.resource = resource
 
-    def resolve(self, resolve_context):
+    def resolve(self, context):
         raise NotImplementedError()
 
 
@@ -104,18 +128,20 @@ def _try_plugins_for_resolver_class(source):
 
 
 class FileResolver(Resolver):
-    def resolve(self, resolve_context):
+    def resolve(self, context):
         if self.resource.config:
             return _resolve_config_path(self.resource.config, self.source.resdef)
-        source_path = self._abs_source_path()
-        unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)
+        source_path = self._abs_source_path(context)
+        unpack_dir = _unpack_dir(source_path, context.unpack_dir)
         resolved = self._resolve_source_files(source_path, unpack_dir)
         _check_source_resolved(resolved, self.source)
         post_process(self.source, unpack_dir or os.path.dirname(source_path))
         return resolved
 
-    def _abs_source_path(self):
-        source_path = self.source.parsed_uri.path
+    def _abs_source_path(self, context):
+        source_path = context.resolve_flag_refs(
+            self.source.parsed_uri.path, self.source.resolving_name
+        )
         for root in self._source_location_paths():
             abs_path = os.path.abspath(os.path.join(root, source_path))
             if os.path.exists(abs_path):
@@ -153,16 +179,19 @@ class FileResolver(Resolver):
 
 
 class URLResolver(Resolver):
-    def resolve(self, resolve_context):
+    def resolve(self, context):
         from guild import pip_util  # expensive
 
         if self.resource.config:
             return _resolve_config_path(self.resource.config, self.source.resdef)
+        resolved_uri = context.resolve_flag_refs(
+            self.source.uri, self.source.resolving_name
+        )
         download_dir = url_source_download_dir(self.source)
         util.ensure_dir(download_dir)
         try:
             source_path = pip_util.download_url(
-                self.source.uri, download_dir, self.source.sha256
+                resolve_uri, download_dir, self.source.sha256
             )
         except pip_util.HashMismatch as e:
             raise ResolutionError(
@@ -173,7 +202,7 @@ class URLResolver(Resolver):
                 log.exception(self.source.uri)
             raise ResolutionError(e) from e
         else:
-            unpack_dir = _url_unpack_dir(source_path, resolve_context.unpack_dir)
+            unpack_dir = _url_unpack_dir(source_path, context.unpack_dir)
             resolved = resolve_source_files(source_path, self.source, unpack_dir)
             _check_source_resolved(resolved, self.source)
             post_process(self.source, unpack_dir or os.path.dirname(source_path))
@@ -196,21 +225,27 @@ def _url_unpack_dir(source_path, explicit_unpack_dir):
 
 
 class OperationResolver(FileResolver):
-    def resolve(self, resolve_context):
-        run = self._resolve_run()
-        unpack_dir = _unpack_dir(run.dir, resolve_context.unpack_dir)
+    def resolve(self, context):
+        run = self._resolve_run(context)
+        unpack_dir = _unpack_dir(run.dir, context.unpack_dir)
         resolved = _resolve_run_files(run, self.source, unpack_dir)
         _check_source_resolved(resolved, self.source)
         return resolved
 
-    def _resolve_run(self):
-        run_spec = str(self.resource.config) if self.resource.config else ""
+    def _resolve_run(self, context):
+        run_spec = self._resolved_run_spec(context)
         if run_spec and os.path.isdir(run_spec):
             log.info("Using run %s for %s", run_spec, self.source.resdef.resolving_name)
             return run_spec
         run = self.resolve_op_run(run_spec)
         log.info("Using run %s for %s", run.id, self.source.resdef.resolving_name)
         return run
+
+    def _resolved_run_spec(self, context):
+        return context.resolve_flag_refs(
+            str(self.resource.config) if self.resource.config else "",
+            self.source.resolving_name,
+        )
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
         return self._resolve_op_run(run_id_prefix, include_staged, marked_or_latest_run)

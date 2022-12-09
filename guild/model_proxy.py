@@ -73,6 +73,7 @@ class BatchModelProxy:
                     },
                     "delete-on-success": self.delete_on_success,
                     "can-stage-trials": self.can_stage_trials,
+                    "pip-freeze": False,
                 }
             }
         }

@@ -98,17 +98,25 @@ def _apply_resource_flagdefs(opdef, flag_vals):
     from guild import op_dep
 
     for depdef in opdef.dependencies:
-        dep = op_dep.dep_for_depdef(depdef, flag_vals)
-        for source in dep.resdef.sources:
-            candidate_flag_names = _candidate_flag_names_for_source(source)
-            if not candidate_flag_names:
-                break
-            flagdef = _flagdef_for_candidate_names(opdef, candidate_flag_names)
-            if flagdef:
-                _maybe_apply_run_id_choices(source, flag_vals, flagdef)
-                break
-            # Apply the first candidate name as a new flag def
-            _apply_resource_flagdef(candidate_flag_names[0], opdef, source, flag_vals)
+        try:
+            dep = op_dep.dep_for_depdef(depdef, flag_vals)
+        except guild.op_dep.OpDependencyError:
+            # Can occur when there's a unresolvable flag reference in
+            # a resource source def - we ignore here
+            pass
+        else:
+            for source in dep.resdef.sources:
+                candidate_flag_names = _candidate_flag_names_for_source(source)
+                if not candidate_flag_names:
+                    break
+                flagdef = _flagdef_for_candidate_names(opdef, candidate_flag_names)
+                if flagdef:
+                    _maybe_apply_run_id_choices(source, flag_vals, flagdef)
+                    break
+                # Apply the first candidate name as a new flag def
+                _apply_resource_flagdef(
+                    candidate_flag_names[0], opdef, source, flag_vals
+                )
 
 
 def _candidate_flag_names_for_source(source):

@@ -1468,7 +1468,7 @@ def flag_assign(name, val):
 
 
 def parse_flag_assigns(args, opdef=None):
-    flag_types = _flag_types_for_opdef(opdef) if opdef else None
+    flag_types = _flag_types_for_opdef(opdef, args) if opdef else None
     expanded_args = [os.path.expanduser(arg) for arg in args]
     parsed_flags = {}
     parse_errors = {}
@@ -1481,18 +1481,26 @@ def parse_flag_assigns(args, opdef=None):
     return parsed_flags, parse_errors
 
 
-def _flag_types_for_opdef(opdef):
-    types = _resource_flagdef_types(opdef)
+def _flag_types_for_opdef(opdef, flag_args):
+    """Returns a map of flag name to flag type for opdef and flags.
+
+    Includes flag def proxies for resources but only when a resource
+    flag name candidate appears in `flag_args`.
+    """
+    types = _resource_flagdef_types(opdef, flag_args)
     types.update(_opdef_flagdef_types(opdef))
     return types
 
 
-def _resource_flagdef_types(opdef):
-    return {
-        flagdef.name: flagdef.type
-        for flagdef in _resource_flagdefs(opdef, {})
-        if flagdef.type
-    }
+def _resource_flagdef_types(opdef, flag_args):
+    resource_flagdefs = _resource_flagdefs(
+        opdef, {name: None for name in _flag_names_for_args(flag_args)}
+    )
+    return {flagdef.name: flagdef.type for flagdef in resource_flagdefs if flagdef.type}
+
+
+def _flag_names_for_args(args):
+    return [arg.split("=")[0] for arg in args]
 
 
 def _opdef_flagdef_types(opdef: guildfile.OpDef):

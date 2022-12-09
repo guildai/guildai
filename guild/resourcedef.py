@@ -53,15 +53,17 @@ class ResourceDef:
         self.fullname = fullname or name
         self.flag_name = data.get("flag-name")
         self.description = data.get("description", "")
-        self.target_path = _init_target_path(
-            data.get("target-path"), data.get("path"), f"resource {self.fullname}"
-        )
         self.preserve_path = data.get("preserve-path")
         self.target_type = data.get("target-type")
         self.default_unpack = data.get("default-unpack", True)
         self.private = bool(data.get("private"))
         self.references = data.get("references", [])
         self.sources = self._init_sources(data.get("sources", []))
+        self.target_path = _init_target_path(
+            data.get("target-path"),
+            data.get("path"),
+            f"resource {self.resolving_name}",
+        )
 
     @property
     def resolving_name(self):
@@ -192,7 +194,11 @@ class ResourceSource:
         self.fail_if_empty = fail_if_empty
         self.rename = _init_rename(rename)
         self.post_process = post_process
-        self.target_path = _init_target_path(target_path, path, f"source {self.name}")
+        self.target_path = _init_target_path(
+            target_path,
+            path,
+            f"source {self.resolving_name}",
+        )
         self.target_type = target_type
         self.replace_existing = replace_existing
         self.preserve_path = preserve_path
@@ -203,7 +209,7 @@ class ResourceSource:
             log.warning(
                 "unexpected source attribute '%s' in resource %r",
                 self.resdef._uncoerce_attr_key(key),
-                self.name,
+                self.resolving_name,
             )
 
     @property
