@@ -526,15 +526,14 @@ If we run the downstream operation, we get a warning message that a
 required upstream run isn't available and the run fails.
 
     >>> run("guild run downstream -y")
-    WARNING: cannot find a suitable run for required resource 'upstream'
-    Resolving upstream
+    WARNING: cannot find a suitable run for required resource 'operation:upstream'
+    Resolving operation:upstream
     guild: run failed because a dependency was not met: could not resolve
-    'operation:upstream' in upstream resource: no suitable run for upstream
+    'operation:upstream' in operation:upstream resource: no suitable run for upstream
     <exit 1>
 
     >>> run("guild runs -s")
     [1]  downstream  error
-    <exit 0>
 
 When we run the upstream operation, the run fails because a required
 file is missing.
@@ -600,8 +599,8 @@ The dependencies for the run are defined in the `deps` attribute.
 With an upstream run to resolve, we can run the downstream operation.
 
     >>> run("guild run downstream -y")
-    Resolving upstream
-    Using run ... for upstream resource
+    Resolving operation:upstream
+    Using run ... for upstream operation:resource
 
     >>> run("guild runs -s")
     [1]  downstream  completed  upstream=...

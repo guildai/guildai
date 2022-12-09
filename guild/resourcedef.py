@@ -51,7 +51,6 @@ class ResourceDef:
         self.name = name
         self._data = data = _coerce_resdef(data)
         self.fullname = fullname or name
-        self.flag_name = data.get("flag-name")
         self.description = data.get("description", "")
         self.preserve_path = data.get("preserve-path")
         self.target_type = data.get("target-type")
@@ -69,7 +68,6 @@ class ResourceDef:
     def resolving_name(self):
         return (
             self.name
-            or self.flag_name
             or _joined_resdef_source_desc(self)
             or _unnamed_resource_desc()
         )

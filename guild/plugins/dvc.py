@@ -220,14 +220,14 @@ def _dvcstage_source(data, resdef):
 
 
 class _DvcFileResolver(resolverlib.FileResolver):
-    def resolve(self, resolve_context):
+    def resolve(self, context):
         return util.find_apply(
             [
                 self._maybe_always_pull,
                 self._try_default_resolve,
                 self._pull_dep,
             ],
-            resolve_context,
+            context,
         )
 
     def _maybe_always_pull(self, resolve_context):

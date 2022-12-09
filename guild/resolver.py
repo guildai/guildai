@@ -80,9 +80,21 @@ class Resolver:
     def __init__(self, source, resource):
         self.source = source
         self.resource = resource
+        self.source_config = _source_config(source, resource.config)
 
     def resolve(self, context):
         raise NotImplementedError()
+
+
+def _source_config(source, config):
+    if not config:
+        return None
+    for key in (source.flag_name, source.name, source.uri):
+        try:
+            return config[key]
+        except KeyError:
+            pass
+    return None
 
 
 ###################################################################
@@ -129,8 +141,8 @@ def _try_plugins_for_resolver_class(source):
 
 class FileResolver(Resolver):
     def resolve(self, context):
-        if self.resource.config:
-            return _resolve_config_path(self.resource.config, self.source.resdef)
+        if self.source_config:
+            return _resolve_config_path(self.source_config, self.source)
         source_path = self._abs_source_path(context)
         unpack_dir = _unpack_dir(source_path, context.unpack_dir)
         resolved = self._resolve_source_files(source_path, unpack_dir)
@@ -182,8 +194,8 @@ class URLResolver(Resolver):
     def resolve(self, context):
         from guild import pip_util  # expensive
 
-        if self.resource.config:
-            return _resolve_config_path(self.resource.config, self.source.resdef)
+        if self.source_config:
+            return _resolve_config_path(self.source_config, self.source)
         resolved_uri = context.resolve_flag_refs(
             self.source.uri, self.source.resolving_name
         )
@@ -191,7 +203,7 @@ class URLResolver(Resolver):
         util.ensure_dir(download_dir)
         try:
             source_path = pip_util.download_url(
-                resolve_uri, download_dir, self.source.sha256
+                resolved_uri, download_dir, self.source.sha256
             )
         except pip_util.HashMismatch as e:
             raise ResolutionError(
@@ -235,15 +247,15 @@ class OperationResolver(FileResolver):
     def _resolve_run(self, context):
         run_spec = self._resolved_run_spec(context)
         if run_spec and os.path.isdir(run_spec):
-            log.info("Using run %s for %s", run_spec, self.source.resdef.resolving_name)
+            log.info("Using run %s for %s", run_spec, self.source.resolving_name)
             return run_spec
         run = self.resolve_op_run(run_spec)
-        log.info("Using run %s for %s", run.id, self.source.resdef.resolving_name)
+        log.info("Using run %s for %s", run.id, self.source.resolving_name)
         return run
 
     def _resolved_run_spec(self, context):
         return context.resolve_flag_refs(
-            str(self.resource.config) if self.resource.config else "",
+            str(self.source_config) if self.source_config else "",
             self.source.resolving_name,
         )
 
@@ -386,7 +398,7 @@ def _filter_non_sourcecode_files(paths, run):
 
 
 class ModuleResolver(Resolver):
-    def resolve(self, resolve_context):
+    def resolve(self, context):
         module_name = self.source.parsed_uri.path
         try:
             importlib.import_module(module_name)
@@ -425,11 +437,11 @@ class ConfigResolver(FileResolver):
     CFG_EXT = (".cfg", ".ini")
     ALL_EXT = YAML_EXT + JSON_EXT + CFG_EXT
 
-    def resolve(self, resolve_context):
-        if not resolve_context.run:
+    def resolve(self, context):
+        if not context.run:
             raise TypeError("config resolver requires run for resolve context")
-        resolved = super().resolve(resolve_context)
-        return [self._generate_config(path, resolve_context) for path in resolved]
+        resolved = super().resolve(context)
+        return [self._generate_config(path, context) for path in resolved]
 
     def _generate_config(self, path, resolve_context):
         try:
@@ -979,11 +991,11 @@ def _file_source_digest(path):
     return hashlib.sha224(key).hexdigest()
 
 
-def _resolve_config_path(config, resdef):
+def _resolve_config_path(config, source):
     config_path = os.path.abspath(str(config))
     if not os.path.exists(config_path):
         raise ResolutionError(f"{config_path} does not exist")
-    log.info("Using %s for %s", os.path.relpath(config_path), resdef.resolving_name)
+    log.info("Using %s for %s", os.path.relpath(config_path), source.resolving_name)
     return [config_path]
 
 

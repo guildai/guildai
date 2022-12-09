@@ -70,12 +70,11 @@ def dep_for_depdef(depdef, flag_vals):
 
 
 def _resdef_config(resdef, flag_vals):
-    for name in resdef_flag_name_candidates(resdef):
-        try:
-            return flag_vals[name]
-        except KeyError:
-            pass
-    return None
+    return {
+        name: flag_vals[name]
+        for name in resdef_flag_name_candidates(resdef)
+        if name in flag_vals
+    }
 
 
 def resdef_flag_name_candidates(resdef):
@@ -83,27 +82,16 @@ def resdef_flag_name_candidates(resdef):
 
 
 def _iter_resdef_flag_name_candidates(resdef):
-    # Use resdef fullname first because it's the most explicit
-    for name in (
-        _flag_name_candidate_for_resdef_fullname(resdef),
-        resdef.flag_name,
-        resdef.name,
-    ):
-        if name:
-            yield name
     for source in resdef.sources:
-        for name in (source.flag_name, source.name, source.uri, source.parsed_uri.path):
-            if name:
-                yield name
-
-
-def _flag_name_candidate_for_resdef_fullname(resdef):
-    if not resdef.fullname:
-        return None
-    parts = resdef.fullname.split(":", 1)
-    if len(parts) == 1 or parts[0]:
-        return resdef.fullname
-    return None
+        if source.flag_name:
+            yield source.flag_name
+            continue
+        if source.name:
+            yield source.name
+            continue
+        if source.uri:
+            yield source.uri
+            yield source.parsed_uri.path
 
 
 def resource_def(depdef, flag_vals):
@@ -516,7 +504,7 @@ def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
             resolved = _resolve_runs_for_run_id_candidates(run_id_candidates, resolver)
             _maybe_warn_no_resolved_runs_for_op_source(resolved, op_source)
             for run in resolved:
-                yield run, dep
+                yield run, op_source
 
 
 def _run_id_flag_val_candidates(resdef, flag_vals):

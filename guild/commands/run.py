@@ -100,7 +100,7 @@ def _apply_resource_flagdefs(opdef, flag_vals):
     for depdef in opdef.dependencies:
         try:
             dep = op_dep.dep_for_depdef(depdef, flag_vals)
-        except guild.op_dep.OpDependencyError:
+        except op_dep.OpDependencyError:
             # Can occur when there's a unresolvable flag reference in
             # a resource source def - we ignore here
             pass

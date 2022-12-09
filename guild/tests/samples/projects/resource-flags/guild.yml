@@ -1,44 +1,54 @@
 flag:
-  description: Defines a flag but no resource.
+  description: Defines a flag and no resources
   main: guild.pass
   flags-dest: args
   flags:
     foo: 123
 
-resource-default:
-  description: Defines a resource using the default name,
+file-source:
+  description: Single unnamed file source
   main: guild.pass
   flags-dest: args
   requires:
     - file: foo.txt
 
-resource-name:
-  description: Defines a resource with a name.
+file-source-with-name:
+  description: Single named file source
   main: guild.pass
   flags-dest: args
   requires:
     - file: foo.txt
       name: infile
 
-resource-flag-name:
-  description: Defines a resource with a flag name.
+file-source-with-name-2:
+  description: Single named file source under a named resource
+  main: guild.pass
+  flags-dest: args
+  requires:
+    name: dependencies
+    sources:
+      - file: foo.txt
+        name: infile
+
+file-source-with-flag-name:
+  description: Single file source with a flag name
   main: guild.pass
   flags-dest: args
   requires:
     - file: foo.txt
       flag-name: infile
 
-resource-name-and-flag-name:
-  description: Defines a resource with a both a name and a flag name.
+file-source-with-name-and-flag-name:
+  description: Single named file source also with a flag name
   main: guild.pass
   flags-dest: args
   requires:
     - file: foo.txt
-      name: input file
+      name: file
       flag-name: input-file
 
-flag-and-resource:
-  description: Provides flag def for a resource.
+file-source-with-flag:
+  description: Single file source associated with a flag def
   main: guild.pass
   flags-dest: args
   flags:
@@ -47,43 +57,80 @@ flag-and-resource:
       default: foo.txt
   requires:
     - file: foo.txt
-      flag-name: infile
+      name: infile
 
-resource-op:
+upstream:
+  description: Used in op dependencies
+  main: guild.pass
+
+op-source:
+  description: Single unnamed operation source
   main: guild.pass
   flags-dest: args
   requires:
-    - operation: flag
+    - operation: upstream
       warn-if-empty: false
 
-resource-op-with-flag:
+op-source-with-name:
+  description: Single named operation source
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - operation: upstream
+      name: upstream-run
+      warn-if-empty: false
+
+op-source-with-flag-name:
+  description: Single unnamed operation with a flag name
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - operation: upstream
+      flag-name: upstream-run
+      warn-if-empty: false
+
+op-source-with-flag:
+  description: Single operation associated with a flag def
   main: guild.pass
   flags-dest: args
   flags:
-    flag:
-      description: Run ID for 'flag' run (defaults to latest non-error run)
+    upstream:
+      description: Run ID for upstream run (defaults to latest non-error run)
       default: null
   requires:
-    - operation: flag
+    - operation: upstream
       warn-if-empty: false
 
-resource-op-with-name:
+multi-source:
+  description: Multiple unnamed sources
   main: guild.pass
   flags-dest: args
   requires:
-    - operation: flag
-      name: flag-run
+    - file: foo.txt
+    - operation: upstream
       warn-if-empty: false
 
-resource-op-with-name-and-flag:
+multi-source-with-names:
+  description: Multiple named sources
   main: guild.pass
   flags-dest: args
-  flags:
-    flag-run:
-      description: Run ID for 'flag' run (defaults to latest non-error run)
-      default: null
-      arg-name: FLAG_RUN
   requires:
-    - operation: flag
-      name: flag-run
+    - file: foo.txt
+      name: infile
+    - operation: upstream
+      name: upstream-run
       warn-if-empty: false
+
+multi-resource:
+  description: Defines multiple resources.
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - name: requires-files
+      sources:
+        - file: foo.txt
+        - file: bar.txt
+    - name: runs
+      sources:
+        - operation: upstream
+          warn-if-empty: no

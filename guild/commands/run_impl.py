@@ -623,7 +623,7 @@ def _apply_op_flag_vals_for_opdef(
 
 
 def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
-    """Returns flag vals for opdef.
+    """Returns a tuple of flag vals and resource flag defs for opdef.
 
     Results includes defaults for opdef overridden by user flag vals
     where specified.
@@ -643,10 +643,10 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
 def _apply_default_dep_runs(opdef, op_cmd, args, flag_vals):
     """Applies default run IDs to flag_vals for dependencies."""
     resolver_factory = _resolver_factory(args)
-    for run, dep in op_dep.resolved_op_runs_for_opdef(
+    for run, source in op_dep.resolved_op_runs_for_opdef(
         opdef, flag_vals, resolver_factory
     ):
-        dep_flag_name = _dep_flag_name(dep, opdef)
+        dep_flag_name = _dep_source_flag_name(source, opdef)
         _ensure_dep_flag_op_cmd_arg_skip(dep_flag_name, opdef, op_cmd)
         _apply_dep_run_id(run.id, dep_flag_name, flag_vals)
 
@@ -657,18 +657,20 @@ def _resolver_factory(args):
     return None
 
 
-def _dep_flag_name(dep, opdef):
+def _dep_source_flag_name(source, opdef):
     """Returns the name used for a dependency flag.
 
-    This is a function of the dependency resource def and the
+    This is a function of the dependency resource source and the
     operation def. If the operation provides a flag that corresponds
-    to a dependency source, that flag name is used. Otherwise the
-    resource's `resolving_name` property is used.
+    to the dependency source, that flag name is used. Otherwise the
+    source is used for these attrs in order of prededence:
+    `flag_name`, `name`, `uri`.
+
     """
-    for name in op_dep.resdef_flag_name_candidates(dep.resdef):
-        if opdef.get_flagdef(name):
+    for name in (source.flag_name, source.name, source.uri):
+        if name and opdef.get_flagdef(name):
             return name
-    return dep.resdef.resolving_name
+    return source.flag_name or source.name or source.uri
 
 
 def _ensure_dep_flag_op_cmd_arg_skip(flag_name, opdef, op_cmd):
@@ -1413,7 +1415,6 @@ def _op_init_callbacks_for_run_with_proto(op):
             init_output_summary=_init_output_summary,
             run_initialized=_on_run_initialized_with_proto,
             dep_source_resolved=_on_dep_source_resolved,
-            run_staged=_on_run_staged,
             run_starting=_on_run_starting,
             run_stopped=_on_run_stopped,
         )

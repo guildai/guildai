@@ -12,6 +12,10 @@
 
     >>> "TODO: use signed 32 for random int - ragen -2147483646, 2147483647 - still think about platform specific issues"
 
+    >>> "TODO: what does `echo: off` in the front matter mean?
+
+    >>> "TOOD: fix duplicate flags when non-canonical flag name used for resource"
+
     >>> from guild.yaml_util import encode_yaml
 
     >>> encode_yaml(1)

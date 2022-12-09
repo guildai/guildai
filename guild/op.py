@@ -493,8 +493,21 @@ def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolve
                 "uri": source.uri,
                 "paths": run_rel_resolved_paths,
             }
-            if dep.config:
-                source_info["config"] = dep.config
+            _maybe_apply_source_config(dep.config, source, source_info)
+
+
+def _maybe_apply_source_config(config, source, source_info):
+    if not config:
+        return
+    for name in (source.name, source.flag_name, source.uri):
+        if not name:
+            continue
+        try:
+            source_info["config"] = config[name]
+        except KeyError:
+            pass
+        else:
+            break
 
 
 def _resolve_dep_source(op, source, dep, resolve_context, run):
