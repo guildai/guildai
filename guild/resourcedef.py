@@ -66,11 +66,7 @@ class ResourceDef:
 
     @property
     def resolving_name(self):
-        return (
-            self.name
-            or _joined_resdef_source_desc(self)
-            or _unnamed_resource_desc()
-        )
+        return self.name or _joined_resdef_source_desc(self) or _unnamed_resource_desc()
 
     def __repr__(self):
         return (
