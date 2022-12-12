@@ -147,7 +147,6 @@ regex.
     .guild/attrs/initialized
     .guild/attrs/objective
     .guild/attrs/op
-    .guild/attrs/pip_freeze
     .guild/attrs/platform
     .guild/attrs/plugins
     .guild/attrs/random_seed

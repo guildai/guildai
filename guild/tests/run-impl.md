@@ -600,10 +600,10 @@ With an upstream run to resolve, we can run the downstream operation.
 
     >>> run("guild run downstream -y")
     Resolving operation:upstream
-    Using run ... for upstream operation:resource
+    Using run ... for operation:upstream
 
     >>> run("guild runs -s")
-    [1]  downstream  completed  upstream=...
+    [1]  downstream  completed  operation:upstream=...
     [2]  upstream    completed
     [3]  upstream    error
     [4]  downstream  error
@@ -613,7 +613,7 @@ With an upstream run to resolve, we can run the downstream operation.
     src.txt
 
     >>> run("guild select --attr deps")
-    upstream:
+    operation:upstream:
       operation:upstream:
         config: ...
         paths:
@@ -630,7 +630,7 @@ operation resolution.
     ...     deps_encoded = run_capture(f"guild select {parent_run_args} --attr deps")
     ...     deps = yaml.safe_load(deps_encoded)
     ...     expected_run_id = run_capture(f"guild select {expected_run_args}")
-    ...     resolved_run_id = deps["upstream"]["operation:upstream"]["config"]
+    ...     resolved_run_id = deps["operation:upstream"]["operation:upstream"]["config"]
     ...     assert expected_run_id == resolved_run_id, (deps, expected_run_id)
 
 Verify that the expected run was resolved.
@@ -644,8 +644,8 @@ subsequent operation resolutions.
     Resolving file:src.txt
 
     >>> run("guild run downstream -y")
-    Resolving upstream
-    Using run ... for upstream resource
+    Resolving operation:upstream
+    Using run ... for operation:upstream
 
     >>> assert_resolved_run("2")
 
@@ -658,14 +658,14 @@ run when resolving `upstream` operation dependencies.
 Run `downstream` again:
 
     >>> run("guild run downstream -y")
-    Resolving upstream
-    Using run ... for upstream resource
+    Resolving operation:upstream
+    Using run ... for operation:upstream
 
     >>> run("guild runs -s")
-    [1]  downstream         completed  upstream=...
-    [2]  downstream         completed  upstream=...
+    [1]  downstream         completed  operation:upstream=...
+    [2]  downstream         completed  operation:upstream=...
     [3]  upstream           completed
-    [4]  downstream         completed  upstream=...
+    [4]  downstream         completed  operation:upstream=...
     [5]  upstream [marked]  completed
     [6]  upstream           error
     [7]  downstream         error

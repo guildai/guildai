@@ -1,5 +1,7 @@
 file-deps:
   main: guild.pass
+  sourcecode:
+    - exclude: '*.zip'
   requires:
     - file: file1.txt
     - file: file2.txt
