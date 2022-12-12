@@ -785,6 +785,7 @@ class Project:
     facility should be refactored to use the pattern described in
     `guild/tests/test-template.md` using `use_project()`.
     """
+
     def __init__(self, cwd, guild_home=None, env=None):
         from guild import index as indexlib  # expensive
 
