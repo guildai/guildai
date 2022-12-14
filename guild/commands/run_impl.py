@@ -22,6 +22,7 @@ from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
 from guild import config
+from guild import file_util
 from guild import flag_util
 from guild import guildfile
 from guild import help as helplib
@@ -1421,41 +1422,8 @@ def _op_init_callbacks_for_run_with_proto(op):
 
 
 def _on_run_initialized_with_proto(op, run):
-    _copy_run_proto_sourcecode(op._run, op, run)
-    _copy_run_proto_attrs(op._run, run)
-
-
-def _copy_run_proto_sourcecode(proto_run, proto_op, dest_run):
-    if os.getenv("NO_SOURCECODE") == "1":
-        log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
-        return
-    src = _sourcecode_dest(proto_run, proto_op)
-    if not os.path.exists(src):
-        log.debug("no sourcecode source (%s), skipping sourcecode copy", src)
-        return
-    dest = _sourcecode_dest(dest_run, proto_op)
-    log.debug(
-        "copying source code files for run %s from %s to %s",
-        dest_run.id,
-        src,
-        dest,
-    )
-    util.copytree(src, dest)
-
-
-def _copy_run_proto_attrs(proto_run, dest_run):
-    run_proto_attrs = [
-        "sourcecode_digest",
-        "vcs_commit",
-        "host",
-        "user",
-        "platform",
-        "pip_freeze",
-    ]
-    for attr in run_proto_attrs:
-        if not proto_run.has_attr(attr):
-            continue
-        dest_run.write_attr(attr, proto_run.get(attr))
+    proto = op._run
+    op_util.init_run_from_proto(run, proto)
 
 
 def _on_run_starting(op, run, pidfile):

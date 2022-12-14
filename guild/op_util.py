@@ -83,6 +83,17 @@ RESTART_NEEDED_STATUS = ("pending",)
 DEFAULT_PROC_POLL_INTERVAL = 5
 DEFAULT_PROC_KILL_DELAY = 30
 
+RUN_PROTO_ATTRS = [
+    "sourcecode_digest",
+    "vcs_commit",
+    "host",
+    "user",
+    "platform",
+    "plugins",
+    "pip_freeze",
+]
+
+
 NoCurrentRun = _api.NoCurrentRun
 
 ###################################################################
@@ -1706,6 +1717,36 @@ def _flag_vals(row):
 
 
 ###################################################################
+# Run from proto support
+###################################################################
+
+
+def init_run_from_proto(run, proto):
+    _copy_run_proto_sourcecode(proto, run)
+    _copy_run_proto_attrs(proto, run)
+
+
+def _copy_run_proto_sourcecode(proto_run, dest_run):
+    if os.getenv("NO_SOURCECODE") == "1":
+        log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
+        return
+    sourcecode_files = run_util.sourcecode_files(proto_run)
+    file_util.copyfiles(
+        proto_run.dir,
+        dest_run.dir,
+        sourcecode_files,
+        sourcecode_manifest_logger_cls(dest_run.dir),
+    )
+
+
+def _copy_run_proto_attrs(proto_run, dest_run):
+    for attr in RUN_PROTO_ATTRS:
+        if not proto_run.has_attr(attr):
+            continue
+        dest_run.write_attr(attr, proto_run.get(attr))
+
+
+###################################################################
 # Restart support
 ###################################################################
 
@@ -1909,7 +1950,7 @@ def handle_system_exit(e):
 def sourcecode_manifest_logger_cls(run_dir):
     m = manifest.Manifest(run_manifest.run_manifest_path(run_dir), "a")
 
-    class _Handler(SourceCodeCopyHandler):
+    class Handler(SourceCodeCopyHandler):
         def _try_copy_file(self, src, dest):
             super()._try_copy_file(src, dest)
             m.write(run_manifest.sourcecode_args(dest, run_dir, src, self.src_root))
@@ -1917,7 +1958,7 @@ def sourcecode_manifest_logger_cls(run_dir):
         def close(self):
             m.close()
 
-    return _Handler
+    return Handler
 
 
 def log_manifest_resolved_source(resolved_source):

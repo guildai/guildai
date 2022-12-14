@@ -336,6 +336,17 @@ class FileCopyHandler:
         pass
 
 
+def copyfiles(src, dest, files, handler_cls=None):
+    # Opportunistic use of FileCopyHandler to copy files. `unused_xxx`
+    # vars below signal that we're explicitly not using parts of the
+    # FileCopyHandler API.
+    unused_select = object()
+    unused_rule_results = object()
+    handler = (handler_cls or FileCopyHandler)(src, dest, unused_select)
+    for path in files:
+        handler.copy(path, unused_rule_results)
+
+
 def copytree(
     dest,
     select,
@@ -346,8 +357,8 @@ def copytree(
 ):
     """Copies files to dest for a FileSelect.
 
-    root_start is an optional location from which select.root, if
-    relative, starts. Defaults to os.curdir.
+    `root_start` is an optional location used to resolve relative
+    paths in `select.root`. Defaults to `os.curdir`.
 
     If followlinks is True (the default), follows linked directories
     when copying the tree.
@@ -364,6 +375,7 @@ def copytree(
     be selected for their rules. If select is disabled and a handler
     class is specified, the handler is still instantiated, however, no
     calls to `copy()` or `ignore()` will be made.
+
     """
     src = _copytree_src(root_start, select)
     # Instantiate handler as part of the copytree contract.
@@ -477,3 +489,34 @@ def files_differ(path1, path2):
             if not buf1 or not buf2:
                 break
     return False
+
+
+def files_digest(paths, root_dir):
+    import hashlib
+
+    md5 = hashlib.md5()
+    for path in paths:
+        normpath = _normalize_path_for_digest(path)
+        md5.update(_encode_file_path_for_digest(normpath))
+        md5.update(b"\x00")
+        _apply_digest_file_bytes(os.path.join(root_dir, path), md5)
+        md5.update(b"\x00")
+    return md5.hexdigest()
+
+
+def _normalize_path_for_digest(path):
+    return path.replace(os.path.sep, "/")
+
+
+def _encode_file_path_for_digest(path):
+    return path.encode("UTF-8")
+
+
+def _apply_digest_file_bytes(path, d):
+    buf_size = 1024 * 1024
+    with open(path, "rb") as f:
+        while True:
+            buf = f.read(buf_size)
+            if not buf:
+                break
+            d.update(buf)

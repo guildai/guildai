@@ -311,25 +311,25 @@ First we delete our current runs.
 `evaluate`. This simulates a common end-to-end training and evaluation
 scenario
 
-    >>> run("guild run m4:end-to-end -y")
+    >>> run("guild run m4:end-to-end -y")  # doctest: +REPORT_UDIFF
     INFO: [guild] running prepare: m4:prepare --needed
     prepared data
     INFO: [guild] running train: m4:train loss=1.0
-    Resolving prepare
-    Using run ... for prepare resource
+    Resolving operation:prepare
+    Using run ... for operation:prepare
     loss=1.0
     INFO: [guild] running eval: m4:evaluate acc=0.5
-    Resolving prepare
-    Using run ... for prepare resource
-    Resolving train
-    Using run ... for train resource
+    Resolving operation:prepare
+    Using run ... for operation:prepare
+    Resolving operation:train
+    Using run ... for operation:train
     acc=0.5
 
 The generated runs:
 
     >>> run("guild runs -s")
-    [1]  m4:evaluate    completed  acc=0.5 prepare=... train=...
-    [2]  m4:train       completed  loss=1.0 prepare=...
+    [1]  m4:evaluate    completed  acc=0.5 operation:prepare=... operation:train=...
+    [2]  m4:train       completed  loss=1.0 operation:prepare=...
     [3]  m4:prepare     completed
     [4]  m4:end-to-end  completed  acc=0.5 loss=1.0
 
@@ -363,11 +363,11 @@ Files associated with each run:
 Compare runs:
 
     >>> run("guild compare -t -cc .operation,.status,.label,#acc,#loss")  # doctest: -WINDOWS
-    run  operation      status     label                          acc  loss
-    ...  m4:evaluate    completed  acc=0.5 prepare=... train=...  0.5
-    ...  m4:train       completed  loss=1.0 prepare=...                1.0
+    run  operation      status     label                                              acc  loss
+    ...  m4:evaluate    completed  acc=0.5 operation:prepare=... operation:train=...  0.5
+    ...  m4:train       completed  loss=1.0 operation:prepare=...                          1.0
     ...  m4:prepare     completed
-    ...  m4:end-to-end  completed  acc=0.5 loss=1.0               0.5  1.0
+    ...  m4:end-to-end  completed  acc=0.5 loss=1.0                                   0.5  1.0
 
 Note that `end-to-end` reflects the `loss` and `acc` of its steps.
 
@@ -377,9 +377,9 @@ tfevent generator. This behavior is passed through to Guild as Guild
 uses TensorBoard to read TF event files.
 
     >>> run("guild compare -t -cc .operation,.status,.label,#acc,#loss")  # doctest: +WINDOWS_ONLY
-    run  operation      status     label                          acc  loss
-    ...  m4:evaluate    completed  acc=0.5 prepare=... train=...  0.5
-    ...  m4:train       completed  loss=1.0 prepare=...                1.0
+    run  operation      status     label                                              acc  loss
+    ...  m4:evaluate    completed  acc=0.5 operation:prepare=... operation:train=...  0.5
+    ...  m4:train       completed  loss=1.0 operation:prepare=...                          1.0
     ...  m4:prepare     completed
     ...  m4:end-to-end  completed  acc=0.5 loss=1.0
 

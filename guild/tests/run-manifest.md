@@ -6,40 +6,51 @@ operation.
 
 Run manifests record source files and resolved resource files.
 
+We use the `get-started` project for these tests.
+
 ## Source code files
 
 Manifests contain a list of all source code files copied.
 
-    >>> project = Project(sample("projects", "get-started"))
-    >>> project.run("train.py")
+Generate a run of `train.py` from the `get-started` project.
+
+    >>> use_project("get-started")
+
+    >>> run("guild run train.py -y")
     x: 0.100000
     noise: 0.100000
     loss: ...
 
-Source code entries are writtn in the form:
+The run manifest:
 
-    'a ' + run_dir_relative_path + ' ' + sha1 + ' ' + project_dir_relative_path
-
-Show the manifest file contents:
-
-    >>> run = project.list_runs()[0]
-    >>> cat(run.guild_path("manifest"))
+    >>> run("guild cat -p .guild/manifest")
     s TEST.md a5a7f25a2e67c92644dc4f24b37b14e997c177e8 TEST.md
     s train.py 32001b882e707290cc988043abb9b99ddee94c25 train.py
-    <BLANKLINE>
+
+Each line conists of an entry type followed by entry arguments The two
+entries are for source code (`s` type). The arguments are:
+
+- run dir relative path
+- file sha1 digest
+- project relative path
 
 ## Resolved dependency sources
 
 Manifests also contain resolved dependencies.
 
-    >>> project = Project(sample("projects", "run-manifest"))
-    >>> project.run("file-deps")
+Generate a `file-deps` run from the `run-manifest` project.
+
+    >>> use_project("run-manifest")
+
+    >>> run("guild run file-deps -y")
     Resolving file:file1.txt
     Resolving file:file2.txt
     Resolving file:files.zip
     Unpacking .../samples/projects/run-manifest/files.zip
 
-    >>> run = project.list_runs()[0]
+The manifest contains source code files and resolved dependencies.
+
+    >>> run("guild cat -p .guild/manifest")
     s guild.yml dfa0dbc1c7eadf4270fd755188137a0c17e841d6 guild.yml
     s subdir/eee da39a3ee5e6b4b0d3255bfef95601890afd80709 subdir/eee
     s subdir/fff da39a3ee5e6b4b0d3255bfef95601890afd80709 subdir/fff
@@ -47,3 +58,10 @@ Manifests also contain resolved dependencies.
     d file2.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file:file2.txt
     d zip/file1.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file:files.zip file1.txt
     d zip/file2.txt da39a3ee5e6b4b0d3255bfef95601890afd80709 file:files.zip file2.txt
+
+The consistent `sha1` digests reflect that the samples files are all empty.
+
+    >>> import hashlib
+
+    >>> hashlib.sha1(b"").hexdigest()
+    'da39a3ee5e6b4b0d3255bfef95601890afd80709'

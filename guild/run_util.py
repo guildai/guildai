@@ -19,6 +19,7 @@ import shutil
 
 import yaml
 
+from guild import file_util
 from guild import flag_util
 from guild import guildfile
 from guild import opref as opreflib
@@ -728,43 +729,15 @@ def run_for_id(id, runs_dir=None):
 
 
 def sourcecode_digest(run):
-    import hashlib
+    """Returns the source code digest for a run.
 
-    files = sorted(sourcecode_files(run))
+    Uses `file_util.files_digest()` with a lexicographic ordering of
+    the run source code paths. Note that the implementation does not
+    use `natsort`, which is used elsewhere in Guild for user
+    presentation. `natsort` is not needed for this application and
+    makes cross-language digest implementations harder to implement.
+    """
+    files = sourcecode_files(run)
     if not files:
         return None
-    md5 = hashlib.md5()
-    for path in files:
-        normpath = _normalize_path_for_digest(path)
-        md5.update(_encode_file_path_for_digest(normpath))
-        md5.update(b"\x00")
-        _apply_digest_file_bytes(os.path.join(run.dir, path), md5)
-        md5.update(b"\x00")
-    return md5.hexdigest()
-
-
-def _files_for_digest(root):
-    files = []
-    for path, _dirs, names in os.walk(root, followlinks=False):
-        for name in names:
-            files.append(os.path.join(path, name))
-    files.sort()
-    return files
-
-
-def _normalize_path_for_digest(path):
-    return path.replace(os.path.sep, "/")
-
-
-def _encode_file_path_for_digest(path):
-    return path.encode("UTF-8")
-
-
-def _apply_digest_file_bytes(path, d):
-    buf_size = 1024 * 1024
-    with open(path, "rb") as f:
-        while True:
-            buf = f.read(buf_size)
-            if not buf:
-                break
-            d.update(buf)
+    return file_util.files_digest(sorted(files), run.dir)

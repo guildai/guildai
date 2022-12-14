@@ -5,115 +5,172 @@ source code is reflected as a change to the digest.
 
 For our tests, we'll work with a dynamically modified project.
 
-    >>> project_dir = mkdtemp()
+    >>> use_project(mkdtemp())
 
 ## Baseline digest
 
-Here's an initial Guild file that defined an operation `op` that does
+Create a initial Guild file that defined an operation `op` that does
 nothing.
 
-    >>> write(path(project_dir, "guild.yml"), """
+    >>> write("guild.yml", """
     ...   op:
     ...     main: guild.pass
     ... """)
 
-And a project to run operations on:
 
-    >>> project = Project(project_dir)
-
-Here's our current project layout:
-
-    >>> find(project_dir)
-    guild.yml
-
-We can peek at the digest for this directory that Guild will generate
-by using the `file_util.files_digest` function.
+Guild uses the function `file_util.files_digest` to calculate a digest
+for a list of files.
 
     >>> from guild.file_util import files_digest
 
-    >>> files_digest(project_dir)
-    '38eaef56aa526c84cb706bfa550f9f41'
+A helper function to generate a sourcecode digest for a directory:
 
-Let's run `op` and examine the results.
+    >>> def sourcecode_digest(root_dir):
+    ...     return files_digest(sorted(findl(root_dir)), root_dir)
 
-    >>> run, _out = project.run_capture("op")
+    >>> project_digest_1 = sourcecode_digest(".")
 
-Here's the copied source:
+Verify that list of source code selected for the `op` run.
 
-    >>> find(run.guild_path("sourcecode"))
+    >>> run("guild run op --test-sourcecode")
+    Copying from the current directory
+    Rules: ...
+    Selected for copy:
+      guild.yml
+    Skipped:
+    <exit 0>
+
+Generate a run for `op`.
+
+    >>> run("guild run op --label project-1 -y")
+    <exit 0>
+
+    >>> run("guild runs -s")
+    [1]  op  completed  project-1
+
+Verify the list of source code files for the run.
+
+    >>> run("guild ls --sourcecode -n")
     guild.yml
 
-Guild saves the source code digest in the run's `sourcecode_digest`
-attribute:
+Verify that the source code digest for the run matches what we expect
+for the project.
 
-    >>> run.get("sourcecode_digest")
-    '38eaef56aa526c84cb706bfa550f9f41'
+    >>> run_digest_1 = run_capture("guild select --attr sourcecode_digest")
+    >>> run_digest_1 == project_digest_1
+    True
 
-We can list runs using this digest:
+The digest can be used to filter runs.
 
-    >>> project.list_runs(digest="38eaef56")
-    [<guild.run.Run '...'>]
+    >>> run(f"guild runs -Fd {project_digest_1} -s")
+    [1]  op  completed  project-1
 
-And not another digest:
+If specify a different digest, we get an empty result.
 
-    >>> project.list_runs(digest="_")
-    []
+    >>> run(f"guild runs -Fd abcde123")
+    <exit 0>
 
 ## New source code file
 
-Let's now add a new file to our project. We'll add a text file that
-Guild will treat as source code by default.
+Add a new file to the project.
 
-    >>> write(path(project_dir, "hello.py"), "print('hello')\n")
+    >>> write("hello.py", "print('hello')\n")
 
-Here's our project directory:
+Modify `op` to run the new file.
 
-    >>> find(project_dir)
+    >>> write("guild.yml", """
+    ... op:
+    ...   main: hello
+    ... """)
+
+The project directory:
+
+    >>> find(".")
     guild.yml
     hello.py
 
-And our digest:
+Update the project digest.
 
-    >>> files_digest(project_dir)
-    'd58df49c7f24c45cbab98a816c7ad50e'
+    >>> project_digest_2 = sourcecode_digest(".")
 
-Next we'll generate a new run:
+The project digest changes.
 
-    >>> run, _out = project.run_capture("op", run_dir=mkdtemp())
+    >>> project_digest_2 != project_digest_1
+    True
 
-Our copied source code:
+Confirm the source files selected for `op` - these should include the
+new file.
 
-    >>> find(run.guild_path("sourcecode"))
+    >>> run("guild run op --test-sourcecode")
+    Copying from the current directory
+    Rules: ...
+    Selected for copy:
+      guild.yml
+      hello.py
+    Skipped:
+    <exit 0>
+
+Create a new run.
+
+    >>> run("guild run op --label project-2 -y")
+    hello
+
+The run sourcecode:
+
+    >>> run("guild ls -n --sourcecode")
     guild.yml
     hello.py
 
-And the source code digest attribute:
+Verify that the sourcecode digest matches the project digest.
 
-    >>> run.get("sourcecode_digest")
-    'd58df49c7f24c45cbab98a816c7ad50e'
+    >>> run_digest_2 = run_capture("guild select --attr sourcecode_digest")
+
+    >>> run_digest_2 == project_digest_2
+    True
+
+Filter runs using the two digests.
+
+    >>> run(f"guild runs -s -Fd {project_digest_1}")
+    [1]  op  completed  project-1
+
+    >>> run(f"guild runs -s -Fd {project_digest_2}")
+    [1]  op  completed  project-2
 
 ## Modified source code file
 
+When we modify a file in the project, the source code digest changes.
+
+Re-write `hello.py` to print a different message.
+
 Let's simulate a change to our source code file `hello.py`.
 
-    >>> write(path(project_dir, "hello.py"), "print('hola')\n")
+    >>> write("hello.py", "print('hola')\n")
 
-Our new project digest:
+Re-calculate the project sourcecode digest.
 
-    >>> files_digest(project_dir)
-    '3c0e4b7789ce7d04bd39fe7d39283100'
+    >>> project_digest_3 = sourcecode_digest(".")
 
-And our run:
+The project digest changes.
 
-    >>> run, _out = project.run_capture("op", run_dir=mkdtemp())
+    >>> project_digest_3 != project_digest_2
+    True
 
-Copied source code:
+Generate a new run.
 
-    >>> find(run.guild_path("sourcecode"))
-    guild.yml
-    hello.py
+    >>> run("guild run op --label project-3 -y")
+    hola
 
-Generated source code digest:
+Verify that the run sourcecode digest equals the latest project
+sourcecode digest.
 
-    >>> run.get("sourcecode_digest")
-    '3c0e4b7789ce7d04bd39fe7d39283100'
+    >>> run_digest_3 = run_capture("guild select --attr sourcecode_digest")
+
+    >>> run_digest_3 == project_digest_3
+    True
+
+Show runs using a filter expressions.
+
+    >>> run("guild runs -s -F 'sourcecode_digest in "
+    ...     f"[\"{project_digest_1}\",\"{project_digest_3}\"]'")
+    [1]  op  completed  project-3
+    [2]  op  completed  project-1
