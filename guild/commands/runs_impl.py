@@ -104,7 +104,7 @@ LEGACY_RUN_ATTRS = [
 
 RUNS_PER_GROUP = 20
 
-FILTERABLE = [
+STATUS_FILTERS = [
     ("completed", "status_completed"),
     ("error", "status_error"),
     ("pending", "status_pending"),
@@ -183,10 +183,11 @@ def _runs_filter(args, ctx):
 
 
 def _apply_status_filter(args, filters):
+    filter_values = [getattr(args, args_attr, None) for _, args_attr in STATUS_FILTERS]
     status_filters = [
-        var.run_filter("attr", "status", status)
-        for status, args_attr in FILTERABLE
-        if getattr(args, args_attr, False)
+         var.run_filter("attr" if filter_val else "!attr", "status", status)
+        for (status, _), filter_val in zip(STATUS_FILTERS, filter_values)
+        if filter_val is not None
     ]
     if status_filters:
         filters.append(var.run_filter("any", status_filters))
