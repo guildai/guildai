@@ -97,6 +97,10 @@ def _main():
 def _init_sys_path():
     if os.getenv("SCRIPT_DIR") is not None:
         sys.path[0] = os.getenv("SCRIPT_DIR")
+    elif os.getenv("NO_SYS_PATH_MODIFY") != "1":
+        # Remove cwd from Python path to rely on `PYTHONPATH` config
+        # exclusively
+        del sys.path[0]
 
 
 def _init_logging():
