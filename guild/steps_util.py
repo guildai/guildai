@@ -49,15 +49,19 @@ def link_to_step_run(step_name, step_run_dir, parent_run_dir):
 
 
 def _step_link_name(step_name):
-    return re.sub(r"[ :/\\]", "_", str(step_name))
+    return re.sub(r"[ :/\\]", "-", str(step_name))
 
 
 def _ensure_unique_link(path_base):
     v = 2
     path = path_base
     while True:
-        assert v < 1e6
+        _infinite_loop_check(v)
         if not os.path.lexists(path):
             return path
         path = f"{path_base}_{v}"
         v += 1
+
+
+def _infinite_loop_check(v):
+    assert v < 1e8
