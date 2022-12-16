@@ -55,6 +55,7 @@ import yaml
 from guild import cli
 from guild import config
 from guild import entry_point_util
+from guild import file_util
 from guild import model as modellib
 from guild import model_proxy
 from guild import op_util
