@@ -38,7 +38,7 @@ class RScriptModelProxy:
 
 def _init_modeldef(script_path, op_name, model_name):
     return model_proxy.modeldef_for_data(
-        data_dir=os.path.dirname(script_path),
+        guildfile_dir=os.path.dirname(script_path),
         model_name=model_name,
         operations={
             op_name: op_data_for_script(script_path),

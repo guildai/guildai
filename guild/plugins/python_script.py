@@ -12,6 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Python language support plugin.
+
+Design notes:
+
+There's an uncomfortable coupling between this plugin and the core
+(primarily defined in `guild.op_util`) both of which are aware of and
+required to execute any of Guild's Python based operations. This
+includes operations that define `main` or `steps`.
+
+The logic specific to handling `main` in the core ought to be moved to
+this plugin. I.e. support for `main` should be defined by and handled
+exlusively by the Python script plugin or similar Python language
+plugin.
+
+The logic specific to handling `steps` in the core ought to be moved
+to a new `steps` plugin.
+
+This refactoring is a matter of cleanup and not strictly needed as the
+Python plugin will ship with Guild for the forseeable future. The
+strict separation of concerns would have Guild core only responsible
+for executing an OS command as specified by an `op_cmd` structure
+(command args, cwd, and environment). Any alternative configuration
+(e.g. language specific configuration, workflow, etc.)  should be
+implemenyted by a plugin that's responsible for generating the
+appropriate op command structure.
+
+See design notes in `guild.guildfile` and `guild.op_util` module
+source code for similar thoughts.
+"""
+
 import hashlib
 import json
 import logging
@@ -89,8 +119,9 @@ class PythonScriptModelProxy:
         assert script_path[-3:] == ".py", script_path
         self.script_path = script_path
         self.op_name = os.path.basename(script_path)
+        guildfile_dir, _ = _guildfile_dir_and_script_path(script_path)
         self.modeldef = model_proxy.modeldef_for_data(
-            data_dir=os.path.dirname(script_path),
+            guildfile_dir=guildfile_dir,
             model_name=self.name,
             operations={
                 self.op_name: op_data_for_script(
@@ -108,6 +139,13 @@ class PythonScriptModelProxy:
         )
 
 
+def _guildfile_dir_and_script_path(script_path):
+    script_realpath = os.path.realpath(script_path)
+    guildfile_dir = os.path.commonpath([script_realpath, os.getcwd()])
+    rel_script_path = os.path.relpath(script_realpath, guildfile_dir)
+    return guildfile_dir, rel_script_path
+
+
 def op_data_for_script(
     script_path,
     output_scalars=None,
@@ -115,11 +153,12 @@ def op_data_for_script(
     plugins=None,
     sourcecode=None,
 ):
+    _, rel_script_path = _guildfile_dir_and_script_path(script_path)
     plugins = plugins or []
     flags_data = _flags_data(script_path)
     flags_dest = flags_data.pop("$dest", None)
     return {
-        "exec": _exec_attr(script_path),
+        "exec": _exec_attr(rel_script_path),
         "flags": flags_data,
         "flags-dest": flags_dest,
         "output-scalars": output_scalars,
@@ -294,7 +333,9 @@ class PythonScriptPlugin(pluginlib.Plugin):
             return True, f"main Python module '{opdef.main}' specified"
         if opdef.exec_ and opdef.exec_.startswith("${python_exe}"):
             return True, f"command '{opdef.exec_}' is a Python operation"
-        return False, "not a Python operation"
+        if opdef.steps:
+            return True, "operation defines 'steps'"
+        return False, "not a recognized Python operation"
 
     def run_starting(self, run, op, _pidfile):
         _maybe_pip_freeze(run, op)
