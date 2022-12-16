@@ -554,11 +554,15 @@ def _resolve_rel_path(maybe_path):
     return maybe_path
 
 
-class ReferenceCycleError(Exception):
+class ReferenceResolutionError(Exception):
     pass
 
 
-class UndefinedReferenceError(Exception):
+class ReferenceCycleError(ReferenceResolutionError):
+    pass
+
+
+class UndefinedReferenceError(ReferenceResolutionError):
     def __init__(self, reference):
         super().__init__(reference)
         self.reference = reference
@@ -1081,7 +1085,38 @@ def copytree(src, dest, preserve_links=True):
         dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
 
 
+class CopyFilter:
+    """Interface of `copy_filter` used with `select_copytree()`."""
+
+    def delete_excluded_dirs(self, parent, dirs):
+        """Delete excluded dirs prior to copy tree traversal.
+
+        Use as optimization to avoid traversing into directories that
+        don't contain files to copy.
+        """
+
+    def default_select_path(self, path):
+        """Return the default selection result for `path`.
+
+        This value is used to determine the selection if no other
+        selection rule from `config` returns a non-None value.
+        """
+        raise NotImplementedError()
+
+    def pre_copy(self, path):
+        """Perform an action prior to copying a selected file."""
+
+
 def select_copytree(src, dest, config, copy_filter=None):
+    """Copies files from src to dest using select configuration.
+
+    `config` is an instance of `guild.guildfile.FileSelectDef`. If the
+    files spec is empty, all files are selected. Otherwise, the select
+    rules are applied to each file to determine if it's copied.
+
+    `copy_filter` is an optional filter that is applied after the file
+    select process.
+    """
     if not isinstance(config, list):
         raise ValueError(f"invalid config: expected list got {config!r}")
     log.debug("copying files from %s to %s", src, dest)
@@ -1114,7 +1149,7 @@ def _select_files_to_copy(src_dir, config, copy_filter):
             if _select_to_copy(path, rel_path, config, copy_filter):
                 log.debug("seleted file to copy %s", path)
                 to_copy.append((path, rel_path))
-    # Sort before notifying copy_filter to have deterministic result.
+    # Sort before notifying copy_filter to have deterministic result
     to_copy.sort()
     if copy_filter:
         copy_filter.pre_copy(to_copy)
@@ -1905,3 +1940,25 @@ def tokenize_snake_case_for_camel_case(s):
     if not any(iter(under_split)):
         return under_split[1:]
     return under_split
+
+
+class NopContext:
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *exc):
+        pass
+
+
+def flatten(l):
+    return [item for sublist in l for item in sublist]
+
+
+def try_env(name, cvt=None):
+    val_str = os.getenv(name)
+    if val_str is None:
+        return None
+    try:
+        return cvt(val_str)
+    except (TypeError, ValueError):
+        return None

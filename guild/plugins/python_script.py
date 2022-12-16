@@ -305,6 +305,28 @@ class PythonScriptPlugin(pluginlib.Plugin):
             existing, op_util.python_path_env(op)
         )
 
+    def default_sourcecode_select_rules_for_op(self, opdef):
+        if opdef.steps:
+            return _steps_sourcecode_select_rules()
+        return _python_sourcecode_select_rules()
+
+
+def _steps_sourcecode_select_rules():
+    # Support for 'steps' is built-in and doesn't require user source
+    # code
+    return False
+
+
+def _python_sourcecode_select_rules():
+    return [
+        file_util.exclude("__pycache__", type="dir"),
+        file_util.exclude("*", type="dir", sentinel="bin/activate"),
+        file_util.exclude("*", type="dir", sentinel="Scripts/activate"),
+        file_util.exclude("build", type="dir"),
+        file_util.exclude("dist", type="dir"),
+        file_util.exclude("*.egg-info", type="dir"),
+    ]
+
 
 def _maybe_prepend_python_path(to_prepend, path):
     return os.path.pathsep.join([to_prepend, path]) if to_prepend else path

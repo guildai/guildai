@@ -45,8 +45,10 @@ from guild import yaml_util
 
 log = logging.getLogger("guild")
 
-MAX_DEFAULT_SOURCECODE_FILE_SIZE = 1024 * 1024
-MAX_DEFAULT_SOURCECODE_COUNT = 100
+MAX_DEFAULT_SOURCECODE_FILE_SIZE = (
+    util.try_env("MAX_DEFAULT_SOURCECODE_FILE_SIZE", int) or 1024 * 1024
+)
+MAX_DEFAULT_SOURCECODE_COUNT = util.try_env("MAX_DEFAULT_SOURCECODE_COUNT", int) or 100
 
 DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
 STEPS_EXEC = "${python_exe} -um guild.steps_main"
@@ -827,96 +829,103 @@ def _rendered_str(s):
 
 
 def sourcecode_select_for_opdef(opdef):
-    root = _opdef_sourcecode_root(opdef)
-    rules = _select_rules_for_opdef(opdef)
-    return file_util.FileSelect(root, rules)
-
-
-def _opdef_sourcecode_root(opdef):
-    return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
-
-
-def _select_rules_for_opdef(opdef):
-    if _sourcecode_disabled(opdef):
-        return [file_util.exclude("*")]
-    root = _opdef_select_rules_root(opdef)
-    return (
-        _base_sourcecode_select_rules()
-        + _sourcecode_config_rules(opdef.modeldef.sourcecode, root)
-        + _sourcecode_config_rules(opdef.sourcecode, root)
+    return _builtin_sourcecode_select_rules(opdef) or _project_sourcecode_select_rules(
+        opdef
     )
 
 
-def _opdef_select_rules_root(opdef):
-    root_base = opdef.guildfile.dir
-    sourcecode_root = opdef_sourcecode_root(opdef)
-    if not sourcecode_root:
-        return root_base
-    return os.path.join(root_base, sourcecode_root)
+def _builtin_sourcecode_select_rules(opdef):
+    if opdef.steps:
+        return file_util.DisabledFileSelect()
+    return None
+
+
+def _project_sourcecode_select_rules(opdef):
+    rules, sourcecode_root = _select_rules_for_opdef(opdef)
+    return file_util.FileSelect(sourcecode_root, rules)
+
+
+def _select_rules_for_opdef(opdef):
+    sourcecode_root = _sourcecode_root(opdef)
+    return _select_rules_for_opdef_(opdef, sourcecode_root), sourcecode_root
+
+
+def _sourcecode_root(opdef):
+    guildfile_dir = opdef.guildfile.dir
+    opdef_root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+    return os.path.join(guildfile_dir, opdef_root) if opdef_root else guildfile_dir
+
+
+def _select_rules_for_opdef_(opdef, sourcecode_root):
+    if _sourcecode_disabled(opdef):
+        return [file_util.exclude("*")]
+    return (
+        _base_sourcecode_select_rules(opdef, sourcecode_root)
+        + _sourcecode_config_rules(opdef.modeldef.sourcecode, sourcecode_root)
+        + _sourcecode_config_rules(opdef.sourcecode, sourcecode_root)
+    )
 
 
 def _sourcecode_disabled(opdef):
-    op_config = opdef.sourcecode
-    model_config = opdef.modeldef.sourcecode
-    return op_config.disabled or model_config.disabled and not op_config.specs
+    return (
+        opdef.sourcecode.disabled
+        or opdef.modeldef.sourcecode.disabled
+        and not opdef.sourcecode.specs
+    )
 
 
-def opdef_sourcecode_root(opdef):
-    return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+def _base_sourcecode_select_rules(opdef, sourcecode_root):
+    return _try_vcs_select_rules(sourcecode_root) or _default_select_rules(opdef)
 
 
-def _base_sourcecode_select_rules():
+def _try_vcs_select_rules(sourcecode_root):
+    try:
+        vcs_rules = vcs_util.project_select_rules(sourcecode_root)
+    except vcs_util.NoVCS:
+        return None
+    else:
+        return [
+            file_util.exclude(".guild", type="dir"),
+            file_util.exclude("*", type="dir", sentinel=".guild-nocopy"),
+        ] + vcs_rules
+
+
+def _default_select_rules(opdef):
+    return _base_default_select_rules() + _plugin_default_select_rules(opdef)
+
+
+def _base_default_select_rules():
     return [
-        _rule_exclude_pycache_dirs(),
-        _rule_exclude_dot_dirs(),
-        _rule_exclude_nocopy_dirs(),
-        _rule_exclude_venv_dirs(),
-        _rule_exclude_venv_dirs_win(),
-        _rule_exclude_build_dirs(),
-        _rule_exclude_dist_dirs(),
-        _rule_exclude_egg_info_dirs(),
-        _rule_include_limited_text_files(),
+        file_util.exclude(".*", type="dir"),
+        file_util.exclude("*", type="dir", sentinel=".guild-nocopy"),
+        file_util.include(
+            "*",
+            type="text",
+            size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1,
+            max_matches=MAX_DEFAULT_SOURCECODE_COUNT,
+        ),
     ]
 
 
-def _rule_exclude_pycache_dirs():
-    return file_util.exclude("__pycache__", type="dir")
+def _plugin_default_select_rules(opdef):
+    return util.flatten(
+        [
+            plugin.default_sourcecode_select_rules_for_op(opdef)
+            for plugin in _plugins_for_default_select_rules(opdef)
+        ]
+    )
 
 
-def _rule_exclude_dot_dirs():
-    return file_util.exclude(".*", type="dir")
+def _plugins_for_default_select_rules(opdef):
+    from guild import plugin as pluginlib
 
-
-def _rule_exclude_nocopy_dirs():
-    return file_util.exclude("*", type="dir", sentinel=".guild-nocopy")
-
-
-def _rule_exclude_venv_dirs():
-    return file_util.exclude("*", type="dir", sentinel="bin/activate")
-
-
-def _rule_exclude_venv_dirs_win():
-    return file_util.exclude("*", type="dir", sentinel="Scripts/activate")
-
-
-def _rule_exclude_build_dirs():
-    return file_util.exclude("build", type="dir")
-
-
-def _rule_exclude_dist_dirs():
-    return file_util.exclude("dist", type="dir")
-
-
-def _rule_exclude_egg_info_dirs():
-    return file_util.exclude("*.egg-info", type="dir")
-
-
-def _rule_include_limited_text_files():
-    return file_util.include(
-        "*",
-        type="text",
-        size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1,
-        max_matches=MAX_DEFAULT_SOURCECODE_COUNT,
+    return sorted(
+        [
+            plugin
+            for _name, plugin in pluginlib.iter_plugins()
+            if plugin.enabled_for_op(opdef)[0]
+        ],
+        key=lambda plugin: plugin.sourcecode_select_rules_priority,
     )
 
 
@@ -1019,10 +1028,10 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
         )
         self._warned_max_matches = True
 
-    def _warn_max_size(self, path):
+    def _warn_max_size(self, fullpath):
         log.warning(
-            "Skipping potential source code file %s because it's too big.%s",
-            path,
+            "Skipping source code file %s because it's too big.%s",
+            os.path.relpath(fullpath),
             self._warning_help_suffix,
         )
 

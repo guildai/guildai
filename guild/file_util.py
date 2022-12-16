@@ -39,6 +39,9 @@ class FileSelect:
     def _init_disabled(self):
         """Returns True if file select is disabled.
 
+        This is an optimization to disable file select by appending an exclude
+        '*' to a rule set.
+
         Assumes not disabled until finds a disable all pattern (untyped
         match of '*'). Disable pattern can be reset by any include
         pattern.
@@ -91,11 +94,27 @@ class FileSelect:
 
 
 def reduce_file_select_results(results):
-    """Reduces a list of file select results to a single determining result."""
+    """Reduces a list of file select results to a single determining result.
+
+    The last non-None result from results is used to determine the reduced
+    result, otherwise returns None, None, indicating that the results are
+    indeterminate.
+
+    Returns a tuple of result and determining-test.
+    """
     for (result, test), _rule in reversed(results):
         if result is not None:
             return result, test
     return None, None
+
+
+class DisabledFileSelect(FileSelect):
+    def __init__(self):
+        super().__init__(None, None)
+
+    @property
+    def disabled(self):
+        return True
 
 
 class FileSelectRule:
@@ -124,6 +143,30 @@ class FileSelectRule:
         self.size_lt = size_lt
         self.max_matches = max_matches
         self._matches = 0
+
+    def __str__(self):
+        parts = ["include" if self.result else "exclude"]
+        if self.type:
+            parts.append(self.type)
+        parts.append(", ".join([_quote_pattern(p) for p in self.patterns]))
+        extras = self._format_file_select_rule_extras()
+        if extras:
+            parts.append(extras)
+        return " ".join(parts)
+
+    def _format_file_select_rule_extras(self):
+        parts = []
+        if self.regex:
+            parts.append("regex")
+        if self.sentinel:
+            parts.append(f"containing {_quote_pattern(self.sentinel)}")
+        if self.size_gt:
+            parts.append(f"size > {self.size_gt}")
+        if self.size_lt:
+            parts.append(f"size < {self.size_lt}")
+        if self.max_matches:
+            parts.append(f"max match {self.max_matches}")
+        return ", ".join(parts)
 
     def _patterns_match_f(self, patterns, regex):
         if regex:
@@ -156,6 +199,12 @@ class FileSelectRule:
         self._matches = 0
 
     def test(self, src_root, relpath):
+        """Returns a tuple of result and applicable test.
+
+        Applicable test can be used as a reason for the result -
+        e.g. to provide details to a user on why a particular file was
+        selected or not.
+        """
         fullpath = os.path.join(src_root, relpath)
         tests = [
             FileSelectTest("max matches", self._test_max_matches),

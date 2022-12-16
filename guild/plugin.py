@@ -35,6 +35,7 @@ class Plugin:
     provides = []
 
     resolve_model_op_priority = 100
+    sourcecode_select_rules_priority = 100
 
     def __init__(self, ep):
         self.name = ep.name
@@ -138,6 +139,14 @@ class Plugin:
         Plugins should implement this to provide operation specific environment
         variables for use in a run.
         """
+
+    def default_sourcecode_select_rules_for_op(self, opdef):
+        # pylint: disable=unused-argument
+        """Returns a default list of source code select rules for an operation.
+
+        This is called only when the plugin is enabled for the operation and Guild.
+        """
+        return []
 
 
 def iter_plugins():
