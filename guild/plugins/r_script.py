@@ -79,6 +79,7 @@ class RScriptPlugin(pluginlib.Plugin):
             return True, "operation is an R script"
         return False, "not applicable to operation"
 
+
 def op_data_for_script(r_script_path):
     try:
         out = run_r("guildai:::emit_r_script_guild_data()", args=[r_script_path])
