@@ -290,7 +290,7 @@ def _run_steps():
         return
     for step in steps:
         step_run = _run_step(step, parent_run)
-        _maybe_check_step_run(step, step_run)
+        _check_step_run(step, step_run)
 
 
 def _init_steps(run):
@@ -430,13 +430,13 @@ def _format_step_cmd(cmd):
     return " ".join(cmd[8:])
 
 
-def _maybe_check_step_run(step, run):
+def _check_step_run(step, run):
     if not step.checks:
         return
     if _run_skipped(run):
         log.info("skipping checks for %s", step.name)
         return
-    checks_passed = _check_step_run(step, run)
+    checks_passed = _check_step_run_(step, run)
     if not checks_passed:
         _error("stopping because a check failed", exit_code.TEST_FAILED)
 
@@ -452,7 +452,7 @@ def _run_skipped(run):
     return not os.path.exists(run.dir)
 
 
-def _check_step_run(step, run):
+def _check_step_run_(step, run):
     if not step.checks:
         return True
     passed = 0
