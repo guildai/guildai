@@ -18,7 +18,7 @@ Run the operation to generate the files.
 
 Output from `ls`:
 
-    >>> run("guild ls -n")
+    >>> run("guild ls -ng")
     img0
     img1
     img2
@@ -43,11 +43,7 @@ Output from `ls`:
 
 Files returned for view.
 
-    >>> out, exit = run_capture("guild view --test-runs-data")
-
-    >>> (exit, out)
-    (0, ...)
-
+    >>> out = run_capture("guild view --test-runs-data")
     >>> data = json.loads(out)
     >>> len(data)
     1

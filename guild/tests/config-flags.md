@@ -29,19 +29,9 @@ generating run-specific files using run flag values.
 
 We use the `config-flags` sample project for the tests below.
 
-    >>> cd(sample("projects", "config-flags"))
+    >>> use_project("config-flags")
 
-For runs, we use a temp Guild home and a helper for running Guild
-commands.
-
-    >>> gh = mkdtemp()
-
-    >>> def guild(cmd):
-    ...     run("guild -H %s %s" % (gh, cmd))
-
-Help for project contains imported flags.
-
-    >>> guild("help")  # doctest: +REPORT_UDIFF
+    >>> run("guild help")  # doctest: +REPORT_UDIFF
     ???
     BASE OPERATIONS
     <BLANKLINE>
@@ -93,7 +83,6 @@ Help for project contains imported flags.
             l    (default is 1 2 abc)
             s    (default is flu flam)
     <BLANKLINE>
-    <BLANKLINE>
         test-args-1
     <BLANKLINE>
         test-args-2
@@ -112,14 +101,21 @@ Help for project contains imported flags.
             a.d    (default is 1.123)
             e.f    (default is hello)
     <BLANKLINE>
-        yaml-subdir
+        yaml-subdir-1
           Flags:
             msg  (default is hello)
     <BLANKLINE>
-        yaml-subdir-broken
-    <exit 0>
+        yaml-subdir-2
+          Flags:
+            b  (default is no)
+            f  (default is 1.123)
+            i  (default is 123)
+            l  (default is 1 1.2 blue true)
+            s  (default is Howdy Guild)
 
 ## Supported File Types
+
+Guild supports various config file formats, which are tested below.
 
 ### YAML
 
@@ -136,11 +132,10 @@ The original config file:
       - blue
       - yes
     d: {}
-    <BLANKLINE>
 
 Results with default flags:
 
-    >>> guild("run yaml -y")
+    >>> run("guild run yaml -y")
     Resolving config:flags.yml
     {'b': False,
      'd': {},
@@ -148,22 +143,17 @@ Results with default flags:
      'i': 123,
      'l': [1, 1.2, 'blue', True],
      's': 'Howdy Guild'}
-    <exit 0>
 
 Results with modified flags:
 
-    >>> guild("run yaml b=yes f=4.456 l='a b 123' s=hi -y")
+    >>> run("guild run yaml b=yes f=4.456 l='a b 123' s=hi -y")
     Resolving config:flags.yml
     {'b': True, 'd': {}, 'f': 4.456, 'i': 123, 'l': ['a', 'b', 123], 's': 'hi'}
-    <exit 0>
 
-The config file is generated for the run.
+The config file generated for the run contains the user-specified flag
+values.
 
-    >>> guild("ls -n")
-    flags.yml
-    <exit 0>
-
-    >>> guild("cat -p flags.yml")
+    >>> run("guild cat -p flags.yml")
     b: true
     d: {}
     f: 4.456
@@ -173,16 +163,15 @@ The config file is generated for the run.
     - b
     - 123
     s: hi
-    <exit 0>
 
 When Guild imports flags it assigns a type. An attempt to use an
 invalid value generates an error.
 
-    >>> guild("run yaml i=not-a-number -y")
+    >>> run("guild run yaml i=not-a-number -y")
     guild: invalid value not-a-number for i: invalid value for type 'number'
     <exit 1>
 
-    >>> guild("run yaml f=not-a-number -y")
+    >>> run("guild run yaml f=not-a-number -y")
     guild: invalid value not-a-number for f: invalid value for type 'number'
     <exit 1>
 
@@ -205,7 +194,7 @@ The original config file:
 
 Results with default flags:
 
-    >>> guild("run json -y")
+    >>> run("guild run json -y")
     Resolving config:flags.json
     {'b': True,
      'd': {'a': 'A', 'b': 'B'},
@@ -213,11 +202,10 @@ Results with default flags:
      'i': 456,
      'l': [1, 2, 'abc'],
      's': 'flu flam'}
-    <exit 0>
 
 Results with modified flags:
 
-    >>> guild("run json s=abc l=\"2 1 'a b' d\" -y")
+    >>> run("guild run json s=abc l=\"2 1 'a b' d\" -y")
     Resolving config:flags.json
     {'b': True,
      'd': {'a': 'A', 'b': 'B'},
@@ -225,24 +213,19 @@ Results with modified flags:
      'i': 456,
      'l': [2, 1, 'a b', 'd'],
      's': 'abc'}
-    <exit 0>
 
 Guild generates a run specific config file.
 
-    >>> guild("ls -n")
-    flags.json
-    <exit 0>
-
-    >>> guild("cat -p flags.json")
-    {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456, "l": [2, 1, "a b", "d"], "s": "abc"}
-    <exit 0>
+    >>> run("guild cat -p flags.json")
+    {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234,
+    "i": 456, "l": [2, 1, "a b", "d"], "s": "abc"}
 
 ### JSON v2
 
 The `json-2` operation maps flags names to different locations in the
 JSON file.
 
-    >>> guild("run json-2 -y")
+    >>> run("guild run json-2 -y")
     Resolving config:flags.json
     {'b': True,
      'd': {'a': 'A', 'b': 'BB'},
@@ -250,9 +233,8 @@ JSON file.
      'i': 456,
      'l': [1, 2, 'abc'],
      's': 'flu flam'}
-    <exit 0>
 
-    >>> guild("run json-2 aa=AAA bb=B -y")
+    >>> run("guild run json-2 aa=AAA bb=B -y")
     Resolving config:flags.json
     {'b': True,
      'd': {'a': 'AAA', 'b': 'B'},
@@ -260,7 +242,6 @@ JSON file.
      'i': 456,
      'l': [1, 2, 'abc'],
      's': 'flu flam'}
-    <exit 0>
 
 ### CFG
 
@@ -282,7 +263,7 @@ The original config file:
 When run with default values we get the same content. Note the order
 of options is sorted.
 
-    >>> guild("run cfg -y")
+    >>> run("guild run cfg -y")
     Resolving config:flags.cfg
     [DEFAULT]
     b = True
@@ -295,11 +276,10 @@ of options is sorted.
     f = 2.234
     i = 456
     s = bye
-    <exit 0>
 
 Run with modified flags.
 
-    >>> guild("run cfg b=no i=321 foo.b=yes foo.f=432.2 foo.s='hej hej' -y")
+    >>> run("guild run cfg b=no i=321 foo.b=yes foo.f=432.2 foo.s='hej hej' -y")
     Resolving config:flags.cfg
     [DEFAULT]
     b = False
@@ -312,15 +292,10 @@ Run with modified flags.
     f = 432.2
     i = 456
     s = hej hej
-    <exit 0>
 
 Guild generates a run specific config file.
 
-    >>> guild("ls -n")
-    flags.cfg
-    <exit 0>
-
-    >>> guild("cat -p flags.cfg")
+    >>> run("guild cat -p flags.cfg")
     [DEFAULT]
     b = False
     f = 1.123
@@ -332,13 +307,13 @@ Guild generates a run specific config file.
     f = 432.2
     i = 456
     s = hej hej
-    <exit 0>
 
 ### CFG v2
 
-The `cfg-2` operation maps alternative flag names to various INI entries.
+The `cfg-2` operation maps alternative flag names to various INI
+entries.
 
-    >>> guild("run cfg-2 i=222 -y")
+    >>> run("guild run cfg-2 i=222 -y")
     Resolving config:flags.cfg
     [DEFAULT]
     b = yes
@@ -351,9 +326,8 @@ The `cfg-2` operation maps alternative flag names to various INI entries.
     f = 2.234
     i = 222
     s = bye
-    <exit 0>
 
-### Dot-in files
+### `.in` files
 
 Guild supports all of the above extensions when named with a `.in`
 extension.
@@ -377,7 +351,7 @@ The json input 'flags.json.in':
 
 Results with default flags:
 
-    >>> guild("run json-in -y")
+    >>> run("guild run json-in -y")
     Resolving config:flags.json.in
     {'b': True,
      'd': {'a': 'A', 'b': 'B'},
@@ -385,11 +359,10 @@ Results with default flags:
      'i': 456,
      'l': [1, 2, 'abc'],
      's': 'flu flam'}
-    <exit 0>
 
 Results with modified flags:
 
-    >>> guild("run json-in s=abc l=\"2 1 'a b' d\" -y")
+    >>> run("guild run json-in s=abc l=\"2 1 'a b' d\" -y")
     Resolving config:flags.json.in
     {'b': True,
      'd': {'a': 'A', 'b': 'B'},
@@ -397,29 +370,21 @@ Results with modified flags:
      'i': 456,
      'l': [2, 1, 'a b', 'd'],
      's': 'abc'}
-    <exit 0>
 
 Guild generates a run specific config file.
 
-    >>> guild("ls -n")
-    flags.json
-    <exit 0>
-
-    >>> guild("cat -p flags.json")
-    {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456, "l": [2, 1, "a b", "d"], "s": "abc"}
-    <exit 0>
+    >>> run("guild cat -p flags.json")
+    {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456,
+    "l": [2, 1, "a b", "d"], "s": "abc"}
 
 ## Restarting runs with param flags
 
 When a run is restarted with flags destined for a config file, Guild
 re-writes the config file with the new flag values.
 
-    >>> out, exit_code = run_capture(f"guild -H {gh} select")
-    >>> exit_code, out
-    (0, ...)
-    >>> last_run_id = out.strip()
+    >>> last_run_id = run_capture("guild select")
 
-    >>> guild(f"run --restart {last_run_id} b=no f=3.345 -y")
+    >>> run(f"guild run --restart {last_run_id} b=no f=3.345 -y")
     Resolving config:flags.json.in
     {'b': False,
      'd': {'a': 'A', 'b': 'B'},
@@ -427,26 +392,21 @@ re-writes the config file with the new flag values.
      'i': 456,
      'l': [2, 1, 'a b', 'd'],
      's': 'abc'}
-    <exit 0>
 
 If an operation explicitly defines a config resource to not re-resolve
-on restart, Guild fails on restart. We can use the
-'explicit-no-replace' operation to test this.
+on restart, Guild fails on restart. We use the `explicit-no-replace`
+operation to test this.
 
-    >>> guild("run explicit-no-replace -y")
+Generate a run to restart:
+
+    >>> run("guild run explicit-no-replace -y")
     Resolving config:flags.json
-    <exit 0>
 
-Get the last run ID.
+Restart the run:
 
-    >>> out, exit_code = run_capture(f"guild -H {gh} select")
-    >>> exit_code, out
-    (0, ...)
-    >>> last_run_id = out.strip()
+    >>> last_run_id = run_capture("guild select")
 
-Restar the run.
-
-    >>> guild(f"run --restart {last_run_id} -y")
+    >>> run(f"guild run --restart {last_run_id} -y")
     Resolving config:flags.json
     Skipping resolution of config:flags.json because it's already resolved
     <exit 0>
@@ -456,41 +416,78 @@ Restar the run.
 To illustrate how Guild handles unsupported file extensions, we create
 a new project.
 
-    >>> tmp = mkdtemp()
-    >>> write(join_path(tmp, "guild.yml"), """
+    >>> use_project(mkdtemp())
+    >>> write("guild.yml", """
     ... invalid-config:
     ...   main: guild.pass
     ...   flags-dest: config:params.badext
     ...   flags-import: all
     ... """)
 
-    >>> run("guild ops", cwd=tmp)
-    WARNING: config type for params.badext not supported...
+    >>> run("guild ops")
+    WARNING: config type for params.badext not supported
     invalid-config
-    <exit 0>
 
 ## Includes
 
 Includes need to specify the path to the config file relative to the
 importing source.
 
-    >>> guild("run yaml-subdir -y")
-    Resolving config:subdir/flags.yaml
-    <exit 0>
+We return to the `config-flags` sample project to illustate.
 
-    >>> guild("ls -n")
-    flags.yaml
-    <exit 0>
+    >>> use_project("config-flags")
 
-If the path is relative to the imported source, Guild cannot find the
-config file.
+The project Guild file includes operation defines in
+`subdir/guild-config.yml`.
 
-    >>> guild("run yaml-subdir-broken -y")
-    <exit 0>
-
-    >>> guild("ls -n")
+    >>> cat("guild.yml")
+    - include: subdir/guild-config.yml
     <BLANKLINE>
-    <exit 0>
+    - operations:
+        $include: subdir-ops
+    ...
+
+    >>> cat(path("subdir", "guild-config.yml"))  # doctest: +REPORT_UDIFF
+    - config: subdir-ops
+      operations:
+        yaml-subdir-1:
+          main: guild.pass
+          flags-dest: config:subdir/flags.yml
+          flags-import: yes
+    <BLANKLINE>
+        yaml-subdir-2:
+          main: guild.pass
+          flags-dest: config:flags.yml
+          flags-import: yes
+
+The `yaml-subdir-1` operation includes `subdir` as a parent of
+`flags.yml`.
+
+    >>> run("guild run yaml-subdir-1 -y")
+    Resolving config:subdir/flags.yml
+
+The resolved config file originated from `subdir`.
+
+    >>> run("guild cat -p flags.yml")
+    msg: hello
+
+`yaml-subdir-2` does not include `subdir`. When it's resolved, it's
+resolved relative to the importing source.
+
+    >>> run("guild run yaml-subdir-2 -y")
+    Resolving config:flags.yml
+
+    >>> run("guild cat -p flags.yml")
+    b: false
+    d: {}
+    f: 1.123
+    i: 123
+    l:
+    - 1
+    - 1.2
+    - blue
+    - true
+    s: Howdy Guild
 
 ### Args Test
 
@@ -500,14 +497,21 @@ destination is specified.
 The `test-args-1` operation doesn't define any base args in
 `guild.yml`.
 
-    >>> guild("run test-args-1 -y")
+    >>> gf_data = yaml.load(open("guild.yml"))
+    >>> pprint(gf_data[1]["operations"]["test-args-1"])
+    {'flags-dest': 'config:empty.json',
+     'flags-import': 'all',
+     'main': 'test_args'}
+
+The operatioin prints `sys.argv[1:]`.
+
+    >>> run("guild run test-args-1 -y")
     Resolving config:empty.json
     []
-    <exit 0>
 
-The `test-args-2` operation defines three base args in `guild.yml`.
+`test-args-2` operation defines three base args in `guild.yml`.
 
-    >>> guild("run test-args-2 -y")
-    Resolving config:empty.json
-    ['foo', 'bar', 'baz']
-    <exit 0>
+    >>> pprint(gf_data[1]["operations"]["test-args-2"])
+    {'flags-dest': 'config:empty.json',
+     'flags-import': 'all',
+     'main': 'test_args foo bar baz'}

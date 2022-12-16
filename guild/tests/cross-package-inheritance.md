@@ -1,10 +1,10 @@
 # Cross package inheritance
 
-These tests cover the **Extending packages** topic in `guildfiles.md`
-in more depth.
+These tests cover the **Extending packages** topic in `guildfiles.md` in more
+depth.
 
-Guild is a system that enables reuse of project configuration by way
-of *model extension*.
+Guild is a system that enables reuse of project configuration by way of *model
+extension*.
 
 We'll work packages defined in the `cross-package-inherits` project:
 

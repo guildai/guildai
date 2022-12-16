@@ -32,7 +32,7 @@ formatted.
 
 Let's start by running `train.py` - a script located in the project root.
 
-    >>> run, _ = project.run_capture("train.py")
+    >>> run, _out = project.run_capture("train.py")
 
 When we print the runs, we see the operation is listed as we specified
 for the run call.
@@ -124,7 +124,7 @@ result as a table.
     ...         "op_desc": "Displayed As",
     ...     }]
     ...     for run_from_dir, op_spec, show_from in tests:
-    ...         run, _ = project.run_capture(op_spec, cwd=run_from_dir)
+    ...         run, _out = project.run_capture(op_spec, cwd=run_from_dir)
     ...         for show_from_dir in show_from:
     ...             results.append({
     ...                 "op_spec": op_spec,

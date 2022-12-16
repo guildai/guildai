@@ -23,9 +23,6 @@ Start a second run using our first run as a prototype.
     >>> run(f"guild run --proto {echo_1} -y")
     1.0 2 'a'
 
-    >> run_2 = run(proto=run_1.id)
-    1.0 2 'a'
-
 We have two distinct runs, each with the same flags.
 
     >>> run("guild runs -s")

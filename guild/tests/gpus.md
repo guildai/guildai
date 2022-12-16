@@ -20,7 +20,6 @@ No GPU spec:
 Explicitly disable GPUs with `--no-gpus`:
 
     >>> run("guild run test.py --no-gpus -y")
-    <BLANKLINE>
     <exit 0>
 
 Specify GPUs with `--gpus`:
@@ -65,7 +64,6 @@ Start staged run with an alternative GPU spec:
 Restart run with an alternative GPU spec:
 
     >>> run("guild run --restart bbb --no-gpus -y")
-    <BLANKLINE>
     <exit 0>
 
 Restart run with no GPU spec - Guild uses the originally specified GPU

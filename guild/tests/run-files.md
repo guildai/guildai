@@ -156,10 +156,14 @@ regex.
     .guild/attrs/stopped
     .guild/attrs/user
     .guild/attrs/user_flags
+    .guild/manifest
     .guild/opref
     .guild/output
     .guild/output.index
+    .guild/proto/
+    .guild/proto/.guild/
     .guild/proto/.guild/PENDING
+    .guild/proto/.guild/attrs/
     .guild/proto/.guild/attrs/cmd
     .guild/proto/.guild/attrs/flags
     .guild/proto/.guild/attrs/host

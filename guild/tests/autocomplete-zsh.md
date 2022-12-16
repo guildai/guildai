@@ -601,21 +601,38 @@ Various other options that don't work with path:
 
 ### `dir` arg
 
-TODO reinstate:
-
-    >> cmd_ac(diff.diff, "dir", [])
-    !!dir
-
-/TODO
+    >>> cmd_ac(diff.diff, "dir", [])
+    foo/
 
 ### `cmd` arg
 
-TODO reinstate with a controlled cmd test:
+The implementation for `cmd` is to list all available executables on
+the system. For our tests, we createa an isolated env to control the
+listed commands.
 
-    >> cmd_ac(diff.diff, "cmd", [])
-    !!command
+    >>> bin_dir = mkdtemp()
 
-/TODO
+Helper to create an executable file:
+
+    >>> def init_exe(name):
+    ...     filename = path(bin_dir, name)
+    ...     touch(filename)
+    ...     make_executable(filename)
+
+Three executable files:
+
+    >>> init_exe("foo")
+    >>> init_exe("bar")
+    >>> init_exe("baz")
+
+Run the command autocomplete function with a limited `PATH`
+environment variable.
+
+    >>> with Env({"PATH": bin_dir}, replace=True):
+    ...     cmd_ac(diff.diff, "cmd", [])
+    bar
+    baz
+    foo
 
 ## Completions for `run`
 
