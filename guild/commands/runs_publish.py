@@ -16,7 +16,12 @@ import click
 
 from guild import click_util
 
+from . import ac_support
 from . import runs_support
+
+
+def _ac_dir(_ctx, _param, incomplete):
+    return ac_support.ac_dir(incomplete)
 
 
 def publish_params(fn):
@@ -25,7 +30,10 @@ def publish_params(fn):
         [
             runs_support.runs_arg,
             click.Option(
-                ("-d", "--dest"), metavar="DIR", help="Destination to publish runs."
+                ("-d", "--dest"),
+                metavar="DIR",
+                help="Destination to publish runs.",
+                shell_complete=_ac_dir,
             ),
             click.Option(
                 ("-t", "--template"),

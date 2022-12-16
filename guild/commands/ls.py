@@ -32,15 +32,7 @@ def _ac_run_path(ctx, _param, incomplete):
     run = runs_support.run_for_ctx(ctx)
     if not run:
         return []
-    base_dir = _run_base_dir(run, ctx)
-    return ac_support.ac_run_filepath(base_dir, incomplete)
-
-
-def _run_base_dir(run, ctx):
-    from . import ls_impl
-
-    args = click_util.Args(**ctx.params)
-    return ls_impl._base_dir(run, args)
+    return ac_support.ac_run_filepath(run.dir, incomplete)
 
 
 @click.command("ls")

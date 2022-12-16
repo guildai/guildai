@@ -198,6 +198,27 @@ def ac_python(incomplete):
 
 
 def _gen_ac_command(directive_filter, regex_filter, incomplete):
+    """Returns either a shell directive or a list of matching commands.
+
+    If the active shell supports directives, returns the encoded
+    directive containing `directive_filter`. If `directive_filter` is
+    unspecified, returns the encoded command directive. This mode
+    relies on the Guild completion script to resolve the list of
+    commands (e.g. by using `compgen`, etc.)
+
+    If the active shell does not support directives (i.e. we have not
+    implemented them for that shell) uses `/bin/sh` to list commands
+    available on `PATH`. This is a platform-specific approach that
+    relies on `/bin/sh`. When `/bin/sh` is used to find executables,
+    `regex_filter` if specified is used to filter
+    results. `regex_filter` is not used when the actve shell supports
+    directives. If `regex_filter` is not specified, the list of
+    commands not further filtered beyond commands starting with
+    `incomplete`.
+
+    Use of `/bin/sh` requires the additional commands in `/bin/`:
+    `try`, `grep`, `sort`, and `uniq`.
+    """
     import re
     import subprocess
 
@@ -206,21 +227,24 @@ def _gen_ac_command(directive_filter, regex_filter, incomplete):
             return [f"!!command:{directive_filter}"]
         return ["!!command"]
 
-    # TODO: how should we handle this on windows? call out to bash
-    #    explicitly? better to avoid explicitly calling sh.
-    available_commands = subprocess.check_output(
-        [
-            "sh",
-            "-c",
-            "ls $(echo $PATH | tr ':' ' ') | grep -v '/' | grep . | sort | uniq",
-        ],
-        stderr=subprocess.DEVNULL,
-    )
-    available_commands = [_.decode() for _ in available_commands.strip().split()]
+    cmd = [
+        "/bin/sh",
+        "-c",
+        (
+            "/bin/ls $(echo $PATH "
+            "| /bin/tr ':' ' ') "
+            "| /bin/grep -v '/' "
+            "| /bin/grep . "
+            "| /bin/sort "
+            "| /bin/uniq"
+        ),
+    ]
+    out = subprocess.check_output(cmd, stderr=subprocess.DEVNULL)
+    cmds = [line.strip() for line in out.decode().split("\n")]
     if regex_filter:
         filter_re = re.compile(regex_filter)
-        available_commands = [cmd for cmd in available_commands if filter_re.match(cmd)]
-    return _values_for_incomplete(incomplete, available_commands)
+        cmds = [cmd for cmd in cmds if cmd and filter_re.match(cmd)]
+    return _values_for_incomplete(incomplete, cmds)
 
 
 def ac_run_filepath(run_dir, incomplete):
