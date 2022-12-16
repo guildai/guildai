@@ -207,10 +207,20 @@ def _trial_op_attr(proto_run, trial_flag_vals):
     if not proto_op_data:
         return None
     deps = op_util.op_deps_for_data(proto_op_data.get("deps"))
-    for dep in deps:
-        dep.config = trial_flag_vals.get(dep.resdef.name) or dep.config
+    _apply_flag_vals_to_deps_config(trial_flag_vals, deps)
     proto_op_data["deps"] = op_util.op_deps_as_data(deps)
     return proto_op_data
+
+
+def _apply_flag_vals_to_deps_config(flag_vals, deps):
+    for dep in deps:
+        _apply_flag_vals_to_dep_config(flag_vals, dep.config)
+
+
+def _apply_flag_vals_to_dep_config(flag_vals, config):
+    for name in flag_vals:
+        if name in config:
+            config[name] = flag_vals.get(name)
 
 
 def _log_start_trial(run, stage):
