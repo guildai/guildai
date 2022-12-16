@@ -40,6 +40,7 @@ DEFAULT_OBJECTIVE = "loss"
 
 RUN_STATUS_LOCK_TIMEOUT = 30
 
+# Enum for `prev_trials_mode` used in `trial_runs()` below
 PREV_TRIALS_BATCH = "batch"
 PREV_TRIALS_SOURCECODE = "sourcecode"
 PREV_TRIALS_OPERATION = "operation"
@@ -441,6 +442,18 @@ def trial_results_for_runs(runs, scalars):
 
 
 def trial_runs(batch_run, prev_trials_mode=PREV_TRIALS_BATCH):
+    """Returns trials runs for a batch for a particular mode.
+
+    Modes are:
+
+      `PREV_TRIALS_BATCH` - trials directly associated with batch
+
+      `PREV_TRIALS_SOURCECODE` - trials whose source code digest matches the
+      batch proto digest (same source code)
+
+      `PREV_TRIALS_OPERATION` - trials of the same operation
+
+    """
     if prev_trials_mode == PREV_TRIALS_BATCH:
         return _batch_trial_runs(batch_run)
     if prev_trials_mode == PREV_TRIALS_SOURCECODE:
