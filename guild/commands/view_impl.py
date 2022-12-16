@@ -176,6 +176,7 @@ def _run_data_v2(run, index):
     data["stopped"] = run.get("stopped")
     del data["time"]
     _apply_scalars_camel_case(data)
+    _remove_v1_file_attrs(data)
     return data
 
 
@@ -186,6 +187,14 @@ def _apply_scalars_camel_case(data):
         pass
     else:
         data["scalars"] = [util.dict_to_camel_case(scalar) for scalar in scalars]
+
+
+def _remove_v1_file_attrs(run_data):
+    for file_data in run_data.get("files") or []:
+        file_data.pop("icon", None)
+        file_data.pop("iconTooltip", None)
+        file_data.pop("type", None)
+        file_data.pop("viewer", None)
 
 
 def _run_duration(run):

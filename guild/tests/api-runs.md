@@ -17,7 +17,7 @@ Helper for running commands for the project.
 
 ## `api runs`
 
-    >>> project_cmd("api runs -f")  # doctest: +REPORT_UDIFF
+    >>> project_cmd("api runs -f")
     [
       {
         "command": "... -um guild.op_main cat -- --file hello.txt",
@@ -30,26 +30,53 @@ Helper for running commands for the project.
         "exitStatus": 0,
         "files": [
           {
-            "icon": "file-document",
-            "iconTooltip": "Text file",
+            "mtime": ...,
+            "operation": null,
+            "path": "README.md",
+            "run": null,
+            "size": 135
+          },
+          {
+            "mtime": ...,
+            "operation": null,
+            "path": "cat.py",
+            "run": null,
+            "size": 294
+          },
+          {
+            "mtime": ...,
+            "operation": null,
+            "path": "guild.yml",
+            "run": null,
+            "size": 502
+          },
+          {
             "mtime": ...,
             "operation": null,
             "path": "hello.txt",
             "run": null,
-            "size": 20,
-            "type": "Text file",
-            "viewer": "text"
+            "size": 20
           },
           {
-            "icon": "file-document",
-            "iconTooltip": "Text file",
             "mtime": ...,
             "operation": null,
             "path": "msg.out",
             "run": null,
-            "size": ...,
-            "type": "Text file",
-            "viewer": "text"
+            "size": 20
+          },
+          {
+            "mtime": ...,
+            "operation": null,
+            "path": "repeat.py",
+            "run": null,
+            "size": 103
+          },
+          {
+            "mtime": ...,
+            "operation": null,
+            "path": "say.py",
+            "run": null,
+            "size": 36
           }
         ],
         "flags": {
