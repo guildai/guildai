@@ -31,6 +31,8 @@ import tempfile
 import threading
 import time
 
+import yaml
+
 import guild
 
 from guild import _api as gapi
@@ -61,6 +63,7 @@ PY38 = doctest.register_optionflag("PY38")
 PY39 = doctest.register_optionflag("PY39")
 STRICT = doctest.register_optionflag("STRICT")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
+STRIP_EXIT_0 = doctest.register_optionflag("STRIP_EXIT_0")
 WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 
@@ -244,6 +247,7 @@ def run_test_file(filename, globs=None):
             | NORMALIZE_PATHS
             | WINDOWS
             | STRIP_ANSI_FMT
+            | STRIP_EXIT_0
         ),
     )
 
@@ -298,13 +302,30 @@ class Checker(doctest.OutputChecker):
             got = _windows_normalize_paths(got)
         if optionflags & STRIP_ANSI_FMT:
             got = ansi_util.strip_ansi_format(got)
+        if optionflags & STRIP_EXIT_0:
+            got = _strip_exit_0(got)
         return got
 
     def _want(self, want, optionflags):
+        if optionflags & STRICT:
+            return want
         if optionflags & NORMALIZE_PATHSEP:
             want = _normalize_pathsep(want)
         want = _leading_wildcard_want(want)
+        if optionflags & STRIP_EXIT_0:
+            want = _strip_exit_0(want)
         return want
+
+
+def _strip_exit_0(s):
+    """Removes trailing '\n<exit 0>' from s.
+
+    Use to optionally omit `<exit 0>` at the end of run output that is
+    expected to succed.
+    """
+    if s.endswith("\n<exit 0>\n"):
+        return s[:-9]
+    return s
 
 
 def _windows_normalize_paths(s):
@@ -542,6 +563,7 @@ def test_globals():
         "copytree": util.copytree,
         "cd": _chdir,
         "cwd": os.getcwd,
+        "diff": _diff,
         "dir": dir,
         "dirname": os.path.dirname,
         "ensure_dir": util.ensure_dir,
@@ -559,6 +581,7 @@ def test_globals():
         "islink": os.path.islink,
         "join_path": os.path.join,
         "json": json,
+        "make_executable": util.make_executable,
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,
         "mktemp_guild_dir": mktemp_guild_dir,
@@ -587,8 +610,10 @@ def test_globals():
         "sys": sys,
         "tests_dir": tests_dir,
         "touch": util.touch,
+        "use_project": use_project,
         "which": util.which,
         "write": write,
+        "yaml": yaml,
     }
 
 
@@ -623,8 +648,9 @@ def find(root, followlinks=False, includedirs=False, ignore=None):
 
 
 def _sort_normalized_paths(paths):
-    key = lambda p: p.replace(os.path.sep, "/")
-    paths.sort(key=key)
+    import natsort
+
+    paths.sort(key=natsort.natsort_keygen(lambda p: p.replace(os.path.sep, "/")))
 
 
 def _filter_ignored(paths, ignore):
@@ -633,6 +659,15 @@ def _filter_ignored(paths, ignore):
     return [
         p for p in paths if not any((fnmatch.fnmatch(p, pattern) for pattern in ignore))
     ]
+
+
+def _diff(path1, path2):
+    import difflib
+
+    lines1 = [s.rstrip() for s in open(path1).readlines()]
+    lines2 = [s.rstrip() for s in open(path2).readlines()]
+    for line in difflib.unified_diff(lines1, lines2, path1, path2, lineterm=""):
+        print(line)
 
 
 def _example(name):
@@ -743,10 +778,18 @@ class ModelPath:
 
 
 class Project:
+    """Project abstraction used in tests.
+
+    This facility is deprecated and should not be used by tests moving
+    forward.  In cases where it makes sense, tests that use this
+    facility should be refactored to use the pattern described in
+    `guild/tests/test-template.md` using `use_project()`.
+    """
+
     def __init__(self, cwd, guild_home=None, env=None):
         from guild import index as indexlib  # expensive
 
-        self.cwd = cwd
+        self.cwd = self.dir = cwd
         self.guild_home = guild_home or mkdtemp()
         self._env = env
         runs_cache_path = os.path.join(self.guild_home, "cache", "runs")
@@ -889,25 +932,20 @@ class Project:
     def print_trials(self, *args, **kw):
         print(self._run(print_trials=True, *args, **kw))
 
-    def ls(self, run=None, all=False, sourcecode=False, ignore_compiled_source=False):
-        # TODO: remove ignore_compiled_source for op2 promo
-        if not run:
-            runs = self.list_runs()
-            if not runs:
-                raise RuntimeError("no runs")
-            run = runs[0]
+    def ls(self, run=None, all=False, sourcecode=False):
+        from guild import run_util
 
-        def filter(path):
-            default_select = (
-                all
-                or not path.startswith(".guild")
-                or (sourcecode and _is_run_sourcecode(path))
-            )
-            return default_select and not (
-                ignore_compiled_source and _is_compiled_source(path)
-            )
+        run = run or self._first_run()
+        sourcecode_files = set(run_util.sourcecode_files(run)) if sourcecode else {}
 
-        return [path for path in file_util.find(run.path) if filter(path)]
+        def filter_path(path):
+            if all:
+                return True
+            if sourcecode:
+                return path in sourcecode_files
+            return not path.startswith(".guild")
+
+        return [path for path in file_util.find(run.dir) if filter_path(path)]
 
     @staticmethod
     def cat(run, path):
@@ -953,13 +991,11 @@ class Project:
     def guild_cmd(self, cmd):
         _run(f"guild -H {util.shlex_quote(self.guild_home)} {cmd}", cwd=self.cwd)
 
-
-def _is_run_sourcecode(path):
-    return path.startswith(os.path.join(".guild", "sourcecode"))
-
-
-def _is_compiled_source(path):
-    return _is_run_sourcecode(path) and path.endswith(".pyc")
+    def _first_run(self):
+        runs = self.list_runs()
+        if not runs:
+            raise RuntimeError("no runs")
+        return runs[0]
 
 
 class _MockConfig:
@@ -1064,7 +1100,9 @@ def _run(
     if cut:
         out = _cut_cols(out, cut)
     if _capture:
-        return out, exit_code
+        if exit_code != 0:
+            raise gapi.RunError((cmd, cwd, proc_env), exit_code, out)
+        return out
     if out:
         print(out)
     print(f"<exit {exit_code}>")
@@ -1404,3 +1442,9 @@ def _strip_ignored(captured, ignore_patterns):
 
 def _capture_ignored(s, ignore_patterns):
     return any(p.search(s) for p in ignore_patterns)
+
+
+def use_project(project_name, guild_home=None):
+    guild_home = guild_home or mkdtemp()
+    _chdir(sample("projects", project_name))
+    _set_guild_home(guild_home)

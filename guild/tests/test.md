@@ -127,3 +127,26 @@ file finishes.
     ...     print("some xxx message")
     foo
     bar
+
+## Exit 0
+
+Output from `run()` ends with `<exit STATUS>` where `STATUS` is the
+exit status code from the command process. In cases where the exit
+status code is `0`, we can omit the asserted exit code for brevity.
+
+We simulate the exit code output by printing it directly.
+
+    >>> print("""Sample output - line 1
+    ... Sample outout - line 2
+    ... <exit 0>""")
+    Sample output - line 1
+    Sample outout - line 2
+
+We can also include the exit status.
+
+    >>> print("""Sample output - line 1
+    ... Sample outout - line 2
+    ... <exit 0>""")
+    Sample output - line 1
+    Sample outout - line 2
+    <exit 0>
