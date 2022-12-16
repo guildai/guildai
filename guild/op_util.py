@@ -12,6 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Operation utility functions.
+
+This module is heavily relied on to configure operations for execution.
+
+Design notes:
+
+There is an uncomfortable coupling between some logic in this module
+and logic provided by language plugins. Correct support for the `main`
+operation attribute, for example, is provided both here (e.g. see
+`_opdef_exec_and_run_attrs()`) and the Python script plugin.
+
+Any support for `exec` configuration -- as in the case of `main`,
+`steps`, and `notebook` attributes -- ought to be the exclusive domain
+of applicable plugins. What we see here is a partial decoupling where
+some functionality lives in plugins and some lives in core.
+
+This is true of Guild file configuration as well. Refer to "design
+notes" in `guild.guildfile` module source code for additional thougts.
+"""
+
 import csv
 import importlib
 import io
@@ -62,6 +82,17 @@ RESTART_NEEDED_STATUS = ("pending",)
 
 DEFAULT_PROC_POLL_INTERVAL = 5
 DEFAULT_PROC_KILL_DELAY = 30
+
+RUN_PROTO_ATTRS = [
+    "sourcecode_digest",
+    "vcs_commit",
+    "host",
+    "user",
+    "platform",
+    "plugins",
+    "pip_freeze",
+]
+
 
 NoCurrentRun = _api.NoCurrentRun
 
