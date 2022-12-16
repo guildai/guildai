@@ -27,14 +27,12 @@ def _ac_cmd(ctx, _param, incomplete):
 
 
 def _ac_path(ctx, _param, incomplete):
+    from guild import run_util
     from . import runs_impl
 
     open_args = click_util.Args(**ctx.params)
     run = runs_impl.one_run(open_args, ctx)
-    if open_args.sourcecode:
-        dir_base = run.guild_path("sourcecode")
-    else:
-        dir_base = run.dir
+    dir_base = run_util.sourcecode_dest(run) if open_args.sourcecode else run.dir
     return ac_support.ac_run_filepath(dir_base, incomplete)
 
 

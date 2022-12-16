@@ -89,9 +89,9 @@ Generate a run from the sample project.
         - yyy
         - zzz
       sourcecode:
-        - .guild/sourcecode/guild.yml
-        - .guild/sourcecode/op.py
-        - .guild/sourcecode/overlap.py
+        - guild.yml
+        - op.py
+        - overlap.py
     <exit 0>
 
     >>> project_run("guild ls -n")
@@ -100,6 +100,9 @@ Generate a run from the sample project.
     dep-1
     dep-subdir/
     dep-subdir/dep-2
+    guild.yml
+    op.py
+    overlap.py
     subdir/
     subdir/c
     yyy
@@ -147,24 +150,6 @@ Show the skipped files using the '--preview' option.
       "toCopy": [],
       "toSkip": [
         {
-          "fileType": "s",
-          "reason": "u",
-          "runPath": ".guild/sourcecode/guild.yml",
-          "targetPath": "guild.yml"
-        },
-        {
-          "fileType": "s",
-          "reason": "u",
-          "runPath": ".guild/sourcecode/op.py",
-          "targetPath": "op.py"
-        },
-        {
-          "fileType": "s",
-          "reason": "u",
-          "runPath": ".guild/sourcecode/overlap.py",
-          "targetPath": "overlap.py"
-        },
-        {
           "fileType": "o",
           "reason": "?",
           "runPath": "a",
@@ -187,6 +172,24 @@ Show the skipped files using the '--preview' option.
           "reason": "u",
           "runPath": "dep-subdir/dep-2",
           "targetPath": "dep-subdir/dep-2"
+        },
+        {
+          "fileType": "s",
+          "reason": "u",
+          "runPath": "guild.yml",
+          "targetPath": "guild.yml"
+        },
+        {
+          "fileType": "s",
+          "reason": "u",
+          "runPath": "op.py",
+          "targetPath": "op.py"
+        },
+        {
+          "fileType": "s",
+          "reason": "u",
+          "runPath": "overlap.py",
+          "targetPath": "overlap.py"
         },
         {
           "fileType": "o",
@@ -216,10 +219,11 @@ Let's modify some of the project files.
     >>> write(path(project_dir, "dep-subdir", "dep-2"), "yyy")
 
     >>> run_dir = project_capture("guild select --path")
-    >>> compare_dirs((run_dir, "run-dir"), (project_dir, "project-dir"))
+    >>> compare_dirs((run_dir, "run-dir"), (project_dir, "project-dir"))  # doctest: +REPORT_UDIFF
     diff /run-dir /project-dir
     Only in /run-dir : ['.guild', 'a', 'b', 'subdir', 'yyy', 'zzz']
-    Only in /project-dir : ['.gitignore', 'files.zip', 'guild.yml', 'op.py', 'overlap.py']
+    Only in /project-dir : ['.gitignore', 'files.zip']
+    Identical files : ['guild.yml', 'op.py', 'overlap.py']
     Differing files : ['dep-1']
     Common subdirectories : ['dep-subdir']
     <BLANKLINE>
@@ -294,11 +298,11 @@ To perform the merge, use the '--replace' without preview.
 
 Compare files after the merge.
 
-    >>> compare_dirs((run_dir, "run-dir"), (project_dir, "project-dir"))
+    >>> compare_dirs((run_dir, "run-dir"), (project_dir, "project-dir"))  # doctest: +REPORT_UDIFF
     diff /run-dir /project-dir
     Only in /run-dir : ['.guild', 'a', 'b', 'subdir', 'yyy', 'zzz']
-    Only in /project-dir : ['.gitignore', 'files.zip', 'guild.yml', 'op.py', 'overlap.py']
-    Identical files : ['dep-1']
+    Only in /project-dir : ['.gitignore', 'files.zip']
+    Identical files : ['dep-1', 'guild.yml', 'op.py', 'overlap.py']
     Common subdirectories : ['dep-subdir']
     <BLANKLINE>
     diff /run-dir/dep-subdir /project-dir/dep-subdir

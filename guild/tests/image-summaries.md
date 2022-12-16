@@ -21,7 +21,8 @@ Here are the run files:
 
     >>> files = dir(run.dir)
     >>> files
-    ['.guild', 'favicon-copy.png', 'favicon.png', 'heart-copy.jpg', 'heart.jpg']
+    ['.guild', 'copy_images.py', 'favicon-copy.png', 'favicon.png',
+     'guild.yml', 'heart-copy.jpg', 'heart.jpg', 'rotate_images.py']
 
 Next we process these files using the TensorBoard runs monitor. This
 monitor checks runs for images and adds them to ephemeral summary logs

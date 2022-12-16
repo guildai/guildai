@@ -196,21 +196,27 @@ def _url_unpack_dir(source_path, explicit_unpack_dir):
 
 
 class OperationResolver(FileResolver):
-    def resolve(self, resolve_context):
-        source_path = self._source_path()
-        unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)
-        resolved = resolve_source_files(source_path, self.source, unpack_dir)
+    def resolve(self, context):
+        run = self._resolve_run(context)
+        unpack_dir = _unpack_dir(run.dir, context.unpack_dir)
+        resolved = _resolve_run_files(run, self.source, unpack_dir)
         _check_source_resolved(resolved, self.source)
         return resolved
 
-    def _source_path(self):
-        run_spec = str(self.resource.config) if self.resource.config else ""
+    def _resolve_run(self, context):
+        run_spec = self._resolved_run_spec(context)
         if run_spec and os.path.isdir(run_spec):
             log.info("Using run %s for %s resource", run_spec, self.source.resdef.name)
             return run_spec
         run = self.resolve_op_run(run_spec)
         log.info("Using run %s for %s resource", run.id, self.source.resdef.name)
-        return run.dir
+        return run
+
+    def _resolved_run_spec(self, context):
+        return context.resolve_flag_refs(
+            str(self.source_config) if self.source_config else "",
+            self.source.resolving_name,
+        )
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
         return self._resolve_op_run(run_id_prefix, include_staged, marked_or_latest_run)
@@ -325,6 +331,23 @@ class opref_match_filter:
 
     def __call__(self, run):
         return self.opref.is_op_run(run, match_regex=True)
+
+
+def _resolve_run_files(run, source, unpack_dir):
+    resolved = resolve_source_files(run.dir, source, unpack_dir)
+    if not source.select:
+        # If select not specified, ensure that result does not contain source
+        # code files (i.e. contains only dependencies and generated files)
+        return _filter_non_sourcecode_files(resolved, run)
+    return resolved
+
+
+def _filter_non_sourcecode_files(paths, run):
+    from guild import run_util
+
+    sourcecode = set(run_util.sourcecode_files(run))
+    is_sourcecode = lambda path: os.path.relpath(path, run.dir) in sourcecode
+    return [path for path in paths if not is_sourcecode(path)]
 
 
 ###################################################################

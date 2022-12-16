@@ -32,7 +32,7 @@ List operations:
     Saving message to msg.out
     <exit 0>
 
-    >>> run("guild runs info --manifest")
+    >>> run("guild runs info --manifest")  # doctest: +REPORT_UDIFF
     id: ...
     operation: hello-file
     from: .../examples/hello/guild.yml
@@ -55,12 +55,11 @@ List operations:
       dependencies:
         - hello.txt
       sourcecode:
-        - .guild/sourcecode/README.md
-        - .guild/sourcecode/cat.py
-        - .guild/sourcecode/guild.yml
-        - .guild/sourcecode/hello.txt
-        - .guild/sourcecode/repeat.py
-        - .guild/sourcecode/say.py
+        - README.md
+        - cat.py
+        - guild.yml
+        - repeat.py
+        - say.py
     <exit 0>
 
     >>> tmp = mkdtemp()

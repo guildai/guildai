@@ -19,11 +19,13 @@ import shutil
 
 import yaml
 
+from guild import file_util
 from guild import flag_util
 from guild import guildfile
 from guild import opref as opreflib
 from guild import resolver
 from guild import run as runlib
+from guild import run_manifest
 from guild import util
 from guild import var
 
@@ -484,12 +486,30 @@ def marked_or_latest_run_for_opspec(opspec):
         return resolver.marked_or_latest_run([opref])
 
 
-def sourcecode_dir(run):
-    op_data = run.get("op", {})
-    sourcecode_root = op_data.get("sourcecode-root")
-    if sourcecode_root:
-        return os.path.normpath(os.path.join(run.dir, sourcecode_root))
-    return run.guild_path("sourcecode")
+def sourcecode_dest(run):
+    dest = run.get("op", {}).get("sourcecode", {}).get("dest")
+    if not dest:
+        return run.dir
+    return os.path.normpath(os.path.join(run.dir, dest))
+
+
+def sourcecode_root(run):
+    opdef = run_opdef(run)
+    if not opdef:
+        return None
+    root = run.get("op", {}).get("sourcecode", {}).get("root")
+    if not root:
+        return opdef.guildfile.dir
+    return os.path.join(opdef.guildfile.dir, root)
+
+
+def sourcecode_files(run):
+    manifest_path = run_manifest.run_manifest_path(run.dir)
+    if not os.path.exists(manifest_path):
+        log.debug("missing manifest %s - assuming no source code files", manifest_path)
+        return []
+    with run_manifest.manifest_for_run(run) as m:
+        return [entry[1] for entry in m if entry[0] == "s"]
 
 
 def export_runs(runs, dest, move=False, copy_resources=False, quiet=False):
@@ -699,3 +719,18 @@ def run_op_dir(run):
 def run_for_id(id, runs_dir=None):
     runs_dir = runs_dir or var.runs_dir()
     return runlib.Run(id, os.path.join(runs_dir, id))
+
+
+def sourcecode_digest(run):
+    """Returns the source code digest for a run.
+
+    Uses `file_util.files_digest()` with a lexicographic ordering of
+    the run source code paths. Note that the implementation does not
+    use `natsort`, which is used elsewhere in Guild for user
+    presentation. `natsort` is not needed for this application and
+    makes cross-language digest implementations harder to implement.
+    """
+    files = sourcecode_files(run)
+    if not files:
+        return None
+    return file_util.files_digest(sorted(files), run.dir)

@@ -504,60 +504,18 @@ def _publish_output(state):
 
 
 def _publish_sourcecode_list(state):
-    src = state.run.guild_path("sourcecode")
     dest = os.path.join(state.run_dest, "sourcecode.csv")
-    paths = _dir_paths(src, skip_guildfiles=True)
-    with open(dest, "w") as f:
-        _write_paths_csv(paths, src, state.md5s, f)
+    with open(dest, "w") as out:
+        _write_sourcecode_csv(state.run, state.md5s, out)
 
 
-def _dir_paths(dir, skip_guildfiles=False):
-    seen = set()
-    paths = []
-    for root, dirs, names in os.walk(dir, followlinks=True):
-        if skip_guildfiles:
-            _remove_guild_dir(dirs)
-        for name in dirs + names:
-            path = os.path.join(root, name)
-            abs_path = os.path.abspath(path)
-            if abs_path in seen:
-                continue
-            seen.add(abs_path)
-            paths.append(path)
-    paths.sort()
-    return paths
-
-
-def _remove_guild_dir(dirs):
-    try:
-        dirs.remove(".guild")
-    except ValueError:
-        pass
-
-
-def _write_paths_csv(paths, root, md5s, f):
-    out = csv.writer(f, lineterminator="\n")
-    out.writerow(["path", "type", "size", "mtime", "md5"])
+def _write_sourcecode_csv(run, md5s, out):
+    paths = util.natsorted(run_util.sourcecode_files(run))
+    csv_out = csv.writer(out, lineterminator="\n")
+    csv_out.writerow(["path", "type", "size", "mtime", "md5"])
     for path in paths:
-        out.writerow(_path_row(path, root, md5s))
-
-
-def _path_row(path, root, md5):
-    try:
-        st = os.stat(path)
-    except OSError:
-        st = None
-    try:
-        lst = os.lstat(path)
-    except OSError:
-        lst = None
-    return [
-        os.path.relpath(path, root),
-        _path_type(st, lst),
-        st.st_size if st else "",
-        _path_mtime(st),
-        _path_md5(path, st) if md5 else "",
-    ]
+        src = os.path.join(run.dir, path)
+        csv_out.writerow(_file_csv_row(path, src, md5s))
 
 
 def _path_type(st, lst):

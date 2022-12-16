@@ -137,6 +137,7 @@ class Operation(oplib.Operation):
         self._comment = None
         self._output_scalars = None
         self._sourcecode_root = None
+        self._sourcecode_dest = None
         self._flags_extra = None
         self._delete_on_success = None
         self._additional_deps = []
@@ -186,10 +187,19 @@ def _op_config_data(op):
         "label-template": op._label_template,
         "output-scalars": op._output_scalars,
         "deps": op_util.op_deps_as_data(op.deps),
-        "sourcecode-root": op._sourcecode_root,
+        "sourcecode": _op_sourcecode_data(op),
         "flags-extra": op._flags_extra,
         "delete-on-success": op._delete_on_success,
     }
+
+
+def _op_sourcecode_data(op):
+    data = {
+        "dest": op._sourcecode_dest,
+    }
+    if op._sourcecode_root:
+        data["root"] = op._sourcecode_root
+    return data
 
 
 def _apply_op_config_data(data, op):
@@ -198,10 +208,25 @@ def _apply_op_config_data(data, op):
     op._python_requires = data.get("python-requires")
     op._label_template = data.get("label-template")
     op._output_scalars = data.get("output-scalars")
-    op._sourcecode_root = data.get("sourcecode-root")
+    op._sourcecode_root = data.get("sourcecode", {}).get("root")
+    op._sourcecode_dest = data.get("sourcecode", {}).get(
+        "dest"
+    ) or _backward_compatible_sourcecode_dest(data)
     op._flags_extra = data.get("flags-extra")
     op._delete_on_success = data.get("delete-on-success")
     op.deps = op_util.op_deps_for_data(data.get("deps"))
+
+
+def _backward_compatible_sourcecode_dest(op_data):
+    """Returns the pre-0.9 value for source code dest.
+
+    Prior to 0.9 Guild stored sourcecode *dest* as `sourcecode-root`
+    and did not otherwise differentiate 'dest' (the target for source
+    code under the run directory) from 'root' (the source location
+    under the project). 0.9 and beyond stores the two values under
+    'sourcecode' map/dict.
+    """
+    return op_data("sourcecode-root")
 
 
 # =================================================================
@@ -898,7 +923,8 @@ def _op_init_config_for_opdef(
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_template if label_template is not None else opdef.label
     op._output_scalars = opdef.output_scalars
-    op._sourcecode_root = _opdef_sourcecode_dest(opdef)
+    op._sourcecode_dest = _opdef_sourcecode_dest(opdef)
+    op._sourcecode_root = _opdef_sourcecode_root(opdef)
     op._flags_extra = _opdef_flags_extra(opdef)
     op._tags = list(tags) + opdef.tags
     op._comment = _init_op_comment(comment, edit_comment, is_batch)
@@ -918,29 +944,11 @@ def _python_requires_for_opdef(opdef):
 
 
 def _opdef_sourcecode_dest(opdef):
-    return _opdef_explicit_sourcecode_dest(opdef) or _opdef_default_sourcecode_dest(
-        opdef
-    )
+    return opdef.sourcecode.dest or opdef.modeldef.sourcecode.dest or "."
 
 
-def _opdef_explicit_sourcecode_dest(opdef):
-    return opdef.sourcecode.dest or opdef.modeldef.sourcecode.dest
-
-
-def _opdef_default_sourcecode_dest(opdef):
-    if _sourcecode_empty(opdef):
-        return None
-    return _default_sourcecode_path()
-
-
-def _sourcecode_empty(opdef):
-    return opdef.sourcecode.disabled or (
-        opdef.sourcecode.empty_def and opdef.modeldef.sourcecode.disabled
-    )
-
-
-def _default_sourcecode_path():
-    return os.path.join(".guild", "sourcecode")
+def _opdef_sourcecode_root(opdef):
+    return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
 
 
 def _opdef_flags_extra(opdef):
@@ -1092,9 +1100,9 @@ def _resolve_sourcecode_paths(s):
 
 
 def _op_sourcecode_paths(op):
-    if op._sourcecode_root is None:
+    if op._sourcecode_dest is None:
         return []
-    return [op._sourcecode_root]
+    return [op._sourcecode_dest]
 
 
 # =================================================================
@@ -1304,7 +1312,6 @@ def _op_init_callbacks_for_op(op):
         init_output_summary=_init_output_summary,
         run_initialized=_on_run_initialized,
         dep_source_resolved=_on_dep_source_resolved,
-        run_staged=_on_run_staged,
         run_starting=_on_run_starting,
         run_stopped=_on_run_stopped,
     )
@@ -1315,12 +1322,19 @@ def _on_dep_source_resolved(_op, resolved_source):
 
 
 def _on_run_initialized(op, run):
-    _copy_opdef_sourcecode(op._opdef, op, run)
-    _write_run_sourcecode_digest(op, run)
-    _write_run_vcs_commit(op._opdef, run)
+    _init_run_manifest(run)
+    _copy_run_sourcecode(run, op)
+    _write_run_sourcecode_digest(run)
+    _write_run_vcs_commit(run, op)
 
 
-def _copy_opdef_sourcecode(opdef, op, run):
+def _init_run_manifest(run):
+    util.touch(run.guild_path("manifest"))
+
+
+def _copy_run_sourcecode(run, op):
+    assert op._opdef
+    opdef = op._opdef
     if os.getenv("NO_SOURCECODE") == "1":
         log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
         return
@@ -1343,25 +1357,45 @@ def _copy_opdef_sourcecode(opdef, op, run):
         sourcecode_src,
         sourcecode_select,
         dest,
-        op_util.sourcecode_manifest_logger_cls(run.dir),
+        ignore=_project_local_dependencies(op),
+        handler_cls=op_util.sourcecode_manifest_logger_cls(run.dir),
     )
 
 
+def _project_local_dependencies(op):
+    return [
+        _dep_source_project_local_path(source)
+        for dep in op.deps
+        for source in dep.resdef.sources
+        if _is_dep_source_project_local_file(source)
+    ]
+
+
+def _is_dep_source_project_local_file(source):
+    return source.parsed_uri.scheme == "file"
+
+
+def _dep_source_project_local_path(source):
+    assert source.parsed_uri.scheme == "file", source.parsed_uri
+    return source.parsed_uri.path
+
+
 def _sourcecode_dest(run, op):
-    return os.path.join(run.dir, op._sourcecode_root or _default_sourcecode_path())
+    return os.path.join(run.dir, op._sourcecode_dest or ".")
 
 
-def _write_run_sourcecode_digest(op, run):
-    if op._sourcecode_root:
-        op_util.write_sourcecode_digest(run, op._sourcecode_root)
+def _write_run_sourcecode_digest(run):
+    op_util.write_sourcecode_digest(run)
 
 
-def _write_run_vcs_commit(opdef, run):
+def _write_run_vcs_commit(run, op):
     if os.getenv("NO_VCS_COMMIT") == "1":
         log.debug("NO_VCS_COMMIT=1, skipping VCS commit")
         return
 
-    op_util.write_vcs_commit(opdef, run)
+    assert op._opdef
+    if op._opdef.guildfile.dir:
+        op_util.write_vcs_commit(run, op._opdef.guildfile.dir)
 
 
 def _op_init_callbacks_for_run_with_proto(op):
@@ -1373,53 +1407,14 @@ def _op_init_callbacks_for_run_with_proto(op):
             init_output_summary=_init_output_summary,
             run_initialized=_on_run_initialized_with_proto,
             dep_source_resolved=_on_dep_source_resolved,
-            run_staged=_on_run_staged,
             run_starting=_on_run_starting,
             run_stopped=_on_run_stopped,
         )
 
 
 def _on_run_initialized_with_proto(op, run):
-    _copy_run_proto_sourcecode(op._run, op, run)
-    _copy_run_proto_attrs(op._run, run)
-
-
-def _copy_run_proto_sourcecode(proto_run, proto_op, dest_run):
-    if os.getenv("NO_SOURCECODE") == "1":
-        log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
-        return
-    src = os.path.join(proto_run.dir, proto_op._sourcecode_root)
-    if not os.path.exists(src):
-        log.debug("no sourcecode source (%s), skipping sourcecode copy", src)
-        return
-    dest = os.path.join(dest_run.dir, proto_op._sourcecode_root)
-    log.debug(
-        "copying source code files for run %s from %s to %s",
-        dest_run.id,
-        src,
-        dest,
-    )
-    util.copytree(src, dest)
-
-
-def _copy_run_proto_attrs(proto_run, dest_run):
-    run_proto_attrs = [
-        "sourcecode_digest",
-        "vcs_commit",
-        "host",
-        "user",
-        "platform",
-        "pip_freeze",
-    ]
-    for attr in run_proto_attrs:
-        if not proto_run.has_attr(attr):
-            continue
-        dest_run.write_attr(attr, proto_run.get(attr))
-
-
-def _on_run_staged(op, run):
-    for plugin in op._plugins:
-        plugin.run_staged(run, op)
+    proto = op._run
+    op_util.init_run_from_proto(run, proto)
 
 
 def _on_run_starting(op, run, pidfile):
@@ -1872,19 +1867,23 @@ def _open_output(path):
 
 
 def _test_sourcecode(S):
+    assert S.user_op._opdef
     opdef = S.user_op._opdef
-    assert opdef
     logger = _CopyLogger()
     sourcecode_src = opdef.guildfile.dir
     sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
     op_util.copy_sourcecode(
-        sourcecode_src, sourcecode_select, None, handler_cls=logger.handler_cls
+        sourcecode_src,
+        sourcecode_select,
+        None,
+        ignore=_project_local_dependencies(S.user_op),
+        handler_cls=logger.handler_cls,
     )
     cwd_desc = cmd_impl_support.cwd_desc(logger.root)
     cli.out(f"Copying from {cwd_desc}")
     cli.out("Rules:")
     for rule in logger.select.rules if logger.select else []:
-        cli.out(f"  {_format_file_select_rule(rule)}")
+        cli.out(f"  {rule}")
     if logger.select and logger.select.disabled:
         assert not logger.selected, logger.selected
         assert not logger.skipped, logger.skipped
@@ -1892,13 +1891,48 @@ def _test_sourcecode(S):
     else:
         cli.out("Selected for copy:")
         for path in logger.selected:
-            cli.out(cli.style(f"  {path}", fg="yellow"))
+            cli.out(
+                cli.style(
+                    f"  {_format_sourcecode_path(path, logger.root)}", fg="yellow"
+                )
+            )
         cli.out("Skipped:")
         for path in logger.skipped:
-            cli.out(cli.style(f"  {path}", dim=True))
+            cli.out(
+                cli.style(f"  {_format_sourcecode_path(path, logger.root)}", dim=True)
+            )
+
+
+def _format_sourcecode_path(path, base_dir):
+    return _append_dir_slash(_strip_dot_slash(path), base_dir)
+
+
+def _strip_dot_slash(path):
+    # Strips leading './' from path if exists
+    return os.path.relpath(path, ".")
+
+
+def _append_dir_slash(path, base_dir):
+    # appends `os.path.sep` to end of path if it's a directory
+    return path + os.path.sep if os.path.isdir(os.path.join(base_dir, path)) else path
 
 
 class _CopyLogger:
+    """Utility for logging decisions by `op_util.copy_sourcecode()`.
+
+    Works via side effects from a call to `handler_cls`, which
+    simulates the creation of a logger. In this case, the logger
+    returns an instance of itself. This pattern is used to reference
+    handler activity after a call to `op_util.copy_sourcecode()`.
+
+    Calling `copy_sourcecode(..., handler_cls=logger.handler_cls)` has
+    the side effect of defining `selected` and `skipped`
+    attributes. These can be used to show which files are selected for
+    copy and which are skipped.
+
+    No files are copied when this pattern is used. The activity
+    perfomed by `copy_sourecode()` is only logged.
+    """
 
     root = None
     select = None
@@ -1921,32 +1955,6 @@ class _CopyLogger:
 
     def close(self):
         pass
-
-
-def _format_file_select_rule(rule):
-    parts = ["include" if rule.result else "exclude"]
-    if rule.type:
-        parts.append(rule.type)
-    parts.append(", ".join([repr(p) for p in rule.patterns]))
-    extras = _format_file_select_rule_extras(rule)
-    if extras:
-        parts.append(extras)
-    return " ".join(parts)
-
-
-def _format_file_select_rule_extras(rule):
-    parts = []
-    if rule.regex:
-        parts.append("regex")
-    if rule.sentinel:
-        parts.append(f"with {rule.sentinel!r}")
-    if rule.size_gt:
-        parts.append(f"size > {rule.size_gt}")
-    if rule.size_lt:
-        parts.append(f"size < {rule.size_lt}")
-    if rule.max_matches:
-        parts.append(f"max match {rule.max_matches}")
-    return ", ".join(parts)
 
 
 ###################################################################

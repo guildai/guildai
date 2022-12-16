@@ -32,13 +32,13 @@ The run files:
     .guild/opref
     .guild/output
     .guild/output.index
-    .guild/sourcecode/guild.yml
-    .guild/sourcecode/op.py
-    .guild/sourcecode/overlap.py
     a
     b
     dep-1
     dep-subdir/dep-2
+    guild.yml
+    op.py
+    overlap.py
     subdir/c
     yyy
     zzz
@@ -63,11 +63,11 @@ source code files, causing this example to fail. Note also that paths are
 normalized to use '/' path delimiters.
 
     >>> pprint(index, width=72)  # doctest: +REPORT_UDIFF -NORMALIZE_PATHS
-    {'.guild/sourcecode/guild.yml': _ManifestEntry(file_type='s', run_path='.guild/sourcecode/guild.yml', file_hash='679abb4272f4e3c9d10c2bcb07b82c6f95f025c1', source='guild.yml', source_subpath=None),
-     '.guild/sourcecode/op.py': _ManifestEntry(file_type='s', run_path='.guild/sourcecode/op.py', file_hash='af2386f2c88a0c3c0a55b59008061a0bcf4f0a5a', source='op.py', source_subpath=None),
-     '.guild/sourcecode/overlap.py': _ManifestEntry(file_type='s', run_path='.guild/sourcecode/overlap.py', file_hash='11487bbf901e4948ad9505ea3d50d02f28bb8cbe', source='overlap.py', source_subpath=None),
-     'dep-1': _ManifestEntry(file_type='d', run_path='dep-1', file_hash='da39a3ee5e6b4b0d3255bfef95601890afd80709', source='file:dep-1', source_subpath=None),
+    {'dep-1': _ManifestEntry(file_type='d', run_path='dep-1', file_hash='da39a3ee5e6b4b0d3255bfef95601890afd80709', source='file:dep-1', source_subpath=None),
      'dep-subdir/dep-2': _ManifestEntry(file_type='d', run_path='dep-subdir/dep-2', file_hash='da39a3ee5e6b4b0d3255bfef95601890afd80709', source='file:dep-subdir/dep-2', source_subpath=None),
+     'guild.yml': _ManifestEntry(file_type='s', run_path='guild.yml', file_hash='679abb4272f4e3c9d10c2bcb07b82c6f95f025c1', source='guild.yml', source_subpath=None),
+     'op.py': _ManifestEntry(file_type='s', run_path='op.py', file_hash='af2386f2c88a0c3c0a55b59008061a0bcf4f0a5a', source='op.py', source_subpath=None),
+     'overlap.py': _ManifestEntry(file_type='s', run_path='overlap.py', file_hash='11487bbf901e4948ad9505ea3d50d02f28bb8cbe', source='overlap.py', source_subpath=None),
      'yyy': _ManifestEntry(file_type='d', run_path='yyy', file_hash='da39a3ee5e6b4b0d3255bfef95601890afd80709', source='file:files.zip', source_subpath='yyy'),
      'zzz': _ManifestEntry(file_type='d', run_path='zzz', file_hash='da39a3ee5e6b4b0d3255bfef95601890afd80709', source='file:files.zip', source_subpath='xxx')}
 
@@ -107,11 +107,11 @@ Print the files that Guild copies by default.
 
     >>> print_merge(init_run_merge(run, empty_dir))
     To copy:
-    [s] .guild/sourcecode/guild.yml -> guild.yml
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [s] guild.yml -> guild.yml
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     To skip:
     [?] a -> a
     [?] b -> b
@@ -124,13 +124,13 @@ copied by specifying `copy_all=True`.
 
     >>> print_merge(init_run_merge(run, empty_dir, copy_all=True))
     To copy:
-    [s] .guild/sourcecode/guild.yml -> guild.yml
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
     [o] a -> a
     [o] b -> b
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [s] guild.yml -> guild.yml
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     [o] subdir/c -> subdir/c
     To skip:
     [npd] yyy -> ?
@@ -143,11 +143,11 @@ Source code files can be skipped using `skip_sourecode=True`.
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
     To skip:
-    [s] .guild/sourcecode/guild.yml -> guild.yml
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
     [?] a -> a
     [?] b -> b
+    [s] guild.yml -> guild.yml
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
@@ -156,9 +156,9 @@ Dependencyes can be skipped using `skip_deps=True`.
 
     >>> print_merge(init_run_merge(run, empty_dir, skip_deps=True))
     To copy:
-    [s] .guild/sourcecode/guild.yml -> guild.yml
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
+    [s] guild.yml -> guild.yml
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     To skip:
     [?] a -> a
     [?] b -> b
@@ -173,13 +173,13 @@ Skip both dependencies and source code:
     >>> print_merge(init_run_merge(run, empty_dir, skip_deps=True, skip_sourcecode=True))
     To copy:
     To skip:
-    [s] .guild/sourcecode/guild.yml -> guild.yml
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
     [?] a -> a
     [?] b -> b
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [s] guild.yml -> guild.yml
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     [?] subdir/c -> subdir/c
     [d] yyy -> ?
     [d] zzz -> ?
@@ -191,13 +191,13 @@ Exclude all files:
     >>> print_merge(init_run_merge(run, empty_dir, exclude=("*",)))
     To copy:
     To skip:
-    [x] .guild/sourcecode/guild.yml -> guild.yml
-    [x] .guild/sourcecode/op.py -> op.py
-    [x] .guild/sourcecode/overlap.py -> overlap.py
     [?] a -> a
     [?] b -> b
     [x] dep-1 -> dep-1
     [x] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [x] guild.yml -> guild.yml
+    [x] op.py -> op.py
+    [x] overlap.py -> overlap.py
     [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
@@ -209,13 +209,13 @@ reason for skipping is `x` (user-excluded).
     >>> print_merge(init_run_merge(run, empty_dir, copy_all=True, exclude=("*",)))
     To copy:
     To skip:
-    [x] .guild/sourcecode/guild.yml -> guild.yml
-    [x] .guild/sourcecode/op.py -> op.py
-    [x] .guild/sourcecode/overlap.py -> overlap.py
     [x] a -> a
     [x] b -> b
     [x] dep-1 -> dep-1
     [x] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [x] guild.yml -> guild.yml
+    [x] op.py -> op.py
+    [x] overlap.py -> overlap.py
     [x] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
@@ -228,11 +228,11 @@ target path rather than the run path.
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
     To skip:
-    [x] .guild/sourcecode/guild.yml -> guild.yml
-    [x] .guild/sourcecode/op.py -> op.py
-    [x] .guild/sourcecode/overlap.py -> overlap.py
     [?] a -> a
     [?] b -> b
+    [x] guild.yml -> guild.yml
+    [x] op.py -> op.py
+    [x] overlap.py -> overlap.py
     [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
@@ -245,11 +245,11 @@ files don't match.
     ...     ".guild/sourcecode/*.yml")
     ... ))
     To copy:
-    [s] .guild/sourcecode/guild.yml -> guild.yml
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [s] guild.yml -> guild.yml
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     To skip:
     [?] a -> a
     [?] b -> b
@@ -261,11 +261,11 @@ Other exclude patterns:
 
     >>> print_merge(init_run_merge(run, empty_dir, exclude=("a", "subdir/*")))
     To copy:
-    [s] .guild/sourcecode/guild.yml -> guild.yml
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [s] guild.yml -> guild.yml
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     To skip:
     [?] a -> a
     [?] b -> b
@@ -275,12 +275,12 @@ Other exclude patterns:
 
     >>> print_merge(init_run_merge(run, empty_dir, copy_all=True, exclude=("a", "subdir/*")))
     To copy:
-    [s] .guild/sourcecode/guild.yml -> guild.yml
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
     [o] b -> b
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [s] guild.yml -> guild.yml
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     To skip:
     [x] a -> a
     [x] subdir/c -> subdir/c
@@ -289,29 +289,29 @@ Other exclude patterns:
 
     >>> print_merge(init_run_merge(run, empty_dir, exclude=("guild.yml", "dep-*")))
     To copy:
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     To skip:
-    [x] .guild/sourcecode/guild.yml -> guild.yml
     [?] a -> a
     [?] b -> b
     [x] dep-1 -> dep-1
     [x] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [x] guild.yml -> guild.yml
     [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
 
     >>> print_merge(init_run_merge(run, empty_dir, copy_all=True, exclude=("guild.yml", "dep-*")))
     To copy:
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
     [o] a -> a
     [o] b -> b
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     [o] subdir/c -> subdir/c
     To skip:
-    [x] .guild/sourcecode/guild.yml -> guild.yml
     [x] dep-1 -> dep-1
     [x] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [x] guild.yml -> guild.yml
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -332,11 +332,11 @@ Here are the default merge files for the empty directory:
     >>> default_merge = init_run_merge(run, target_dir)
     >>> print_merge(default_merge)
     To copy:
-    [s] .guild/sourcecode/guild.yml -> guild.yml
-    [s] .guild/sourcecode/op.py -> op.py
-    [s] .guild/sourcecode/overlap.py -> overlap.py
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [s] guild.yml -> guild.yml
+    [s] op.py -> op.py
+    [s] overlap.py -> overlap.py
     To skip:
     [?] a -> a
     [?] b -> b
@@ -355,9 +355,9 @@ function are below). We use a logger to print what we copy.
     >>> apply_run_merge(default_merge, copy_logger)
     Copying dep-1
     Copying dep-subdir/dep-2
-    Copying .guild/sourcecode/guild.yml
-    Copying .guild/sourcecode/op.py
-    Copying .guild/sourcecode/overlap.py
+    Copying guild.yml
+    Copying op.py
+    Copying overlap.py
 
 The files in the target directory:
 
@@ -375,13 +375,13 @@ print them.
     >>> print_merge(default_merge)
     To copy:
     To skip:
-    [u] .guild/sourcecode/guild.yml -> guild.yml
-    [u] .guild/sourcecode/op.py -> op.py
-    [u] .guild/sourcecode/overlap.py -> overlap.py
     [?] a -> a
     [?] b -> b
     [u] dep-1 -> dep-1
     [u] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [u] guild.yml -> guild.yml
+    [u] op.py -> op.py
+    [u] overlap.py -> overlap.py
     [?] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
@@ -397,11 +397,11 @@ by specifying `copy_all=True`.
     [o] b -> b
     [o] subdir/c -> subdir/c
     To skip:
-    [u] .guild/sourcecode/guild.yml -> guild.yml
-    [u] .guild/sourcecode/op.py -> op.py
-    [u] .guild/sourcecode/overlap.py -> overlap.py
     [u] dep-1 -> dep-1
     [u] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [u] guild.yml -> guild.yml
+    [u] op.py -> op.py
+    [u] overlap.py -> overlap.py
     [npd] yyy -> ?
     [npd] zzz -> ?
 
@@ -428,13 +428,13 @@ Now that the files exit in the target directory, they're skipped as well.
     >>> print_merge(copy_all_merge)
     To copy:
     To skip:
-    [u] .guild/sourcecode/guild.yml -> guild.yml
-    [u] .guild/sourcecode/op.py -> op.py
-    [u] .guild/sourcecode/overlap.py -> overlap.py
     [u] a -> a
     [u] b -> b
     [u] dep-1 -> dep-1
     [u] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [u] guild.yml -> guild.yml
+    [u] op.py -> op.py
+    [u] overlap.py -> overlap.py
     [u] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
@@ -455,14 +455,14 @@ Refresh the copy-all merge and print the merge files.
     >>> copy_all_merge = init_run_merge(run, target_dir, copy_all=True)
     >>> print_merge(copy_all_merge)
     To copy:
-    [s] .guild/sourcecode/op.py -> op.py
     [o] a -> a
     [d] dep-1 -> dep-1
     [d] dep-subdir/dep-2 -> dep-subdir/dep-2
+    [s] op.py -> op.py
     To skip:
-    [u] .guild/sourcecode/guild.yml -> guild.yml
-    [u] .guild/sourcecode/overlap.py -> overlap.py
     [u] b -> b
+    [u] guild.yml -> guild.yml
+    [u] overlap.py -> overlap.py
     [u] subdir/c -> subdir/c
     [npd] yyy -> ?
     [npd] zzz -> ?
@@ -472,14 +472,12 @@ directory.
 
     >>> apply_run_merge(copy_all_merge)
 
-Compare the run directory with the target directory. Use links to dirs
-to clarify report output.
+Compare the run directory with the target directory.
 
     >>> compare_dirs((run.dir, "run-dir"), (target_dir, "target-dir"))
     diff /run-dir /target-dir
     Only in /run-dir : ['.guild', 'yyy', 'zzz']
-    Only in /target-dir : ['guild.yml', 'op.py', 'overlap.py']
-    Identical files : ['a', 'b', 'dep-1']
+    Identical files : ['a', 'b', 'dep-1', 'guild.yml', 'op.py', 'overlap.py']
     Common subdirectories : ['dep-subdir', 'subdir']
     <BLANKLINE>
     diff /run-dir/dep-subdir /target-dir/dep-subdir

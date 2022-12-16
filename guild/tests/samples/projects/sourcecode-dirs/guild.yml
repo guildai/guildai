@@ -1,0 +1,18 @@
+default:
+  main: guild.pass
+
+alt-dest:
+  main: guild.pass
+  sourcecode:
+    dest: sourcecode
+
+alt-root:
+  main: guild.pass
+  sourcecode:
+    root: src
+
+alt-dest-and-root:
+  main: guild.pass
+  sourcecode:
+    dest: sourcecode
+    root: src

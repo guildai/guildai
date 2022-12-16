@@ -1,1 +1,1 @@
-print("Hello Guild!")
+print("hi")

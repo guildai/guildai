@@ -21,8 +21,8 @@ first breakable line it 5.
 
     >>> run("guild run breakable_lines.py --break 1 -y",
     ...     timeout=2)
-    ???Breakpoint 1 at .../.guild/sourcecode/breakable_lines.py:5
-    > .../.guild/sourcecode/breakable_lines.py(5)<module>()
+    ???Breakpoint 1 at .../breakable_lines.py:5
+    > .../breakable_lines.py(5)<module>()
     -> def foo():
     (Pdb)
     <exit ...>
@@ -31,13 +31,13 @@ Break accepts file names with line numbers.
 
     >>> run("guild run breakable_lines.py --break breakable_lines:41 -y",
     ...     timeout=4)
-    Breakpoint 1 at .../.guild/sourcecode/breakable_lines.py:41
+    Breakpoint 1 at .../breakable_lines.py:41
     hello
     hello from loop
     hello from loop
     hello from while
     hello
-    > .../.guild/sourcecode/breakable_lines.py(41)bar()
+    > .../breakable_lines.py(41)bar()
     -> print("hello bar from for")
     (Pdb)
     <exit ...>
@@ -47,13 +47,13 @@ their containing module.
 
     >>> run("guild run breakable_lines.py --break breakable_lines.bar -y",
     ...     timeout=2)
-    Breakpoint 1 at .../.guild/sourcecode/breakable_lines.py:39
+    Breakpoint 1 at .../breakable_lines.py:39
     hello
     hello from loop
     hello from loop
     hello from while
     hello
-    > .../.guild/sourcecode/breakable_lines.py(40)bar()
+    > .../breakable_lines.py(40)bar()
     -> for i in range(2):
     (Pdb)
     <exit ...>
@@ -65,11 +65,11 @@ Use `--break-on-error` to start a post mortem session on script error.
     >>> run("guild run error.py --break-on-error -y",
     ...     timeout=2)
     ???Traceback (most recent call last):
-      File ".../.guild/sourcecode/error.py", line 1, in <module>
+      File ".../error.py", line 1, in <module>
         1 / 0
     ZeroDivisionError: ...
     Entering post mortem debug session
-    > .../.guild/sourcecode/error.py(1)<module>()
+    > .../error.py(1)<module>()
     -> 1 / 0
     (Pdb)
     <exit ...>

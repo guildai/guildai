@@ -72,10 +72,17 @@ def _diff_run_dir_base(ctx):
     if not run:
         return None
     if args.working:
+        diff_impl._working_dir_for_run(run)
         return ac_support.ac_safe_apply(diff_impl._working_dir_for_run, [run])
     if args.sourcecode:
-        return run.guild_path("sourcecode")
+        _sourcecode_dir(run)
     return run.dir
+
+
+def _sourcecode_dir(run):
+    from guild import run_util
+
+    return run_util.sourcecode_dest(run)
 
 
 def _run_to_diff(ctx):

@@ -368,25 +368,10 @@ def _compare_args_for_view_args(view_args):
 
 
 def _sourcecode_data(run):
-    rel_root = _sourcecode_root(run)
-    root = os.path.join(run.dir, rel_root)
-    files = sorted(_iter_sourcecode_files(root))
     return {
-        "root": rel_root,
-        "files": files,
+        "root": os.path.relpath(run_util.sourcecode_dest(run), run.dir),
+        "files": sorted(run_util.sourcecode_files(run)),
     }
-
-
-def _sourcecode_root(run):
-    op = run.get("op")
-    # pylint: disable=consider-using-ternary
-    return (op and op.get("sourcecode-root")) or ".guild/sourcecode"
-
-
-def _iter_sourcecode_files(path):
-    for root, _dirs, files in os.walk(path):
-        for name in files:
-            yield os.path.relpath(os.path.join(root, name), path)
 
 
 def _opref_data(run):

@@ -11,9 +11,6 @@ hello-file:
   flags:
     file:
       default: hello.txt
-  requires:
-    - file: ${file}
-      name: file
 
 hello-op:
   description:

@@ -81,7 +81,7 @@ Helper for running commands for the project.
             "repeat.py",
             "say.py"
           ],
-          "root": ".guild/sourcecode"
+          "root": "."
         },
         "started": ...,
         "status": "completed",

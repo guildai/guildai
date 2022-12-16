@@ -53,6 +53,8 @@ def _run_base_dir(run, ctx):
     shell_complete=_ac_run_path,
 )
 @click.option("-s", "--sourcecode", is_flag=True, help="List source code files.")
+@click.option("-d", "--dependencies", is_flag=True, help="List dependencies.")
+@click.option("-g", "--generated", is_flag=True, help="List generated.")
 @click.option("-a", "--all", is_flag=True, help="Show all files including Guild files.")
 @click.option("-f", "--full-path", is_flag=True, help="Show full path for files.")
 @click.option("-L", "--follow-links", is_flag=True, help="Follow links.")

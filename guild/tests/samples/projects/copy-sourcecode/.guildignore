@@ -1,0 +1,4 @@
+# Sample .guildignore file
+
+data
+*.in.*

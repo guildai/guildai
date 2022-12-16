@@ -37,6 +37,7 @@ from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import run as runlib
 from guild import run_manifest
+from guild import run_util
 from guild import util
 from guild import var
 from guild import vcs_util
@@ -626,17 +627,14 @@ def clear_run_pending(run):
     clear_run_marker(run, "PENDING")
 
 
-def write_sourcecode_digest(run, sourcecode_root):
-    src = os.path.join(run.dir, sourcecode_root)
-    digest = file_util.files_digest(src)
+def write_sourcecode_digest(run):
+    digest = run_util.sourcecode_digest(run)
     run.write_attr("sourcecode_digest", digest)
 
 
-def write_vcs_commit(opdef, run):
-    if not opdef.guildfile.dir:
-        return
+def write_vcs_commit(run, project_dir):
     try:
-        commit, status = vcs_util.commit_for_dir(opdef.guildfile.dir)
+        commit, status = vcs_util.commit_for_dir(project_dir)
     except vcs_util.NoCommit:
         pass
     except vcs_util.CommitReadError as e:
@@ -960,10 +958,20 @@ def _apply_dir_glob(root, pattern):
     return pattern
 
 
-def copy_sourcecode(sourcecode_src, sourcecode_select, dest_dir, handler_cls=None):
+def copy_sourcecode(
+    sourcecode_src,
+    sourcecode_select,
+    dest_dir,
+    ignore=None,
+    handler_cls=None,
+):
     handler_cls = handler_cls or SourceCodeCopyHandler
     file_util.copytree(
-        dest_dir, sourcecode_select, sourcecode_src, handler_cls=handler_cls
+        dest_dir,
+        sourcecode_select,
+        sourcecode_src,
+        ignore=ignore,
+        handler_cls=handler_cls,
     )
 
 
@@ -1664,6 +1672,36 @@ def _flag_vals(row):
 
 
 ###################################################################
+# Run from proto support
+###################################################################
+
+
+def init_run_from_proto(run, proto):
+    _copy_run_proto_sourcecode(proto, run)
+    _copy_run_proto_attrs(proto, run)
+
+
+def _copy_run_proto_sourcecode(proto_run, dest_run):
+    if os.getenv("NO_SOURCECODE") == "1":
+        log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
+        return
+    sourcecode_files = run_util.sourcecode_files(proto_run)
+    file_util.copyfiles(
+        proto_run.dir,
+        dest_run.dir,
+        sourcecode_files,
+        sourcecode_manifest_logger_cls(dest_run.dir),
+    )
+
+
+def _copy_run_proto_attrs(proto_run, dest_run):
+    for attr in RUN_PROTO_ATTRS:
+        if not proto_run.has_attr(attr):
+            continue
+        dest_run.write_attr(attr, proto_run.get(attr))
+
+
+###################################################################
 # Restart support
 ###################################################################
 
@@ -1867,7 +1905,7 @@ def handle_system_exit(e):
 def sourcecode_manifest_logger_cls(run_dir):
     m = manifest.Manifest(run_manifest.run_manifest_path(run_dir), "a")
 
-    class _Handler(SourceCodeCopyHandler):
+    class Handler(SourceCodeCopyHandler):
         def _try_copy_file(self, src, dest):
             super()._try_copy_file(src, dest)
             m.write(run_manifest.sourcecode_args(dest, run_dir, src, self.src_root))
@@ -1875,7 +1913,7 @@ def sourcecode_manifest_logger_cls(run_dir):
         def close(self):
             m.close()
 
-    return _Handler
+    return Handler
 
 
 def log_manifest_resolved_source(resolved_source):
