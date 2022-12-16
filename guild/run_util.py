@@ -167,6 +167,7 @@ def format_run(run, run_index=None):
         "label": run.get("label") or "",
         "marked": format_attr(bool(run.get("marked"))),
         "model": run.opref.model_name,
+        "num_index": _format_num_index(run_index),
         "op_name": run.opref.op_name,
         "operation": format_operation(run),
         "pid": run.pid or "",
@@ -187,6 +188,12 @@ def _format_run_index(run, index=None):
     if index is not None:
         return f"[{index}:{run.short_id}]"
     return f"[{run.short_id}]"
+
+
+def _format_num_index(index):
+    if index is not None:
+        return f"[{index}]"
+    return "[?]"
 
 
 def _with_marked(s, marked):

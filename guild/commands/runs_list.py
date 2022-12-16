@@ -45,6 +45,9 @@ def runs_list_options(fn):
             click.Option(("-c", "--comments"), help="Show run comments.", is_flag=True),
             click.Option(("-v", "--verbose"), help="Show run details.", is_flag=True),
             click.Option(("--json",), help="Format runs as JSON.", is_flag=True),
+            click.Option(
+                ("-s", "--simplified"), help="Show a simplified list.", is_flag=True
+            ),
             runs_support.all_filters,
             remote_support.remote_option("List runs on REMOTE rather than local runs."),
         ],
