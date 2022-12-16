@@ -54,6 +54,7 @@ tests).
       dependencies-2:              ok
       dependencies-3:              ok
       dependencies-4:              ok
+      disabled-tests:              ok
       disk-plugin:                 ok
       entry-points:                ok
       file-utils:                  ok
@@ -70,6 +71,7 @@ tests).
       gpus:                        ok
       guild-home:                  ok
       guildfiles:                  ok
+      guildignore:                 ok
       help:                        ok
       help-op:                     ok
       hiplot:                      ok
@@ -160,6 +162,7 @@ tests).
       tensorboard:                 ok
       test:                        ok
       test-flags:                  ok
+      test-template:               ok
       tfevents:                    ok
       timerange:                   ok
       utils:                       ok
