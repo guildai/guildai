@@ -80,7 +80,7 @@ root. Prior to 0.9, source code was copied to `.guild/sourcecode`.
 Here are some generated files:
 
     >>> run("guild cat -p .guild/attrs/cmd")
-    - /usr/bin/python
+    - ...
     - -um
     - guild.op_main
     - say

@@ -20,19 +20,18 @@ List operations:
     Whoop
     <exit 0>
 
-
 ## `hello-file`
 
     >>> run("guild run hello-file -y")
     Resolving file
-    Using hello.txt for file resource
+    Using hello.txt for file
     Reading message from hello.txt
     Hello, from a file!
     <BLANKLINE>
     Saving message to msg.out
     <exit 0>
 
-    >>> run("guild runs info --manifest")
+    >>> run("guild runs info --manifest")  # doctest: +REPORT_UDIFF
     id: ...
     operation: hello-file
     from: .../examples/hello/guild.yml
@@ -55,12 +54,11 @@ List operations:
       dependencies:
         - hello.txt
       sourcecode:
-        - .guild/sourcecode/README.md
-        - .guild/sourcecode/cat.py
-        - .guild/sourcecode/guild.yml
-        - .guild/sourcecode/hello.txt
-        - .guild/sourcecode/repeat.py
-        - .guild/sourcecode/say.py
+        - README.md
+        - cat.py
+        - guild.yml
+        - repeat.py
+        - say.py
     <exit 0>
 
     >>> tmp = mkdtemp()
@@ -69,7 +67,7 @@ List operations:
 
     >>> run("guild run hello-file file=%s -y" % tmp_file)
     Resolving file
-    Using .../hello for file resource
+    Using .../hello for file
     Reading message from .../hello
     A temp file!
     Saving message to msg.out
@@ -79,14 +77,14 @@ List operations:
 
     >>> run("guild run hello-op -y")
     Resolving op
-    Using run ... for op resource
+    Using run ... for op
     Reading message from msg.out
     A temp file!
     <exit 0>
 
     >>> run("guild run hello-op op=`guild select -Fo hello-file 2` -y")
     Resolving op
-    Using run ... for op resource
+    Using run ... for op
     Reading message from msg.out
     Hello, from a file!
     <exit 0>

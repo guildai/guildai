@@ -8,6 +8,8 @@ hello:
 hello-file:
   description: Show a message from a file
   main: cat
+  sourcecode:
+    - exclude: '*.txt'
   flags:
     file:
       default: hello.txt
