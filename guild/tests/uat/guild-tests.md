@@ -123,6 +123,7 @@ tests).
       remotes:                     ok
       resource-flag-refs:          ok
       resource-flags:              ok
+      resource-flags-2:            ok
       restart-runs:                ok
       run-attrs:                   ok
       run-files:                   ok

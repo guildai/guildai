@@ -8,22 +8,22 @@ Runs are marked by users or by optimizers.
 
 We'll illustrate using the `batch-deps` sample project.
 
-    >>> project = Project(sample("projects", "batch-deps"))
+    >>> use_project("batch-deps")
 
 In this project, the `serve` operation requires a `train` operation.
 
-    >>> project.run("serve")
-    WARNING: cannot find a suitable run for required resource 'train'
-    Resolving train
+    >>> run("guild run serve -y")
+    WARNING: cannot find a suitable run for required resource 'operation:train'
+    Resolving operation:train
     guild: run failed because a dependency was not met: could not resolve
-    'operation:train' in train resource: no suitable run for train
+    'operation:train' in operation:train resource: no suitable run for train
     <exit 1>
 
 ## Using the latest run for a required operation
 
 We satisfy the dependency by running train:
 
-    >>> project.run("train", flags={"lr": 0.1})
+    >>> run("guild run train lr=0.1 -y")
     params:
      lr=0.100000
     loss: ...
@@ -31,52 +31,40 @@ We satisfy the dependency by running train:
 
 And now serve again:
 
-    >>> project.run("serve")
-    Resolving train
-    Using run ... for train resource
+    >>> run("guild run serve -y")
+    Resolving operation:train
+    Using run ... for operation:train
     Serving ./trained-model
 
 Let's confirm that the dependency used matches the run we expect.
 
-Here are the current runs:
+Here are our runs:
 
-    >>> project.print_runs(flags=True, labels=True, status=True)
-    serve  train=...    model=...  completed
-    train  lr=0.1       lr=0.1     completed
-    serve  train=null   model=     error
+    >>> run("guild runs -s")
+    [1]  serve  completed  model=...
+    [2]  train  completed  lr=0.1
+    [3]  serve  error      model=
 
-Note the first run is `error` because it failed to resolve the
+Note that the original run is `error` because it failed to resolve the
 required dependency.
 
-Here's a helper to get the run ID of the train dependency:
+A helper function to check that the resolved run is what we expect.
 
-    >>> def train_dep(serve_run):
-    ...     deps = serve_run.get("deps")
-    ...     assert "train" in deps, deps
-    ...     train_sources = deps["train"]
-    ...     assert "operation:train" in train_sources, deps
-    ...     op_train_info = train_sources["operation:train"]
-    ...     assert "config" in op_train_info, deps
-    ...     return op_train_info["config"]
+    >>> def assert_resolved_run(expected_select):
+    ...     deps = yaml.safe_load(run_capture("guild select --attr deps"))
+    ...     resolved_run_id = deps["operation:train"]["operation:train"]["config"]
+    ...     expected_run_id = run_capture(f"guild select {expected_select}")
+    ...     resolved_run_id == expected_run_id, (
+    ...         "expected {expected_run_id} but got {resolved_run_id}"
+    ...     )
 
-Let's confirm that the run ID of the serve train dependency equals the
-expected run.
+Verify that the latest run resolved using the successful `train` run.
 
-    >>> runs = project.list_runs()
-    >>> train_run = runs[1]
-    >>> train_run.opref.to_opspec()
-    'train'
-
-    >>> serve_run = runs[0]
-    >>> serve_run.opref.to_opspec()
-    'serve'
-
-    >>> train_dep(serve_run) == train_run.id
-    True
+    >>> assert_resolved_run("-Sc -Fo train")
 
 Next we'll run train again, generating a more recent train op.
 
-    >>> project.run("train", flags={"lr": 0.01})
+    >>> run("guild run train lr=0.01 -y")
     params:
      lr=0.010000
     loss: ...
@@ -84,147 +72,100 @@ Next we'll run train again, generating a more recent train op.
 
 And run serve again:
 
-    >>> project.run("serve")
-    Resolving train
-    Using run ... for train resource
+    >>> run("guild run serve -y")
+    Resolving operation:train
+    Using run ... for operation:train
     Serving ./trained-model
 
 Our runs:
 
-    >>> project.print_runs(flags=True, labels=True, status=True)
-    serve  train=...   model=...  completed
-    train  lr=0.01     lr=0.01    completed
-    serve  train=...   model=...  completed
-    train  lr=0.1      lr=0.1     completed
-    serve  train=null  model=     error
+    >>> run("guild runs -s")
+    [1]  serve  completed  model=...
+    [2]  train  completed  lr=0.01
+    [3]  serve  completed  model=...
+    [4]  train  completed  lr=0.1
+    [5]  serve  error      model=
 
 Let's confirm that the latest serve is using the latest train.
 
-    >>> runs = project.list_runs()
-    >>> train_run = runs[1]
-    >>> train_run.opref.to_opspec()
-    'train'
-
-    >>> serve_run = runs[0]
-    >>> serve_run.opref.to_opspec()
-    'serve'
-
-    >>> train_dep(serve_run) == train_run.id
-    True
+    >>> assert_resolved_run("-Fo train -F lr=0.01")
 
 ## Using an explicit run for a required operation
 
-Next we explicitly specify a different train operation for serve:
+Next we explicitly specify a different train operation for serve.
 
-    >>> explicit_train_run = runs[3]
-    >>> train_run.opref.to_opspec()
-    'train'
-    >>> explicit_train_run.get("flags")
-    {'lr': 0.1}
+    >>> first_train_run = run_capture("guild select -Fo train 2")
 
-    >>> project.run("serve", flags={"train": explicit_train_run.id})
-    Resolving train
-    Using run ... for train resource
+Confirm that this is the expected run, where `lr` is `0.1`.
+
+    >>> run(f"guild select --attr flags {first_train_run}")
+    lr: 0.1
+
+Specify the run ID for a new `serve` run:
+
+    >>> run(f"guild run serve train={first_train_run} -y")
+    Resolving operation:train
+    Using run ... for operation:train
     Serving ./trained-model
 
-Let's confirm that the latest run is using the expected train run.
+Verify that the resolved run is as expected.
 
-    >>> runs = project.list_runs()
-    >>> serve_run = runs[0]
-    >>> serve_run.opref.to_opspec()
-    'serve'
-
-    >>> train_dep(serve_run) == explicit_train_run.id
-    True
+    >>> assert_resolved_run(first_train_run)
 
 ## Marking a run for a required operation
 
-Next, we'll mark a train run to indicate it should be used for
-serve's train dependency.
+Guild uses marked runs by default when resolving for operation
+dependencies.
 
-    >>> project.mark([explicit_train_run.id])
+Let's mark the first `train` run.
+
+    >>> run(f"guild mark {first_train_run} -y")
     Marked 1 run(s)
 
-Here are the marked runs:
+    >>> run("guild runs -s")
+    [1]  serve           completed  model=...
+    [2]  serve           completed  model=...
+    [3]  train           completed  lr=0.01
+    [4]  serve           completed  model=...
+    [5]  train [marked]  completed  lr=0.1
+    [6]  serve           error      model=
 
-    >>> project.print_runs(project.list_runs(marked=True), flags=True)
-    train [marked]  lr=0.1
+When we run `serve` without specifying a `train` run, it uses the
+marked run.
 
-And the `marked` attribute:
-
-    >>> explicit_train_run.get("marked")
-    True
-
-And run serve, this time without an explicit train run:
-
-    >>> project.run("serve")
-    Resolving train
-    Using run ... for train resource
+    >>> run("guild run serve -y")
+    Resolving operation:train
+    Using run ... for operation:train
     Serving ./trained-model
 
-And confirm that the train dependency uses the marked run:
+    >>> assert_resolved_run(first_train_run)
 
-    >>> runs = project.list_runs()
-    >>> serve_run = runs[0]
-    >>> serve_run.opref.to_opspec()
-    'serve'
+Let's unmark the first `train` run.
 
-    >>> train_dep(serve_run) == explicit_train_run.id
-    True
-
-## Unmarking and using latest again
-
-Finally, we'll unmark the marked train run and verify that the next
-serve run once again uses the latest trian run for its dependency.
-
-    >>> project.mark([explicit_train_run.id], clear=True)
+    >>> run(f"guild mark --clear {first_train_run} -y")
     Unmarked 1 run(s)
 
-We no longer have marked runs:
+    >>> run("guild runs -s")
+    [1]  serve  completed  model=...
+    [2]  serve  completed  model=...
+    [3]  serve  completed  model=...
+    [4]  train  completed  lr=0.01
+    [5]  serve  completed  model=...
+    [6]  train  completed  lr=0.1
+    [7]  serve  error      model=
 
-    >>> project.print_runs(project.list_runs(marked=True))
+When we run `serve` again, without an explicit `train` run, Guild uses
+the latest `train` run by default.
 
-And the `marked` attr:
-
-    >>> print(explicit_train_run.get("marked"))
-    None
-
-Our runs:
-
-    >>> project.print_runs(flags=True)
-    serve  train=...
-    serve  train=...
-    serve  train=...
-    train  lr=0.01
-    serve  train=...
-    train  lr=0.1
-    serve  train=null
-
-The latest train run:
-
-    >>> latest_train_run = project.list_runs()[3]
-    >>> latest_train_run.opref.to_opspec()
-    'train'
-
-Verify that the latest is not the explicit train run that we used
-earlier:
-
-    >>> latest_train_run.id != explicit_train_run.id
-    True
-
-Let's run the serve op:
-
-    >>> project.run("serve")
-    Resolving train
-    Using run ... for train resource
+    >>> run("guild run serve -y")
+    Resolving operation:train
+    Using run ... for operation:train
     Serving ./trained-model
 
-And check our train dep:
+The first train run is not resolved.
 
-    >>> runs = project.list_runs()
-    >>> serve_run = runs[0]
-    >>> serve_run.opref.to_opspec()
-    'serve'
+    >>> assert_resolved_run(first_train_run)
 
-    >>> train_dep(serve_run) == latest_train_run.id
-    True
+The latest train run is, however.
+
+    >>> assert_resolved_run("-Fo train")

@@ -1,58 +1,136 @@
-- operations:
-    flag:
-      main: guild.pass hello flag
-      flags-dest: args
-      flags:
-        foo: 123
+flag:
+  description: Defines a flag and no resources
+  main: guild.pass
+  flags-dest: args
+  flags:
+    foo: 123
 
-    resource:
-      main: guild.pass hello resource
-      flags-dest: args
-      requires:
+file-source:
+  description: Single unnamed file source
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - file: foo.txt
+
+file-source-with-name:
+  description: Single named file source
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - file: foo.txt
+      name: infile
+
+file-source-with-name-2:
+  description: Single named file source under a named resource
+  main: guild.pass
+  flags-dest: args
+  requires:
+    name: dependencies
+    sources:
+      - file: foo.txt
+        name: infile
+
+file-source-with-flag-name:
+  description: Single file source with a flag name
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - file: foo.txt
+      flag-name: infile
+
+file-source-with-name-and-flag-name:
+  description: Single named file source also with a flag name
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - file: foo.txt
+      name: file
+      flag-name: input-file
+
+file-source-with-flag:
+  description: Single file source associated with a flag def
+  main: guild.pass
+  flags-dest: args
+  flags:
+    infile:
+      description: Path to infile
+      default: foo.txt
+  requires:
+    - file: foo.txt
+      name: infile
+
+upstream:
+  description: Used in op dependencies
+  main: guild.pass
+
+op-source:
+  description: Single unnamed operation source
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - operation: upstream
+      warn-if-empty: false
+
+op-source-with-name:
+  description: Single named operation source
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - operation: upstream
+      name: upstream-run
+      warn-if-empty: false
+
+op-source-with-flag-name:
+  description: Single unnamed operation with a flag name
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - operation: upstream
+      flag-name: upstream-run
+      warn-if-empty: false
+
+op-source-with-flag:
+  description: Single operation associated with a flag def
+  main: guild.pass
+  flags-dest: args
+  flags:
+    upstream:
+      description: Run ID for upstream run (defaults to latest non-error run)
+      default: null
+  requires:
+    - operation: upstream
+      warn-if-empty: false
+
+multi-source:
+  description: Multiple unnamed sources
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - file: foo.txt
+    - operation: upstream
+      warn-if-empty: false
+
+multi-source-with-names:
+  description: Multiple named sources
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - file: foo.txt
+      name: infile
+    - operation: upstream
+      name: upstream-run
+      warn-if-empty: false
+
+multi-resource:
+  description: Defines multiple resources.
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - name: requires-files
+      sources:
         - file: foo.txt
-          flag-name: foo
-
-    flag-and-resource:
-      main: guild.pass hello flag-and-resource
-      flags-dest: args
-      flags:
-        foo: 123
-      requires:
-        - file: foo.txt
-          flag-name: foo
-
-    requires-flag:
-      main: guild.pass hello requires-flag
-      flags-dest: args
-      requires:
-        - operation: flag
-          warn-if-empty: false
-
-    requires-flag-2:
-      main: guild.pass hello requires-flag-2
-      flags-dest: args
-      flags:
-        flag: null
-      requires:
-        - operation: flag
-          warn-if-empty: false
-
-    requires-flag-3:
-      main: guild.pass hello requires-flag-3
-      flags-dest: args
-      requires:
-        - operation: flag
-          name: foo
-          warn-if-empty: false
-
-    requires-flag-4:
-      main: guild.pass hello requires-flag-4
-      flags-dest: args
-      flags:
-        foo:
-          default: invalid
-          arg-name: FOO
-      requires:
-        - operation: flag
-          name: foo
-          warn-if-empty: false
+        - file: bar.txt
+    - name: runs
+      sources:
+        - operation: upstream
+          warn-if-empty: no

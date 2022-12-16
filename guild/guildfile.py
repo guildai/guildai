@@ -1336,7 +1336,10 @@ class OpDependencyDef:
 
     def __repr__(self):
         if self.inline_resource:
-            return f"<guild.guildfile.OpDependencyDef {self.inline_resource.name}>"
+            return (
+                "<guild.guildfile.OpDependencyDef "
+                f"{self.inline_resource.resolving_name}>"
+            )
         return f"<guild.guildfile.OpDependencyDef '{self.spec}'>"
 
     def __str__(self):
@@ -1360,13 +1363,7 @@ def _coerce_inline_resource_data(data):
         return data
     # If sources not explicitly provided in data, assume data is a
     # source.
-    coerced = {"sources": [data]}
-    # If flag-name is defined for a source, promote it to resource
-    # level.
-    flag_name = data.pop("flag-name", None)
-    if flag_name:
-        coerced["flag-name"] = flag_name
-    return coerced
+    return {"sources": [data]}
 
 
 class NoSuchResourceError(ValueError):
@@ -1570,9 +1567,6 @@ class ResourceDef(resourcedef.ResourceDef):
             ) from None
         except resourcedef.ResourceFormatError as e:
             raise GuildfileError(modeldef.guildfile, e) from e
-        if not self.name:
-            self.name = self.flag_name or _resdef_name_for_sources(self.sources)
-        self.fullname = f"{modeldef.name}:{self.name}"
         self.private = self.private
         self.modeldef = modeldef
 
@@ -1605,16 +1599,6 @@ def _try_plugins_for_resource_source_data(data, resdef):
 def _resdef_fullname(config_name, model_name):
     res_name = config_name if config_name else "<inline>"
     return f"{model_name}:{res_name}"
-
-
-def _resdef_name_for_sources(sources):
-    return ",".join([_resdef_name_part_for_source(s) for s in sources])
-
-
-def _resdef_name_part_for_source(s):
-    if s.name.startswith("operation:"):
-        return s.name[10:]
-    return s.name
 
 
 ###################################################################

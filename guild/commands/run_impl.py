@@ -625,7 +625,7 @@ def _apply_op_flag_vals_for_opdef(
 
 
 def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
-    """Returns flag vals for opdef.
+    """Returns a tuple of flag vals and resource flag defs for opdef.
 
     Results includes defaults for opdef overridden by user flag vals
     where specified.
@@ -645,10 +645,10 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
 def _apply_default_dep_runs(opdef, op_cmd, args, flag_vals):
     """Applies default run IDs to flag_vals for dependencies."""
     resolver_factory = _resolver_factory(args)
-    for run, dep in op_dep.resolved_op_runs_for_opdef(
+    for run, source in op_dep.resolved_op_runs_for_opdef(
         opdef, flag_vals, resolver_factory
     ):
-        dep_flag_name = _dep_flag_name(dep)
+        dep_flag_name = _dep_source_flag_name(source, opdef)
         _ensure_dep_flag_op_cmd_arg_skip(dep_flag_name, opdef, op_cmd)
         _apply_dep_run_id(run.id, dep_flag_name, flag_vals)
 
@@ -659,8 +659,20 @@ def _resolver_factory(args):
     return None
 
 
-def _dep_flag_name(dep):
-    return dep.resdef.flag_name or dep.resdef.name
+def _dep_source_flag_name(source, opdef):
+    """Returns the name used for a dependency flag.
+
+    This is a function of the dependency resource source and the
+    operation def. If the operation provides a flag that corresponds
+    to the dependency source, that flag name is used. Otherwise the
+    source is used for these attrs in order of prededence:
+    `flag_name`, `name`, `uri`.
+
+    """
+    for name in (source.flag_name, source.name, source.uri):
+        if name and opdef.get_flagdef(name):
+            return name
+    return source.flag_name or source.name or source.uri
 
 
 def _ensure_dep_flag_op_cmd_arg_skip(flag_name, opdef, op_cmd):
@@ -694,19 +706,17 @@ def _apply_dep_run_id(run_id, dep_flag_name, flag_vals):
     val = flag_vals.get(dep_flag_name)
     if val is None:
         flag_vals[dep_flag_name] = run_id
-    elif isinstance(val, str):
-        if run_id.startswith(val):
-            flag_vals[dep_flag_name] = run_id
     elif isinstance(val, list):
         _apply_dep_run_id_to_list(run_id, val)
         flag_vals[dep_flag_name] = val
     else:
-        assert False, (type(val), dep_flag_name, flag_vals)
+        if run_id.startswith(str(val)):
+            flag_vals[dep_flag_name] = run_id
 
 
 def _apply_dep_run_id_to_list(run_id, l):
     for i, x in enumerate(l):
-        if run_id.startswith(x):
+        if run_id.startswith(str(x)):
             l[i] = run_id
             break
 

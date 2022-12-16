@@ -48,6 +48,7 @@ class OpDependencyError(Exception):
 
 class OpDependency:
     def __init__(self, resdef, res_location, config):
+        assert not config or isinstance(config, dict), config
         assert res_location
         self.resdef = resdef
         self.res_location = res_location
@@ -70,17 +71,32 @@ def dep_for_depdef(depdef, flag_vals):
 
 
 def _resdef_config(resdef, flag_vals):
-    for name in [resdef.fullname, (resdef.flag_name or resdef.name)]:
-        try:
-            return flag_vals[name]
-        except KeyError:
-            pass
-    return None
+    return {
+        name: flag_vals[name]
+        for name in resdef_flag_name_candidates(resdef)
+        if name in flag_vals
+    }
+
+
+def resdef_flag_name_candidates(resdef):
+    return list(_iter_resdef_flag_name_candidates(resdef))
+
+
+def _iter_resdef_flag_name_candidates(resdef):
+    for source in resdef.sources:
+        if source.flag_name:
+            yield source.flag_name
+            continue
+        if source.name:
+            yield source.name
+            continue
+        if source.uri:
+            yield source.uri
+            yield source.parsed_uri.path
 
 
 def resource_def(depdef, flag_vals):
     resdef, res_location = _resdef_for_dep(depdef, flag_vals)
-    _resolve_source_refs(resdef, flag_vals)
     return resdef, res_location
 
 
@@ -173,33 +189,6 @@ def _invalid_dependency_error(spec, depdef):
     )
 
 
-def _resolve_source_refs(resdef, flag_vals):
-    for source in resdef.sources:
-        source.uri = _resolve_dep_attr_refs(source.uri, flag_vals, resdef)
-        source.rename = _resolve_rename_spec_refs(source.rename, flag_vals, resdef)
-
-
-def _resolve_dep_attr_refs(attr_val, flag_vals, resdef):
-    try:
-        return util.resolve_refs(attr_val, flag_vals)
-    except util.UndefinedReferenceError as e:
-        raise OpDependencyError(
-            f"invalid flag reference '{resdef.name}' in dependency '{e.reference}'"
-        ) from e
-
-
-def _resolve_rename_spec_refs(specs, flag_vals, resdef):
-    if not specs:
-        return specs
-    return [
-        resourcedef.RenameSpec(
-            _resolve_dep_attr_refs(spec.pattern, flag_vals, resdef),
-            _resolve_dep_attr_refs(spec.repl, flag_vals, resdef),
-        )
-        for spec in specs
-    ]
-
-
 ###################################################################
 # Dep constructors
 ###################################################################
@@ -247,6 +236,7 @@ def resolve_source(source, dep, resolve_context, resolve_cb=None):
                     location,
                     source,
                     resolve_context.run.dir,
+                    resolve_context.resolve_flag_refs,
                 )
                 _handle_resolved_source(resolved, resolve_cb)
             return source_paths
@@ -291,13 +281,17 @@ class ResourceProxy:
     """
 
     def __init__(self, location, config):
+        assert not config or isinstance(config, dict), config
         assert location
         self.location = location
         self.config = config
 
 
 def _source_resolution_error(source, dep, e) -> typing.NoReturn:
-    msg = f"could not resolve '{source}' in {dep.resdef.name} resource: {e}"
+    msg = (
+        f"could not resolve '{source.resolving_name}' in "
+        f"{dep.resdef.resolving_name} resource: {e}"
+    )
     if source.help:
         msg += "\n" + cli.style(source.help, fg="yellow")
     raise OpDependencyError(msg)
@@ -305,10 +299,13 @@ def _source_resolution_error(source, dep, e) -> typing.NoReturn:
 
 def _unknown_source_resolution_error(source, dep, e):
     log.exception(
-        "resolving required source '%s' in %s resource", source, dep.resdef.name
+        "resolving required source '%s' in %s resource",
+        source.resolving_name,
+        dep.resdef.resolving_name,
     )
     raise OpDependencyError(
-        f"unexpected error resolving '{source}' in {dep.resdef.name} resource: {e!r}"
+        f"unexpected error resolving '{source.resolving_name}' in "
+        f"{dep.resdef.resolving_name} resource: {e!r}"
     )
 
 
@@ -328,10 +325,12 @@ class ResolvedSource:
         self.source_origin = source_origin
 
 
-def _resolve_source_for_path(source_path, source_origin, source, target_dir):
+def _resolve_source_for_path(
+    source_path, source_origin, source, target_dir, resolve_flag_refs
+):
     target_type = _target_type_for_source(source)
     target_path = _target_path_for_source(
-        source_path, source_origin, source, target_dir
+        source_path, source_origin, source, target_dir, resolve_flag_refs
     )
     if util.compare_paths(source_path, target_path):
         # Source was resolved directly to run dir - nothing to do.
@@ -369,7 +368,9 @@ def _validate_target_type(val, desc):
     )
 
 
-def _target_path_for_source(source_path, source_origin, source, target_dir):
+def _target_path_for_source(
+    source_path, source_origin, source, target_dir, resolve_flag_refs
+):
     """Returns target path for source.
 
     If target path is defined for the source, it redefines any value
@@ -383,7 +384,7 @@ def _target_path_for_source(source_path, source_origin, source, target_dir):
         )
     basename = os.path.basename(source_path)
     if source.rename:
-        basename = _rename_source(basename, source.rename)
+        basename = _rename_source(basename, source.rename, resolve_flag_refs)
     return os.path.join(target_dir, target_path, basename)
 
 
@@ -429,14 +430,25 @@ def _handle_source_link_error(e):
     raise OpDependencyError(f"unable to link to dependency source: {e}")
 
 
-def _rename_source(name, rename):
+def _rename_source(name, rename, resolve_flag_refs):
     for spec in rename:
         try:
-            renamed = re.sub(spec.pattern, spec.repl, name, count=1)
+            pattern = resolve_flag_refs(spec.pattern)
+            repl = resolve_flag_refs(spec.repl)
+        except resolverlib.ResolutionError as e:
+            raise OpDependencyError(
+                (
+                    f"error renaming source {name} ({spec.pattern!r} -> "
+                    f"{spec.repl!r}): resolution error: {e}"
+                )
+            ) from None
+
+        try:
+            renamed = re.sub(pattern, repl, name, count=1)
         except Exception as e:
             raise OpDependencyError(
-                f"error renaming source {name} ({spec.pattern!r} {spec.repl!r}): {e}"
-            ) from e
+                f"error renaming source {name} ({pattern!r} -> {repl!r}): {e}"
+            ) from None
         else:
             if renamed != name:
                 return renamed
@@ -476,34 +488,68 @@ def resolved_op_runs_for_opdef(opdef, flag_vals, resolver_factory=None):
 
 
 def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
+    """Returns an interation over resolved runs for deps and flag values.
+
+    Each iteration is a tuple of run and associated dependency from
+    `deps`.
+
+    If there are flag values that can be used to resolve a run for a
+    given resource in deps, they're used, otherwise tries the default
+    run. Logs a warning message for each non-optional resource source
+    that cannot be resolved with at least one run.
+    """
     resolver_factory = resolver_factory or resolver_for_source
     for dep in deps:
-        for source in dep.resdef.sources:
-            if not is_operation_source(source):
-                continue
-            resolver = resolver_factory(source, dep)
-            assert isinstance(resolver, resolverlib.OperationResolver), resolver
-            for run_id_prefix in _iter_flag_val_items(flag_vals.get(dep.resdef.name)):
-                try:
-                    run = resolver.resolve_op_run(run_id_prefix, include_staged=True)
-                except resolverlib.ResolutionError:
-                    if not source.optional:
-                        log.warning(
-                            "cannot find a suitable run for required resource '%s'",
-                            dep.resdef.name,
-                        )
-                else:
-                    yield run, dep
+        run_id_candidates = _run_id_flag_val_candidates(dep.resdef, flag_vals)
+        for op_source in _op_sources_for_dep(dep):
+            resolver = resolver_factory(op_source, dep)
+            resolved = _resolve_runs_for_run_id_candidates(run_id_candidates, resolver)
+            _maybe_warn_no_resolved_runs_for_op_source(resolved, op_source)
+            for run in resolved:
+                yield run, op_source
+
+
+def _run_id_flag_val_candidates(resdef, flag_vals):
+    return [
+        str(val)
+        for val in [flag_vals.get(name) for name in resdef_flag_name_candidates(resdef)]
+        if val
+    ]
+
+
+def _op_sources_for_dep(dep):
+    return [source for source in dep.resdef.sources if is_operation_source(source)]
+
+
+def _resolve_runs_for_run_id_candidates(run_id_candidates, resolver):
+    # If there are no run ID candidates, try the default run for
+    # resolver, which is represented by `None`
+    run_id_candidates = run_id_candidates or [None]
+    return [
+        run
+        for run in [
+            _try_resolved_run(run_id_prefix, resolver)
+            for run_id_prefix in run_id_candidates
+        ]
+        if run
+    ]
+
+
+def _try_resolved_run(run_id_prefix, resolver):
+    try:
+        return resolver.resolve_op_run(run_id_prefix, include_staged=True)
+    except resolverlib.ResolutionError:
+        return None
+
+
+def _maybe_warn_no_resolved_runs_for_op_source(resolved, op_source):
+    if not resolved and not op_source.optional:
+        log.warning(
+            "cannot find a suitable run for required resource '%s'",
+            op_source.resolving_name,
+        )
 
 
 def is_operation_source(source):
     cls = resolverlib.resolver_class_for_source(source)
     return cls is not None and issubclass(cls, resolverlib.OperationResolver)
-
-
-def _iter_flag_val_items(val):
-    if isinstance(val, list):
-        for item in val:
-            yield item
-    else:
-        yield val

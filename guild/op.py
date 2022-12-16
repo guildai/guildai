@@ -446,7 +446,7 @@ def _resolve_deps(op, run, for_stage=False, continue_on_error=False):
     resolve_context = op_dep.ResolveContext(run)
     deps_attr = run.get("deps") or {}
     for dep in op.deps or []:
-        resolved_sources = deps_attr.setdefault(dep.resdef.name, {})
+        resolved_sources = deps_attr.setdefault(dep.resdef.resolving_name, {})
         try:
             _apply_resolve_dep_sources(
                 op,
@@ -464,15 +464,19 @@ def _resolve_deps(op, run, for_stage=False, continue_on_error=False):
 
 
 def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolved):
-    log.info(loglib.dim("Resolving %s"), dep.resdef.name)
+    log.info(loglib.dim("Resolving %s"), dep.resdef.resolving_name)
     for source in dep.resdef.sources:
-        if not source.always_resolve and source.name in resolved:
+        if not source.always_resolve and source.resolving_name in resolved:
             log.info(
-                "Skipping resolution of %s because it's already resolved", source.name
+                "Skipping resolution of %s because it's already resolved",
+                source.resolving_name,
             )
             continue
         if for_stage and _is_operation_source(source):
-            log.info("Skipping resolution of %s because it's being staged", source.name)
+            log.info(
+                "Skipping resolution of %s because it's being staged",
+                source.resolving_name,
+            )
             continue
         try:
             run_rel_resolved_paths = _resolve_dep_source(
@@ -484,16 +488,29 @@ def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolve
             log.debug(e)
             log.info(
                 "Could not resolve %s - skipping because dependency is optional",
-                source.name,
+                source.resolving_name,
             )
             continue
         else:
-            resolved[source.name] = source_info = {
+            resolved[source.resolving_name] = source_info = {
                 "uri": source.uri,
                 "paths": run_rel_resolved_paths,
             }
-            if dep.config:
-                source_info["config"] = dep.config
+            _maybe_apply_source_config(dep.config, source, source_info)
+
+
+def _maybe_apply_source_config(config, source, source_info):
+    if not config:
+        return
+    for name in (source.name, source.flag_name, source.uri):
+        if not name:
+            continue
+        try:
+            source_info["config"] = config[name]
+        except KeyError:
+            pass
+        else:
+            break
 
 
 def _resolve_dep_source(op, source, dep, resolve_context, run):

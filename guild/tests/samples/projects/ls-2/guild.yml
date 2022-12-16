@@ -1,0 +1,14 @@
+- operations:
+    op:
+      requires: dependencies
+
+    op-legacy-sourcecode-dest:
+      main: op
+      sourcecode:
+        dest: .guild/sourcecode
+      requires: dependencies
+
+  resources:
+    dependencies:
+      - file: dep-1.txt
+      - file: dep-2.txt

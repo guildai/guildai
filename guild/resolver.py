@@ -47,18 +47,54 @@ class ResolutionError(Exception):
 
 
 class ResolveContext:
+    _flag_vals = None
+
     def __init__(self, run=None, unpack_dir=None):
         self.run = run
         self.unpack_dir = unpack_dir
+
+    def resolve_flag_refs(self, s, val_desc=None):
+        flag_vals = self._ensure_flag_vals()
+        try:
+            return util.resolve_refs(s, flag_vals)
+        except util.UndefinedReferenceError as e:
+            raise ResolutionError(
+                f"cannot resolve {s!r}{_in_desc(val_desc)}: undefined reference '{e}'"
+            ) from None
+        except util.ReferenceResolutionError as e:
+            raise ResolutionError(
+                f"cannot resolve {s!r}{_in_desc(val_desc)}: {e!r}"
+            ) from None
+
+    def _ensure_flag_vals(self):
+        if self._flag_vals is None:
+            self._flag_vals = (self.run.get("flags") or {}) if self.run else {}
+        return self._flag_vals
+
+
+def _in_desc(desc):
+    return f" in {desc}" if desc else ""
 
 
 class Resolver:
     def __init__(self, source, resource):
         self.source = source
         self.resource = resource
+        self.source_config = _source_config(source, resource.config)
 
-    def resolve(self, resolve_context):
+    def resolve(self, context):
         raise NotImplementedError()
+
+
+def _source_config(source, config):
+    if not config:
+        return None
+    for key in (source.flag_name, source.name, source.uri):
+        try:
+            return config[key]
+        except KeyError:
+            pass
+    return None
 
 
 ###################################################################
@@ -104,18 +140,20 @@ def _try_plugins_for_resolver_class(source):
 
 
 class FileResolver(Resolver):
-    def resolve(self, resolve_context):
-        if self.resource.config:
-            return _resolve_config_path(self.resource.config, self.source.resdef.name)
-        source_path = self._abs_source_path()
-        unpack_dir = _unpack_dir(source_path, resolve_context.unpack_dir)
+    def resolve(self, context):
+        if self.source_config:
+            return _resolve_config_path(self.source_config, self.source)
+        source_path = self._abs_source_path(context)
+        unpack_dir = _unpack_dir(source_path, context.unpack_dir)
         resolved = self._resolve_source_files(source_path, unpack_dir)
         _check_source_resolved(resolved, self.source)
         post_process(self.source, unpack_dir or os.path.dirname(source_path))
         return resolved
 
-    def _abs_source_path(self):
-        source_path = self.source.parsed_uri.path
+    def _abs_source_path(self, context):
+        source_path = context.resolve_flag_refs(
+            self.source.parsed_uri.path, self.source.resolving_name
+        )
         for root in self._source_location_paths():
             abs_path = os.path.abspath(os.path.join(root, source_path))
             if os.path.exists(abs_path):
@@ -153,16 +191,19 @@ class FileResolver(Resolver):
 
 
 class URLResolver(Resolver):
-    def resolve(self, resolve_context):
+    def resolve(self, context):
         from guild import pip_util  # expensive
 
-        if self.resource.config:
-            return _resolve_config_path(self.resource.config, self.source.resdef.name)
+        if self.source_config:
+            return _resolve_config_path(self.source_config, self.source)
+        resolved_uri = context.resolve_flag_refs(
+            self.source.uri, self.source.resolving_name
+        )
         download_dir = url_source_download_dir(self.source)
         util.ensure_dir(download_dir)
         try:
             source_path = pip_util.download_url(
-                self.source.uri, download_dir, self.source.sha256
+                resolved_uri, download_dir, self.source.sha256
             )
         except pip_util.HashMismatch as e:
             raise ResolutionError(
@@ -173,7 +214,7 @@ class URLResolver(Resolver):
                 log.exception(self.source.uri)
             raise ResolutionError(e) from e
         else:
-            unpack_dir = _url_unpack_dir(source_path, resolve_context.unpack_dir)
+            unpack_dir = _url_unpack_dir(source_path, context.unpack_dir)
             resolved = resolve_source_files(source_path, self.source, unpack_dir)
             _check_source_resolved(resolved, self.source)
             post_process(self.source, unpack_dir or os.path.dirname(source_path))
@@ -206,10 +247,10 @@ class OperationResolver(FileResolver):
     def _resolve_run(self, context):
         run_spec = self._resolved_run_spec(context)
         if run_spec and os.path.isdir(run_spec):
-            log.info("Using run %s for %s resource", run_spec, self.source.resdef.name)
+            log.info("Using run %s for %s", run_spec, self.source.resolving_name)
             return run_spec
         run = self.resolve_op_run(run_spec)
-        log.info("Using run %s for %s resource", run.id, self.source.resdef.name)
+        log.info("Using run %s for %s", run.id, self.source.resolving_name)
         return run
 
     def _resolved_run_spec(self, context):
@@ -222,37 +263,38 @@ class OperationResolver(FileResolver):
         return self._resolve_op_run(run_id_prefix, include_staged, marked_or_latest_run)
 
     def _resolve_op_run(self, run_id_prefix, include_staged, resolve_run_cb):
-        oprefs = self._source_oprefs()
+        oprefs = oprefs_for_source(self.source)
         status = _matching_run_status(include_staged)
         run = resolve_run_cb(oprefs, run_id_prefix, status)
         if not run:
-            oprefs_desc = ",".join([self._opref_desc(opref) for opref in oprefs])
+            oprefs_desc = ",".join([_opref_desc(opref) for opref in oprefs])
             raise ResolutionError(f"no suitable run for {oprefs_desc}")
         return run
 
-    def _source_oprefs(self):
-        oprefs = []
-        for spec in self._split_opref_specs(self.source.parsed_uri.path):
-            try:
-                oprefs.append(guild.opref.OpRef.for_string(spec))
-            except guild.opref.OpRefError as e:
-                raise ResolutionError(f"inavlid operation reference {spec!r}") from e
-        return oprefs
 
-    @staticmethod
-    def _split_opref_specs(spec):
-        return [part.strip() for part in spec.split(",")]
+def _opref_desc(opref):
+    if opref.pkg_type == "guildfile":
+        pkg = "./"
+    elif opref.pkg_name:
+        pkg = opref.pkg_name + "/"
+    else:
+        pkg = ""
+    model_spec = pkg + (opref.model_name or "")
+    return f"{model_spec}:{opref.op_name}" if model_spec else opref.op_name
 
-    @staticmethod
-    def _opref_desc(opref):
-        if opref.pkg_type == "guildfile":
-            pkg = "./"
-        elif opref.pkg_name:
-            pkg = opref.pkg_name + "/"
-        else:
-            pkg = ""
-        model_spec = pkg + (opref.model_name or "")
-        return f"{model_spec}:{opref.op_name}" if model_spec else opref.op_name
+
+def oprefs_for_source(source):
+    oprefs = []
+    for spec in _split_opref_specs(source.parsed_uri.path):
+        try:
+            oprefs.append(guild.opref.OpRef.for_string(spec))
+        except guild.opref.OpRefError as e:
+            raise ResolutionError(f"inavlid operation reference {spec!r}") from e
+    return oprefs
+
+
+def _split_opref_specs(spec):
+    return [part.strip() for part in spec.split(",")]
 
 
 def _matching_run_status(include_staged):
@@ -356,7 +398,7 @@ def _filter_non_sourcecode_files(paths, run):
 
 
 class ModuleResolver(Resolver):
-    def resolve(self, resolve_context):
+    def resolve(self, context):
         module_name = self.source.parsed_uri.path
         try:
             importlib.import_module(module_name)
@@ -395,11 +437,11 @@ class ConfigResolver(FileResolver):
     CFG_EXT = (".cfg", ".ini")
     ALL_EXT = YAML_EXT + JSON_EXT + CFG_EXT
 
-    def resolve(self, resolve_context):
-        if not resolve_context.run:
+    def resolve(self, context):
+        if not context.run:
             raise TypeError("config resolver requires run for resolve context")
-        resolved = super().resolve(resolve_context)
-        return [self._generate_config(path, resolve_context) for path in resolved]
+        resolved = super().resolve(context)
+        return [self._generate_config(path, context) for path in resolved]
 
     def _generate_config(self, path, resolve_context):
         try:
@@ -839,12 +881,14 @@ def post_process(source, cwd, use_cache=True):
         process_marker = os.path.join(cwd, f".guild-cache-{cmd_digest}.post")
         if os.path.exists(process_marker):
             return
-    log.info("Post processing %s resource in %s: %r", source.resdef.name, cwd, cmd)
+    log.info(
+        "Post processing %s resource in %s: %r", source.resdef.resolving_name, cwd, cmd
+    )
     try:
         subprocess.check_call(cmd, shell=True, cwd=cwd)
     except subprocess.CalledProcessError as e:
         raise ResolutionError(
-            f"error post processing {source.resdef.name} resource: {e}"
+            f"error post processing {source.resdef.resolving_name} resource: {e}"
         ) from e
     else:
         util.touch(process_marker)
@@ -947,11 +991,11 @@ def _file_source_digest(path):
     return hashlib.sha224(key).hexdigest()
 
 
-def _resolve_config_path(config, resource_name):
+def _resolve_config_path(config, source):
     config_path = os.path.abspath(str(config))
     if not os.path.exists(config_path):
         raise ResolutionError(f"{config_path} does not exist")
-    log.info("Using %s for %s resource", os.path.relpath(config_path), resource_name)
+    log.info("Using %s for %s", os.path.relpath(config_path), source.resolving_name)
     return [config_path]
 
 
@@ -959,6 +1003,6 @@ def _check_source_resolved(resolved, source):
     if resolved:
         return
     if source.fail_if_empty:
-        raise ResolutionError(f"nothing resolved for {source.name}")
+        raise ResolutionError(f"nothing resolved for {source.resolving_name}")
     if source.warn_if_empty:
-        log.warning("nothing resolved for %s", source.name)
+        log.warning("nothing resolved for %s", source.resolving_name)

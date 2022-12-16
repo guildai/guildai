@@ -1,37 +1,39 @@
+resolve-twice:
+  main: guild.pass
+  requires:
+    - file: file-1
+    - file: file-1
+
 no-replace-dep-link:
   main: guild.pass
-  sourcecode:
-    select: [file-1]
-    dest: .
   requires:
+    - file: file-0
+      rename: file-0 file-1
     - file: file-1
       replace-existing: no  # default
       target-type: link
 
 no-replace-dep-copy:
   main: guild.pass
-  sourcecode:
-    select: [file-1]
-    dest: .
   requires:
+    - file: file-0
+      rename: file-0 file-1
     - file: file-1
       replace-existing: no  # default
 
 replace-dep-link:
   main: guild.pass
-  sourcecode:
-    select: [file-1]
-    dest: .
   requires:
+    - file: file-0
+      rename: file-0 file-1
     - file: file-1
       replace-existing: yes
       target-type: link
 
 replace-dep-copy:
   main: guild.pass
-  sourcecode:
-    select: [file-1]
-    dest: .
   requires:
+    - file: file-0
+      rename: file-0 file-1
     - file: file-1
       replace-existing: yes

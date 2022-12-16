@@ -51,20 +51,28 @@ class ResourceDef:
         self.name = name
         self._data = data = _coerce_resdef(data)
         self.fullname = fullname or name
-        self.flag_name = data.get("flag-name")
         self.description = data.get("description", "")
-        self.target_path = _init_target_path(
-            data.get("target-path"), data.get("path"), f"resource {self.fullname}"
-        )
         self.preserve_path = data.get("preserve-path")
         self.target_type = data.get("target-type")
         self.default_unpack = data.get("default-unpack", True)
         self.private = bool(data.get("private"))
         self.references = data.get("references", [])
         self.sources = self._init_sources(data.get("sources", []))
+        self.target_path = _init_target_path(
+            data.get("target-path"),
+            data.get("path"),
+            f"resource {self.resolving_name}",
+        )
+
+    @property
+    def resolving_name(self):
+        return self.name or _joined_resdef_source_desc(self) or _unnamed_resource_desc()
 
     def __repr__(self):
-        return f"<{self.__class__.__module__}.{self.__class__.__name__} '{self.name}'>"
+        return (
+            f"<{self.__class__.__module__}.{self.__class__.__name__} "
+            f"'{self.resolving_name}'>"
+        )
 
     def _init_sources(self, data):
         if isinstance(data, list):
@@ -131,6 +139,10 @@ def _coerce_resdef(data):
     raise ResourceDefValueError()
 
 
+def _joined_resdef_source_desc(resdef):
+    return ",".join([source.resolving_name for source in resdef.sources])
+
+
 class ResourceSource:
     def __init__(
         self,
@@ -156,12 +168,14 @@ class ResourceSource:
         path=None,
         preserve_path=False,
         params=None,
+        flag_name=None,
         **kw,
     ):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
-        self.name = name or uri
+        self.name = name
+        self.flag_name = flag_name
         self.sha256 = sha256
         if unpack is not None:
             self.unpack = unpack
@@ -174,7 +188,11 @@ class ResourceSource:
         self.fail_if_empty = fail_if_empty
         self.rename = _init_rename(rename)
         self.post_process = post_process
-        self.target_path = _init_target_path(target_path, path, f"source {self.name}")
+        self.target_path = _init_target_path(
+            target_path,
+            path,
+            f"source {self.resolving_name}",
+        )
         self.target_type = target_type
         self.replace_existing = replace_existing
         self.preserve_path = preserve_path
@@ -185,7 +203,7 @@ class ResourceSource:
             log.warning(
                 "unexpected source attribute '%s' in resource %r",
                 self.resdef._uncoerce_attr_key(key),
-                self.name,
+                self.resolving_name,
             )
 
     @property
@@ -199,10 +217,18 @@ class ResourceSource:
         return self.name
 
     def __repr__(self):
-        return f"<guild.resourcedef.ResourceSource '{self.name}'>"
+        return f"<guild.resourcedef.ResourceSource '{self.resolving_name}'>"
 
     def __str__(self):
         return self.uri
+
+    @property
+    def resolving_name(self):
+        return self.name or self.flag_name or self.uri
+
+
+def _unnamed_resource_desc():
+    return "resource"
 
 
 SelectSpec = collections.namedtuple("SelectSpec", ["pattern", "reduce"])
