@@ -24,7 +24,6 @@ import stat
 import jinja2
 import yaml
 
-from guild import guildfile
 from guild import run_util
 from guild import util
 from guild import yaml_util
@@ -32,6 +31,7 @@ from guild import yaml_util
 DEFAULT_DEST_HOME = "published-runs"
 DEFAULT_TEMPLATE = "default"
 
+NO_COPY_FILES = 0
 COPY_DEFAULT_FILES = 1
 COPY_ALL_FILES = 2
 
@@ -281,7 +281,7 @@ def publish_run(
     _init_published_run(state)
     _publish_run_guild_files(state)
     _copy_sourcecode(state)
-    _copy_runfiles(state)
+    _maybe_copy_runfiles(state)
     _generate_template(state)
 
 
@@ -289,7 +289,7 @@ def _init_publish_run_state(
     run, dest, template, copy_files, include_links, md5s, formatted_run
 ):
     dest_home = dest or DEFAULT_DEST_HOME
-    opdef = _run_opdef(run)
+    opdef = run_util.run_opdef(run)
     run_dest = _published_run_dest(dest_home, run)
     template = _init_template(template, opdef, run_dest)
     if not formatted_run:
@@ -305,21 +305,6 @@ def _init_publish_run_state(
         run_dest,
         md5s,
     )
-
-
-def _run_opdef(run):
-    try:
-        gf = guildfile.for_run(run)
-    except (guildfile.NoModels, guildfile.GuildfileMissing, TypeError):
-        return None
-    else:
-        assert run.opref, run.path
-        try:
-            m = gf.models[run.opref.model_name]
-        except KeyError:
-            return None
-        else:
-            return m.get_operation(run.opref.op_name)
 
 
 def _init_template(template, opdef, run_dest):
@@ -559,17 +544,82 @@ def _path_md5(path, st):
 
 def _publish_runfiles_list(state):
     dest = os.path.join(state.run_dest, "runfiles.csv")
-    paths = _dir_paths(state.run.dir, skip_guildfiles=True)
-    with open(dest, "w") as f:
-        _write_paths_csv(paths, state.run.dir, state.md5s, f)
+    with open(dest, "w") as out:
+        _write_runfile_csv(state.run, state.md5s, out)
+
+
+def _write_runfile_csv(run, md5s, out):
+    paths = util.natsorted(_runfiles(run))
+    csv_out = csv.writer(out, lineterminator="\n")
+    csv_out.writerow(["path", "type", "size", "mtime", "md5"])
+    for path in paths:
+        src = os.path.join(run.dir, path)
+        csv_out.writerow(_file_csv_row(path, src, md5s))
+
+
+def _runfiles(run):
+    sourcecode = set(run_util.sourcecode_files(run))
+    paths = []
+    for root, dirs, files in os.walk(run.dir, followlinks=True):
+        util.safe_list_remove(".guild", dirs)
+        for name in files:
+            relpath = os.path.relpath(os.path.join(root, name), run.dir)
+            if relpath in sourcecode:
+                continue
+            paths.append(relpath)
+    return paths
+
+
+def _file_csv_row(path, src, md5):
+    st = _maybe_stat(src)
+    lst = _maybe_lstat(src)
+    return [
+        path,
+        _path_type(st, lst),
+        st.st_size if st else "",
+        _path_mtime(st),
+        _path_md5(src, st) if md5 else "",
+    ]
+
+
+def _maybe_stat(src):
+    try:
+        return os.stat(src)
+    except OSError:
+        return None
+
+
+def _maybe_lstat(src):
+    try:
+        return os.lstat(src)
+    except OSError:
+        return None
 
 
 def _copy_sourcecode(state):
-    src = state.run.guild_path("sourcecode")
-    if not os.path.isdir(src):
-        return
-    dest = os.path.join(state.run_dest, "sourcecode")
-    shutil.copytree(src, dest)
+    util.select_copytree(
+        run_util.sourcecode_dest(state.run),
+        _sourcecode_dest(state),
+        [],
+        _SourcecodeFilter(state),
+    )
+
+
+class _SourcecodeFilter(util.CopyFilter):
+    def __init__(self, state):
+        self.run_dir = state.run.dir
+        self.files = set(run_util.sourcecode_files(state.run))
+
+    def default_select_path(self, path):
+        return _is_sourcecode_file(path, self.run_dir, self.files)
+
+
+def _is_sourcecode_file(path, run_dir, manifest_set):
+    return os.path.relpath(path, run_dir) in manifest_set
+
+
+def _sourcecode_dest(state):
+    return os.path.join(state.run_dest, "sourcecode")
 
 
 class PublishRunVars:
@@ -618,47 +668,31 @@ class PublishRunVars:
         return open(path, "r").read()
 
 
-class CopyRunFilesFilter:
-    def __init__(self, state):
-        self._run_dir = state.run.dir
-        self._include_links = state.include_links
-
-    def delete_excluded_dirs(self, root, dirs):
-        self._delete_guild_dir(dirs)
-        self._maybe_delete_links(root, dirs)
-
-    @staticmethod
-    def _delete_guild_dir(dirs):
-        try:
-            dirs.remove(".guild")
-        except ValueError:
-            pass
-
-    def _maybe_delete_links(self, root, dirs):
-        if self._include_links:
-            return
-        for name in list(dirs):
-            if os.path.islink(os.path.join(root, name)):
-                dirs.remove(name)
-
-    def default_select_path(self, path):
-        if os.path.islink(path):
-            return self._include_links
-        return True
-
-    @staticmethod
-    def pre_copy(_to_copy):
+def _delete_guild_dir(dirs):
+    try:
+        dirs.remove(".guild")
+    except ValueError:
         pass
 
 
-def _copy_runfiles(state):
+def _delete_dir_links(parent, dirs):
+    """Deletes any symlinked dirs from `dirs`.
+
+    `dirs` is a list of dir names under the directory `parent`.
+    """
+    for name in list(dirs):
+        if os.path.islink(os.path.join(parent, name)):
+            dirs.remove(name)
+
+
+def _maybe_copy_runfiles(state):
     if not state.copy_files:
         return
     util.select_copytree(
         state.run.dir,
         _runfiles_dest(state),
         _copy_runfiles_config(state),
-        CopyRunFilesFilter(state),
+        _CopyRunFilesFilter(state),
     )
 
 
@@ -667,9 +701,68 @@ def _runfiles_dest(state):
 
 
 def _copy_runfiles_config(state):
-    if state.copy_files == COPY_ALL_FILES or not state.opdef:
+    if state.copy_files in (NO_COPY_FILES, COPY_ALL_FILES):
+        # If we're not copying files or we're copying all files,
+        # ignore user-defined criteria - the determining result is
+        # defined by the copy filter used with `select_copytree()`
+        return []
+    if not state.opdef:
+        # If we don't have an opdef for a run there's no selection
+        # criteria to provide
         return []
     return [state.opdef.publish.files]
+
+
+class _CopyRunFilesFilter(util.CopyFilter):
+    """Filter used to copy run files.
+
+    This is part of the `util.select_copytree()` interface. It
+    performs two tasks: remove dirs from the list of traversals and
+    provide a default select result for a candidate path.
+
+    `.guild` are always removed from dirs lists for travesal as there
+    are no files under `.guild` that are considered for selection.
+
+    Linked directories are also removed unless `state.include_links`
+    is true.
+
+    The default select result is used by the copy operation only when
+    a configured selection rule has not been applied. In this case,
+    the default determines if the file is selected for copy.
+
+    Source code files are never selected for copy by this filter as
+    they aren't considered run files by definition.
+
+    Links are not selected unless `state.include_links` is true.
+
+    If a candidate path is a source code file, the default select
+    result is always `False`. Source code files are not considered run
+    files and are copied as a separate publishing step.
+
+    If `state.copy_files` is not `COPY_ALL_FILES` the default select
+    value `False`. This puts places responsibility for a path select
+    on the configured rules.
+
+    If `state.copy_files` is `COPY_ALL_FILES`, the default select
+    value is `True` if the candidate is not a link or
+    `state.include_links` is true.
+    """
+
+    def __init__(self, state):
+        self.state = state
+        self.sourcecode_files = set(run_util.sourcecode_files(state.run))
+
+    def delete_excluded_dirs(self, parent, dirs):
+        _delete_guild_dir(dirs)
+        if not self.state.include_links:
+            _delete_dir_links(parent, dirs)
+
+    def default_select_path(self, path):
+        if self.state.copy_files not in (COPY_DEFAULT_FILES, COPY_ALL_FILES):
+            return False
+        if _is_sourcecode_file(path, self.state.run.dir, self.sourcecode_files):
+            return False
+        return self.state.include_links or not os.path.islink(path)
 
 
 def _generate_template(state):

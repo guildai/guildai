@@ -46,10 +46,23 @@ def publish_params(fn):
                 help="Index template used to publish runs.",
             ),
             click.Option(
-                ("-f", "--files"), help="Publish default run files.", is_flag=True
+                ("-f", "--files"),
+                help=(
+                    "Copy run files as configured by the operation. "
+                    "By default, run files are not copied. Use `--all-files` "
+                    "to copy all files regardless of how the operation is "
+                    "configured."
+                ),
+                is_flag=True,
             ),
             click.Option(
-                ("-a", "--all-files"), help="Publish all run files.", is_flag=True
+                ("-a", "--all-files"),
+                help=(
+                    "Copy all run files. By default, run files are not copied. "
+                    "Use `--files` to copy only files as configured by the "
+                    "operation."
+                ),
+                is_flag=True,
             ),
             click.Option(
                 ("-L", "--include-links"),
@@ -71,7 +84,9 @@ def publish_params(fn):
             ),
             runs_support.all_filters,
             click.Option(
-                ("-y", "--yes"), help="Do not prompt before publishing.", is_flag=True
+                ("-y", "--yes"),
+                help="Do not prompt before publishing.",
+                is_flag=True,
             ),
         ],
     )
@@ -103,8 +118,8 @@ def publish_runs(ctx, args):
 
     - `files.csv` - list of files associated with the run
 
-    - `code/` - subdirectory containing project source code at the
-      time run was started
+    - `sourcecode/` - subdirectory containing project source code at
+      the time run was started
 
     - `runfiles/` - files associated with the run
 

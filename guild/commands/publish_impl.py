@@ -68,7 +68,7 @@ def _publish_runs(runs, formatted, args):
     elif args.files or args.include_links:
         copy_files = publishlib.COPY_DEFAULT_FILES
     else:
-        copy_files = None
+        copy_files = publishlib.NO_COPY_FILES
     for run, frun in zip(runs, formatted):
         cli.out(f"Publishing [{frun['short_id']}] {frun['operation']}... ", nl=False)
         frun["_run"] = run

@@ -6,6 +6,6 @@
 
 [{{ img.path }} ({{ img.size }})]({{ img.url }})
 {% endfor %}
-{% else -%}
+{%- else -%}
 There are no images for this run.
 {%- endif %}
