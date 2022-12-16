@@ -171,21 +171,21 @@ Pull remote runs:
 Delete and purge remote runs (disabled until non-permanent deletes are
 working):
 
-    >> run("guild runs rm -y -r guild-uat-azure-blob")
+    >>> run("guild runs rm -y -r guild-uat-azure-blob")
     Refreshing run info for guild-uat-azure-blob
     ...
     <exit 0>
 
-    >> run("guild runs purge -y -r guild-uat-azure-blob")
+    >>> run("guild runs purge -y -r guild-uat-azure-blob")
     Refreshing run info for guild-uat-azure-blob
     ...
     <exit 0>
 
-    >> run("guild runs -r guild-uat-azure-blob")
+    >>> run("guild runs -r guild-uat-azure-blob")
     Refreshing run info for guild-uat-azure-blob
     <exit 0>
 
-    >> run("guild runs -d -r guild-uat-azure-blob")
+    >>> run("guild runs -d -r guild-uat-azure-blob")
     Refreshing run info for guild-uat-azure-blob
     <exit 0>
 
