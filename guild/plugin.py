@@ -97,16 +97,6 @@ class Plugin:
         """
         return None
 
-    def run_staged(self, run, op):
-        """Called when a run is staged.
-
-        This called immediately before the run is marked as STAGED.
-
-        The plugin must be enabled for the applicable run operation to be
-        called.
-
-        """
-
     def run_starting(self, run, op, pidfile):
         """Called when a run is starting.
 

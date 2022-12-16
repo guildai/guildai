@@ -73,14 +73,12 @@ class OperationCallbacks:
         init_output_summary=None,
         run_initialized=None,
         dep_source_resolved=None,
-        run_staged=None,
         run_starting=None,
         run_stopped=None,
     ):
         self.init_output_summary = init_output_summary
         self.run_initialized = run_initialized
         self.dep_source_resolved = dep_source_resolved
-        self.run_staged = run_staged
         self.run_starting = run_starting
         self.run_stopped = run_stopped
 
@@ -131,7 +129,6 @@ def stage(op, continue_on_deps_error=False):
         _stage_run_proc_env(op, run)
         _resolve_deps(op, run, for_stage=True, continue_on_error=continue_on_deps_error)
         op_util.set_run_staged(run)
-        _callback("run_staged", op, run)
     finally:
         op_util.clear_run_pending(run)
     return run
