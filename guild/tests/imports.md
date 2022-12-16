@@ -237,6 +237,7 @@
     guild.resourcedef
     guild.run
     guild.run_check
+    guild.run_id
     guild.run_manifest
     guild.run_merge
     guild.run_util
