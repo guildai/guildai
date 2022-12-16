@@ -64,6 +64,20 @@ class Plugin:
         The boolean indicates whether or not the plugin is enabled for
         `opdef`. The reason is used to provide additional information to the
         user.
+
+        When a plugin is enabled for an operation, it participates in
+        the following:
+
+          - Listed in `GUILD_PLUGINS` run env
+          - Listed in `plugins` run attr
+          - Called for `default_sourcecode_select_rules_for_op()`
+          - Called for `apply_cmd_env()`
+          - Called for `run_starting()`
+          - Called for `run_stopping()`
+
+        If a plugin does not return True for an op def, it will not be
+        listed as a plugin for the run and will not be called for the
+        functions above.
         """
         return False, "not applicable to operation"
 
