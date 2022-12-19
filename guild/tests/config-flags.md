@@ -497,7 +497,7 @@ destination is specified.
 The `test-args-1` operation doesn't define any base args in
 `guild.yml`.
 
-    >>> gf_data = yaml.load(open("guild.yml"))
+    >>> gf_data = yaml.safe_load(open("guild.yml"))
     >>> pprint(gf_data[1]["operations"]["test-args-1"])
     {'flags-dest': 'config:empty.json',
      'flags-import': 'all',
