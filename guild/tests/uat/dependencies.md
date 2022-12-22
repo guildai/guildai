@@ -11,7 +11,23 @@ These are general dependency tests.
     <exit 0>
 
     >>> run("guild ls -n")
+    README.md
+    config.json
+    config.yml
     file.txt
+    guild.yml
+    <exit 0>
+
+    >>> run("guild ls -n -s")  # source code
+    README.md
+    config.json
+    config.yml
+    guild.yml
+
+    >>> run("guild ls -n -d")  # dependencies
+    file.txt
+
+    >>> run("guild ls -n -g")  # generated
     <exit 0>
 
     >>> run("guild runs info -d")
@@ -26,37 +42,34 @@ These are general dependency tests.
           uri: file:file.txt
     <exit 0>
 
-Change dependency source using default source name - not allowed.
+Change dependency source using default source name.
 
-    >>> run("guild run file file:file.txt=guild.yml -y")
-    guild: unsupported flag 'file:file.txt'
-    Try 'guild run file --help-op' for a list of flags or use
-    --force-flags to skip this check.
-    <exit 1>
+    >>> run("guild run file file:file.txt=file-2.txt -y")
+    Resolving file:file.txt
+    Using file-2.txt for file:file.txt
 
 `flag-name` is required to explicitly expose file dependency as a
 flag.
 
-    >>> run("guild run customizable-file src=guild.yml -y")
+    >>> run("guild run customizable-file src=file-2.txt -y")
     Resolving src
-    Using guild.yml for src resource
-    <exit 0>
+    Using file-2.txt for src
 
-    >>> run("guild ls -n")
-    guild.yml
+    >>> run("guild ls -n -d")
+    file-2.txt
     <exit 0>
 
     >>> run("guild runs info -d")
     id: ...
     flags:
-      src: guild.yml
+      src: file-2.txt
     scalars:
     dependencies:
       src:
-        file:file.txt:
-          config: guild.yml
+        src:
+          config: file-2.txt
           paths:
-          - .../examples/dependencies/guild.yml
+          - .../examples/dependencies/file-2.txt
           uri: file:file.txt
     <exit 0>
 
@@ -72,14 +85,14 @@ Missing file dependency:
     >>> run("guild run missing-named-file -y")
     Resolving missing-file
     guild: run failed because a dependency was not met: could not resolve
-    'file:missing.txt' in missing-file resource: cannot find source file
+    'missing-file' in missing-file resource: cannot find source file
     'missing.txt'
     <exit 1>
 
     >>> run("guild run customizable-file src=missing.txt -y")
     Resolving src
     guild: run failed because a dependency was not met: could not resolve
-    'file:file.txt' in src resource: .../missing.txt does not exist
+    'src' in src resource: .../missing.txt does not exist
     <exit 1>
 
 ## Directory
@@ -89,9 +102,25 @@ Missing file dependency:
     <exit 0>
 
     >>> run("guild ls -n -L")
+    README.md
+    config.json
+    config.yml
     dir/
     dir/a
     dir/b
+    guild.yml
+
+    >>> run("guild ls -n -s -L")
+    README.md
+    config.json
+    config.yml
+    guild.yml
+
+    >>> run("guild ls -n -d -L")
+    dir/a
+    dir/b
+
+    >>> run("guild ls -n -g -L")
     <exit 0>
 
     >>> run("guild runs info -d")
@@ -116,7 +145,23 @@ be cached, which prints a different message.
     <exit 0>
 
     >>> run("guild ls -n")
+    README.md
+    config.json
+    config.yml
     file.txt
+    guild.yml
+    <exit 0>
+
+    >>> run("guild ls -ns")
+    README.md
+    config.json
+    config.yml
+    guild.yml
+
+    >>> run("guild ls -nd")
+    file.txt
+
+    >>> run("guild ls -ng")
     <exit 0>
 
     >>> run("guild runs info -d")
@@ -135,22 +180,39 @@ be cached, which prints a different message.
 
 Required file op:
 
+    >>> run("guild run file -y")
+    Resolving file:file.txt
+
     >>> run("guild run file-op -y")
-    Resolving file
-    Using run ... for file resource
-    <exit 0>
+    Resolving operation:file
+    Using run ... for file operation:file
 
     >>> run("guild ls -n")
+    README.md
+    config.json
+    config.yml
     file.txt
+    guild.yml
+
+    >>> run("guild ls -ns")
+    README.md
+    config.json
+    config.yml
+    guild.yml
+
+    >>> run("guild ls -nd")
+    file.txt
+
+    >>> run("guild ls -ng")
     <exit 0>
 
     >>> run("guild runs info -d")
     id: ...
     flags:
-      file: ...
+      operation:file: ...
     scalars:
     dependencies:
-      file:
+      operation:file:
         operation:file:
           config: ...
           paths:
@@ -162,22 +224,24 @@ Required dir op:
 
     >>> run("guild run dir-op -y")
     Resolving dir
-    Using run ... for dir resource
+    Using run ... for operation:dir
     <exit 0>
 
     >>> run("guild ls -nL")
-    dir/
-    dir/a
-    dir/b
-    <exit 0>
+
+    >>> run("guild ls -nsL")
+
+    >>> run("guild ls -ndL")
+
+    >>> run("guild ls -ngL")
 
     >>> run("guild runs info -d")
     id: ...
     flags:
-      dir: ...
+      operation:dir: ...
     scalars:
     dependencies:
-      dir:
+      operation:dir:
         operation:dir:
           config: ...
           paths:

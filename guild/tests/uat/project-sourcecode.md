@@ -1,39 +1,46 @@
 # Project source code
 
-    >>> cd(example("sourcecode"))
+This is largely a duplication of similar builtin tests
+`copysourcecode-*`. It's left in the event it provides added test
+coverage. Tests here that are missing in the builtin tests should be
+moved there and this file removed.
 
-    >>> quiet("guild runs rm -y")
+We need to create a copy of the `sourcecode` example to a directory
+not managed by Git.
+
+    >>> project = mkdtemp()
+    >>> copytree(example("sourcecode"), project)
+    >>> use_project(project)
 
 ## `default`
 
 Test source code:
 
-    >>> run("guild run default --test-sourcecode")
+    >>> run("guild run default --test-sourcecode")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
-      exclude dir '__pycache__'
-      exclude dir '.*'
-      exclude dir '*' with '.guild-nocopy'
-      exclude dir '*' with 'bin/activate'
-      exclude dir '*' with 'Scripts/activate'
-      exclude dir 'build'
-      exclude dir 'dist'
-      exclude dir '*.egg-info'
-      include text '*' size < 1048577, max match 100
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
     Selected for copy:
-      ./README.md
-      ./a.py
-      ./b.py
-      ./c.py
-      ./d.csv
-      ./guild.yml
-      ./subproject/__init__.py
-      ./subproject/d.py
-      ./subproject/e.csv
-      ./subproject/guild.yml
-    Skipped:...
-      ./logo.png...
-    <exit 0>
+      README.md
+      a.py
+      b.py
+      c.py
+      d.csv
+      guild.yml
+      subproject/__init__.py
+      subproject/d.py
+      subproject/e.csv
+      subproject/guild.yml
+    Skipped:
+      logo.png
 
 Run op:
 
@@ -46,7 +53,8 @@ Run op:
 
 Verify source code files:
 
-    >>> run("guild ls --sourcecode", ignore="pyc")
+    >>> run("guild ls -n --sourcecode", ignore="pyc")  # doctest: +REPORT_UDIFF
+
     ???/.guild/sourcecode:
       README.md
       a.py
@@ -65,7 +73,8 @@ Verify source code files:
 
 Test source code:
 
-    >>> run("guild run include-png --test-sourcecode")
+    >>> run("guild run include-png --test-sourcecode")  # doctest: +REPORT_UDIFF
+
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -104,7 +113,8 @@ Run op:
 
 Verify source code files:
 
-    >>> run("guild ls --sourcecode", ignore="pyc")
+    >>> run("guild ls --sourcecode", ignore="pyc")  # doctest: +REPORT_UDIFF
+
     ???/.guild/sourcecode:
       README.md
       a.py
@@ -124,7 +134,8 @@ Verify source code files:
 
 Test source code:
 
-    >>> run("guild run exclude-paths --test-sourcecode")
+    >>> run("guild run exclude-paths --test-sourcecode")  # doctest: +REPORT_UDIFF
+
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -203,7 +214,8 @@ Verify source code files:
 
 Test source code:
 
-    >>> run("guild run all-sourcecode --test-sourcecode")
+    >>> run("guild run all-sourcecode --test-sourcecode")  # doctest: +REPORT_UDIFF
+
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -262,7 +274,8 @@ Verify source code files:
 
 Test source code:
 
-    >>> run("guild run select-patterns --test-sourcecode")
+    >>> run("guild run select-patterns --test-sourcecode")  # doctest: +REPORT_UDIFF
+
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -317,7 +330,8 @@ Verify source code files:
 
 The alternative version selects only the root guild.yml:
 
-    >>> run("guild run select-patterns-2 --test-sourcecode")
+    >>> run("guild run select-patterns-2 --test-sourcecode")  # doctest: +REPORT_UDIFF
+
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -351,7 +365,8 @@ The alternative version selects only the root guild.yml:
 
 Test source code:
 
-    >>> run("guild run copy-to-alt-dir --test-sourcecode")
+    >>> run("guild run copy-to-alt-dir --test-sourcecode")  # doctest: +REPORT_UDIFF
+
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -391,7 +406,8 @@ Because `copy-to-alt-dir` specifies `src` as the alternative source
 code dest, Guild lists this location when we use `--sourcecode` with
 `ls`.
 
-    >>> run("guild ls --sourcecode", ignore="pyc")
+    >>> run("guild ls --sourcecode", ignore="pyc")  # doctest: +REPORT_UDIFF
+
     ???/src:
       README.md
       a.py
@@ -408,7 +424,8 @@ code dest, Guild lists this location when we use `--sourcecode` with
 
 This is the same list of files as the default, but under `src`.
 
-    >>> run("guild ls", ignore="pyc")
+    >>> run("guild ls", ignore="pyc")  # doctest: +REPORT_UDIFF
+
     ???:
       src/
       src/README.md
@@ -428,7 +445,8 @@ This is the same list of files as the default, but under `src`.
 
 Test source code:
 
-    >>> run("guild run copy-all-to-run-dir --test-sourcecode")
+    >>> run("guild run copy-all-to-run-dir --test-sourcecode")  # doctest: +REPORT_UDIFF
+
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -468,7 +486,8 @@ Run op:
 
 Verify source code files:
 
-    >>> run("guild ls --sourcecode", ignore="pyc")
+    >>> run("guild ls --sourcecode", ignore="pyc")  # doctest: +REPORT_UDIFF
+
     ???:
       README.md
       a.py
@@ -488,7 +507,8 @@ Verify source code files:
 
 Test source code:
 
-    >>> run("guild run exclude-dir --test-sourcecode")
+    >>> run("guild run exclude-dir --test-sourcecode")  # doctest: +REPORT_UDIFF
+
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -540,7 +560,8 @@ Verify source code:
 
 Test source code:
 
-    >>> run("guild run parent-root --test-sourcecode")
+    >>> run("guild run parent-root --test-sourcecode")  # doctest: +REPORT_UDIFF
+
     Copying from '..'
     Rules:
       exclude dir '__pycache__'
@@ -578,7 +599,8 @@ Run op:
 
 Verify source code files:
 
-    >>> run("guild ls --sourcecode", ignore="pyc")
+    >>> run("guild ls --sourcecode", ignore="pyc")  # doctest: +REPORT_UDIFF
+
     ???/.guild/sourcecode:
       README.md
       a.py
@@ -597,7 +619,8 @@ Verify source code files:
 
 Test source code:
 
-    >>> run("guild run parent-root-exclude-subproject --test-sourcecode")
+    >>> run("guild run parent-root-exclude-subproject --test-sourcecode")  # doctest: +REPORT_UDIFF
+
     Copying from '..'
     Rules:
       exclude dir '__pycache__'

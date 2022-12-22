@@ -20,7 +20,7 @@ Let's next attempt to train a Keras example.
     >>> cd(example("keras"))
     >>> run("guild run -y mnist_mlp.py", timeout=10)
     Traceback (most recent call last):
-      File ".../.guild/sourcecode/mnist_mlp.py", line ..., in <module>
+      File ".../mnist_mlp.py", line ..., in <module>
         import keras
     ...: No module named ...keras...
     <exit 1>

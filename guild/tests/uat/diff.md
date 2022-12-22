@@ -16,10 +16,10 @@ source code related tests below.
 
     >>> write(
     ...     path(project_dir, "guild.yml"), """
-    ... op:
+    ... alt-sourcecode:
     ...   main: hello
     ...   sourcecode:
-    ...     dest: .
+    ...     dest: sourcecode
     ... """)
 
 Delete existing runs.
@@ -40,34 +40,34 @@ Run the sample script twice.
     hello from bbbb
     <exit 0>
 
-Run the defined op once.
+Run the `alt-sourcecode` once.
 
-    >>> run("guild run op -y --run-id cccc")
+    >>> run("guild run alt-sourcecode -y --run-id cccc")
     hello from cccc
     <exit 0>
 
 Our runs:
 
     >>> run("guild runs")
-    [1:cccc]  op        ...  completed
-    [2:bbbb]  hello.py  ...  completed
-    [3:aaaa]  hello.py  ...  completed
+    [1:cccc]  alt-sourcecode  ...  completed
+    [2:bbbb]  hello.py        ...  completed
+    [3:aaaa]  hello.py        ...  completed
     <exit 0>
 
 Source code for latest hello.py:
 
     >>> run("guild ls --sourcecode -Fo hello.py")
-    ???/runs/bbbb/.guild/sourcecode:
+    ???/runs/bbbb:
       guild.yml
       hello.py
     <exit 0>
 
 Source code for op run (uses an alternative source code dest):
 
-    >>> run("guild ls --sourcecode -Fo op")
+    >>> run("guild ls --sourcecode -Fo alt-sourcecode")
     ???/runs/cccc:
-      guild.yml
-      hello.py
+      sourcecode/guild.yml
+      sourcecode/hello.py
     <exit 0>
 
 ## Default
@@ -154,34 +154,34 @@ directory associated with the run. Note that run `cccc` defined an
 alternative source code dest (run dir root).
 
     >>> run("guild diff --cmd echo --sourcecode")
-    ???/runs/bbbb/.guild/sourcecode .../runs/cccc
+    ???/runs/bbbb .../runs/cccc/sourcecode
     <exit 0>
 
     >>> run("guild diff --cmd echo --sourcecode cccc bbbb")
-    ???/runs/cccc .../runs/bbbb/.guild/sourcecode
+    ???/runs/cccc/sourcecode .../runs/bbbb
     <exit 0>
 
 Diff source code with paths.
 
     >>> run("guild diff --cmd echo --sourcecode -p hello.py -p guild.yml")
-    ???/runs/bbbb/.guild/sourcecode/hello.py .../runs/cccc/hello.py
-    .../runs/bbbb/.guild/sourcecode/guild.yml .../runs/cccc/guild.yml
+    ???/runs/bbbb/hello.py .../runs/cccc/sourcecode/hello.py
+    .../runs/bbbb/guild.yml .../runs/cccc/sourcecode/guild.yml
     <exit 0>
 
 The `--working` option diffs to the project directory.
 
     >>> run("guild diff --cmd echo --working")
-    ???/runs/cccc .../diff-test-project/
+    ???/runs/cccc/sourcecode .../diff-test-project
     <exit 0>
 
     >>> run("guild diff --cmd echo bbbb --working")
-    ???/runs/bbbb/.guild/sourcecode .../diff-test-project
+    ???/runs/bbbb .../diff-test-project
     <exit 0>
 
 `--working` implies `--sourcecode` - providing both is okay.
 
     >>> run("guild diff --cmd echo bbbb --working")
-    ???/runs/bbbb/.guild/sourcecode .../diff-test-project
+    ???/runs/bbbb .../diff-test-project
     <exit 0>
 
 Source code to project subdir with `--dir` option:
@@ -268,7 +268,7 @@ Run a packaged operation.
 Diff the run with `--working`.
 
     >>> run("guild diff -c echo --working")
-    ???/runs/dddd/.guild/sourcecode .../site-packages/gpkg/hello/
+    ???/runs/dddd .../site-packages/gpkg/hello
     <exit 0>
 
 ## Incompatible Options

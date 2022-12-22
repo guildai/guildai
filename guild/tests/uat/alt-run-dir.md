@@ -33,6 +33,7 @@ And the generated files:
     ./.guild/attrs/initialized
     ./.guild/attrs/op
     ./.guild/attrs/platform
+    ./.guild/attrs/plugins
     ./.guild/attrs/random_seed
     ./.guild/attrs/run_params
     ./.guild/attrs/sourcecode_digest
@@ -44,9 +45,8 @@ And the generated files:
     ./.guild/opref
     ./.guild/output
     ./.guild/output.index
-    ./.guild/sourcecode
-    ./.guild/sourcecode/guild.yml
-    ./.guild/sourcecode/msg.txt
-    ./.guild/sourcecode/say.py
+    ./guild.yml
+    ./msg.txt
     ./output
+    ./say.py
     <exit 0>

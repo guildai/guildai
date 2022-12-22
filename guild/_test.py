@@ -66,6 +66,7 @@ STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 STRIP_EXIT_0 = doctest.register_optionflag("STRIP_EXIT_0")
 WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
+KEEP_LF = doctest.register_optionflag("KEEP_LF")
 
 # Resolve relative to cwd on load as we change cwd for tests later.
 _EXAMPLES_DIR = (
@@ -460,7 +461,7 @@ class BashDocTestParser(doctest.DocTestParser):
         indent = len(m.group("indent"))
 
         source_lines = m.group("source").split("\n")
-        self._check_prompt_blank(source_lines, indent, name, lineno)
+        _check_prompt_blank(source_lines, indent, name, lineno)
         self._check_prefix(source_lines[1:], " " * indent + ">", name, lineno)
         source = "\n".join([sl[indent + 2 :] for sl in source_lines])
 
@@ -479,21 +480,23 @@ class BashDocTestParser(doctest.DocTestParser):
 
         options = self._find_options(source, name, lineno)
 
-        return self._wrap_bash(source), options, want, exc_msg
+        return _wrap_bash(source, options), options, want, exc_msg
 
-    @staticmethod
-    def _wrap_bash(source):
-        source = source.replace("\n", " ").replace("\"", "\\\"")
-        return f"run(\"{source}\")"
 
-    @staticmethod
-    def _check_prompt_blank(lines, indent, name, lineno, *_):
-        for i, line in enumerate(lines):
-            if len(line) >= indent + 2 and line[indent + 1] != " ":
-                raise ValueError(
-                    f"line {lineno + i + 1} of the docstring for {name} "
-                    f"lacks blank after {line[indent : indent + 1]}: {line!r}"
-                )
+def _wrap_bash(source, options):
+    if not options.get(KEEP_LF):
+        source = source.replace("\n", " ")
+    source = source.replace("\"", "\\\"")
+    return f"run(\"\"\"{source}\"\"\")"
+
+
+def _check_prompt_blank(lines, indent, name, lineno, *_):
+    for i, line in enumerate(lines):
+        if len(line) >= indent + 2 and line[indent + 1] != " ":
+            raise ValueError(
+                f"line {lineno + i + 1} of the docstring for {name} "
+                f"lacks blank after {line[indent : indent + 1]}: {line!r}"
+            )
 
 
 class BashDocTestChecker(doctest.OutputChecker):
@@ -508,6 +511,8 @@ class BashDocTestChecker(doctest.OutputChecker):
         got = got.rstrip()
         if got.endswith("\n<exit 0>") and not want.endswith("\n<exit 0>"):
             return got[:-9]
+        if got == "<exit 0>" and want == "":
+            return ""
         return got
 
 

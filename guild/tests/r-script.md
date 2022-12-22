@@ -8,7 +8,25 @@ Guild provides support for R script via the `r_script` plugin.
 
 We'll use the `r-script` sample project in these tests.
 
-    >>> cd(sample("projects", "r-script"))
+    >>> use_project("r-script")
+
+---------------------------
+
+R things to test:
+
+- pip freeze not running for R scripts
+- support of `config:<filename>` and `<filename>` - yaml and R files
+- test unparseable R script
+- test flag named 'y' (need to quote when we write attrs)
+- test for loaded packages attr
+- test assigments of every flag type (confirm that ints can be
+  assigned to ints, etc.) - look for issues with ints and float vals
+
+Other things to test:
+
+- Yaml always written with newline
+
+---------------------------
 
 ## Op data for R script
 

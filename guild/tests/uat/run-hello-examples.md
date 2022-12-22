@@ -49,7 +49,7 @@ default it will print the contents of a default file:
 
     >>> run("guild run hello-file -y")
     Resolving file
-    Using hello.txt for file resource
+    Using hello.txt for file
     Reading message from hello.txt
     Hello, from a file!
     <BLANKLINE>
@@ -61,7 +61,7 @@ We can provide an alternative file.
     >>> quiet("echo 'Yo yo, what up Guild!' > $WORKSPACE/alt-msg")
     >>> run("guild run hello-file file=$WORKSPACE/alt-msg -y")
     Resolving file
-    Using .../alt-msg for file resource
+    Using .../alt-msg for file
     Reading message from .../alt-msg
     Yo yo, what up Guild!
     <BLANKLINE>
@@ -74,7 +74,7 @@ When we run `hello-op`, we get the latest output from `hello-file`:
 
     >>> run("guild run hello-op -y")
     Resolving op
-    Using run ... for op resource
+    Using run ... for op
     Reading message from msg.out
     Yo yo, what up Guild!
     <exit 0>
@@ -123,7 +123,7 @@ Let's use the first run for `hello-file`, rather than the latest.
 
     >>> run("guild run hello-op op=`guild select -Fo hello-file 2` -y")
     Resolving op
-    Using run ... for op resource
+    Using run ... for op
     Reading message from msg.out
     Hello, from a file!
     <exit 0>

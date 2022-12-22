@@ -23,9 +23,8 @@ Try to run `train` without a required run:
     >>> run("guild run train -y")
     WARNING: cannot find a suitable run for required resource 'prepared-data'
     Resolving prepared-data
-    guild: run failed because a dependency was not met: could not
-    resolve 'operation:prepare-data' in prepared-data resource: no
-    suitable run for prepare-data
+    guild: run failed because a dependency was not met: could not resolve
+    'prepared-data' in prepared-data resource: no suitable run for prepare-data
     <exit 1>
 
 Run `prepare-data`:
@@ -37,7 +36,7 @@ Run `train` again:
 
     >>> run("guild run train -y")
     Resolving prepared-data
-    Using run ... for prepared-data resource
+    Using run ... for prepared-data
     <exit 0>
 
 Show runs:
@@ -48,24 +47,61 @@ Show runs:
     [3:...]  train              error
     <exit 0>
 
-List files for latest runs:
+List files for latest `prepare-data` run:
 
-    >>> run("guild ls -Fo prepare-data")
-    ???:
-      data1.txt
-      subdir/
-      subdir/data2.txt
+    >>> run("guild ls -n -Fo prepare-data")
+    README.md
+    data1.txt
+    guild.yml
+    prepare_data.py
+    subdir/
+    subdir/data2.txt
+    train2.py
+    train.py
+
+    >>> run("guild ls -n -Fo prepare-data --sourcecode")
+    README.md
+    guild.yml
+    prepare_data.py
+    train2.py
+    train.py
+
+    >>> run("guild ls -n -Fo prepare-data --dependencies")
     <exit 0>
 
-    >>> run("guild ls -Fo train -L")
-    ???:
-      checkpoint.h5
-      data/
-      data/data1.txt
-      data/subdir/
-      data/subdir/data2.txt
-      model.json
-    <exit 0>
+    >>> run("guild ls -n -Fo prepare-data --generated")
+    data1.txt
+    subdir/data2.txt
+
+Files for latest `train` run (use `-L` to traverse links:
+
+    >>> run("guild ls -n -Fo train -L")
+    README.md
+    checkpoint.h5
+    data/
+    data/data1.txt
+    data/subdir/
+    data/subdir/data2.txt
+    guild.yml
+    model.json
+    prepare_data.py
+    train2.py
+    train.py
+
+    >>> run("guild ls -n -Fo train -L --sourcecode")
+    README.md
+    guild.yml
+    prepare_data.py
+    train2.py
+    train.py
+
+    >>> run("guild ls -n -Fo train -L --dependencies")
+    data/data1.txt
+
+    >>> run("guild ls -n -Fo train -L --generated")
+    checkpoint.h5
+    data/subdir/data2.txt
+    model.json
 
 Run prepare-data again. We want to show that Guild can select an older
 run if needed.
@@ -90,7 +126,7 @@ Specify that `train` use the first data prep run:
 
     >>> run("guild run train prepared-data=%s -y" % first_data_prep_run)
     Resolving prepared-data
-    Using run ... for prepared-data resource
+    Using run ... for prepared-data
     <exit 0>
 
 Info for the latest train run, including dependencies:
@@ -167,12 +203,12 @@ the batch error.
     WARNING: cannot find a suitable run for required resource 'prepared-data'
     INFO: [guild] Running trial ...: train (prepared-data=...)
     INFO: [guild] Resolving prepared-data
-    INFO: [guild] Using run ... for prepared-data resource
+    INFO: [guild] Using run ... for prepared-data
     INFO: [guild] Running trial ...: train (prepared-data=xxx_invalid)
     INFO: [guild] Resolving prepared-data
-    ERROR: [guild] Trial ... exited with an error: (1) run failed because a dependency
-    was not met: could not resolve 'operation:prepare-data' in prepared-data resource:
-    no suitable run for prepare-data
-    ERROR: [guild] Stopping batch because a trial failed (pending trials can be
-    started as needed)
+    ERROR: [guild] Trial ... exited with an error: (1) run failed because a
+    dependency was not met: could not resolve 'prepared-data' in prepared-data
+    resource: no suitable run for prepare-data
+    ERROR: [guild] Stopping batch because a trial failed (pending trials can
+    be started as needed)
     <exit 1>

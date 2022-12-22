@@ -104,8 +104,8 @@ Wait for operation:
     Watching run ...
     INFO: [guild] running upstream: upstream
     INFO: [guild] running downstream: downstream
-    Resolving upstream
-    Using run ... for upstream resource
+    Resolving operation:upstream
+    Using run ... for operation:upstream
     WARNING: nothing resolved for operation:upstream
     Run ... stopped with a status of 'completed'
     <exit 0>
@@ -113,7 +113,7 @@ Wait for operation:
 List runs:
 
     >>> run("guild runs --limit 3")
-    [1:...]  downstream  ...  completed  upstream=...
+    [1:...]  downstream  ...  completed  operation:upstream=...
     [2:...]  upstream    ...  completed
     [3:...]  steps       ...  completed
     <exit 0>

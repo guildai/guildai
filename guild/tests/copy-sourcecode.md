@@ -84,6 +84,7 @@ repo.
     hello.R
     hello.erl
     hello.py
+    hello.pyc
     hello.sh
     nocopy_dir/.guild-nocopy
     nocopy_dir/not-to-copy
@@ -130,6 +131,7 @@ Default source code copy for Python script:
       __pycache__/
       nocopy_dir/
       venv/
+      hello.pyc
       subdir/logo.png
     <exit 0>
 
@@ -157,6 +159,7 @@ Default sourcecode copy for shell script:
     Skipped:
       .hidden/
       nocopy_dir/
+      hello.pyc
       __pycache__/hello.pyc
       subdir/logo.png
     <exit 0>
@@ -192,6 +195,7 @@ Source code copy for `default` operation:
       __pycache__/
       nocopy_dir/
       venv/
+      hello.pyc
       subdir/logo.png
 
 ### Operation overrides to default rules
@@ -211,7 +215,7 @@ The `no-sourcecode` operation disables source code copy altogether.
 `eplicit-sourceocode` disables all previously defined rules and adds a
 single rule to copy `hello.py`.
 
-    >>> run("guild run explicit-sourcecode --test-sourcecode")
+    >>> run("guild run explicit-sourcecode --test-sourcecode")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir .*
@@ -238,6 +242,7 @@ single rule to copy `hello.py`.
       guild.yml
       hello.R
       hello.erl
+      hello.pyc
       hello.sh
       data/file1
       data/file2
@@ -256,7 +261,7 @@ single rule to copy `hello.py`.
 `explicit-sourcecode-2` uses Guild select rules to exclude some files
 from the default list.
 
-    >>> run("guild run explicit-sourcecode-2 --test-sourcecode")
+    >>> run("guild run explicit-sourcecode-2 --test-sourcecode")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir .*
@@ -287,6 +292,7 @@ from the default list.
       config.yml
       guild.yml
       hello.py
+      hello.pyc
       subdir/logo.png
     <exit 0>
 
@@ -327,6 +333,7 @@ source code files.
     add 'hello.R'
     add 'hello.erl'
     add 'hello.py'
+    add 'hello.pyc'
     add 'hello.sh'
     add 'nocopy_dir/.guild-nocopy'
     add 'nocopy_dir/not-to-copy'
@@ -354,6 +361,7 @@ containing the sentinel `.guild-nocopy`.
       hello.R
       hello.erl
       hello.py
+      hello.pyc
       hello.sh
       .hidden/file-1
       .hidden/file-2
@@ -387,6 +395,7 @@ define additional rules.
       hello.R
       hello.erl
       hello.py
+      hello.pyc
       hello.sh
       .hidden/file-1
       .hidden/file-2
@@ -448,6 +457,7 @@ patterns.
       nocopy_dir/
       .gitignore
       config.in.yml
+      hello.pyc
     <exit 0>
 
 Note that, as an optimization, Guild excludes ignored directories
@@ -498,6 +508,7 @@ Let's create `.guildignore` to exclude non Python source files.
       config.in.yml
       hello.R
       hello.erl
+      hello.pyc
       hello.sh
     <exit 0>
 
@@ -537,6 +548,7 @@ Here we append a rule to re-enable `data` as source code.
       config.in.yml
       hello.R
       hello.erl
+      hello.pyc
       hello.sh
     <exit 0>
 
@@ -586,6 +598,7 @@ based rules generated when a project is under VCS control.
       guild.yml
       hello.R
       hello.erl
+      hello.pyc
       hello.sh
       .hidden/file-1
       .hidden/file-2
@@ -629,6 +642,7 @@ based rules generated when a project is under VCS control.
       hello.R
       hello.erl
       hello.py
+      hello.pyc
       hello.sh
     <exit 0>
 
@@ -681,6 +695,7 @@ configuration (gitignore and guildignore) copies `config.yml`.
       config.in.yml
       hello.R
       hello.erl
+      hello.pyc
       hello.sh
 
 The `upstream` operation in the project requires `config.yml` and so
@@ -715,6 +730,7 @@ this file is not copied as source code.
       config.yml
       hello.R
       hello.erl
+      hello.pyc
       hello.sh
 
 ### Non-project local dependencies
@@ -759,6 +775,7 @@ Guild treats `config.yml` as source code for `downstream-conflict`.
       config.in.yml
       hello.R
       hello.erl
+      hello.pyc
       hello.sh
 
 To show the problem, we create the required `upstream` run.
@@ -794,7 +811,7 @@ When we run `downstream-conflict` we see the conflict.
 The `downstream-fixed` operation is configured to exclude `config.yml`
 as source code.
 
-    >>> run("guild run downstream-fixed --test-sourcecode")
+    >>> run("guild run downstream-fixed --test-sourcecode")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir .guild
@@ -824,6 +841,7 @@ as source code.
       config.yml
       hello.R
       hello.erl
+      hello.pyc
       hello.sh
 
 When we run the operation, it runs without conflicts.

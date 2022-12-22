@@ -11,7 +11,7 @@ Use `dependencies` example.
 Warning when missing required op:
 
     >>> run("guild run file-op", timeout=5)
-    WARNING: cannot find a suitable run for required resource 'file'
+    WARNING: cannot find a suitable run for required resource 'operation:file'
     You are about to run file-op
       file: unspecified
     Continue? (Y/n)
@@ -29,7 +29,7 @@ When running, staged runs are selected.
 
     >>> run("guild run file-op", timeout=5)
     You are about to run file-op
-      file: ...
+      operation:file: ...
     Continue? (Y/n)
     <exit ...>
 
@@ -37,7 +37,7 @@ Stage downstream op.
 
     >>> run("guild run file-op --stage", timeout=5)
     You are about to stage file-op
-      file: ...
+      operation:file: ...
     Continue? (Y/n)
     <exit ...>
 
@@ -45,7 +45,7 @@ When we don't preview the operation or otherwise specify a run for
 `file`, the operation staging is skipped.
 
     >>> run("guild run file-op --stage --yes")
-    Resolving file
+    Resolving operation:file
     Skipping resolution of operation:file because it's being staged
     file-op staged as ...
     To start the operation, use 'guild run --start ...'
@@ -80,6 +80,6 @@ Start staged downstream op.
     'staged'
 
     >>> run("guild run --start %s --yes" % downstream.id)
-    Resolving file
-    Using run ... for file resource
+    Resolving operation:file
+    Using run ... for operation:file
     <exit 0>

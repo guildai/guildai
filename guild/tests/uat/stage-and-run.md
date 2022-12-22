@@ -72,8 +72,8 @@ List files for latest run:
       .guild/attrs/initialized
       .guild/attrs/label
       .guild/attrs/op
-      .guild/attrs/pip_freeze
       .guild/attrs/platform
+      .guild/attrs/plugins
       .guild/attrs/random_seed
       .guild/attrs/run_params
       .guild/attrs/sourcecode_digest
@@ -83,9 +83,8 @@ List files for latest run:
       .guild/attrs/vcs_commit
       .guild/manifest
       .guild/opref
-      .guild/sourcecode/
-      .guild/sourcecode/README.md
-      .guild/sourcecode/train.py
+      README.md
+      train.py
     <exit 0>
 
 Run the latest three staged runs:
