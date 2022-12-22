@@ -1382,11 +1382,11 @@ def _project_local_dependencies(op):
 
 
 def _is_dep_source_project_local_file(source):
-    return source.parsed_uri.scheme == "file"
+    return source.parsed_uri.scheme in ("file", "config")
 
 
 def _dep_source_project_local_path(source):
-    assert source.parsed_uri.scheme == "file", source.parsed_uri
+    assert _is_dep_source_project_local_file(source), source
     return source.parsed_uri.path
 
 
