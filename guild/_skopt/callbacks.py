@@ -14,7 +14,7 @@ from time import time
 
 import numpy as np
 
-from skopt.utils import dump
+from guild._skopt.utils import dump
 
 def check_callback(callback):
     """
@@ -291,7 +291,7 @@ class CheckpointSaver(object):
 
     Examples
     --------
-    >>> import skopt
+    >>> import guild._skopt as skopt
     >>> def obj_fun(x):
     ...     return x[0]**2
     >>> checkpoint_callback = skopt.callbacks.CheckpointSaver("./result.pkl")

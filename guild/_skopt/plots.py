@@ -7,7 +7,7 @@ from functools import partial
 from scipy.optimize import OptimizeResult
 
 from .acquisition import _gaussian_acquisition
-from skopt import expected_minimum, expected_minimum_random_sampling
+from guild._skopt import expected_minimum, expected_minimum_random_sampling
 from .space import Categorical
 from collections import Counter
 

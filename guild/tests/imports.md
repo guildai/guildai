@@ -27,6 +27,36 @@
     guild.__init__
     guild._api
     guild._lex
+    guild._skopt.__init__
+    guild._skopt.acquisition
+    guild._skopt.benchmarks
+    guild._skopt.callbacks
+    guild._skopt.learning.__init__
+    guild._skopt.learning.forest
+    guild._skopt.learning.gaussian_process.__init__
+    guild._skopt.learning.gaussian_process.gpr
+    guild._skopt.learning.gaussian_process.kernels
+    guild._skopt.learning.gbrt
+    guild._skopt.optimizer.__init__
+    guild._skopt.optimizer.base
+    guild._skopt.optimizer.dummy
+    guild._skopt.optimizer.forest
+    guild._skopt.optimizer.gbrt
+    guild._skopt.optimizer.gp
+    guild._skopt.optimizer.optimizer
+    guild._skopt.plots
+    guild._skopt.sampler.__init__
+    guild._skopt.sampler.base
+    guild._skopt.sampler.grid
+    guild._skopt.sampler.halton
+    guild._skopt.sampler.hammersly
+    guild._skopt.sampler.lhs
+    guild._skopt.sampler.sobol
+    guild._skopt.searchcv
+    guild._skopt.space.__init__
+    guild._skopt.space.space
+    guild._skopt.space.transformers
+    guild._skopt.utils
     guild._test
     guild._yacc
     guild.ansi_util

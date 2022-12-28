@@ -20,7 +20,7 @@ import warnings
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=Warning)
     import numpy.core.umath_tests  # pylint: disable=unused-import
-    import skopt
+    from guild import _skopt as skopt
 
 from guild import batch_util
 from guild import flag_util
@@ -133,7 +133,7 @@ def _flag_dim(val, flag_name):
 
 
 def _categorical_dim(vals, initial):
-    from skopt.space import space
+    from guild._skopt.space import space
 
     return space.Categorical(vals), initial
 
@@ -161,7 +161,7 @@ def function_dim(func_name, args, flag_name):
 
 
 def _uniform_dim(args, func_name, flag_name):
-    from skopt.space import space
+    from guild._skopt.space import space
 
     dim_args, initial = _dim_args_and_initial(args, func_name, flag_name)
     try:
@@ -171,7 +171,7 @@ def _uniform_dim(args, func_name, flag_name):
 
 
 def _real_dim(args, prior, func_name, flag_name):
-    from skopt.space import space
+    from guild._skopt.space import space
 
     dim_args, initial = _dim_args_and_initial(args, func_name, flag_name)
     real_init_args = list(dim_args) + [prior]
@@ -570,7 +570,7 @@ def _patched_gp_base_estimator(dimensions, random_state, noise):
     """Returns a GP non-y-normalizing GP estimator."""
     import numpy as np
     from sklearn.utils import check_random_state
-    from skopt.utils import normalize_dimensions
+    from guild._skopt.utils import normalize_dimensions
 
     space = normalize_dimensions(dimensions)
     rng = check_random_state(random_state)
