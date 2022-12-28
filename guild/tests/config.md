@@ -172,93 +172,140 @@ The logic used to select the appropriate Python interpreter is as
 follows:
 
 - Use `GUILD_PYTHON_EXE` env var if defined
-- Use `sys.executable` or `bin/python` under `VIRTUAL_ENV` env var if
-  defined
-- Use `sys.executable` or `bin/python` under `CONDA_PREFIX` env var if
-  defined
-- Use `sys.exectable``
+- If the current process is run in an activate virtual environment use
+  `which python` (i.e. `python` available on the path)
+- Use `sys.executable`
 
-NOTE: For a short time, Guild considered `which python` as an option
-prior to using `sys.executable`. This is an incorrect option as Guild
-may be run directly with a Python interpreter that is not on the
-system PATH or is otherwise different from `which python`.
+We use `which python` only when a virtual environment is activated
+because that's a signal of user intent, which is to run Python
+programs in that environment. We assume - we do not verify - that the
+path is configured to run the environment-specific Python VM.
 
-    >>> with Env({}, replace=True):
-    ...     exe = config.python_exe()
+If a virtual environment is not activated, we do not assume `which
+python`, which could yield an undesireable system Python VM. Rather,
+we assume the VM used to run Guild itself.
+
+To summarize, we use any explicitly defined VM (via
+`GUILD_PYTHON_EXE`) because that's what the user wants by
+definition. Otherwise we look to for a signal that the user has
+deliberately configured `PATH` to include the desired Python VM. For
+this we use the heuristic of an activated Python environment. If we
+have no indicator that `PATH` is explicitly configured with a Python
+VM, we fall back on the current Python VM - i.e. `sys.executabe`.
 
 Without any environment the Python exe is the same as
 `sys.exectuable`.
 
+    >>> with Env({}, replace=True):
+    ...     exe = config.python_exe()
+
     >>> exe == sys.executable, (exe, sys.executable)
     (True, ...)
 
-If `CONDA_PREFIX` is defined in the environment, it is used to find
-Python. Let's create a `bin/python` under a location specified by
-`CONDA_PREFIX`.
+We infer an activated virtual environment when either `VIRTUAL_ENV` or
+`CONDA_PREFIX` is defined and points to a Python VM. This is done by
+checking for `$PREFIX/bin/python`. In this case we use `which python`,
+which is determined by `PATH` and an available Python executable.
 
+Note that `which python` may not yield the Python VM installed for the
+virtual environment. This is intentional. We assume simply that `PATH`
+is intentionally configured by the user in this case and use the VM
+provided by `which python` without further checks.
+
+A non-empty `VIRTUAL_ENV` or `CONDA_PREFIX` env var does not imply an
+activated virtual environment. These variables must also point to a
+Python executable.
+
+Provide a `python` executable under a temp directory. This will serve
+as our Python executable via `which python`.
+
+    >>> python_bindir = mkdtemp()
+    >>> touch(path(python_bindir, "python"))
+    >>> make_executable(path(python_bindir, "python"))
+
+Create a new path that includes `python_bindir`.
+
+    >>> python_bindir_path = (
+    ...     python_bindir +
+    ...     os.path.pathsep +
+    ...     os.getenv("PATH")
+    ... )
+
+Create directories for the two virtual env types supported.
+
+    >>> virtual_env_prefix = mkdtemp()
     >>> conda_prefix = mkdtemp()
-    >>> mkdir(path(conda_prefix, "bin"))
-    >>> conda_python_exe = path(conda_prefix, "bin", "python")
-    >>> touch(conda_python_exe)
 
-    >>> with Env({"CONDA_PREFIX": conda_prefix}, replace=True):
+Note that neither of these directories contain `bin/python` files and
+there will NOT imply activated environments when provided as env
+values.
+
+Check `VIRTUAL_ENV`:
+
+    >>> with Env({"VIRTUAL_ENV": virtual_env_prefix,
+    ...           "PATH": python_bindir_path},
+    ...          replace=True):
     ...     exe = config.python_exe()
-
-    >>> exe == conda_python_exe, (exe, conda_python_exe)
-    (True, ...)
-
-If `VIRTUAL_ENV` is defined in the environment, `bin/python` in that
-directory is returned, provided it exists. Otherwise, `sys.executable`
-is returned.
-
-    >>> venv_dir = mkdtemp()
-
-    >>> with Env({"VIRTUAL_ENV": venv_dir}, replace=True):
-    ...     exe = config.python_exe()
-
-In this case, `bin/python` doesn't exist in the environment, so the
-exe is sys.executable.
 
     >>> exe == sys.executable, (exe, sys.executable)
     (True, ...)
 
-If `$CONDA_PREFIX/bin/python` exists and `$VIRTUAL_ENV/bin/python`
-doesn't exist, the location under `CONDA_PREFIX` is used.
+Check `CONDA_PREFIX`:
 
-    >>> conda_python_exe = path(conda_prefix, "bin", "python")
-
-    >>> exists(conda_python_exe), conda_python_exe
-    (True, ...)
-
-    >>> with Env({"VIRTUAL_ENV": venv_dir,
-    ...           "CONDA_PREFIX": conda_prefix}, replace=True):
+    >>> with Env({"CONDA_PREFIX": conda_prefix,
+    ...           "PATH": python_bindir_path},
+    ...          replace=True):
     ...     exe = config.python_exe()
 
-    >>> exe == conda_python_exe, (exe, conda_python_exe)
+    >>> exe == sys.executable, (exe, sys.executable)
     (True, ...)
 
-Let's create `bin/python` in the env.
+Create `bin/python` for the two virtual env prefix dirs.
 
-    >>> mkdir(path(venv_dir, "bin"))
-    >>> venv_python_exe = path(venv_dir, "bin", "python")
-    >>> touch(venv_python_exe)
+For `VIRTUAL_ENV`:
 
-    >>> with Env({"VIRTUAL_ENV": venv_dir}, replace=True):
+    >>> mkdir(path(virtual_env_prefix, "bin"))
+    >>> touch(path(virtual_env_prefix, "bin", "python"))
+
+For `CONDA_PREFIX`:
+
+    >>> mkdir(path(conda_prefix, "bin"))
+    >>> touch(path(conda_prefix, "bin", "python"))
+
+Confirm that `which python` with the appropriately configured `PATH`
+var yields what we expect.
+
+    >>> with Env({"PATH": python_bindir_path}, replace=True):
+    ...     exe = which("python")
+
+    >>> exe == path(python_bindir, "python"), (exe, python_bindir)
+    (True, ...)
+
+Check `config.python_exe()` with virtual env prefixes set.
+
+    >>> with Env({"VIRTUAL_ENV": virtual_env_prefix,
+    ...           "PATH": python_bindir_path}, replace=True):
     ...     exe = config.python_exe()
 
-This time, the Python exe is the venv exe.
-
-    >>> exe == venv_python_exe, (exe, venv_python_exe)
+    >>> exe == path(python_bindir, "python"), (exe, python_bindir)
     (True, ...)
 
-Finally, if `GUILD_PYTHON_EXE` is defined, it is always used,
-regardless of other environment variables.
+    >>> with Env({"CONDA_PREFIX": virtual_env_prefix,
+    ...           "PATH": python_bindir_path}, replace=True):
+    ...     exe = config.python_exe()
 
-    >>> guild_python_exe = path(venv_dir, "guild-exe")
+    >>> exe == path(python_bindir, "python"), (exe, python_bindir)
+    (True, ...)
+
+If `GUILD_PYTHON_EXE` is defined, it is always used regardless of
+other environment variables.
+
+    >>> guild_python_exe = path(mkdtemp(), "guild-exe")
 
     >>> with Env({"GUILD_PYTHON_EXE": guild_python_exe,
     ...           "CONDA_PREFIX": conda_prefix,
-    ...           "VIRTUAL_ENV": venv_dir}, replace=True):
+    ...           "VIRTUAL_ENV": virtual_env_prefix,
+    ...           "PATH": python_bindir_path}, replace=True):
     ...     exe = config.python_exe()
 
     >>> exe == guild_python_exe, (exe, guild_python_exe)

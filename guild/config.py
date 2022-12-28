@@ -262,6 +262,7 @@ def python_exe():
     return _find_apply(
         [
             _guild_python_exe,
+            _virtualenv_python_exe,
             _sys_executable,
         ]
     )
@@ -271,36 +272,25 @@ def _guild_python_exe():
     return os.getenv("GUILD_PYTHON_EXE")
 
 
-def _conda_python_exe():
-    conda_prefix = os.getenv("CONDA_PREFIX")
-    if not conda_prefix:
-        return None
-    return _find_apply(
-        [_this_conda_python_exe, _default_conda_python_exe], conda_prefix
-    )
-
-
-def _this_conda_python_exe(conda_prefix):
-    if sys.executable.startswith(conda_prefix):
-        return sys.executable
-    return None
-
-
-def _default_conda_python_exe(conda_prefix):
-    python_exe = os.path.join(conda_prefix, "bin", "python")
-    if os.path.exists(python_exe):
-        return python_exe
-    return None
-
-
 def _virtualenv_python_exe():
-    try:
-        env_path = os.environ["VIRTUAL_ENV"]
-    except KeyError:
+    if not _virtual_env_activated():
         return None
-    else:
-        maybe_python_exe = os.path.join(env_path, "bin", "python")
-        return maybe_python_exe if os.path.exists(maybe_python_exe) else None
+    from guild import util  # See import note above
+
+    return util.which("python")
+
+
+def _virtual_env_activated():
+    virtual_env_prefix = _virtual_env_prefix()
+    return virtual_env_prefix and _python_bin_exists(virtual_env_prefix)
+
+
+def _virtual_env_prefix():
+    return os.getenv("VIRTUAL_ENV") or os.getenv("CONDA_PREFIX")
+
+
+def _python_bin_exists(prefix):
+    return os.path.exists(os.path.join(prefix, "bin", "python"))
 
 
 def _sys_executable():
