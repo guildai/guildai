@@ -477,17 +477,43 @@ class BashDocTestParser(doctest.DocTestParser):
             exc_msg = m.group("msg")
         else:
             exc_msg = None
-
         options = self._find_options(source, name, lineno)
-
         return _wrap_bash(source, options), options, want, exc_msg
 
 
 def _wrap_bash(source, options):
+    if source.startswith("cd "):
+        return _cd_from_bash(source)
+    if source.startswith("export "):
+        return _set_bash_env_from_bash(source)
+    if source.startswith("unset "):
+        return _unset_bash_env_from_bash(source)
     if not options.get(KEEP_LF):
         source = source.replace("\n", " ")
+    return _run_from_bash(source)
+
+
+def _cd_from_bash(source):
+    assert source.startswith("cd ")
+    return f"cd(\"{source[3:]}\")"
+
+
+def _set_bash_env_from_bash(source):
+    assert source.startswith("export ")
+    parts = source[7:].split("=", 1)
+    assert len(parts) == 2, source
+    env_name, env_val = parts
+    return f"_bash_env[\"{env_name}\"] = \"{env_val}\""
+
+
+def _unset_bash_env_from_bash(source):
+    assert source.startswith("unset ")
+    return f"_ = _bash_env.pop(\"{source[6:]}\", None)"
+
+
+def _run_from_bash(source):
     source = source.replace("\"", "\\\"")
-    return f"run(\"\"\"{source}\"\"\")"
+    return f"run(\"\"\"{source}\"\"\", env=_bash_env)"
 
 
 def _check_prompt_blank(lines, indent, name, lineno, *_):
@@ -540,6 +566,7 @@ def _load_testfile(filename):
 def test_globals():
     return {
         "_dir": _py_dir,
+        "_bash_env": {},
         "PLATFORM": PLATFORM,
         "Chdir": util.Chdir,
         "Env": util.Env,
