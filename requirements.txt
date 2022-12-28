@@ -20,7 +20,6 @@ protobuf<5
 psutil>=5.6.3
 PyYAML>=2.12
 scikit-learn>=0.19.1
-scikit-optimize>=0.7.1
 tabview>=1.4.3
 tensorboard>=2.0.0
 typing-extensions;python_version<"3.8"

@@ -468,8 +468,8 @@ def dimensions_aslist(search_space):
 
     Examples
     --------
-    >>> from skopt.space.space import Real, Integer
-    >>> from skopt.utils import dimensions_aslist
+    >>> from guild._skopt.space.space import Real, Integer
+    >>> from guild._skopt.utils import dimensions_aslist
     >>> search_space = {'name1': Real(0,1),
     ...                 'name2': Integer(2,4), 'name3': Real(-1,1)}
     >>> dimensions_aslist(search_space)[0]
@@ -512,8 +512,8 @@ def point_asdict(search_space, point_as_list):
 
     Examples
     --------
-    >>> from skopt.space.space import Real, Integer
-    >>> from skopt.utils import point_asdict
+    >>> from guild._skopt.space.space import Real, Integer
+    >>> from guild._skopt.utils import point_asdict
     >>> search_space = {'name1': Real(0,1),
     ...                 'name2': Integer(2,4), 'name3': Real(-1,1)}
     >>> point_as_list = [0.66, 3, -0.15]
@@ -552,8 +552,8 @@ def point_aslist(search_space, point_as_dict):
 
     Examples
     --------
-    >>> from skopt.space.space import Real, Integer
-    >>> from skopt.utils import point_aslist
+    >>> from guild._skopt.space.space import Real, Integer
+    >>> from guild._skopt.utils import point_aslist
     >>> search_space = {'name1': Real(0,1),
     ...                 'name2': Integer(2,4), 'name3': Real(-1,1)}
     >>> point_as_dict = {'name1': 0.66, 'name2': 3, 'name3': -0.15}
@@ -681,9 +681,9 @@ def use_named_args(dimensions):
     Examples
     --------
     >>> # Define the search-space dimensions. They must all have names!
-    >>> from skopt.space import Real
-    >>> from skopt import forest_minimize
-    >>> from skopt.utils import use_named_args
+    >>> from guild._skopt.space import Real
+    >>> from guild._skopt import forest_minimize
+    >>> from guild._skopt.utils import use_named_args
     >>> dim1 = Real(name='foo', low=0.0, high=1.0)
     >>> dim2 = Real(name='bar', low=0.0, high=1.0)
     >>> dim3 = Real(name='baz', low=0.0, high=1.0)

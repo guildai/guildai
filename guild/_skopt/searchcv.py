@@ -149,9 +149,9 @@ class BayesSearchCV(BaseSearchCV):
     Examples
     --------
 
-    >>> from skopt import BayesSearchCV
+    >>> from guild._skopt import BayesSearchCV
     >>> # parameter ranges are specified by one of below
-    >>> from skopt.space import Real, Categorical, Integer
+    >>> from guild._skopt.space import Real, Categorical, Integer
     >>>
     >>> from sklearn.datasets import load_iris
     >>> from sklearn.svm import SVC

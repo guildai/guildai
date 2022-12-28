@@ -48,7 +48,6 @@ CHECK_MODS = [
     ("pandas", False),
     ("pip", True),
     ("sklearn", True),
-    ("skopt", True),
     ("setuptools", True),
     ("twine", False),
     ("yaml", True),
