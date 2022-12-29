@@ -579,6 +579,7 @@ def _list_runs_filter_args(
     limit=False,
     comments=False,
     verbose=False,
+    simplified=False,
     **filters,
 ):
     args = []
@@ -595,6 +596,8 @@ def _list_runs_filter_args(
         args.append("--comments")
     if verbose:
         args.append("--verbose")
+    if simplified:
+        args.append("--simplified")
     return args
 
 

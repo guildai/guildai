@@ -59,6 +59,7 @@ def _list_runs_kw(args):
         "deleted",
         "more",
         "limit",
+        "simplified",
         "verbose",
     ]
     ignore = [
