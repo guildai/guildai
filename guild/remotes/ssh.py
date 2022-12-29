@@ -879,7 +879,17 @@ def _delete_runs_args(runs, permanent, yes, **filters):
     return args
 
 
-def _run_info_args(run, env, deps, all_scalars, json, comments, manifest, **filters):
+def _run_info_args(
+    run,
+    env,
+    deps,
+    all_scalars,
+    json,
+    comments,
+    manifest,
+    plugins,
+    **filters,
+):
     args = _filter_and_status_args(**filters)
     if env:
         args.append("--env")
@@ -893,6 +903,8 @@ def _run_info_args(run, env, deps, all_scalars, json, comments, manifest, **filt
         args.append("--comments")
     if manifest:
         args.append("--manifest")
+    if plugins:
+        args.append("--plugins")
     if run:
         args.append(run)
     return args
@@ -1000,7 +1012,16 @@ def _comment_runs_args(runs, list, add, delete, clear, user, yes, **filters):
 
 
 def _ls_args(
-    run, all, follow_links, human_readable, no_format, path, sourcecode, **filters
+    run,
+    all,
+    follow_links,
+    human_readable,
+    no_format,
+    path,
+    sourcecode,
+    dependencies,
+    generated,
+    **filters,
 ):
     args = _filter_and_status_args(**filters)
     if all:
@@ -1013,6 +1034,10 @@ def _ls_args(
         args.extend(["-p", path])
     if sourcecode:
         args.append("--sourcecode")
+    if dependencies:
+        args.append("--dependencies")
+    if generated:
+        args.append("--generated")
     if human_readable:
         args.append("-h")
     if run:

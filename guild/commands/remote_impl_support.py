@@ -283,6 +283,7 @@ def _run_info_kw(args):
         "env",
         "json",
         "manifest",
+        "plugins",
     ]
     ignore = [
         "private_attrs",
@@ -462,6 +463,7 @@ def _filtered_runs_kw(args):
         "more",
         "remote",
         "runs",
+        "simplified",
         "verbose",
         "yes",
     ]
@@ -494,6 +496,8 @@ def _ls_kw(args):
         "no_format",
         "path",
         "sourcecode",
+        "dependencies",
+        "generated",
     ]
     ignore = [
         "full_path",  # Don't break remote abstraction.
