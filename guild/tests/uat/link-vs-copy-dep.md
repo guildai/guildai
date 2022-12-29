@@ -4,17 +4,16 @@ As of 0.7, Guild supports copying resources as well as links. As of
 Guild 0.8.2, the default behavior is to copy dependencies. Prior to
 this version, the default behavior is to link.
 
-Delete runs for these tests.
-
-    >>> quiet("guild runs rm -y")
-
-Here's a project that demonstrates various resources.
+Create a project with operations that require various resources.
 
     >>> project_dir = mkdtemp()
 
-    >>> write(path(project_dir, "guild.yml"), """
+    >>> use_project(project_dir)
+
+    >>> write("guild.yml", """
     ... op-1:
     ...   main: guild.pass
+    ...   sourcecode: no
     ...   requires:
     ...     - file: a.txt
     ...       name: copy-default
@@ -30,30 +29,43 @@ Here's a project that demonstrates various resources.
     ...
     ... op-2:
     ...   main: guild.pass
+    ...   sourcecode: no
     ...   requires:
     ...    - file: files
     ...      target-type: link
     ...      rename: files files-link
-    ...      name: link
+    ...      name: linked-files
     ...    - file: files
     ...      rename: files files-copy
-    ...      name: copy
+    ...      name: copied-files
     ... """)
 
-    >>> write(path(project_dir, "a.txt"), "Hello")
+    >>> write("a.txt", "Hello")
 
-Create a nested list of subdirectories with a file:
+Create a nested list of subdirectories each with a single file.
 
-    >>> cur = path(project_dir, "files")
+    >>> cur = "files"
     >>> mkdir(cur)
-    >>> for _ in range(10):
+    >>> write(path(cur, "a.txt"), "Hello files")
+    >>> for i in range(5):
     ...     cur = path(cur, "a")
     ...     mkdir(cur)
-    >>> write(path(cur, "a.txt"), "Hello, deeply")
+    ...     write(path(cur, "a.txt"), f"Hello files {i+2}")
 
-    >>> cd(project_dir)
+List the project files.
 
-Run `op-1`:
+    >>> find(".")
+    a.txt
+    files/a.txt
+    files/a/a.txt
+    files/a/a/a.txt
+    files/a/a/a/a.txt
+    files/a/a/a/a/a.txt
+    files/a/a/a/a/a/a.txt
+    guild.yml
+
+`op-1` required `a.txt` in three variatnts: a default copy, an
+explicit link, and an explicit copy.
 
     >>> run("guild run op-1 -y")
     Resolving copy-default
@@ -61,14 +73,12 @@ Run `op-1`:
     Resolving copy-explicit
     <exit 0>
 
-    >>> run("guild ls")
-    ???:
-      copy-default.txt
-      copy-explicit.txt
-      link-explicit.txt
-    <exit 0>
+    >>> run("guild ls -n")
+    copy-default.txt
+    copy-explicit.txt
+    link-explicit.txt
 
-Here's the contents of each file:
+Verify that the contents of each file is as expected.
 
     >>> run("guild cat -p copy-default.txt")
     Hello
@@ -82,13 +92,13 @@ Here's the contents of each file:
     Hello
     <exit 0>
 
-We can test the linkedness of each file by modifying the project
-source `a.txt`. This highlights the problem with linking: changes to a
+We can test the links of each file by modifying the project source
+`a.txt`. This highlights the problem with linking: changes to a
 project source implicitly change runs.
 
     >>> write(path(project_dir, "a.txt"), "Hola")
 
-Here are the three run files again:
+Show the three files - note the linked file has changed, as expected.
 
     >>> run("guild cat -p copy-default.txt")
     Hello
@@ -102,60 +112,95 @@ Here are the three run files again:
     Hola
     <exit 0>
 
-Run op-1:
+`op-2` requires `files` and shows both a link and a copy.
 
     >>> run("guild run op-2 -y")
-    Resolving link
-    Resolving copy
+    Resolving linked-files
+    Resolving copied-files
     <exit 0>
 
-The files:
+List the run files.
 
-    >>> run("guild ls")
-    ???:
-      files-copy/
-      files-copy/a/
-      files-copy/a/a/
-      files-copy/a/a/a/
-      files-copy/a/a/a/a/
-      files-copy/a/a/a/a/a/
-      files-copy/a/a/a/a/a/a/
-      files-copy/a/a/a/a/a/a/a/
-      files-copy/a/a/a/a/a/a/a/a/
-      files-copy/a/a/a/a/a/a/a/a/a/
-      files-copy/a/a/a/a/a/a/a/a/a/a/
-      files-copy/a/a/a/a/a/a/a/a/a/a/a.txt
-      files-link/
+    >>> run("guild ls -n")
+    files-copy/
+    files-copy/a.txt
+    files-copy/a/
+    files-copy/a/a.txt
+    files-copy/a/a/
+    files-copy/a/a/a.txt
+    files-copy/a/a/a/
+    files-copy/a/a/a/a.txt
+    files-copy/a/a/a/a/
+    files-copy/a/a/a/a/a.txt
+    files-copy/a/a/a/a/a/
+    files-copy/a/a/a/a/a/a.txt
+    files-link/
+
+Note that `files-link/` is presented as a single directory. This is
+because it's a link. We can follow links in the `ls` command by
+specifying `-L`.
+
+    >>> run("guild ls -nL")
+    files-copy/
+    files-copy/a.txt
+    files-copy/a/
+    files-copy/a/a.txt
+    files-copy/a/a/
+    files-copy/a/a/a.txt
+    files-copy/a/a/a/
+    files-copy/a/a/a/a.txt
+    files-copy/a/a/a/a/
+    files-copy/a/a/a/a/a.txt
+    files-copy/a/a/a/a/a/
+    files-copy/a/a/a/a/a/a.txt
+    files-link/
+    files-link/a.txt
+    files-link/a/
+    files-link/a/a.txt
+    files-link/a/a/
+    files-link/a/a/a.txt
+    files-link/a/a/a/
+    files-link/a/a/a/a.txt
+    files-link/a/a/a/a/
+    files-link/a/a/a/a/a.txt
+    files-link/a/a/a/a/a/
+    files-link/a/a/a/a/a/a.txt
+
+Show some of the resolved files.
+
+    >>> run("guild cat -p files-copy/a/a/a/a/a.txt")
+    Hello files 5
     <exit 0>
 
-The resolved files:
-
-    >>> run("guild cat -p files-copy/a/a/a/a/a/a/a/a/a/a/a.txt")
-    Hello, deeply
+    >>> run("guild cat -p files-copy/a/a.txt")
+    Hello files 2
     <exit 0>
 
-    >>> run("guild cat -p files-link/a/a/a/a/a/a/a/a/a/a/a.txt")
-    Hello, deeply
+    >>> run("guild cat -p files-link/a.txt")
+    Hello files
     <exit 0>
 
-Delete the `files` directory from the project.
+    >>> run("guild cat -p files-link/a/a/a.txt")
+    Hello files 3
+    <exit 0>
 
-    >>> rmdir(path(project_dir, "files"))
+We can further illustrate the importance of copying required resources
+by deleting the project `files` directory.
 
-The remaining files don't include `files`:
+    >>> rmdir("files")
 
-    >>> find(project_dir)
+    >>> find(".")
     a.txt
     guild.yml
 
 The resolved file copy is still available.
 
-    >>> run("guild cat -p files-copy/a/a/a/a/a/a/a/a/a/a/a.txt")
-    Hello, deeply
+    >>> run("guild cat -p files-copy/a/a/a/a/a/a.txt")
+    Hello files 6
     <exit 0>
 
 The linked file is not available.
 
-    >>> run("guild cat -p files-link/a/a/a/a/a/a/a/a/a/a/a.txt")
-    guild: .../files-link/a/a/a/a/a/a/a/a/a/a/a.txt does not exist
+    >>> run("guild cat -p files-link/a/a/a/a/a/a.txt")
+    guild: .../files-link/a/a/a/a/a/a.txt does not exist
     <exit 1>
