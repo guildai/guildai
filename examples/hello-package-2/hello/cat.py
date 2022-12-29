@@ -1,12 +1,11 @@
 import os
-import sys
 
 file = None
 
 if file is None and os.path.exists("msg.out"):
     file = "msg.out"
 
-print("Reading message from %s" % file, file=sys.stderr)
+print("Reading message from %s" % file)
 msg = open(file).read()
 print(msg)
 
