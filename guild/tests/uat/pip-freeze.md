@@ -3,8 +3,11 @@
 By default, Guild generates a `pip_freeze` run attribute for Python
 based ops.
 
-Sample project with two ops - one for the default behavior and another
-that disables pip freeze.
+Generate a sample project with three operations:
+
+ - Standard Python operation
+ - Standard Python operation with pip freeze disabled
+ - Non-Python operation
 
     >>> project_dir = mkdtemp()
 
@@ -13,31 +16,42 @@ that disables pip freeze.
     ... no-pip-freeze:
     ...   main: guild.pass
     ...   pip-freeze: no
+    ... non-python:
+    ...   exec: echo hello
     ... """)
 
-Verify the ops:
-
-    >>> cd(project_dir)
+    >>> use_project(project_dir)
 
     >>> run("guild ops")
     default
     no-pip-freeze
+    non-python
+
+The default operation generates a `pip_freeze` attribute.
+
+    >>> run("NO_PIP_FREEZE= guild run default -y")
     <exit 0>
 
-Run the default:
-
-    >>> run("guild run default -y")
+    >>> run("guild select --attr pip_freeze")
+    ???
+    click==8...
+    ...
     <exit 0>
 
-    >>> run("guild cat -p .guild/attrs/pip_freeze")
-    - ...
+`no-pip-freeze` does not generate `pip_freeze`.
+
+    >>> run("NO_PIP_FREEZE= guild run no-pip-freeze -y")
     <exit 0>
 
-And the op with disabled pip freeze:
+    >>> run("guild select --attr pip_freeze")
+    guild: no such run attribute 'pip_freeze'
+    <exit 1>
 
-    >>> run("guild run no-pip-freeze -y")
-    <exit 0>
+`non-python` similarly does not generate `pip_freeze`.
 
-    >>> run("guild cat -p .guild/attrs/pip_freeze")
-    guild: .../.guild/attrs/pip_freeze does not exist
+    >>> run("NO_PIP_FREEZE= guild run non-python -y")
+    hello
+
+    >>> run("guild select --attr pip_freeze")
+    guild: no such run attribute 'pip_freeze'
     <exit 1>

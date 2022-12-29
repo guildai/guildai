@@ -336,13 +336,15 @@ def lib_dir(
 
 
 def freeze():
+    cmd = [sys.executable, "-m", "pip", "freeze"]
+    log.debug("running pip freeze: %s", cmd)
     try:
-        return subprocess.check_output(
-            [sys.executable, "-m", "pip", "freeze"], stdin=subprocess.DEVNULL
-        ).splitlines()
+        out = subprocess.check_output(cmd, stdin=subprocess.DEVNULL)
     except Exception as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("reading pip freeze")
         else:
             log.warning("error reading pip freeze: %s", e)
         return None
+    else:
+        return out.decode().splitlines()
