@@ -56,9 +56,15 @@ class Pkg:
 
 def main():
     loglib.init_logging()
+    _init_warnings()
     pkgdef = _load_pkgdef()
     dist = _create_dist(pkgdef)
     _maybe_upload(dist)
+
+
+def _init_warnings():
+    if log.getEffectiveLevel() > logging.DEBUG:
+        warnings.simplefilter("ignore", Warning)
 
 
 def _load_pkgdef():
