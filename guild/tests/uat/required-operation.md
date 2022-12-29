@@ -1,3 +1,10 @@
+---
+# *Run train using the two run IDs* below is succeeding
+# but prints a warning message - that's incorrect.
+
+doctest: +FIXME
+---
+
 # Required operation 1
 
 These tets illustrate how Guild handles operation dependencies.

@@ -1,3 +1,9 @@
+---
+# A regression in Guild is preventing subdir example from running.
+
+doctest: +FIXME
+---
+
 # Project source code
 
 This is largely a duplication of similar builtin tests

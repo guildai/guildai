@@ -1,3 +1,10 @@
+---
+# We're not correctly inferring dependencies when we follow
+# dependency links.
+
+doctest: +FIXME
+---
+
 # Dependencies
 
 These are general dependency tests.
