@@ -192,6 +192,10 @@ class DvcResourceSource(resourcedef.ResourceSource):
         self.always_pull = always_pull
         self.remote = remote
 
+    @property
+    def project_local_path(self):
+        return self.parsed_uri.path
+
 
 def _dvcfile_source(data, resdef):
     data_copy = copy.copy(data)

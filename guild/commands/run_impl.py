@@ -1367,27 +1367,23 @@ def _copy_run_sourcecode(run, op):
         sourcecode_src,
         sourcecode_select,
         dest,
-        ignore=_project_local_dependencies(op),
+        ignore=_ignored_sourcecode_paths(op),
         handler_cls=op_util.sourcecode_manifest_logger_cls(run.dir),
     )
 
 
+def _ignored_sourcecode_paths(op):
+    # Don't treat project local dependencies as source code
+    return _project_local_dependencies(op)
+
+
 def _project_local_dependencies(op):
     return [
-        _dep_source_project_local_path(source)
+        source.project_local_path
         for dep in op.deps
         for source in dep.resdef.sources
-        if _is_dep_source_project_local_file(source)
+        if source.project_local_path
     ]
-
-
-def _is_dep_source_project_local_file(source):
-    return source.parsed_uri.scheme in ("file", "config")
-
-
-def _dep_source_project_local_path(source):
-    assert _is_dep_source_project_local_file(source), source
-    return source.parsed_uri.path
 
 
 def _sourcecode_dest(run, op):
@@ -1886,7 +1882,7 @@ def _test_sourcecode(S):
         sourcecode_src,
         sourcecode_select,
         None,
-        ignore=_project_local_dependencies(S.user_op),
+        ignore=_ignored_sourcecode_paths(S.user_op),
         handler_cls=logger.handler_cls,
     )
     cwd_desc = cmd_impl_support.cwd_desc(logger.root)

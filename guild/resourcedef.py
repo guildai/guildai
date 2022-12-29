@@ -217,7 +217,10 @@ class ResourceSource:
         return self.name
 
     def __repr__(self):
-        return f"<guild.resourcedef.ResourceSource '{self.resolving_name}'>"
+        return (
+            f"<{self.__class__.__module__}.{self.__class__.__name__} "
+            f"'{self.resolving_name}'>"
+        )
 
     def __str__(self):
         return self.uri
@@ -225,6 +228,14 @@ class ResourceSource:
     @property
     def resolving_name(self):
         return self.name or self.flag_name or self.uri
+
+    @property
+    def project_local_path(self):
+        return (
+            self.parsed_uri.path
+            if self.parsed_uri.scheme in ("file", "config")
+            else None
+        )
 
 
 def _unnamed_resource_desc():

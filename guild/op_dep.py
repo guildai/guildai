@@ -238,15 +238,11 @@ def resolve_source(source, dep, resolve_context, resolve_cb=None):
                     resolve_context.run.dir,
                     resolve_context.resolve_flag_refs,
                 )
-                _handle_resolved_source(resolved, resolve_cb)
+                if resolve_cb:
+                    resolve_cb(resolved)
             return source_paths
     assert last_resolution_error
     _source_resolution_error(source, dep, last_resolution_error)
-
-
-def _handle_resolved_source(resolved, resolve_cb):
-    if resolved and resolve_cb:
-        resolve_cb(resolved)
 
 
 def _dep_resource_locations(dep):
@@ -326,28 +322,33 @@ class ResolvedSource:
 
 
 def _resolve_source_for_path(
-    source_path, source_origin, source, target_dir, resolve_flag_refs
+    source_path,
+    source_origin,
+    source,
+    target_dir,
+    resolve_flag_refs,
 ):
     target_type = _target_type_for_source(source)
     target_path = _target_path_for_source(
         source_path, source_origin, source, target_dir, resolve_flag_refs
     )
-    if util.compare_paths(source_path, target_path):
-        # Source was resolved directly to run dir - nothing to do.
-        return None
-    if target_type == "link":
-        _link_to_source(source_path, target_path, source.replace_existing)
-    elif target_type == "copy":
-        _copy_source(source_path, target_path, source.replace_existing)
-    else:
-        assert False, (target_type, source, source.resdef)
-    return ResolvedSource(
+    resolved_source = ResolvedSource(
         source,
         target_path,
         target_dir,
         source_path,
         source_origin,
     )
+    if _resolved_directly_to_run_dir(source_path, target_path):
+        # Source already resolved, nothing to do
+        return resolved_source
+    if target_type == "link":
+        _link_to_source(source_path, target_path, source.replace_existing)
+    elif target_type == "copy":
+        _copy_source(source_path, target_path, source.replace_existing)
+    else:
+        assert False, (target_type, source, source.resdef)
+    return resolved_source
 
 
 def _target_type_for_source(source):
@@ -398,6 +399,14 @@ def _source_target_path(source, source_path, source_origin):
             )
         return os.path.relpath(os.path.dirname(source_path), source_origin)
     return target_path_attr or source.resdef.target_path or ""
+
+
+def _resolved_directly_to_run_dir(source_path, target_path):
+    """Returns True if a resource was resolved directly to the run dir.
+
+    This is inferred when source path is the same as target path.
+    """
+    return util.compare_paths(source_path, target_path)
 
 
 def _link_to_source(source_path, link, replace_existing=False):
