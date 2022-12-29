@@ -145,7 +145,7 @@ package.
     running clean
     removing 'build/lib...' (and everything under it)
     removing 'build/bdist...' (and everything under it)
-    'build/scripts...' does not exist -- can't clean it
+    ...'build/scripts...' does not exist -- can't clean it
     removing 'build'
     running bdist_wheel
     running build
