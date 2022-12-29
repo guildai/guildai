@@ -30,11 +30,11 @@ With manifest:
       dependencies:
         - msg.out
       sourcecode:
-        - .guild/sourcecode/README.md
-        - .guild/sourcecode/data/hello-2.txt
-        - .guild/sourcecode/data/hello.txt
-        - .guild/sourcecode/guild.yml
-        - .guild/sourcecode/hello/__init__.py
-        - .guild/sourcecode/hello/cat.py
-        - .guild/sourcecode/hello/say.py
+        - README.md
+        - data/hello-2.txt
+        - data/hello.txt
+        - guild.yml
+        - hello/__init__.py
+        - hello/cat.py
+        - hello/say.py
     <exit 0>

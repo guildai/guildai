@@ -48,7 +48,7 @@ These tests run various hello operations remotely.
     Successfully installed gpkg.hello-0.1
     Starting hello-op on guild-uat as ...
     Resolving op
-    Using run ... for op resource
+    Using run ... for op
     Reading message from msg.out
     Hello, from a 2nd file!
     <BLANKLINE>

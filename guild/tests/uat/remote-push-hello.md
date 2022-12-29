@@ -8,7 +8,7 @@ Run the op locally:
 
     >>> run("guild run hello-file -y")
     Resolving file
-    Using hello.txt for file resource
+    Using hello.txt for file
     Reading message from hello.txt
     Hello, from a file!
     <BLANKLINE>
