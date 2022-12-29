@@ -45,6 +45,7 @@ tests).
       config:                      ok
       config-flags:                ok
       copy-sourcecode:             ok
+      copy-sourcecode-legacy:      ok
       copy-sourcecode-warnings:    ok
       cpu-plugin:                  ok
       cross-package-inheritance:   ok
@@ -71,7 +72,6 @@ tests).
       gpus:                        ok
       guild-home:                  ok
       guildfiles:                  ok
-      guildignore:                 ok
       help:                        ok
       help-op:                     ok
       hiplot:                      ok
@@ -150,6 +150,7 @@ tests).
       skopt:                       ok
       skopt-utils:                 ok
       sourcecode-digest:           ok
+      sourcecode-dirs:             ok
       startup-time:                ok
       step-checks:                 ok
       steps:                       ok
