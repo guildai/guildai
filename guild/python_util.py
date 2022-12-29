@@ -15,7 +15,7 @@
 import warnings
 
 with warnings.catch_warnings():
-    warnings.filterwarnings('ignore', category=DeprecationWarning)
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
     # pylint: disable=deprecated-module
     import imp
 
