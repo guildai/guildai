@@ -39,7 +39,6 @@ tests or deleting them from the suite.
     # multi-run-deps.md:14:     >> run("guild run down up='3 2' --run-id=7 -y")
     # multi-run-deps.md:15:     >> run("guild runs")
     # r-script.md:2: doctest: +FIXME
-    # run-impl.md:854:     >> run("guild run --restart down1 upstream=up1 -y")
     # uat/concurrent-queues.md:4: doctest: +FIXME
     # uat/dask-scheduler-resources.md:4: doctest: +FIXME
     # uat/dask-scheduler.md:4: doctest: +FIXME

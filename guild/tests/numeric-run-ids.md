@@ -69,7 +69,15 @@ is a YAML encoded number.
     Resolving operation:upstream
     Using run 1e123 for operation:upstream
 
+    >>> run("guild run downstream operation:upstream=1 -y")
+    Resolving operation:upstream
+    Using run 1e123 for operation:upstream
+
     >>> run("guild run downstream upstream=10 -y")
+    Resolving operation:upstream
+    Using run 100 for operation:upstream
+
+    >>> run("guild run downstream operation:upstream=10 -y")
     Resolving operation:upstream
     Using run 100 for operation:upstream
 
@@ -78,6 +86,10 @@ is a YAML encoded number.
     Using run 100 for operation:upstream
 
     >>> run("guild run downstream upstream=1e12 -y")
+    Resolving operation:upstream
+    Using run 1e123 for operation:upstream
+
+    >>> run("guild run downstream operation:upstream=1e12 -y")
     Resolving operation:upstream
     Using run 1e123 for operation:upstream
 
@@ -90,5 +102,9 @@ is a YAML encoded number.
     Using run 2e234abc for operation:upstream
 
     >>> run("guild run downstream upstream=2e234 -y")
+    Resolving operation:upstream
+    Using run 2e234abc for operation:upstream
+
+    >>> run("guild run downstream operation:upstream=2e -y")
     Resolving operation:upstream
     Using run 2e234abc for operation:upstream

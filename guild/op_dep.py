@@ -84,15 +84,22 @@ def resdef_flag_name_candidates(resdef):
 
 def _iter_resdef_flag_name_candidates(resdef):
     for source in resdef.sources:
-        if source.flag_name:
-            yield source.flag_name
-            continue
-        if source.name:
-            yield source.name
-            continue
-        if source.uri:
-            yield source.uri
-            yield source.parsed_uri.path
+        for name in _iter_source_flag_name_candidates(source):
+            yield name
+
+
+def source_flag_name_candidates(source):
+    return list(_iter_source_flag_name_candidates(source))
+
+
+def _iter_source_flag_name_candidates(source):
+    if source.flag_name:
+        yield source.flag_name
+    elif source.name:
+        yield source.name
+    elif source.uri:
+        yield source.uri
+        yield source.parsed_uri.path
 
 
 def resource_def(depdef, flag_vals):

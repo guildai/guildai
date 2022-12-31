@@ -63,6 +63,7 @@ tests).
       filter-parser:               ok
       filter-runs:                 ok
       filter-runs-impl:            ok
+      flag-alias:                  ok
       flag-functions:              ok
       flag-utils:                  ok
       flag-vals:                   ok
@@ -126,6 +127,7 @@ tests).
       resource-flag-refs:          ok
       resource-flags:              ok
       resource-flags-2:            ok
+      restart-resolve:             ok
       restart-runs:                ok
       run-attrs:                   ok
       run-files:                   ok

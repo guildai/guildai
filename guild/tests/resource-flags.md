@@ -138,7 +138,7 @@ A resource can have a defined name, in which case that value is used
 for logged messages. It is not used for source flag-assignments.
 
 `file-source-with-name-2` is the same as `file-source-with-name` but
-the resource is explicitly named as 'dependencies'.
+the resource is named as 'dependencies'.
 
 We still set the source using the source name.
 
@@ -326,6 +326,7 @@ And run `op-source` again.
     >>> run("guild run op-source -y")
     Resolving operation:upstream
     Using run ... for operation:upstream
+    --operation:upstream ...
 
 Let's verify that the resolved `upstream` run is what we
 expect. Here's a helper function that checks this:
@@ -361,7 +362,7 @@ Run `op-source` with an explicit run ID using as assignment to
     >>> run(f"guild run op-source upstream={first_upstream_run} -y")
     Resolving operation:upstream
     Using run ... for operation:upstream
-    --upstream ...
+    --operation:upstream ...
 
     >>> assert_resolved_run(first_upstream_run)
 
@@ -371,6 +372,7 @@ operation dependency.
     >>> run(f"guild run op-source operation:upstream={first_upstream_run} -y")
     Resolving operation:upstream
     Using run ... for operation:upstream
+    --operation:upstream ...
 
     >>> assert_resolved_run(first_upstream_run)
 
@@ -395,6 +397,7 @@ Run `op-source-with-name` using the defaults.
     >>> run("guild run op-source-with-name -y")
     Resolving upstream-run
     Using run ... for upstream-run
+    --upstream-run ...
 
 The resolved deps uses the source name.
 
@@ -426,6 +429,7 @@ We can use the flag name to specify a run.
     >>> run(f"guild run op-source-with-flag-name upstream-run={first_upstream_run} -y")
     Resolving upstream-run
     Using run ... for upstream-run
+    --upstream-run ...
 
     >>> run("guild select --attr deps")
     upstream-run:

@@ -1202,6 +1202,7 @@ class FlagDef:
         self.description = _data.pop("description", None) or ""
         self.type = _data.pop("type", None)
         self.required = bool(_data.pop("required", False))
+        self.alias = _data.pop("alias", None)
         self.arg_name = _data.pop("arg-name", None)
         self.arg_encoding = _data.pop("arg-encoding", None)
         self.arg_skip = _data.pop("arg-skip", None)

@@ -69,9 +69,8 @@ def _gen_args(op_cmd, flag_vals, resolve_params):
     args = []
     for arg in op_cmd.cmd_args:
         if arg == "__flag_args__":
-            args.extend(
-                _flag_args(flag_vals, op_cmd.flags_dest, op_cmd.cmd_flags, args)
-            )
+            flag_args = _flag_args(flag_vals, op_cmd.flags_dest, op_cmd.cmd_flags, args)
+            args.extend(flag_args)
         else:
             args.append(util.resolve_refs(arg, encoded_resolve_params))
     return args

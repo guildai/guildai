@@ -1,0 +1,6 @@
+test:
+  main: guild.pass
+  flags:
+    x:
+      alias: xx
+  flags-dest: args
