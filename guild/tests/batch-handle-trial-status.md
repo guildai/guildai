@@ -80,7 +80,7 @@ start a trial.
     >>> def _run_trial(trial_run):
     ...     status_lock = locklib.Lock(locklib.RUN_STATUS, timeout=5)
     ...     with SetGuildHome(project.guild_home):
-    ...         batch_util._try_run_pending_trial(trial_run, batch_run, status_lock)
+    ...         batch_util._start_pending_trial(trial_run, batch_run, status_lock)
 
 Run the first pending trial.
 

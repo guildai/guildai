@@ -142,7 +142,7 @@ def _run_trials(batch_run, trials):
     for trial_run in trial_runs:
         if __batch_exiting.is_set():
             break
-        _try_run_pending_trial(trial_run, batch_run, run_status_lock)
+        _start_pending_trial(trial_run, batch_run, run_status_lock)
 
 
 def _init_trial_runs(batch_run, trials):
@@ -178,7 +178,7 @@ def _trial_label(proto_run, trial_flag_vals):
     return op_util.run_label(label_template, trial_flag_vals)
 
 
-def _try_run_pending_trial(trial_run, batch_run, status_lock):
+def _start_pending_trial(trial_run, batch_run, status_lock):
     stage = batch_run.get("stage_trials")
     with status_lock:
         trial_status = trial_run.status
