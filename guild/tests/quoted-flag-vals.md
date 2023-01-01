@@ -10,7 +10,7 @@ unquoted values.
 
 We use the `quoted-flag-vals` project for these tests.
 
-    >>> project = Project(sample("projects", "quoted-flag-vals"))
+    >>> use_project("quoted-flag-vals")
 
 ## Globals Interface
 
@@ -26,19 +26,14 @@ values to None defines the flags without types.
 
 Here are some flag values that we initially assign:
 
-    >>> flag_vals = {
-    ...     "f1": 1,
-    ...     "f2": 1.1,
-    ...     "f3": ["a", "b", "c"],
-    ...     "f4": True
-    ... }
+    >>> flags = "f1=1 f2=1.1 f3=[a,b,c] f4=yes"
 
 In this case we provide an unquoted list of values for `s`, which
 results in a batch.
 
 Here is a preview of the commands that will be run:
 
-    >>> project.run("globals.py", flag_vals, print_cmd=True)
+    >>> run(f"guild run globals.py {flags} --print-cmd")
     ??? -um guild.batch_main
     ... -um guild.op_main globals --f1 1 --f2 1.1 --f3 a --f4 true
     ... -um guild.op_main globals --f1 1 --f2 1.1 --f3 b --f4 true
@@ -46,7 +41,7 @@ Here is a preview of the commands that will be run:
 
 Run the operation:
 
-    >>> project.run("globals.py", flag_vals)
+    >>> run(f"guild run globals.py {flags} -y")
     INFO: [guild] Running trial ...: globals.py (f1=1, f2=1.1, f3=a, f4=yes)
     1 <int>
     1.1 <float>
@@ -63,88 +58,42 @@ Run the operation:
     'c' <str>
     True <bool>
 
-Here are some examples
+### Values encoded as strings
 
-In this scenario, we provide the same values as strings.
-
-    >>> flag_vals = {
-    ...     "f1": "1",
-    ...     "f2": "1.1",
-    ...     "f3": '["a", "b", "c"]',
-    ...     "f4": "yes"
-    ... }
+    >>> flags = "f1=\"'1'\" f2=\"'1.1'\" f3=\"'[a,b,c]'\" f4=\"'yes'\""
 
 Guild encodes each string as YAML, applying the required quotes for
 each value.
 
-    >>> project.run("globals.py", flag_vals, print_cmd=True)
-    ??? -um guild.op_main globals --f1 "'1'" --f2 "'1.1'" --f3 "'["a", "b", "c"]'" --f4 "'yes'"
+    >>> run(f"guild run globals.py {flags} --print-cmd")
+    ??? -um guild.op_main globals --f1 "'1'" --f2 "'1.1'" --f3 "'[a,b,c]'" --f4 "'yes'"
 
 When we run the operation, each value is a string.
 
-    >>> project.run("globals.py", flag_vals)
+    >>> run(f"guild run globals.py {flags} --yes")
     '1' <str>
     '1.1' <str>
-    '["a", "b", "c"]' <str>
+    '[a,b,c]' <str>
     'yes' <str>
 
-Here are some alternative quoted lists.
+Guild does not support setting Python lists as global values. A list
+always triggers a batch.
 
-    >>> project.run("globals.py", {"f3": "['a','b','c']"})
-    "['a','b','c']" <str>
+When encoded as YAML, complex types can be passed through as flag
+values.
 
-    >>> project.run("globals.py", {"f3": "[a,b,c]"})
-    '[a,b,c]' <str>
+    >>> flags = "f2='{a: 1.123, b: 2.234}' f3='!!set {1,2,3}' f4='{a: [1,2,3], b: 123, c: !!set {1,2,3}}'"
 
-Note that Guild does not support setting Python lists as global
-values. A list always triggers a batch.
-
-Tuples generate a batch as if they were a list (YAML doesn't support
-encoding tuples and so tuples are implicitly treated as lists).
-
-    >>> project.run("globals.py", {"f1": (2, 3)})
-    INFO: [guild] Running trial ...: globals.py (f1=2)
-    2 <int>
-    INFO: [guild] Running trial ...: globals.py (f1=3)
-    3 <int>
-
-Complex types can be passed through.
-
-    >>> flag_vals = {
-    ...     "f2": {"a": 1.123, "b": 2.234},
-    ...     "f3": {1,2,3},
-    ...     "f4": {"a": [1,2,3], "b": 123, "c": {1,2,3}}
-    ... }
-
-    >>> project.run("globals.py", flag_vals, print_cmd=True)
+    >>> run(f"guild run globals.py {flags} --print-cmd")
     ??? -um guild.op_main globals
-          --f2 '{a: 1.123, b: 2.234}'
-          --f3 '!!set {1: null, 2: null, 3: null}'
-          --f4 '{a: [1, 2, 3], b: 123, c: !!set {1: null, 2: null, 3: null}}'
+    --f2 '{a: 1.123, b: 2.234}'
+    --f3 '!!set {1: null, 2: null, 3: null}'
+    --f4 '{a: [1, 2, 3], b: 123, c: !!set {1: null, 2: null, 3: null}}'
 
-    >>> project.run("globals.py", flag_vals)
+    >>> run(f"guild run globals.py {flags} --yes")
     {'a': 1.123, 'b': 2.234} <dict>
     {1, 2, 3} <set>
     {'a': [1, 2, 3], 'b': 123, 'c': {1, 2, 3}} <dict>
-
-To pass through as string, they must be quoted.
-
-    >>> flag_vals = {
-    ...     "f2": '{"a": 1.123, "b": 2.234}',
-    ...     "f3": '{1,2,3}',
-    ...     "f4": '{"a": [1,2,3], "b": 123, "c": {1,2,3}}}'
-    ... }
-
-    >>> project.run("globals.py", flag_vals, print_cmd=True)
-    ??? -um guild.op_main globals
-            --f2 "'{"a": 1.123, "b": 2.234}'"
-            --f3 "'{1,2,3}'"
-            --f4 "'{"a": [1,2,3], "b": 123, "c": {1,2,3}}}'"
-
-    >>> project.run("globals.py", flag_vals)
-    '{"a": 1.123, "b": 2.234}' <str>
-    '{1,2,3}' <str>
-    '{"a": [1,2,3], "b": 123, "c": {1,2,3}}}' <str>
 
 ## Args Interface
 
@@ -155,24 +104,19 @@ and bool.
 As with any interface, list values drive batch runs with args. Here's
 the same set of flags we used to star the `globals` test above.
 
-    >>> flag_vals = {
-    ...     "f1": 1,
-    ...     "f2": 1.1,
-    ...     "f3": ["a", "b", "c"],
-    ...     "f4": True
-    ... }
+    >>> flags = "f1=1 f2=1.1 f3=[a,b,c] f4=yes"
 
-The command preview for these flags with the `args.py` script:
+The command preview shows the batch and the three generated runs.
 
-    >>> project.run("args.py", flag_vals, print_cmd=True)
+    >>> run(f"guild run args.py {flags} --print-cmd")
     ??? -um guild.batch_main
     ... -um guild.op_main args --f1 1 --f2 1.1 --f3 a --f4 1
     ... -um guild.op_main args --f1 1 --f2 1.1 --f3 b --f4 1
     ... -um guild.op_main args --f1 1 --f2 1.1 --f3 c --f4 1
 
-Run the operation:
+Run the operation.
 
-    >>> project.run("args.py", flag_vals)
+    >>> run(f"guild run args.py {flags} --yes")
     INFO: [guild] Running trial ...: args.py (f1=1, f2=1.1, f3=a, f4=yes)
     1 <int>
     1.1 <float>
@@ -191,75 +135,50 @@ Run the operation:
 
 Some some alternative values:
 
-    >>> flag_vals = {
-    ...     "f1": 2,
-    ...     "f2": 2.2,
-    ...     "f3": "hola",
-    ...     "f4": False
-    ... }
+    >>> flags = "f1=2 f2=2.2 f3=hola f4=no"
 
-    >>> project.run("args.py", flag_vals, print_cmd=True)
+    >>> run(f"guild run args.py {flags} --print-cmd")
     ??? -um guild.op_main args --f1 2 --f2 2.2 --f3 hola --f4 ''
 
-    >>> project.run("args.py", flag_vals)
+    >>> run(f"guild run args.py {flags} --yes")
     2 <int>
     2.2 <float>
     'hola' <str>
     False <bool>
 
-Guild imports type settings for args and so catches invalid input
-before running the script.
+Guild imports type settings for args and can validate input to the
+command.
 
-    >>> flag_vals = {"f1": "one"}
-
-    >>> project.run("args.py", flag_vals)
+    >>> run("guild run args.py f1=one -y")
     guild: invalid value one for f1: invalid value for type 'int'
     <exit 1>
 
 We can pass any string through to a string arg (flag `f3` in this
 case).
 
-    >>> flag_vals = {
-    ...     "f1": 2,
-    ...     "f2": 2.2,
-    ...     "f3": "[1,2,3]",
-    ...     "f4": True
-    ... }
+    >>> flags="f1=2 f2=2.2 f3=\"'[1,2,3]'\" f4=yes"
 
-    >>> project.run("args.py", flag_vals, print_cmd=True)
+    >>> run(f"guild run args.py {flags} --print-cmd")
     ??? -um guild.op_main args --f1 2 --f2 2.2 --f3 '[1,2,3]' --f4 1
 
-    >>> project.run("args.py", flag_vals)
+    >>> run(f"guild run args.py {flags} --yes")
     2 <int>
     2.2 <float>
     '[1,2,3]' <str>
     True <bool>
 
-When we try to pass complex types as arg, they are converts to strings
-using Python's `str` type contructor.
+When we pass complex types, they are converted to strings using
+Python's `str` type contructor.
 
-    >>> flag_vals = {
-    ...     "f5": {"a": 1.123, "b": 2.234},
-    ...     "f6": {1,2,3},
-    ...     "f7": {"a": [1,2,3], "b": 123, "c": {1,2,3}}
-    ... }
+    >>> flags = "f5='{a: 1.123, b: 2.234}' f6='!!set {1,2,3}' f7='{a: [1,2,3], b: 123, c: !!set {1,2,3}}'"
 
-We can use `force_args` to pass through unsupported options to
-`args.py`.
+    >>> run(f"guild run args.py {flags} --force-flags --print-cmd")
+    ??? -um guild.op_main args --f1 1 --f2 1.1 --f3 hello --f4 ''
+    --f5 '{'"'"'a'"'"': 1.123, '"'"'b'"'"': 2.234}'
+    --f6 '{1, 2, 3}'
+    --f7 '{'"'"'a'"'"': [1, 2, 3], '"'"'b'"'"': 123, '"'"'c'"'"': {1, 2, 3}}'
 
-    >>> project.run("args.py", flag_vals, force_flags=True, print_cmd=True)
-    ??? -um guild.op_main args
-            --f1 1
-            --f2 1.1
-            --f3 hello
-            --f4 ''
-            --f5 '{'"'"'a'"'"': 1.123, '"'"'b'"'"': 2.234}'
-            --f6 '{1, 2, 3}'
-            --f7 '{'"'"'a'"'"': [1, 2, 3], '"'"'b'"'"': 123, '"'"'c'"'"': {1, 2, 3}}'
-
-The values printed from the script:
-
-    >>> project.run("args.py", flag_vals, force_flags=True)
+    >>> run(f"guild run args.py {flags} --force-flags --yes")  # doctest: +REPORT_UDIFF
     1 <int>
     1.1 <float>
     'hello' <str>

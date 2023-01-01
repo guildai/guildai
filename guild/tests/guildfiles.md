@@ -426,11 +426,10 @@ Multiple optimizers may be defined using the `optimizers` attribute.
     flags: {'kappa': 1.8}
 
 When multiple optimizers are specified and none have a default
-designation, the first optimizers is selected using lexicographical
-order.
+designation, the default is None.
 
     >>> print(op.default_optimizer)
-    <guild.guildfile.OptimizerDef 'gp-1'>
+    None
 
 When multiple optimizers are specified, the algorithm may be omitted
 when specifying dict values, in which case the dict name is used as

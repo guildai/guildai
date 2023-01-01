@@ -59,17 +59,36 @@ class CmdFlag:
 ###################################################################
 
 
-def generate_op_args_and_env(op_cmd, flag_vals, resolve_params):
-    """Generates command args and env, returning them as a tuple."""
-    return (_gen_args(op_cmd, flag_vals, resolve_params), _gen_env(op_cmd, flag_vals))
+def generate_op_args_and_env(op_cmd, flag_vals, resolve_params, force_flag_args=False):
+    """Generates command args and env, returning them as a tuple.
+
+    The result contains encoded arguments and environment variables
+    according to `op_cmd.cmd_args` and `op_cmd.cmd_flags`. The special
+    cmd arg value '__flag_args__' is replaced by encoded values from
+    `flag_vals` for corresponding entries in `op_cmd.cmd_flags`.
+
+    If `force_flag_args` is True, includes encoded flag values in the
+    result even when they don't have a corresponding entry in
+    `op_cmd.cmd_flags`.
+    """
+    return (
+        _gen_args(op_cmd, flag_vals, resolve_params, force_flag_args),
+        _gen_env(op_cmd, flag_vals),
+    )
 
 
-def _gen_args(op_cmd, flag_vals, resolve_params):
+def _gen_args(op_cmd, flag_vals, resolve_params, force_flag_args):
     encoded_resolve_params = _encode_arg_params(resolve_params)
     args = []
     for arg in op_cmd.cmd_args:
         if arg == "__flag_args__":
-            flag_args = _flag_args(flag_vals, op_cmd.flags_dest, op_cmd.cmd_flags, args)
+            flag_args = _flag_args(
+                flag_vals,
+                op_cmd.flags_dest,
+                op_cmd.cmd_flags,
+                args,
+                force_flag_args,
+            )
             args.extend(flag_args)
         else:
             args.append(util.resolve_refs(arg, encoded_resolve_params))
@@ -85,16 +104,25 @@ def _encode_general_arg(val):
     return _encode_env_val(val)
 
 
-def _flag_args(flag_vals, flag_dest, cmd_flags, cmd_args):
+def _flag_args(flag_vals, flag_dest, cmd_flags, cmd_args, force_flag_args):
     args = []
     for name, val in sorted(flag_vals.items()):
-        cmd_flag = cmd_flags.get(name)
-        args.extend(_args_for_flag(name, val, cmd_flag, flag_dest, cmd_args))
+        cmd_flag = _cmd_flag_for_name(name, cmd_flags, force_flag_args)
+        if cmd_flag:
+            args.extend(_args_for_flag(name, val, cmd_flag, flag_dest, cmd_args))
     return args
 
 
+def _cmd_flag_for_name(name, cmd_flags, force_flag_args):
+    cmd_flag = cmd_flags.get(name)
+    if cmd_flag:
+        return cmd_flag
+    if force_flag_args:
+        return CmdFlag()
+    return None
+
+
 def _args_for_flag(name, val, cmd_flag, flag_dest, cmd_args):
-    cmd_flag = cmd_flag or CmdFlag()
     if cmd_flag.arg_skip:
         return []
     arg_name = cmd_flag.arg_name or name
@@ -319,9 +347,7 @@ def as_data(op_cmd):
 def _cmd_flags_as_data(cmd_flags):
     data = {}
     for flag_name, cmd_flag in cmd_flags.items():
-        cmd_flag_data = _cmd_flag_as_data(cmd_flag)
-        if cmd_flag_data:
-            data[flag_name] = cmd_flag_data
+        data[flag_name] = _cmd_flag_as_data(cmd_flag)
     return data
 
 

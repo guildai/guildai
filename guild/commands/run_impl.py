@@ -306,9 +306,9 @@ def _state_init_user_op(S):
         S.args.keep_run,
         S.user_op,
     )
-    _op_init_sourcecode_paths(S.user_op, S.args)
+    _op_init_sourcecode_paths(S.args, S.user_op)
     _op_init_op_flags(S.args, S.user_op)
-    _op_init_op_cmd(S.user_op, S.args)
+    _op_init_op_cmd(S.args, S.user_op)
     _op_init_core(S.args, S.user_op)
 
 
@@ -512,7 +512,7 @@ def _plugin_enabled_for_op(plugin, opdef):
 # =================================================================
 
 
-def _op_init_op_cmd(op, args):
+def _op_init_op_cmd(args, op):
     if not op._opdef:
         return
     op_cmd, run_attrs = _op_cmd(op, args)
@@ -618,7 +618,32 @@ def _apply_opdef_flags(
     )
     resource_flagdefs.extend(flag_val_resource_flagdefs)
     _apply_default_dep_runs(opdef, args, flag_vals)
-    op_flag_vals.update(flag_vals)
+    user_flag_vals = _normalize_flag_aliases(
+        user_flag_vals, opdef.flags + resource_flagdefs
+    )
+    _apply_user_or_missing_op_flag_vals(
+        flag_vals,
+        user_flag_vals,
+        op_flag_vals,
+    )
+
+
+def _normalize_flag_aliases(flag_vals, flagdefs):
+    flag_vals = dict(flag_vals)
+    op_util.normalize_flag_aliases(flagdefs, flag_vals, force=True)
+    return flag_vals
+
+
+def _apply_user_or_missing_op_flag_vals(flag_vals, user_flag_vals, op_flag_vals):
+    """Applies missing or user-specified values to op flags.
+
+    For each flag value in `flag_vals`, applies value to
+    `op_flag_vals` only if the value is missing or specified by the as
+    per `user_flag_vals`.
+    """
+    for name, val in flag_vals.items():
+        if name in user_flag_vals or name not in op_flag_vals:
+            op_flag_vals[name] = val
 
 
 def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
@@ -1026,16 +1051,24 @@ def _op_init_opref(op):
 def _op_init_cmd_args_and_env(args, op):
     assert op._op_cmd
     op.cmd_args, op.cmd_env = _generate_op_args_and_env(
-        op._op_cmd, op._op_flag_vals, op._python_requires
+        op._op_cmd,
+        op._op_flag_vals,
+        op._python_requires,
+        args.force_flags,
     )
     _apply_gpu_arg_env(args, op.cmd_env)  # Enable GPU override on restart.
     _apply_break_args_env(args, op.cmd_env)
 
 
-def _generate_op_args_and_env(op_cmd, flag_vals, python_requires):
+def _generate_op_args_and_env(op_cmd, flag_vals, python_requires, force_flags):
     resolve_params = _op_cmd_resolve_params(flag_vals, python_requires)
     try:
-        return op_cmd_lib.generate_op_args_and_env(op_cmd, flag_vals, resolve_params)
+        return op_cmd_lib.generate_op_args_and_env(
+            op_cmd,
+            flag_vals,
+            resolve_params,
+            force_flags,
+        )
     except util.UndefinedReferenceError as e:
         _op_cmd_error(
             "invalid setting for operation: command contains "
@@ -1089,7 +1122,7 @@ def _op_init_private_env(op):
 # =================================================================
 
 
-def _op_init_sourcecode_paths(op, args):
+def _op_init_sourcecode_paths(args, op):
     op.sourcecode_paths = _sourcecode_paths(op, args)
 
 
@@ -1449,8 +1482,8 @@ def _state_init_batch_op(S):
             S.batch_op,
             is_batch=True,
         )
-        _op_init_sourcecode_paths(S.batch_op, S.args)
-        _op_init_op_cmd(S.batch_op, S.args)
+        _op_init_sourcecode_paths(S.args, S.batch_op)
+        _op_init_op_cmd(S.args, S.batch_op)
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)
         _op_init_batch_config(S.args, S.user_op, S.batch_op)
@@ -1521,17 +1554,18 @@ def _op_init_for_optimizer_opspec(opspec, op):
 def _batch_op_init_for_opdef_default_optimizer(opdef, S):
     assert not S.batch_op
     S.batch_op = Operation()
-    optdef = util.find_apply(
-        [
-            lambda: opdef.default_optimizer,
-            lambda: _default_optimizer(opdef),
-        ]
-    )
+    optdef = _default_optimizer(opdef)
     _op_init_for_optimizer(optdef, S.batch_op)
 
 
 def _default_optimizer(opdef):
-    return guildfile.OptimizerDef.for_name(DEFAULT_OPTIMIZER, opdef)
+    optdef = opdef.default_optimizer
+    if optdef:
+        return optdef
+    if not opdef.optimizers:
+        return guildfile.OptimizerDef.for_name(DEFAULT_OPTIMIZER, opdef)
+    assert len(opdef.optimizers) > 1, opdef.optimizers
+    _no_default_optimizer_error(opdef)
 
 
 def _try_implied_batch_op_init(user_op, S):
@@ -2686,6 +2720,14 @@ def _skip_needed_matches_info(matching_runs):
     formatted = [run_util.format_run(run) for run in matching_runs]
     cols = ["index", "operation", "started", "status_with_remote", "label"]
     cli.table(formatted, cols=cols, indent=2)
+
+
+def _no_default_optimizer_error(opdef) -> typing.NoReturn:
+    opt_names = ", ".join([opt.name for opt in opdef.optimizers])
+    cli.error(
+        f"no default optimizer defined for {opdef.name}\n"
+        f"Specify one of the following with '--optimizer': {opt_names}"
+    )
 
 
 ###################################################################

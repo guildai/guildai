@@ -82,24 +82,40 @@ def cwd():
 
 
 def guild_home():
-    return _safe_guild_home() or default_guild_home()
+    return _configured_guild_home() or default_guild_home()
 
 
-def _safe_guild_home():
+def _configured_guild_home():
     with _guild_home_lock:
         return _guild_home
 
 
 def default_guild_home():
-    try:
-        return os.environ["GUILD_HOME"]
-    except KeyError:
-        base = _default_guild_home_base()
-        return os.path.realpath(os.path.join(base, ".guild"))
+    return _guild_home_env() or _guild_home_for_scheme()
 
 
-def _default_guild_home_base():
-    return _find_apply([_conda_home, _virtualenv_home, _user_home])
+def _guild_home_env():
+    return os.environ.get("GUILD_HOME")
+
+
+def _guild_home_for_scheme():
+    scheme = _guild_home_scheme()
+    if scheme == "pre-0.9":
+        return _guild_home_pre_0_9()
+    return _guild_home_current_scheme()
+
+
+def _guild_home_scheme():
+    return os.getenv("GUILD_HOME_SCHEME") or _guild_scheme_for_user_config()
+
+
+def _guild_scheme_for_user_config():
+    return user_config().get("legacy", {}).get("guild-home")
+
+
+def _guild_home_pre_0_9():
+    base = _find_apply([_conda_home, _virtualenv_home, _user_home])
+    return os.path.realpath(os.path.join(base, ".guild"))
 
 
 def _conda_home():
@@ -112,6 +128,36 @@ def _virtualenv_home():
 
 def _user_home():
     return os.path.expanduser("~")
+
+
+def _guild_home_current_scheme():
+    """Returns the Guild home directory using the current scheme.
+
+    Returns the path to `.guild` from the current directory. If the
+    current directory doesn't contain `.guild`, applies the scheme to
+    the parent directory up until the user home directory. If `.guild`
+    does not exist in any of the directories, returns the real path to
+    `~/.guild`.
+    """
+    _home_dir = None
+
+    def is_home_dir(dir):
+        nonlocal _home_dir
+        if _home_dir is None:
+            _home_dir = os.path.realpath(_user_home())
+        return os.path.realpath(dir) == _home_dir
+
+    cur = os.getcwd()
+    while True:
+        guild_home = os.path.join(cur, ".guild")
+        if os.path.isdir(guild_home) or is_home_dir(cur):
+            break
+        parent = os.path.dirname(cur)
+        if parent == cur:
+            break
+        cur = parent
+
+    return guild_home
 
 
 def set_log_output(flag):

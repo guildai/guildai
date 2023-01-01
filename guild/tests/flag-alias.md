@@ -47,10 +47,11 @@ error.
     Use --force-flags to skip this check.
     <exit 1>
 
-We can use `--force-flags` to override this check.
+We can use `--force-flags` to override this check. Note however, the
+flag is not passed as an argument to the underlying script.
 
     >>> run("guild run test x=3 xx=4 --force-flags -y")
-    --x 3 --xx 4
+    --x 3
 
 In this case, Guild saves uses both flags.
 

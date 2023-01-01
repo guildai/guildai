@@ -775,7 +775,6 @@ Boolean flags support 'true' and 'false'.
 Paths types support file name completions.
 
     >>> run_ac("flags", ["flags"], "p=")  # doctest: +REPORT_UDIFF
-    p=.guildignore
     p=batch_fail.py
     p=dummy.qmd
     p=dummy.r
@@ -787,13 +786,12 @@ Paths types support file name completions.
     p=noisy_flubber.py
     p=poly.py
     p=trial_fail.py
-    p=tune-echo
 
-    >>> run_ac("flags", ["flags"], "p=tune-")
-    p=tune-echo
+    >>> run_ac("flags", ["flags"], "p=nois")
+    p=noisy.py
+    p=noisy_flubber.py
 
     >>> run_ac("flags", ["flags"], "ep=")  # doctest: +REPORT_UDIFF
-    ep=.guildignore
     ep=batch_fail.py
     ep=dummy.qmd
     ep=dummy.r
@@ -805,7 +803,6 @@ Paths types support file name completions.
     ep=noisy_flubber.py
     ep=poly.py
     ep=trial_fail.py
-    ep=tune-echo
 
 String types do not.
 

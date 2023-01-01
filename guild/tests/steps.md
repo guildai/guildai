@@ -5,11 +5,7 @@ main or exec spec.
 
 We'll use the sample project 'steps' to illustrate the behavior.
 
-    >>> cd(sample("projects", "steps"))
-
-We isolate runs for these tests.
-
-    >>> set_guild_home(mkdtemp())
+    >>> use_project("steps")
 
 The project defines several operations under 'models' (operation
 namespaces):

@@ -1224,11 +1224,11 @@ def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
 
     """
     flag_vals = dict(user_flag_vals)
-    _apply_flag_aliases(opdef.flags, flag_vals, force)
+    normalize_flag_aliases(opdef.flags, flag_vals, force)
     _apply_default_flag_vals(opdef.flags, flag_vals)
     _apply_coerce_flag_vals(opdef.flags, force, flag_vals)
     resource_flagdefs = _resource_flagdefs(opdef, flag_vals)
-    _apply_flag_aliases(resource_flagdefs, flag_vals, force)
+    normalize_flag_aliases(resource_flagdefs, flag_vals, force)
     _apply_coerce_flag_vals(resource_flagdefs, force, flag_vals)
     _apply_default_flag_vals(resource_flagdefs, flag_vals)
     all_flagdefs = opdef.flags + resource_flagdefs
@@ -1240,19 +1240,19 @@ def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
     return flag_vals, resource_flagdefs
 
 
-def _apply_flag_aliases(flagdefs, flag_vals, force=False):
-    """Applies flag def alias to flag vals.
+def normalize_flag_aliases(flagdefs, flag_vals, force=False):
+    """Ensures that flag values use the full flag def name.
 
-    If `flag_vals` contains an alias as per `flagdef`, `flag_vals` is
-    modified to use the applicable flag def name. If `flag_vals`
-    contains both an alias and flag name, raises
-    `AliasAndNameSpecifiedError` unless `force` is True. If `force` is
-    True and both alias and flag name exist, both values are retained
-    without modification.
+    If a flag value uses a flag alias, that entry is renamed to use
+    the flag name.
+
+    If flag vals contains both a name and alias for the same flag def,
+    function raises `AliasAndNameSpecifiedError` unless `force` is
+    True. If `force` is True and both alias and flag name exist, both
+    values are retained without modification.
 
     If an alias is the same as the name, the entry in flag vals is not
     modified.
-
     """
     for flagdef in flagdefs:
         if not flagdef.alias or flagdef.alias == flagdef.name:
@@ -1558,7 +1558,8 @@ def flag_assigns(flags, skip_none=False):
 
 
 def flag_assign(name, val):
-    return f"{name}={flag_util.format_flag(val)}"
+    val = flag_util.format_flag(val)
+    return f"{name}={val}"
 
 
 def parse_flag_assigns(args, opdef=None):
