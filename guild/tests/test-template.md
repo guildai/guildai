@@ -17,9 +17,9 @@ environment. These should be meaningful tests and not copypasta.>
     <exit 0>
 
     >>> find(".")
-    .guildignore
+    batch_fail.py
     ...
-    tune-echo
+    trial_fail.py
 
 </...>
 

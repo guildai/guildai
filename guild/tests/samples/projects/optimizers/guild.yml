@@ -32,7 +32,7 @@
           xi: 0.1
 
     noisy-flubber:
-      description: Noisy with a funny objective (-loss)
+      description: Noisy with a funny objective
       main: noisy_flubber
       flags:
         x:
@@ -104,35 +104,29 @@
         loss: 'loss: (.+)'
 
     tune-echo:
-      exec: ./tune-echo tune-echo ${flag_args}
-      flags-import: yes
+      exec: echo 'Running tune-echo' ${flag_args}
       flags:
         alpha: 0.1
         beta: 0.2
-      requires:
-        - file: tune-echo
 
     tune-echo-2:
-      exec: ./tune-echo tune-echo-2 ${flag_args}
-      flags-import: yes
+      exec: echo 'Running tune-echo-2' ${flag_args}
       flags:
         beta: 0.4
         gamma: 3
-      requires:
-        - file: tune-echo
 
     opt-test-1:
-      exec: 'true'
+      exec: echo 'Running opt-test-1'
       optimizer: tune-echo
 
     opt-test-2:
-      exec: 'true'
+      exec: echo 'Running opt-test-2'
       optimizer:
         algorithm: tune-echo
         beta: 0.3
 
     opt-test-3:
-      exec: 'true'
+      exec: echo 'Running opt-test-3'
       optimizers:
         o1: tune-echo
         o2:
