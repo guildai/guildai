@@ -333,7 +333,6 @@ def _step_run_cmd(step, step_run_dir, parent_run):
         "guild.main_bootstrap",
         "run",
         "-y",
-        "--force-flags",
         "--run-dir",
         step_run_dir,
         step.op_spec,
@@ -418,16 +417,15 @@ def _step_run_cwd():
 def _format_step_cmd(cmd):
     # Show only opspec onward - assert front matter to catch changes
     # to cmd.
-    assert cmd[0:7] == [
+    assert cmd[0:6] == [
         config.python_exe(),
         "-um",
         "guild.main_bootstrap",
         "run",
         "-y",
-        "--force-flags",
         "--run-dir",
     ], cmd
-    return " ".join(cmd[8:])
+    return " ".join(cmd[7:])
 
 
 def _check_step_run(step, run):
