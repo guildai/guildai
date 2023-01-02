@@ -649,7 +649,7 @@ def _apply_user_or_missing_op_flag_vals(flag_vals, user_flag_vals, op_flag_vals)
 def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
     """Returns a tuple of flag vals and resource flag defs for opdef.
 
-    Results includes defaults for opdef overridden by user flag vals
+    Result includes defaults for opdef overridden by user flag vals
     where specified.
     """
     try:
@@ -2201,7 +2201,10 @@ def _trials_count(S):
 def _op_trials(op):
     if op._batch_trials:
         return batch_util.expand_trial_flags(
-            op._batch_trials, op._op_flag_vals, op._user_flag_vals, op._random_seed
+            op._batch_trials,
+            op._op_flag_vals,
+            op._user_flag_vals,
+            op._random_seed,
         )
     return batch_util.expand_flags(op._op_flag_vals, op._random_seed)
 

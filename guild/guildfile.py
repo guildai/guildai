@@ -1448,6 +1448,9 @@ class OptimizerDef:
         # represent it to the user as an algorithm.
         self.opspec = data.pop("algorithm", None) or name
         self.default = data.pop("default", False)
+        # Note that the rest of `data` is treated as optimizer
+        # flags. This scheme prohibits the use of any of the above
+        # keys (e.g. 'algorithm', 'default') as flag names.
         self.flags = data
 
     @classmethod
