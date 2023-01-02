@@ -56,7 +56,6 @@ source value.
     >>> run("guild run file-source file:foo.txt=bar.txt -y")
     Resolving file:foo.txt
     Using bar.txt for file:foo.txt
-    --file:foo.txt bar.txt
 
     >>> run("guild ls -n")
     bar.txt
@@ -101,7 +100,6 @@ We can specify an alternative source using the source name.
     >>> run("guild run file-source-with-name infile=bar.txt -y")
     Resolving infile
     Using bar.txt for infile
-    --infile bar.txt
 
     >>> run("guild ls -n")
     bar.txt
@@ -138,14 +136,13 @@ A resource can have a defined name, in which case that value is used
 for logged messages. It is not used for source flag-assignments.
 
 `file-source-with-name-2` is the same as `file-source-with-name` but
-the resource is explicitly named as 'dependencies'.
+the resource is named as 'dependencies'.
 
 We still set the source using the source name.
 
     >>> run("guild run file-source-with-name-2 infile=bar.txt -y")
     Resolving dependencies
     Using bar.txt for infile
-    --infile bar.txt
 
 Note that Guild resolves 'dependencies' in this case.
 
@@ -204,7 +201,6 @@ dependency.
     >>> run("guild run file-source-with-flag-name infile=bar.txt -y")
     Resolving infile
     Using bar.txt for infile
-    --infile bar.txt
 
     >>> run("guild ls -n")
     bar.txt
@@ -227,7 +223,6 @@ To use a different source, we must use the source flag name.
     >>> run("guild run file-source-with-name-and-flag-name input-file=bar.txt -y")
     Resolving file
     Using bar.txt for file
-    --input-file bar.txt
 
     >>> run("guild ls -n")
     bar.txt
@@ -361,7 +356,6 @@ Run `op-source` with an explicit run ID using as assignment to
     >>> run(f"guild run op-source upstream={first_upstream_run} -y")
     Resolving operation:upstream
     Using run ... for operation:upstream
-    --upstream ...
 
     >>> assert_resolved_run(first_upstream_run)
 

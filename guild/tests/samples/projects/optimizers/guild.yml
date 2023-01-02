@@ -136,7 +136,7 @@
           beta: 0.6
 
     opt-test-4:
-      exec: 'true'
+      exec: echo 'Running opt-test-4'
       optimizers:
         tune-echo: {}
         alt-tune: tune-echo-2

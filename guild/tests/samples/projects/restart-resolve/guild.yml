@@ -1,0 +1,17 @@
+up:
+  description: Upstream op - generates a file
+
+down:
+  description: Downstream op - does not re-resolve upstream dependency
+  main: guild.pass
+  sourcecode: no
+  requires:
+    - operation: up
+
+down-resolve:
+  description: Downstream op - re-resolves upstream dependency
+  main: guild.pass
+  sourcecode: no
+  requires:
+    - operation: up
+      always-resolve: yes

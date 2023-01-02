@@ -188,6 +188,13 @@ class NoSuchFlagError(FlagError):
         self.flag_name = flag_name
 
 
+class AliasAndNameSpecifiedError(FlagError):
+    def __init__(self, alias, flag_name):
+        super().__init__(alias, flag_name)
+        self.flag_name = flag_name
+        self.alias = alias
+
+
 class InvalidOpDef(ValueError):
     def __init__(self, opdef, msg):
         super().__init__(opdef, msg)
@@ -1195,10 +1202,33 @@ def _flagdef_arg_skip(flagdef):
 
 
 def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
+    """Returns flag vals and resource flag defs for opdef and user flags.
+
+    Default flag values from `opdef` are provided when user values are
+    missing.
+
+    Values are coerced to their corresponding flag types types
+    according to opdef. This includes the application of choice values
+    for choice flag types.
+
+    Resource flag defs are inferred from required sources in opdef.
+
+    If `force` is not True, fails under the following conditions:
+
+      - User specified flag value does not correspond to a flag def
+
+      - A flag value violates a flag def constraint (choice, type, or
+        range)
+
+      - A required flag value is missing
+
+    """
     flag_vals = dict(user_flag_vals)
+    normalize_flag_aliases(opdef.flags, flag_vals, force)
     _apply_default_flag_vals(opdef.flags, flag_vals)
     _apply_coerce_flag_vals(opdef.flags, force, flag_vals)
     resource_flagdefs = _resource_flagdefs(opdef, flag_vals)
+    normalize_flag_aliases(resource_flagdefs, flag_vals, force)
     _apply_coerce_flag_vals(resource_flagdefs, force, flag_vals)
     _apply_default_flag_vals(resource_flagdefs, flag_vals)
     all_flagdefs = opdef.flags + resource_flagdefs
@@ -1208,6 +1238,35 @@ def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
         _check_required_flags(flag_vals, all_flagdefs)
     _apply_choice_vals(opdef.flags, user_flag_vals, flag_vals)
     return flag_vals, resource_flagdefs
+
+
+def normalize_flag_aliases(flagdefs, flag_vals, force=False):
+    """Ensures that flag values use the full flag def name.
+
+    If a flag value uses a flag alias, that entry is renamed to use
+    the flag name.
+
+    If flag vals contains both a name and alias for the same flag def,
+    function raises `AliasAndNameSpecifiedError` unless `force` is
+    True. If `force` is True and both alias and flag name exist, both
+    values are retained without modification.
+
+    If an alias is the same as the name, the entry in flag vals is not
+    modified.
+    """
+    for flagdef in flagdefs:
+        if not flagdef.alias or flagdef.alias == flagdef.name:
+            continue
+        if flagdef.alias in flag_vals and flagdef.name in flag_vals:
+            if not force:
+                raise AliasAndNameSpecifiedError(flagdef.name, flagdef.alias)
+            continue
+        try:
+            val = flag_vals.pop(flagdef.alias)
+        except KeyError:
+            pass
+        else:
+            flag_vals[flagdef.name] = val
 
 
 def _apply_coerce_flag_vals(flagdefs, force, vals):
@@ -1312,10 +1371,33 @@ def _resource_flagdefs(opdef, flag_vals):
 
 
 def _iter_resource_flagdefs(opdef, flag_vals):
+    for name, source in _iter_source_flag_name_candidates(opdef, flag_vals):
+        if name not in flag_vals:
+            continue
+        opdef_flagdef = opdef.get_flagdef(name)
+        if opdef_flagdef:
+            yield _resource_flagdef_for_opdef_flagdef(opdef_flagdef)
+        else:
+            yield _ResourceFlagDefProxy(
+                name=source.flag_name or source.resolving_name,
+                alias=name,
+                opdef=opdef,
+            )
+
+
+def _resource_flagdef_for_opdef_flagdef(flagdef):
+    import copy
+
+    flagdef_copy = copy.copy(flagdef)
+    flagdef_copy.type = "string"
+    return flagdef_copy
+
+
+def _iter_source_flag_name_candidates(opdef, flag_vals):
     for resdef in iter_opdef_resources(opdef, flag_vals):
-        for flag_name in op_dep.resdef_flag_name_candidates(resdef):
-            if flag_name in flag_vals:
-                yield _ResourceFlagDefProxy(flag_name, opdef)
+        for source in resdef.sources:
+            for name in op_dep.source_flag_name_candidates(source):
+                yield name, source
 
 
 def iter_opdef_resources(opdef, flag_vals=None):
@@ -1336,8 +1418,9 @@ def _required_operation_name(resdef):
     return None
 
 
-def _ResourceFlagDefProxy(name, opdef):
+def _ResourceFlagDefProxy(name, alias, opdef):
     data = {
+        "alias": alias,
         "arg-skip": True,
         "type": "string",
         "null-label": "unspecified",
@@ -1475,58 +1558,66 @@ def flag_assigns(flags, skip_none=False):
 
 
 def flag_assign(name, val):
-    return f"{name}={flag_util.format_flag(val)}"
+    val = flag_util.format_flag(val)
+    return f"{name}={val}"
 
 
 def parse_flag_assigns(args, opdef=None):
-    flag_types = _flag_types_for_opdef(opdef, args) if opdef else None
+    flagdefs = _flagdefs_for_assigns(args, opdef) if opdef else None
     expanded_args = [os.path.expanduser(arg) for arg in args]
     parsed_flags = {}
     parse_errors = {}
     for arg in expanded_args:
         try:
-            name, val = parse_flag_arg(arg, flag_types)
+            name, val = _parse_flag_arg(arg, flagdefs)
             parsed_flags[name] = val
         except ArgValueError as e:
             parse_errors[arg.split("=")[0]] = e
     return parsed_flags, parse_errors
 
 
-def _flag_types_for_opdef(opdef, flag_args):
-    """Returns a map of flag name to flag type for opdef and flags.
+def _flagdefs_for_assigns(args, opdef):
+    """Returns a list of flag defs for a list of assignment args.
 
-    Includes flag def proxies for resources but only when a resource
-    flag name candidate appears in `flag_args`.
+    Uses `opdef` to lookup both operation-defined flags and also
+    resource flag proxies as needed for the flag names uses in `args`.
     """
-    types = _resource_flagdef_types(opdef, flag_args)
-    types.update(_opdef_flagdef_types(opdef))
-    return types
+    flag_names = [arg.split("=")[0] for arg in args]
+    flag_val_proxies = {name: None for name in flag_names}
+    resource_flagdefs = _resource_flagdefs(opdef, flag_val_proxies)
+    return opdef.flags + _strip_opdef_flagdefs(resource_flagdefs, opdef)
 
 
-def _resource_flagdef_types(opdef, flag_args):
-    resource_flagdefs = _resource_flagdefs(
-        opdef, {name: None for name in _flag_names_for_args(flag_args)}
-    )
-    return {flagdef.name: flagdef.type for flagdef in resource_flagdefs if flagdef.type}
+def _strip_opdef_flagdefs(flagdefs, opdef):
+    opdef_flag_names = {fd.name for fd in opdef.flags}
+    return [fd for fd in flagdefs if fd.name not in opdef_flag_names]
 
 
-def _flag_names_for_args(args):
-    return [arg.split("=")[0] for arg in args]
-
-
-def _opdef_flagdef_types(opdef: guildfile.OpDef):
-    return {
-        flagdef.name: flagdef.type for flagdef in (opdef.flags or []) if flagdef.type
-    }
-
-
-def parse_flag_arg(arg, flag_types=None):
+def _parse_flag_arg(arg, flagdefs=None):
     parts = arg.split("=", 1)
     if len(parts) == 1:
         raise ArgValueError(arg)
     name, val = parts
-    flag_type = flag_types.get(name) if flag_types else None
+    flag_type = _flag_type_for_assign_arg(name, flagdefs) if flagdefs else None
     return name, flag_util.decode_flag_val(val, flag_type)
+
+
+def _flag_type_for_assign_arg(arg, flagdefs):
+    return _flag_type_for_name(arg, flagdefs) or _flag_type_for_alias(arg, flagdefs)
+
+
+def _flag_type_for_name(name, flagdefs):
+    for flagdef in flagdefs:
+        if name == flagdef.name:
+            return flagdef.type
+    return None
+
+
+def _flag_type_for_alias(alias, flagdefs):
+    for flagdef in flagdefs:
+        if flagdef.alias and alias == flagdef.alias:
+            return flagdef.type
+    return None
 
 
 def args_to_flags(args):

@@ -306,9 +306,9 @@ def _state_init_user_op(S):
         S.args.keep_run,
         S.user_op,
     )
-    _op_init_sourcecode_paths(S.user_op, S.args)
-    _op_init_op_cmd(S.user_op, S.args)
+    _op_init_sourcecode_paths(S.args, S.user_op)
     _op_init_op_flags(S.args, S.user_op)
+    _op_init_op_cmd(S.args, S.user_op)
     _op_init_core(S.args, S.user_op)
 
 
@@ -512,7 +512,7 @@ def _plugin_enabled_for_op(plugin, opdef):
 # =================================================================
 
 
-def _op_init_op_cmd(op, args):
+def _op_init_op_cmd(args, op):
     if not op._opdef:
         return
     op_cmd, run_attrs = _op_cmd(op, args)
@@ -568,11 +568,10 @@ def _op_init_op_flags(args, op):
     if op._run:
         _apply_run_flags(op._run, op._op_flag_vals)
     if op._opdef:
-        _apply_op_flag_vals_for_opdef(
+        _apply_opdef_flags(
             op._opdef,
             op._user_flag_vals,
             args.force_flags or op._batch_trials,
-            op._op_cmd,
             args,
             op._resource_flagdefs,
             op._op_flag_vals,
@@ -585,40 +584,63 @@ def _apply_run_flags(run, flag_vals):
     flag_vals.update(run.get("flags") or {})
 
 
-def _apply_op_flag_vals_for_opdef(
+def _apply_opdef_flags(
     opdef,
     user_flag_vals,
     force_flags,
-    op_cmd,
     args,
     resource_flagdefs,
     op_flag_vals,
 ):
-    """Applies opdef and user-provided flags to `op_flag_vals`.
+    """Applies opdef and user-provided flags to op related state.
 
-    Also applies resolved resource flag defs per flag vals
-    `resource_flagdefs`.
+    Modifies `resource_flagdefs` and `op_flag_vals`.
 
-    Attempts to resolve operation runs and use resolve run short
-    IDs as applicable flag values.
+    Modifies `resource_flagdefs` with resolved resource flag
+    defs. `resource_flagdefs` is asserted to be empty for this call.
+
+    Modifies `op_flag_vals` with the final set of flag values for the
+    operation. This includes defaults from `opdef`, resolved resource
+    IDs, and user-provided values.
+
+    Attempts to resolve operation runs and use resolve run short IDs
+    as applicable flag values.
 
     Opdef is used to provide missing default values, coerce flag vals,
     and validate vals. Opdef-provided flag vals are added to op flag
     vals only if they are not already in op flags, or if they are in
     user-provided flags. This maintains existing values (e.g. from a
     restart) unless a user explicitly provides a flag value.
-
-    op_cmd is modified to include CmdFlag with arg-skip=yes for
-    resolved run IDs provided a flag isn't defined for the resolved
-    resource name. These flag values are used by Guild to resolve
-    resources and should not be included in flag args unless the a
-    flag def is explicitly provided.
     """
-    flag_vals, resolved_resource_flagdefs = _flag_vals_for_opdef(
+    assert len(resource_flagdefs) == 0, resource_flagdefs
+    flag_vals, flag_val_resource_flagdefs = _flag_vals_for_opdef(
         opdef, user_flag_vals, force_flags
     )
-    resource_flagdefs.extend(resolved_resource_flagdefs)
-    _apply_default_dep_runs(opdef, op_cmd, args, flag_vals)
+    resource_flagdefs.extend(flag_val_resource_flagdefs)
+    _apply_default_dep_runs(opdef, args, flag_vals)
+    user_flag_vals = _normalize_flag_aliases(
+        user_flag_vals, opdef.flags + resource_flagdefs
+    )
+    _apply_user_or_missing_op_flag_vals(
+        flag_vals,
+        user_flag_vals,
+        op_flag_vals,
+    )
+
+
+def _normalize_flag_aliases(flag_vals, flagdefs):
+    flag_vals = dict(flag_vals)
+    op_util.normalize_flag_aliases(flagdefs, flag_vals, force=True)
+    return flag_vals
+
+
+def _apply_user_or_missing_op_flag_vals(flag_vals, user_flag_vals, op_flag_vals):
+    """Applies missing or user-specified values to op flags.
+
+    For each flag value in `flag_vals`, applies value to
+    `op_flag_vals` only if the value is missing or specified by the as
+    per `user_flag_vals`.
+    """
     for name, val in flag_vals.items():
         if name in user_flag_vals or name not in op_flag_vals:
             op_flag_vals[name] = val
@@ -640,16 +662,17 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
         _invalid_flag_value_error(e)
     except op_util.NoSuchFlagError as e:
         _no_such_flag_error(e.flag_name, opdef)
+    except op_util.AliasAndNameSpecifiedError as e:
+        _alias_and_name_specified_error(e.alias, e.flag_name)
 
 
-def _apply_default_dep_runs(opdef, op_cmd, args, flag_vals):
-    """Applies default run IDs to flag_vals for dependencies."""
+def _apply_default_dep_runs(opdef, args, flag_vals):
+    """Applies default resolved run IDs to flag vals."""
     resolver_factory = _resolver_factory(args)
     for run, source in op_dep.resolved_op_runs_for_opdef(
         opdef, flag_vals, resolver_factory
     ):
         dep_flag_name = _dep_source_flag_name(source, opdef)
-        _ensure_dep_flag_op_cmd_arg_skip(dep_flag_name, opdef, op_cmd)
         _apply_dep_run_id(run.id, dep_flag_name, flag_vals)
 
 
@@ -665,12 +688,11 @@ def _dep_source_flag_name(source, opdef):
     This is a function of the dependency resource source and the
     operation def. If the operation provides a flag that corresponds
     to the dependency source, that flag name is used. Otherwise the
-    source is used for these attrs in order of prededence:
-    `flag_name`, `name`, `uri`.
-
+    flag name is the first non None value in: `source.flag_name`,
+    `source.name`, and `source.uri`.
     """
-    for name in (source.flag_name, source.name, source.uri):
-        if name and opdef.get_flagdef(name):
+    for name in op_dep.source_flag_name_candidates(source):
+        if opdef.get_flagdef(name):
             return name
     return source.flag_name or source.name or source.uri
 
@@ -1029,16 +1051,24 @@ def _op_init_opref(op):
 def _op_init_cmd_args_and_env(args, op):
     assert op._op_cmd
     op.cmd_args, op.cmd_env = _generate_op_args_and_env(
-        op._op_cmd, op._op_flag_vals, op._python_requires
+        op._op_cmd,
+        op._op_flag_vals,
+        op._python_requires,
+        args.force_flags,
     )
     _apply_gpu_arg_env(args, op.cmd_env)  # Enable GPU override on restart.
     _apply_break_args_env(args, op.cmd_env)
 
 
-def _generate_op_args_and_env(op_cmd, flag_vals, python_requires):
+def _generate_op_args_and_env(op_cmd, flag_vals, python_requires, force_flags):
     resolve_params = _op_cmd_resolve_params(flag_vals, python_requires)
     try:
-        return op_cmd_lib.generate_op_args_and_env(op_cmd, flag_vals, resolve_params)
+        return op_cmd_lib.generate_op_args_and_env(
+            op_cmd,
+            flag_vals,
+            resolve_params,
+            force_flags,
+        )
     except util.UndefinedReferenceError as e:
         _op_cmd_error(
             "invalid setting for operation: command contains "
@@ -1092,7 +1122,7 @@ def _op_init_private_env(op):
 # =================================================================
 
 
-def _op_init_sourcecode_paths(op, args):
+def _op_init_sourcecode_paths(args, op):
     op.sourcecode_paths = _sourcecode_paths(op, args)
 
 
@@ -1171,22 +1201,9 @@ def _random_seed_for_run(run):
 
 
 def _op_init_deps(args, op):
-    if op._run:
-        _check_flags_for_resolved_deps(op._user_flag_vals, op._run)
     if op._opdef:
         op.deps = _op_deps_for_opdef(op._opdef, op._op_flag_vals)
     _append_additional_deps(args, op)
-
-
-def _check_flags_for_resolved_deps(flag_vals, run):
-    """Generate an error if flags contain vals for resolved deps in run.
-
-    Used to prevent redefinition of dependencies for a run.
-    """
-    resolved_deps = run.get("deps") or {}
-    for name in flag_vals:
-        if name in resolved_deps:
-            _flag_for_resolved_dep_error(name, run)
 
 
 def _op_deps_for_opdef(opdef, flag_vals):
@@ -1465,8 +1482,8 @@ def _state_init_batch_op(S):
             S.batch_op,
             is_batch=True,
         )
-        _op_init_sourcecode_paths(S.batch_op, S.args)
-        _op_init_op_cmd(S.batch_op, S.args)
+        _op_init_sourcecode_paths(S.args, S.batch_op)
+        _op_init_op_cmd(S.args, S.batch_op)
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)
         _op_init_batch_config(S.args, S.user_op, S.batch_op)
@@ -2582,6 +2599,13 @@ def _no_such_flag_error(name, opdef) -> typing.NoReturn:
     )
 
 
+def _alias_and_name_specified_error(alias, flag_name) -> typing.NoReturn:
+    cli.error(
+        f"cannot specify both alias {alias!r} and name for flag {flag_name!r}\n"
+        "Use --force-flags to skip this check."
+    )
+
+
 def _coerce_flag_val_error(e) -> typing.NoReturn:
     cli.error(f"cannot apply {e.value!r} to flag '{e.flag_name}': {e.error}")
 
@@ -2670,13 +2694,6 @@ def _no_such_batch_file_error(path) -> typing.NoReturn:
 
 def _batch_file_error(e) -> typing.NoReturn:
     cli.error(e)
-
-
-def _flag_for_resolved_dep_error(flag_name, run) -> typing.NoReturn:
-    cli.error(
-        f"cannot specify a value for '{flag_name}' when restarting "
-        f"{run.short_id} - resource has already been resolved"
-    )
 
 
 def _print_trials_for_non_batch_error() -> typing.NoReturn:

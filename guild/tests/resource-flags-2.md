@@ -41,6 +41,7 @@ Let's provide the required `upstream` run.
     Resolving file:foo.txt
     Resolving operation:upstream
     Using run ... for operation:upstream
+    <exit 0>
 
     >>> run("guild runs -s")
     [1]  multi-source  completed  operation:upstream=...
@@ -58,7 +59,7 @@ To specify a different file, we must use the file URI.
     Using bar.txt for file:foo.txt
     Resolving operation:upstream
     Using run ... for operation:upstream
-    --file:foo.txt bar.txt
+    <exit 0>
 
     >>> run("guild runs -s")
     [1]  multi-source  completed  file:foo.txt=bar.txt operation:upstream=...
@@ -78,6 +79,7 @@ The same applies to the operation.
     Resolving file:foo.txt
     Resolving operation:upstream
     Using run ... for operation:upstream
+    <exit 0>
 
     >>> run("guild runs -s")
     [1]  multi-source  completed  operation:upstream=...
@@ -114,7 +116,7 @@ We must use the source names.
     Using bar.txt for infile
     Resolving upstream-run
     Using run ... for upstream-run
-    --infile bar.txt
+    <exit 0>
 
     >>> run("guild runs -s -n1")
     [1]  multi-source-with-names  completed  infile=bar.txt upstream-run=...

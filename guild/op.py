@@ -493,13 +493,13 @@ def _apply_resolve_dep_sources(op, dep, resolve_context, run, for_stage, resolve
                 "uri": source.uri,
                 "paths": run_rel_resolved_paths,
             }
-            _maybe_apply_source_config(dep.config, source, source_info)
+            _apply_source_config(dep.config, source, source_info)
 
 
-def _maybe_apply_source_config(config, source, source_info):
+def _apply_source_config(config, source, source_info):
     if not config:
         return
-    for name in (source.name, source.flag_name, source.uri):
+    for name in (source.name, source.flag_name, source.uri, source.parsed_uri.path):
         if not name:
             continue
         try:

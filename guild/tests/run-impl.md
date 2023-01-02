@@ -804,76 +804,7 @@ The staged downstream now runs.
 
 ## Restarts and resolved resources
 
-Once a resource is resolved for a run, Guild will not re-resolve
-it. It will fail with an error message if a resource flag is specified
-for a restart.
-
-Create a new project to illustrate.
-
-    >>> use_project(mkdtemp())
-
-    >>> write("guild.yml", """
-    ... upstream:
-    ...   main: guild.pass
-    ... downstream:
-    ...   main: guild.pass
-    ...   requires:
-    ...     - operation: upstream
-    ...       warn-if-empty: no
-    ... """)
-
-Create an upstream run.
-
-    >>> run("guild run upstream --run-id up1 -y")
-    <exit 0>
-
-Create a downstream run.
-
-    >>> run("guild run downstream --run-id down1 -y")
-    Resolving operation:upstream
-    Using run up1 for operation:upstream
-
-Restart the downstream run.
-
-    >>> run("guild run --restart down1 -y")
-    Resolving operation:upstream
-    Skipping resolution of operation:upstream because it's already resolved
-
-Note that a new run was not generated.
-
-    >>> run("guild runs")
-    [1:down1]  downstream  ...  completed  operation:upstream=up1
-    [2:up1]    upstream    ...  completed
-
-This occurs when we attempt to explicitly set an upstream run.
-
-FIXME: promote `upstream` to `operation:upstream` as a flag val -
-solves preview bug. Note also - need a test for preview as well. Might
-as well be here.
-
-    >> run("guild run --restart down1 upstream=up1 -y")
-    guild: cannot specify a value for 'operation:upstream' when restarting
-    down1 - resource has already been resolved
-    <exit 1>
-
-    >>> run("guild run --restart down1 operation:upstream=up1 -y")
-    guild: cannot specify a value for 'operation:upstream' when restarting
-    down1 - resource has already been resolved
-    <exit 1>
-
-Attempt to use a different upstream run.
-
-    >>> run("guild run upstream --run-id up2 -y")
-    <exit 0>
-
-    >>> run("guild run --restart down1 upstream=up2 -y")
-    Resolving operation:upstream
-    Skipping resolution of operation:upstream because it's already resolved
-
-    >>> run("guild runs")
-    [1:down1]  downstream  ...  completed  operation:upstream=up1 upstream=up2
-    [2:up2]    upstream    ...  completed
-    [3:up1]    upstream    ...  completed
+See [restart-resolve.md](restart-resolve.md).
 
 ## Run a batch
 
