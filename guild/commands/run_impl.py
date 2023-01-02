@@ -1554,17 +1554,18 @@ def _op_init_for_optimizer_opspec(opspec, op):
 def _batch_op_init_for_opdef_default_optimizer(opdef, S):
     assert not S.batch_op
     S.batch_op = Operation()
-    optdef = util.find_apply(
-        [
-            lambda: opdef.default_optimizer,
-            lambda: _default_optimizer(opdef),
-        ]
-    )
+    optdef = _default_optimizer(opdef)
     _op_init_for_optimizer(optdef, S.batch_op)
 
 
 def _default_optimizer(opdef):
-    return guildfile.OptimizerDef.for_name(DEFAULT_OPTIMIZER, opdef)
+    optdef = opdef.default_optimizer
+    if optdef:
+        return optdef
+    if not opdef.optimizers:
+        return guildfile.OptimizerDef.for_name(DEFAULT_OPTIMIZER, opdef)
+    assert len(opdef.optimizers) > 1, opdef.optimizers
+    _no_default_optimizer_error(opdef)
 
 
 def _try_implied_batch_op_init(user_op, S):
@@ -2716,6 +2717,14 @@ def _skip_needed_matches_info(matching_runs):
     formatted = [run_util.format_run(run) for run in matching_runs]
     cols = ["index", "operation", "started", "status_with_remote", "label"]
     cli.table(formatted, cols=cols, indent=2)
+
+
+def _no_default_optimizer_error(opdef) -> typing.NoReturn:
+    opt_names = ", ".join([opt.name for opt in opdef.optimizers])
+    cli.error(
+        f"no default optimizer defined for {opdef.name}\n"
+        f"Specify one of the following with '--optimizer': {opt_names}"
+    )
 
 
 ###################################################################

@@ -1140,21 +1140,16 @@ class OpDef:
 
     @property
     def default_optimizer(self):
-        return _default_optimizer(self.optimizers) or _first_optimizer(self.optimizers)
+        return _default_optimizer(self.optimizers)
 
 
 def _default_optimizer(optimizers):
+    if len(optimizers) == 1:
+        return optimizers[0]
     for opt in optimizers or []:
         if opt.default:
             return opt
     return None
-
-
-def _first_optimizer(optimizers):
-    try:
-        return next(iter(optimizers))
-    except StopIteration:
-        return None
 
 
 def _apply_op_default_config(modeldef, data):
