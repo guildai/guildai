@@ -1,84 +1,88 @@
 # Batch max trials
 
-    >>> project = Project(sample("projects", "max-trials"))
+These tests demonstrate Guild's support of max trials.
 
-A helper:
+    >>> use_project("max-trials")
 
-    >>> def last_run_max_trials():
-    ...     return project.list_runs()[0].get("max_trials")
+Optimizer (batch) operations may define default max trials using
+`default-max-trials` for the operation. This value is used when
+determining the maximum trials run for a batch when `--max-trials` is
+not specified in the `run` command.
 
-Optimizer (batch) operations may define default max trials via a
-`max_trials` flag default.
+`opt-1` does not define `default-max-trials`. When we use it for a
+batch run, the max trials attribute is unspecified (null).
 
-The `opt-1` operation doesn't define a `max_trials` attribute.
+    >>> run("guild run op --optimizer opt-1 -y")
+    <exit 0>
 
-    >>> project.run("op", optimizer="opt-1")
-    >>> print(last_run_max_trials())
-    None
+    >>> run("guild runs -s")
+    [1]  op+opt-1  completed
 
-The `opt-2` operation defined `max_trials` with a default of 5.
+    >>> run("guild select --attr max_trials")
+    guild: no such run attribute 'max_trials'
+    <exit 1>
 
-    >>> project.run("op", optimizer="opt-2")
-    >>> last_run_max_trials()
+`opt-2` operation defines `default-max-trials` as 5. This is used when
+`--max-trials` is not specified for the `run` command.
+
+    >>> run("guild run op --optimizer opt-2 -y")
+    <exit 0>
+
+    >>> run("guild select --attr max_trials")
     5
 
-We can explicitly set the number of max trials.
+When we specify `--max-trials` for the `run` command, that value is
+used instead of the default.
 
-    >>> project.run("op", optimizer="opt-1", max_trials=1)
-    >>> last_run_max_trials()
+    >>> run("guild run op -o opt-1 --max-trials 1 -y")
+    <exit 0>
+
+    >>> run("guild select --attr max_trials")
     1
 
 When we restart a run, the last max trials is preserved.
 
-    >>> project.run(restart=project.list_runs()[0].id)
-    >>> last_run_max_trials()
+    >>> last_run = run_capture("guild select")
+
+    >>> run(f"guild run --restart {last_run} -y")
+    <exit 0>
+
+    >>> run("guild select --attr max_trials")
     1
 
 We can redefine the max trials on a restart.
 
-    >>> project.run(restart=project.list_runs()[0].id, max_trials=2)
-    >>> last_run_max_trials()
+    >>> run(f"guild run --restart {last_run} --max-trials 2 -y")
+    <exit 0>
+
+    >>> run("guild select --attr max_trials")
     2
 
 Max trials for non-batch runs aren't saved.
 
-    >>> project.run("op")
-    >>> print(last_run_max_trials())
-    None
+    >>> run("guild run op -y")
+    <exit 0>
 
-Neither are they for batch protos.
+    >>> run("guild select --attr max_trials")
+    guild: no such run attribute 'max_trials'
+    <exit 1>
 
-    >>> project.run("op", optimize=True, max_trials=10)
+    >>> run("guild run op --max-trials 3 -y")
+    WARNING: not a batch run - ignoring --max-trials
 
-Note that we used the `optimize` flag rather than specify an optimizer
-operation. The `op` operation defines the optimizers it supports and
-Guild selects the default optimizer. In this cases it's the optimizer
-with the lowest lexicographic value for name.
+    >>> run("guild select --attr max_trials")
+    guild: no such run attribute 'max_trials'
+    <exit 1>
 
-    >>> last_run = project.list_runs()[0]
-    >>> last_run.opref.to_opspec()
-    'opt-1'
-
-The optimizer run has max trials.
-
-    >>> last_run.get("max_trials")
-    10
-
-However, it's run proto does not.
-
-    >>> print(last_run.batch_proto.get("max_trials"))
-    None
+## Built-in optimizers
 
 Built-in optimizers define their own default max trials.
 
     >>> from guild import op_util
 
-Here's the random optimizer:
+The 'random' optimizer defines a default max trials of 20.
 
     >>> random_opdef = op_util.opdef_for_opspec("random")
-
-They provide the value as via a `default_max_trials` attribute.
-
     >>> random_opdef.default_max_trials
     20
 
@@ -100,20 +104,13 @@ Other optimizers:
     >>> op_util.opdef_for_opspec("gbrt").default_max_trials
     20
 
-## Max trials and default batch ops
+## Max trials and default batches
 
-Default batch ops generate as many trials as needed based on flag
+Default batches generate as many trials as needed based on flag
 values.
 
-    >>> project.run("op", flags={"x": "range[1:30]"})
+    >>> run("guild run op x=range[1:30] -y")
     INFO: [guild] Running trial ...: op (x=1)
     INFO: [guild] Running trial ...: op (x=2)
     ...
     INFO: [guild] Running trial ...: op (x=30)
-
-## Warnings
-
-Run a non-batch specifying `max_trials`.
-
-    >>> project.run("op", max_trials=1)
-    WARNING: not a batch run - ignoring --max-trials
