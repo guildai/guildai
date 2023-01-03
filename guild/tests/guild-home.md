@@ -97,10 +97,13 @@ which bypasses any explicitly set value in the VM.
 
     >>> from guild.config import default_guild_home
 
-    >>> def guild_home_for_dir(dir, config=None):
+    >>> def guild_home_for_dir(dir, config=None, extra_env=None):
+    ...     env = {"GUILD_HOME": ""}
+    ...     if extra_env:
+    ...         env.update(extra_env)
     ...     with SetUserConfig(config or {}):
     ...         with SetCwd(dir):
-    ...             with Env({"GUILD_HOME": ""}):
+    ...             with Env(env):
     ...                 return default_guild_home()
 
 Guild home for `a/b/c` is `a/b/c/.guild`.
@@ -137,21 +140,35 @@ User home:
 
     >>> user_home = os.path.expanduser("~")
 
+We need to remove `VIRTUAL_ENV` and `CONDA_PREFIX` to ensure these
+aren't used, if set.
+
+    >>> disable_venv = {"VIRTUAL_ENV": "", "CONDA_PREFIX": ""}
+
 Guild home for `a/b/c`:
 
-    >>> gh = guild_home_for_dir(abc_dir, pre0_9_config)
+    >>> gh = guild_home_for_dir(abc_dir, pre0_9_config, disable_venv)
     >>> gh == path(user_home, ".guild"), (gh, abc_dir, user_home)
     (True, ...)
 
 Guild home for `a/b` is `a/.guild` (note that `a/b/.guild` does not
 exist).
 
-    >>> gh = guild_home_for_dir(ab_dir, pre0_9_config)
+    >>> gh = guild_home_for_dir(ab_dir, pre0_9_config, disable_venv)
     >>> gh == path(user_home, ".guild"), (gh, ab_dir, user_home)
     (True, ...)
 
 Guild home for `a` is `a/.guild`.
 
-    >>> gh = guild_home_for_dir(a_dir, pre0_9_config)
+    >>> gh = guild_home_for_dir(a_dir, pre0_9_config, disable_venv)
     >>> gh == path(user_home, ".guild"), (gh, a_dir, user_home)
     (True, ...)
+
+When `GUILD_HOME` is set, it is used regardless of the scheme or
+environment.
+
+    >>> guild_home_for_dir("/foo", None, {"GUILD_HOME": "/foo"})
+    '/foo'
+
+    >>> guild_home_for_dir("/foo", pre0_9_config, {"GUILD_HOME": "/foo"})
+    '/foo'

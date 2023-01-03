@@ -119,11 +119,11 @@ def _guild_home_pre_0_9():
 
 
 def _conda_home():
-    return os.getenv("CONDA_PREFIX")
+    return os.getenv("CONDA_PREFIX") or None
 
 
 def _virtualenv_home():
-    return os.getenv("VIRTUAL_ENV")
+    return os.getenv("VIRTUAL_ENV") or None
 
 
 def _user_home():
