@@ -580,6 +580,7 @@ def test_globals():
         "RunError": gapi.RunError,
         "SetCwd": configlib.SetCwd,
         "SetGuildHome": configlib.SetGuildHome,
+        "SetUserConfig": configlib.SetUserConfig,
         "StderrCapture": util.StderrCapture,
         "SysPath": SysPath,
         "TempFile": util.TempFile,
