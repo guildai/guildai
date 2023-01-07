@@ -120,8 +120,15 @@ assignment through to the operation.
     Resolving infile
     --file:foo.txt bar.txt
 
-In this case the resource and source names are still defined according
-to the Guild file config and not the flag assignment.
+However, this does effect the resource resolution. `foo.txt` is still
+used as the resolved source.
+
+    >>> run("guild ls -n")
+    foo.txt
+    guild.yml
+
+Resource and source names are still defined according to the Guild
+file config and not the flag assignment.
 
     >>> run("guild select --attr deps")
     infile:
