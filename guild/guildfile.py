@@ -1571,6 +1571,11 @@ class FileSelectSpec:
 
 
 class ResourceDef(resourcedef.ResourceDef):
+    """Resource def from a Guild file.
+
+    Initialized using data (config) from a Guild file and is
+    associated with a model def.
+    """
 
     source_types = resourcedef.ResourceDef.source_types + ["operation"]
 

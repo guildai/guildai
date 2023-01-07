@@ -17,6 +17,7 @@ memory = guild.plugins.memory:MemoryPlugin
 perf = guild.plugins.perf:PerfPlugin
 python_script = guild.plugins.python_script:PythonScriptPlugin
 r_script = guild.plugins.r_script:RScriptPlugin
+resource_flags = guild.plugins.resource_flags:ResourceFlagsPlugin
 quarto_document = guild.plugins.quarto_document:QuartoDocumentPlugin
 queue = guild.plugins.queue:QueuePlugin
 skopt = guild.plugins.skopt:SkoptPlugin

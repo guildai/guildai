@@ -120,7 +120,7 @@ class Operation(oplib.Operation):
         self._run_is_proto = False
         self._force_sourcecode = False
         self._opdef = None
-        self._resource_flagdefs = []
+        self._resource_flagdefs = []  # XXX - remove this attr and all associated code
         self._user_flag_vals = {}
         self._batch_trials = None
         self._op_flag_vals = {}

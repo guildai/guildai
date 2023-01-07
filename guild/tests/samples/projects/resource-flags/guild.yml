@@ -54,10 +54,22 @@ file-source-with-flag:
   flags:
     infile:
       description: Path to infile
-      default: foo.txt
   requires:
     - file: foo.txt
-      name: infile
+      flag-name: infile
+
+file-source-with-flag-2:
+  description: Alternate version of `file-source-with-flag`
+  main: guild.pass
+  flags-dest: args
+  flags:
+    infile:
+      description: Path to infile
+      arg-skip: no  # Override default implied by `file:foo.txt` dep
+      arg-name: infile-path
+  requires:
+    - file: foo.txt
+      flag-name: infile
 
 upstream:
   description: Used in op dependencies

@@ -1367,6 +1367,11 @@ def _resolve_rel_path(val):
 
 
 def _resource_flagdefs(opdef, flag_vals):
+    return []
+    # XXX - DISABLED This early return has the effect of disabling
+    # core support for resource flag defs. This is now handled by the
+    # `resource-flags` plugin at the time of Guild file load/init and
+    # so the configuration is already reflected in opdef.flags.
     return list(_iter_resource_flagdefs(opdef, flag_vals))
 
 
