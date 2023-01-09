@@ -74,8 +74,8 @@ _EXAMPLES_DIR = (
 )
 
 
-def run_all(skip=None):
-    return run(all_tests(), skip)
+def run_all(skip=None, fail_fast=False):
+    return run(all_tests(), skip=skip, fail_fast=fail_fast)
 
 
 def all_tests():
@@ -92,13 +92,13 @@ def _test_name_for_path(path):
     return name
 
 
-def run(tests, skip=None):
+def run(tests, skip=None, fail_fast=False):
     skip = skip or []
     sys.stdout.write("internal tests:\n")
     success = True
     for test in tests:
         if test not in skip:
-            run_success = _run_test(test)
+            run_success = _run_test(test, fail_fast)
             success = success and run_success
         else:
             sys.stdout.write(
@@ -107,7 +107,7 @@ def run(tests, skip=None):
     return success
 
 
-def _run_test(name):
+def _run_test(name, fail_fast):
     sys.stdout.write(f"  {name}: ")
     sys.stdout.flush()
     filename = _filename_for_test(name)
@@ -118,7 +118,7 @@ def _run_test(name):
         _log_skipped_test(name)
         return True
     try:
-        failures, _tests = run_test_file(filename)
+        failures, _tests = run_test_file(filename, fail_fast=fail_fast)
     except IOError:
         _log_test_not_found(name)
         return False
@@ -235,14 +235,15 @@ def _log_general_error(name, error):
     sys.stdout.flush()
 
 
-def run_test_file(filename, globs=None):
+def run_test_file(filename, globs=None, fail_fast=False):
     filename = _resolve_relative_test_filename(filename)
     globs = globs or test_globals()
     return run_test_file_with_config(
         filename,
         globs=globs,
         optionflags=(
-            _report_first_flag()
+            _fail_fast_flag(fail_fast)
+            | _report_first_flag()
             | doctest.ELLIPSIS
             | doctest.NORMALIZE_WHITESPACE
             | NORMALIZE_PATHS
@@ -251,6 +252,12 @@ def run_test_file(filename, globs=None):
             | STRIP_EXIT_0
         ),
     )
+
+
+def _fail_fast_flag(fail_fast):
+    if fail_fast:
+        return doctest.FAIL_FAST
+    return 0
 
 
 def _report_first_flag():

@@ -108,7 +108,7 @@ def _check_impl(args):
     if not args.no_info:
         _print_info(check)
     if args.all_tests or args.tests:
-        _run_tests(check, args)
+        _run_tests(check)
     if check.has_error:
         _print_error_and_exit(args)
 
@@ -131,11 +131,11 @@ def _check_version(req):
 
 def _uat_and_exit(args):
     os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
-    uat.run(args.force_uat)
+    uat.run(force=args.force_uat, fail_fast=args.fast)
     sys.exit(0)
 
 
-def _run_tests(check, args):
+def _run_tests(check):
     with util.Env(
         {
             "NO_IMPORT_FLAGS_PROGRESS": "1",
@@ -145,7 +145,6 @@ def _run_tests(check, args):
             # overridden for any tests that check the disabled behavior.
             "NO_PIP_FREEZE": "1",
             "NO_VCS_COMMIT": "1",
-            "REPORT_ONLY_FIRST_FAILURE": "1" if args.report_only_first else "",
         }
     ):
         _run_tests_(check)
@@ -158,11 +157,11 @@ def _run_tests_(check):
                 "running all tests (--all-tests specified) - "
                 "ignoring individual tests"
             )
-        success = _test.run_all(skip=check.args.skip)
+        success = _test.run_all(skip=check.args.skip, fail_fast=check.args.fast)
     elif check.args.tests:
         if check.args.skip:
             log.warning("running individual tests - ignoring --skip")
-        success = _test.run(check.args.tests)
+        success = _test.run(check.args.tests, fail_fast=check.args.fast)
     if not success:
         check.error()
 

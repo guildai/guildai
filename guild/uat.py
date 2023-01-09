@@ -41,7 +41,7 @@ REQUIREMENTS_PATH = os.path.join(GUILD_PKG, "requirements.txt")
 EXAMPLES = os.path.abspath(os.getenv("EXAMPLES") or os.path.join(GUILD_PKG, "examples"))
 
 
-def run(force=False):
+def run(force=False, fail_fast=False):
     if not force and not pip_util.running_under_virtualenv():
         sys.stderr.write("This command must be run in a virtual environment\n")
         sys.exit(1)
@@ -50,7 +50,7 @@ def run(force=False):
     tests = _tests_for_index()
     _init_workspace()
     _mark_passed_tests()
-    _run_tests(tests)
+    _run_tests(tests, fail_fast)
 
 
 def _tests_for_index():
@@ -73,7 +73,7 @@ def _mark_passed_tests():
         _mark_test_passed(name)
 
 
-def _run_tests(tests):
+def _run_tests(tests, fail_fast):
     globs = _test_globals()
     to_skip = os.getenv("UAT_SKIP", "").split(",")
     for name in tests:
@@ -89,7 +89,11 @@ def _run_tests(tests):
             print("  skipped (doctest options)")
             continue
         with UATContext():
-            failed, attempted = testlib.run_test_file(filename, globs)
+            failed, attempted = testlib.run_test_file(
+                filename,
+                globs=globs,
+                fail_fast=fail_fast,
+            )
         if not failed:
             print(f"  {attempted} test(s) passed")
             _mark_test_passed(name)
