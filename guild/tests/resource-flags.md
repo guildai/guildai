@@ -408,7 +408,7 @@ help.
 
 There are no `upstream` runs currently so the operation fails.
 
-    >> run("guild runs -Fo upstream -s")
+    >>> run("guild runs -Fo upstream -s")
     <exit 0>
 
     >>> run("guild run op-source -y")
@@ -699,6 +699,34 @@ The name is still used when recording the dependency.
         config: ...
         paths: []
         uri: operation:upstream
+
+## Disabling operation flags
+
+`op-source-no-flag` disables the automatic generation of a flag for an
+operation requirement.
+
+    >>> run("guild run op-source-no-flag --help-op")
+    Usage: guild run [OPTIONS] op-source-no-flag [FLAG]...
+    <BLANKLINE>
+    Single operation with flag explicitly disabled
+    <BLANKLINE>
+    Use 'guild run --help' for a list of options.
+
+    >>> run("guild run op-source-no-flag operation:upstream=xxx -y")
+    guild: unsupported flag 'operation:upstream'
+    Try 'guild run op-source-no-flag --help-op' for a list of flags or
+    use --force-flags to skip this check.
+    <exit 1>
+
+A user can force a configuration using the default operation name.
+
+    >>> run(f"guild run op-source-no-flag operation:upstream={first_upstream_run} --force-flags -y")
+    Resolving operation:upstream
+    Using run ... for operation:upstream
+    --operation:upstream ...
+    <exit 0>
+
+    >>> assert_resolved_run(first_upstream_run)
 
 ## Invalid config
 

@@ -88,46 +88,34 @@ Specifying the value for the renamed file.
     '${undefined}': undefined reference 'undefined'
     <exit 1>
 
-`op6` doesn't provide a name for the file source.
+`op6` exposes its required file source by specifying `flag-name`.
 
     >>> run("guild run op6", timeout=2)
     You are about to run op6
+      file: foo-file.txt
     Continue? (Y/n)
     <exit -9>
 
-The canonical name for the resource for `op6` is generated using the
-source type and the file reference. We can change the value using
-either the canonical name or a shortened version.
+We can specify an alternative file using this flag.
 
-The canonical name:
+    >>> run("guild run op6 file=bar-file.txt -y")
+    Resolving file
+    Using bar-file.txt for file
 
-    >>> run("guild run op6 file:foo-file.txt=bar-file.txt", timeout=2)
-    You are about to run op6
-      file:foo-file.txt: bar-file.txt
-    Continue? (Y/n)
-    <exit -9>
+    >>> run("guild ls -n")
+    bar-file.txt
+
+We cannot otherwise specify the value (e.g. by using default source
+names).
 
     >>> run("guild run op6 file:foo-file.txt=bar-file.txt -y")
-    Resolving file:foo-file.txt
-    Using bar-file.txt for file:foo-file.txt
-
-    >>> run("guild ls -n")
-    bar-file.txt
-
-The shortened name:
-
-    >>> run("guild run op6 foo-file.txt=bar-file.txt", timeout=2)
-    You are about to run op6
-      file:foo-file.txt: bar-file.txt
-    Continue? (Y/n)
-    <exit -9>
+    guild: unsupported flag 'file:foo-file.txt'
+    Try 'guild run op6 --help-op' for a list of flags or use
+    --force-flags to skip this check.
+    <exit 1>
 
     >>> run("guild run op6 foo-file.txt=bar-file.txt -y")
-    Resolving file:foo-file.txt
-    Using bar-file.txt for file:foo-file.txt
-
-    >>> run("guild ls -n")
-    bar-file.txt
-
-Note that when using the shortened name, Guild promotes the name to
-the canonical name,
+    guild: unsupported flag 'foo-file.txt'
+    Try 'guild run op6 --help-op' for a list of flags or use
+    --force-flags to skip this check.
+    <exit 1>

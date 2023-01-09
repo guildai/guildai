@@ -66,7 +66,15 @@ Generate some sample runs.
       },
       {
         "description": "Show a message from a hello-file operation...",
-        "flags": {},
+        "flags": {
+          "op": {
+            "choices": [],
+            "default": null,
+            "defaultAssign": "op=null",
+            "description": "",
+            "type": "string"
+          }
+        },
         "fullname": "hello-op",
         "guildfile": {
           "dir": ".../samples/projects/hello",

@@ -41,9 +41,9 @@ op5:
     - file: foo-file.txt
       rename: ${undefined} bar.txt
 
-
 op6:
   main: guild.pass
   sourcecode: no
   requires:
     file: foo-file.txt
+    flag-name: file

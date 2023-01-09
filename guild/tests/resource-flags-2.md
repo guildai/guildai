@@ -11,15 +11,13 @@ The `multi-source` operation defines two sources: one for a file and
 another for an operation. It does not provide additional name or flag
 info for these dependencies.
 
-As with other operations, Guild does not show help info when there are
-no explicit flags defined.
+Operation dependencies are automatically promoted to flag defs unless
+otherwise specified.
 
     >>> run("guild run multi-source --help-op")
     Usage: guild run [OPTIONS] multi-source [FLAG]...
-    <BLANKLINE>
-    Multiple unnamed sources
-    <BLANKLINE>
-    Use 'guild run --help' for a list of options.
+    Flags:
+      operation:upstream
 
 The default operation behavior:
 
@@ -52,14 +50,24 @@ Let's provide the required `upstream` run.
     foo.txt
     guild.yml
 
-To specify a different file, we must use the file URI.
+Because the file source does not provide a flag name, we cannot change
+the fila using flag syntax.
 
     >>> run("guild run multi-source file:foo.txt=bar.txt -y")
+    guild: unsupported flag 'file:foo.txt'
+    Try 'guild run multi-source --help-op' for a list of flags or
+    use --force-flags to skip this check.
+    <exit 1>
+
+However, we can force the flag assignment, which will be used to
+configure the source.
+
+    >>> run("guild run multi-source file:foo.txt=bar.txt --force-flags -y")
     Resolving file:foo.txt
     Using bar.txt for file:foo.txt
     Resolving operation:upstream
     Using run ... for operation:upstream
-    <exit 0>
+    --file:foo.txt bar.txt
 
     >>> run("guild runs -s")
     [1]  multi-source  completed  file:foo.txt=bar.txt operation:upstream=...
@@ -71,7 +79,8 @@ To specify a different file, we must use the file URI.
     bar.txt
     guild.yml
 
-The same applies to the operation.
+Operations, on the other hand, are automatically exposed as flags. The
+flag is named using the canonical source name (its URI)
 
     >>> first_upstream_run = run_capture("guild select -Fo upstream")
 
@@ -84,12 +93,32 @@ The same applies to the operation.
     >>> run("guild runs -s")
     [1]  multi-source  completed  operation:upstream=...
 
+The generated flag def uses an alias, which lets us specify only the
+operation name.
+
+    >>> run(f"guild run multi-source upstream={first_upstream_run} -y")
+    Resolving file:foo.txt
+    Resolving operation:upstream
+    Using run ... for operation:upstream
+    <exit 0>
+
+    >>> run("guild runs -s -n1")
+    [1]  multi-source  completed  operation:upstream=...
+
 ## Named sources
 
 When source are named, users must use the specified source name when
 overriding default values.
 
-`multi-source-with-name` adds names to the two sources.
+`multi-source-with-name` adds names to the two sources --- the
+operation is named using `name` and the file is named using
+`flag-name`.
+
+    >>> run("guild run multi-source-with-names --help-op")
+    Usage: guild run [OPTIONS] multi-source-with-names [FLAG]...
+    Flags:
+      infile        (default is foo.txt)
+      upstream-run
 
 If we try to use URIs to specify source config, Guild fails with an
 error message.

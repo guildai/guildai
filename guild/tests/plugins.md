@@ -30,6 +30,7 @@ Use `iter_plugins` to iterate through the list of available plugins:
      'quarto_document',
      'queue',
      'r_script',
+     'resource_flags',
      'skopt']
 
 ## Plugin instances

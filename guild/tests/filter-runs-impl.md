@@ -19,7 +19,8 @@ The operations we'll be running:
     >>> run("guild run fixed:test --help-op")
     ???
     Flags:
-      seed  (default is 1)
+      seed             (default is 1)
+      operation:train
 
 Generate run training runs using `fixed:train` and `fixed:test`. This
 gives us predictable results given a seed.

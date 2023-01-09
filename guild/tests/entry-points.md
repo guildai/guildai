@@ -41,4 +41,5 @@ their own distributions in the same way.
      EntryPoint.parse('quarto_document = guild.plugins.quarto_document:QuartoDocumentPlugin'),
      EntryPoint.parse('queue = guild.plugins.queue:QueuePlugin'),
      EntryPoint.parse('r_script = guild.plugins.r_script:RScriptPlugin'),
+     EntryPoint.parse('resource_flags = guild.plugins.resource_flags:ResourceFlagsPlugin'),
      EntryPoint.parse('skopt = guild.plugins.skopt:SkoptPlugin')]

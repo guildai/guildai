@@ -150,6 +150,15 @@ op-source-with-flag-3:
       name: upstream-dep
       warn-if-empty: false
 
+op-source-no-flag:
+  description: Single operation with flag explicitly disabled
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - operation: upstream
+      flag-name: no
+      warn-if-empty: false
+
 multi-source:
   description: Multiple unnamed sources
   main: guild.pass
@@ -165,7 +174,7 @@ multi-source-with-names:
   flags-dest: args
   requires:
     - file: foo.txt
-      name: infile
+      flag-name: infile
     - operation: upstream
       name: upstream-run
       warn-if-empty: false
