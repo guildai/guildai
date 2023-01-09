@@ -369,13 +369,15 @@ The `inline` flag is used to change the resolved source.
         uri: file:foo.txt
 
 `file-source-with-flag-2` explicitly re-enables the flag argument,
-which is otherwise implicitly disabled by the resource flag. It also
-renames the default arg name to `infile-path`.
+which is otherwise implicitly disabled by the resource flag. It
+renames the default arg name to `infile-path`. It also sets the flag
+type to `path`, which has the effect of resolving the value as an
+absoluate path.
 
     >>> run("guild run file-source-with-flag-2 -y")
     Resolving infile
     Using foo.txt for infile
-    --infile-path foo.txt
+    --infile-path .../samples/projects/resource-flags/foo.txt
 
     >>> run("guild ls -n")
     foo.txt
@@ -386,7 +388,7 @@ Use an alternative path.
     >>> run("guild run file-source-with-flag-2 infile=bar.txt -y")
     Resolving infile
     Using bar.txt for infile
-    --infile-path bar.txt
+    --infile-path .../samples/projects/resource-flags/bar.txt
 
     >>> run("guild ls -n")
     bar.txt
@@ -399,40 +401,38 @@ The `op-source` operation requires the `upstream` operation.
 As with other resources, this information is not provided in operation
 help.
 
-    >> run("guild run op-source --help-op")
+    >>> run("guild run op-source --help-op")
     Usage: guild run [OPTIONS] op-source [FLAG]...
-    <BLANKLINE>
-    Single unnamed operation source
-    <BLANKLINE>
-    Use 'guild run --help' for a list of options.
+    Flags:
+      operation:upstream
 
 There are no `upstream` runs currently so the operation fails.
 
     >> run("guild runs -Fo upstream -s")
     <exit 0>
 
-    >> run("guild run op-source -y")
+    >>> run("guild run op-source -y")
     WARNING: cannot find a suitable run for required resource 'operation:upstream'
     Resolving operation:upstream
     guild: run failed because a dependency was not met: could not resolve
     'operation:upstream' in operation:upstream resource: no suitable run for upstream
     <exit 1>
 
-Let's generate an `upstream` run.
+Generate an `upstream` run.
 
-    >> run("guild run upstream -y")
+    >>> run("guild run upstream -y")
     <exit 0>
 
-And run `op-source` again.
+Run `op-source` again.
 
-    >> run("guild run op-source -y")
+    >>> run("guild run op-source -y")
     Resolving operation:upstream
     Using run ... for operation:upstream
 
-Let's verify that the resolved `upstream` run is what we
-expect. Here's a helper function that checks this:
+Verify that the resolved `upstream` run is what we expect. Here's a
+helper function that checks this:
 
-    >> def assert_resolved_run(
+    >>> def assert_resolved_run(
     ...     expected_run_select,
     ...     source_name="operation:upstream",
     ...     resource_name=None
@@ -448,108 +448,173 @@ expect. Here's a helper function that checks this:
 
 Confirm that the resolved run is the latest `upstream`:
 
-    >> assert_resolved_run("-Fo upstream")
+    >>> assert_resolved_run("-Fo upstream")
 
 We can specify the run for the operation dependency using the
 operation name `upstream`.
 
 Let's first get the first `upstream` run ID.
 
-    >> first_upstream_run = run_capture("guild select -Fo upstream")
+    >>> first_upstream_run = run_capture("guild select -Fo upstream")
 
 Run `op-source` with an explicit run ID using as assignment to
 `upstream`.
 
-    >> run(f"guild run op-source upstream={first_upstream_run} -y")
+    >>> run(f"guild run op-source upstream={first_upstream_run} -y")
     Resolving operation:upstream
     Using run ... for operation:upstream
 
-    >> assert_resolved_run(first_upstream_run)
+    >>> assert_resolved_run(first_upstream_run)
 
 We can also use the qualified name `operation:upstream` for the
 operation dependency.
 
-    >> run(f"guild run op-source operation:upstream={first_upstream_run} -y")
+    >>> run(f"guild run op-source operation:upstream={first_upstream_run} -y")
     Resolving operation:upstream
     Using run ... for operation:upstream
 
-    >> assert_resolved_run(first_upstream_run)
+    >>> assert_resolved_run(first_upstream_run)
 
 ## Named operation source
 
 The operation `op-source-with-name` is the same as `op-source` but it
-provides a name for the operation dependency.
+provides a name for the operation dependency. The name is used for the
+flag name.
 
-Here are the current `upstream` runs:
+    >>> run("guild run op-source-with-name --help-op")
+    Usage: guild run [OPTIONS] op-source-with-name [FLAG]...
+    Flags:
+      the-upstream-run
 
-    >> run("guild runs -Fo upstream -s")
+The current `upstream` runs:
+
+    >>> run("guild runs -Fo upstream -s")
     [1]  upstream  completed
 
-Let's create another run so we can resolve more than one possible
-upstream run.
+Create another run so we can resolve more than one possible upstream
+run.
 
-    >> run("guild run upstream -y")
+    >>> run("guild run upstream -y")
     <exit 0>
+
+    >>> run("guild runs -Fo upstream -s")
+    [1]  upstream  completed
+    [2]  upstream  completed
 
 Run `op-source-with-name` using the defaults.
 
-    >> run("guild run op-source-with-name -y")
-    Resolving upstream-run
-    Using run ... for upstream-run
+    >>> run("guild run op-source-with-name -y")
+    Resolving the-upstream-run
+    Using run ... for the-upstream-run
 
 The resolved deps uses the source name.
 
-    >> run("guild select --attr deps")
-    upstream-run:
-      upstream-run:
+    >>> run("guild select --attr deps")
+    the-upstream-run:
+      the-upstream-run:
         config: ...
         paths: []
         uri: operation:upstream
 
-    >> assert_resolved_run("-Fo upstream", "upstream-run")
+    >>> assert_resolved_run("-Fo upstream", "the-upstream-run")
+
+Generate another run using the first upstream run.
+
+    >>> run(f"guild run op-source-with-name the-upstream-run={first_upstream_run} -y")
+    Resolving the-upstream-run
+    Using run ... for the-upstream-run
+
+    >>> assert_resolved_run(first_upstream_run, "the-upstream-run")
+
+With an explicitly configure source name, we can no longer use the
+operation name as flags.
+
+    >>> run(f"guild run op-source-with-name operation:upstream={first_upstream_run} -y")
+    guild: unsupported flag 'operation:upstream'
+    Try 'guild run op-source-with-name --help-op' for a list of flags or
+    use --force-flags to skip this check.
+    <exit 1>
+
+    >>> run(f"guild run op-source-with-name upstream={first_upstream_run} -y")
+    guild: unsupported flag 'upstream'
+    Try 'guild run op-source-with-name --help-op' for a list of flags or
+    use --force-flags to skip this check.
+    <exit 1>
 
 ## Operation source with flag name
 
 `op-source-with-flag-name` specifies a flag name for the operation
 source.
 
-This information does not appear in operation help.
-
-    >> run("guild run op-source-with-flag-name --help-op")
+    >>> run("guild run op-source-with-flag-name --help-op")
     Usage: guild run [OPTIONS] op-source-with-flag-name [FLAG]...
-    <BLANKLINE>
-    Single unnamed operation with a flag name
-    <BLANKLINE>
-    Use 'guild run --help' for a list of options.
+    Flags:
+      upstream-run
 
-We can use the flag name to specify a run.
+Use the flag name to specify a run.
 
-    >> run(f"guild run op-source-with-flag-name upstream-run={first_upstream_run} -y")
+    >>> run(f"guild run op-source-with-flag-name upstream-run={first_upstream_run} -y")
     Resolving upstream-run
     Using run ... for upstream-run
 
-    >> run("guild select --attr deps")
+    >>> assert_resolved_run(first_upstream_run, "upstream-run")
+
+Note the flag name is used as the resource name in user messages. It's
+also used as the name when recording the dependency.
+
+    >>> run("guild select --attr deps")
     upstream-run:
       upstream-run:
         config: ...
         paths: []
         uri: operation:upstream
 
-    >> assert_resolved_run(first_upstream_run, "upstream-run")
-
 We cannot use the default flag names because the explicitly defined
 flag name specifies the interface.
 
-    >> run("guild run op-source-with-flag-name upstream={first_upstream_run} -y")
-    guild: unsupported flag 'upstream'
-    Try 'guild run op-source-with-flag-name --help-op' for a list of flags
-    or use --force-flags to skip this check.
+    >>> run("guild run op-source-with-flag-name operation:upstream={first_upstream_run} -y")
+    guild: unsupported flag 'operation:upstream'
+    Try 'guild run op-source-with-flag-name --help-op' for a list of flags or
+    use --force-flags to skip this check.
     <exit 1>
 
-    >> run("guild run op-source-with-flag-name operation:upstream={first_upstream_run} -y")
-    guild: unsupported flag 'operation:upstream'
-    Try 'guild run op-source-with-flag-name --help-op' for a list of flags
-    or use --force-flags to skip this check.
+    >>> run("guild run op-source-with-flag-name upstream={first_upstream_run} -y")
+    guild: unsupported flag 'upstream'
+    Try 'guild run op-source-with-flag-name --help-op' for a list of flags or
+    use --force-flags to skip this check.
+    <exit 1>
+
+## Operation source with name and flag name
+
+The operation `op-source-with-name-and-flag-name` defines both a name
+and a flag name.
+
+The flag name is used for the flag interface.
+
+    >>> run("guild run op-source-with-name-and-flag-name --help-op")
+    Usage: guild run [OPTIONS] op-source-with-name-and-flag-name [FLAG]...
+    Flags:
+      upstream-flag-name
+
+    >>> run(f"guild run op-source-with-name-and-flag-name upstream-flag-name={first_upstream_run} -y")
+    Resolving upstream-name
+    Using run ... for upstream-name
+
+The source name is used when recording the dependency.
+
+    >>> run("guild select --attr deps")
+    upstream-name:
+      upstream-name:
+        config: ...
+        paths: []
+        uri: operation:upstream
+
+We cannot use the source name as a flag.
+
+    >>> run(f"guild run op-source-with-name-and-flag-name upstream-name={first_upstream_run} -y")
+    guild: unsupported flag 'upstream-name'
+    Try 'guild run op-source-with-name-and-flag-name --help-op' for a list of flags or
+    use --force-flags to skip this check.
     <exit 1>
 
 ## Exposing required operation with flags
@@ -557,41 +622,112 @@ flag name specifies the interface.
 `op-source-with-flag` specifies a flag def that's associated with a
 resource source.
 
-In this case, the flag info is shown in operation help.
-
-    >> run("guild run op-source-with-flag --help-op")
+    >>> run("guild run op-source-with-flag --help-op")
     Usage: guild run [OPTIONS] op-source-with-flag [FLAG]...
-    <BLANKLINE>
-    Single operation associated with a flag def
-    <BLANKLINE>
-    Use 'guild run --help' for a list of options.
-    <BLANKLINE>
     Flags:
-      upstream  Run ID for upstream run (defaults to latest non-error run)
+      operation:upstream  Run ID for upstream run (defaults to
+                          latest non-error run)
 
 We use the flag name to specify the upstream run.
 
-    >> run(f"guild run op-source-with-flag upstream={first_upstream_run} -y")
+    >>> run(f"guild run op-source-with-flag operation:upstream={first_upstream_run} -y")
     Resolving operation:upstream
     Using run ... for operation:upstream
-    --upstream ...
 
-    >> run("guild select --attr deps")
+    >>> assert_resolved_run(first_upstream_run)
+
+    >>> run("guild select --attr deps")
     operation:upstream:
       operation:upstream:
         config: ...
         paths: []
         uri: operation:upstream
 
-    >> assert_resolved_run(first_upstream_run)
+Because the user provides an explicit flag definition - and that
+definition does not provide an alias - we cannot use the flag name
+`upstream`.
 
-We can alternatively use the fully qualified default source name
-`operation:upstream`.
-
-    >> run("guild run op-source-with-flag operation:upstream=xxx -y")
-    WARNING: cannot find a suitable run for required resource 'operation:upstream'
-    Resolving operation:upstream
-    guild: run failed because a dependency was not met: could not resolve
-    'operation:upstream' in operation:upstream resource: no suitable run for
-    upstream
+    >>> run("guild run op-source-with-flag upstream=xxx -y")
+    guild: unsupported flag 'upstream'
+    Try 'guild run op-source-with-flag --help-op' for a list of flags or
+    use --force-flags to skip this check.
     <exit 1>
+
+`op-source-with-flag-2` provides a source name `upstream`, which is
+used for the flag name.
+
+    >>> run("guild run op-source-with-flag-2 --help-op")
+    Usage: guild run [OPTIONS] op-source-with-flag-2 [FLAG]...
+    Flags:
+      upstream  Run ID for upstream run (defaults to latest non-error run)
+
+The operation explicitly enables the operation argument with
+`arg-skip: no`. This causes Guild to pass the flag option with the
+resolved run ID to the underlying run process.
+
+    >>> run(f"guild run op-source-with-flag-2 upstream={first_upstream_run} -y")
+    Resolving upstream
+    Using run ... for upstream
+    --upstream ...
+
+    >>> assert_resolved_run(first_upstream_run, "upstream")
+
+The name is used when recording the dependency.
+
+    >>> run("guild select --attr deps")
+    upstream:
+      upstream:
+        config: ...
+        paths: []
+        uri: operation:upstream
+
+The operation defines the alias `an-upstream-run` for the resource
+flag.
+
+    >>> run(f"guild run op-source-with-flag-2 an-upstream-run={first_upstream_run} -y")
+    Resolving upstream
+    Using run ... for upstream
+    --upstream ...
+
+    >>> assert_resolved_run(first_upstream_run, "upstream")
+
+The name is still used when recording the dependency.
+
+    >>> run("guild select --attr deps")
+    upstream:
+      upstream:
+        config: ...
+        paths: []
+        uri: operation:upstream
+
+## Invalid config
+
+The project under the `warnings` subdirectory contains invalid
+configuration that generates warnings when loaded.
+
+    >>> use_project(path("resource-flags", "warnings"))
+
+    >>> run("guild help")  # doctest: +REPORT_UDIFF
+    WARNING: flag 'infile' for operation file-source-with-invalid-type is
+    configured with type 'number' - this value cannot be used because it
+    conflicts with the dependency 'infile' - ignoring configured value
+    WARNING: flag 'op-dep' for operation op-source-with-invalid-type is
+    configured with type 'number' - this value cannot be used because it
+    conflicts with the dependency 'op-dep' - ignoring configured value
+    ...
+    <exit 0>
+
+Despite specifying types that would cause run errors, the operations
+succeed because the configured values are ignored.
+
+    >>> run("guild run file-source-with-invalid-type -y")
+    WARNING: flag 'infile' for operation file-source-with-invalid-type...
+    WARNING: flag 'op-dep' for operation op-source-with-invalid-type...
+    Resolving infile
+    Using ../foo.txt for infile
+
+    >>> run("guild run op-source-with-invalid-type -y")
+    WARNING: flag 'infile' for operation file-source-with-invalid-type...
+    WARNING: flag 'op-dep' for operation op-source-with-invalid-type...
+    Resolving op-dep
+    Using run ... for op-dep

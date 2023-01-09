@@ -1,0 +1,17 @@
+file-source-with-invalid-type:
+  main: guild.pass
+  flags:
+    infile:
+      type: number  # Cannot set this value - should trigger warning
+  requires:
+    - file: ../foo.txt
+      flag-name: infile
+
+op-source-with-invalid-type:
+  main: guild.pass
+  flags:
+    op-dep:
+      type: number # Illegal value
+  requires:
+    - operation: file-source-with-invalid-type
+      name: op-dep

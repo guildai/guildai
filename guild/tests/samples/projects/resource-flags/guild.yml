@@ -67,6 +67,7 @@ file-source-with-flag-2:
       description: Path to infile
       arg-skip: no  # Override default implied by `file:foo.txt` dep
       arg-name: infile-path
+      type: path  # Allowed value - should trigger no warning
   requires:
     - file: foo.txt
       flag-name: infile
@@ -89,7 +90,7 @@ op-source-with-name:
   flags-dest: args
   requires:
     - operation: upstream
-      name: upstream-run
+      name: the-upstream-run
       warn-if-empty: false
 
 op-source-with-flag-name:
@@ -101,16 +102,52 @@ op-source-with-flag-name:
       flag-name: upstream-run
       warn-if-empty: false
 
+op-source-with-name-and-flag-name:
+  description: Single operation with both name and flag name
+  main: guild.pass
+  flags-dest: args
+  requires:
+    - operation: upstream
+      name: upstream-name
+      flag-name: upstream-flag-name
+      warn-if-empty: false
+
 op-source-with-flag:
   description: Single operation associated with a flag def
   main: guild.pass
   flags-dest: args
   flags:
-    upstream:
+    operation:upstream:
       description: Run ID for upstream run (defaults to latest non-error run)
-      default: null
   requires:
     - operation: upstream
+      warn-if-empty: false
+
+op-source-with-flag-2:
+  description: Single operation associated with a flag def via source name
+  main: guild.pass
+  flags-dest: args
+  flags:
+    upstream:
+      description: Run ID for upstream run (defaults to latest non-error run)
+      alias: an-upstream-run
+      arg-skip: no
+  requires:
+    - operation: upstream
+      name: upstream
+      warn-if-empty: false
+
+op-source-with-flag-3:
+  description: Single operation associated with a flag def via source flag name
+  main: guild.pass
+  flags-dest: args
+  flags:
+    upstream:
+      description: Run ID for upstream run (defaults to latest non-error run)
+  requires:
+    - operation: upstream
+      flag-name: upstream
+      name: upstream-dep
       warn-if-empty: false
 
 multi-source:
