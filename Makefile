@@ -46,11 +46,11 @@ pip-clean:
 
 check:
 	@if [ -z "$(TESTS)" ]; then \
-	  opts="-n --tests --notify"; \
+	  opts="-n --tests --fast --notify"; \
 	else \
 	  opts="-n "; \
 	  if [ "$(TESTS)" = "all" ]; then \
-	    opts="$$opts --tests --notify"; \
+	    opts="$$opts --tests --fast --notify"; \
 	  else \
 	    for test in $(TESTS); do \
 	      opts="$$opts -t $$test"; \
