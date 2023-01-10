@@ -18,6 +18,7 @@ import importlib
 import inspect
 import logging
 import os
+import re
 import sys
 import threading
 import warnings
@@ -286,18 +287,59 @@ def batch_gen_trials(flag_vals, _prev_trials_cb, max_trials=None, **kw):
         yield trial_flag_vals
 
 
-def optimizer_trial_generator(model_op):
-    main_mod = _optimizer_module(model_op.module_name)
+def optimizer_trial_generator(model, op_name):
+    """Returns a function for generating trials for a model op.
+
+    Infers the Python main module for the operation and returns the
+    `gen_trials` function defined for that module.
+
+    Raise `TypeError` if the operation does not use a Python main
+    module (either explicitly with the `main` attribute or implicitly
+    in the `exec` attribute.
+    """
     try:
-        return main_mod.gen_trials
-    except AttributeError as e:
+        module_name = _model_op_main(model, op_name)
+    except ValueError as e:
         raise TypeError(
-            f"{main_mod.__name__} optimizer module does not implement gen_trials"
-        ) from e
+            f"could not get main module for {model.name}{op_name}: {e}"
+        ) from None
+    else:
+        try:
+            main_mod = importlib.import_module(module_name)
+        except ImportError:
+            raise TypeError(
+                f"could not import main module {module_name} for "
+                f"{model.name}:{op_name}"
+            ) from None
+        else:
+            try:
+                return main_mod.gen_trials
+            except AttributeError:
+                raise TypeError(
+                    f"{main_mod.__name__} optimizer module does not "
+                    "implement gen_trials"
+                ) from None
 
 
-def _optimizer_module(module_name):
-    return importlib.import_module(module_name)
+def _model_op_main(model, op_name):
+    opdef = model.modeldef.get_operation(op_name)
+    if not opdef:
+        raise ValueError(f"no such operation: {model.name}:{op_name}")
+    return opdef.main or _op_main_for_exec(opdef.exec_)
+
+
+def _op_main_for_exec(exec_):
+    """Looks for main module in exec spec for model op.
+
+    Raises `ValueError` if exec spec is empty or not in the exepcted
+    format.
+    """
+    if not exec_:
+        raise ValueError("exec spec not specified")
+    m = re.search(r"-u?m ([^ ]+)", exec_)
+    if not m:
+        raise ValueError(f"unexpected exec spec: {exec_!r}")
+    return m.group(1)
 
 
 def uniform(low, high):
@@ -395,11 +437,11 @@ def _maybe_random_runner(op, flag_vals, opts):
 
 def _init_gen_trials(optimizer):
     try:
-        model_op, _name = model_proxy.resolve_plugin_model_op(optimizer)
+        model, op_name = model_proxy.resolve_plugin_model_op(optimizer)
     except model_proxy.NotSupported as e:
         raise TypeError(f"optimizer {optimizer!r} is not supported") from e
     else:
-        return optimizer_trial_generator(model_op)
+        return optimizer_trial_generator(model, op_name)
 
 
 def _batch_runner(op, flag_vals, opts):

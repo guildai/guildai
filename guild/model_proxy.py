@@ -38,64 +38,62 @@ class OpSpecError(Exception):
 class ModelProxy:
     """Stub for a model proxy.
 
-    Plugins should be able to use this to fulfill the contract
-    `resolve_model_op` or other model related interfaces.
+    Used to document required attributes but otherwise does not
+    provide a proxy facility.
     """
 
+    # Requires attributes - generally configured in `__init__()`
+    name = None
+    modeldef = None
+    reference = None
 
-class BatchModelProxy:
 
-    name = ""
-    op_name = "+"
-    op_description = "Default batch processor."
-    module_name = "guild.batch_main"
-    flag_encoder = None
-    default_max_trials = None
-    delete_on_success = True
-    can_stage_trials = True
-    flags_data = {}
-
+class DefaultBatchModelProxy:
     def __init__(self):
-        self.modeldef = self._init_modeldef()
-        self.reference = self._init_reference()
-
-    def _init_modeldef(self):
-        data = {
-            "operations": {
-                self.op_name: {
-                    "description": self.op_description,
-                    "exec": f"${{python_exe}} -um {self.module_name}",
-                    "flag-encoder": self.flag_encoder,
-                    "default-max-trials": self.default_max_trials,
-                    "flags": self.flags_data,
-                    "env": {
-                        "NO_OP_INTERRUPTED_MSG": "1",
-                    },
-                    "delete-on-success": self.delete_on_success,
-                    "can-stage-trials": self.can_stage_trials,
-                    "pip-freeze": False,
+        self.name = ""
+        self.reference = modellib.ModelRef(
+            "builtin",
+            "guildai",
+            guild.__version__,
+            self.name,
+        )
+        self.modeldef = modeldef(
+            self.name,
+            {
+                "operations": {
+                    "+": {
+                        "description": "Default batch processor.",
+                        "exec": "${python_exe} -um guild.batch_main",
+                        "env": {
+                            "NO_OP_INTERRUPTED_MSG": "1",
+                        },
+                        "delete-on-success": True,
+                        "can-stage-trials": True,
+                        "pip-freeze": False,
+                    }
                 }
-            }
-        }
-        return modeldef(self.name, data, f"<{self.__class__.__name__}>")
-
-    def _init_reference(self):
-        return modellib.ModelRef("builtin", "guildai", guild.__version__, self.name)
+            },
+            f"<{self.__class__.__name__}>",
+        )
 
 
-def modeldef(model_name, model_data, src):
+def modeldef(model_name, model_data, src=None, dir=None):
+    assert src or dir, "either src or dir is required"
     model_data = dict(model_data)
     model_data["model"] = model_name
     gf_data = [model_data]
-    gf = guildfile.Guildfile(gf_data, src=src)
+    gf = guildfile.Guildfile(gf_data, src=src, dir=dir)
     return gf.default_model
 
 
 def resolve_model_op(opspec):
+    return _builtin_model_op_for_spec(opspec) or resolve_plugin_model_op(opspec)
+
+
+def _builtin_model_op_for_spec(opspec):
     if opspec == "+":
-        model = BatchModelProxy()
-        return model, model.op_name
-    return resolve_plugin_model_op(opspec)
+        return DefaultBatchModelProxy(), "+"
+    return None
 
 
 def resolve_plugin_model_op(opspec):
@@ -122,43 +120,3 @@ def _plugins_by_resolve_model_op_priority():
     return sorted(
         pluginlib.iter_plugins(), key=lambda x: x[1].resolve_model_op_priority
     )
-
-
-def modeldef_for_data(guildfile_dir, model_name="", operations=None):
-    """Returns a ModelDef instance for model-related data.
-
-    `guildfile_dir` is the directory associated with the model def
-    Guild file, whether the Guild file exists or not. Since this
-    function is used to generate model proxies, the typical case is
-    that the specified `guildfile_dir` does not contain `guild.yml`
-    but is directory that would otherwise be associated with that file
-    for purposes of running the model operations. This location is
-    used to resolve source code files and project local dependencies.
-
-    data is provided via kw args to this function. Each kw arg
-    corresponds to a top-level attribute in a Guild file defined
-    model (e.g parsed YAML to Python objects).
-
-    For example, for a model definition in YAML:
-
-    ``` yaml
-    - model: mninst
-      operations:
-        train:
-          main: mnist_train
-    ```
-
-    To generate a `ModelDef` for the 'mnist' model defined in the
-    sample above, the call to this function should be:
-
-      >>> modeldef_for_data("mnist", operations={"main": "mnist_train"})
-
-    """
-    data = [
-        {
-            "model": model_name,
-            "operations": operations or {},
-        }
-    ]
-    gf = guildfile.Guildfile(data, dir=guildfile_dir)
-    return gf.models[model_name]

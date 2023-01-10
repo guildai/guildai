@@ -46,23 +46,23 @@ And a helper function to resolve op specs:
 ## Default batch processor
 
     >>> resolve("+")
-    (<guild.model_proxy.BatchModelProxy ...>, '+')
+    (<guild.model_proxy.DefaultBatchModelProxy ...>, '+')
 
 ## Random optimizer
 
     >>> resolve("random")
-    (<guild.plugins.skopt.RandomOptimizerModelProxy ...>, 'random')
+    (<guild.plugins.skopt.SkoptModelProxy ...>, 'random')
 
     >>> resolve("skopt:random")
-    (<guild.plugins.skopt.RandomOptimizerModelProxy ...>, 'random')
+    (<guild.plugins.skopt.SkoptModelProxy ...>, 'random')
 
 ## Bayesian optimizer
 
     >>> resolve("gp")
-    (<guild.plugins.skopt.GPOptimizerModelProxy ...>, 'gp')
+    (<guild.plugins.skopt.SkoptModelProxy ...>, 'gp')
 
     >>> resolve("skopt:gp")
-    (<guild.plugins.skopt.GPOptimizerModelProxy ...>, 'gp')
+    (<guild.plugins.skopt.SkoptModelProxy ...>, 'gp')
 
 ## Not supported
 

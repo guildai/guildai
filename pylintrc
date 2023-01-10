@@ -147,6 +147,7 @@ confidence=HIGH,
 disable=
         bare-except,
         broad-except,
+        consider-using-dict-items,
         consider-using-with,             # Brute force - applied for every call to open
         cyclic-import,                   # [False positives](https://github.com/PyCQA/pylint/issues/5168) from deferred imports
         duplicate-code,                  # DRY is not a goal

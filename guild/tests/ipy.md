@@ -965,7 +965,7 @@ And the run status after stopping:
     run_dir: ...
     flags:
 
-# Relative Guild Home
+## Relative Guild Home
 
 Run `hello` above using a relative Guild home. This simulates the use
 of a relative Guild home used in any examples.
@@ -989,3 +989,89 @@ of a relative Guild home used in any examples.
     .guild/opref
     .guild/output
     marker
+
+## Other tests
+
+### Optimizer trial generator
+
+`ipy` provides the function `optimizer_trial_generator()`, which
+returns a function used to generate trials for an optimizer
+operation. The function requires a "model op" - a model reference and
+an operation name.
+
+    >>> from guild.ipy import optimizer_trial_generator
+
+Facility to get a trial generator for an op spec.
+
+    >>> class _OpDefProxy:
+    ...     def __init__(self, main, exec_):
+    ...         self.main = main
+    ...         self.exec_ = exec_
+
+    >>> class _ModelDefProxy:
+    ...     def __init__(self):
+    ...         self.ops = {}
+    ...
+    ...     def get_operation(self, name):
+    ...         return self.ops.get(name)
+
+    >>> class _ModelProxy:
+    ...     def __init__(self, name):
+    ...         self.name = name
+    ...         self.modeldef = _ModelDefProxy()
+
+    >>> def trial_generator(model_name, op_name, op_main, op_exec):
+    ...     model = _ModelProxy(model_name)
+    ...     model.modeldef.ops[op_name] = _OpDefProxy(op_main, op_exec)
+    ...     return optimizer_trial_generator(model, op_name)
+
+Trial generator for a supported optimizer using main spec:
+
+    >>> trial_generator("foo", "bar", "guild.plugins.random_main", None)
+    <function gen_trials at ...>
+
+and using exec spec:
+
+    >>> trial_generator("foo", "bar", None, "python -um guild.plugins.random_main")
+    <function gen_trials at ...>
+
+    >>> trial_generator("foo", "bar", None, "python -m guild.plugins.random_main")
+    <function gen_trials at ...>
+
+Missing main module (neither in main nor exec):
+
+    >>> trial_generator("foo", "bar", None, None)
+    Traceback (most recent call last):
+    TypeError: could not get main module for foobar: exec spec not specified
+
+exec provided but in an unsupported format:
+
+    >>> trial_generator("foo", "bar", None, "bash -c 'echo hello'")
+    Traceback (most recent call last):
+    TypeError: could not get main module for foobar: unexpected exec
+    spec: "bash -c 'echo hello'"
+
+    >>> trial_generator("foo", "bar", None, "python guild/plugins/random_main.py")
+    Traceback (most recent call last):
+    TypeError: could not get main module for foobar: unexpected exec
+    spec: 'python guild/plugins/random_main.py'
+
+Module detected but can't be imported:
+
+    >>> trial_generator("foo", "bar", "guild.not_a_module", None)
+    Traceback (most recent call last):
+    TypeError: could not import main module guild.not_a_module for foo:bar
+
+    >>> trial_generator("foo", "bar", None, "python -um guild.not_a_module")
+    Traceback (most recent call last):
+    TypeError: could not import main module guild.not_a_module for foo:bar
+
+Module detected and imported but does not define `gen_trials`:
+
+    >>> trial_generator("foo", "bar", "guild.pass", None)
+    Traceback (most recent call last):
+    TypeError: guild.pass optimizer module does not implement gen_trials
+
+    >>> trial_generator("foo", "bar", None, "python -um guild.pass")
+    Traceback (most recent call last):
+    TypeError: guild.pass optimizer module does not implement gen_trials

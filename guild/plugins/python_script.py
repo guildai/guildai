@@ -108,9 +108,13 @@ class PythonFlagsImporter:
 
 
 class PythonScriptModelProxy:
+    """Provides model info for a Python script.
+
+    May be subclassed to modify class attributes with different
+    operation configuration.
+    """
 
     name = ""
-    fullname = ""
     output_scalars = None
     objective = "loss"
     plugins = []
@@ -120,24 +124,29 @@ class PythonScriptModelProxy:
         assert script_path[-3:] == ".py", script_path
         self.script_path = script_path
         self.op_name = os.path.basename(script_path)
-        guildfile_dir, _ = _guildfile_dir_and_script_path(script_path)
-        self.modeldef = model_proxy.modeldef_for_data(
-            guildfile_dir=guildfile_dir,
-            model_name=self.name,
-            operations={
-                self.op_name: op_data_for_script(
-                    script_path,
-                    output_scalars=self.output_scalars,
-                    objective=self.objective,
-                    plugins=self.plugins,
-                    sourcecode=self.sourcecode,
-                )
-            },
-        )
         self.reference = modellib.script_model_ref(
             self.name,
             _script_base(script_path, self.op_name),
         )
+        self.modeldef = model_proxy.modeldef(
+            self.name,
+            {
+                "operations": {
+                    self.op_name: _op_data_for_script(
+                        script_path,
+                        output_scalars=self.output_scalars,
+                        objective=self.objective,
+                        plugins=self.plugins,
+                        sourcecode=self.sourcecode,
+                    )
+                }
+            },
+            dir=_guildfile_dir(script_path),
+        )
+
+
+def _guildfile_dir(script_path):
+    return _guildfile_dir_and_script_path(script_path)[0]
 
 
 def _guildfile_dir_and_script_path(script_path):
@@ -147,7 +156,7 @@ def _guildfile_dir_and_script_path(script_path):
     return guildfile_dir, rel_script_path
 
 
-def op_data_for_script(
+def _op_data_for_script(
     script_path,
     output_scalars=None,
     objective=None,
