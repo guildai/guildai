@@ -776,10 +776,9 @@ None values return empty strings:
 Helper:
 
     >>> def flag_vals(opdef, user_flag_vals, force=False):
-    ...     flag_vals, resource_flagdefs = (
+    ...     flag_vals = (
     ...         op_util.flag_vals_for_opdef(opdef, user_flag_vals, force)
     ...     )
-    ...     assert not resource_flagdefs, resource_flagdefs
     ...     pprint(flag_vals)
 
 Empty opdef:

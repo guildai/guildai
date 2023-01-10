@@ -120,7 +120,6 @@ class Operation(oplib.Operation):
         self._run_is_proto = False
         self._force_sourcecode = False
         self._opdef = None
-        self._resource_flagdefs = []  # XXX - remove this attr and all associated code
         self._user_flag_vals = {}
         self._batch_trials = None
         self._op_flag_vals = {}
@@ -573,7 +572,6 @@ def _op_init_op_flags(args, op):
             op._user_flag_vals,
             args.force_flags or op._batch_trials,
             args,
-            op._resource_flagdefs,
             op._op_flag_vals,
         )
     if args.edit_flags:
@@ -589,15 +587,9 @@ def _apply_opdef_flags(
     user_flag_vals,
     force_flags,
     args,
-    resource_flagdefs,
     op_flag_vals,
 ):
     """Applies opdef and user-provided flags to op related state.
-
-    Modifies `resource_flagdefs` and `op_flag_vals`.
-
-    Modifies `resource_flagdefs` with resolved resource flag
-    defs. `resource_flagdefs` is asserted to be empty for this call.
 
     Modifies `op_flag_vals` with the final set of flag values for the
     operation. This includes defaults from `opdef`, resolved resource
@@ -612,20 +604,10 @@ def _apply_opdef_flags(
     user-provided flags. This maintains existing values (e.g. from a
     restart) unless a user explicitly provides a flag value.
     """
-    assert len(resource_flagdefs) == 0, resource_flagdefs
-    flag_vals, flag_val_resource_flagdefs = _flag_vals_for_opdef(
-        opdef, user_flag_vals, force_flags
-    )
-    resource_flagdefs.extend(flag_val_resource_flagdefs)
+    flag_vals = _flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
     _apply_default_dep_runs(opdef, args, flag_vals)
-    user_flag_vals = _normalize_flag_aliases(
-        user_flag_vals, opdef.flags + resource_flagdefs
-    )
-    _apply_user_or_missing_op_flag_vals(
-        flag_vals,
-        user_flag_vals,
-        op_flag_vals,
-    )
+    user_flag_vals = _normalize_flag_aliases(user_flag_vals, opdef.flags)
+    _apply_user_or_missing_op_flag_vals(flag_vals, user_flag_vals, op_flag_vals)
 
 
 def _normalize_flag_aliases(flag_vals, flagdefs):
@@ -647,7 +629,7 @@ def _apply_user_or_missing_op_flag_vals(flag_vals, user_flag_vals, op_flag_vals)
 
 
 def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
-    """Returns a tuple of flag vals and resource flag defs for opdef.
+    """Returns flag vals for opdef.
 
     Result includes defaults for opdef overridden by user flag vals
     where specified.
@@ -951,7 +933,7 @@ def _op_init_config_for_opdef(
     op,
     is_batch,
 ):
-    op._flag_null_labels = _flag_null_labels_for_opdef(opdef, op._resource_flagdefs)
+    op._flag_null_labels = _flag_null_labels_for_opdef(opdef)
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_template if label_template is not None else opdef.label
     op._output_scalars = opdef.output_scalars
@@ -963,12 +945,8 @@ def _op_init_config_for_opdef(
     op._delete_on_success = _delete_on_success(opdef, keep_run)
 
 
-def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
-    return {
-        f.name: f.null_label
-        for f in opdef.flags + resource_flagdefs
-        if f.null_label is not None
-    }
+def _flag_null_labels_for_opdef(opdef):
+    return {f.name: f.null_label for f in opdef.flags if f.null_label is not None}
 
 
 def _python_requires_for_opdef(opdef):
