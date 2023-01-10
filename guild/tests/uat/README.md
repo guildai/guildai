@@ -255,6 +255,10 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [install-pytorch-lightning](install-pytorch-lightning.md)
 - [pytorch-lightning-example](pytorch-lightning-example.md)
 
+## R Tests
+
+- [r-basic.md](r-basic.md)
+
 ## Other tests
 
 *Tests covering miscellaneous behavior.*

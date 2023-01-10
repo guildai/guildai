@@ -38,7 +38,6 @@ tests or deleting them from the suite.
     # multi-run-deps.md:13:     >> run("guild run down up=1,3 --run-id=6 -y")
     # multi-run-deps.md:14:     >> run("guild run down up='3 2' --run-id=7 -y")
     # multi-run-deps.md:15:     >> run("guild runs")
-    # r-script.md:2: doctest: +FIXME
     # uat/concurrent-queues.md:4: doctest: +FIXME
     # uat/dask-scheduler-resources.md:4: doctest: +FIXME
     # uat/dask-scheduler.md:4: doctest: +FIXME
@@ -69,6 +68,11 @@ tests or deleting them from the suite.
     # uat/evaluate-mnist-intro-example.md:2: doctest: +FIXME  # Example needs to be updated
     # uat/mnist-example-runs-after-intro-evaluate.md:2: doctest: +FIXME  # Dep on evaluate-mnist-intro-example.md
     # uat/project-sourcecode.md:4: doctest: +FIXME
+    # uat/r-basic.md:137:     >> from guild.plugins.r_script import op_data_for_script
+    # uat/r-basic.md:142:     >> def op_data(script):
+    # uat/r-basic.md:151:     >> op_data("empty.R")
+    # uat/r-basic.md:159:     >> op_data("simple.R")
+    # uat/r-basic.md:172:     >> run("guild run simple.R -y")
     # uat/remote-azure-blob.md:2: doctest: +FIXME
     # uat/remote-deps.md:4: doctest: +FIXME
     # uat/required-operation.md:5: doctest: +FIXME

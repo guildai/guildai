@@ -237,6 +237,7 @@
     guild.plugins.queue
     guild.plugins.queue_main
     guild.plugins.r_script
+    guild.plugins.r_script_init_main
     guild.plugins.random_main
     guild.plugins.resource_flags
     guild.plugins.skopt

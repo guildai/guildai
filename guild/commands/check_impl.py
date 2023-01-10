@@ -173,6 +173,8 @@ def _print_info(check):
         _print_platform_info(check)
         _print_psutil_info(check)
         _print_tensorboard_info(check)
+        if check.args.r_script:
+            _print_r_script_info(check)
         if check.args.tensorflow:
             _print_tensorflow_info(check)
         if check.args.pytorch:
@@ -274,6 +276,12 @@ def _tensorboard_version(check):
         return _warn("not installed")
     else:
         return version.VERSION
+
+
+def _print_r_script_info(check):
+    from guild.plugins import r_script
+
+    _attr("rscript_version", _safe_apply(check, r_script.r_script_version))
 
 
 def _print_tensorflow_info(check):

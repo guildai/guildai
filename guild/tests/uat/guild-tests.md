@@ -122,7 +122,6 @@ tests).
       pythonpath:                  ok
       query-parser:                ok
       quoted-flag-vals:            ok
-      r-script:                    ok
       remotes:                     ok
       resource-flag-refs:          ok
       resource-flags:              ok

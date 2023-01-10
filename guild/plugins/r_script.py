@@ -1,8 +1,25 @@
+# Copyright 2017-2022 RStudio, PBC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import logging
 import os
-import os.path
+import re
 import subprocess
+
 import yaml
+
+import guild
 
 from guild import cli
 from guild import config
@@ -11,12 +28,34 @@ from guild import model_proxy
 from guild import plugin as pluginlib
 from guild import r_util
 
-log = logging.getLogger("guild")  # TODO - use plugin logger
+log = logging.getLogger("guild")
+
+
+class RScriptBuiltinsModelProxy:
+    def __init__(self):
+        self.name = "r-script"
+        self.reference = modellib.ModelRef(
+            "builtin",
+            "guildai",
+            guild.__version__,
+            self.name,
+        )
+        self.modeldef = model_proxy.modeldef(
+            self.name,
+            {
+                "operations": {
+                    "init": {
+                        "description": "Initialize R script support for Guild.",
+                        "main": "guild.plugins.r_script_init_main",
+                    }
+                }
+            },
+            f"<{self.__class__.__name__}>",
+        )
 
 
 class RScriptModelProxy:
     name = ""
-    fullname = ""
     output_scalars = None
     objective = "loss"
     plugins = []
@@ -32,18 +71,16 @@ class RScriptModelProxy:
             self.op_name = op_name
         script_base = script_path[: -len(self.op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
-        self.modeldef = _init_modeldef(self.script_path, self.op_name, self.name)
+        self.modeldef = model_proxy.modeldef(
+            self.name,
+            {
+                "operations": {
+                    self.op_name: _op_data_for_script(script_path),
+                }
+            },
+            dir=os.path.dirname(script_path),
+        )
         _apply_config_flags(self.modeldef, self.op_name)
-
-
-def _init_modeldef(script_path, op_name, model_name):
-    return model_proxy.modeldef_for_data(
-        guildfile_dir=os.path.dirname(script_path),
-        model_name=model_name,
-        operations={
-            op_name: op_data_for_script(script_path),
-        },
-    )
 
 
 def _apply_config_flags(modeldef, op_name):
@@ -56,36 +93,46 @@ def _apply_config_flags(modeldef, op_name):
 class RScriptPlugin(pluginlib.Plugin):
 
     resolve_model_op_priority = 60
-    # share priority level with python_script, 60
-    # must be less than exec_script level of 100
 
     def resolve_model_op(self, opspec):
         """Return a tuple of model, op_name for opspec.
 
-        If opspec cannot be resolved to a model, the function should
-        return None.
+        If opspec cannot be resolved to an R based operation, returns
+        None.
         """
-        if opspec.startswith(("/", "./")) and os.path.isfile(opspec):
-            path = opspec
-        else:
-            path = os.path.join(config.cwd(), opspec)
-        if not r_util.is_r_script(path):
-            return None
-        model = RScriptModelProxy(path, opspec)
-        return model, model.op_name
+        if opspec == "r-script:init":
+            return _r_script_init_model_op()
+        return _maybe_r_script_model_op(opspec)
 
     def enabled_for_op(self, opdef):
         if r_util.is_r_script(opdef.name):
             return True, "operation is an R script"
-        return False, "not applicable to operation"
+        return False, "operation is not an R script"
 
 
-def op_data_for_script(r_script_path):
+def _r_script_init_model_op():
+    return RScriptBuiltinsModelProxy(), "init"
+
+
+def _maybe_r_script_model_op(opspec):
+    path = _path_for_opspec(opspec)
+    if not r_util.is_r_script(path):
+        return None
+    model = RScriptModelProxy(path, opspec)
+    return model, model.op_name
+
+
+def _path_for_opspec(opspec):
+    if opspec.startswith(("/", "./")) and os.path.isfile(opspec):
+        return opspec
+    return os.path.join(config.cwd(), opspec)
+
+
+def _op_data_for_script(r_script_path):
     try:
         out = run_r("guildai:::emit_r_script_guild_data()", args=[r_script_path])
     except subprocess.CalledProcessError as e:
         log.warning(e.output.rstrip().decode("utf-8"))
-
         return {}
     else:
         return yaml.safe_load(out)
@@ -101,50 +148,14 @@ def _ensure_guildai_r_package_installled(version="0.0.0.9001"):
     if installed:
         return
 
+    cli.error(
+        "missing required 'guildai' R package\n"
+        "Install it by running 'guild run r-script:init' and try again."
+    )
+
     # TODO, consider vendoring r-pkg as part of pip pkg,
     # auto-bootstrap R install into a stand-alone lib we inject via
     # prefixing R_LIBS env var
-
-    # TODO - we can't interact with the user here. Guild does not
-    # typically work this way, altering behavior based on user-input,
-    # unless that interaction is implemented in a command impl (this
-    # should be consistent across the code base - if there are
-    # exceptions that don't arise directly or indirectly from a
-    # command impl that's a design flaw/bug).
-    #
-    # We should look to extend the model def itself to include a set
-    # of checks to the env, any of which may query 'user input' (this
-    # could be a default answer for non-tty scenarios). Short of that,
-    # we should fail here with instructions rather than take action to
-    # modify the system.
-
-    consent = cli.confirm(
-        "The 'guildai' R package must be installed in the R library. Continue?", True
-    )
-    if consent:
-
-        run_r(
-            infile="""
-        if(!require("remotes", quietly = TRUE))
-            utils::install.packages("remotes", repos = c(CRAN = "https://cran.rstudio.com/"))
-
-        install_github("t-kalinowski/guildai-r")
-        """
-        )
-
-        # Still need to figure out the appropriate home for this r package
-        # if we bundle it w/ the python module we could install with something like:
-        #   path_r_pkg_src_dir = resolve_using(__path__)
-        #   run_r('remotes::install_local("%s")' % path_r_pkg_src_dir)
-        # or we could pull from cran directly:
-        #  'utils::install.packages("guildai", repos = c(CRAN = "https://cran.rstudio.com/"))'
-        #  or install w/o the remotes, but then we'll have to resolve
-        #  R dep pkgs (e.g., jsonlite) manually first
-        # 'utils::install.packages("%s", repos = NULL, type = "source")' % path_to_r_pkg_src
-
-        return
-
-    cli.error("The 'guildai' R package is not available.")
 
 
 def run_r(
@@ -204,3 +215,14 @@ def merge_dicts(dict1, dict2):
         else:
             dict1[k] = dict2[k]
     return dict1
+
+
+def r_script_version():
+    out = subprocess.check_output(
+        ["Rscript", "--version"],
+        stderr=subprocess.STDOUT,
+    ).decode()
+    m = re.search(r"R scripting front-end version (.*)", out)
+    if not m:
+        raise ValueError(f"unknown version ({out})")
+    return m.group(1)
