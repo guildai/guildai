@@ -31,9 +31,24 @@ def main(args):
 
 
 def _init_logging(args):
-    log_level = args.log_level or logging.INFO
+    log_level = _log_level(args)
     log.init_logging(log_level)
     log.disable_noisy_loggers(log_level)
+
+
+def _log_level(args):
+    return args.log_level or _log_level_env() or _default_log_level()
+
+
+def _log_level_env():
+    try:
+        return int(os.environ["LOG_LEVEL"])
+    except (KeyError, ValueError):
+        return None
+
+
+def _default_log_level():
+    return logging.INFO
 
 
 def _maybe_debug_listen(args):

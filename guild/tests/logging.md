@@ -109,3 +109,26 @@ Here we'll define the WARN and ERROR formats:
 We need to restore logging to its defaults:
 
     >>> guild.log.init_logging(**original_log_settings)
+
+## Controlling log level with env var
+
+The env var `LOG_LEVEL` can be used to configure Guild's log level.
+
+To illustrate we can silence `INFO` level logs by setting `LOG_LEVEL`
+to a value above 20.
+
+The `resource-flags` project provides various operations that resolve
+dependencies. Guild logs `INFO` level messages to let the user know
+what's being resolved.
+
+    >>> use_project("resource-flags")
+
+    >>> run("guild run file-source -y")
+    Resolving file:foo.txt
+    <exit 0>
+
+By setting `LOG_LEVEL` to 30 (the `WARN` level) we can squelch these
+messages.
+
+    >>> run("LOG_LEVEL=30 guild run file-source -y")
+    <exit 0>
