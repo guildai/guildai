@@ -9,9 +9,11 @@
 
 ### Config and compiled patterns
 
-Helper function to compile and print patterns from config:
+Create a function to compile and print patterns from output scalar
+config.
 
     >>> import logging
+
     >>> def compiled(config):
     ...     with LogCapture(log_level=logging.INFO) as logs:
     ...         out = summary.OutputScalars(config, None)
@@ -60,6 +62,9 @@ Named groups:
 
 ### Processing output
 
+Create a function to process output lines according to output scalar
+config. Prints tag, value, and step associated with processed output.
+
     >>> def match(config, lines):
     ...     output_dir = mkdtemp()
     ...     with LogCapture() as logs:
@@ -76,7 +81,52 @@ Empty config:
 
     >>> match([], [])
 
-Typical map config:
+Config capturing loss for a single step:
+
+    >>> match([{"loss": r"(\value)"}], ["1"])
+    loss 1.0 0
+
+    >>> match([{"loss": r"loss=(\value)"}], ["loss=2"])
+    loss 2.0 0
+
+    >>> match([r"(\key)... (\value)"], ["loss... 2"])
+    loss 2.0 0
+
+Capturing loss for multiple steps (step is not captured and is
+therefore always `0`):
+
+    >>> match([{"loss": r"(\value)"}], ["1", "2", "3"])
+    loss 1.0 0
+    loss 2.0 0
+    loss 3.0 0
+
+Capturing loss for multiple steps:
+
+    >>> match([r"\key: \value \((?P<step>\step)\)", r"(\key): (\value)"],
+    ... ["loss: 1 (10)",
+    ...  "loss: 2 (20)",
+    ...  "loss: 3 (30)"])
+    loss 1.0 10
+    loss 2.0 20
+    loss 3.0 30
+
+Capturing loss and acc for multiple steps:
+
+    >>> match([r"\key: +\value \((?P<step>\step)\)", r"(\key): +(\value)"],
+    ... ["loss: 1 (10)",
+    ...  "acc:  2 (10)",
+    ...  "loss: 3 (20)",
+    ...  "acc:  4 (20)",
+    ...  "loss: 5 (30)",
+    ...  "acc:  6 (30)"])
+    loss 1.0 10
+    acc 2.0 10
+    loss 3.0 20
+    acc 4.0 20
+    loss 5.0 30
+    acc 6.0 30
+
+Config capturing step, loss, and acc for two steps:
 
     >>> match([{
     ...     "step": "step (\d+):",
@@ -206,11 +256,13 @@ Multiple matches per line:
 
 The tests below use the `summary` sample project.
 
-    >>> project = Project(sample("projects/summary"))
+    >>> use_project("summary")
 
 ### Repeating lines
 
-    >>> project.run("repeating_lines.py")
+`repeating_lines.py` prints scalar blocks with a 'step' header:
+
+    >>> run("guild run repeating_lines.py -y")
     step: 1
     x: 1
     step: 2
@@ -219,23 +271,39 @@ The tests below use the `summary` sample project.
     x: 3
     x: 4
 
-    >>> last_run = project.list_runs()[0]
-    >>> scalars = project.scalars(last_run)
-    >>> pprint(scalars) # doctest: +REPORT_UDIFF
-    [{'avg_val': 2.5,
-      'count': 4,
-      'first_step': 1,
-      'first_val': 1.0,
-      'last_step': 3,
-      'last_val': 4.0,
-      'max_step': 3,
-      'max_val': 4.0,
-      'min_step': 1,
-      'min_val': 1.0,
-      'prefix': '.guild',
-      'run': '...',
-      'tag': 'x',
-      'total': 10.0}]
+    >>> run("guild tensorboard --export-scalars - 1")
+    run,path,tag,value,step
+    ...,.guild,x,1.0,1
+    ...,.guild,x,2.0,2
+    ...,.guild,x,3.0,3
+    ...,.guild,x,4.0,3
+
+`repeating_lines2.py` prints scalars inline with the step specified
+next to each scalar:
+
+    >>> run("guild run repeating_lines2.py -y")
+    x: 1 (step 1)
+    x: 3 (3)
+    x: 2 (step 2)
+    x: 4
+    x: 5 (5)
+    x: 6 (not a step)
+
+Note the steps order is 1, 3, 2... This is intentional to show that
+Guild captures the step for associated with each scalar. In this
+example, the scalar value `4` is associated with step `2`. From the
+user standpoint is a bug - the step is accidentally omited. Guild's
+behavior, however, is by design: Guild uses the last logged step,
+regardless of whether it is lower than previously logged steps.
+
+    >>> run("guild tensorboard --export-scalars - 1")
+    run,path,tag,value,step
+    ...,.guild,x,1.0,1
+    ...,.guild,x,3.0,3
+    ...,.guild,x,2.0,2
+    ...,.guild,x,4.0,2
+    ...,.guild,x,5.0,5
+    ...,.guild,x,6.0,5
 
 ## Status lookup
 

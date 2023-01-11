@@ -29,7 +29,8 @@ ALIASES = [
 ]
 
 DEFAULT_OUTPUT_SCALARS = [
-    r"^(\key):\s+(\value)$",
+    r"\key: +\value\s+\((?:step\s+)?(?P<step>\step)\)$",
+    r"^(\key):\s+(\value)(?:\s+\(.*\))?$",
 ]
 
 HPARAM_TYPE_NUMBER = "number"
