@@ -14,6 +14,7 @@
 
 import logging
 import sys
+import shlex
 
 import guild
 
@@ -64,7 +65,7 @@ class DefaultBatchModelProxy:
                 "operations": {
                     "+": {
                         "description": "Default batch processor.",
-                        "exec": f"{sys.executable} -um guild.batch_main",
+                        "exec": f"{shlex.quote(sys.executable)} -um guild.batch_main",
                         "env": {
                             "NO_OP_INTERRUPTED_MSG": "1",
                         },
