@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+import sys
 
 import guild
 
@@ -63,7 +64,7 @@ class DefaultBatchModelProxy:
                 "operations": {
                     "+": {
                         "description": "Default batch processor.",
-                        "exec": "${python_exe} -um guild.batch_main",
+                        "exec": f"{sys.executable} -um guild.batch_main",
                         "env": {
                             "NO_OP_INTERRUPTED_MSG": "1",
                         },
