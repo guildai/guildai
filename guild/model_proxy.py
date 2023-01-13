@@ -84,7 +84,7 @@ class DefaultBatchModelProxy:
                 "operations": {
                     "+": {
                         "description": "Default batch processor.",
-                        "exec": f"{_guild_python_exe()} -um guild.batch_main",
+                        "exec": "${python_exe} -um guild.batch_main",
                         "env": {
                             "NO_OP_INTERRUPTED_MSG": "1",
                         },
