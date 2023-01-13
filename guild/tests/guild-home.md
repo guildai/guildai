@@ -172,3 +172,18 @@ environment.
 
     >>> guild_home_for_dir("/foo", pre0_9_config, {"GUILD_HOME": "/foo"})
     '/foo'
+
+### Invalid legacy config
+
+Guild logs a warning message if the config is not recognized/supported.
+
+Specify `guild-home` that isn't supported.
+
+    >>> invalid_config = {"legacy": {"guild-home": "not-valid"}}
+
+    >>> with LogCapture() as logs:
+    ...     _ = guild_home_for_dir(".", invalid_config, None)
+
+    >>> logs.print_all()
+    WARNING: unsupported legacy scheme for 'guild-home': 'not-valid' -
+    using default scheme

@@ -102,6 +102,11 @@ def _guild_home_for_scheme():
     scheme = _guild_home_scheme()
     if scheme == "pre-0.9":
         return _guild_home_pre_0_9()
+    if scheme:
+        log.warning(
+            "unsupported legacy scheme for 'guild-home': %r - using default scheme",
+            scheme,
+        )
     return _guild_home_current_scheme()
 
 
