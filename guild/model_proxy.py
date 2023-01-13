@@ -14,6 +14,7 @@
 
 import logging
 import sys
+import platform
 import shlex
 
 import guild
@@ -50,6 +51,19 @@ class ModelProxy:
     reference = None
 
 
+def _sys_executable():
+    exe = sys.executable
+    if platform.system() != "Windows" and " " in exe:
+        exe = shlex.quote(exe)
+    # If this runtime was invoked with a "-I" python cli arg,
+    # pass it through to subprocesses that also launch guild internal modules.
+    # A "-I" python cli flag is used by the R plugin to invoke guild on some platforms.
+    # Other flags we may want to pass through: https://docs.python.org/3/library/sys.html#sys.flags
+    if sys.flags.isolated:
+        exe += " -I"
+    return exe
+
+
 class DefaultBatchModelProxy:
     def __init__(self):
         self.name = ""
@@ -65,7 +79,7 @@ class DefaultBatchModelProxy:
                 "operations": {
                     "+": {
                         "description": "Default batch processor.",
-                        "exec": f"{shlex.quote(sys.executable)} -um guild.batch_main",
+                        "exec": f"{_sys_executable()} -um guild.batch_main",
                         "env": {
                             "NO_OP_INTERRUPTED_MSG": "1",
                         },
