@@ -54,7 +54,7 @@ class ModelProxy:
 def _guild_python_exe():
     exe = sys.executable
     if os.name == "posix":
-        exe = shlex.quote(exe) # only quotes if necessary.
+        exe = shlex.quote(exe)  # only quotes if necessary.
     # On Windows, sys.executable should be a short path name
     # and not require quoting, but just in case:
     elif os.name == "nt" and " " in exe:
