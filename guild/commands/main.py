@@ -81,7 +81,7 @@ def _ac_dir(_ctx, _param, incomplete):
     "-C",
     "cwd",
     metavar="PATH",
-    help=("Use PATH as current directory for referencing guild " "files (guild.yml)."),
+    help=("Use PATH as current directory for referencing guild files (guild.yml)."),
     default=".",
     shell_complete=_ac_dir,
 )
