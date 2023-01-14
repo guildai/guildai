@@ -2522,7 +2522,8 @@ def _guildfile_error(gf_path, msg) -> typing.NoReturn:
 def _missing_run_opdef_error(opspec, run) -> typing.NoReturn:
     cli.error(
         f"cannot find definition for operation '{opspec}' in run {run.id}\n"
-        "The definition is required when setting flags for restart or a new run."
+        "This is required when setting flags or using '--force-sourcecode' "
+        "for restart or a new run."
     )
 
 

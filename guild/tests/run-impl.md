@@ -443,7 +443,8 @@ values.
 
     >>> run(f"guild run --restart {run_id} foo=111 bar=222 -y")
     guild: cannot find definition for operation 'op' in run ...
-    The definition is required when setting flags for restart or a new run.
+    This is required when setting flags or using '--force-sourcecode'
+    for restart or a new run.
     <exit 1>
 
 We can restart the run if we don't specify new flag values.
