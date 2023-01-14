@@ -151,7 +151,8 @@ def _guildfile_dir(script_path):
 
 def _guildfile_dir_and_script_path(script_path):
     script_realpath = os.path.realpath(script_path)
-    guildfile_dir = os.path.commonpath([script_realpath, os.getcwd()])
+    cwd_realpath = os.path.realpath(config.cwd())
+    guildfile_dir = os.path.commonpath([script_realpath, cwd_realpath])
     rel_script_path = os.path.relpath(script_realpath, guildfile_dir)
     return guildfile_dir, rel_script_path
 
