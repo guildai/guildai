@@ -22,7 +22,7 @@ import threading
 
 log = logging.getLogger("guild")
 
-_cwd = None
+_cwd = os.path.curdir
 _cwd_lock = threading.Lock()
 _guild_home = None
 _guild_home_lock = threading.Lock()
@@ -35,8 +35,30 @@ class ConfigError(Exception):
 
 
 def set_cwd(cwd):
+    """Sets cwd for Guild.
+
+    The current directory for Guild is different from `os.getcwd()` as
+    it's specified by the user (or a user proxy) as a Guild-specific
+    current directory.
+
+    Guild maintains the distinction between `cwd` and the process
+    current directory to provide meaningful user messages. If Guild
+    changes the process directory (i.e. a call to `os.chdir()`),
+    messages to users could no longer reflect the user-facing current
+    directory.
+    """
     with _cwd_lock:
         globals()["_cwd"] = cwd
+
+
+def cwd():
+    """Returns cwd for Guild.
+
+    See `set_cwd()` for details on Guild's current directory vs the
+    process current directory (i.e. `os.getcwd()`).
+    """
+    with _cwd_lock:
+        return _cwd or os.getcwd()
 
 
 class SetCwd:
@@ -54,31 +76,10 @@ class SetCwd:
         set_cwd(self._save)
 
 
-class SetGuildHome:
-
-    _save = None
-
-    def __init__(self, path):
-        self.path = path
-
-    def __enter__(self):
-        self._save = guild_home()
-        if self.path:
-            set_guild_home(self.path)
-
-    def __exit__(self, *_args):
-        set_guild_home(self._save)
-
-
 def set_guild_home(path):
     with _guild_home_lock:
         globals()["_guild_home"] = path
         os.environ["GUILD_HOME"] = path
-
-
-def cwd():
-    with _cwd_lock:
-        return _cwd or os.getcwd()
 
 
 def guild_home():
@@ -152,17 +153,40 @@ def _guild_home_current_scheme():
             _home_dir = os.path.realpath(_user_home())
         return os.path.realpath(dir) == _home_dir
 
-    cur = cwd()
+    cur = os.path.abspath(cwd())
     while True:
         guild_home = os.path.join(cur, ".guild")
         if os.path.isdir(guild_home) or is_home_dir(cur):
             break
         parent = os.path.dirname(cur)
         if parent == cur:
+            guild_home = os.path.join(_home_dir, ".guild")
             break
         cur = parent
 
     return guild_home
+
+
+class SetGuildHome:
+
+    _save_attr = None
+    _save_env = None
+
+    def __init__(self, path):
+        self.path = path
+
+    def __enter__(self):
+        self._save_attr = _guild_home
+        self._save_env = os.getenv("GUILD_HOME")
+        set_guild_home(self.path)
+
+    def __exit__(self, *_args):
+        with _guild_home_lock:
+            globals()["_guild_home"] = self._save_attr
+            if self._save_env is None:
+                os.environ.pop("GUILD_HOME", None)
+            else:
+                os.environ["GUILD_HOME"] = self._save_env
 
 
 def set_log_output(flag):

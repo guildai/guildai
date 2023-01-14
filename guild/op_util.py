@@ -46,7 +46,6 @@ import time
 import yaml
 
 from guild import _api
-from guild import config
 from guild import guildfile
 from guild import file_util
 from guild import flag_util

@@ -35,10 +35,10 @@ environment variable:
     >>> with Env({"GUILD_HOME": guild_home_1}):
     ...     run(["runs"])
 
-Here's the contents of our Guild home:
+Guild home is initially empty.
 
     >>> find(guild_home_1)
-    .guild-nocopy
+    <empty>
 
 Let's run the same test but using the `-H` option.
 
@@ -55,7 +55,7 @@ And list runs with the `-H` option:
 And the contents of Guild home:
 
     >>> find(guild_home_2)
-    .guild-nocopy
+    <empty>
 
 ## Default Guild Home
 
@@ -167,10 +167,10 @@ Guild home for `a` is `a/.guild`.
 When `GUILD_HOME` is set, it is used regardless of the scheme or
 environment.
 
-    >>> guild_home_for_dir("/foo", None, {"GUILD_HOME": "/foo"})
+    >>> guild_home_for_dir(".", None, {"GUILD_HOME": "/foo"})
     '/foo'
 
-    >>> guild_home_for_dir("/foo", pre0_9_config, {"GUILD_HOME": "/foo"})
+    >>> guild_home_for_dir(".", pre0_9_config, {"GUILD_HOME": "/foo"})
     '/foo'
 
 ### Invalid legacy config

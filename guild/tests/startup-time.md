@@ -37,9 +37,8 @@ Expected output (Guild help):
     <BLANKLINE>
     Options:
       --version  Show the version and exit.
-      -C PATH    Use PATH as current directory for referencing guild files
-                 (guild.yml).
-      -H PATH    Use PATH as Guild home (default is ...).
+      -C PATH    Use PATH as current directory for a command.
+      -H PATH    Use PATH as Guild home.
       --debug    Log more information during command.
       --help     Show this message and exit.
     <BLANKLINE>

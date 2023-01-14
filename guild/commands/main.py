@@ -18,8 +18,6 @@ import click
 
 from guild import __version__ as guild_version
 from guild import click_util
-from guild import config
-from guild import util
 
 from .api import api
 from .cat import cat
@@ -66,31 +64,30 @@ from .watch import watch
 from . import ac_support
 
 
-DEFAULT_GUILD_HOME = config.default_guild_home()
-
-
 def _ac_dir(_ctx, _param, incomplete):
     return ac_support.ac_dir(incomplete)
 
 
 @click.group(cls=click_util.Group)
 @click.version_option(
-    version=guild_version, prog_name="guild", message="%(prog)s %(version)s"
+    version=guild_version,
+    prog_name="guild",
+    message="%(prog)s %(version)s",
 )
 @click.option(
     "-C",
     "cwd",
     metavar="PATH",
-    help=("Use PATH as current directory for referencing guild files (guild.yml)."),
-    default=".",
+    help=("Use PATH as current directory for a command."),
+    default=None,
     shell_complete=_ac_dir,
 )
 @click.option(
     "-H",
     "guild_home",
     metavar="PATH",
-    help=f"Use PATH as Guild home (default is {util.format_dir(DEFAULT_GUILD_HOME)}).",
-    default=DEFAULT_GUILD_HOME,
+    help=f"Use PATH as Guild home.",
+    default=None,  # Explicitly None to preserve user intent
     envvar="GUILD_HOME",
     shell_complete=_ac_dir,
 )

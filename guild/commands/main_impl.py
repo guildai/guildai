@@ -18,14 +18,13 @@ import os
 from guild import cli
 from guild import config
 from guild import log
-from guild import util
 
 
 def main(args):
     _init_logging(args)
     _maybe_debug_listen(args)
-    config.set_cwd(_cwd(args))
-    config.set_guild_home(_guild_home(args))
+    _maybe_apply_cwd(args)
+    _maybe_apply_guild_home(args)
     _apply_guild_patch()
     _register_cmd_context_handlers()
 
@@ -81,33 +80,30 @@ def _debug_endpoint_port(s):
         raise SystemExit(f"invalid value for debug listen PORT {s!r}") from None
 
 
-def _cwd(args):
-    return _validated_dir(args.cwd)
+def _maybe_apply_cwd(args):
+    if not args.cwd:
+        return
+    config.set_cwd(_validated_dir(args.cwd))
 
 
-def _guild_home(args):
-    return _validated_dir(args.guild_home, abs=True, create=True, guild_nocopy=True)
-
-
-def _validated_dir(path, abs=False, create=False, guild_nocopy=False):
+def _validated_dir(path):
     path = os.path.expanduser(path)
-    if abs:
-        path = os.path.abspath(path)
     if not os.path.exists(path):
-        if create:
-            util.ensure_dir(path)
-        else:
-            cli.error(f"directory '{path}' does not exist")
+        cli.error(f"directory '{path}' does not exist")
     if not os.path.isdir(path):
         cli.error(f"'{path}' is not a directory")
-    if guild_nocopy:
-        util.ensure_file(os.path.join(path, ".guild-nocopy"))
     return path
 
 
+def _maybe_apply_guild_home(args):
+    if not args.guild_home:
+        return
+    config.set_guild_home(_validated_dir(args.guild_home))
+
+
 def _apply_guild_patch():
-    """Look in config cwd for guild_patch.py and load if exists."""
-    patch_path = os.path.join(config.cwd(), "guild_patch.py")
+    """Look in current directory for guild_patch.py and load if exists."""
+    patch_path = "guild_patch.py"
     if os.path.exists(patch_path):
         from guild import python_util
 
