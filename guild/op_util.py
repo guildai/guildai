@@ -70,7 +70,7 @@ MAX_DEFAULT_SOURCECODE_FILE_SIZE = (
 )
 MAX_DEFAULT_SOURCECODE_COUNT = util.try_env("MAX_DEFAULT_SOURCECODE_COUNT", int) or 100
 
-DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
+MAIN_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
 STEPS_EXEC = "${guild_python_exe} -um guild.steps_main"
 
 LABEL_TOKENS_P = re.compile(r"(\${.+?})")
@@ -1124,7 +1124,7 @@ def _opdef_exec_and_run_attrs(opdef):
     if opdef.main:
         if opdef.steps:
             log.warning("operation 'main' and 'steps' both specified, ignoring 'steps'")
-        return DEFAULT_EXEC, None
+        return MAIN_EXEC, None
     if opdef.steps:
         return STEPS_EXEC, _run_attrs_for_steps(opdef)
     raise InvalidOpDef(opdef, "must define either exec, main, or steps")
