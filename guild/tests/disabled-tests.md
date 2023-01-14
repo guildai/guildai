@@ -68,11 +68,11 @@ tests or deleting them from the suite.
     # uat/evaluate-mnist-intro-example.md:2: doctest: +FIXME  # Example needs to be updated
     # uat/mnist-example-runs-after-intro-evaluate.md:2: doctest: +FIXME  # Dep on evaluate-mnist-intro-example.md
     # uat/project-sourcecode.md:4: doctest: +FIXME
-    # uat/r-basic.md:137:     >> from guild.plugins.r_script import op_data_for_script
-    # uat/r-basic.md:142:     >> def op_data(script):
-    # uat/r-basic.md:151:     >> op_data("empty.R")
-    # uat/r-basic.md:159:     >> op_data("simple.R")
-    # uat/r-basic.md:172:     >> run("guild run simple.R -y")
+    # uat/r-basic.md:143:     >> from guild.plugins.r_script import op_data_for_script
+    # uat/r-basic.md:148:     >> def op_data(script):
+    # uat/r-basic.md:157:     >> op_data("empty.R")
+    # uat/r-basic.md:165:     >> op_data("simple.R")
+    # uat/r-basic.md:178:     >> run("guild run simple.R -y")
     # uat/remote-azure-blob.md:2: doctest: +FIXME
     # uat/remote-deps.md:4: doctest: +FIXME
     # uat/required-operation.md:5: doctest: +FIXME

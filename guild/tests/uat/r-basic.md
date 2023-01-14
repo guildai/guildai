@@ -95,6 +95,12 @@ Show our runs.
     [1]  hello.R  completed  msg=hi
     [2]  hello.R  completed  msg=hello
 
+Show runs using an operation filter.
+
+    >>> run("guild runs -s -n2 -Fo hello.R")
+    [1]  hello.R  completed  msg=hi
+    [2]  hello.R  completed  msg=hello
+
 Unlike the Python support for globals flag assignments, the R plugin
 modifies the source code.
 
