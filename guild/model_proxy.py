@@ -13,9 +13,6 @@
 # limitations under the License.
 
 import logging
-import sys
-import os
-import shlex
 
 import guild
 
@@ -45,28 +42,10 @@ class ModelProxy:
     provide a proxy facility.
     """
 
-    # Requires attributes - generally configured in `__init__()`
+    # Required attributes - generally configured in `__init__()`
     name = None
     modeldef = None
     reference = None
-
-
-def _guild_python_exe():
-    exe = sys.executable
-    if os.name == "posix":
-        exe = shlex.quote(exe)  # only quotes if necessary.
-    # On Windows, sys.executable should be a short path name
-    # and not require quoting, but just in case:
-    elif os.name == "nt" and " " in exe:
-        exe = f'"{exe}"'
-
-    # If this guild runtime was invoked with a "-I" python cli arg,
-    # pass it through to subprocesses that also launch guild internal modules.
-    # A "-I" python cli flag is used by the R plugin to invoke guild on some platforms.
-    # Other flags we may want to pass through: https://docs.python.org/3/library/sys.html#sys.flags
-    if sys.flags.isolated:
-        exe += " -I"
-    return exe
 
 
 class DefaultBatchModelProxy:
@@ -84,7 +63,7 @@ class DefaultBatchModelProxy:
                 "operations": {
                     "+": {
                         "description": "Default batch processor.",
-                        "exec": "${python_exe} -um guild.batch_main",
+                        "exec": "${guild_python_exe} -um guild.batch_main",
                         "env": {
                             "NO_OP_INTERRUPTED_MSG": "1",
                         },

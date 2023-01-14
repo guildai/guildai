@@ -46,9 +46,10 @@ import time
 import yaml
 
 from guild import _api
-from guild import guildfile
+from guild import config
 from guild import file_util
 from guild import flag_util
+from guild import guildfile
 from guild import log as loglib
 from guild import main
 from guild import manifest
@@ -70,7 +71,7 @@ MAX_DEFAULT_SOURCECODE_FILE_SIZE = (
 MAX_DEFAULT_SOURCECODE_COUNT = util.try_env("MAX_DEFAULT_SOURCECODE_COUNT", int) or 100
 
 DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
-STEPS_EXEC = "${python_exe} -um guild.steps_main"
+STEPS_EXEC = "${guild_python_exe} -um guild.steps_main"
 
 LABEL_TOKENS_P = re.compile(r"(\${.+?})")
 LABEL_FLAG_REF_P = re.compile(r"\${(.+?)}")

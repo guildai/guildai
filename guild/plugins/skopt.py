@@ -46,7 +46,7 @@ def _skopt_opdefs():
     random:
       description:
         Batch processor supporting random flag value generation.
-      exec: ${python_exe} -um guild.plugins.random_main
+      exec: ${guild_python_exe} -um guild.plugins.random_main
       delete-on-success: yes
       can-stage-trials: yes
 
@@ -56,7 +56,7 @@ def _skopt_opdefs():
 
         Refer to https://scikit-optimize.github.io/#skopt.gp_minimize
         for details on this algorithm and its flags.
-      exec: ${python_exe} -um guild.plugins.skopt_gp_main
+      exec: ${guild_python_exe} -um guild.plugins.skopt_gp_main
       flags:
         random-starts:
           description:
@@ -123,7 +123,7 @@ def _skopt_opdefs():
         https://scikit-optimize.github.io/#skopt.forest_minimize for
         details on this algorithm and its flags.
 
-      exec: ${python_exe} -um guild.plugins.skopt_forest_main
+      exec: ${guild_python_exe} -um guild.plugins.skopt_forest_main
       flags:
         random-starts:
           description:
@@ -161,7 +161,7 @@ def _skopt_opdefs():
         https://scikit-optimize.github.io/#skopt.gbrt_minimize for
         details on this algorithm and its flags.
 
-      exec: ${python_exe} -um guild.plugins.skopt_gbrt_main
+      exec: ${guild_python_exe} -um guild.plugins.skopt_gbrt_main
       flags:
         random-starts:
           description:

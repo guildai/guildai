@@ -132,7 +132,7 @@ class DaskModelProxy:
                     "scheduler": {
                         "description": dask_scheduler_description,
                         "exec": (
-                            "${python_exe} -um guild.plugins.dask_scheduler_main "
+                            "${guild_python_exe} -um guild.plugins.dask_scheduler_main "
                             "${flag_args}"
                         ),
                         "flags": dask_scheduler_flags_data,

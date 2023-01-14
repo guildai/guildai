@@ -341,7 +341,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
     def enabled_for_op(self, opdef):
         if opdef.main:
             return True, f"main Python module '{opdef.main}' specified"
-        if opdef.exec_ and opdef.exec_.startswith("${python_exe}"):
+        if _uses_python(opdef.exec_):
             return True, f"command '{opdef.exec_}' is a Python operation"
         if opdef.steps:
             return True, "operation defines 'steps'"
@@ -360,6 +360,10 @@ class PythonScriptPlugin(pluginlib.Plugin):
         if opdef.steps:
             return _steps_sourcecode_select_rules()
         return _python_sourcecode_select_rules()
+
+
+def _uses_python(exec_):
+    return exec_ and "python" in util.shlex_split(exec_)[0]
 
 
 def _steps_sourcecode_select_rules():

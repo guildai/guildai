@@ -59,7 +59,12 @@ class CmdFlag:
 ###################################################################
 
 
-def generate_op_args_and_env(op_cmd, flag_vals, resolve_params, force_flag_args=False):
+def generate_op_args_and_env(
+    op_cmd,
+    flag_vals,
+    resolve_params,
+    force_flag_args=False,
+):
     """Generates command args and env, returning them as a tuple.
 
     The result contains encoded arguments and environment variables
@@ -82,14 +87,7 @@ def _gen_args(op_cmd, flag_vals, resolve_params, force_flag_args):
     args = []
     for arg in op_cmd.cmd_args:
         if arg == "__flag_args__":
-            flag_args = _flag_args(
-                flag_vals,
-                op_cmd.flags_dest,
-                op_cmd.cmd_flags,
-                args,
-                force_flag_args,
-            )
-            args.extend(flag_args)
+            _apply_flag_args(flag_vals, op_cmd, force_flag_args, args)
         else:
             args.append(util.resolve_refs(arg, encoded_resolve_params))
     return args
@@ -104,13 +102,24 @@ def _encode_general_arg(val):
     return _encode_env_val(val)
 
 
+def _apply_flag_args(flag_vals, op_cmd, force_flag_args, args):
+    flag_args = _flag_args(
+        flag_vals,
+        op_cmd.flags_dest,
+        op_cmd.cmd_flags,
+        args,
+        force_flag_args,
+    )
+    args.extend(flag_args)
+
+
 def _flag_args(flag_vals, flag_dest, cmd_flags, cmd_args, force_flag_args):
-    args = []
+    flag_args = []
     for name, val in sorted(flag_vals.items()):
         cmd_flag = _cmd_flag_for_name(name, cmd_flags, force_flag_args)
         if cmd_flag:
-            args.extend(_args_for_flag(name, val, cmd_flag, flag_dest, cmd_args))
-    return args
+            flag_args.extend(_args_for_flag(name, val, cmd_flag, flag_dest, cmd_args))
+    return flag_args
 
 
 def _cmd_flag_for_name(name, cmd_flags, force_flag_args):

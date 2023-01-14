@@ -86,7 +86,7 @@ def _ac_dir(_ctx, _param, incomplete):
     "-H",
     "guild_home",
     metavar="PATH",
-    help=f"Use PATH as Guild home.",
+    help="Use PATH as Guild home.",
     default=None,  # Explicitly None to preserve user intent
     envvar="GUILD_HOME",
     shell_complete=_ac_dir,

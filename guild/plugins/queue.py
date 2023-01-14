@@ -82,7 +82,8 @@ class QueueModelProxy:
                     "queue": {
                         "description": queue_description,
                         "exec": (
-                            "${python_exe} -um guild.plugins.queue_main ${flag_args}"
+                            "${guild_python_exe} -um guild.plugins.queue_main "
+                            "${flag_args}"
                         ),
                         "flags": queue_flags_data,
                     }

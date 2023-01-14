@@ -1057,6 +1057,8 @@ def _generate_op_args_and_env(op_cmd, flag_vals, python_requires, force_flags):
 def _op_cmd_resolve_params(flag_vals, python_requires):
     params = dict(flag_vals)
     params["python_exe"] = _proc_python_exe(python_requires)
+    # XXX -> `guild_python_cmd` to include sys.flags
+    params["guild_python_exe"] = sys.executable
     return params
 
 
