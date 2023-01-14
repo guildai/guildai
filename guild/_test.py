@@ -68,11 +68,6 @@ WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 KEEP_LF = doctest.register_optionflag("KEEP_LF")
 
-# Resolve relative to cwd on load as we change cwd for tests later.
-_EXAMPLES_DIR = (
-    os.path.abspath(os.environ["EXAMPLES"]) if "EXAMPLES" in os.environ else None
-)
-
 
 def run_all(skip=None, fail_fast=False):
     return run(all_tests(), skip=skip, fail_fast=fail_fast)
@@ -715,11 +710,10 @@ def _example(name):
 
 
 def _examples_dir():
-    if _EXAMPLES_DIR is None:
-        raise ValueError(
-            "'EXAMPLES' environment variable not set - cannot run test on examples"
-        )
-    return _EXAMPLES_DIR
+    try:
+        return os.environ["EXAMPLES"]
+    except KeyError:
+        return os.path.join(guild.__pkg_dir__, "examples")
 
 
 def _default_examples_dir():
