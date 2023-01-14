@@ -363,7 +363,21 @@ class PythonScriptPlugin(pluginlib.Plugin):
 
 
 def _uses_python(exec_):
-    return exec_ and "python" in util.shlex_split(exec_)[0]
+    return exec_ and _is_python_exe(util.shlex_split(exec_)[0])
+
+
+def _is_python_exe(cmd):
+    return (
+        cmd == "${python_exe}"
+        or cmd == "${guild_python_exe}"
+        or _is_python_exe_path(cmd)
+    )
+
+
+def _is_python_exe_path(s):
+    return util.is_executable_file(s) and os.path.basename(s).lower().startswith(
+        "python"
+    )
 
 
 def _steps_sourcecode_select_rules():

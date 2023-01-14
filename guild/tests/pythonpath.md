@@ -42,13 +42,7 @@ standard Python module paths.
 
 We use the `pythonpath` sample project for our tests.
 
-    >>> project = Project(sample("projects", "pythonpath"))
-
-    >>> cd(sample("projects", "pythonpath"))
-
-Isolate runs in a new Guild home:
-
-    >>> set_guild_home(mkdtemp())
+    >>> use_project("pythonpath")
 
 This project provides operations that print the value of `sys.path` as
 a JSON encoded string to standard output.
@@ -62,10 +56,11 @@ a JSON encoded string to standard output.
     sourcecode-disabled
     subdir
 
-We use a helper that generates a run for a specified operation and
-returns the run and its decoded output.
+Create a helper that generates a run for a specified operation and
+returns the run and its decoded output. The function ensures that the
+target operation `PYTHONPATH` env var is blank.
 
-    >>> def sys_path_for_op(op, extra_env=None, extra_args=None):
+    >>> def run_op(op, extra_env=None, extra_args=None):
     ...     from guild import run as runlib
     ...
     ...     extra_args = " ".join([shlex_quote(arg) for arg in (extra_args or [])])
@@ -77,18 +72,23 @@ returns the run and its decoded output.
     ...     run_dir = run_capture("guild select --path")
     ...     return runlib.for_dir(run_dir), json.loads(out)
 
-We also use a helper to assert path values.
+Create a function that asserts path equivalence.
 
     >>> def assert_path(actual, expected):
-    ...     assert actual == expected, f"expected '{expected}' got '{actual}'"
+    ...     assert compare_paths(actual, expected), (
+    ...         f"expected '{expected}' got '{actual}'")
 
 It's important that the project location is not included in the system
-path for a Python based operation. Here's a function that asserts that
+path for a Python based operation. Create a function that asserts that
 for a given system path.
 
     >>> def assert_not_project(sys_path):
     ...     project_path = realpath(".")
     ...     assert not project_path in sys_path, (project_path, sys_path)
+
+Use `run_cmd` for `run` so we can use `run` as a variable below.
+
+    >>> run_cmd = run
 
 ## Run script directly
 
@@ -96,11 +96,15 @@ When Guild runs a Python script directly, it uses `guild.op_main` as
 an intermediary to process flag values and make them available to the
 target script accoding to the `flags-dest` interface.
 
-Generate a run for the `sys_path_test.py` script:
+    >>> run_cmd("guild run sys_path_test.py --print-cmd")
+    ???python -um guild.op_main sys_path_test
 
-    >>> run, sys_path = sys_path_for_op("sys_path_test.py")
+Generate a run for the `sys_path_test.py` script.
 
-The command that Guild ran:
+    >>> run, sys_path = run_op("sys_path_test.py")
+
+Guild runs the user-specified script as a module using
+`guild.op_main`.
 
     >>> run.get("cmd")
     ['...python', '-um', 'guild.op_main', 'sys_path_test']
@@ -108,11 +112,10 @@ The command that Guild ran:
 The `PYTHONPATH` env var is used to configure Python with the
 appropriate system paths.
 
-    >>> pythonpath = run.get("env").get("PYTHONPATH").split(os.path.pathsep)
-
 We expect to have two entries in the result: one that locates the run
 source code and another that locates the Guild package.
 
+    >>> pythonpath = run.get("env").get("PYTHONPATH").split(os.path.pathsep)
     >>> len(pythonpath)
     2
 
@@ -126,10 +129,11 @@ The second entry is the Guild package location.
 
     >>> assert_path(pythonpath[1], guild.__pkgdir__)
 
-### sys.path
+The operation prints `sys.path`, which we've decoded as `sys_path`
+above.
 
-The first entry is the source code root. In this case, it's the run
-directory.
+The first entry in `sys.path` for the operation is the source code
+root -- i.e. the run directory.
 
     >>> assert_path(sys_path[0], run.dir)
 
@@ -137,21 +141,29 @@ The second entry the Guild package location.
 
     >>> assert_path(sys_path[1], guild.__pkgdir__)
 
+This location is provided via the `PYTHONPATH` env as shown above.
+
+The rest of `sys.path` is as per [Python's standard
+behavior](https://docs.python.org/3/library/sys_path_init.html).
+
 It's important that the project directory is not in the the system
 path for a Python operation. Project source code must be run from the
 run directory exclusively.
 
     >>> assert_not_project(sys_path)
 
-## Default operation
+## Run Python as module
 
 The `default` op runs the `test` module without additional
-configuration. The behavior is the same as when running
-`sys_path_test.py` diretly (above).
+configuration. The behavior is the same as when running `python -m
+sys_path_test`.
 
-    >>> run, sys_path = sys_path_for_op("default")
+    >>> run_cmd("guild run default --print-cmd")
+    ???python -um guild.op_main sys_path_test --
 
-Our standard verification:
+    >>> run, sys_path = run_op("default")
+
+Verify that `sys.path` for the user code is as expected.
 
     >>> assert_path(sys_path[0], run.dir)
     >>> assert_path(sys_path[1], guild.__pkgdir__)
@@ -161,16 +173,16 @@ Our standard verification:
 
 The `sourcecode-dest` operation configures the destination path for
 source code. Guild uses this to copy operation source code to an
-alternative location under the run directory. In this case, the
-operation configures the target as `src`.
+alternative location under the run directory. In this case, source
+code is copied to the `src` subdirectory.
 
-    >>> run, sys_path = sys_path_for_op("sourcecode-dest")
+    >>> run, sys_path = run_op("sourcecode-dest")
 
 The first entry in `sys.path` is the source code root.
 
     >>> assert_path(sys_path[0], path(run.dir, "src"))
 
-The remaining standard tests apply:
+The remaining standard tests apply.
 
     >>> assert_path(sys_path[1], guild.__pkgdir__)
     >>> assert_not_project(sys_path)
@@ -190,10 +202,11 @@ Let's include two paths in the process `PYTHONPATH` env as an example.
 
     >>> tmp1 = mkdtemp()
     >>> tmp2 = mkdtemp()
+    >>> pythonpath_env = os.path.pathsep.join([tmp1, tmp2])
 
-    >>> run, sys_path = sys_path_for_op(
+    >>> run, sys_path = run_op(
     ...     "sys_path_test.py",
-    ...     extra_env={"PYTHONPATH": os.path.pathsep.join([tmp1, tmp2])}
+    ...     extra_env={"PYTHONPATH": pythonpath_env}
     ... )
 
 The first two entries are the standard entries we've seen before.
@@ -207,7 +220,8 @@ order specified in the `PYTHONPATH` env var.
     >>> assert_path(sys_path[2], tmp1)
     >>> assert_path(sys_path[3], tmp2)
 
-Confirm that the project is not in the path:
+As with our previous tests, confirm that the project is not in
+`sys.path`.
 
     >>> assert_not_project(sys_path)
 
@@ -220,7 +234,7 @@ uses the flag `path` to configure its `env`.
 
 We again use two directories in our configure path.
 
-    >>> run, sys_path = sys_path_for_op(
+    >>> run, sys_path = run_op(
     ...     "pythonpath-env",
     ...     extra_args=["path=" + os.path.pathsep.join([tmp1, tmp2])]
     ... )
@@ -247,14 +261,14 @@ system path.
 ## Disabling source code
 
 When `sourcecode` is disabled, Guild omits the default run source code
-directory from the Python path. We use the `sourcecode-disabled` to
-illustrate.
+directory from the Python path. We use the `sourcecode-disabled`
+operation to illustrate.
 
 When we run `sourcecode-disabled` without otherwise providing a path
 to the source code, we get an error.
 
     >>> try:
-    ...     sys_path_for_op("sourcecode-disabled")
+    ...     run_op("sourcecode-disabled")
     ... except RunError as e:
     ...     print(e.output)
     ... else:
@@ -264,9 +278,10 @@ to the source code, we get an error.
 Because we disabled source code copies for the operation, we must
 provide the location of the `sys_path_test` module via the
 `PYTHONPATH` env variable. In this case, we specify the project
-directory (though this is an anti-pattern for best-practice).
+directory (though this is an anti-pattern for best-practice it's
+illustrative for these tests).
 
-    >>> run, sys_path = sys_path_for_op(
+    >>> run, sys_path = run_op(
     ...     "sourcecode-disabled",
     ...     extra_env={"PYTHONPATH": realpath(".")})
 
@@ -280,7 +295,7 @@ code root and the Guild package location respectively.
 The third entry is the path that we specified in the process
 environment variable.
 
-    >>> assert_path(sys_path[2], project.cwd)
+    >>> assert_path(sys_path[2], ".")
 
 ## Python path and sub-directories
 
@@ -289,9 +304,10 @@ When an operation specifies a subdirectory for `main` in the format
 system path. The `subdir` operation illustrates this. It's `main` spec
 is `src/sys_path_test2.py`.
 
-    >>> run, sys_path = sys_path_for_op("subdir")
+    >>> run, sys_path = run_op("subdir")
 
-The command that was run for the operation:
+The command run for the operation includes the subdirectoryu location
+in the argument to `guild.op_main`.
 
     >>> run.get("cmd")
     ['...python', '-um', 'guild.op_main', 'src/sys_path_test2', '--']
@@ -335,15 +351,15 @@ illustrates.
 The `pkg` subdirectory contains `__init__.py`, which tells Python it's
 a package.
 
-    >>> pkg_files = dir(path(project.cwd, "pkg"))
+    >>> pkg_files = dir("pkg")
     >>> "__init__.py" in pkg_files, pkg_files
     (True, ...)
 
-Run the operation:
+Run the operation.
 
-    >>> run, sys_path = sys_path_for_op("pkg")
+    >>> run, sys_path = run_op("pkg")
 
-The system path contains the standard locations.
+Verify that `sys.path` is as expected.
 
     >>> assert_path(sys_path[0], run.dir)
     >>> assert_path(sys_path[1], guild.__pkgdir__)
@@ -355,7 +371,7 @@ This test shows Guild's behavior when a package module is located
 within a project subdirectory. We use the `pkg-with-subdir` operation
 to illustrate.
 
-    >>> run, sys_path = sys_path_for_op("pkg-with-subdir")
+    >>> run, sys_path = run_op("pkg-with-subdir")
 
 Here we see that `op_main` inserts the `src2` subdirectory into the
 system path as it did in with the `subdir` operation.
@@ -373,5 +389,5 @@ Run `non_python` (a shell script) with env that resets any current
 `PYTHONPATH` value from the test env.
 
     >>> with Env({"PYTHONPATH": ""}):  # doctest: -WINDOWS
-    ...     print(run_capture("guild run non_python -y"))
+    ...     print(run_capture("guild run non-python -y"))
     PYTHONPATH:
