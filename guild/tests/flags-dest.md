@@ -442,7 +442,7 @@ the `--help-op` option.
       f.a  (default is 1.123)
       f.b  (default is 2.234)
       i    (default is 2)
-      l    (default is 1 2 foo)
+      l    (default is '1 2 foo')
       s1   (default is Hola)
       s2
     <exit 0>
@@ -473,7 +473,7 @@ the `--help-op` option.
     Use 'guild run --help' for a list of options.
     <BLANKLINE>
     Flags:
-      x  (default is 1 2 'a b')
+      x  (default is "1 2 'a b'")
       y  (default is 1,2,3)
     <exit 0>
 
@@ -483,7 +483,7 @@ the `--help-op` option.
     Use 'guild run --help' for a list of options.
     <BLANKLINE>
     Flags:
-      x  (default is 1 2 3)
+      x  (default is '1 2 3')
       y  (default is '')
     <exit 0>
 

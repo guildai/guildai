@@ -57,8 +57,8 @@ We use the `config-flags` sample project for the tests below.
            d.b  (default is B)
            f    (default is 2.234)
            i    (default is 456)
-           l    (default is 1 2 abc)
-           s    (default is flu flam)
+           l    (default is '1 2 abc')
+           s    (default is 'flu flam')
     <BLANKLINE>
         json
           Flags:
@@ -66,8 +66,8 @@ We use the `config-flags` sample project for the tests below.
             d.a  (default is A)
             d.b  (default is B)
             f    (default is 2.234)
-            l    (default is 1 2 abc)
-            s    (default is flu flam)
+            l    (default is '1 2 abc')
+            s    (default is 'flu flam')
     <BLANKLINE>
         json-2
           Flags:
@@ -80,8 +80,8 @@ We use the `config-flags` sample project for the tests below.
             d.b  (default is B)
             f    (default is 2.234)
             i    (default is 456)
-            l    (default is 1 2 abc)
-            s    (default is flu flam)
+            l    (default is '1 2 abc')
+            s    (default is 'flu flam')
     <BLANKLINE>
         test-args-1
     <BLANKLINE>
@@ -92,8 +92,8 @@ We use the `config-flags` sample project for the tests below.
             b  (default is no)
             f  (default is 1.123)
             i  (default is 123)
-            l  (default is 1 1.2 blue true)
-            s  (default is Howdy Guild)
+            l  (default is '1 1.2 blue true')
+            s  (default is 'Howdy Guild')
     <BLANKLINE>
         yaml-nested
           Flags:
@@ -110,8 +110,8 @@ We use the `config-flags` sample project for the tests below.
             b  (default is no)
             f  (default is 1.123)
             i  (default is 123)
-            l  (default is 1 1.2 blue true)
-            s  (default is Howdy Guild)
+            l  (default is '1 1.2 blue true')
+            s  (default is 'Howdy Guild')
 
 ## Supported File Types
 

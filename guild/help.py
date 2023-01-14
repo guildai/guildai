@@ -406,12 +406,11 @@ def flags_dl(flags):
 def _format_flag_desc(flag, max_flag_len):
     lines = flag.description.split("\n")
     if flag.default is not None:
-        fmt_default = flag_util.encode_flag_val(flag.default)
-        line1_suffix = f"(default is {fmt_default})"
+        line1_suffix = f"(default is {flag_util.format_flag(flag.default)})"
     elif flag.required:
         line1_suffix = "(required)"
     elif flag.null_label:
-        line1_suffix = f"(default is {flag.null_label})"
+        line1_suffix = f"(default is {flag_util.format_flag(flag.null_label)})"
     else:
         line1_suffix = ""
     if lines[0]:
