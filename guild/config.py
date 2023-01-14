@@ -46,6 +46,18 @@ def set_cwd(cwd):
     changes the process directory (i.e. a call to `os.chdir()`),
     messages to users could no longer reflect the user-facing current
     directory.
+
+    Consider this comment:
+
+        $ guild -C my-project run train
+
+    To the user, this is equivalent to `cd my-project; guild run
+    train`. However, Guild can't use this technique internally to run
+    the command because it needs to preserve the user-facing cwd for
+    messages. E.g. an error in the project Guild file is in
+    `my-project/guild.yml` from the user's perspective. If Guild used
+    `os.chdir('my-poject')` it would no longer be able to show the
+    correct path to the user.
     """
     with _cwd_lock:
         globals()["_cwd"] = cwd
