@@ -91,7 +91,10 @@ class SetCwd:
 def set_guild_home(path):
     with _guild_home_lock:
         globals()["_guild_home"] = path
-        os.environ["GUILD_HOME"] = path
+        if path is None:
+            os.environ.pop("GUILD_HOME", None)
+        else:
+            os.environ["GUILD_HOME"] = path
 
 
 def guild_home():
