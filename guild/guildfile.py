@@ -1688,7 +1688,7 @@ def for_file(src, extends_seen=None, no_cache=False):
 
 
 def _cache_key(src):
-    return os.path.abspath(src)
+    return os.path.realpath(src)
 
 
 def _load_guildfile(src, extends_seen):
