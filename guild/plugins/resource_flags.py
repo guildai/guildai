@@ -62,6 +62,9 @@ def _flag_data_for_file(source):
 
     For the same reason, `arg-skip` is true for generated flags to
     avoid passing required files as command arguments.
+
+    The source `type` is `string` to avoid the side-effects of using
+    `path` (e.g. convertion of the value to an absolute path).
     """
     assert source.parsed_uri.scheme == "file", source.parsed_uri
     if not source.flag_name:
