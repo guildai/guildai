@@ -1,44 +1,42 @@
 # Packaging
 
-Packaging is supported by the `guild.package` module.
-
-    >>> import guild.package
+Guild supports the creation of Guild-specific *packages*. A package is
+a Python wheel distribution and can be installed using any tool that
+supports installing that format.
 
 For these tests, we'll use a writable directory, which will contain
 our project files and generated files.
 
-    >>> workspace = mkdtemp()
-    >>> dir(workspace)
-    []
+    >>> project = mkdtemp()
 
-Packages are built from guildfiles. The contain the guildfile and
-other files needed by the package.
+Copy project files from the sample `package` project.
 
-We'll create a package from the sample project
-[package](samples/projects/package). Let's setup our workspace by
-linking to the project files.
+    >>> project_src = sample("projects", "package")
 
     >>> for name in ["guild.yml", "README.md", "a.txt", "train.py"]:
-    ...   symlink(abspath(join_path(sample("projects/package"), name)),
-    ...           join_path(workspace, name))
+    ...     copyfile(path(project_src, name), path(project, name))
 
-Our workspace:
+    >>> find(project)
+    README.md
+    a.txt
+    guild.yml
+    train.py
 
-    >>> dir(workspace)
-    ['README.md', 'a.txt', 'guild.yml', 'train.py']
+Packages are built from guildfiles. Packages contain the guildfile and
+other required files.
 
 The package we'll build is defined in the project guildfile. Let's
 load that.
 
-    >>> gf = guildfile.for_dir(workspace)
+    >>> use_project(project)
+    >>> gf = guildfile.for_dir(".")
 
-We can access the package definition using the `package` attribute:
+The package definition for a Guild file is accessed with the `package`
+attribute.
 
     >>> pkg = gf.package
-    >>> pkg
-    <guild.guildfile.PackageDef 'gpkg.hello'>
 
-Packages have various attributes that are used to create the package.
+Packages specify how to build the package. Here are some attributes:
 
     >>> pkg.name
     'gpkg.hello'
@@ -52,45 +50,88 @@ Packages have various attributes that are used to create the package.
     >>> pkg.author_email
     'packages@guild.ai'
 
-We can use `guild.package.create_package` to build a binary wheel
-distribution for our package.
+The `package` command generates a Python wheel using the package
+definition in the Guild file.
 
-Let's create the package:
-
-    >>> out = guild.package.create_package(gf.src, capture_output=True)
-    >>> print("-\n" + out.decode("UTF-8"))
-    -...
+    >>> run("guild package")
     running bdist_wheel
     running build
     running build_py
-    ...
-    <BLANKLINE>
+    package init file './__init__.py' not found (or not a regular file)
+    creating build
+    creating build/lib
+    creating build/lib/gpkg
+    creating build/lib/gpkg/hello
+    copying ./train.py -> build/lib/gpkg/hello
+    copying ./a.txt -> build/lib/gpkg/hello
+    copying ./guild.yml -> build/lib/gpkg/hello
+    copying ./README.md -> build/lib/gpkg/hello
+    installing to build/.../wheel
+    running install
+    running install_lib
+    copying gpkg/hello/train.py -> build/.../wheel/gpkg/hello
+    copying gpkg/hello/a.txt -> build/.../wheel/gpkg/hello
+    copying gpkg/hello/README.md -> build/.../wheel/gpkg/hello
+    copying gpkg/hello/guild.yml -> build/.../wheel/gpkg/hello
+    running install_egg_info
+    running egg_info
+    writing gpkg.hello.egg-info/PKG-INFO
+    writing dependency_links to gpkg.hello.egg-info/dependency_links.txt
+    writing entry points to gpkg.hello.egg-info/entry_points.txt
+    writing namespace_packages to gpkg.hello.egg-info/namespace_packages.txt
+    writing top-level names to gpkg.hello.egg-info/top_level.txt
+    writing manifest file 'gpkg.hello.egg-info/SOURCES.txt'
+    reading manifest file 'gpkg.hello.egg-info/SOURCES.txt'
+    writing manifest file 'gpkg.hello.egg-info/SOURCES.txt'
+    Copying gpkg.hello.egg-info to build/.../wheel/gpkg.hello-0.3.0.dev4.egg-info
+    Installing build/.../wheel/gpkg.hello-0.3.0.dev4-nspkg.pth
+    running install_scripts
+    creating build/.../wheel/gpkg.hello-0.3.0.dev4.dist-info/WHEEL
+    creating 'dist/gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl' and adding 'build/.../wheel' to it
+    adding 'gpkg.hello-0.3.0.dev4-nspkg.pth'
+    adding 'gpkg/hello/README.md'
+    adding 'gpkg/hello/a.txt'
+    adding 'gpkg/hello/guild.yml'
+    adding 'gpkg/hello/train.py'
+    adding 'gpkg.hello-0.3.0.dev4.dist-info/METADATA'
+    adding 'gpkg.hello-0.3.0.dev4.dist-info/PACKAGE'
+    adding 'gpkg.hello-0.3.0.dev4.dist-info/WHEEL'
+    adding 'gpkg.hello-0.3.0.dev4.dist-info/entry_points.txt'
+    adding 'gpkg.hello-0.3.0.dev4.dist-info/namespace_packages.txt'
+    adding 'gpkg.hello-0.3.0.dev4.dist-info/top_level.txt'
+    adding 'gpkg.hello-0.3.0.dev4.dist-info/RECORD'
+    removing build/.../wheel
 
-Here's our distribution:
+The wheel is written to the `dist` subdirectory.
 
-    >>> files = dir(join_path(workspace, "dist"))
-    >>> files
-    ['gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl']
+    >>> find("dist")
+    gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl
 
-And its contents:
+Wheels are zip files. We can read the contents of the generated file.
 
     >>> import zipfile
-    >>> wheel = zipfile.ZipFile(join_path(workspace, "dist", files[0]))
+    >>> wheel_path = path("dist", "gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl")
+    >>> wheel = zipfile.ZipFile(wheel_path)
     >>> pprint(sorted(wheel.namelist()))
-    [...
+    ['gpkg.hello-0.3.0.dev4-nspkg.pth',
+     'gpkg.hello-0.3.0.dev4.dist-info/METADATA',
+     'gpkg.hello-0.3.0.dev4.dist-info/PACKAGE',
+     'gpkg.hello-0.3.0.dev4.dist-info/RECORD',
+     'gpkg.hello-0.3.0.dev4.dist-info/WHEEL',
+     'gpkg.hello-0.3.0.dev4.dist-info/entry_points.txt',
+     'gpkg.hello-0.3.0.dev4.dist-info/namespace_packages.txt',
+     'gpkg.hello-0.3.0.dev4.dist-info/top_level.txt',
      'gpkg/hello/README.md',
      'gpkg/hello/a.txt',
      'gpkg/hello/guild.yml',
      'gpkg/hello/train.py']
 
-Use `twine` to check the generated distribution:
+Use `twine` to check the generated distribution.
 
     >>> from twine.commands import check
-    >>> dist_path = join_path(
-    ...     workspace, "dist",
-    ...     "gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl")
+    >>> dist_path = path("dist", "gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl")
     >>> check.check([dist_path])
-    Checking .../dist/gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl: PASSED
+    Checking dist/gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl: PASSED
     False
 
 ## Default packages
@@ -98,104 +139,74 @@ Use `twine` to check the generated distribution:
 If a package def isn't specified, Guild will use the name of the
 default model as the package name.
 
-Let's create a new workspace:
+Create a project with a Guild file that does not contain a package def.
 
-    >>> workspace = mkdtemp()
-    >>> dir(workspace)
-    []
-
-And create a sample Guild file in it that contains only a model def:
-
-    >>> write(join_path(workspace, "guild.yml"), """
+    >>> cd(mkdtemp())
+    >>> write("guild.yml", """
     ... - model: test
     ... """)
 
-And generate a package for it:
+Generate a package for it.
 
-    >>> gf = guildfile.for_dir(workspace)
-    >>> out = guild.package.create_package(gf.src, capture_output=True)
-    >>> print(out.decode("UTF-8"))
-    running bdist_wheel
-    running build
-    running build_py
-    ...
-    adding 'test/guild.yml'
-    adding 'test-0.0.0.dist-info/...'
-    ...
-    <BLANKLINE>
+    >>> run("guild package")
+    ???
+    <exit 0>
 
-The generated files::
+    >>> find("dist")
+    test-0.0.0-py2.py3-none-any.whl
 
-    >>> files = dir(join_path(workspace, "dist"))
-    >>> files
-    ['test-0.0.0-py2.py3-none-any.whl']
+List the package contents.
 
-And the package contents:
-
-    >>> wheel = zipfile.ZipFile(join_path(workspace, "dist", files[0]))
+    >>> wheel_path = path("dist", "test-0.0.0-py2.py3-none-any.whl")
+    >>> wheel = zipfile.ZipFile(wheel_path)
     >>> pprint(sorted(wheel.namelist()))
-    [...
+    ['test-0.0.0.dist-info/METADATA',
+     'test-0.0.0.dist-info/PACKAGE',
+     'test-0.0.0.dist-info/RECORD',
+     'test-0.0.0.dist-info/WHEEL',
+     'test-0.0.0.dist-info/entry_points.txt',
+     'test-0.0.0.dist-info/namespace_packages.txt',
+     'test-0.0.0.dist-info/top_level.txt',
      'test/guild.yml']
 
-Use the `clean` option to delete build artifacts before creating a
+Use the `--clean` option to delete build artifacts before creating a
 package.
 
-    >>> out = guild.package.create_package(gf.src, clean=True, capture_output=True)
-    >>> print(out.decode("UTF-8"))
+    >>> run("guild package --clean")
     running clean
-    removing 'build/lib...' (and everything under it)
-    removing 'build/bdist...' (and everything under it)
-    ...'build/scripts...' does not exist -- can't clean it
+    removing 'build/lib' (and everything under it)
+    removing 'build/bdist.linux-x86_64' (and everything under it)
+    'build/scripts-3.10' does not exist -- can't clean it
     removing 'build'
-    running bdist_wheel
-    running build
-    running build_py
     ...
+    <exit 0>
 
 If a Guild file doesn't contain a package def or a model def, it
-creates a package named 'gpkg.anonymous_DIGEST':
+creates a package named 'gpkg.anonymous_DIGEST'.
 
-    >>> workspace = mkdtemp()
-    >>> dir(workspace)
-    []
-
-    >>> write(join_path(workspace, "guild.yml"), """
+    >>> cd(mkdtemp())
+    >>> write("guild.yml", """
     ... - config: test
     ... """)
-    >>> gf = guildfile.for_dir(workspace)
 
-    >>> out = guild.package.create_package(gf.src, capture_output=True)
-    >>> print(out.decode())
-    WARNING: package name not defined in .../guild.yml - using gpkg.anonymous_...
+    >>> run("guild package")
+    WARNING: package name not defined in ./guild.yml - using gpkg.anonymous_...
     running bdist_wheel
     running build
-    running build_py
     ...
-    adding 'gpkg/anonymous_.../guild.yml'
-    adding 'gpkg.anonymous_...-0.0.0.dist-info/...'
-    ...
+    <exit 0>
 
 ## Project based error messages
 
 A project must have a Guild file to be packaged.
 
-    >>> workspace = mkdtemp()
-    >>> dir(workspace)
-    []
+    >>> cd(mkdtemp())
 
-    >>> Project(workspace).package()  # doctest: -NORMALIZE_PATHS
-    Traceback (most recent call last):
-    SystemExit: ("'...' does not contain a guild.yml
-    file\nguild.yml is required when creating a package.
-    Create one in this directory first or try specifying a different
-    directory.", 1)
-
-A project must exist:
-
-    >>> Project("NOT_EXISTS").package()  # doctest: -NORMALIZE_PATHS
-    Traceback (most recent call last):
-    SystemExit: ("'NOT_EXISTS' does not exist\nTry specifying a
-    different directory.", 1)
+    >>> run("guild package")
+    guild: the current directory does not contain a guild.yml file
+    guild.yml is required when creating a package. Create one in this
+    directory first or try specifying a different directory.
+    <exit 1>
 
 ## Name conflicts with local Python packages
 
@@ -206,9 +217,10 @@ message.
 
 We use the `package-name-conflict` project to illustrate.
 
-    >>> project = Project(sample("projects/package-name-conflict"))
-    >>> project.package()
-    Traceback (most recent call last):
-    SystemExit: (1, "guild: package name 'foo' in guild.yml conflicts with
-    Python package 'foo'...Provide a unique package name in guild.yml and
-    try again...")
+    >>> use_project("package-name-conflict")
+
+    >>> run("guild package")
+    guild: package name 'foo' in guild.yml conflicts with Python
+    package 'foo'
+    Provide a unique package name in guild.yml and try again.
+    <exit 1>
