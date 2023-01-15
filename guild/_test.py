@@ -713,7 +713,7 @@ def _examples_dir():
     try:
         return os.environ["EXAMPLES"]
     except KeyError:
-        return os.path.join(guild.__pkg_dir__, "examples")
+        return os.path.join(guild.__pkgdir__, "examples")
 
 
 def _default_examples_dir():
