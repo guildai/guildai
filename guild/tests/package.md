@@ -53,11 +53,10 @@ Packages specify how to build the package. Here are some attributes:
 The `package` command generates a Python wheel using the package
 definition in the Guild file.
 
-    >>> run("guild package")
+    >>> run("guild package", ignore=["package init file"])  # doctest: +REPORT_UDIFF
     running bdist_wheel
     running build
     running build_py
-    package init file './__init__.py' not found (or not a regular file)
     creating build
     creating build/lib
     creating build/lib/gpkg
@@ -83,12 +82,12 @@ definition in the Guild file.
     writing manifest file 'gpkg.hello.egg-info/SOURCES.txt'
     reading manifest file 'gpkg.hello.egg-info/SOURCES.txt'
     writing manifest file 'gpkg.hello.egg-info/SOURCES.txt'
-    Copying gpkg.hello.egg-info to build/.../wheel/gpkg.hello-0.3.0.dev4.egg-info
-    Installing build/.../wheel/gpkg.hello-0.3.0.dev4-nspkg.pth
+    Copying gpkg.hello.egg-info to build/.../wheel/gpkg.hello-0.3.0.dev4...egg-info
+    Installing build/.../wheel/gpkg.hello-0.3.0.dev4...-nspkg.pth
     running install_scripts
-    creating build/.../wheel/gpkg.hello-0.3.0.dev4.dist-info/WHEEL
+    creating build/.../wheel/gpkg.hello-0.3.0.dev4...dist-info/WHEEL
     creating 'dist/gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl' and adding 'build/.../wheel' to it
-    adding 'gpkg.hello-0.3.0.dev4-nspkg.pth'
+    adding 'gpkg.hello-0.3.0.dev4...-nspkg.pth'
     adding 'gpkg/hello/README.md'
     adding 'gpkg/hello/a.txt'
     adding 'gpkg/hello/guild.yml'
@@ -112,8 +111,8 @@ Wheels are zip files. We can read the contents of the generated file.
     >>> import zipfile
     >>> wheel_path = path("dist", "gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl")
     >>> wheel = zipfile.ZipFile(wheel_path)
-    >>> pprint(sorted(wheel.namelist()))
-    ['gpkg.hello-0.3.0.dev4-nspkg.pth',
+    >>> pprint(sorted(wheel.namelist()))  # doctest: +REPORT_UDIFF
+    ['gpkg.hello-0.3.0.dev4...-nspkg.pth',
      'gpkg.hello-0.3.0.dev4.dist-info/METADATA',
      'gpkg.hello-0.3.0.dev4.dist-info/PACKAGE',
      'gpkg.hello-0.3.0.dev4.dist-info/RECORD',
@@ -159,7 +158,7 @@ List the package contents.
 
     >>> wheel_path = path("dist", "test-0.0.0-py2.py3-none-any.whl")
     >>> wheel = zipfile.ZipFile(wheel_path)
-    >>> pprint(sorted(wheel.namelist()))
+    >>> pprint(sorted(wheel.namelist()))  # doctest: +REPORT_UDIFF
     ['test-0.0.0.dist-info/METADATA',
      'test-0.0.0.dist-info/PACKAGE',
      'test-0.0.0.dist-info/RECORD',
@@ -172,11 +171,10 @@ List the package contents.
 Use the `--clean` option to delete build artifacts before creating a
 package.
 
-    >>> run("guild package --clean")
+    >>> run("guild package --clean", ignore=["does not exist"])  # doctest: +REPORT_UDIFF
     running clean
     removing 'build/lib' (and everything under it)
     removing 'build/bdist.linux-x86_64' (and everything under it)
-    'build/scripts-3.10' does not exist -- can't clean it
     removing 'build'
     ...
     <exit 0>

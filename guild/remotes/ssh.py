@@ -910,7 +910,17 @@ def _run_info_args(
     return args
 
 
-def _check_args(tensorflow, pytorch, verbose, offline, space, version, env):
+def _check_args(
+    tensorflow,
+    pytorch,
+    verbose,
+    offline,
+    space,
+    version,
+    env,
+    fast,
+    r_script,
+):
     args = []
     if tensorflow:
         args.append("--tensorflow")
@@ -926,6 +936,10 @@ def _check_args(tensorflow, pytorch, verbose, offline, space, version, env):
         args.extend(["--version", version])
     if env:
         args.append("--env")
+    if fast:
+        args.append("--fast")
+    if r_script:
+        args.append("--r-script")
     return args
 
 

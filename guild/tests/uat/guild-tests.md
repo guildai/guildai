@@ -49,6 +49,7 @@ tests).
       copy-sourcecode-warnings:    ok
       cpu-plugin:                  ok
       cross-package-inheritance:   ok
+      cwd:                         ok
       debug-sourcecode:            ok
       delete-on-success:           ok
       dependencies:                ok

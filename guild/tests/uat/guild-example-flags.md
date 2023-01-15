@@ -155,8 +155,8 @@
       b  (default is no)
       f  (default is 1.123)
       i  (default is 123)
-      l  (default is 1 1.2 blue true)
-      s  (default is Howdy Guild)
+      l  (default is '1 1.2 blue true')
+      s  (default is 'Howdy Guild')
     <exit 0>
 
     >>> run("guild run config b=yes i=456 l='no green 2' -y")
@@ -203,7 +203,7 @@ Global dict param:
       b  (default is yes)
       f  (default is 1.123)
       i  (default is 123)
-      l  (default is 1 2 foo)
+      l  (default is '1 2 foo')
       s  (default is hello)
     <exit 0>
 
@@ -221,7 +221,7 @@ Namespace param:
       b  (default is no)
       f  (default is 1.123)
       i  (default is 123)
-      l  (default is 1 2 foo)
+      l  (default is '1 2 foo')
       s  (default is hello)
     <exit 0>
 
@@ -246,7 +246,7 @@ Globals support:
       b  (default is no)
       f  (default is 1.1)
       i  (default is 1)
-      l  (default is 1 2 foo)
+      l  (default is '1 2 foo')
       s  (default is hello)
     <exit 0>
 

@@ -21,27 +21,25 @@ Default scalars captured when running `train.py` as a script:
     step: 2
     loss: 1.234
     accuracy: 0.456
-    <exit 0>
 
     >>> run("guild runs info")
     id: ...
     scalars:
       accuracy: 0.456000 (step 2)
       loss: 1.234000 (step 2)
-    <exit 0>
 
 We can use the `--test-output-scalars` option of the `run` command to
 test custom output scalar patterns against sample script output.
 
     >>> run("echo 'foo: 1.123' | guild run train.py --test-output-scalars -")
     foo: 1.123
-      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': [('foo', '1.123')] (foo=1.123)
-    <exit 0>
+      '[^ \t]+: +[0-9\\.e\\-]+\\s+\\((?:step\\s+)?(?P<step>[0-9]+)\\)$': <no matches>
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)(?:\\s+\\(.*\\))?$': [('foo', '1.123')] (foo=1.123)
 
     >>> run("echo 'bar' | guild run train.py --test-output-scalars -")
     bar
-      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': <no matches>
-    <exit 0>
+      '[^ \t]+: +[0-9\\.e\\-]+\\s+\\((?:step\\s+)?(?P<step>[0-9]+)\\)$': <no matches>
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)(?:\\s+\\(.*\\))?$': <no matches>
 
 ## train
 
@@ -52,7 +50,6 @@ The project defines three operations:
     train2  Example using a generalized scalar pattern
     train3  Example disabling output scalars and using TF event files
     train4  Example using named groups to capture scalars
-    <exit 0>
 
 `train` defines a different set of scalars to capture.
 
@@ -66,14 +63,12 @@ Let's run it to see what's generated:
     step: 2
     loss: 1.234
     accuracy: 0.456
-    <exit 0>
 
     >>> run("guild runs info")
     id: ...
     scalars:
       accuracy: 0.456000 (step 2)
       loss: 1.234000 (step 2)
-    <exit 0>
 
 When we test a general `NAME: VAL` pattern for the `train` operation,
 we don't match unless `NAME` is either `loss`, `accuracy`, or `step`:
@@ -110,7 +105,6 @@ we don't match unless `NAME` is either `loss`, `accuracy`, or `step`:
       'accuracy: ([0-9\\.e\\-]+)': <no matches>
       'loss: ([0-9\\.e\\-]+)': <no matches>
       'step: ([0-9\\.e\\-]+)': <no matches>
-    <exit 0>
 
 Here are the other two operations:
 
@@ -122,23 +116,19 @@ Here are the other two operations:
     step: 2
     loss: 1.234
     accuracy: 0.456
-    <exit 0>
 
     >>> run("guild runs info")
     id: ...
     scalars:
       accuracy: 0.456000 (step 2)
       loss: 1.234000 (step 2)
-    <exit 0>
 
     >>> run("guild run train3 -y")
     Step 1: loss=2.235 accuracy=0.123
     Step 2: loss=1.234 accuracy=0.456
-    <exit 0>
 
     >>> run("guild runs info")
     id: ...
     scalars:
       accuracy: 0.456000 (step 2)
       loss: 1.234000 (step 2)...
-    <exit 0>
