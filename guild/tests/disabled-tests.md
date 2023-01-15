@@ -28,16 +28,6 @@ tests or deleting them from the suite.
     >>> for lineno, line, path in iter_test_lines():
     ...     if line.startswith("    >> ") or "+FIXME" in line:
     ...         print(f"# {path}:{lineno}: {line}")  # doctest: +REPORT_UDIFF
-    # multi-run-deps.md:5:     >> cd(sample("projects", "multi-run"))
-    # multi-run-deps.md:6:     >> set_guild_home(mkdtemp())
-    # multi-run-deps.md:8:     >> run("guild run up x=1 --run-id=1 -y")
-    # multi-run-deps.md:9:     >> run("guild run up x=2 --run-id=2 -y")
-    # multi-run-deps.md:10:     >> run("guild run up x=3 --run-id=3 -y")
-    # multi-run-deps.md:11:     >> run("guild run down --run-id=4 -y")
-    # multi-run-deps.md:12:     >> run("guild run down up=1 --run-id=5 -y")
-    # multi-run-deps.md:13:     >> run("guild run down up=1,3 --run-id=6 -y")
-    # multi-run-deps.md:14:     >> run("guild run down up='3 2' --run-id=7 -y")
-    # multi-run-deps.md:15:     >> run("guild runs")
     # uat/concurrent-queues.md:4: doctest: +FIXME
     # uat/dask-scheduler-resources.md:4: doctest: +FIXME
     # uat/dask-scheduler.md:4: doctest: +FIXME
