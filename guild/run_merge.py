@@ -151,7 +151,7 @@ def init_run_merge(
 def _init_manifest_index(run):
     """Returns a dict keyed by run path containing _ManifestEntry items."""
     try:
-        manifest = run_manifest.manifest_for_run(run)
+        manifest = run_manifest.manifest_for_run(run.dir)
     except FileNotFoundError as e:
         raise MergeError(f"run manifest does not exist for run {run.id}") from e
     else:

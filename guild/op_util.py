@@ -1969,7 +1969,7 @@ def handle_system_exit(e):
 
 
 def sourcecode_manifest_logger_cls(run_dir):
-    m = manifest.Manifest(run_manifest.run_manifest_path(run_dir), "a")
+    m = run_manifest.manifest_for_run(run_dir, "a")
 
     class Handler(SourceCodeCopyHandler):
         def _try_copy_file(self, src, dest):

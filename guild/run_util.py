@@ -515,7 +515,7 @@ def sourcecode_files(run):
     if not os.path.exists(manifest_path):
         log.debug("missing manifest %s - assuming no source code files", manifest_path)
         return []
-    with run_manifest.manifest_for_run(run) as m:
+    with run_manifest.manifest_for_run(run.dir) as m:
         return [entry[1] for entry in m if entry[0] == "s"]
 
 

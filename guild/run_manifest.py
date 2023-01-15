@@ -144,5 +144,5 @@ def run_manifest_path(run_dir):
     return os.path.join(run_dir, ".guild", "manifest")
 
 
-def manifest_for_run(run, mode="r"):
-    return manifest.Manifest(run_manifest_path(run.dir), mode)
+def manifest_for_run(run_dir, mode="r"):
+    return manifest.Manifest(run_manifest_path(run_dir), mode)

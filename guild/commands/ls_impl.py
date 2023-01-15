@@ -238,7 +238,7 @@ class _ManifestFilter:
 
 
 def _init_manifest_index(run):
-    with run_manifest.manifest_for_run(run) as m:
+    with run_manifest.manifest_for_run(run.dir) as m:
         return {entry[1]: entry[0] for entry in m}
 
 
