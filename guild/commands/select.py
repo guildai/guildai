@@ -80,7 +80,7 @@ def _ac_attr(ctx, _param, incomplete):
     help="Show specified run attribute rather than run ID.",
     shell_complete=_ac_attr,
 )
-@click.option("-p", "--path", help="Show run path.", is_flag=True)
+@click.option("-p", "--path", "--dir", help="Show run path.", is_flag=True)
 @runs_support.all_filters
 @click.pass_context
 @click_util.use_args

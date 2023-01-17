@@ -54,39 +54,39 @@ Create a helper function to list files.
 Default file listing:
 
     >>> ls()
-    aaa/
-    aaa/bb/
+    aaa
+    aaa/bb
     aaa/bb/c
 
 All files:
 
     >>> ls(all=True)
-    .eee/
-    .eee/.jj/
+    .eee
+    .eee/.jj
     .eee/.jj/k
     .eee/ff
-    .eee/gg/
+    .eee/gg
     .eee/gg/i
-    aaa/
-    aaa/bb/
+    aaa
+    aaa/bb
     aaa/bb/.d
     aaa/bb/c
 
 All files with pattern:
 
     >>> ls(all=True, path=".eee")
-    .eee/
-    .eee/.jj/
+    .eee
+    .eee/.jj
     .eee/.jj/k
     .eee/ff
-    .eee/gg/
+    .eee/gg
     .eee/gg/i
 
 Top-level dir pattern:
 
     >>> ls(path="aaa")
-    aaa/
-    aaa/bb/
+    aaa
+    aaa/bb
     aaa/bb/c
 
 A partial path doesn't match:
@@ -96,7 +96,7 @@ A partial path doesn't match:
 Subdir patterns:
 
     >>> ls(path="aaa/bb")
-    aaa/bb/
+    aaa/bb
     aaa/bb/c
 
     >>> ls(path="aaa/bb/c")
@@ -107,67 +107,67 @@ Subdir patterns:
 Selecting a hidden dir with a pattern:
 
     >>> ls(path=".eee")
-    .eee/
+    .eee
     .eee/ff
-    .eee/gg/
+    .eee/gg
     .eee/gg/i
 
     >>> ls(path=".eee", all=True)
-    .eee/
-    .eee/.jj/
+    .eee
+    .eee/.jj
     .eee/.jj/k
     .eee/ff
-    .eee/gg/
+    .eee/gg
     .eee/gg/i
 
     >>> ls(path=".eee/gg")
-    .eee/gg/
+    .eee/gg
     .eee/gg/i
 
     >>> ls(path=".eee/.jj")
-    .eee/.jj/
+    .eee/.jj
     .eee/.jj/k
 
 Glob style patterns:
 
     >>> ls(path="*")
-    aaa/
-    aaa/bb/
+    aaa
+    aaa/bb
     aaa/bb/c
 
     >>> ls(path="*", all=True)
-    .eee/
-    .eee/.jj/
+    .eee
+    .eee/.jj
     .eee/.jj/k
     .eee/ff
-    .eee/gg/
+    .eee/gg
     .eee/gg/i
-    aaa/
-    aaa/bb/
+    aaa
+    aaa/bb
     aaa/bb/.d
     aaa/bb/c
 
     >>> ls(path="aaa/*")
-    aaa/bb/
+    aaa/bb
     aaa/bb/c
 
     >>> ls(path="a*")
-    aaa/
-    aaa/bb/
+    aaa
+    aaa/bb
     aaa/bb/c
 
     >>> ls(path="a*", all=True)
-    aaa/
-    aaa/bb/
+    aaa
+    aaa/bb
     aaa/bb/.d
     aaa/bb/c
 
     >>> ls(path=".e*")
-    .eee/
+    .eee
     .eee/ff
-    .eee/gg/
+    .eee/gg
     .eee/gg/i
 
     >>> ls(path=".e*/.j*")
-    .eee/.jj/
+    .eee/.jj
     .eee/.jj/k

@@ -29,6 +29,7 @@ from guild import model as modellib
 from guild import plugin as pluginlib
 from guild import resolver as resolverlib
 from guild import resourcedef
+from guild import run_manifest
 from guild import util
 
 from . import dvc_util
@@ -36,7 +37,7 @@ from . import dvc_util
 log = logging.getLogger("guild")
 
 
-class _DvcModelProxy:
+class DvcModelProxy:
 
     name = "dvc.yaml"
 
@@ -152,7 +153,7 @@ def _init_dvc_model_reference(project_dir):
     return modellib.ModelRef("import", dvc_yaml_path, version, "dvc.yaml")
 
 
-class _Stage:
+class Stage:
     def __init__(self, name, config, project_dir):
         self.name = name
         self.config = config
@@ -167,7 +168,7 @@ class DvcPlugin(pluginlib.Plugin):
     def resolve_model_op(self, opspec):
         if opspec.startswith("dvc.yaml:"):
             target_stage = opspec[9:]
-            model = _DvcModelProxy(target_stage, os.path.abspath(config.cwd()))
+            model = DvcModelProxy(target_stage, os.path.abspath(config.cwd()))
             return model, target_stage
         return None
 
@@ -180,9 +181,9 @@ class DvcPlugin(pluginlib.Plugin):
 
     def resolver_class_for_source(self, source):
         if source.parsed_uri.scheme == "dvcfile":
-            return _DvcFileResolver
+            return DvcFileResolver
         if source.parsed_uri.scheme == "dvcstage":
-            return _DvcStageResolver
+            return DvcStageResolver
         return None
 
 
@@ -206,7 +207,11 @@ def _dvcfile_source(data, resdef):
         )
     always_pull = data_copy.pop("always-pull", False)
     remote = data_copy.pop("remote", None)
-    source = DvcResourceSource(resdef, f"dvcfile:{dep_spec}", **data_copy)
+    source = DvcResourceSource(
+        resdef,
+        f"dvcfile:{dep_spec}",
+        **resourcedef.coerce_source_data(data_copy),
+    )
     source.always_pull = always_pull
     source.remote = remote
     return source
@@ -223,7 +228,7 @@ def _dvcstage_source(data, resdef):
     return source
 
 
-class _DvcFileResolver(resolverlib.FileResolver):
+class DvcFileResolver(resolverlib.FileResolver):
     def resolve(self, context):
         return util.find_apply(
             [
@@ -250,7 +255,8 @@ class _DvcFileResolver(resolverlib.FileResolver):
         dep = self.source.parsed_uri.path
         run_dir = resolve_context.run.dir
         project_dir = self.resource.location
-        _ensure_dvc_repo(run_dir, project_dir)
+        repo_paths = _ensure_dvc_repo(run_dir, project_dir)
+        _log_repo_paths(repo_paths, run_dir, self.source)
         remote = self.source.remote
         pulled_dep_path = _pull_dvc_dep(dep, run_dir, project_dir, remote=remote)
         return [pulled_dep_path]
@@ -258,9 +264,15 @@ class _DvcFileResolver(resolverlib.FileResolver):
 
 def _ensure_dvc_repo(run_dir, project_dir):
     try:
-        dvc_util.ensure_dvc_repo(run_dir, project_dir)
+        return dvc_util.ensure_dvc_repo(run_dir, project_dir)
     except dvc_util.DvcInitError as e:
         raise resolverlib.ResolutionError(str(e))
+
+
+def _log_repo_paths(paths, run_dir, source):
+    with run_manifest.manifest_for_run(run_dir, mode="a") as m:
+        for path in sorted(paths):
+            m.write(run_manifest.interim_file_args(path, run_dir, source))
 
 
 def _pull_dvc_dep(dep, run_dir, project_dir, remote=None):
@@ -270,7 +282,7 @@ def _pull_dvc_dep(dep, run_dir, project_dir, remote=None):
         raise resolverlib.ResolutionError(str(e))
 
 
-class _DvcStageResolver(resolverlib.OperationResolver):
+class DvcStageResolver(resolverlib.OperationResolver):
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
         stage = self.source.parsed_uri.path
         status = ("completed", "staged") if include_staged else ("completed",)
@@ -296,7 +308,7 @@ def _iter_dvc_stages(dvc_config, project_dir):
     dvc_config = dvc_util.load_dvc_config(project_dir)
     for stage_name, stage_config in (dvc_config.get("stages") or {}).items():
         if _filter_dvc_stage(stage_name, stages_import):
-            yield _Stage(stage_name, stage_config, project_dir)
+            yield Stage(stage_name, stage_config, project_dir)
 
 
 def _coerce_dvc_stages_import(val):

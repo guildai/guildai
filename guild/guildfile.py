@@ -1602,7 +1602,7 @@ class ResourceDef(resourcedef.ResourceDef):
             return source
 
     def _source_for_type(self, type, val, data):
-        data = self._coerce_source_data(data)
+        data = resourcedef.coerce_source_data(data)
         if type == "operation":
             return resourcedef.ResourceSource(self, f"operation:{val}", **data)
         return super()._source_for_type(type, val, data)

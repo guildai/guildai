@@ -61,7 +61,7 @@ def _header(run, args):
 
 def _print_file_listing(run, args):
     for val in list_run_files(run, args):
-        _print_path(val, args)
+        _print_path(val, run, args)
 
 
 def list_run_files(run, args):
@@ -75,7 +75,7 @@ def _iter_files(run, args):
             full_path = os.path.join(root, name)
             rel_path = os.path.relpath(full_path, run.dir)
             if path_filter.match(rel_path):
-                yield _format_list_path(full_path, rel_path, args)
+                yield rel_path
             else:
                 if name in dirs:
                     path_filter.maybe_delete_dir(name, rel_path, dirs)
@@ -84,25 +84,22 @@ def _iter_files(run, args):
 def _path_filter(run, args):
     base_path_filter = _base_path_filter(args)
     manifest_file_types = _manifest_file_types(args)
-    if manifest_file_types:
-        return _ManifestFilter(run, manifest_file_types, base_path_filter)
-    return base_path_filter
+    if not manifest_file_types:
+        return base_path_filter
+    return _ManifestFilter(
+        run,
+        manifest_file_types,
+        base_path_filter,
+        args.follow_links,
+    )
 
 
 def _base_path_filter(args):
-    all = _all_flag_for_args(args)
     if args.path:
         if _is_pattern(args.path):
-            return _PatternFilter(args.path, all)
-        return _PathFilter(args.path, all)
-    return _DefaultFilter(all)
-
-
-def _all_flag_for_args(args):
-    # If any of the file type flags are specified (i.e. sourcecode,
-    # dependencies, or generated) show all files to ensure they are listed even
-    # if they're in hidden directories.
-    return args.all or args.sourcecode or args.dependencies or args.generated
+            return _PatternFilter(args.path, args.all)
+        return _PathFilter(args.path, args.all)
+    return _DefaultFilter(args.all or args.sourcecode)
 
 
 def _manifest_file_types(args):
@@ -217,48 +214,45 @@ class _ManifestFilter:
     manifest by definition but is inferred by the absence of a manifest entry.
     """
 
-    def __init__(self, run, entry_types, base_filter):
+    def __init__(self, run, entry_types, base_filter, follow_links):
         self.run = run
         self.entry_types = tuple(entry_types)
-        self.index = _init_manifest_index(run)
+        self.index = _init_manifest_index(run, follow_links)
         self.base_filter = base_filter
 
     def match(self, path):
-        if not os.path.isfile(os.path.join(self.run.dir, path)):
+        if not self.base_filter.match(path):
             return False
         entry_type = self.index.get(path)
         if not entry_type:
             if _split_path(path)[0] == ".guild":
                 return False
             entry_type = "g"
-        return entry_type in self.entry_types and self.base_filter.match(path)
+        return entry_type in self.entry_types
 
     def maybe_delete_dir(self, name, path, dirs):
         self.base_filter.maybe_delete_dir(name, path, dirs)
 
 
-def _init_manifest_index(run):
-    with run_manifest.manifest_for_run(run.dir) as m:
-        return {entry[1]: entry[0] for entry in m}
+def _init_manifest_index(run, follow_links):
+    return {
+        path: entry[0] if entry else None
+        for path, entry in run_manifest.iter_run_files(run.dir, follow_links)
+    }
 
 
-def _format_list_path(full_path, rel_path, args):
-    path = full_path if args.full_path else rel_path
-    return _ensure_trailing_slash_for_dir(path, full_path)
-
-
-def _ensure_trailing_slash_for_dir(path, full_path):
-    if os.path.isdir(full_path) and full_path[:-1] != os.path.sep:
-        return path + os.path.sep
-    return path
-
-
-def _print_path(path, args):
+def _print_path(path, run, args):
+    full_path = os.path.join(run.dir, path)
     if args.full_path:
-        path = os.path.abspath(path)
-    if not path:
-        return
+        path = full_path
+    path = _ensure_trailing_slash_for_dir(path, full_path)
     if args.no_format or args.full_path:
         cli.out(path)
     else:
         cli.out(f"  {path}")
+
+
+def _ensure_trailing_slash_for_dir(path, full_path):
+    if os.path.isdir(full_path) and full_path[:-1] != os.path.sep:
+        path += os.path.sep
+    return path

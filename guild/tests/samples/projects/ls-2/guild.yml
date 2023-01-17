@@ -1,11 +1,25 @@
 - operations:
     op:
+      sourcecode:
+        - exclude: link-target
       requires: dependencies
+
+    op-2:
+      main: op
+      sourcecode:
+        - exclude: link-target
+      requires:
+        - file: link-target
+          target-type: link
+          rename: linked
+        - file: dep-1.txt
 
     op-legacy-sourcecode-dest:
       main: op
       sourcecode:
         dest: .guild/sourcecode
+        select:
+          - exclude: link-target
       requires: dependencies
 
   resources:

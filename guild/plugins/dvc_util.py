@@ -177,76 +177,110 @@ def _filter_run_status(run, status):
 
 
 def ensure_dvc_repo(run_dir, project_dir):
-    _ensure_git_repo(run_dir)
-    _ensure_dvc_config(run_dir, project_dir)
-    _ensure_shared_dvc_cache(run_dir, project_dir)
+    repo_deps = []
+    _ensure_git_repo(run_dir, repo_deps)
+    _ensure_dvc_config(run_dir, project_dir, repo_deps)
+    _ensure_shared_dvc_cache(run_dir, project_dir, repo_deps)
+    _ensure_dvc_interim_stubs(run_dir, repo_deps)
+    return repo_deps
 
 
-def _ensure_git_repo(run_dir):
+def _ensure_git_repo(run_dir, repo_deps):
+    git_repo_dir = os.path.join(run_dir, ".git")
+    if os.path.exists(git_repo_dir):
+        return
     try:
         _ignored = subprocess.check_output(["git", "init"], cwd=run_dir)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         raise DvcInitError(
             f"cannot initialize Git in run directory {run_dir} "
             "(required for 'dvc pull') - is Git installed and "
             "available on the path?"
-        ) from e
-    except subprocess.CalledProcessError as e:
+        ) from None
+    except subprocess.CalledProcessError:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("initializing Git repo in %s", run_dir)
         raise DvcInitError(
             f"error initializing Git repo in run directory {run_dir} "
             "(required for 'dvc pull')"
-        ) from e
+        ) from None
+    else:
+        repo_deps.append(git_repo_dir)
 
 
-def _ensure_dvc_config(run_dir, project_dir):
+def _ensure_dvc_config(run_dir, project_dir, repo_deps):
     if os.path.exists(os.path.join(run_dir, ".dvc", "config")):
         return
-    util.find_apply(
-        [
-            _try_copy_dvc_config,
-            _try_copy_dvc_config_in,
-            _no_dvc_config_resolution_error,
-        ],
-        project_dir,
-        run_dir,
-    )
+    try:
+        util.try_apply(
+            [_try_copy_dvc_config, _try_copy_dvc_config_in],
+            project_dir,
+            run_dir,
+            repo_deps,
+        )
+    except util.TryFailed:
+        _no_dvc_config_resolution_error(project_dir)
 
 
-def _try_copy_dvc_config(project_dir, run_dir):
+def _try_copy_dvc_config(project_dir, run_dir, repo_deps):
     src = os.path.join(project_dir, ".dvc", "config")
     if not os.path.exists(src):
-        return None
+        raise util.TryFailed()
     dest = os.path.join(run_dir, ".dvc", "config")
     util.ensure_dir(os.path.dirname(dest))
     util.copyfile(src, dest)
-    return dest
+    repo_deps.append(dest)
 
 
-def _try_copy_dvc_config_in(project_dir, run_dir):
+def _try_copy_dvc_config_in(project_dir, run_dir, repo_deps):
     src = os.path.join(project_dir, "dvc.config.in")
     if not os.path.exists(src):
-        return None
+        raise util.TryFailed()
     dest = os.path.join(run_dir, ".dvc", "config")
     util.ensure_dir(os.path.dirname(dest))
     util.copyfile(src, dest)
-    return dest
+    repo_deps.append(dest)
 
 
-def _no_dvc_config_resolution_error(project_dir, _run_dir):
+def _no_dvc_config_resolution_error(project_dir):
     raise DvcInitError(
         "cannot find DvC config ('.dvc/config' or 'dvc.config.in') "
         f"in {os.path.relpath(project_dir)} (required for 'dvc pull')"
     )
 
 
-def _ensure_shared_dvc_cache(run_dir, project_dir):
+def _ensure_shared_dvc_cache(run_dir, project_dir, repo_deps):
     dest = os.path.join(run_dir, ".dvc", "cache")
     if os.path.exists(dest):
         return
     src = os.path.join(project_dir, ".dvc", "cache")
-    if not os.path.exists(src):
+    if os.path.exists(src):
+        util.symlink(src, dest)
+    else:
+        util.ensure_dir(os.path.dirname(dest))
+        util.ensure_dir(dest)
+    repo_deps.append(dest)
+
+
+def _ensure_dvc_interim_stubs(run_dir, repo_deps):
+    _ensure_dvc_gitignore(run_dir, repo_deps)
+    _ensure_dvc_tmpdir(run_dir, repo_deps)
+
+
+def _ensure_dvc_gitignore(run_dir, repo_deps):
+    gitignore_path = os.path.join(run_dir, ".dvc", ".gitignore")
+    if os.path.exists(gitignore_path):
         return
-    util.symlink(src, dest)
+    util.touch(gitignore_path)
+    repo_deps.append(gitignore_path)
+
+
+def _ensure_dvc_tmpdir(run_dir, repo_deps):
+    tmpdir_path = os.path.join(run_dir, ".dvc", "tmp")
+    if os.path.exists(tmpdir_path):
+        return
+    os.mkdir(tmpdir_path)
+    repo_deps.append(tmpdir_path)
 
 
 def pull_dvc_dep(dep, run_dir, project_dir, remote=None):

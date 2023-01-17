@@ -807,13 +807,20 @@ files and for reading run flags.
     >>> run = runlib.for_dir(mkdtemp())
     >>> run.init_skel()
 
-    >>> resolve(simple_config, run)
+XXX - failing here, not sure why...
+
+    >> resolve(simple_config, run)
     {'resolved': ['<run-dir>/.guild/generated/.../config.yml'],
      'staged': ['.guild/attrs/id',
                 '.guild/attrs/initialized',
                 '.guild/generated/.../config.yml',
                 'config.yml'],
      'unpacked': []}
+
+    {'resolved': ['<run-dir>/.guild/generated/rxq1j21e/config.yml'],
+     'staged': ['.guild/attrs/id', '.guild/attrs/initialized', 'config.yml'],
+     'unpacked': []}
+
 
 And the config:
 

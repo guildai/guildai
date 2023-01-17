@@ -111,7 +111,7 @@ class ResourceDef:
         return self._source_for_type(type_name, type_val, data_copy)
 
     def _source_for_type(self, type, val, data):
-        data = self._coerce_source_data(data)
+        data = coerce_source_data(data)
         if type == "file":
             return ResourceSource(self, f"file:{val}", **data)
         if type == "url":
@@ -123,12 +123,12 @@ class ResourceDef:
         raise AssertionError(type, val, data)
 
     @staticmethod
-    def _coerce_source_data(data):
-        return {name.replace("-", "_"): data[name] for name in data}
-
-    @staticmethod
     def _uncoerce_attr_key(key):
         return key.replace("_", "-")
+
+
+def coerce_source_data(data):
+    return {name.replace("-", "_"): data[name] for name in data}
 
 
 def _coerce_resdef(data):

@@ -337,7 +337,11 @@ def _resolve_source_for_path(
 ):
     target_type = _target_type_for_source(source)
     target_path = _target_path_for_source(
-        source_path, source_origin, source, target_dir, resolve_flag_refs
+        source_path,
+        source_origin,
+        source,
+        target_dir,
+        resolve_flag_refs,
     )
     resolved_source = ResolvedSource(
         source,
@@ -346,10 +350,10 @@ def _resolve_source_for_path(
         source_path,
         source_origin,
     )
-    if _resolved_directly_to_run_dir(source_path, target_path):
-        # Source already resolved, nothing to do
-        return resolved_source
-    if target_type == "link":
+    if _resolved_to_target_dir(source_path, target_dir):
+        if _rename_needed(source_path, target_path):
+            _rename_source(source_path, target_path, source.replace_existing)
+    elif target_type == "link":
         _link_to_source(source_path, target_path, source.replace_existing)
     elif target_type == "copy":
         _copy_source(source_path, target_path, source.replace_existing)
@@ -377,7 +381,11 @@ def _validate_target_type(val, desc):
 
 
 def _target_path_for_source(
-    source_path, source_origin, source, target_dir, resolve_flag_refs
+    source_path,
+    source_origin,
+    source,
+    target_dir,
+    resolve_flag_refs,
 ):
     """Returns target path for source.
 
@@ -392,7 +400,7 @@ def _target_path_for_source(
         )
     basename = os.path.basename(source_path)
     if source.rename:
-        basename = _rename_source(basename, source.rename, resolve_flag_refs)
+        basename = _renamed_source_path(basename, source.rename, resolve_flag_refs)
     return os.path.join(target_dir, target_path, basename)
 
 
@@ -408,45 +416,20 @@ def _source_target_path(source, source_path, source_origin):
     return target_path_attr or source.resdef.target_path or ""
 
 
-def _resolved_directly_to_run_dir(source_path, target_path):
-    """Returns True if a resource was resolved directly to the run dir.
+def _resolved_to_target_dir(source_path, target_dir):
+    """Returns true if a source was resolved directory to a target dir.
 
-    This is inferred when source path is the same as target path.
+    A source is considered resolved to a target directory if the
+    target directory is an ancestore of the source path.
     """
-    return util.compare_paths(source_path, target_path)
+    return source_path.startswith(target_dir)
 
 
-def _link_to_source(source_path, link, replace_existing=False):
-    assert os.path.isabs(link), link
-    source_path = util.strip_trailing_sep(source_path)
-    if os.path.lexists(link) or os.path.exists(link):
-        if not replace_existing:
-            log.warning("%s already exists, skipping link", link)
-            return
-        log.debug("deleting existing source link %s", link)
-        util.safe_rmtree(link)
-    util.ensure_dir(os.path.dirname(link))
-    log.debug("resolving source %s as link %s", source_path, link)
-    source_rel_path = _source_rel_path(source_path, link)
-    try:
-        util.symlink(source_rel_path, link)
-    except OSError as e:
-        _handle_source_link_error(e)
+def _rename_needed(source_path, target_path):
+    return source_path != target_path
 
 
-def _source_rel_path(source, link):
-    source_dir, source_name = os.path.split(source)
-    real_link = util.realpath(link)
-    link_dir = os.path.dirname(real_link)
-    source_rel_dir = os.path.relpath(source_dir, link_dir)
-    return os.path.join(source_rel_dir, source_name)
-
-
-def _handle_source_link_error(e):
-    raise OpDependencyError(f"unable to link to dependency source: {e}")
-
-
-def _rename_source(name, rename, resolve_flag_refs):
+def _renamed_source_path(name, rename, resolve_flag_refs):
     for spec in rename:
         try:
             pattern = resolve_flag_refs(spec.pattern)
@@ -471,20 +454,60 @@ def _rename_source(name, rename, resolve_flag_refs):
     return name
 
 
-def _copy_source(source_path, dest_path, replace_existing=False):
+def _gen_apply_source(source_path, dest_path, replace_existing, apply_cb):
     assert os.path.isabs(dest_path), dest_path
+    source_path = util.strip_trailing_sep(source_path)
     if os.path.lexists(dest_path) or os.path.exists(dest_path):
         if not replace_existing:
-            log.warning("%s already exists, skipping copy", dest_path)
+            log.warning("%s already exists, skipping %s", dest_path, apply_cb.__name__)
             return
         log.debug("deleting existing source dest %s", dest_path)
         util.safe_rmtree(dest_path)
     util.ensure_dir(os.path.dirname(dest_path))
-    log.debug("resolving source %s as copy %s", source_path, dest_path)
-    if os.path.isdir(source_path):
-        util.copytree(source_path, dest_path)
-    else:
-        util.copyfile(source_path, dest_path)
+    log.debug(
+        "resolving source %s as %s (%s)", source_path, dest_path, apply_cb.__name__
+    )
+    apply_cb()
+
+
+def _copy_source(source_path, dest_path, replace_existing=False):
+    def copy():
+        if os.path.isdir(source_path):
+            util.copytree(source_path, dest_path)
+        else:
+            util.copyfile(source_path, dest_path)
+
+    _gen_apply_source(source_path, dest_path, replace_existing, copy)
+
+
+def _link_to_source(source_path, dest_path, replace_existing=False):
+    def link():
+        source_rel_path = _source_rel_path(source_path, dest_path)
+        try:
+            util.symlink(source_rel_path, dest_path)
+        except OSError as e:
+            _handle_source_link_error(e)
+
+    _gen_apply_source(source_path, dest_path, replace_existing, link)
+
+
+def _source_rel_path(source, dest_path):
+    source_dir, source_name = os.path.split(source)
+    real_path = util.realpath(dest_path)
+    path_dir = os.path.dirname(real_path)
+    source_rel_dir = os.path.relpath(source_dir, path_dir)
+    return os.path.join(source_rel_dir, source_name)
+
+
+def _handle_source_link_error(e):
+    raise OpDependencyError(f"unable to link to dependency source: {e}")
+
+
+def _rename_source(source_path, dest_path, replace_existing=False):
+    def rename():
+        os.rename(source_path, dest_path)
+
+    _gen_apply_source(source_path, dest_path, replace_existing, rename)
 
 
 ###################################################################

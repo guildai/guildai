@@ -42,7 +42,7 @@ def normalize_path(path):
     return path.replace(os.sep, "/")
 
 
-def resolved_source_args(resolved):
+def resolved_source_args(resolved_source):
     """Returns manifest args for a resolved resource source (dependency).
 
     Args:
@@ -64,9 +64,9 @@ def resolved_source_args(resolved):
     When a source is an archive, the URI is followed by the
     archive-relative subpath to the resolved source.
     """
-    dest_arg = _relpath(resolved.target_path, resolved.target_root)
-    hash_arg = _resolved_source_hash_manifest_arg(resolved.target_path)
-    src_args = _resolved_source_src_manifest_args(resolved)
+    dest_arg = _relpath(resolved_source.target_path, resolved_source.target_root)
+    hash_arg = _resolved_source_hash_manifest_arg(resolved_source.target_path)
+    src_args = _resolved_source_src_manifest_args(resolved_source)
     return ["d", dest_arg, hash_arg] + src_args
 
 
@@ -140,9 +140,71 @@ def _strip_resource_hash(relpath):
     return os.path.sep.join(parts[1:])
 
 
+def interim_file_args(run_file, run_dir, source):
+    """Returns manifest args for an interim file or directory.
+
+    Args:
+
+        ['i', run_relative_path, source_uri]
+
+    `source_uri` is the URI of the resolved source associated with the
+    interim files.
+    """
+    dest_arg = _relpath(run_file, run_dir)
+    return ["i", dest_arg, source.uri]
+
+
 def run_manifest_path(run_dir):
     return os.path.join(run_dir, ".guild", "manifest")
 
 
 def manifest_for_run(run_dir, mode="r"):
     return manifest.Manifest(run_manifest_path(run_dir), mode)
+
+
+def iter_run_files(run_dir, followlinks=False):
+    entries = {args[1]: args for args in read_manifest_entries(run_dir)}
+    for path, dirs, files in os.walk(run_dir, followlinks=followlinks):
+        rel_path = _relpath_for_iter_files(path, run_dir)
+        for name in dirs + files:
+            file_path = os.path.join(rel_path, name)
+            entry = entries.get(file_path)
+            if entry:
+                yield file_path, entry
+                continue
+            if _is_guild_path(file_path):
+                continue
+            if name in files:
+                yield file_path, _try_parent_dirs(file_path, entries)
+
+
+def _relpath_for_iter_files(path, run_dir):
+    relpath = os.path.relpath(path, run_dir)
+    return relpath if relpath != "." else ""
+
+
+def _is_guild_path(path):
+    return path.split(os.path.sep, 1)[0] == ".guild"
+
+
+def _try_parent_dirs(path, entries):
+    """Looks for `path` parent dirs in `entries`.
+
+    Has the side-effect of writing found parent entries to `entries`
+    for the direct parent of `path` as an optimization for future
+    lookups.
+    """
+    dirname = dirname0 = os.path.dirname(path)
+    while dirname:
+        entry = entries.get(dirname)
+        if entry:
+            if dirname != dirname0:
+                entries[dirname0] = entry
+            return entry
+        dirname = os.path.dirname(dirname)
+    return None
+
+
+def read_manifest_entries(run_dir):
+    with manifest_for_run(run_dir) as m:
+        return list(m)

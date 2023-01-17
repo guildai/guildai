@@ -60,14 +60,30 @@ dependencies) using the `-g/--generated` option.
 
     >>> guild_run("ls -g")
     ???/runs/aaaa:
+      a
+      b
+      c/
+      c/d.txt
+      c/e.txt
+      c/f.bin
+      l/
+    <exit 0>
+
+The two generated files under `.foo` are not shown by default. We need
+the `--all` option.
+
+    >>> guild_run("ls -ga")
+    ???/runs/aaaa:
+      .foo/
       .foo/.bar
       .foo/baz
       a
       b
+      c/
       c/d.txt
       c/e.txt
       c/f.bin
-    <exit 0>
+      l/
 
 The directory header can be dropped with `-n, --no-format`.
 
@@ -110,12 +126,12 @@ Show the full path for a list with `--full-path`.
     ???/runs/aaaa/README.md
     .../runs/aaaa/a
     .../runs/aaaa/b
-    .../runs/aaaa/c
+    .../runs/aaaa/c/
     .../runs/aaaa/c/d.txt
     .../runs/aaaa/c/e.txt
     .../runs/aaaa/c/f.bin
     .../runs/aaaa/guild.yml
-    .../runs/aaaa/l
+    .../runs/aaaa/l/
     .../runs/aaaa/make_fs.py
     <exit 0>
 
@@ -329,12 +345,12 @@ And to `--full-path` options.
     ???/runs/aaaa/README.md
     .../runs/aaaa/a
     .../runs/aaaa/b
-    .../runs/aaaa/c
+    .../runs/aaaa/c/
     .../runs/aaaa/c/d.txt
     .../runs/aaaa/c/e.txt
     .../runs/aaaa/c/f.bin
     .../runs/aaaa/guild.yml
-    .../runs/aaaa/l
+    .../runs/aaaa/l/
     .../runs/aaaa/l/d.txt
     .../runs/aaaa/l/e.txt
     .../runs/aaaa/l/f.bin
@@ -366,7 +382,7 @@ Results can be filtered using a `--path` option.
     <exit 0>
 
     >>> guild_run("ls -p c --full-path")
-    ???/runs/aaaa/c
+    ???/runs/aaaa/c/
     .../runs/aaaa/c/d.txt
     .../runs/aaaa/c/e.txt
     .../runs/aaaa/c/f.bin

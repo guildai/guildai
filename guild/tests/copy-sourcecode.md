@@ -789,6 +789,8 @@ source code.
     >>> run("guild ls -n --dependencies")
     config.yml
 
+Show source code.
+
     >>> run("guild ls -n --sourcecode")
     .hidden/file-1
     .hidden/file-2
@@ -800,6 +802,9 @@ source code.
     hello.py
     subdir/logo.png
     venv/bin/activate
+
+Note that Guild shows all source code files even if they're under
+hidden (dot-named) directories.
 
 When we run `downstream-conflict` we see the conflict.
 
