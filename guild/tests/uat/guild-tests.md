@@ -145,6 +145,7 @@ tests).
       runs-1:                      ok
       runs-2:                      ok
       scalars:                     ok
+      select-op-files:             ok
       select-resources:            ok
       select-runs:                 ok
       select-runs-2:               ok

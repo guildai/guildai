@@ -377,19 +377,44 @@ class opref_match_filter:
 
 def _resolve_run_files(run, source, unpack_dir):
     resolved = resolve_source_files(run.dir, source, unpack_dir)
-    if not source.select:
-        # If select not specified, ensure that result does not contain source
-        # code files (i.e. contains only dependencies and generated files)
-        return _filter_non_sourcecode_files(resolved, run)
-    return resolved
+    if source.select:
+        # If source has `select` attr, assume resolved is as intended
+        return resolved
+    return _filter_default_run_files_for_resolve(resolved, run)
 
 
-def _filter_non_sourcecode_files(paths, run):
-    from guild import run_util
+def _filter_default_run_files_for_resolve(paths, run):
+    index = set(_default_run_files_for_resolve(run))
+    return [path for path in paths if path in index]
 
-    sourcecode = set(run_util.sourcecode_files(run))
-    is_sourcecode = lambda path: os.path.relpath(path, run.dir) in sourcecode
-    return [path for path in paths if not is_sourcecode(path)]
+
+def _default_run_files_for_resolve(run):
+    from guild import run_manifest
+
+    filter_manifest_entry = _default_run_files_filter()
+    return [
+        os.path.join(run.dir, path)
+        for path, entry in run_manifest.iter_run_files(run.dir)
+        if filter_manifest_entry(entry)
+    ]
+
+
+def _default_run_files_filter():
+    """Returns a filer function for default run file select.
+
+    By default, Guild only selects generated files for a run. This
+    implied by a manifest entry of None.
+
+    If the environment variable `GUILD_LEGACY_OPDEP_SELECT` is `1`,
+    the filter selects generated and dependencies. If
+    `GUILD_LEGACY_OPDEP_SELECT` is `2`, the filter selects all files,
+    including any source code files in the upstream run root.
+    """
+    if os.getenv("GUILD_LEGACY_OPDEP_SELECT") == "1":
+        return lambda entry: entry is None or entry[0] == "d"
+    if os.getenv("GUILD_LEGACY_OPDEP_SELECT") == "2":
+        return lambda _entry: True
+    return lambda entry: entry is None
 
 
 ###################################################################
