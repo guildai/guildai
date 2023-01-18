@@ -92,6 +92,7 @@ tests).
       logging:                     ok
       long-run-names:              ok
       ls-cmd:                      ok
+      ls-cmd-2:                    ok
       ls-impl:                     ok
       manifest:                    ok
       marked-runs:                 ok
