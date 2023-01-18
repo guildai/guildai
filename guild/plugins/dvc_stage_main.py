@@ -24,6 +24,7 @@ from guild import op_util
 
 from guild import run as runlib
 
+from guild import run_manifest
 from guild import summary
 from guild import util
 
@@ -42,6 +43,8 @@ class State:
         self.ran_stages = []
         self.dvc_config = _load_dvc_yaml(project_dir)
         self.parent_run = op_util.current_run()
+        self.manifest_entries = []
+        self.source_uri = f"dvcstage:{self.target_stage}"
 
 
 def _assert_dvc_yaml(project_dir):
@@ -98,6 +101,7 @@ def _handle_stage(state):
     _init_run_dir(state)
     _repro_run(state)
     _log_metrics_as_summaries(state)
+    _update_run_manifest(state)
 
 
 def _init_run_dir(state):
@@ -114,18 +118,38 @@ def _write_run_attrs(state):
 
 
 def _init_dvc_repo(state):
+    repo_paths = []
     try:
-        dvc_util.ensure_dvc_repo(state.run_dir, state.project_dir)
+        dvc_util.ensure_dvc_repo(state.run_dir, state.project_dir, repo_paths)
     except dvc_util.DvcInitError as e:
         raise SystemExit(str(e)) from e
+    else:
+        state.manifest_entries.extend(
+            _interim_file_entries_for_repo_paths(repo_paths, state)
+        )
+
+
+def _interim_file_entries_for_repo_paths(repo_paths, state):
+    return [_interim_file_entry_for_path(path, state) for path in repo_paths]
+
+
+def _interim_file_entry_for_path(path, state):
+    return run_manifest.interim_file_args(
+        state.run_dir,
+        os.path.relpath(path, state.run_dir),
+        state.source_uri,
+    )
 
 
 def _copy_dvc_yaml(state):
+    dest = os.path.join(state.run_dir, "dvc.yaml")
+    if os.path.exists(dest):
+        return
     src = os.path.join(state.project_dir, "dvc.yaml")
     if not os.path.exists(src):
         raise SystemExit("missing dvc.yaml - cannot run DvC stage")
-    dest = os.path.join(state.run_dir, "dvc.yaml")
     util.copyfile(src, dest)
+    state.manifest_entries.append(_interim_file_entry_for_path(dest, state))
 
 
 def _resolve_deps(state):
@@ -166,6 +190,16 @@ def _link_op_deps(run, deps, state):
         log.info("Linking %s", dep)
         util.ensure_dir(os.path.dirname(link))
         util.symlink(rel_target, link)
+        state.manifest_entries.append(_dep_entry_for_op_link(dep, state))
+
+
+def _dep_entry_for_op_link(dep, state):
+    return run_manifest.generic_dependency_args(
+        state.run_dir,
+        dep,
+        state.source_uri,
+        dep,
+    )
 
 
 def _resolve_project_deps(deps, state):
@@ -197,6 +231,7 @@ def _copy_project_file(src, dep, state):
     dest = os.path.join(state.run_dir, dep)
     log.info("Copying %s", dep)
     util.copyfile(src, dest)
+    print(f"##### DEP 2 {src} -> {dest}")
 
 
 def _link_project_file(src, dep, state):
@@ -204,6 +239,7 @@ def _link_project_file(src, dep, state):
     rel_src = os.path.relpath(src, os.path.dirname(link))
     log.info("Linking to %s", dep)
     util.symlink(rel_src, link)
+    print(f"##### DEP 3 {rel_src} -> {link}")
 
 
 def _pull_dep(dep, state):
@@ -212,6 +248,17 @@ def _pull_dep(dep, state):
         dvc_util.pull_dvc_dep(dep, state.run_dir, state.project_dir)
     except dvc_util.DvcPullError as e:
         raise SystemExit(str(e)) from e
+    else:
+        state.manifest_entries.append(_dep_entry_for_pull(dep, state))
+
+
+def _dep_entry_for_pull(dep, state):
+    return run_manifest.generic_dependency_args(
+        state.run_dir,
+        dep,
+        state.source_uri,
+        dep,
+    )
 
 
 def _copy_params_with_flags(state):
@@ -227,6 +274,7 @@ def _copy_params_with_flags(state):
             )
         log.info("Copying %s", name)
         util.copyfile(src, dest)
+        print(f"##### DEP 5 {src} -> {dest}")
 
 
 def _iter_stage_param_files(state):
@@ -244,6 +292,7 @@ def _repro_run(state):
     if not _debug_enabled():
         cmd.append("--quiet")
     log.info("Running stage '%s'", state.target_stage)
+    state.manifest_entries.extend(_interim_file_entries_for_repro_cmd(state))
     p = subprocess.Popen(cmd, cwd=state.run_dir)
     returncode = p.wait()
     if returncode != 0:
@@ -255,6 +304,19 @@ def _repro_run(state):
 
 def _debug_enabled():
     return log.getEffectiveLevel() <= logging.DEBUG
+
+
+def _interim_file_entries_for_repro_cmd(state):
+    # Files implicitly created when running `dvc repro` - these are
+    # logged as interim files so as not to be treated as generated
+    relpaths = [".gitignore", "dvc.lock"]
+    return [
+        _interim_file_entry_for_path(
+            os.path.join(state.run_dir, path),
+            state,
+        )
+        for path in relpaths
+    ]
 
 
 def _log_metrics_as_summaries(state):
@@ -275,6 +337,12 @@ def _iter_metrics_scalars(data):
     for name, val in flattened_data.items():
         if isinstance(val, (int, float)):
             yield name, val
+
+
+def _update_run_manifest(state):
+    with run_manifest.manifest_for_run(state.run_dir, mode="a") as m:
+        for args in state.manifest_entries:
+            m.write(args)
 
 
 if __name__ == "__main__":

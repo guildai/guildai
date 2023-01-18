@@ -176,16 +176,14 @@ def _filter_run_status(run, status):
     return run.status in status
 
 
-def ensure_dvc_repo(run_dir, project_dir):
-    repo_deps = []
-    _ensure_git_repo(run_dir, repo_deps)
-    _ensure_dvc_config(run_dir, project_dir, repo_deps)
-    _ensure_shared_dvc_cache(run_dir, project_dir, repo_deps)
-    _ensure_dvc_interim_stubs(run_dir, repo_deps)
-    return repo_deps
+def ensure_dvc_repo(run_dir, project_dir, resolved_repo_paths):
+    _ensure_git_repo(run_dir, resolved_repo_paths)
+    _ensure_dvc_config(run_dir, project_dir, resolved_repo_paths)
+    _ensure_shared_dvc_cache(run_dir, project_dir, resolved_repo_paths)
+    _ensure_dvc_interim_stubs(run_dir, resolved_repo_paths)
 
 
-def _ensure_git_repo(run_dir, repo_deps):
+def _ensure_git_repo(run_dir, resolved_repo_paths):
     git_repo_dir = os.path.join(run_dir, ".git")
     if os.path.exists(git_repo_dir):
         return
@@ -205,10 +203,10 @@ def _ensure_git_repo(run_dir, repo_deps):
             "(required for 'dvc pull')"
         ) from None
     else:
-        repo_deps.append(git_repo_dir)
+        resolved_repo_paths.append(git_repo_dir)
 
 
-def _ensure_dvc_config(run_dir, project_dir, repo_deps):
+def _ensure_dvc_config(run_dir, project_dir, resolved_repo_paths):
     if os.path.exists(os.path.join(run_dir, ".dvc", "config")):
         return
     try:
@@ -216,30 +214,30 @@ def _ensure_dvc_config(run_dir, project_dir, repo_deps):
             [_try_copy_dvc_config, _try_copy_dvc_config_in],
             project_dir,
             run_dir,
-            repo_deps,
+            resolved_repo_paths,
         )
     except util.TryFailed:
         _no_dvc_config_resolution_error(project_dir)
 
 
-def _try_copy_dvc_config(project_dir, run_dir, repo_deps):
+def _try_copy_dvc_config(project_dir, run_dir, resolved_repo_paths):
     src = os.path.join(project_dir, ".dvc", "config")
     if not os.path.exists(src):
         raise util.TryFailed()
     dest = os.path.join(run_dir, ".dvc", "config")
     util.ensure_dir(os.path.dirname(dest))
     util.copyfile(src, dest)
-    repo_deps.append(dest)
+    resolved_repo_paths.append(dest)
 
 
-def _try_copy_dvc_config_in(project_dir, run_dir, repo_deps):
+def _try_copy_dvc_config_in(project_dir, run_dir, resolved_repo_paths):
     src = os.path.join(project_dir, "dvc.config.in")
     if not os.path.exists(src):
         raise util.TryFailed()
     dest = os.path.join(run_dir, ".dvc", "config")
     util.ensure_dir(os.path.dirname(dest))
     util.copyfile(src, dest)
-    repo_deps.append(dest)
+    resolved_repo_paths.append(dest)
 
 
 def _no_dvc_config_resolution_error(project_dir):
@@ -249,7 +247,7 @@ def _no_dvc_config_resolution_error(project_dir):
     )
 
 
-def _ensure_shared_dvc_cache(run_dir, project_dir, repo_deps):
+def _ensure_shared_dvc_cache(run_dir, project_dir, resolved_repo_paths):
     dest = os.path.join(run_dir, ".dvc", "cache")
     if os.path.exists(dest):
         return
@@ -259,28 +257,28 @@ def _ensure_shared_dvc_cache(run_dir, project_dir, repo_deps):
     else:
         util.ensure_dir(os.path.dirname(dest))
         util.ensure_dir(dest)
-    repo_deps.append(dest)
+    resolved_repo_paths.append(dest)
 
 
-def _ensure_dvc_interim_stubs(run_dir, repo_deps):
-    _ensure_dvc_gitignore(run_dir, repo_deps)
-    _ensure_dvc_tmpdir(run_dir, repo_deps)
+def _ensure_dvc_interim_stubs(run_dir, resolved_repo_paths):
+    _ensure_dvc_gitignore(run_dir, resolved_repo_paths)
+    _ensure_dvc_tmpdir(run_dir, resolved_repo_paths)
 
 
-def _ensure_dvc_gitignore(run_dir, repo_deps):
+def _ensure_dvc_gitignore(run_dir, resolved_repo_paths):
     gitignore_path = os.path.join(run_dir, ".dvc", ".gitignore")
     if os.path.exists(gitignore_path):
         return
     util.touch(gitignore_path)
-    repo_deps.append(gitignore_path)
+    resolved_repo_paths.append(gitignore_path)
 
 
-def _ensure_dvc_tmpdir(run_dir, repo_deps):
+def _ensure_dvc_tmpdir(run_dir, resolved_repo_paths):
     tmpdir_path = os.path.join(run_dir, ".dvc", "tmp")
     if os.path.exists(tmpdir_path):
         return
     os.mkdir(tmpdir_path)
-    repo_deps.append(tmpdir_path)
+    resolved_repo_paths.append(tmpdir_path)
 
 
 def pull_dvc_dep(dep, run_dir, project_dir, remote=None):

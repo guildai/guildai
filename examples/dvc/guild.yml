@@ -16,6 +16,17 @@
       requires:
         - dvcfile: hello.in
 
+    hello-dvc-dep-2:
+      description: Resolves two DvC file dependencies
+      main: hello
+      requires:
+        - name: hello-copy
+          dvcfile: hello.in
+          rename: hello.in hello-copy.in
+        - name: hello
+          dvcfile: hello.in
+          always-resolve: yes
+
     hello-dvc-dep-always-pull:
       description: Uses DvC dependency to always fetch required file
       main: hello

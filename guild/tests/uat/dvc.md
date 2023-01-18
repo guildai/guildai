@@ -1,9 +1,3 @@
----
-# Still have work below to cleanup file lists
-
-doctest: +FIXME
----
-
 # DvC support
 
 These tests make use of the `dvc` example. This project is used as a
@@ -59,6 +53,7 @@ The project defines several operations in `guild.yml`.
     eval-models-dvc-stage      Use Guild DvC plugin to run eval-models stage
     faketrain-dvc-stage        Use Guild DvC plugin to run faketrain stage
     hello-dvc-dep              Uses DvC dependency to fetch required file if needed
+    hello-dvc-dep-2            Resolves two DvC file dependencies
     hello-dvc-dep-always-pull  Uses DvC dependency to always fetch required file
     hello-dvc-stage            Uses Guild DvC plugin to run hello stage
     hello-guild-op             Standard Guild dependency example without DvC support
@@ -66,6 +61,11 @@ The project defines several operations in `guild.yml`.
     prepare-data-dvc-stage     Use Guild DvC plugin to run prepare-data stage
     train-models-dvc-dep       Use Guild to run the train models operation
     train-models-dvc-stage     Use Guild DvC plugin to run train-models stage
+
+DvC-enabled projects use `dvc.yaml` to define DvC stages, among other
+things.
+
+    >>> dvc_config = yaml.safe_load(open("dvc.yaml"))
 
 ## DvC resource sources
 
@@ -107,7 +107,7 @@ The run manifest shows the source code and resolved dependencies.
     s dvc.yaml 915c778af8ee728754c7196a565a495b00bda1d9 dvc.yaml
     s eval_models.py b579028cfecf6410b7d9a8d9c81d9bf112d2e7a8 eval_models.py
     s faketrain.py ac665f1c42be6e5096c30d7b588a8cbfedd55891 faketrain.py
-    s guild.yml 5a832170971b2fbc3af4b1e741befb876e588ce8 guild.yml
+    s guild.yml 3387c13e7a59764599ddc9f960df3a15b49e6b00 guild.yml
     s hello.in.dvc 34fc482704b5d6e14520b1176fe78d841f94f111 hello.in.dvc
     s hello.py e02f0f99ee58b5e4cc1dc55fc5a5fbd2f1dc1a17 hello.py
     s iris.csv.dvc e3c585206b17f4af6643d631597041229130dfb7 iris.csv.dvc
@@ -117,10 +117,10 @@ The run manifest shows the source code and resolved dependencies.
     s setup.py 1357c1b27052ec416135965ec8286939c32cb611 setup.py
     s train_models.py f6e97ad8827262c41cc94944ffd560a4a2ab399f train_models.py
     s .dvc/config 3ef04083edec4c15909f60aea3f685e5551f5b69 .dvc/config
-    i .dvc/.gitignore dvcfile:hello.in
-    i .dvc/cache dvcfile:hello.in
-    i .dvc/tmp dvcfile:hello.in
-    i .git dvcfile:hello.in
+    i .dvc/.gitignore da39a3ee5e6b4b0d3255bfef95601890afd80709 dvcfile:hello.in
+    i .dvc/cache - dvcfile:hello.in
+    i .dvc/tmp - dvcfile:hello.in
+    i .git - dvcfile:hello.in
     d hello.in 418f1bfdf3ebb0091021656d8ed6d611b3ae6222 dvcfile:hello.in
 
 The list of run files contains the source code files and `hello.in`.
@@ -363,30 +363,29 @@ Run `prepare-data-dvc-stage`.
     Saving iris.npy
     <exit 0>
 
-This resolves `iris.csv` by pulling from remote storage. This is not
-reflected as a Guild dependency, however.
+This resolves `iris.csv` by pulling from remote storage. This is
+reflected as a resolved dependency file.
 
     >>> run("guild ls -n --dependencies")
-    <exit 0>
+    iris.csv
 
-`iris.csv` is reflected as generated, as it's resolved by DvC as a
-part of the run.
+NOTE, however, the `deps` attribute is missing any formal dependency
+spec. This SHOULD be implemented by the DvC plugin.
+
+    >>> run("guild select --attr deps")
+    {}
+
+The operation generates `iris.npy`.
 
     >>> run("guild ls -n --generated")
+    iris.npy
 
-NOTE: This is arguably incorrect behavior. Guild could and probably
-should reflect the DvC dependencies for a DvC stage as a dependency in
-the manifest. This could be handled by `guild.plugins.dvc_stage_main`
-by appending to the manifest as files are resolved.
+With a `prepare-data` run, we can run `train-models`.
 
-With the `prepare-data` operation, we can run 'train-models'.
-
-    >> run("guild run train-models-dvc-stage -y")  # doctest: +REPORT_UDIFF
+    >>> run("guild run train-models-dvc-stage -y")  # doctest: +REPORT_UDIFF
     INFO: [guild] Initializing run
-    INFO: [guild] Copying train_models.py
     INFO: [guild] Using ... for 'prepare-data' DvC stage dependency
     INFO: [guild] Linking iris.npy
-    INFO: [guild] Copying params.json.in
     INFO: [guild] Running stage 'train-models'
     C=1.000000
     gamma=0.700000
@@ -397,24 +396,49 @@ With the `prepare-data` operation, we can run 'train-models'.
     Saving model-4.joblib
     <exit 0>
 
-    >> run("guild ls -n")  # doctest: +REPORT_UDIFF
+The run files:
+
+    >>> run("guild ls -n")  # doctest: +REPORT_UDIFF
+    README.md
+    data_util.py
+    dvc.config.in
     dvc.lock
     dvc.yaml
+    eval_models.py
+    faketrain.py
+    guild.yml
+    hello.in.dvc
+    hello.py
+    iris.csv.dvc
     iris.npy
     model-1.joblib
     model-2.joblib
     model-3.joblib
     model-4.joblib
     params.json.in
+    prepare_data.py
+    requirements.txt
+    setup.py
     train_models.py
     <exit 0>
 
-And with 'train-models' and 'prepare-data', we can run 'eval-models'
-successfully.
+Dependencies:
 
-    >> run("guild run eval-models-dvc-stage -y")  # doctest: +REPORT_UDIFF
+    >>> run("guild ls -nd")
+    iris.npy
+
+Generated files:
+
+    >>> run("guild ls -ng")
+    model-1.joblib
+    model-2.joblib
+    model-3.joblib
+    model-4.joblib
+
+And with `train-models` and `prepare-data` we can run `eval-models`.
+
+    >>> run("guild run eval-models-dvc-stage -y")  # doctest: +REPORT_UDIFF
     INFO: [guild] Initializing run
-    INFO: [guild] Copying eval_models.py
     INFO: [guild] Using ... for 'prepare-data' DvC stage dependency
     INFO: [guild] Linking iris.npy
     INFO: [guild] Using ... for 'train-models' DvC stage dependency
@@ -422,7 +446,6 @@ successfully.
     INFO: [guild] Linking model-2.joblib
     INFO: [guild] Linking model-3.joblib
     INFO: [guild] Linking model-4.joblib
-    INFO: [guild] Copying params.json.in
     INFO: [guild] Running stage 'eval-models'
     plot_spacing=0.400000
     Saving models-eval.json
@@ -430,11 +453,19 @@ successfully.
     INFO: [guild] Logging metrics from models-eval.json
     <exit 0>
 
-    >> run("guild ls -n")  # doctest: +REPORT_UDIFF
+    >>> run("guild ls -n")  # doctest: +REPORT_UDIFF
+    README.md
+    data_util.py
+    dvc.config.in
     dvc.lock
     dvc.yaml
     eval_models.py
     events.out.tfevents...
+    faketrain.py
+    guild.yml
+    hello.in.dvc
+    hello.py
+    iris.csv.dvc
     iris.npy
     model-1.joblib
     model-2.joblib
@@ -443,7 +474,26 @@ successfully.
     models-eval.json
     models-eval.png
     params.json.in
-    <exit 0>
+    prepare_data.py
+    requirements.txt
+    setup.py
+    train_models.py
+
+Dependencies:
+
+    >>> run("guild ls -nd")
+    iris.npy
+    model-1.joblib
+    model-2.joblib
+    model-3.joblib
+    model-4.joblib
+
+Generated files:
+
+    >>> run("guild ls -ng")
+    events.out.tfevents...
+    models-eval.json
+    models-eval.png
 
 ### Logging summaries from metrics
 
@@ -453,7 +503,7 @@ stage and logs the values as TF summaries.
 The eval operation writes metrics to 'models-eval.json'. This is
 defined in 'dvc.yaml'.
 
-    >> run("guild cat -p dvc.yaml")
+    >>> run("guild cat -p dvc.yaml")
     stages:
       ...
       eval-models:
@@ -464,33 +514,37 @@ defined in 'dvc.yaml'.
         ...
     <exit 0>
 
-    >> run("guild ls -np models-eval.json")
-    models-eval.json
-    <exit 0>
+    >>> run("guild cat -p models-eval.json")
+    {"modle-1-score": 0.82,
+     "modle-2-score": 0.8,
+     "modle-3-score": 0.826...,
+     "modle-4-score": 0.813...}
 
 Guild reads the values and writes them summaries.
 
-    >> run("guild runs info")
+    >>> run("guild runs info")
     id: ...
     operation: eval-models-dvc-stage
     ...
     scalars:
-      modle-1-score: 0... (step 0)
-      modle-2-score: 0... (step 0)
-      modle-3-score: 0... (step 0)
-      modle-4-score: 0... (step 0)
+      modle-1-score: 0.820000 (step 0)
+      modle-2-score: 0.800000 (step 0)
+      modle-3-score: 0.826... (step 0)
+      modle-4-score: 0.813... (step 0)
     <exit 0>
 
 ## Guild simulated stage with param flags
 
-The operation 'train-models-dvc-dep' uses a standard Guild operation
-without DvC to run the training operation. This uses 'params.json.in'
-for the args dest. This is consistent with the DvC use of params.
+The operation `train-models-dvc-dep` uses a standard Guild operation
+without DvC to run the training operation. It uses `params.json.in`
+for the args dest, which is is consistent with the DvC use of
+params. It defines a dependency on the DvC stage `prepare-data` using
+the `dvcstage` source type.
 
-    >> run("guild run train-models-dvc-dep train.C=2.0 -y")
+    >>> run("guild run train-models-dvc-dep train.C=2.0 -y")  # doctest: +REPORT_UDIFF
     Resolving config:params.json.in
     Resolving dvcstage:prepare-data
-    Using run ... for dvcstage:prepare-data resource
+    Using run ... for dvcstage:prepare-data
     C=2.000000
     gamma=0.700000
     max_iters=10000.000000
@@ -499,6 +553,16 @@ for the args dest. This is consistent with the DvC use of params.
     Saving model-3.joblib
     Saving model-4.joblib
     <exit 0>
+
+    >>> run("guild ls -nd")
+    iris.npy
+    params.json
+
+    >>> run("guild ls -ng")
+    model-1.joblib
+    model-2.joblib
+    model-3.joblib
+    model-4.joblib
 
 ## Batches with a DvC stage
 
@@ -541,33 +605,32 @@ operation. We can use the flag support to run a batch.
 
 ## Cross op-style dependencies
 
-There are two operation styles in the 'dvc' sample project:
+There are two operation styles in the `dvc` sample project:
 
 - Standard Guild that provide the same functionality as DvC stages
 - Wrapped DvC stages
 
-It's possible for a Guild operation (non-wrapped DvC op) to provide a
-DvC stage by writing a 'dvc:stage' run attribute with the applicable
-stage name.
+It's possible for a standard Guild operation (non-wrapped DvC op) to
+provide a DvC stage by writing a 'dvc:stage' run attribute with the
+applicable stage name.
 
-Here's an example. We first delete the current runs.
+Reset the project environment.
 
-    >> quiet("guild runs rm -y")
+    >>> use_project(project_dir)
 
 When we run a downstream train DvC stage, it fails because we don't
 have prepared data.
 
-    >> run("guild run train-models-dvc-stage -y")
+    >>> run("guild run train-models-dvc-stage -y")
     INFO: [guild] Initializing run
-    INFO: [guild] Copying train_models.py
     guild: no suitable run for stage 'prepare-data' (needed for iris.npy)
     <exit 1>
 
 We can satisfy this requirement using a non-DvC operation that
-provides the required prepared data files (the operation uses a 'dvc'
-resource type but does not run as a DvC stage).
+provides the required prepared data. It uses a `dvcfile` dependency
+but does not run as a DvC stage.
 
-    >> run("guild run prepare-data-dvc-dep -y")
+    >>> run("guild run prepare-data-dvc-dep -y")
     Resolving dvcfile:iris.csv
     Fetching DvC resource iris.csv
     A       iris.csv
@@ -575,10 +638,18 @@ resource type but does not run as a DvC stage).
     Saving iris.npy
     <exit 0>
 
+    >>> run("guild ls -nd")
+    iris.csv
+
+The operation generates `iris.npy`.
+
+    >>> run("guild ls -ng")
+    iris.npy
+
 This operation writes a 'dvc:stage' attribute that indicates that the
 run provides the output files for the 'prepare-data' stage.
 
-    >> run("guild runs info")
+    >>> run("guild runs info")
     id: ...
     operation: prepare-data-dvc-dep
     ...
@@ -588,12 +659,10 @@ run provides the output files for the 'prepare-data' stage.
 
 The DvC train stage can use this run to satisfy its dependency.
 
-    >> run("guild run train-models-dvc-stage -y")
+    >>> run("guild run train-models-dvc-stage -y")  # doctest: +REPORT_UDIFF
     INFO: [guild] Initializing run
-    INFO: [guild] Copying train_models.py
     INFO: [guild] Using ... for 'prepare-data' DvC stage dependency
     INFO: [guild] Linking iris.npy
-    INFO: [guild] Copying params.json.in
     INFO: [guild] Running stage 'train-models'
     C=1.000000
     gamma=0.700000
@@ -607,11 +676,11 @@ The DvC train stage can use this run to satisfy its dependency.
 ## Run DvC stage directly
 
 Guild supports running a stage defined in dvc.yaml directly using the
-operation name syntax 'dvc.yaml:<stage>'.
+operation name syntax `dvc.yaml:<stage>`.
 
-Here's the op help for the 'faketrain' stage.
+Here's the op help for the `faketrain` stage.
 
-    >> run("guild run dvc.yaml:faketrain --help-op")
+    >>> run("guild run dvc.yaml:faketrain --help-op")
     Usage: guild run [OPTIONS] dvc.yaml:faketrain [FLAG]...
     <BLANKLINE>
     Stage 'faketrain' imported from dvc.yaml
@@ -645,7 +714,7 @@ We can run the stage as an operation, including as a batch.
     loss: ...
     <exit 0>
 
-When run directly, the run has a 'dvc-stage' attribute, which
+When run directly, the run has a `dvc-stage` attribute, which
 specifies the stage.
 
     >> run("guild runs info")
@@ -667,13 +736,13 @@ When run directly, Guild sets up dependencies between stage
 operations. These are used to resolve required files from upstream
 operations/stages.
 
-Delete the runs for the following tests.
+Reset the project environment.
 
-    >> quiet("guild runs rm -py")
+    >>> use_project(project_dir)
 
-Let's try to run the train stage, which depends on prepare data.
+Try to run the train stage, which depends on prepare data.
 
-    >> run("guild run dvc.yaml:train-models -y")
+    >>> run("guild run dvc.yaml:train-models -y")
     WARNING: cannot find a suitable run for required resource 'dvcstage:prepare-data'
     Resolving dvcfile:train_models.py
     Resolving dvcstage:prepare-data
@@ -682,9 +751,19 @@ Let's try to run the train stage, which depends on prepare data.
     run for 'prepare-data' stage
     <exit 1>
 
-Now run the required prepare data stage.
+The run failed.
 
-    >> run("guild run dvc.yaml:prepare-data -y")
+    >>> run("guild runs info")
+    id: ...
+    operation: dvc.yaml:train-models
+    from: .../dvc.yaml
+    status: error
+    ...
+    <exit 0>
+
+Run the required prepare data stage.
+
+    >>> run("guild run dvc.yaml:prepare-data -y")
     Resolving dvcfile:iris.csv
     Fetching DvC resource iris.csv
     A       iris.csv
@@ -695,12 +774,17 @@ Now run the required prepare data stage.
     Saving iris.npy
     <exit 0>
 
-And run the train stage again.
+This generates the files required by the train operation.
 
-    >> run("guild run dvc.yaml:train-models -y")
+    >>> run("guild ls -ng")
+    iris.npy
+
+Run the train stage again.
+
+    >>> run("guild run dvc.yaml:train-models -y")  # doctest: +REPORT_UDIFF
     Resolving dvcfile:train_models.py
     Resolving dvcstage:prepare-data
-    Using run ... for dvcstage:prepare-data resource
+    Using run ... for dvcstage:prepare-data
     Resolving config:params.json.in
     INFO: [guild] Initializing run
     INFO: [guild] Running stage 'train-models'
@@ -713,4 +797,91 @@ And run the train stage again.
     Saving model-4.joblib
     <exit 0>
 
-    >>> False
+The dependencies for the train stage include the files from
+`prepare-data` and also required source code and configuration. These
+are defined in `dvc.yaml` as stage dependency and are so reflected in
+the train manifest.
+
+    >>> dvc_config["stages"]["train-models"]["deps"]
+    ['iris.npy', 'train_models.py']
+
+    >>> run("guild ls -nd")
+    iris.npy
+    params.json.in
+    train_models.py
+
+`params.json.in` is listed as a dependency because it's specified in
+the stage config for `params`.
+
+    >>> dvc_config["stages"]["train-models"]["params"]
+    [{'params.json.in': ['train.C', 'train.gamma', 'train.max-iters']}]
+
+Guild captures these parameters as flags.
+
+    >>> run("guild runs info")
+    id: ...
+    operation: dvc.yaml:train-models
+    from: .../dvc.yaml
+    status: completed
+    ...
+    dvc-stage: train-models
+    ...
+    flags:
+      dvcstage:prepare-data: ...
+      train.C: 1.0
+      train.gamma: 0.7
+      train.max-iters: 10000
+    scalars:
+
+    >>> run("guild select --attr flags")
+    dvcstage:prepare-data: ...
+    train.C: 1.0
+    train.gamma: 0.7
+    train.max-iters: 10000
+
+These are the values defined in `params.json.in`.
+
+    >>> cat("params.json.in")
+    {
+      "x": 0.1,
+      "noise": 0.1,
+      "train": {
+        "C": 1.0,
+        "max-iters": 10000,
+        "gamma": 0.7
+      },
+      "eval": {
+        "plot-spacing": 0.4
+      }
+    }
+
+The train operation generates saved models.
+
+    >>> run("guild ls -ng")
+    model-1.joblib
+    model-2.joblib
+    model-3.joblib
+    model-4.joblib
+
+Run the operation using different flag values.
+
+    >>> run("guild run dvc.yaml:train-models train.C=2.0 train.gamma=0.8 -y")
+    Resolving dvcfile:train_models.py
+    Resolving dvcstage:prepare-data
+    Using run ... for dvcstage:prepare-data
+    Resolving config:params.json.in
+    INFO: [guild] Initializing run
+    INFO: [guild] Running stage 'train-models'
+    C=2.000000
+    gamma=0.800000
+    max_iters=10000.000000
+    Saving model-1.joblib
+    Saving model-2.joblib
+    Saving model-3.joblib
+    Saving model-4.joblib
+
+    >>> run("guild select --attr flags")
+    dvcstage:prepare-data: ...
+    train.C: 2.0
+    train.gamma: 0.8
+    train.max-iters: 10000

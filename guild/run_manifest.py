@@ -140,18 +140,53 @@ def _strip_resource_hash(relpath):
     return os.path.sep.join(parts[1:])
 
 
-def interim_file_args(run_file, run_dir, source):
+def generic_dependency_args(run_dir, run_relative_path, source_uri, subpath=None):
+    """Returns manifest args for a run file or directory (dependency).
+
+    This is a generic version of `resolved_source_args` and does not
+    rely on `op_dep.ResolvedSource`.
+
+    Args:
+
+        ['d', run_relative_path, sha1_or_dash] + source_args
+
+    If the resolved source is a file, its sha1 is included in the args
+    at position 3, otherwise a dash ('-') is used.
+
+    `source_args` in this is one of:
+
+        - [source_uri]
+        - [source_uri, subpath]
+
+    """
+    full_path = os.path.join(run_dir, run_relative_path)
+    hash_arg = _resolved_source_hash_manifest_arg(full_path)
+    return ["d", run_relative_path, hash_arg, source_uri] + (
+        [subpath] if subpath else []
+    )
+
+
+def interim_file_args(run_dir, run_relative_path, source_uri, subpath=None):
     """Returns manifest args for an interim file or directory.
 
     Args:
 
-        ['i', run_relative_path, source_uri]
+        ['i', run_relative_path, sha1_or_dash] + source_args
 
-    `source_uri` is the URI of the resolved source associated with the
-    interim files.
+    If the resolved source is a file, its sha1 is included in the args
+    at position 3, otherwise a dash ('-') is used.
+
+    `source_args` in this is one of:
+
+        - [source_uri]
+        - [source_uri, subpath]
+
     """
-    dest_arg = _relpath(run_file, run_dir)
-    return ["i", dest_arg, source.uri]
+    full_path = os.path.join(run_dir, run_relative_path)
+    hash_arg = _resolved_source_hash_manifest_arg(full_path)
+    return ["i", run_relative_path, hash_arg, source_uri] + (
+        [subpath] if subpath else []
+    )
 
 
 def run_manifest_path(run_dir):
