@@ -12,39 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from guild import cli
-from guild.plugins.r_script import run_r
+# from guild import cli
+# from guild.plugins.r_script import run_r
 
 
 def main():
     print("TODO: install ze package")
-    return
 
-    consent = cli.confirm(". Continue?", True)
-    if consent:
+    # consent = cli.confirm(". Continue?", True)
+    # if consent:
 
-        run_r(
-            infile="""
-        if(!require("remotes", quietly = TRUE))
-            utils::install.packages("remotes", repos = c(CRAN = "https://cran.rstudio.com/"))
+    #     run_r(
+    #         infile="""
+    #     if(!require("remotes", quietly = TRUE))
+    #         utils::install.packages("remotes", repos = c(CRAN = "https://cran.rstudio.com/"))
 
-        install_github("t-kalinowski/guildai-r")
-        """
-        )
+    #     install_github("t-kalinowski/guildai-r")
+    #     """
+    #     )
 
-        # Still need to figure out the appropriate home for this r package
-        # if we bundle it w/ the python module we could install with something like:
-        #   path_r_pkg_src_dir = resolve_using(__path__)
-        #   run_r('remotes::install_local("%s")' % path_r_pkg_src_dir)
-        # or we could pull from cran directly:
-        #  'utils::install.packages("guildai", repos = c(CRAN = "https://cran.rstudio.com/"))'
-        #  or install w/o the remotes, but then we'll have to resolve
-        #  R dep pkgs (e.g., jsonlite) manually first
-        # 'utils::install.packages("%s", repos = NULL, type = "source")' % path_to_r_pkg_src
+    #     # Still need to figure out the appropriate home for this r package
+    #     # if we bundle it w/ the python module we could install with something like:
+    #     #   path_r_pkg_src_dir = resolve_using(__path__)
+    #     #   run_r('remotes::install_local("%s")' % path_r_pkg_src_dir)
+    #     # or we could pull from cran directly:
+    #     #  'utils::install.packages("guildai", repos = c(CRAN = "https://cran.rstudio.com/"))'
+    #     #  or install w/o the remotes, but then we'll have to resolve
+    #     #  R dep pkgs (e.g., jsonlite) manually first
+    #     # 'utils::install.packages("%s", repos = NULL, type = "source")' % path_to_r_pkg_src
 
-        return
+    #     return
 
-    cli.error("The 'guildai' R package is not available.")
+    # cli.error("The 'guildai' R package is not available.")
 
 
 if __name__ == "__main__":
