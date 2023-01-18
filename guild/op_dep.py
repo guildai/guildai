@@ -238,15 +238,19 @@ def resolve_source(source, dep, resolve_context, resolve_cb=None):
             _unknown_source_resolution_error(source, dep, e)
         else:
             for path in source_paths:
-                resolved = _resolve_source_for_path(
-                    path,
-                    location,
-                    source,
-                    resolve_context.run.dir,
-                    resolve_context.resolve_flag_refs,
-                )
-                if resolve_cb:
-                    resolve_cb(resolved)
+                try:
+                    resolved = _resolve_source_for_path(
+                        path,
+                        location,
+                        source,
+                        resolve_context.run.dir,
+                        resolve_context.resolve_flag_refs,
+                    )
+                except _SourceSkipped:
+                    pass
+                else:
+                    if resolve_cb:
+                        resolve_cb(resolved)
             return source_paths
     assert last_resolution_error
     _source_resolution_error(source, dep, last_resolution_error)
@@ -350,7 +354,7 @@ def _resolve_source_for_path(
         source_path,
         source_origin,
     )
-    if _resolved_to_target_dir(source_path, target_dir):
+    if _source_resolved_to_target_dir(source_path, target_dir):
         if _rename_needed(source_path, target_path):
             _rename_source(source_path, target_path, source.replace_existing)
     elif target_type == "link":
@@ -416,13 +420,13 @@ def _source_target_path(source, source_path, source_origin):
     return target_path_attr or source.resdef.target_path or ""
 
 
-def _resolved_to_target_dir(source_path, target_dir):
-    """Returns true if a source was resolved directory to a target dir.
+def _source_resolved_to_target_dir(source_path, target_dir):
+    """Returns true if a source is resolved to a target dir.
 
-    A source is considered resolved to a target directory if the
-    target directory is an ancestore of the source path.
+    A source is considered resolved a target dir when the target dir
+    is the source parent.
     """
-    return source_path.startswith(target_dir)
+    return os.path.dirname(source_path) == target_dir
 
 
 def _rename_needed(source_path, target_path):
@@ -454,13 +458,17 @@ def _renamed_source_path(name, rename, resolve_flag_refs):
     return name
 
 
+class _SourceSkipped(Exception):
+    pass
+
+
 def _gen_apply_source(source_path, dest_path, replace_existing, apply_cb):
     assert os.path.isabs(dest_path), dest_path
     source_path = util.strip_trailing_sep(source_path)
     if os.path.lexists(dest_path) or os.path.exists(dest_path):
         if not replace_existing:
             log.warning("%s already exists, skipping %s", dest_path, apply_cb.__name__)
-            return
+            raise _SourceSkipped(source_path, dest_path)
         log.debug("deleting existing source dest %s", dest_path)
         util.safe_rmtree(dest_path)
     util.ensure_dir(os.path.dirname(dest_path))
