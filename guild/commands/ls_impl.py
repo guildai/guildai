@@ -99,7 +99,7 @@ def _base_path_filter(args):
         if _is_pattern(args.path):
             return _PatternFilter(args.path, args.all)
         return _PathFilter(args.path, args.all)
-    return _DefaultFilter(args.all or args.sourcecode)
+    return _DefaultFilter(args.all)
 
 
 def _manifest_file_types(args):
@@ -120,10 +120,10 @@ class _DefaultFilter:
     def __init__(self, all):
         self.all = all
 
-    def match(self, path):
-        if self.all:
+    def match(self, path, force_all=False):
+        if force_all or self.all:
             return True
-        return not _is_hidden_name(_split_path(path)[-1])
+        return not _is_hidden_name(os.path.basename(path))
 
     def maybe_delete_dir(self, name, _path, dirs):
         if self.all:
@@ -132,8 +132,8 @@ class _DefaultFilter:
             dirs.remove(name)
 
 
-def _is_hidden_name(path):
-    return path[:1] == "."
+def _is_hidden_name(name):
+    return name.startswith(".")
 
 
 def _is_pattern(s):
@@ -145,9 +145,9 @@ class _PatternFilter:
         self.pattern_parts = _split_path(pattern)
         self.all = all
 
-    def match(self, path):
+    def match(self, path, force_all=False):
         path_parts = _split_path(path)
-        return _match_path_parts(path_parts, self.pattern_parts, self.all)
+        return _match_path_parts(path_parts, self.pattern_parts, self.all or force_all)
 
     def maybe_delete_dir(self, name, path, dirs):
         path_parts = _split_path(path)
@@ -178,9 +178,9 @@ class _PathFilter:
         self.match_parts = _split_path(path)
         self.all = all
 
-    def match(self, path):
+    def match(self, path, force_all=False):
         path_parts = _split_path(path)
-        if not self.all and _is_hidden_name(path_parts[-1]):
+        if not (self.all or force_all) and _is_hidden_name(path_parts[-1]):
             return path_parts == self.match_parts
         return _is_subpath(self.match_parts, path_parts)
 
@@ -218,20 +218,25 @@ class _ManifestFilter:
         self.run = run
         self.entry_types = tuple(entry_types)
         self.index = _init_manifest_index(run, follow_links)
+        self.index_dirs = _index_dirs(self.index)
         self.base_filter = base_filter
 
     def match(self, path):
-        if not self.base_filter.match(path):
-            return False
         entry_type = self.index.get(path)
         if not entry_type:
-            if _split_path(path)[0] == ".guild":
+            # If path doesn't have a manifest entry, it can be one of:
+            # a directory, an internal Guild file, or a run-generated file.
+            # If path is a dir or an internal Guild file, we don't want to
+            # show it.
+            if _is_dir(self.run.dir, path) or _is_guild_path(path):
                 return False
             entry_type = "g"
-        return entry_type in self.entry_types
+        return entry_type in self.entry_types and self.base_filter.match(
+            path, force_all=True
+        )
 
     def maybe_delete_dir(self, name, path, dirs):
-        self.base_filter.maybe_delete_dir(name, path, dirs)
+        _remove_missing_dirs_for_index(self.index_dirs, name, path, dirs)
 
 
 def _init_manifest_index(run, follow_links):
@@ -239,6 +244,37 @@ def _init_manifest_index(run, follow_links):
         path: entry[0] if entry else None
         for path, entry in run_manifest.iter_run_files(run.dir, follow_links)
     }
+
+
+def _index_dirs(index):
+    index_dirs = {
+        dirname for dirname in [os.path.dirname(path) for path in index] if dirname
+    }
+    return set(_expand_parents(index_dirs))
+
+
+def _expand_parents(paths):
+    for path in paths:
+        yield path
+        dirname = os.path.dirname(path)
+        while dirname:
+            yield dirname
+            dirname = os.path.dirname(dirname)
+
+
+def _is_dir(path, subdir=None):
+    if subdir:
+        path = os.path.join(path, subdir)
+    return os.path.isdir(path)
+
+
+def _is_guild_path(path):
+    return path.split(os.path.sep, 1)[0] == ".guild"
+
+
+def _remove_missing_dirs_for_index(index_dirs, name, path, dirs):
+    if path not in index_dirs:
+        dirs.remove(name)
 
 
 def _print_path(path, run, args):
