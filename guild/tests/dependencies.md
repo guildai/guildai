@@ -795,7 +795,7 @@ The test4 resource contains config sources.
 
 #### Simple config
 
-The first config source simply resolves the source file as is.
+The first config source resolves the source file as is.
 
     >>> simple_config = test4_resdef.sources[0]
     >>> simple_config.uri
@@ -807,9 +807,7 @@ files and for reading run flags.
     >>> run = runlib.for_dir(mkdtemp())
     >>> run.init_skel()
 
-XXX - failing here, not sure why...
-
-    >> resolve(simple_config, run)
+    >>> resolve(simple_config, run)
     {'resolved': ['<run-dir>/.guild/generated/.../config.yml'],
      'staged': ['.guild/attrs/id',
                 '.guild/attrs/initialized',
@@ -818,7 +816,9 @@ XXX - failing here, not sure why...
      'unpacked': []}
 
     {'resolved': ['<run-dir>/.guild/generated/rxq1j21e/config.yml'],
-     'staged': ['.guild/attrs/id', '.guild/attrs/initialized', 'config.yml'],
+     'staged': ['.guild/attrs/id',
+                '.guild/attrs/initialized',
+                'config.yml'],
      'unpacked': []}
 
 

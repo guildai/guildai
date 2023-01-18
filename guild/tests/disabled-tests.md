@@ -28,35 +28,14 @@ tests or deleting them from the suite.
     >>> for lineno, line, path in iter_test_lines():
     ...     if line.startswith("    >> ") or "+FIXME" in line:
     ...         print(f"# {path}:{lineno}: {line}")  # doctest: +REPORT_UDIFF
-    # dependencies.md:812:     >> resolve(simple_config, run)
-    # ls-cmd-2.md:174:     >> run("guild ls -p .guild --sourcecode -n")
     # uat/concurrent-queues.md:4: doctest: +FIXME
     # uat/dask-scheduler-resources.md:4: doctest: +FIXME
     # uat/dask-scheduler.md:4: doctest: +FIXME
     # uat/dependencies.md:5: doctest: +FIXME
-    # uat/dvc.md:4: doctest: +FIXME
-    # uat/dvc.md:384:     >> run("guild run train-models-dvc-stage -y")  # doctest: +REPORT_UDIFF
-    # uat/dvc.md:400:     >> run("guild ls -n")  # doctest: +REPORT_UDIFF
-    # uat/dvc.md:415:     >> run("guild run eval-models-dvc-stage -y")  # doctest: +REPORT_UDIFF
-    # uat/dvc.md:433:     >> run("guild ls -n")  # doctest: +REPORT_UDIFF
-    # uat/dvc.md:456:     >> run("guild cat -p dvc.yaml")
-    # uat/dvc.md:467:     >> run("guild ls -np models-eval.json")
-    # uat/dvc.md:473:     >> run("guild runs info")
-    # uat/dvc.md:490:     >> run("guild run train-models-dvc-dep train.C=2.0 -y")
-    # uat/dvc.md:508:     >> run("guild run faketrain-dvc-stage x=[-1.0,0.0,1.0] -y")  # doctest: +REPORT_UDIFF
-    # uat/dvc.md:535:     >> run("guild compare -t -cc .operation,.status,.label,=noise,=x,loss -n3")
-    # uat/dvc.md:555:     >> quiet("guild runs rm -y")
-    # uat/dvc.md:560:     >> run("guild run train-models-dvc-stage -y")
-    # uat/dvc.md:570:     >> run("guild run prepare-data-dvc-dep -y")
-    # uat/dvc.md:581:     >> run("guild runs info")
-    # uat/dvc.md:591:     >> run("guild run train-models-dvc-stage -y")
-    # uat/dvc.md:614:     >> run("guild run dvc.yaml:faketrain --help-op")
-    # uat/dvc.md:629:     >> run("guild run dvc.yaml:faketrain x=[0.2,0.3] -y")  # doctest: +REPORT_UDIFF
-    # uat/dvc.md:651:     >> run("guild runs info")
-    # uat/dvc.md:672:     >> quiet("guild runs rm -py")
-    # uat/dvc.md:676:     >> run("guild run dvc.yaml:train-models -y")
-    # uat/dvc.md:687:     >> run("guild run dvc.yaml:prepare-data -y")
-    # uat/dvc.md:700:     >> run("guild run dvc.yaml:train-models -y")
+    # uat/dvc.md:572:     >> run("guild run faketrain-dvc-stage x=[-1.0,0.0,1.0] -y")  # doctest: +REPORT_UDIFF
+    # uat/dvc.md:599:     >> run("guild compare -t -cc .operation,.status,.label,=noise,=x,loss -n3")
+    # uat/dvc.md:698:     >> run("guild run dvc.yaml:faketrain x=[0.2,0.3] -y")  # doctest: +REPORT_UDIFF
+    # uat/dvc.md:720:     >> run("guild runs info")
     # uat/evaluate-mnist-intro-example.md:2: doctest: +FIXME  # Example needs to be updated
     # uat/mnist-example-runs-after-intro-evaluate.md:2: doctest: +FIXME  # Dep on evaluate-mnist-intro-example.md
     # uat/project-sourcecode.md:4: doctest: +FIXME

@@ -85,18 +85,10 @@ Dependencies:
 Generated:
 
     >>> run("guild ls -n --generated")
-    generated-1.txt
-    generated-2.txt
-    subdir/
-    subdir/generated-3.txt
-
-    >>> run("guild ls -n --generated --all")
-    .hidden/
     .hidden/generated-4.txt
     .hidden/generated-5.txt
     generated-1.txt
     generated-2.txt
-    subdir/
     subdir/generated-3.txt
 
 `op-2` resolves a dependency with a symbolic link,
@@ -159,21 +151,15 @@ Source code files are located under `.guild/sourcecode`.
     .guild/sourcecode/op.py
 
 We can list source code file using `--sourcecode`. Source code files
-are shown by default even when located in hidden directories. This is
-a special case.
+are shown by default even when located in hidden directories.
 
     >>> run("guild ls --sourcecode -n")
     .guild/sourcecode/guild.yml
     .guild/sourcecode/op.py
 
-XXX - this is broken - -p .guild --sourcecode should happily show
-source code files here but the result is empty. This is a bug in
-_ManifestFilter, which delegates to a base filter for deleting
-directories from the walk iteration that don't need to be travserved.
-
-    >> run("guild ls -p .guild --sourcecode -n")
-
-This works because sourcecode is included in the path :
+    >>> run("guild ls -p .guild --sourcecode -n")
+    .guild/sourcecode/guild.yml
+    .guild/sourcecode/op.py
 
     >>> run("guild ls -p .guild/sourcecode --sourcecode -n")
     .guild/sourcecode/guild.yml

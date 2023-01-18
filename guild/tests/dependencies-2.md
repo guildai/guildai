@@ -201,35 +201,38 @@ The sample project `inline-resources` contains a variety of inline resource
 definitions. We can test the resolution of all of the resources by running the
 `test-all` operation, which serves as a validation of the expected results.
 
-    >>> project = Project(sample("projects", "inline-resources"))
+    >>> use_project("inline-resources")
 
-This project is configured with `.guildignore` so that required resources are
-not inadvertently resolved by copying source code files to the run directory.
+Some of operations require various `msg*.txt` files, which may be
+available or not. The project is configured with `.guildignore` to
+skip these files as source code to prevent incidentally resolving the
+file by way of a source code copy.
 
-    >>> cat(path(project.dir, ".guildignore"))
+    >>> cat(".guildignore")
     msg*.txt
 
 ### Force run on dependency error
 
-When a dependency cannot be met, Guild stops the run with an error message.
+When a dependency can't be met, Guild stops the run with an error
+message.
 
 The `print-msg-2` operation requires `print-msg`, which we don't have.
 
-    >>> project.list_runs()
-    []
+    >>> run("guild runs")
+    <exit 0>
 
 `print-msg-2` fails with an error message.
 
-    >>> project.run("print-msg-2")
+    >>> run("guild run print-msg-2 -y")
     WARNING: cannot find a suitable run for required resource 'operation:print-msg'
     Resolving operation:print-msg
     guild: run failed because a dependency was not met: could not resolve
     'operation:print-msg' in operation:print-msg resource: no suitable run for print-msg
     <exit 1>
 
-We can force a run even in such cases using `force_deps`.
+We can force a run in this case using `--force-deps`.
 
-    >>> project.run("print-msg-2", force_deps=True)
+    >>> run("guild run print-msg-2 --force-deps -y")
     WARNING: cannot find a suitable run for required resource 'operation:print-msg'
     Resolving operation:print-msg
     WARNING: a dependency was not met: could not resolve 'operation:print-msg'
@@ -237,18 +240,18 @@ We can force a run even in such cases using `force_deps`.
     cat: no such file 'msg.txt'
     <exit 1>
 
-The same behavior applies to staging runs. We use `missing-file-dep` to test
-this, which relies on a file that doesn't exist.
+The same behavior applies to staging runs. We use `missing-file-dep`
+to show this, which relies on a file that doesn't exist.
 
-    >>> project.run("missing-file-dep", stage=True)
+    >>> run("guild run missing-file-dep --stage -y")
     Resolving file:missing.txt
     guild: run failed because a dependency was not met: could not resolve
     'file:missing.txt' in file:missing.txt resource: cannot find source file 'missing.txt'
     <exit 1>
 
-Using `force_deps` we can bypass the check and stage the run anyway.
+With `--force-deps` we can bypass the check and stage the run.
 
-    >>> project.run("missing-file-dep", stage=True, force_deps=True)
+    >>> run("guild run missing-file-dep --stage --force-deps -y")
     Resolving file:missing.txt
     WARNING: a dependency was not met: could not resolve 'file:missing.txt' in
     file:missing.txt resource: cannot find source file 'missing.txt'
@@ -256,15 +259,21 @@ Using `force_deps` we can bypass the check and stage the run anyway.
     missing-file-dep staged as ...
     To start the operation, use 'guild run --start ...'
 
-Dependencies that can be resolved are resolved. `missing-file-dep` also
-requires `msg.txt`, which does exist and can be resolved.
+Dependencies that can be resolved are resolved. `missing-file-dep`
+also requires `msg.txt`, which does exist and can be resolved.
 
-    >>> dir(project.list_runs()[0].dir)
-    ['.guild', 'cat.py', 'guild.yml', 'msg.txt']
+    >>> run("guild ls -n")
+    cat.py
+    guild.yml
+    msg.txt
 
 ### test-all
 
-    >>> project.run("test-all")  # doctest: +REPORT_UDIFF
+The operation `test-all` uses steps to run a series of
+opertaions. Each step defines `check` criteria to verify the
+resolution of files.
+
+    >>> run("guild run test-all -y")  # doctest: +REPORT_UDIFF
     INFO: [guild] running print-msg: print-msg
     Resolving file:msg.txt
     hola

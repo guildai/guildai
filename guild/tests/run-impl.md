@@ -696,8 +696,11 @@ Create a new project to illustrate.
     ...     - file: src.txt
     ... downstream:
     ...   main: guild.pass
+    ...   sourcecode:
+    ...     - exclude: src.txt
     ...   requires:
     ...     - operation: upstream
+    ...       select: src.txt
     ... """)
 
 When we stage `downstream`, which requires `upstream`, we succeed -
@@ -787,7 +790,6 @@ The staged downstream now runs.
     >>> run("guild run --start down1 -y")
     Resolving operation:upstream
     Using run up1 for operation:upstream
-    WARNING: .../runs/down1/src.txt already exists, skipping copy
 
     >>> run("guild runs")
     [1:down1] downstream  ...  completed  operation:upstream=up1

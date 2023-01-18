@@ -56,34 +56,20 @@ there are no dependencies.
     <exit 0>
 
 We can show generated files (files that are neither source code nor
-dependencies) using the `-g/--generated` option.
+dependencies) using the `-g/--generated` option. When or more file
+type options are specified, Guild shows all matching files even if
+they're hidden.
 
     >>> guild_run("ls -g")
     ???/runs/aaaa:
-      a
-      b
-      c/
-      c/d.txt
-      c/e.txt
-      c/f.bin
-      l/
-    <exit 0>
-
-The two generated files under `.foo` are not shown by default. We need
-the `--all` option.
-
-    >>> guild_run("ls -ga")
-    ???/runs/aaaa:
-      .foo/
       .foo/.bar
       .foo/baz
       a
       b
-      c/
       c/d.txt
       c/e.txt
       c/f.bin
-      l/
+    <exit 0>
 
 The directory header can be dropped with `-n, --no-format`.
 

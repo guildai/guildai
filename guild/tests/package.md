@@ -53,7 +53,9 @@ Packages specify how to build the package. Here are some attributes:
 The `package` command generates a Python wheel using the package
 definition in the Guild file.
 
-    >>> run("guild package", ignore=["package init file"])  # doctest: +REPORT_UDIFF
+    >>> IGNORE = ["package init file", "byte-compiling is disabled"]
+
+    >>> run("guild package", ignore=IGNORE)  # doctest: +REPORT_UDIFF
     running bdist_wheel
     running build
     running build_py
