@@ -141,6 +141,7 @@ def _run_tests(check):
             "NO_IMPORT_FLAGS_PROGRESS": "1",
             "COLUMNS": "999",
             "SYNC_RUN_OUTPUT": "1",
+            "PYTHONDONTWRITEBYTECODE": "1",
             # The following are optimizations for tests. They must be
             # overridden for any tests that check the disabled behavior.
             "NO_PIP_FREEZE": "1",
