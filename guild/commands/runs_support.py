@@ -317,7 +317,7 @@ def common_filters(fn):
                 metavar="EXPR",
                 help=(
                     "Filter runs using a filter expression. See Filter by "
-                    "Expression above for details.."
+                    "Expression above for details."
                 ),
             ),
             click.Option(
@@ -339,7 +339,7 @@ def common_filters(fn):
             ),
             click.Option(
                 ("-Fu", "--unlabeled", "filter_unlabeled"),
-                help="Filter only runs without labels.",
+                help="Filter runs without labels.",
                 is_flag=True,
             ),
             click.Option(
@@ -357,26 +357,26 @@ def common_filters(fn):
             ),
             click.Option(
                 ("-Fm", "--marked", "filter_marked"),
-                help="Filter only marked runs.",
+                help="Filter marked runs.",
                 is_flag=True,
             ),
             click.Option(
                 ("-Fn", "--unmarked", "filter_unmarked"),
-                help="Filter only unmarked runs.",
+                help="Filter unmarked runs.",
                 is_flag=True,
             ),
             click.Option(
                 ("-Fs", "--started", "filter_started"),
                 metavar="RANGE",
                 help=(
-                    "Filter only runs started within RANGE. See above "
+                    "Filter runs started within RANGE. See above "
                     "for valid time ranges."
                 ),
             ),
             click.Option(
                 ("-Fd", "--digest", "filter_digest"),
                 metavar="VAL",
-                help=("Filter only runs with a matching source code digest."),
+                help=("Filter runs with a matching source code digest."),
                 shell_complete=ac_digest,
             ),
         ],
@@ -416,42 +416,42 @@ def status_filters(fn):
         [
             click.Option(
                 ("-Sr", "--running/--not-running", "status_running"),
-                help="Filter only runs that are still running.",
+                help="Filter runs that are still running.",
                 is_flag=True,
                 default=None,
                 callback=_apply_status_chars,
             ),
             click.Option(
                 ("-Sc", "--completed/--not-completed", "status_completed"),
-                help="Filter only completed runs.",
+                help="Filter completed runs.",
                 is_flag=True,
                 default=None,
                 callback=_apply_status_chars,
             ),
             click.Option(
                 ("-Se", "--error/--not-error", "status_error"),
-                help="Filter only runs that exited with an error.",
+                help="Filter runs that exited with an error.",
                 is_flag=True,
                 default=None,
                 callback=_apply_status_chars,
             ),
             click.Option(
                 ("-St", "--terminated/--not-terminated", "status_terminated"),
-                help="Filter only runs terminated by the user.",
+                help="Filter runs terminated by the user.",
                 is_flag=True,
                 default=None,
                 callback=_apply_status_chars,
             ),
             click.Option(
                 ("-Sp", "--pending/--not-pending", "status_pending"),
-                help="Filter only pending runs.",
+                help="Filter pending runs.",
                 is_flag=True,
                 default=None,
                 callback=_apply_status_chars,
             ),
             click.Option(
                 ("-Ss", "--staged/--not-staged", "status_staged"),
-                help="Filter only staged runs.",
+                help="Filter staged runs.",
                 is_flag=True,
                 default=None,
                 callback=_apply_status_chars,
