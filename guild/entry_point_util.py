@@ -36,10 +36,16 @@ class Resource:
 
 class EntryPointResources:
     def __init__(self, group, desc="resource"):
-        self._group = group
-        self._desc = desc
+        self.group = group
+        self.desc = desc
         self.__working_set = None
         self.__resources = None
+
+    def __str__(self):
+        return (
+            "<guild.entry_point_utils.EntryPointResources "
+            f"group={self.group} desc={self.desc}>"
+        )
 
     @property
     def _resources(self):
@@ -55,7 +61,7 @@ class EntryPointResources:
 
     def _init_resources(self):
         resources = {}
-        for ep in self._working_set.iter_entry_points(self._group):
+        for ep in self._working_set.iter_entry_points(self.group):
             res_list = resources.setdefault(ep.name, [])
             res_list.append(Resource(ep))
         return resources

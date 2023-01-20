@@ -180,9 +180,13 @@ def _is_sequence_flag_function(name):
 
 
 def _expand_sequence(name, args):
-    f = globals().get(f"_expand_{name}")
-    assert f, name
-    return f(*args)
+    if name == "range":
+        return _expand_range(*args)
+    if name == "linspace":
+        return _expand_linspace(*args)
+    if name == "logspace":
+        return _expand_logspace(*args)
+    assert False, name
 
 
 def _expand_range(*args):
