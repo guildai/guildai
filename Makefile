@@ -132,5 +132,5 @@ coverage:
 	make coverage-annotate
 	make coverage-report
 
-disabled-tests:
-	@find guild/tests -name '*.md' | xargs grep -HE '^ *>> ' || true
+unused-code:
+	vulture
