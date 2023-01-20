@@ -64,7 +64,7 @@ List the project files.
     files/a/a/a/a/a/a.txt
     guild.yml
 
-`op-1` required `a.txt` in three variatnts: a default copy, an
+`op-1` requires `a.txt` in three variants: a default copy, an
 explicit link, and an explicit copy.
 
     >>> run("guild run op-1 -y")
@@ -93,8 +93,8 @@ Verify that the contents of each file is as expected.
     <exit 0>
 
 We can test the links of each file by modifying the project source
-`a.txt`. This highlights the problem with linking: changes to a
-project source implicitly change runs.
+`a.txt`. (This highlights the problem with linking: changes to a
+project source implicitly change runs.)
 
     >>> write(path(project_dir, "a.txt"), "Hola")
 
@@ -112,7 +112,7 @@ Show the three files - note the linked file has changed, as expected.
     Hola
     <exit 0>
 
-`op-2` requires `files` and shows both a link and a copy.
+`op-2` requires `files` using both a link and a copy.
 
     >>> run("guild run op-2 -y")
     Resolving linked-files
@@ -121,18 +121,18 @@ Show the three files - note the linked file has changed, as expected.
 
 List the run files.
 
-    >>> run("guild ls -n")
+    >>> run("guild ls -n")  # doctest: +REPORT_UDIFF
     files-copy/
-    files-copy/a.txt
     files-copy/a/
-    files-copy/a/a.txt
+    files-copy/a.txt
     files-copy/a/a/
-    files-copy/a/a/a.txt
+    files-copy/a/a.txt
     files-copy/a/a/a/
-    files-copy/a/a/a/a.txt
+    files-copy/a/a/a.txt
     files-copy/a/a/a/a/
-    files-copy/a/a/a/a/a.txt
+    files-copy/a/a/a/a.txt
     files-copy/a/a/a/a/a/
+    files-copy/a/a/a/a/a.txt
     files-copy/a/a/a/a/a/a.txt
     files-link/
 
@@ -140,30 +140,30 @@ Note that `files-link/` is presented as a single directory. This is
 because it's a link. We can follow links in the `ls` command by
 specifying `-L`.
 
-    >>> run("guild ls -nL")
+    >>> run("guild ls -nL")  # doctest: +REPORT_UDIFF
     files-copy/
-    files-copy/a.txt
     files-copy/a/
-    files-copy/a/a.txt
+    files-copy/a.txt
     files-copy/a/a/
-    files-copy/a/a/a.txt
+    files-copy/a/a.txt
     files-copy/a/a/a/
-    files-copy/a/a/a/a.txt
+    files-copy/a/a/a.txt
     files-copy/a/a/a/a/
-    files-copy/a/a/a/a/a.txt
+    files-copy/a/a/a/a.txt
     files-copy/a/a/a/a/a/
+    files-copy/a/a/a/a/a.txt
     files-copy/a/a/a/a/a/a.txt
     files-link/
-    files-link/a.txt
     files-link/a/
-    files-link/a/a.txt
+    files-link/a.txt
     files-link/a/a/
-    files-link/a/a/a.txt
+    files-link/a/a.txt
     files-link/a/a/a/
-    files-link/a/a/a/a.txt
+    files-link/a/a/a.txt
     files-link/a/a/a/a/
-    files-link/a/a/a/a/a.txt
+    files-link/a/a/a/a.txt
     files-link/a/a/a/a/a/
+    files-link/a/a/a/a/a.txt
     files-link/a/a/a/a/a/a.txt
 
 Show some of the resolved files.

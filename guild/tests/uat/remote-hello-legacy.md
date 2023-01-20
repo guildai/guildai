@@ -4,6 +4,8 @@ These tests run various hello operations remotely.
 
     >>> cd(example("hello-package-legacy"))
 
+    >>> quiet("guild runs rm -y -r guild-uat")
+
 ## default
 
     >>> run("guild run default -r guild-uat -l h1 -y")
@@ -52,15 +54,20 @@ These tests run various hello operations remotely.
 
 List runs using various filter on remote.
 
-    >>> run("guild runs --filter operation=hello/hello:default -r guild-uat")
-    [1:...]  hello/hello:default  ...  completed  h1
+    >>> run("guild runs -s -r guild-uat")
+    [1]  hello/hello:from-file  completed  h2 file=msg.txt
+    [2]  hello/hello:from-flag  completed  message='Howdy Guild!'
+    [3]  hello/hello:default    completed  h1
+
+    >>> run("guild runs -s -F operation=hello/hello:default -r guild-uat")
+    [1]  hello/hello:default  completed  h1
     <exit 0>
 
-    >>> run("guild runs --filter 'op contains from' -r guild-uat")
-    [1:...]  hello/hello:from-file  ...  completed  h2 file=msg.txt
-    [2:...]  hello/hello:from-flag  ...  completed  message='Howdy Guild!'
+    >>> run("guild runs -s -F 'op contains from' -r guild-uat")
+    [1]  hello/hello:from-file  completed  h2 file=msg.txt
+    [2]  hello/hello:from-flag  completed  message='Howdy Guild!'
     <exit 0>
 
-    >>> run("guild runs --filter 'label contains howdy' -r guild-uat")
-    [1:...]  hello/hello:from-flag  ...  completed  message='Howdy Guild!'
+    >>> run("guild runs -s -F 'label contains howdy' -r guild-uat")
+    [1]  hello/hello:from-flag  completed  message='Howdy Guild!'
     <exit 0>
