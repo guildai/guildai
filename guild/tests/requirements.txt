@@ -7,9 +7,5 @@ jupyter
 jupyter_contrib_nbextensions
 matplotlib
 pandas
-pytest
-pytest-xdist
-pytest-cov
-sybil
 tensorboardX
 twine
