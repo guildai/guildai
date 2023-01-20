@@ -42,7 +42,7 @@ on the remote target.
 Here are the commands that support the `remote` param:
 
     >>> from guild.commands import main
-    >>> for _, cmd in sorted(main.main.commands.items()):
+    >>> for _, cmd in sorted(main.main.commands.items()):  # doctest: +REPORT_UDIFF
     ...     for param in cmd.params:
     ...         if param.name == "remote":
     ...             print(cmd.name)
@@ -57,6 +57,7 @@ Here are the commands that support the `remote` param:
     push
     run
     runs
+    select
     stop
     tag
     watch
