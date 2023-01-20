@@ -11,6 +11,9 @@
       default: yes
       flags-import:
         - msg
+      env:
+        # Disable __pycache__ generation (used to simplify Guild tests)
+        PYTHONDONTWRITEBYTECODE: 1
 
     hello-file:
       description:
