@@ -1802,18 +1802,12 @@ def _comment(args, ctx):
 
 
 def _list_comments(args, ctx):
-    _list_runs_comments(runs_op_selected(args, ctx, LATEST_RUN_ARG))
+    _list_runs_comments(runs_op_selected(args, ctx, LATEST_RUN_ARG), args)
 
 
-def _list_runs_comments(runs, comment_index_format=True):
+def _list_runs_comments(runs, args, comment_index_format=True):
     formatted_runs = format_runs(runs)
-    cols = [
-        _col1_for_comments_header(comment_index_format),
-        "op_desc",
-        "started",
-        "status_with_remote",
-        "label",
-    ]
+    cols = _cols_for_list_with_comments(comment_index_format, args)
     cli.table(
         formatted_runs,
         cols,
@@ -1824,10 +1818,16 @@ def _list_runs_comments(runs, comment_index_format=True):
     )
 
 
-def _col1_for_comments_header(comment_index_format):
-    if comment_index_format:
-        return "short_id"
-    return "index"
+def _cols_for_list_with_comments(comment_index_format, args):
+    if not comment_index_format:
+        return _cols_for_list(args)
+    return [
+        "short_id",
+        "op_desc",
+        "started",
+        "status_with_remote",
+        "label"
+    ]
 
 
 def _fg_for_comments_header(comment_index_format):
