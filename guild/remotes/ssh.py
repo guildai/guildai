@@ -701,19 +701,20 @@ def _status_args(
     # Ignore status_chars if provided as the status is reflected in
     # the other status attrs.
     args = []
-    if status_completed:
-        args.append("--completed")
-    if status_error:
-        args.append("--error")
-    if status_pending:
-        args.append("--pending")
-    if status_running:
-        args.append("--running")
-    if status_staged:
-        args.append("--staged")
-    if status_terminated:
-        args.append("--terminated")
+    _apply_run_status_arg(status_completed, "completed", args)
+    _apply_run_status_arg(status_error, "error", args)
+    _apply_run_status_arg(status_pending, "pending", args)
+    _apply_run_status_arg(status_running, "running", args)
+    _apply_run_status_arg(status_staged, "staged", args)
+    _apply_run_status_arg(status_terminated, "terminated", args)
     return args
+
+
+def _apply_run_status_arg(val, name, args):
+    if val is True:
+        args.append(f"--{name}")
+    elif val is False:
+        args.append(f"--not-{name}")
 
 
 def _op_src(opspec):

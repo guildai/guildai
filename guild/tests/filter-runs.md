@@ -27,14 +27,18 @@ Here's the default list of runs for the sample root:
      <guild.run.Run 'a5520d132b4148a5bad3c4f795b7c362'>,
      <guild.run.Run '2dc1529ba06c46fda486395a61475dbe'>,
      <guild.run.Run '79ca9e64e4d7453f999a6bbd1e7c03f0'>,
-     <guild.run.Run 'fe83a924ae144693a72b420962a7d9d1'>]
+     <guild.run.Run 'ac99cff45d1044b4817ab7f7054f2d76'>,
+     <guild.run.Run 'fe83a924ae144693a72b420962a7d9d1'>,
+     <guild.run.Run 'fa6f74adb50a4abb8f49840993f081f7'>]
 
     >>> print_runs(runs, short_ids=True, labels=True, flags=True, scalars=True, status=True)
     util:test  e394b696  target=fe83a924ae144693a72b420962a7d9d1  target=fe83a924   completed   loss=0.52803
     util:test  a5520d13  target=2dc1529ba06c46fda486395a61475dbe  target=2dc1529b   completed   loss=0.47875
     train      2dc1529b  noise=0.1 x=1.1                          noise=0.1 x=1.1   terminated  loss=0.47875
     train      79ca9e64  noise=0.1 x=0.1                          noise=0.1 x=0.1   completed   loss=0.43514
+    train      ac99cff4  noise=0.4 x=-1.2                         noise=0.4 x=-1.2  pending     loss=0.52803
     train      fe83a924  noise=0.1 x=-1.0                         noise=0.1 x=-1.0  error       loss=0.52803
+    train      fa6f74ad  noise=0.1 x=-1.0                         noise=0.1 x=-1.0  staged      loss=0.52803
 
 ## Filtering runs
 
@@ -75,14 +79,18 @@ If a filter is unspecified, the behavior of
     util:test  a5520d13
     train      2dc1529b
     train      79ca9e64
+    train      ac99cff4
     train      fe83a924
+    train      fa6f74ad
 
     >>> filter("")
     util:test  e394b696
     util:test  a5520d13
     train      2dc1529b
     train      79ca9e64
+    train      ac99cff4
     train      fe83a924
+    train      fa6f74ad
 
 ### Terms
 
@@ -94,7 +102,9 @@ evaluation using boolean, numeric, and text terms.
     util:test  a5520d13
     train      2dc1529b
     train      79ca9e64
+    train      ac99cff4
     train      fe83a924
+    train      fa6f74ad
 
     >>> filter("false")
     <empty>
@@ -104,24 +114,32 @@ evaluation using boolean, numeric, and text terms.
     util:test  a5520d13
     train      2dc1529b
     train      79ca9e64
+    train      ac99cff4
     train      fe83a924
+    train      fa6f74ad
 
     >>> filter("1")
     util:test  e394b696
     util:test  a5520d13
     train      2dc1529b
     train      79ca9e64
+    train      ac99cff4
     train      fe83a924
+    train      fa6f74ad
 
     >>> filter("0")
     <empty>
+
+A  non-empty string value, while an odd term, is value and evaluates to True.
 
     >>> filter("cat")
     util:test  e394b696
     util:test  a5520d13
     train      2dc1529b
     train      79ca9e64
+    train      ac99cff4
     train      fe83a924
+    train      fa6f74ad
 
 ### Run attributes
 
@@ -132,21 +150,38 @@ evaluation using boolean, numeric, and text terms.
     util:test  a5520d13
     train      2dc1529b
     train      79ca9e64
+    train      ac99cff4
     train      fe83a924
+    train      fa6f74ad
 
     >>> filter("op = train")
     train  2dc1529b
     train  79ca9e64
+    train  ac99cff4
     train  fe83a924
+    train  fa6f74ad
+
+    >>> filter("op is train")
+    train  2dc1529b
+    train  79ca9e64
+    train  ac99cff4
+    train  fe83a924
+    train  fa6f74ad
 
     >>> filter("op != train")
+    util:test  e394b696
+    util:test  a5520d13
+
+    >>> filter("op is not train")
     util:test  e394b696
     util:test  a5520d13
 
     >>> filter("model = ''")
     train  2dc1529b
     train  79ca9e64
+    train  ac99cff4
     train  fe83a924
+    train  fa6f74ad
 
     >>> filter("model = util")
     util:test  e394b696
@@ -166,13 +201,17 @@ evaluation using boolean, numeric, and text terms.
 
     >>> filter("status != completed", status=True)
     train  2dc1529b  terminated
+    train  ac99cff4  pending
     train  fe83a924  error
+    train  fa6f74ad  staged
 
     >>> filter("status is not completed", status=True)
     train  2dc1529b  terminated
+    train  ac99cff4  pending
     train  fe83a924  error
+    train  fa6f74ad  staged
 
-    >>> filter("status in [completed,terminated]", status=True)
+    >>> filter("status in [completed, terminated]", status=True)
     util:test  e394b696  completed
     util:test  a5520d13  completed
     train      2dc1529b  terminated
@@ -196,6 +235,7 @@ evaluation using boolean, numeric, and text terms.
     train  2dc1529b  noise=0.1 x=1.1
     train  79ca9e64  noise=0.1 x=0.1
     train  fe83a924  noise=0.1 x=-1.0
+    train  fa6f74ad  noise=0.1 x=-1.0
 
     >>> filter("noise = 0.1 and x > 0.1", flags=True)
     train  2dc1529b  noise=0.1 x=1.1
@@ -204,18 +244,23 @@ evaluation using boolean, numeric, and text terms.
     train  2dc1529b  noise=0.1 x=1.1
     train  79ca9e64  noise=0.1 x=0.1
     train  fe83a924  noise=0.1 x=-1.0
+    train  fa6f74ad  noise=0.1 x=-1.0
 
     >>> filter("op = train and x in [1.1,0.1,0.2]", flags=True)
     train  2dc1529b  noise=0.1 x=1.1
     train  79ca9e64  noise=0.1 x=0.1
 
     >>> filter("op = train and x not in [1.1,0.1,0.2]", flags=True)
+    train  ac99cff4  noise=0.4 x=-1.2
     train  fe83a924  noise=0.1 x=-1.0
+    train  fa6f74ad  noise=0.1 x=-1.0
 
     >>> filter("noise is not undefined", flags=True)
     train  2dc1529b  noise=0.1 x=1.1
     train  79ca9e64  noise=0.1 x=0.1
+    train  ac99cff4  noise=0.4 x=-1.2
     train  fe83a924  noise=0.1 x=-1.0
+    train  fa6f74ad  noise=0.1 x=-1.0
 
     >>> filter("noise is undefined", flags=True)
     util:test  e394b696  target=fe83a924ae144693a72b420962a7d9d1
@@ -225,14 +270,10 @@ evaluation using boolean, numeric, and text terms.
     train  2dc1529b  noise=0.1 x=1.1
 
     >>> filter("x is not undefined and x is not 1.1", flags=True)
-    train      79ca9e64  noise=0.1 x=0.1
-    train      fe83a924  noise=0.1 x=-1.0
-
-### Run scalars
-
-    >>> filter("loss >= 0.5", scalars=True)
-    util:test  e394b696  loss=0.52803
-    train      fe83a924  loss=0.52803
+    train  79ca9e64  noise=0.1 x=0.1
+    train  ac99cff4  noise=0.4 x=-1.2
+    train  fe83a924  noise=0.1 x=-1.0
+    train  fa6f74ad  noise=0.1 x=-1.0
 
     >>> filter("flag:x is undefined", flags=True)
     util:test  e394b696  target=fe83a924ae144693a72b420962a7d9d1
@@ -241,19 +282,23 @@ evaluation using boolean, numeric, and text terms.
     >>> filter("flag:x is not undefined", flags=True)
     train  2dc1529b  noise=0.1 x=1.1
     train  79ca9e64  noise=0.1 x=0.1
+    train  ac99cff4  noise=0.4 x=-1.2
     train  fe83a924  noise=0.1 x=-1.0
+    train  fa6f74ad  noise=0.1 x=-1.0
 
     >>> filter("flag:xxx is undefined", flags=True)
     util:test  e394b696  target=fe83a924ae144693a72b420962a7d9d1
     util:test  a5520d13  target=2dc1529ba06c46fda486395a61475dbe
     train      2dc1529b  noise=0.1 x=1.1
     train      79ca9e64  noise=0.1 x=0.1
+    train      ac99cff4  noise=0.4 x=-1.2
     train      fe83a924  noise=0.1 x=-1.0
+    train      fa6f74ad  noise=0.1 x=-1.0
 
     >>> filter("flag:xxx is not undefined", flags=True)
     <empty>
 
-### Multi-type filters
+### Run scalars
 
 All runs with scalars for reference:
 
@@ -262,42 +307,58 @@ All runs with scalars for reference:
     util:test  a5520d13  loss=0.47875
     train      2dc1529b  loss=0.47875
     train      79ca9e64  loss=0.43514
+    train      ac99cff4  loss=0.52803
     train      fe83a924  loss=0.52803
+    train      fa6f74ad  loss=0.52803
 
-Filter runs by loss:
+Target `loss` ranges:
 
     >>> filter("loss > 0.5", scalars=True)
     util:test  e394b696  loss=0.52803
+    train      ac99cff4  loss=0.52803
     train      fe83a924  loss=0.52803
+    train      fa6f74ad  loss=0.52803
 
     >>> filter("loss <= 0.5", scalars=True)
     util:test  a5520d13  loss=0.47875
     train      2dc1529b  loss=0.47875
     train      79ca9e64  loss=0.43514
 
-    >>> filter("loss >= .45 and loss < 0.5")
-    util:test  a5520d13
-    train      2dc1529b
+    >>> filter("loss >= .45 and loss < 0.5", scalars=True)
+    util:test  a5520d13  loss=0.47875
+    train      2dc1529b  loss=0.47875
 
-    >>> filter("loss > 0.5 and foo < 3", scalars=True)
+    >>> filter("loss is undefined", scalars=True)
     <empty>
 
-    >>> filter("loss > 0.5 and foo is undefined", scalars=True)
+    >>> filter("loss is not undefined", scalars=True)
     util:test  e394b696  loss=0.52803
+    util:test  a5520d13  loss=0.47875
+    train      2dc1529b  loss=0.47875
+    train      79ca9e64  loss=0.43514
+    train      ac99cff4  loss=0.52803
     train      fe83a924  loss=0.52803
+    train      fa6f74ad  loss=0.52803
 
 Note that `loss` is a valid scalar tag in both `train` and `util:test`
 operations. We can limit the result by specifying the operation we
 want to filter on.
 
     >>> filter("loss > 0.5 and op = train", scalars=True)
+    train  ac99cff4  loss=0.52803
     train  fe83a924  loss=0.52803
+    train  fa6f74ad  loss=0.52803
 
 We can also include the scalar prefix associated with the test loss
 ('target/.guild') to filter by the whole scalar key.
 
     >>> filter("target/.guild#loss > 0.5", scalars=True)
     util:test  e394b696  loss=0.52803
+
+Include a non-existing scalar test:
+
+    >>> filter("loss > 0.5 and foo < 3", scalars=True)
+    <empty>
 
 ### No match filters
 
@@ -329,7 +390,9 @@ A filter may be pre-parsed using the parsing facility in
     util:test  a5520d13
     train      2dc1529b
     train      79ca9e64
+    train      ac99cff4
     train      fe83a924
+    train      fa6f74ad
 
 ### Index refresh types
 
@@ -364,7 +427,9 @@ expected.
     >>> filter(parse_with_refresh_types("op = train", ["attr"]))
     train  2dc1529b
     train  79ca9e64
+    train  ac99cff4
     train  fe83a924
+    train  fa6f74ad
 
 Now that the index is refreshed with attributes, filters that need
 attributes succeed even when they don't include attributes in the
@@ -373,7 +438,9 @@ refresh types.
     >>> filter(parse_with_refresh_types("op = train", []))
     train  2dc1529b
     train  79ca9e64
+    train  ac99cff4
     train  fe83a924
+    train  fa6f74ad
 
     >>> filter(parse_with_refresh_types("short_id = e394b696", []))
     util:test  e394b696
@@ -389,6 +456,7 @@ We must provide the required refresh type.
     train  2dc1529b  noise=0.1 x=1.1
     train  79ca9e64  noise=0.1 x=0.1
     train  fe83a924  noise=0.1 x=-1.0
+    train  fa6f74ad  noise=0.1 x=-1.0
 
 ## Future work
 

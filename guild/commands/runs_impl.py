@@ -183,14 +183,31 @@ def _runs_filter(args, ctx):
 
 
 def _apply_status_filter(args, filters):
-    filter_values = [getattr(args, args_attr, None) for _, args_attr in STATUS_FILTERS]
-    status_filters = [
-         var.run_filter("attr" if filter_val else "!attr", "status", status)
-        for (status, _), filter_val in zip(STATUS_FILTERS, filter_values)
-        if filter_val is not None
+    true_status, false_status = _status_filter_args(args)
+    if true_status:
+        filters.append(
+            var.run_filter(
+                "any",
+                [var.run_filter("attr", "status", status) for status in true_status],
+            )
+        )
+    if false_status:
+        filters.append(
+            var.run_filter(
+                "all",
+                [var.run_filter("!attr", "status", status) for status in false_status],
+            )
+        )
+
+
+def _status_filter_args(args):
+    status_args = [
+        (status, getattr(args, arg_name)) for status, arg_name in STATUS_FILTERS
     ]
-    if status_filters:
-        filters.append(var.run_filter("any", status_filters))
+    return (
+        [status for status, val in status_args if val is True],
+        [status for status, val in status_args if val is False],
+    )
 
 
 def _apply_ops_filter(args, filters):
@@ -1826,7 +1843,7 @@ def _cols_for_list_with_comments(comment_index_format, args):
         "op_desc",
         "started",
         "status_with_remote",
-        "label"
+        "label",
     ]
 
 

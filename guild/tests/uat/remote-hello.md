@@ -142,13 +142,15 @@ List remote runs.
 
 Filter by completedd status.
 
-    >>> run("guild runs list -Sc -r guild-uat -s")
+    >>> run("guild runs list --completed -r guild-uat -s")
     [1]  gpkg.hello/hello-op    completed  op=...
     [2]  gpkg.hello/hello-file  completed  file=hello.txt
     [3]  gpkg.hello/hello       completed  msg='Hello Guild!'
     [4]  gpkg.hello/hello-op    completed  op=...
     [5]  gpkg.hello/hello-file  completed  file=hello-2.txt
     [6]  gpkg.hello/hello       completed  msg='Hello Guild!'
+
+    >>> run("guild runs list --not-completed -r guild-uat -s")
 
 Filter by terminated status.
 

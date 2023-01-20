@@ -280,12 +280,12 @@ def _apply_runs_filters(kw, args):
     args.filter_unmarked = kw.pop("unmarked", False)
     args.filter_started = kw.pop("started", None)
     args.filter_digest = kw.pop("digest", None)
-    args.status_completed = kw.pop("completed", False)
-    args.status_error = kw.pop("error", False)
-    args.status_pending = kw.pop("pending", False)
-    args.status_running = kw.pop("running", False)
-    args.status_staged = kw.pop("staged", False)
-    args.status_terminated = kw.pop("terminated", False)
+    args.status_completed = kw.pop("completed", None)
+    args.status_error = kw.pop("error", None)
+    args.status_pending = kw.pop("pending", None)
+    args.status_running = kw.pop("running", None)
+    args.status_staged = kw.pop("staged", None)
+    args.status_terminated = kw.pop("terminated", None)
 
 
 def _apply_remote(kw, args):
