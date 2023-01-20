@@ -202,7 +202,7 @@ def _apply_status_filter(args, filters):
 
 def _status_filter_args(args):
     status_args = [
-        (status, getattr(args, arg_name)) for status, arg_name in STATUS_FILTERS
+        (status, getattr(args, arg_name, None)) for status, arg_name in STATUS_FILTERS
     ]
     return (
         [status for status, val in status_args if val is True],
