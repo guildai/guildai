@@ -224,6 +224,9 @@ class Remote:
     def cat(self, **opts):
         raise OperationNotSupported()
 
+    def select(self, **opts):
+        raise OperationNotSupported()
+
 
 def for_name(name):
     from guild import config as configlib

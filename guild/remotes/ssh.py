@@ -530,6 +530,9 @@ class SSHRemote(remotelib.Remote):
     def cat(self, **opts):
         self._guild_cmd("cat", _cat_args(**opts))
 
+    def select(self, **opts):
+        self._guild_cmd("select", _select_args(**opts))
+
 
 def _join_args(args):
     try:
@@ -1111,4 +1114,23 @@ def _cat_args(run, path, sourcecode, output, **filters):
         args.append("--sourcecode")
     if output:
         args.append("--output")
+    return args
+
+
+def _select_args(runs, all, min, max, short_id, attr, path, **filters):
+    args = _filter_and_status_args(**filters)
+    if runs:
+        args.extend(runs)
+    if all:
+        args.append("--all")
+    if min:
+        args.extend(["--min", min])
+    if max:
+        args.extend(["--max", max])
+    if short_id:
+        args.extend("--short-id")
+    if attr:
+        args.extend(["--attr", attr])
+    if path:
+        args.extend(["--path", path])
     return args

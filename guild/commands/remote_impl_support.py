@@ -551,3 +551,24 @@ def _cat_kw(args):
         "remote",
     ]
     return _arg_kw(args, names, ignore)
+
+
+def select(args):
+    remote = remote_support.remote_for_args(args)
+    with op_handler(remote):
+        remote.select(**_select_kw(args))
+
+
+def _select_kw(args):
+    names = _runs_select_names() + [
+        "all",
+        "min",
+        "max",
+        "short_id",
+        "attr",
+        "path",
+    ]
+    ignore = [
+        "remote",
+    ]
+    return _arg_kw(args, names, ignore)

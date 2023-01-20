@@ -17,6 +17,7 @@ import click
 from guild import click_util
 
 from . import runs_support
+from . import remote_support
 
 
 # List of formatted run attrs supported by select with attr.
@@ -82,6 +83,7 @@ def _ac_attr(ctx, _param, incomplete):
 )
 @click.option("-p", "--path", "--dir", help="Show run path.", is_flag=True)
 @runs_support.all_filters
+@remote_support.remote_option("Run the operation remotely.")
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
@@ -111,6 +113,14 @@ def select(ctx, args):
     maximium scalar value.
 
     {{ runs_support.all_filters }}
+
+    ### Select remote rnus
+
+    To apply `select` to remote runs, specify `--remote REMOTE`. Use
+    ``guild remotes`` to list available remotes.
+
+    For information on configuring remotes, see ``guild remotes
+    --help``.
 
     """
     from . import runs_impl
