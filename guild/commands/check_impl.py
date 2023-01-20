@@ -130,13 +130,13 @@ def _check_version(req):
 
 
 def _uat_and_exit(args):
-    os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
-    uat.run(force=args.force_uat, fail_fast=args.fast)
+    with _TestEnv(no_vcs_commit=False, no_pip_freeze=False):
+        uat.run(force=args.force_uat, fail_fast=args.fast)
     sys.exit(0)
 
 
-def _run_tests(check):
-    with util.Env(
+def _TestEnv(no_vcs_commit=True, no_pip_freeze=True):
+    return util.Env(
         {
             "NO_IMPORT_FLAGS_PROGRESS": "1",
             "COLUMNS": "999",
@@ -144,10 +144,14 @@ def _run_tests(check):
             "PYTHONDONTWRITEBYTECODE": "1",
             # The following are optimizations for tests. They must be
             # overridden for any tests that check the disabled behavior.
-            "NO_PIP_FREEZE": "1",
-            "NO_VCS_COMMIT": "1",
+            "NO_PIP_FREEZE": "1" if no_pip_freeze else "",
+            "NO_VCS_COMMIT": "1" if no_vcs_commit else "",
         }
-    ):
+    )
+
+
+def _run_tests(check):
+    with _TestEnv():
         _run_tests_(check)
 
 
