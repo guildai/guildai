@@ -205,10 +205,6 @@ class InvalidOpDef(ValueError):
         return f"invalid definition for {self.opdef.fullname}: {self.msg}"
 
 
-class OpCmdError(Exception):
-    pass
-
-
 class BatchFileError(Exception):
     def __init__(self, path, msg):
         super().__init__(path, msg)
@@ -623,11 +619,6 @@ def _model_by_name(name, models):
         if model.name == name:
             return model
     return None
-
-
-def _maybe_no_model_error(model_ref):
-    if model_ref:
-        raise NoMatchingModel(model_ref)
 
 
 def _opdef_for_model_op(model, op_name):

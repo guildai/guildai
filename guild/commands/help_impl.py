@@ -19,14 +19,6 @@ from guild import cmd_impl_support
 from guild import help as helplib
 
 
-class Pkg:
-    """Local structure representing a model package."""
-
-    def __init__(self, name, guildfile):
-        self.name = name
-        self.guildfile = guildfile
-
-
 def main(args, ctx):
     _check_args(args)
     gf = cmd_impl_support.path_or_package_guildfile(args.path_or_package, ctx)

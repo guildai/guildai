@@ -341,9 +341,6 @@ class RunIndex:
         if types is None or "scalar" in types:
             self._scalar_reader.refresh(runs)
 
-    def _run_val_readers(self, _run):
-        return self._base_readers
-
     def run_attr(self, run, name):
         return self._attr_reader.read(run, name)
 

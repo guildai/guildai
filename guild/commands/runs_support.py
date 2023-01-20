@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import logging
-import sys
 
 import click
 
@@ -392,13 +391,6 @@ def _callbacks(*cbs):
         return value
 
     return f
-
-
-def _command_args():
-    for i, arg in enumerate(sys.argv[1:]):
-        if arg[:1] != "-":
-            return sys.argv[i + 1 :]
-    return []
 
 
 def status_filters(fn):

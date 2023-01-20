@@ -139,7 +139,6 @@ class Operation(oplib.Operation):
         self._sourcecode_dest = None
         self._flags_extra = None
         self._delete_on_success = None
-        self._additional_deps = []
         self._plugins = []
 
 
@@ -677,19 +676,6 @@ def _dep_source_flag_name(source, opdef):
         if opdef.get_flagdef(name):
             return name
     return source.flag_name or source.name or source.uri
-
-
-def _ensure_dep_flag_op_cmd_arg_skip(flag_name, opdef, op_cmd):
-    """Ensures that a dep flag does not appear as an op cmd arg.
-
-    An exception is made if the flag is defined in the opdef, which
-    which case the opdef flag is used to control op cmd args.
-    """
-    if opdef.get_flagdef(flag_name):
-        return
-    cmd_flag = op_cmd.cmd_flags.setdefault(flag_name, op_cmd_lib.CmdFlag())
-    cmd_flag.flag_name = flag_name
-    cmd_flag.arg_skip = True
 
 
 def _apply_dep_run_id(run_id, dep_flag_name, flag_vals):
@@ -2589,10 +2575,6 @@ def _alias_and_name_specified_error(alias, flag_name) -> typing.NoReturn:
         f"cannot specify both alias {alias!r} and name for flag {flag_name!r}\n"
         "Use --force-flags to skip this check."
     )
-
-
-def _coerce_flag_val_error(e) -> typing.NoReturn:
-    cli.error(f"cannot apply {e.value!r} to flag '{e.flag_name}': {e.error}")
 
 
 def _missing_required_flags_error(e) -> typing.NoReturn:

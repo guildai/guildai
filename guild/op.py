@@ -359,15 +359,6 @@ def _handle_proc_keyboard_interrupt(proc):
     return exit_code.KEYBOARD_INTERRUPT
 
 
-def _op_exit_status(proc_exit_status, opdef):
-    if (
-        proc_exit_status in (exit_code.SIGTERM, exit_code.KEYBOARD_INTERRUPT)
-        and opdef.stoppable
-    ):
-        return 0
-    return proc_exit_status
-
-
 def _op_finalize_run_attrs(run, exit_status):
     if not os.path.exists(run.dir):
         log.warning("run directory has been deleted, unable to finalize")

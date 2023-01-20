@@ -716,10 +716,6 @@ def _examples_dir():
         return os.path.join(guild.__pkgdir__, "examples")
 
 
-def _default_examples_dir():
-    return os.path.join(os.path.abspath(guild.__pkgdir__), "examples")
-
-
 def cat(*parts):
     # pylint: disable=no-value-for-parameter
     with open(os.path.join(*parts), "r") as f:
@@ -1021,9 +1017,6 @@ class Project:
 
     def stop_runs(self, runs, **kw):
         gapi.runs_stop(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
-
-    def guild_cmd(self, cmd):
-        _run(f"guild -H {util.shlex_quote(self.guild_home)} {cmd}", cwd=self.cwd)
 
     def _first_run(self):
         runs = self.list_runs()

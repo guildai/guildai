@@ -195,9 +195,6 @@ class FileSelectRule:
     def matches(self):
         return self._matches
 
-    def reset_matches(self):
-        self._matches = 0
-
     def test(self, src_root, relpath):
         """Returns a tuple of result and applicable test.
 

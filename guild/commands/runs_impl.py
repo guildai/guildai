@@ -965,28 +965,6 @@ def _format_scalar_val(val, step):
     return f"{val} (step {step})"
 
 
-def _comments_info(run, args):
-    return [
-        _format_comment_info(comment, args) for comment in run.get("comments") or []
-    ]
-
-
-def _format_comment_info(comment, args):
-    if args.json:
-        return comment
-    user = _format_comment_user(comment)
-    timestamp = util.format_timestamp(comment.get("time"))
-    body = comment.get("body") or ""
-    return f"{user} {timestamp}\n{body}"
-
-
-def _res_sources_paths(sources):
-    paths = []
-    for source_paths in sources.values():
-        paths.extend(source_paths)
-    return sorted(paths)
-
-
 def _format_run_manifest(run):
     from guild import run_manifest
 

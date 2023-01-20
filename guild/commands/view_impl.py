@@ -37,8 +37,6 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
-VIEW_FILES_REFRESH_INTERVAL = 3
-
 
 class ViewDataImpl(view.ViewData):
     def __init__(self, args):
@@ -111,12 +109,6 @@ class ViewDataImpl(view.ViewData):
     @staticmethod
     def _single_run_title_label(run_id):
         return f"[{run_id}]"
-
-    @staticmethod
-    def _all_title_label(args):
-        if args.ops:
-            return f"all {' '.join(args.ops)}"
-        return "all"
 
     @staticmethod
     def _cwd_title_label(cwd):

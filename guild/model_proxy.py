@@ -27,10 +27,6 @@ class NotSupported(Exception):
     pass
 
 
-class MissingRunOpdef(Exception):
-    pass
-
-
 class OpSpecError(Exception):
     pass
 

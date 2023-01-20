@@ -220,10 +220,6 @@ class TBServers:
             self._tb_mod = tensorboard
         return self._tb_mod
 
-    def iter_servers(self):
-        for server in self._servers.values():
-            yield server
-
     def stop_servers(self):
         for server in self._servers.values():
             if server.running:

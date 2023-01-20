@@ -81,17 +81,6 @@ def init_model_path(cwd=None):
     _init_path(guild.model, cwd)
 
 
-def init_resource_path(cwd=None):
-    """Initializes the resource path.
-
-    The same rules in `init_model_path` are applied here to the
-    resource path.
-    """
-    import guild.resource  # expensive
-
-    _init_path(guild.resource, cwd)
-
-
 def _init_path(mod, cwd):
     cwd_gf = cwd_guildfile(cwd)
     if cwd_gf:
@@ -129,32 +118,6 @@ def _match_short_id(m):
     except AttributeError:
         run_id, _path = m
         return run_id[:8]
-
-
-def disallow_args(names, args, ctx, error_suffix=""):
-    for name in names:
-        if getattr(args, name, False):
-            cli.error(f"{_arg_desc(name, ctx)} cannot be used{error_suffix}")
-
-
-def disallow_both(names, args, ctx, error_suffix=""):
-    if len(names) != 2:
-        raise RuntimeError("names must contain two values", names)
-    a, b = names
-    if getattr(args, a, False) and getattr(args, b, False):
-        cli.error(
-            f"{_arg_desc(a, ctx)} cannot be used with {_arg_desc(b, ctx)}{error_suffix}"
-        )
-
-
-def _arg_desc(name, ctx):
-    for param in ctx.command.params:
-        if param.name == name:
-            desc = param.opts[-1]
-            if desc[0] != "-":
-                desc = param.human_readable_name
-            return desc
-    raise AssertionError(name)
 
 
 def path_or_package_guildfile(path_or_package, ctx=None):

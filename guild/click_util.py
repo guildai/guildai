@@ -156,7 +156,6 @@ class JSONHelpFormatter:
         self._val = {"version": guild.__version__}
         self._help_text = None
         self._cur_dl = None
-        self._buf = []
         self.width = 999999999
 
     def write_usage(self, prog, args='', **_kw):
@@ -165,14 +164,6 @@ class JSONHelpFormatter:
     def write_paragraph(self):
         if self._help_text is not None:
             self._help_text.append("\n")
-
-    @contextlib.contextmanager
-    def indentation(self):
-        self.indent()
-        try:
-            yield
-        finally:
-            self.dedent()
 
     def indent(self):
         if self._help_text is None:

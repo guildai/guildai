@@ -482,11 +482,6 @@ def flag_edit_help(flagdef):
     return "\n".join(lines)
 
 
-def _format_flag_choices_for_edit(choices):
-    choices_help = _format_flag_choices(choices, 0)
-    return choices_help.replace("\b", "").strip()
-
-
 def _write_references(refs, out):
     out.write_subheading("References")
     out.write_paragraph()

@@ -23,7 +23,6 @@ from guild import yaml_util
 
 log = logging.getLogger("guild")
 
-ANONYMOUS_FUNCTION_P = re.compile(r"\[([^:]+:.+)\]")
 NAMED_FUNCTION_P = re.compile(r"([a-zA-Z0-9_\-\.]+)\[(.*)\]")
 
 LIST_CONCAT_P = re.compile(r"(\[.*\])\s*\*\s*([0-9]+)$")
@@ -251,23 +250,6 @@ def _expand_logspace_args(start=None, end=None, count=5, base=10, *rest):
     _assert_required_function_args(start, end)
     _assert_numeric_function_args(start, end, count, base)
     return start, end, count, base
-
-
-def _anonymous_flag_function(s):
-    """Returns s as a string if s is an anonymous flag function.
-
-    An anonymous flag function is in the form `[N:M...]`. This
-    function can be applied before attempt a conversion to YAML to
-    avoid accidentally converting time values to integers. E.g. YAML
-    decodes the string "1:1" as a time value of 1 minute + 1 second
-    and returns an integer of 61. The value "[1:1]", which Guild
-    treats an anonymous flag function, is therefore decoded as a list
-    containing a single integer of 61.
-    """
-    name, args = decode_flag_function(s)
-    if name is None and len(args) >= 2:
-        return s
-    raise ValueError(s)
 
 
 def _concatenated_list(s):

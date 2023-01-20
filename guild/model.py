@@ -25,7 +25,6 @@ from guild import config
 from guild import entry_point_util
 from guild import guildfile
 from guild import namespace
-from guild import resource
 
 log = logging.getLogger("guild")
 
@@ -246,38 +245,6 @@ def unescape_project_name(escaped_name):
     return str(base64.b16decode(escaped_name).decode("utf-8"))
 
 
-class GuildfileResource(resource.Resource):
-    def _init_resdef(self):
-        assert isinstance(self.dist, GuildfileDistribution), self.dist
-        model_name, res_name = _split_res_name(self.name)
-        modeldef = self.dist.guildfile.models.get(model_name)
-        assert modeldef, (self.name, self.dist)
-        resdef = modeldef.get_resource(res_name)
-        assert resdef, (self.name, self.dist)
-        return resdef
-
-
-def _split_res_name(name):
-    parts = name.split(":", 1)
-    if len(parts) != 2:
-        raise ValueError(f"invalid resource name: {name}")
-    return parts
-
-
-class PackageModelResource(resource.Resource):
-    def _init_resdef(self):
-        model_name, res_name = _split_res_name(self.name)
-        modeldef = _find_dist_modeldef(model_name, self.dist)
-        if modeldef is None:
-            raise ValueError(f"undefined model '{model_name}' in {self.dist}")
-        resdef = modeldef.get_resource(res_name)
-        if resdef is None:
-            raise ValueError(
-                f"undefined resource '{model_name}{res_name}' in {self.dist}"
-            )
-        return resdef
-
-
 class ModelImportError(ImportError):
     pass
 
@@ -413,11 +380,6 @@ def iter_models():
 
 def for_name(name):
     return _models.for_name(name)
-
-
-def iter_():
-    for _name, model in _models:
-        yield model
 
 
 def _register_model_finder():

@@ -104,7 +104,6 @@ def _check_args(args, ctx):
 def _apply_sourcecode_arg(args):
     if args.sourcecode:
         args.skip_deps = True
-        args.skip_generated = True
 
 
 def _init_run_merge(run, target_dir, args):

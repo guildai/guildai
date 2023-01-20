@@ -31,7 +31,6 @@ operation).
 """
 
 import copy
-import errno
 import logging
 import os
 import re
@@ -58,7 +57,6 @@ ALL_TYPES = [
 MODEL_TYPES = ["model", "config"]
 
 STRING_SRC_P = re.compile(r"<.*>$")
-INCLUDE_REF_P = re.compile(r"([^:#]+)(?::([^#]+))?(?:#(.+))?")
 INCLUDE_REF_P1 = re.compile(r"([^:#]*):([^#]+)(?:#(.+))?")
 INCLUDE_REF_P2 = re.compile(r"([^:#]+)(?:#(.+))?")
 INCLUDE_REF_P_DESC = "CONFIG[#ATTRS] or MODEL:OPERATION[#ATTRS]"
@@ -1028,7 +1026,6 @@ class OpDef:
         self.plugins = _init_plugins(data.get("plugins"), self.guildfile)
         self.dependencies = _init_dependencies(data.get("requires"), self)
         self.stoppable = data.get("stoppable") or False
-        self.set_trace = data.get("set-trace") or False
         self.label = data.get("label")
         self.tags = _coerce_str_to_list(data.get("tags"), self.guildfile, "tags")
         self.compare = data.get("compare")
@@ -1127,10 +1124,6 @@ class OpDef:
             if flag.arg_name and flag.arg_name == name:
                 return flag
         return None
-
-    # TODO: remove on op2 promote - where/how used?
-    def update_dependencies(self, opdef):
-        self.dependencies.extend(opdef.dependencies)
 
     def get_optimizer(self, name):
         for opt in self.optimizers or []:
@@ -1380,15 +1373,6 @@ def _coerce_inline_resource_data(data):
     return {"sources": [data]}
 
 
-class NoSuchResourceError(ValueError):
-    def __init__(self, name, dep):
-        super().__init__(
-            f"resource '{name}' is not defined in model '{dep.opdef.modeldef.name}'"
-        )
-        self.resource_name = name
-        self.dependency = dep
-
-
 def _init_optimizers(data, opdef):
     opts_data = _coerce_opts_data(data, opdef)
     return [
@@ -1500,7 +1484,6 @@ class FileSelectDef:
         )
 
     def _default_init(self, select_data, guildfile, root=None, digest=None, dest=None):
-        self.empty_def = select_data is None
         self.disabled = select_data is False
         if select_data in (None, False):
             select_data = []
@@ -1717,15 +1700,6 @@ def _notify_plugins_guildfile_loaded(guildfile):
 
     for _name, plugin in pluginlib.iter_plugins():
         plugin.guildfile_loaded(guildfile)
-
-
-def for_file_or_dir(src, no_cache=False):
-    try:
-        return for_file(src, no_cache=no_cache)
-    except IOError as e:
-        if e.errno == errno.EISDIR:
-            return for_dir(src)
-        raise
 
 
 def for_string(s, src="<string>"):
