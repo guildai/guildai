@@ -215,12 +215,12 @@ def p_runtest_neq(p):
 
 def p_runtest_is(p):
     "runtest : ID IS term"
-    p[0] = RunTest(p[1], p[3], lambda x, y: x is y, " is ")
+    p[0] = RunTest(p[1], p[3], lambda x, y: x == y, " is ")
 
 
 def p_runtest_is_not(p):
     "runtest : ID IS NOT term"
-    p[0] = RunTest(p[1], p[4], lambda x, y: x is not y, " is not ")
+    p[0] = RunTest(p[1], p[4], lambda x, y: x != y, " is not ")
 
 
 def p_runtest_in(p):
