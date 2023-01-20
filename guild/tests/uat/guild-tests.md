@@ -169,6 +169,7 @@ tests).
       test-template:               ok
       tfevents:                    ok
       timerange:                   ok
+      unused-code:                 ok
       utils:                       ok
       var:                         ok
       vcs-source:                  ok
