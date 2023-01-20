@@ -363,7 +363,7 @@ def _restore_runs_kw(args):
 def purge_runs(args):
     remote = remote_support.remote_for_args(args)
     with op_handler(remote):
-        remote.purge_runs(**_restore_runs_kw(args))
+        remote.purge_runs(**_purge_runs_kw(args))
 
 
 def _purge_runs_kw(args):
