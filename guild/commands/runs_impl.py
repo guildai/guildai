@@ -1455,6 +1455,13 @@ def _mark(args, ctx):
 
 
 def select(args, ctx):
+    if args.remote:
+        remote_impl_support.select(args)
+    else:
+        _select(args, ctx)
+
+
+def _select(args, ctx):
     _check_select_args(args, ctx)
     _maybe_apply_select_all(args)
     if args.all:
