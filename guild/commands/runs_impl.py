@@ -464,8 +464,22 @@ def list_runs(args, ctx=None):
     if args.remote:
         remote_impl_support.list_runs(args)
     else:
-        _check_list_runs_args(args, ctx)
         _list_runs(args, ctx)
+
+
+def _list_runs(args, ctx):
+    _check_list_runs_args(args, ctx)
+    if args.archive and not os.path.exists(args.archive):
+        cli.error(f"{args.archive} does not exist")
+    runs = filtered_runs(args, ctx=ctx)
+    if args.comments:
+        _list_runs_comments(_limit_runs(runs, args), args, comment_index_format=False)
+    elif args.json:
+        if args.limit or args.more or args.all:
+            cli.note("--json option always shows all runs")
+        _list_runs_json(runs)
+    else:
+        _list_runs_(_limit_runs(runs, args), args)
 
 
 def _check_list_runs_args(args, ctx):
@@ -480,20 +494,6 @@ def _check_list_runs_args(args, ctx):
         args,
         ctx,
     )
-
-
-def _list_runs(args, ctx):
-    if args.archive and not os.path.exists(args.archive):
-        cli.error(f"{args.archive} does not exist")
-    runs = filtered_runs(args, ctx=ctx)
-    if args.comments:
-        _list_runs_comments(_limit_runs(runs, args), comment_index_format=False)
-    elif args.json:
-        if args.limit or args.more or args.all:
-            cli.note("--json option always shows all runs")
-        _list_runs_json(runs)
-    else:
-        _list_runs_(_limit_runs(runs, args), args)
 
 
 def _list_runs_json(runs):
