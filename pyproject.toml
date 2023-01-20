@@ -8,3 +8,21 @@ exclude = 'guild/tests/samples|guild/_skopt|\.?venv'
 # black[jupyter]. When it's here we don't get this message.
 #
 extend-exclude = '\.ipynb'
+
+[tool.vulture]
+
+paths = ["setup.py", "guild"]
+exclude = [
+  "guild/_lex",
+  "guild/_skopt",
+  "guild/_yacc",
+  "guild/filter.py",
+  "guild/query/qlex.py",
+  "guild/query/qparse.py",
+  "guild/tests",
+  "guild/timerange/trlex.py",
+  "guild/timerange/trparse.py",
+]
+ignore_names = [
+  "_unused",
+]
