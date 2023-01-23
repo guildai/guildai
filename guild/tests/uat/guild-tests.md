@@ -171,6 +171,7 @@ tests).
       tfevents:                    ok
       timerange:                   ok
       utils:                       ok
+      whitelist-code               ok
       var:                         ok
       vcs-source:                  ok
       vcs-utils:                   ok

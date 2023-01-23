@@ -60,7 +60,7 @@ check:
 	COLUMNS=999 $(guild) check $$opts; \
 
 lint:
-	pylint setup.py guild
+	pylint setup.py tools.py guild
 
 clean:
 	rm -rf guild/external/.psutil*
@@ -105,7 +105,7 @@ README.html: README.md
 
 format-code:
 	@echo Formatting guild code
-	@black guild examples
+	@black setup.py tools.py guild examples
 
 coverage-check:
 	@if [ -z "$(TESTS)" ]; then \
@@ -133,4 +133,4 @@ coverage:
 	make coverage-report
 
 unused-code:
-	vulture
+	python tools.py --unused-code

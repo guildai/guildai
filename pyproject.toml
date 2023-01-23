@@ -11,7 +11,7 @@ extend-exclude = '\.ipynb'
 
 [tool.vulture]
 
-paths = ["setup.py", "guild"]
+paths = ["setup.py", "tools.py", "guild"]
 exclude = [
   "guild/_lex",
   "guild/_skopt",
