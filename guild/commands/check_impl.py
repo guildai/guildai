@@ -102,6 +102,8 @@ def _check(args):
 def _check_impl(args):
     if args.version:
         _check_version(args.version)
+    if args.external:
+        _check_external_and_exit(args)
     if args.uat or args.force_uat:
         _uat_and_exit(args)
     check = Check(args)
@@ -127,6 +129,29 @@ def _check_version(req):
                 f"version mismatch: current version '{guild.__version__}' "
                 f"does not match '{req}'"
             )
+
+
+def _check_external_and_exit(args):
+    if args.external == "git-ls-files":
+        _check_git_ls_files()
+    else:
+        cli.error(f"unsupported external check: {args.external}")
+
+
+def _check_git_ls_files():
+    from guild import vcs_util
+
+    result = vcs_util.check_git_ls_files()
+    if result.error:
+        cli.error(
+            f"git-ls-files NOT OK (git version {result.formatted_git_version}; "
+            f"{result.git_exe})\n{result.error}"
+        )
+    cli.out(
+        f"git-ls-files is ok (git version {result.formatted_git_version}; "
+        f"{result.git_exe})"
+    )
+    sys.exit(0)
 
 
 def _uat_and_exit(args):

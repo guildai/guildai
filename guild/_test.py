@@ -67,6 +67,7 @@ STRIP_EXIT_0 = doctest.register_optionflag("STRIP_EXIT_0")
 WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 KEEP_LF = doctest.register_optionflag("KEEP_LF")
+GIT_LS_FILES_TARGET = doctest.register_optionflag("GIT_LS_FILES_TARGET")
 
 
 def run_all(skip=None, fail_fast=False):
@@ -160,17 +161,14 @@ def _parse_doctest_options(encoded_options, filename):
 
 def _skip_for_doctest_options(options):
     return (
-        _skip_platform_for_doctest_options(options)
-        or _skip_version_for_doctest_options(options)
+        _skip_platform(options)
+        or _skip_python_version(options)
         or _skip_fixme(options)
+        or _skip_external(options)
     )
 
 
-def _skip_fixme(options):
-    return options.get(FIXME) is True
-
-
-def _skip_platform_for_doctest_options(options):
+def _skip_platform(options):
     is_windows = PLATFORM == "Windows"
     is_macos = PLATFORM == "Darwin"
     if options.get(WINDOWS) is False and is_windows:
@@ -182,7 +180,7 @@ def _skip_platform_for_doctest_options(options):
     return None
 
 
-def _skip_version_for_doctest_options(options):
+def _skip_python_version(options):
     py_major_ver = sys.version_info[0]
     py_minor_ver = sys.version_info[1]
     skip = None
@@ -201,6 +199,23 @@ def _skip_version_for_doctest_options(options):
         if opt in (True, False) and py_major_ver == maj_ver and py_minor_ver == min_ver:
             skip = not opt
     return skip
+
+
+def _skip_fixme(options):
+    return options.get(FIXME) is True
+
+
+def _skip_external(options):
+    git_ls_files_target_opt = options.get(GIT_LS_FILES_TARGET)
+    if git_ls_files_target_opt is not None:
+        return git_ls_files_target_opt != _git_ls_files_is_target()
+    return False
+
+
+def _git_ls_files_is_target():
+    from guild import vcs_util
+
+    return vcs_util.git_version() >= vcs_util.GIT_LS_FILES_TARGET_VER
 
 
 def _log_skipped_test(name):

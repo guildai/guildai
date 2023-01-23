@@ -173,3 +173,29 @@ With an empty sentinel:
     >>> vcs_util.commit_for_dir(repo)
     Traceback (most recent call last):
     NoCommit: ...
+
+## Environment checks
+
+`check_git_ls_files()` checks the behavior of Git with respect to its
+listing of ignored files with the `--directory` option. Guild takes
+advantage of an optimization in Git 2.32.0 and later, which lists
+directories that can be safely ignored when those directories are not
+explicitly listed in the `gitignore` spec. These directories can be
+listed because all of their files are ignored via other `gitignore`
+specs.
+
+    >>> git_version = vcs_util.git_version()
+    >>> check_result = vcs_util.check_git_ls_files()
+
+If Git meets the ls-files target (i.e. is at least version 2.32.0),
+the check `error` is None.
+
+    >>> print(check_result.error, check_result.out)  # doctest: +GIT_LS_FILES_TARGET
+    None ...
+
+Otherwise, we expected to see the following error and output from the
+check:
+
+    >>> print(check_result.error, check_result.out)  # doctest: -GIT_LS_FILES_TARGET
+    unexpected output for ls-files:
+     b''

@@ -22,6 +22,9 @@ from guild import util
 
 from guild.file_util import FileSelectRule
 
+# See https://github.com/guildai/guildai/issues/471 for details
+GIT_LS_FILES_TARGET_VER = (2, 32, 0)
+
 
 class UnsupportedRepo(Exception):
     pass
@@ -369,3 +372,90 @@ class _GitignoreSelectRule(FileSelectRule):
         if relpath not in self.ignored:
             return True, None
         return None, None
+
+
+class GitCheckResult:
+
+    git_version = None
+    git_exe = None
+    error = None
+    out = None
+
+    @property
+    def formatted_git_version(self):
+        v = self.git_version
+        return f"{v[0]}.{v[1]}.{v[2]}"
+
+
+def check_git_ls_files():
+    """Checks Git for a specific ls-files behavior.
+
+    As of ??? the behavior of the command:
+
+        git ls-files -ioc --exclude-standard --directory
+
+    includes directories that should be ignored when all of their
+    contained files are ignored. This appears to be an optimization in
+    the generated output for this command. Guild takes advantage of
+    this by excluding these directories from its source code copy
+    rules so as not to travse their files.
+
+    Older versions of Git, however, behave differently -- they omit
+    such directories *and the ignored files in them* from the command
+    output. If relied on, this behavior results in Guild missing
+    ignored files in its inferred source code select rules.
+
+    This function is used to explicitly test the behavior Git on the
+    system. It relies on the system PATH to locate the `git`
+    executable.
+
+    Returns an instance of `GitCheckResult`. If the expected behavior
+    of Git is incorrect, the result error is specified in the `error`
+    attribute.
+    """
+    result = GitCheckResult()
+    result.git_version = git_version()
+    result.git_exe = util.which("git")
+    project_dir = _init_git_ls_files_sample_project()
+    result.out = subprocess.check_output(
+        [
+            result.git_exe,
+            "ls-files",
+            "-ioc",
+            "--exclude-standard",
+            "--directory",
+        ],
+        cwd=project_dir,
+    )
+    if result.out != b"files/\nfiles/foo.txt\n":
+        result.error = (
+            "unexpected output for ls-files:\n" + result.out.decode().rstrip()
+        )
+    return result
+
+
+def _init_git_ls_files_sample_project():
+    """Initializes a sample project for git ls-files check.
+
+    Project is an initialized Git repo consisting of:
+
+      - subdirectory `files` containing a single file `foo.txt`
+      - `.gitignore` containing a single line `*.txt`
+
+    Returns the project directory.
+    """
+    project_dir = util.mktempdir("guild-check-")
+    _ = subprocess.check_output(["git", "init"], cwd=project_dir)
+    os.mkdir(os.path.join(project_dir, "files"))
+    util.touch(os.path.join(project_dir, "files", "foo.txt"))
+    with open(os.path.join(project_dir, ".gitignore"), "w") as f:
+        f.write("*.txt\n")
+    return project_dir
+
+
+def git_version():
+    cmd = ["git", "--version"]
+    out = subprocess.check_output(cmd).decode().strip()
+    m = re.search(r"([0-9]+)\.([0-9]+)\.([0-9]+)", out)
+    assert m and m.lastindex == 3, out
+    return tuple(int(x) for x in m.groups())
