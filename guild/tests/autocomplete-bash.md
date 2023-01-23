@@ -59,6 +59,7 @@ markdown and text files.
     vcs-source
     vcs-utils
     view
+    whitelist-code
     yaml-utils
     !!file:*.@(md|txt)
 
