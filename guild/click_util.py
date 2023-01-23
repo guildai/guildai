@@ -165,6 +165,15 @@ class JSONHelpFormatter:
         if self._help_text is not None:
             self._help_text.append("\n")
 
+    @contextlib.contextmanager
+    def indentation(self):
+        # Used by click when GUILD_HELP_JSON=1
+        self.indent()
+        try:
+            yield
+        finally:
+            self.dedent()
+
     def indent(self):
         if self._help_text is None:
             self._help_text = []
