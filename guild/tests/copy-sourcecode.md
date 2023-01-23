@@ -133,7 +133,6 @@ Default source code copy for Python script:
       venv/
       hello.pyc
       subdir/logo.png
-    <exit 0>
 
 Default sourcecode copy for shell script:
 
@@ -162,7 +161,6 @@ Default sourcecode copy for shell script:
       hello.pyc
       __pycache__/hello.pyc
       subdir/logo.png
-    <exit 0>
 
 Source code copy for `default` operation:
 
@@ -210,7 +208,6 @@ The `no-sourcecode` operation disables source code copy altogether.
     Rules:
       exclude *
     Source code copy disabled
-    <exit 0>
 
 `eplicit-sourceocode` disables all previously defined rules and adds a
 single rule to copy `hello.py`.
@@ -248,15 +245,12 @@ single rule to copy `hello.py`.
       data/file2
       data/file3
       subdir/logo.png
-    <exit 0>
 
     >>> run("guild run explicit-sourcecode -y")
     hi
-    <exit 0>
 
     >>> run("guild ls -n")
     hello.py
-    <exit 0>
 
 `explicit-sourcecode-2` uses Guild select rules to exclude some files
 from the default list.
@@ -294,7 +288,6 @@ from the default list.
       hello.py
       hello.pyc
       subdir/logo.png
-    <exit 0>
 
 For tests that use pre-0.9 source code copy rules, see
 [copy-sourcecode-legacy.md](copy-sourcecode-legacy.md).
@@ -339,7 +332,6 @@ source code files.
     add 'nocopy_dir/not-to-copy'
     add 'subdir/logo.png'
     add 'venv/bin/activate'
-    <exit 0>
 
 Guild selects the same list as the default source code for an
 operation with the exception of `.guild*` files and directories
@@ -374,7 +366,6 @@ containing the sentinel `.guild-nocopy`.
     Skipped:
       .git/
       nocopy_dir/
-    <exit 0>
 
 We see the same behavior for the `default` operation, which does not
 define additional rules.
@@ -430,7 +421,13 @@ Let's create `.gitignore` to specify some ignore patterns.
 With this addition, Guild ignores files and directories matching these
 patterns.
 
-    >>> run("guild run hello.py --test-sourcecode")  # doctest: +REPORT_UDIFF
+Under more current versions of Git, Guild knows to implicitly ignore
+the directory `__pycache__`. As an optimization, `__pycache__` is
+explicitly excluded as a directory. This precents Guild from
+traversing the directory to apply select rules.
+
+    >>> run("guild run hello.py --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF +GIT_LS_FILES_TARGET
     Copying from the current directory
     Rules:
       exclude dir .guild
@@ -458,14 +455,41 @@ patterns.
       .gitignore
       config.in.yml
       hello.pyc
-    <exit 0>
 
-Note that, as an optimization, Guild excludes ignored directories
-`.git`, `__pycache__` and `data`. These rules tell Guild not to
-traverse these directories when considering source code.
+Earlier versions of Git do not support implicit directory listings for
+ignored files. In this case, Guild does not include `__pycache__` in
+the list of excluded directories. However, Guild does correctly skip
+files matching `*.pyc` based on the gitignore rule.
 
-`__pycache__` is included implicitly because all of its contained
-files are ignored by the rule `*.pyc` in `.gitignore`.
+    >>> run("guild run hello.py --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF -GIT_LS_FILES_TARGET
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git, data
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      config.yml
+      empty
+      guild.yml
+      hello.R
+      hello.erl
+      hello.py
+      hello.sh
+      .hidden/file-1
+      .hidden/file-2
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      data/
+      nocopy_dir/
+      .gitignore
+      config.in.yml
+      hello.pyc
+      __pycache__/hello.pyc
 
 ### guildignore
 
@@ -474,19 +498,25 @@ file, which provides additional ignore rules following the gitignore
 convention. This is useful when files that are stored in Git should be
 excluded as source code for a run.
 
-Let's create `.guildignore` to exclude non Python source files.
+Let's create `.guildignore` to exclude non Python source files and
+files under `.hidden`.
 
     >>> write(".guildignore", """*.R
     ... *.erl
     ... *.sh
+    ... file-*
     ... """)
 
-    >>> run("guild run hello.py --test-sourcecode")  # doctest: +REPORT_UDIFF
+Guild skips the newly ignored files. In more recent versions of Git,
+Guild includes the optimiation of excluding `.hidden` as a directory.
+
+    >>> run("guild run hello.py --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF +GIT_LS_FILES_TARGET
     Copying from the current directory
     Rules:
       exclude dir .guild
       exclude dir * containing .guild-nocopy
-      exclude dir .git, __pycache__, data
+      exclude dir .git, .hidden, __pycache__, data
       gitignore + guildignore patterns
       exclude .git*, .guildignore
     Selected for copy:
@@ -494,12 +524,11 @@ Let's create `.guildignore` to exclude non Python source files.
       empty
       guild.yml
       hello.py
-      .hidden/file-1
-      .hidden/file-2
       subdir/logo.png
       venv/bin/activate
     Skipped:
       .git/
+      .hidden/
       __pycache__/
       data/
       nocopy_dir/
@@ -510,7 +539,42 @@ Let's create `.guildignore` to exclude non Python source files.
       hello.erl
       hello.pyc
       hello.sh
-    <exit 0>
+
+Using older versions of Git, the files in `.guildignore` are still
+ignored, along with the other files selected via `gitignore`. However,
+Guild does not apply the optimization of excluding `__pycache__` and
+`.hidden` directories.
+
+    >>> run("guild run hello.py --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF -GIT_LS_FILES_TARGET
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git, data
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      config.yml
+      empty
+      guild.yml
+      hello.py
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      data/
+      nocopy_dir/
+      .gitignore
+      .guildignore
+      config.in.yml
+      hello.R
+      hello.erl
+      hello.pyc
+      hello.sh
+      .hidden/file-1
+      .hidden/file-2
+      __pycache__/hello.pyc
 
 `.guildignore` may be used to negate a previously defined rule.
 
@@ -519,12 +583,13 @@ Here we append a rule to re-enable `data` as source code.
     >>> write(".guildignore", """!data
     ... """, append=True)
 
-    >>> run("guild run hello.py --test-sourcecode")  # doctest: +REPORT_UDIFF
+    >>> run("guild run hello.py --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF +GIT_LS_FILES_TARGET
     Copying from the current directory
     Rules:
       exclude dir .guild
       exclude dir * containing .guild-nocopy
-      exclude dir .git, __pycache__
+      exclude dir .git, .hidden, __pycache__
       gitignore + guildignore patterns
       exclude .git*, .guildignore
     Selected for copy:
@@ -532,8 +597,6 @@ Here we append a rule to re-enable `data` as source code.
       empty
       guild.yml
       hello.py
-      .hidden/file-1
-      .hidden/file-2
       data/file1
       data/file2
       data/file3
@@ -541,6 +604,7 @@ Here we append a rule to re-enable `data` as source code.
       venv/bin/activate
     Skipped:
       .git/
+      .hidden/
       __pycache__/
       nocopy_dir/
       .gitignore
@@ -550,7 +614,42 @@ Here we append a rule to re-enable `data` as source code.
       hello.erl
       hello.pyc
       hello.sh
-    <exit 0>
+
+As with previous examples, the behavior in older versions of Git is
+the same, with the exception of the missing directory optimizations.
+
+    >>> run("guild run hello.py --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF -GIT_LS_FILES_TARGET
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      config.yml
+      empty
+      guild.yml
+      hello.py
+      data/file1
+      data/file2
+      data/file3
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      nocopy_dir/
+      .gitignore
+      .guildignore
+      config.in.yml
+      hello.R
+      hello.erl
+      hello.pyc
+      hello.sh
+      .hidden/file-1
+      .hidden/file-2
+      __pycache__/hello.pyc
 
 ### Operation overrides to VCS based rules
 
@@ -564,7 +663,6 @@ based rules generated when a project is under VCS control.
     Rules:
       exclude *
     Source code copy disabled
-    <exit 0>
 
     >>> run("guild run no-sourcecode -y")
     <exit 0>
@@ -572,14 +670,16 @@ based rules generated when a project is under VCS control.
     >>> run("guild ls -n")
     <exit 0>
 
-`explicit-sourcecode` resets the rules and includes a single source code file `hello.py`.
+`explicit-sourcecode` resets the rules and includes a single source
+code file `hello.py`.
 
-    >>> run("guild run explicit-sourcecode --test-sourcecode")  # doctest: +REPORT_UDIFF
+    >>> run("guild run explicit-sourcecode --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF +GIT_LS_FILES_TARGET
     Copying from the current directory
     Rules:
       exclude dir .guild
       exclude dir * containing .guild-nocopy
-      exclude dir .git, __pycache__
+      exclude dir .git, .hidden, __pycache__
       gitignore + guildignore patterns
       exclude .git*, .guildignore
       exclude *
@@ -588,7 +688,43 @@ based rules generated when a project is under VCS control.
       hello.py
     Skipped:
       .git/
+      .hidden/
       __pycache__/
+      nocopy_dir/
+      .gitignore
+      .guildignore
+      config.in.yml
+      config.yml
+      empty
+      guild.yml
+      hello.R
+      hello.erl
+      hello.pyc
+      hello.sh
+      data/file1
+      data/file2
+      data/file3
+      subdir/logo.png
+      venv/bin/activate
+
+Using older versions of Git, we don't see the directory exclude
+optimizations.
+
+    >>> run("guild run explicit-sourcecode --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF -GIT_LS_FILES_TARGET
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+      exclude *
+      include hello.py
+    Selected for copy:
+      hello.py
+    Skipped:
+      .git/
       nocopy_dir/
       .gitignore
       .guildignore
@@ -602,29 +738,28 @@ based rules generated when a project is under VCS control.
       hello.sh
       .hidden/file-1
       .hidden/file-2
+      __pycache__/hello.pyc
       data/file1
       data/file2
       data/file3
       subdir/logo.png
       venv/bin/activate
-    <exit 0>
 
 `explicit-sourcecode-2` appends two exclusion rules.
 
-    >>> run("guild run explicit-sourcecode-2 --test-sourcecode")  # doctest: +REPORT_UDIFF
+    >>> run("guild run explicit-sourcecode-2 --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF +GIT_LS_FILES_TARGET
     Copying from the current directory
     Rules:
       exclude dir .guild
       exclude dir * containing .guild-nocopy
-      exclude dir .git, __pycache__
+      exclude dir .git, .hidden, __pycache__
       gitignore + guildignore patterns
       exclude .git*, .guildignore
       exclude *.py
       exclude *.yml
     Selected for copy:
       empty
-      .hidden/file-1
-      .hidden/file-2
       data/file1
       data/file2
       data/file3
@@ -632,6 +767,7 @@ based rules generated when a project is under VCS control.
       venv/bin/activate
     Skipped:
       .git/
+      .hidden/
       __pycache__/
       nocopy_dir/
       .gitignore
@@ -644,7 +780,43 @@ based rules generated when a project is under VCS control.
       hello.py
       hello.pyc
       hello.sh
-    <exit 0>
+
+With older versions of Git:
+
+    >>> run("guild run explicit-sourcecode-2 --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF -GIT_LS_FILES_TARGET
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+      exclude *.py
+      exclude *.yml
+    Selected for copy:
+      empty
+      data/file1
+      data/file2
+      data/file3
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      nocopy_dir/
+      .gitignore
+      .guildignore
+      config.in.yml
+      config.yml
+      guild.yml
+      hello.R
+      hello.erl
+      hello.py
+      hello.pyc
+      hello.sh
+      .hidden/file-1
+      .hidden/file-2
+      __pycache__/hello.pyc
 
 ## Source code and dependencies
 
@@ -666,12 +838,13 @@ regardless of the source code rules.
 As a baseline, the `default` operation, using the current project
 configuration (gitignore and guildignore) copies `config.yml`.
 
-    >>> run("guild run default --test-sourcecode")  # doctest: +REPORT_UDIFF
+    >>> run("guild run default --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF +GIT_LS_FILES_TARGET
     Copying from the current directory
     Rules:
       exclude dir .guild
       exclude dir * containing .guild-nocopy
-      exclude dir .git, __pycache__
+      exclude dir .git, .hidden, __pycache__
       gitignore + guildignore patterns
       exclude .git*, .guildignore
     Selected for copy:
@@ -679,8 +852,6 @@ configuration (gitignore and guildignore) copies `config.yml`.
       empty
       guild.yml
       hello.py
-      .hidden/file-1
-      .hidden/file-2
       data/file1
       data/file2
       data/file3
@@ -688,6 +859,7 @@ configuration (gitignore and guildignore) copies `config.yml`.
       venv/bin/activate
     Skipped:
       .git/
+      .hidden/
       __pycache__/
       nocopy_dir/
       .gitignore
@@ -697,24 +869,58 @@ configuration (gitignore and guildignore) copies `config.yml`.
       hello.erl
       hello.pyc
       hello.sh
+
+With older verions of Git:
+
+    >>> run("guild run default --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF -GIT_LS_FILES_TARGET
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      config.yml
+      empty
+      guild.yml
+      hello.py
+      data/file1
+      data/file2
+      data/file3
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      nocopy_dir/
+      .gitignore
+      .guildignore
+      config.in.yml
+      hello.R
+      hello.erl
+      hello.pyc
+      hello.sh
+      .hidden/file-1
+      .hidden/file-2
+      __pycache__/hello.pyc
 
 The `upstream` operation in the project requires `config.yml` and so
 this file is not copied as source code.
 
-    >>> run("guild run upstream --test-sourcecode")  # doctest: +REPORT_UDIFF
+    >>> run("guild run upstream --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF +GIT_LS_FILES_TARGET
     Copying from the current directory
     Rules:
       exclude dir .guild
       exclude dir * containing .guild-nocopy
-      exclude dir .git, __pycache__
+      exclude dir .git, .hidden, __pycache__
       gitignore + guildignore patterns
       exclude .git*, .guildignore
     Selected for copy:
       empty
       guild.yml
       hello.py
-      .hidden/file-1
-      .hidden/file-2
       data/file1
       data/file2
       data/file3
@@ -722,6 +928,7 @@ this file is not copied as source code.
       venv/bin/activate
     Skipped:
       .git/
+      .hidden/
       __pycache__/
       nocopy_dir/
       .gitignore
@@ -733,11 +940,46 @@ this file is not copied as source code.
       hello.pyc
       hello.sh
 
+With older versions of Git:
+
+    >>> run("guild run upstream --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF -GIT_LS_FILES_TARGET
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      empty
+      guild.yml
+      hello.py
+      data/file1
+      data/file2
+      data/file3
+      subdir/logo.png
+      venv/bin/activate
+    Skipped:
+      .git/
+      nocopy_dir/
+      .gitignore
+      .guildignore
+      config.in.yml
+      config.yml
+      hello.R
+      hello.erl
+      hello.pyc
+      hello.sh
+      .hidden/file-1
+      .hidden/file-2
+      __pycache__/hello.pyc
+
 ### Non-project local dependencies
 
-Guild, however, does not exclude non-project local dependencies from
-source code. This includes files resolved from upstream runs or
-extracted from archives.
+Guild does not exclude non-project local dependencies from source
+code. This includes files resolved from upstream runs or extracted
+from archives.
 
 The `downstream-conflict` operation defines a dependency on the
 `upstream` operation. The conflict arises because Guild copies
@@ -745,13 +987,14 @@ The `downstream-conflict` operation defines a dependency on the
 
 Guild treats `config.yml` as source code for `downstream-conflict`.
 
-    >>> run("guild run downstream-conflict --test-sourcecode")  # doctest: +REPORT_UDIFF
+    >>> run("guild run downstream-conflict --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF +GIT_LS_FILES_TARGET
     WARNING: cannot find a suitable run for required resource 'operation:upstream'
     Copying from the current directory
     Rules:
       exclude dir .guild
       exclude dir * containing .guild-nocopy
-      exclude dir .git, __pycache__
+      exclude dir .git, .hidden, __pycache__
       gitignore + guildignore patterns
       exclude .git*, .guildignore
     Selected for copy:
@@ -759,8 +1002,6 @@ Guild treats `config.yml` as source code for `downstream-conflict`.
       empty
       guild.yml
       hello.py
-      .hidden/file-1
-      .hidden/file-2
       data/file1
       data/file2
       data/file3
@@ -768,6 +1009,7 @@ Guild treats `config.yml` as source code for `downstream-conflict`.
       venv/bin/activate
     Skipped:
       .git/
+      .hidden/
       __pycache__/
       nocopy_dir/
       .gitignore
@@ -792,8 +1034,6 @@ source code.
 Show source code.
 
     >>> run("guild ls -n --sourcecode")
-    .hidden/file-1
-    .hidden/file-2
     data/file1
     data/file2
     data/file3
@@ -802,9 +1042,6 @@ Show source code.
     hello.py
     subdir/logo.png
     venv/bin/activate
-
-Note that Guild shows all source code files even if they're under
-hidden (dot-named) directories.
 
 When we run `downstream-conflict` we see the conflict.
 
@@ -816,12 +1053,13 @@ When we run `downstream-conflict` we see the conflict.
 The `downstream-fixed` operation is configured to exclude `config.yml`
 as source code.
 
-    >>> run("guild run downstream-fixed --test-sourcecode")  # doctest: +REPORT_UDIFF
+    >>> run("guild run downstream-fixed --test-sourcecode")
+    ... # doctest: +REPORT_UDIFF +GIT_LS_FILES_TARGET
     Copying from the current directory
     Rules:
       exclude dir .guild
       exclude dir * containing .guild-nocopy
-      exclude dir .git, __pycache__
+      exclude dir .git, .hidden, __pycache__
       gitignore + guildignore patterns
       exclude .git*, .guildignore
       exclude config.yml
@@ -829,8 +1067,6 @@ as source code.
       empty
       guild.yml
       hello.py
-      .hidden/file-1
-      .hidden/file-2
       data/file1
       data/file2
       data/file3
@@ -838,6 +1074,7 @@ as source code.
       venv/bin/activate
     Skipped:
       .git/
+      .hidden/
       __pycache__/
       nocopy_dir/
       .gitignore

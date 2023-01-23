@@ -286,7 +286,19 @@ def git_project_select_rules(project_dir):
 
 
 def _git_ls_ignored(cwd, extended_patterns_file=None):
-    cmd = _git_ls_cmd(extended_patterns_file)
+    if git_version() < GIT_LS_FILES_TARGET_VER:
+        return _git_ls_ignored_legacy(cwd, extended_patterns_file)
+    return _git_ls_ignored_(cwd, extended_patterns_file)
+
+
+def _git_ls_ignored_legacy(cwd, extended_patterns_file):
+    ignored_files = _git_ls_ignored_(cwd, extended_patterns_file, directory_flag=False)
+    ignored_dirs = _git_ls_ignored_(cwd, extended_patterns_file, directory_flag=True)
+    return ignored_files + ignored_dirs
+
+
+def _git_ls_ignored_(cwd, extended_patterns_file, directory_flag=True):
+    cmd = _git_ls_ignored_cmd(extended_patterns_file, directory_flag)
     log.debug("cmd for ls ignored in %s: %s", cwd, cmd)
     try:
         out = subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.STDOUT)
@@ -305,13 +317,21 @@ def _git_ls_ignored(cwd, extended_patterns_file=None):
         return _parse_git_ls_files(out)
 
 
-def _git_ls_cmd(extended_patterns_file):
-    # `--directory` is important here to avoid listing potentially
-    # huge numbers of ignored files in directories. This is also
-    # relied upon downstream by `_dirs_for_git_ignored()` to list
-    # ignored directories that can be skipped by Guild's select rules
-    # as a substantial performance optimization.
-    cmd = ["git", "ls-files", "-ioc", "--exclude-standard", "--directory"]
+def _git_ls_ignored_cmd(extended_patterns_file, directory_flag):
+    """Returns the Git command for listing ignored files.
+
+    Contains `ls-files` with options for listing ignored files. Uses
+    `--exclude-standard` to apply the standard gitignore rules to the
+    result.
+
+    If `extended_patterns_file` is specified, includes `-x` args for
+    each line in file.
+
+    If `directory_flag` is True, includes `--directory` option.
+    """
+    cmd = ["git", "ls-files", "-ioc", "--exclude-standard"]
+    if directory_flag:
+        cmd.append("--directory")
     if extended_patterns_file:
         cmd.extend(_exclude_args_for_patterns_file(extended_patterns_file))
     return cmd
