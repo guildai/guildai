@@ -61,7 +61,7 @@ A helper to show completions.
 Default list includes all built-in tests and a directive to include
 markdown and text files.
 
-    >>> ac_check_tests("")
+    >>> ac_check_tests("")  # doctest: +REPORT_UDIFF
     ac-support
     additional-deps
     anonymous-models
@@ -72,6 +72,7 @@ markdown and text files.
     vcs-source
     vcs-utils
     view
+    whitelist-code
     yaml-utils
     bar.md
     foo.md
