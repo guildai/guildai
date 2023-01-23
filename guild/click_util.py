@@ -167,7 +167,6 @@ class JSONHelpFormatter:
 
     @contextlib.contextmanager
     def indentation(self):
-        # Used by click when GUILD_HELP_JSON=1
         self.indent()
         try:
             yield

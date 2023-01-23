@@ -40,6 +40,7 @@ tests).
       breakpoints:                 ok
       cli:                         ok
       click-patch:                 ok
+      command-help:                ok
       comments:                    ok
       compare:                     ok
       config:                      ok

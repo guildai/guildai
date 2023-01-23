@@ -9,6 +9,7 @@ The following is the know list of vulture-generated unused code.
     guild/_test.py:462: unused method '_parse_example' (60% confidence)
     guild/_test.py:930: unused method 'print_runs' (60% confidence)
     guild/batch_util.py:296: unused function 'run_trial' (60% confidence)
+    guild/click_util.py:168: unused method 'indentation' (60% confidence)
     guild/commands/runs_push.py:45: unused attribute 'shell_complete' (60% confidence)
     guild/commands/tensorflow_impl.py:74: unused attribute 'FLAGS' (60% confidence)
     guild/filter_util.py:26: unused method 'get_attr' (60% confidence)
