@@ -66,6 +66,13 @@ def _ac_builtin_tests(ctx, _param, incomplete):
     shell_complete=_ac_builtin_tests,
 )
 @click.option("-f", "--fast", help="Fail fast when running tests.", is_flag=True)
+@click.option(
+    "-c",
+    "--concurrency",
+    help="Number of concurrent tests.",
+    type=int,
+    default=None,
+)
 @click.option("-v", "--verbose", help="Show more information.", is_flag=True)
 @click.option("--space", help="Show disk space usage for Guild files.", is_flag=True)
 @click.option("--version", metavar="REQUIRED", help="Check the installed version.")
@@ -83,6 +90,7 @@ def _ac_builtin_tests(ctx, _param, incomplete):
 @click.option("--uat", hidden=True, is_flag=True)
 @click.option("--force-uat", hidden=True, is_flag=True)
 @click.option("--external", hidden=True)
+@click.option("--no-chrome", hidden=True, is_flag=True)
 @click_util.use_args
 def check(args):
     """Check the Guild setup.

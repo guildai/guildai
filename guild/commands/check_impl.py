@@ -181,17 +181,27 @@ def _run_tests(check):
 
 
 def _run_tests_(check):
+    if not check.args.no_chrome:
+        sys.stdout.write("internal tests:\n")
     if check.args.all_tests:
         if check.args.tests:
             log.warning(
                 "running all tests (--all-tests specified) - "
                 "ignoring individual tests"
             )
-        success = _test.run_all(skip=check.args.skip, fail_fast=check.args.fast)
+        success = _test.run_all(
+            skip=check.args.skip,
+            fail_fast=check.args.fast,
+            concurrency=check.args.concurrency,
+        )
     elif check.args.tests:
         if check.args.skip:
             log.warning("running individual tests - ignoring --skip")
-        success = _test.run(check.args.tests, fail_fast=check.args.fast)
+        success = _test.run(
+            check.args.tests,
+            fail_fast=check.args.fast,
+            concurrency=check.args.concurrency,
+        )
     if not success:
         check.error()
 
@@ -584,6 +594,8 @@ def _format_disk_usage_and_path(usage, path, max_usage_width):
 
 
 def _print_error_and_exit(args):
+    if args.no_chrome:
+        return
     if args.all_tests or args.tests:
         msg = _tests_failed_msg()
     else:

@@ -4,7 +4,7 @@ Guild tests can be run with the `check` command using the `-T` option
 (`-n` here skips the general check info as we're just interested in
 tests).
 
-    >>> run("NO_SKIPPED_MSG=1 guild check -nT") # doctest: +REPORT_UDIFF
+    >>> run("NO_SKIPPED_MSG=1 guild check -nT -c8") # doctest: +REPORT_UDIFF
     internal tests:
       ac-support:                  ok
       additional-deps:             ok

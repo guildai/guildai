@@ -22,6 +22,7 @@ import json
 import os
 import platform
 import pprint
+import queue
 import re
 import shutil
 import signal
@@ -70,8 +71,8 @@ KEEP_LF = doctest.register_optionflag("KEEP_LF")
 GIT_LS_FILES_TARGET = doctest.register_optionflag("GIT_LS_FILES_TARGET")
 
 
-def run_all(skip=None, fail_fast=False):
-    return run(all_tests(), skip=skip, fail_fast=fail_fast)
+def run_all(skip=None, fail_fast=False, concurrency=None):
+    return run(all_tests(), skip=skip, fail_fast=fail_fast, concurrency=concurrency)
 
 
 def all_tests():
@@ -88,19 +89,26 @@ def _test_name_for_path(path):
     return name
 
 
-def run(tests, skip=None, fail_fast=False):
+def run(tests, skip=None, fail_fast=False, concurrency=None):
+    if concurrency and concurrency > 1:
+        return _run_parallel(tests, skip, fail_fast, concurrency)
+    return _run_(tests, skip, fail_fast)
+
+
+def _run_(tests, skip, fail_fast):
     skip = skip or []
-    sys.stdout.write("internal tests:\n")
     success = True
     for test in tests:
         if test not in skip:
             run_success = _run_test(test, fail_fast)
-            success = success and run_success
+            success &= run_success
         else:
-            sys.stdout.write(
-                f"  {test}:{' ' * (TEST_NAME_WIDTH - len(test))} skipped\n"
-            )
+            sys.stdout.write(_test_skipped_output(test))
     return success
+
+
+def _test_skipped_output(test):
+    return f"  {test}:{' ' * (TEST_NAME_WIDTH - len(test))} skipped\n"
 
 
 def _run_test(name, fail_fast):
@@ -1490,3 +1498,102 @@ def use_project(project_name, guild_home=None):
     guild_home = guild_home or mkdtemp()
     _chdir(sample("projects", project_name))
     _set_guild_home(guild_home)
+
+
+def _run_parallel(tests, skip, fail_fast, concurrency):
+    skip = skip or []
+    tests = _init_concurrent_tests(tests, skip)
+    test_queue = _init_test_queue([test for test in tests if not test.skip])
+    test_runners = _init_test_runners(test_queue, fail_fast, concurrency)
+    success = True
+    for test in tests:
+        if test.skip:
+            sys.stdout.write(_test_skipped_output(test.name))
+            continue
+        test.wait_done()
+        assert test.output is not None
+        assert test.success is not None
+        sys.stdout.write(test.output)
+        success &= test.success
+    assert test_queue.empty()
+    for runner in test_runners:
+        runner.join()
+    assert all(not r.is_alive() for r in test_runners)
+    return success
+
+
+def _init_concurrent_tests(tests, skip):
+    return [_ConcurrentTest(name, name in skip) for name in tests]
+
+
+class _ConcurrentTest:
+    def __init__(self, name, skip):
+        self.name = name
+        self.skip = skip
+        self.success = None
+        self.output = None
+        self._done_event = threading.Event()
+
+    def wait_done(self):
+        self._done_event.wait()
+
+    def set_done(self, success, output):
+        assert success is not None
+        assert output is not None
+        self.success = success
+        self.output = output
+        self._done_event.set()
+
+
+def _init_test_queue(tests):
+    q = queue.Queue()
+    for test in tests:
+        q.put(test)
+    return q
+
+
+def _init_test_runners(test_queue, fail_fast, concurrency):
+    assert not test_queue.empty()
+    return [_ConcurrentTestRunner(test_queue, fail_fast) for _ in range(concurrency)]
+
+
+class _ConcurrentTestRunner(threading.Thread):
+    def __init__(self, test_queue, fail_fast):
+        super().__init__()
+        self.test_queue = test_queue
+        self.fail_fast = fail_fast
+        self.start()
+
+    def run(self):
+        while True:
+            try:
+                test = self.test_queue.get(block=False)
+            except queue.Empty:
+                break
+            else:
+                try:
+                    return_code, output = _run_test_externally(
+                        test.name, self.fail_fast
+                    )
+                except Exception as e:
+                    test.set_done(False, str(e))
+                else:
+                    test.set_done(return_code == 0, output)
+
+
+def _run_test_externally(test_name, fail_fast):
+    cmd = [
+        sys.executable,
+        "-m",
+        "guild.main_bootstrap",
+        "check",
+        "--no-chrome",  # just print test results
+        "-nt",
+        test_name,
+    ]
+    if fail_fast:
+        cmd.append("--fast")
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    out, _err = p.communicate()
+    out = out.decode()
+    return p.returncode, out
