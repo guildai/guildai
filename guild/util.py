@@ -1407,13 +1407,6 @@ def encode_cfg(data):
     return io.getvalue()
 
 
-def _split_cfg_key(key):
-    parts = key.split(".", 1)
-    if len(parts) == 2:
-        return parts
-    return "DEFAULT", parts[0]
-
-
 def short_digest(s):
     if not s:
         return ""
@@ -1940,14 +1933,6 @@ def tokenize_snake_case_for_camel_case(s):
     if not any(iter(under_split)):
         return under_split[1:]
     return under_split
-
-
-class NopContext:
-    def __enter__(self):
-        pass
-
-    def __exit__(self, *exc):
-        pass
 
 
 def flatten(l):
