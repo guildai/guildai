@@ -6,7 +6,7 @@ upstream run-generated files.
 
 Create a project with `up` and `down` operations.
 
-    >>> cd(mkdtemp())
+    >>> use_project(mkdtemp())
     >>> write("guild.yml", """
     ... up:
     ...   requires:

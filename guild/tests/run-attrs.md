@@ -3,12 +3,12 @@
 Custom attributes can be defined for an operation using the
 `run-attrs` op attr. The `run-attrs` sample project illustrates.
 
-    >>> cd(sample("projects", "run-attrs"))
+    >>> use_project("run-attrs")
 
 Guild prohibits use of 'core' attributes.
 
     >>> run("guild run op -y")  # doctest: +REPORT_UDIFF
-    ???WARNING: Invalid run attribute 'cmd' (reserved attribute) - ignoring
+    WARNING: Invalid run attribute 'cmd' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'deps' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'env' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'exit_status' (reserved attribute) - ignoring
