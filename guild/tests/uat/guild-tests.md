@@ -4,7 +4,17 @@ Guild tests can be run with the `check` command using the `-T` option
 (`-n` here skips the general check info as we're just interested in
 tests).
 
-    >>> run("NO_SKIPPED_MSG=1 guild check -nT -c8") # doctest: +REPORT_UDIFF
+Run `startup-time` separately to avoid false fails from to concurrent
+tests.
+
+    >>> run("guild check -nt startup-time")
+    internal tests:
+      startup-time:                ok
+
+Run the other tests.
+
+    >>> run("NO_SKIPPED_MSG=1 guild check -nT -s startup-time -c8")
+    ... # doctest: +REPORT_UDIFF
     internal tests:
       ac-support:                  ok
       additional-deps:             ok
@@ -155,7 +165,7 @@ tests).
       skopt-utils:                 ok
       sourcecode-digest:           ok
       sourcecode-dirs:             ok
-      startup-time:                ok
+      startup-time:                skipped
       step-checks:                 ok
       steps:                       ok
       steps-inherited-params:      ok
@@ -171,10 +181,10 @@ tests).
       tfevents:                    ok
       timerange:                   ok
       utils:                       ok
-      whitelist-code               ok
       var:                         ok
       vcs-source:                  ok
       vcs-utils:                   ok
       view:                        ok
+      whitelist-code:              ok
       yaml-utils:                  ok
     <exit 0>
