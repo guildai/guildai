@@ -31,11 +31,9 @@ These tests expect Guild to be installed.
 
 Before we start using Guild to train models, we use it to example an
 empty environment. This includes demonstrating all of its list
-commands and helpfulness to the user for operations on missing models.
+commands and help to the user for operations on missing models.
 
-- [initial-models](initial-models.md)
-- [initial-ops](initial-ops.md)
-- [initial-runs](initial-runs.md)
+- [empty-env](empty-env.md)
 - [train-missing-model](train-missing-model.md)
 - [run-with-missing-default-model](run-with-missing-default-model.md)
 
