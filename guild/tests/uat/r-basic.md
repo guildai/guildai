@@ -77,8 +77,6 @@ Run the script with Guild.
     > msg = 'hello'
     > cat(msg, '\n')
     hello
-    >
-    >
 
 Use a different message.
 
@@ -86,8 +84,6 @@ Use a different message.
     > msg = "hi"
     > cat(msg, '\n')
     hi
-    >
-    >
 
 Show our runs.
 

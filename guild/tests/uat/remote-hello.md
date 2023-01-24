@@ -151,6 +151,7 @@ Filter by completedd status.
     [6]  gpkg.hello/hello       completed  msg='Hello Guild!'
 
     >>> run("guild runs list --not-completed -r guild-uat -s")
+    <exit 0>
 
 Filter by terminated status.
 
