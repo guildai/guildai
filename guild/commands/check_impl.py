@@ -595,8 +595,8 @@ def _format_disk_usage_and_path(usage, path, max_usage_width):
 
 def _print_error_and_exit(args):
     if args.no_chrome:
-        return
-    if args.all_tests or args.tests:
+        msg = None
+    elif args.all_tests or args.tests:
         msg = _tests_failed_msg()
     else:
         msg = _general_error_msg(args)

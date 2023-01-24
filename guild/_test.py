@@ -1504,22 +1504,27 @@ def _run_parallel(tests, skip, fail_fast, concurrency):
     skip = skip or []
     tests = _init_concurrent_tests(tests, skip)
     test_queue = _init_test_queue([test for test in tests if not test.skip])
-    test_runners = _init_test_runners(test_queue, fail_fast, concurrency)
-    success = True
-    for test in tests:
-        if test.skip:
-            sys.stdout.write(_test_skipped_output(test.name))
-            continue
-        test.wait_done()
-        assert test.output is not None
-        assert test.success is not None
-        sys.stdout.write(test.output)
-        success &= test.success
-    assert test_queue.empty()
-    for runner in test_runners:
-        runner.join()
-    assert all(not r.is_alive() for r in test_runners)
-    return success
+    try:
+        test_runners = _init_test_runners(test_queue, fail_fast, concurrency)
+        success = True
+        for test in tests:
+            if test.skip:
+                sys.stdout.write(_test_skipped_output(test.name))
+                continue
+            test.wait_done()
+            assert test.output is not None
+            assert test.success is not None
+            sys.stdout.write(test.output)
+            success &= test.success
+        assert test_queue.empty()
+        for runner in test_runners:
+            runner.join()
+        assert all(not r.is_alive() for r in test_runners)
+        return success
+    except (KeyboardInterrupt, Exception):
+        for runner in test_runners:
+            runner.stop()
+        raise
 
 
 def _init_concurrent_tests(tests, skip):
@@ -1562,26 +1567,59 @@ class _ConcurrentTestRunner(threading.Thread):
         super().__init__()
         self.test_queue = test_queue
         self.fail_fast = fail_fast
+        self._p_lock = threading.Lock()
+        self._p = None
+        self._running_lock = threading.Lock()
+        self._running = True
         self.start()
 
+    @property
+    def running(self):
+        with self._running_lock:
+            return self._running
+
+    def stop(self, timeout=5):
+        with self._running_lock:
+            self._running = False
+        with self._p_lock:
+            if not self._p:
+                return
+            self._p.terminate()
+            self._p.wait(timeout)
+            if self._p.returncode is None:
+                self._p.kill()
+            self._p = None
+
     def run(self):
-        while True:
+        while self.running:
             try:
                 test = self.test_queue.get(block=False)
             except queue.Empty:
                 break
             else:
                 try:
-                    return_code, output = _run_test_externally(
-                        test.name, self.fail_fast
-                    )
+                    with self._p_lock:
+                        assert not self._p
+                        self._p = _start_external_test_proc(test.name, self.fail_fast)
+                    out, _err = self._p.communicate()
+                    assert self._p.returncode is not None
+                    assert out is not None
+                    success = self._p.returncode == 0
+                    out = out.decode()
+                    with self._p_lock:
+                        self._p = None
+                except AssertionError:
+                    test.set_done(False, "")
+                    raise
                 except Exception as e:
                     test.set_done(False, str(e))
                 else:
-                    test.set_done(return_code == 0, output)
+                    test.set_done(success, out)
 
 
-def _run_test_externally(test_name, fail_fast):
+def _start_external_test_proc(test_name, fail_fast):
+    env = dict(os.environ)
+    env["PYTHONPATH"] = guild.__pkgdir__
     cmd = [
         sys.executable,
         "-m",
@@ -1593,7 +1631,9 @@ def _run_test_externally(test_name, fail_fast):
     ]
     if fail_fast:
         cmd.append("--fast")
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    out, _err = p.communicate()
-    out = out.decode()
-    return p.returncode, out
+    return subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        env=env,
+    )
