@@ -317,10 +317,14 @@ def _check_kw(args):
         "verbose",
         "version",
     ]
+    # check is not intended to run tests remotely
     ignore = [
         "all_tests",
         "check_url",
+        "concurrency",
+        "external",
         "force_uat",
+        "no_chrome",
         "no_info",
         "notify",
         "remote",
