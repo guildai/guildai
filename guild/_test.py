@@ -1475,7 +1475,7 @@ class _Ignore(util.StdoutCapture):
 
     def __exit__(self, *args):
         super().__exit__(*args)
-        sys.stdout.write(_strip_ignored(self._captured, self.ignore_patterns))
+        sys.stdout.write(_strip_ignored_lines(self._captured, self.ignore_patterns))
 
 
 def _compile_ignore_patterns(patterns):
@@ -1484,7 +1484,7 @@ def _compile_ignore_patterns(patterns):
     return [re.compile(p) for p in patterns]
 
 
-def _strip_ignored(captured, ignore_patterns):
+def _strip_ignored_lines(captured, ignore_patterns):
     lines = "".join(captured).split("\n")
     filtered = [line for line in lines if not _capture_ignored(line, ignore_patterns)]
     return "\n".join(filtered)
