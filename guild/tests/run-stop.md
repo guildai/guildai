@@ -28,7 +28,7 @@ read these from the run output.
 
 Get the list of pids from the output.
 
-    >>> pids = [int(s) for s in out.split("\n")]
+    >>> pids = [int(s) for s in out.split("\n") if s]
 
 Verify that the pids are alive.
 
