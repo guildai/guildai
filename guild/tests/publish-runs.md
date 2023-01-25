@@ -402,7 +402,7 @@ the user. See below for custom templates.
     <BLANKLINE>
     | ID | Operation | Started | Time | Status | Label |
     | -- | --------- | ------- | ---- | ------ | ----- |
-    | [ccc](ccc/README.md) | op3 | ... UTC | 0:00:00 | completed | c=4 |
+    | [ccc](ccc/README.md) | op3 | ... UTC | 0:00:... | completed | c=4 |
     <BLANKLINE>
 
 ### Run README.md
