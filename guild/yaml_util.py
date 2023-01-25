@@ -154,7 +154,7 @@ def patch_yaml_resolver():
         "tag:yaml.org,2002:float",
         # The patterns below are modified from the original set in two
         # ways: the first pattern makes `[-+]` optional and the second
-        # pattern is a new pattern to match scientific notation that
+        # is a new pattern to match scientific notation that
         # does not include a decimal (e.g. `1e2`).
         re.compile(
             r"""^(?:[-+]?(?:[0-9][0-9_]*)\.[0-9_]*(?:[eE][-+]?[0-9]+)?
