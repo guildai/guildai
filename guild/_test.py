@@ -57,11 +57,12 @@ MACOS = doctest.register_optionflag("MACOS")
 NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
 NORMALIZE_PATHSEP = doctest.register_optionflag("NORMALIZE_PATHSEP")
 PY3 = doctest.register_optionflag("PY3")
-PY310 = doctest.register_optionflag("PY310")
 PY36 = doctest.register_optionflag("PY36")
 PY37 = doctest.register_optionflag("PY37")
 PY38 = doctest.register_optionflag("PY38")
 PY39 = doctest.register_optionflag("PY39")
+PY310 = doctest.register_optionflag("PY310")
+PY311 = doctest.register_optionflag("PY311")
 STRICT = doctest.register_optionflag("STRICT")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 STRIP_EXIT_0 = doctest.register_optionflag("STRIP_EXIT_0")
@@ -203,6 +204,7 @@ def _skip_python_version(options):
         (options.get(PY38), 3, 8),
         (options.get(PY39), 3, 9),
         (options.get(PY310), 3, 10),
+        (options.get(PY311), 3, 11),
     ]:
         if opt in (True, False) and py_major_ver == maj_ver and py_minor_ver == min_ver:
             skip = not opt
