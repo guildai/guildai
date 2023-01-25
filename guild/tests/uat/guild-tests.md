@@ -177,7 +177,6 @@ Run the other tests.
       tensorboard:                 ok
       test:                        ok
       test-flags:                  ok
-      test-template:               ok
       tfevents:                    ok
       timerange:                   ok
       utils:                       ok
