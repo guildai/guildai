@@ -164,14 +164,14 @@ def _uat_and_exit(args):
     sys.exit(0)
 
 
-def _TestEnv(no_vcs_commit=True, no_pip_freeze=True, concurrency=1):
+def _TestEnv(no_vcs_commit=True, no_pip_freeze=True, concurrency=None):
     return util.Env(
         {
             "NO_IMPORT_FLAGS_PROGRESS": "1",
             "COLUMNS": "999",
             "SYNC_RUN_OUTPUT": "1",
             "PYTHONDONTWRITEBYTECODE": "1",
-            "CONCURRENCY": str(concurrency),
+            "CONCURRENCY": str(concurrency or 1),
             # The following are optimizations for tests. They must be
             # overridden for any tests that check the disabled behavior.
             "NO_PIP_FREEZE": "1" if no_pip_freeze else "",
