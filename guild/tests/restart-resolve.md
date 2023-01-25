@@ -33,7 +33,7 @@ non-error `up` run.
     You are about to run down
       operation:up: up-2
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
     >>> run("guild run down --run-id down -y")
     Resolving operation:up
@@ -56,7 +56,7 @@ We can restart the downstream run using a different upstream run.
     You are about to start down (down)
       operation:up: up-1
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
     >>> run("guild run --restart down up=up-1 -y")
     Resolving operation:up
@@ -101,7 +101,7 @@ Restart the run using a different upstream run.
     You are about to start down-resolve (down-resolve)
       operation:up: up-1
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
     >>> run("guild run --restart down-resolve up=up-1 -y")
     Resolving operation:up

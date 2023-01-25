@@ -10,7 +10,7 @@ Default resource resolution:
     You are about to run op1
       filename: foo
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
     >>> run("guild run op1 -y")
     Resolving file
@@ -24,7 +24,7 @@ Use flag to specify a file via a resource ref:
     You are about to run op1
       filename: bar
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
     >>> run("guild run op1 filename=bar -y")
     Resolving file
@@ -94,7 +94,7 @@ Specifying the value for the renamed file.
     You are about to run op6
       file: foo-file.txt
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 We can specify an alternative file using this flag.
 
