@@ -44,13 +44,16 @@ Run operations using Dask measuring time.
 
     >>> temp_dir = mkdtemp("guild-dask-worker-space-")
     >>> with dask.config.set({"temporary-directory": temp_dir}):
-    ...     cluster = LocalCluster(processes=False)
-    ...     client = Client(cluster)
-    ...     op1_out = delayed(op1)()
-    ...     op2_out = delayed(op2)()
-    ...     op3_out = delayed(op3)()
-    ...     t0 = time.time()
-    ...     results = delayed(lambda x: x)([op1_out, op2_out, op3_out]).compute()
+    ...     # Capture log output to as cluster start/stop is noisy
+    ...     with LogCapture() as _ignored:
+    ...         cluster = LocalCluster(processes=False)
+    ...         client = Client(cluster)
+    ...         op1_out = delayed(op1)()
+    ...         op2_out = delayed(op2)()
+    ...         op3_out = delayed(op3)()
+    ...         t0 = time.time()
+    ...         results = delayed(lambda x: x)([op1_out, op2_out, op3_out]).compute()
+    ...         cluster.close()
     >>> for out in results:
     ...     print(out)
     x: 1
