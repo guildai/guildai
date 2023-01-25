@@ -74,17 +74,10 @@ clean:
 	rm -rf guild/view/node_modules
 	rm -rf .coverage coverage
 
-ci-uat: build
-	mkdir -p $(UNIX_TMP)
-	@test -e $(guild-uat) || $(guild) init -p $(PYTHON) $(native-guild-uat) -y
-	@. $(guild-uat)/bin/activate
-	@$(guild-uat)/bin/python -m pip install dist/`ls -Art dist | tail -n 1`
-	@WORKSPACE=$(native-guild-uat) EXAMPLES=examples $(guild-uat)/bin/guild check --uat --notify
-	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
-
 uat:
 	@test -e $(guild-uat) || $(guild) init -p $(PYTHON) $(guild-uat) -y
-	@. $(guild-uat)/bin/activate && WORKSPACE=$(guild-uat) EXAMPLES=examples $(guild) check --uat --notify
+	@. $(guild-uat)/bin/activate && WORKSPACE=$(guild-uat) EXAMPLES=examples \
+	  $(guild) check --uat --notify --concurrency 8
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
 
 clean-uat:

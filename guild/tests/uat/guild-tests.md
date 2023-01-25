@@ -13,7 +13,7 @@ tests.
 
 Run the other tests.
 
-    >>> run("NO_SKIPPED_MSG=1 guild check -nT -s startup-time -c8")
+    >>> run("NO_SKIPPED_MSG=1 guild check -nT -s startup-time -c ${CONCURRENCY:-1}")
     ... # doctest: +REPORT_UDIFF
     internal tests:
       ac-support:                  ok

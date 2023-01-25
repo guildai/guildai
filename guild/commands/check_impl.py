@@ -155,18 +155,23 @@ def _check_git_ls_files():
 
 
 def _uat_and_exit(args):
-    with _TestEnv(no_vcs_commit=False, no_pip_freeze=False):
+    with _TestEnv(
+        no_vcs_commit=False,
+        no_pip_freeze=False,
+        concurrency=args.concurrency,
+    ):
         uat.run(force=args.force_uat, fail_fast=args.fast)
     sys.exit(0)
 
 
-def _TestEnv(no_vcs_commit=True, no_pip_freeze=True):
+def _TestEnv(no_vcs_commit=True, no_pip_freeze=True, concurrency=1):
     return util.Env(
         {
             "NO_IMPORT_FLAGS_PROGRESS": "1",
             "COLUMNS": "999",
             "SYNC_RUN_OUTPUT": "1",
             "PYTHONDONTWRITEBYTECODE": "1",
+            "CONCURRENCY": str(concurrency),
             # The following are optimizations for tests. They must be
             # overridden for any tests that check the disabled behavior.
             "NO_PIP_FREEZE": "1" if no_pip_freeze else "",
@@ -176,7 +181,7 @@ def _TestEnv(no_vcs_commit=True, no_pip_freeze=True):
 
 
 def _run_tests(check):
-    with _TestEnv():
+    with _TestEnv(concurrency=check.args.concurrency):
         _run_tests_(check)
 
 
