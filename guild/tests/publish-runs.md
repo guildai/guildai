@@ -418,7 +418,7 @@ for custom templates.
     <BLANKLINE>
     | ID                   | Operation           | Started                  | Time                | Status           | Label                |
     | --                   | ---------           | ---------                | ----                | ------           | -----                |
-    | ccc | op3 | ... UTC | 0:00:00 | completed | c=4 |
+    | ccc | op3 | ... UTC | 0:00:... | completed | c=4 |
     <BLANKLINE>
     [run.yml](run.yml)
     <BLANKLINE>
@@ -437,7 +437,6 @@ for custom templates.
     | c | 4 |
     <BLANKLINE>
     [flags.yml](flags.yml)
-    <BLANKLINE>
     ## Scalars
     <BLANKLINE>
     | Key | Step | Value |
@@ -458,7 +457,6 @@ for custom templates.
     | [link.txt](runfiles/link.txt) | file link | 6 | ... UTC | 09f7e02f1290be211da707a266f153b3 |
     <BLANKLINE>
     [runfiles.csv](runfiles.csv)
-    <BLANKLINE>
     ## Source Code
     <BLANKLINE>
     | Path | Size | Modified | MD5 |
@@ -477,7 +475,6 @@ for custom templates.
     ```
     <BLANKLINE>
     [output.txt](output.txt)
-    <BLANKLINE>
 
 ### Flags
 
@@ -743,7 +740,7 @@ also redefines the `_flags.md` include.
     <BLANKLINE>
     | ID                   | Operation           | Started                  | Time                | Status           | Label                |
     | --                   | ---------           | ---------                | ----                | ------           | -----                |
-    | ccc | op3 | ... UTC | 0:00:00 | completed | c=4 |
+    | ccc | op3 | ... UTC | 0:00:... | completed | c=4 |
     <BLANKLINE>
     [run.yml](run.yml)
     <BLANKLINE>
