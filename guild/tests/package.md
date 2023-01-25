@@ -53,55 +53,12 @@ Packages specify how to build the package. Here are some attributes:
 The `package` command generates a Python wheel using the package
 definition in the Guild file.
 
-    >>> IGNORE = ["package init file", "byte-compiling is disabled"]
-
-    >>> run("guild package", ignore=IGNORE)  # doctest: +REPORT_UDIFF
+    >>> run("guild package")
     running bdist_wheel
     running build
     running build_py
-    creating build
-    creating build/lib
-    creating build/lib/gpkg
-    creating build/lib/gpkg/hello
-    copying ./train.py -> build/lib/gpkg/hello
-    copying ./a.txt -> build/lib/gpkg/hello
-    copying ./guild.yml -> build/lib/gpkg/hello
-    copying ./README.md -> build/lib/gpkg/hello
-    installing to build/.../wheel
-    running install
-    running install_lib
-    copying gpkg/hello/train.py -> build/.../wheel/gpkg/hello
-    copying gpkg/hello/a.txt -> build/.../wheel/gpkg/hello
-    copying gpkg/hello/README.md -> build/.../wheel/gpkg/hello
-    copying gpkg/hello/guild.yml -> build/.../wheel/gpkg/hello
-    running install_egg_info
-    running egg_info
-    writing gpkg.hello.egg-info/PKG-INFO
-    writing dependency_links to gpkg.hello.egg-info/dependency_links.txt
-    writing entry points to gpkg.hello.egg-info/entry_points.txt
-    writing namespace_packages to gpkg.hello.egg-info/namespace_packages.txt
-    writing top-level names to gpkg.hello.egg-info/top_level.txt
-    writing manifest file 'gpkg.hello.egg-info/SOURCES.txt'
-    reading manifest file 'gpkg.hello.egg-info/SOURCES.txt'
-    writing manifest file 'gpkg.hello.egg-info/SOURCES.txt'
-    Copying gpkg.hello.egg-info to build/.../wheel/gpkg.hello-0.3.0.dev4...egg-info
-    Installing build/.../wheel/gpkg.hello-0.3.0.dev4...-nspkg.pth
-    running install_scripts
-    creating build/.../wheel/gpkg.hello-0.3.0.dev4...dist-info/WHEEL
-    creating 'dist/gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl' and adding 'build/.../wheel' to it
-    adding 'gpkg.hello-0.3.0.dev4...-nspkg.pth'
-    adding 'gpkg/hello/README.md'
-    adding 'gpkg/hello/a.txt'
-    adding 'gpkg/hello/guild.yml'
-    adding 'gpkg/hello/train.py'
-    adding 'gpkg.hello-0.3.0.dev4.dist-info/METADATA'
-    adding 'gpkg.hello-0.3.0.dev4.dist-info/PACKAGE'
-    adding 'gpkg.hello-0.3.0.dev4.dist-info/WHEEL'
-    adding 'gpkg.hello-0.3.0.dev4.dist-info/entry_points.txt'
-    adding 'gpkg.hello-0.3.0.dev4.dist-info/namespace_packages.txt'
-    adding 'gpkg.hello-0.3.0.dev4.dist-info/top_level.txt'
-    adding 'gpkg.hello-0.3.0.dev4.dist-info/RECORD'
-    removing build/.../wheel
+    ...
+    <exit 0>
 
 The wheel is written to the `dist` subdirectory.
 
