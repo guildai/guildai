@@ -4,14 +4,14 @@
     >>> symlink(sample("filter-runs"), path(gh, "runs"))
     >>> set_guild_home(gh)
 
-    >>> run("guild runs -s")
-    [1]  util:test  completed   target=fe83a924
-    [2]  util:test  completed   target=2dc1529b
-    [3]  train      terminated  noise=0.1 x=1.1
-    [4]  train      completed   noise=0.1 x=0.1
-    [5]  train      pending     noise=0.4 x=-1.2
-    [6]  train      error       noise=0.1 x=-1.0
-    [7]  train      staged      noise=0.1 x=-1.0
+    >>> run("guild runs")
+    [1:e394b696]  util:test  2022-09-01 09:33:35  completed   target=fe83a924
+    [2:a5520d13]  util:test  2022-09-01 09:33:35  completed   target=2dc1529b
+    [3:2dc1529b]  train      2022-09-01 09:19:33  terminated  noise=0.1 x=1.1
+    [4:79ca9e64]  train      2022-09-01 09:19:33  completed   noise=0.1 x=0.1
+    [5:ac99cff4]  train      2022-09-01 09:19:33  pending     noise=0.4 x=-1.2
+    [6:fe83a924]  train      2022-09-01 09:19:33  error       noise=0.1 x=-1.0
+    [7:fa6f74ad]  train      2022-09-01 09:19:33  staged      noise=0.1 x=-1.0
 
 ## Completed
 
