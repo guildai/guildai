@@ -18,8 +18,23 @@ import re
 import yaml
 
 
-def encode_yaml(val, default_flow_style=False):
-    encoded = yaml.safe_dump(val, default_flow_style=default_flow_style, indent=2)
+def encode_yaml(val, default_flow_style=False, strict=False):
+    """Returns val encoded as YAML.
+
+    Uses PyYAML `safe_dump` to serialize `val`. `default_flow_style`
+    is passed through to `safe_dump`.
+
+    `strict` patches PyYAML to comply with the YAML standard code for
+    single characters 'y' and 'n', which need to be quote to retain
+    their string type as strict YAML. This is for compatibility
+    outside PyYAML.
+    """
+    with StrictPatch(strict):
+        encoded = yaml.safe_dump(
+            val,
+            default_flow_style=default_flow_style,
+            indent=2,
+        )
     return _strip_encoded_yaml(encoded)
 
 
@@ -61,6 +76,68 @@ def _yaml_front_matter_s(filename):
             else:
                 break
     return "\n".join(lines) if lines else None
+
+
+class StrictPatch:
+    """Patches `yaml` to strictly adhere to the YAML spec*.
+
+    Maybe used as a no-op with `StrictPatch(False)`.
+
+    * This patch makes no guarantee of strict correctness but rather
+      fixes known issues with PyYAML:
+
+      - Encoding/decoding of single char boolean chars `[yYnN]`
+
+    """
+
+    implicit_resolver_patches = [
+        (
+            "tag:yaml.org,2002:bool",
+            re.compile(r"^(?:y|Y|n|N)$", re.X),
+            list('yYnN'),
+        )
+    ]
+
+    bool_value_patches = {
+        "y": True,
+        "n": False,
+    }
+
+    def __init__(self, strict=True):
+        self.strict = strict
+
+    def __enter__(self):
+        if not self.strict:
+            return
+        self._apply_implicit_resolver_patches()
+        self._apply_bool_value_patches()
+
+    def _apply_implicit_resolver_patches(self):
+        for tag, pattern, first in self.implicit_resolver_patches:
+            yaml.resolver.Resolver.add_implicit_resolver(tag, pattern, first)
+
+    def _apply_bool_value_patches(self):
+        for key, val in self.bool_value_patches.items():
+            assert key not in yaml.constructor.SafeConstructor.bool_values, key
+            yaml.constructor.SafeConstructor.bool_values[key] = val
+
+    def __exit__(self, *_exc):
+        if not self.strict:
+            return
+        self._unapply_implicit_resolver_patches()
+        self._unapply_bool_value_patches()
+
+    def _unapply_implicit_resolver_patches(self):
+        for tag, pattern, first in self.implicit_resolver_patches:
+            for ch in first:
+                resolvers = yaml.resolver.Resolver.yaml_implicit_resolvers.get(ch)
+                assert resolvers
+                assert resolvers[-1] == (tag, pattern), (resolvers, tag, pattern)
+                resolvers.pop()
+
+    def _unapply_bool_value_patches(self):
+        for key in self.bool_value_patches:
+            del yaml.constructor.SafeConstructor.bool_values[key]
 
 
 def patch_yaml_resolver():

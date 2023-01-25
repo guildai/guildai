@@ -200,7 +200,7 @@ class Run:
 
     def write_attr(self, name, val, raw=False):
         if not raw:
-            val = yaml_util.encode_yaml(val)
+            val = yaml_util.encode_yaml(val, strict=True)
         with open(self._attr_path(name), "w") as f:
             f.write(val)
             f.write(os.linesep)

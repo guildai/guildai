@@ -5,6 +5,8 @@ Custom attributes can be defined for an operation using the
 
     >>> use_project("run-attrs")
 
+## Custom attributes
+
 Guild prohibits use of 'core' attributes.
 
     >>> run("guild run op -y")  # doctest: +REPORT_UDIFF
@@ -57,3 +59,50 @@ Non-core attributes, however, are written.
     flags:
     scalars:
     <exit 0>
+
+## Encoding of `[ynYN]` keys
+
+When writing attributes, Guild applies quotes to single character
+boolean values as per the YAML spec to ensure that external
+applications can read run attributes without special handling for
+these unquoted chars.
+
+    >>> run("guild run boolean-chars -y")
+    <exit 0>
+
+    >>> run("guild runs info")
+    id: ...
+    operation: boolean-chars
+    ...
+    custom:
+      N: 4
+      Y: 3
+      a: 5
+      n: 2
+      y: 1
+      z: 6
+    tags:
+    flags:
+      N: 44
+      Y: 33
+      a: 55
+      n: 22
+      y: 11
+      z: 66
+    scalars:
+
+    >>> run("guild cat -p .guild/attrs/custom")
+    'N': 4
+    'Y': 3
+    a: 5
+    'n': 2
+    'y': 1
+    z: 6
+
+    >>> run("guild cat -p .guild/attrs/flags")
+    'N': 44
+    'Y': 33
+    a: 55
+    'n': 22
+    'y': 11
+    z: 66

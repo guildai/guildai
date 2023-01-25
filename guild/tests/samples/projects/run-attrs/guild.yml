@@ -30,3 +30,23 @@ op:
       a: A
       b: 123
       c: 1.234
+
+boolean-chars:
+  main: guild.pass
+
+  run-attrs:
+    custom:
+      y: 1
+      n: 2
+      Y: 3
+      N: 4
+      a: 5
+      z: 6
+
+  flags:
+    y: 11
+    n: 22
+    Y: 33
+    N: 44
+    a: 55
+    z: 66
