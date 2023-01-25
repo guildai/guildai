@@ -69,6 +69,15 @@ repo.
     >>> non_repo_project = mkdtemp()
     >>> copytree(sample("projects", "copy-sourcecode"), non_repo_project)
 
+Ensure that the copied project doesn't contain any additional
+generated pyc files under `__pycache__`.
+
+    >>> run(f"rm -f '{non_repo_project}'/__pycache__/*.*.pyc")
+    ... # doctest: -WINDOWS
+    <exit 0>
+
+Verify the copied project files.
+
     >>> find(non_repo_project)  # doctest: +REPORT_UDIFF
     .guildignore
     .hidden/file-1
