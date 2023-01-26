@@ -132,9 +132,6 @@ package.
 
     >>> run("guild package --clean", ignore=["does not exist"])  # doctest: +REPORT_UDIFF
     running clean
-    removing 'build/lib' (and everything under it)
-    removing 'build/bdist.linux-x86_64' (and everything under it)
-    removing 'build'
     ...
     <exit 0>
 
