@@ -1,9 +1,3 @@
----
-# Getting spurious errors in CI env - Temp disable
-
-doctest: +FIXME
----
-
 # Imports
 
     >>> import importlib
