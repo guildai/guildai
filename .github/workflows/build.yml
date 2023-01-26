@@ -110,6 +110,7 @@ jobs:
   build-windows:
     name: Build - Windows
     runs-on: windows-latest
+    if: ${{ false }}
 
     strategy:
       fail-fast: false
@@ -190,7 +191,6 @@ jobs:
         run: Start-Sleep 3600
 
   publish-to-pypi:
-    if: ${{ false }}
     name: Publish to PyPI
     needs:
       - build-posix
