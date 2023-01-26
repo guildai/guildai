@@ -1,10 +1,3 @@
----
-# We're not correctly inferring dependencies when we follow
-# dependency links.
-
-doctest: +FIXME
----
-
 # Dependencies
 
 These are general dependency tests.
@@ -15,7 +8,6 @@ These are general dependency tests.
 
     >>> run("guild run file -y")
     Resolving file:file.txt
-    <exit 0>
 
     >>> run("guild ls -n")
     README.md
@@ -23,7 +15,6 @@ These are general dependency tests.
     config.yml
     file.txt
     guild.yml
-    <exit 0>
 
     >>> run("guild ls -n -s")  # source code
     README.md
@@ -47,13 +38,29 @@ These are general dependency tests.
           paths:
           - .../examples/dependencies/file.txt
           uri: file:file.txt
-    <exit 0>
 
-Change dependency source using default source name.
+Because the `file` source does not define `flag-name`, we can't change
+it via a flag assignment.
 
     >>> run("guild run file file:file.txt=file-2.txt -y")
+    guild: unsupported flag 'file:file.txt'
+    Try 'guild run file --help-op' for a list of flags or use
+    --force-flags to skip this check.
+    <exit 1>
+
+We can force the configuration through, however, using `--force-flags`.
+
+    >>> run("guild run file file:file.txt=file-2.txt --force-flags -y")
     Resolving file:file.txt
     Using file-2.txt for file:file.txt
+    --file:file.txt file-2.txt
+
+    >>> run("guild ls -n")
+    README.md
+    config.json
+    config.yml
+    file-2.txt
+    guild.yml
 
 `flag-name` is required to explicitly expose file dependency as a
 flag.
@@ -64,7 +71,6 @@ flag.
 
     >>> run("guild ls -n -d")
     file-2.txt
-    <exit 0>
 
     >>> run("guild runs info -d")
     id: ...
@@ -78,7 +84,6 @@ flag.
           paths:
           - .../examples/dependencies/file-2.txt
           uri: file:file.txt
-    <exit 0>
 
 Missing file dependency:
 
@@ -106,7 +111,6 @@ Missing file dependency:
 
     >>> run("guild run dir -y")
     Resolving data
-    <exit 0>
 
     >>> run("guild ls -n -L")
     README.md
@@ -124,6 +128,7 @@ Missing file dependency:
     guild.yml
 
     >>> run("guild ls -n -d -L")
+    dir/
     dir/a
     dir/b
 
@@ -140,7 +145,6 @@ Missing file dependency:
           paths:
           - .../examples/dependencies/dir
           uri: file:dir
-    <exit 0>
 
 ## URL
 
@@ -181,7 +185,6 @@ be cached, which prints a different message.
           paths:
           - .../file.txt
           uri: https://guild-pub.s3.amazonaws.com/uat/file.txt
-    <exit 0>
 
 ## Operations
 
@@ -192,7 +195,7 @@ Required file op:
 
     >>> run("guild run file-op -y")
     Resolving operation:file
-    Using run ... for file operation:file
+    Using run ... for operation:file
 
     >>> run("guild ls -n")
     README.md
@@ -225,22 +228,30 @@ Required file op:
           paths:
           - ../.../file.txt
           uri: operation:file
-    <exit 0>
 
 Required dir op:
 
     >>> run("guild run dir-op -y")
-    Resolving dir
+    Resolving operation:dir
     Using run ... for operation:dir
-    <exit 0>
 
     >>> run("guild ls -nL")
+    README.md
+    config.json
+    config.yml
+    guild.yml
 
     >>> run("guild ls -nsL")
+    README.md
+    config.json
+    config.yml
+    guild.yml
 
     >>> run("guild ls -ndL")
+    <exit 0>
 
     >>> run("guild ls -ngL")
+    <exit 0>
 
     >>> run("guild runs info -d")
     id: ...
@@ -251,10 +262,8 @@ Required dir op:
       operation:dir:
         operation:dir:
           config: ...
-          paths:
-          - ../.../dir
+          paths: []
           uri: operation:dir
-    <exit 0>
 
 ## Config
 
@@ -267,17 +276,17 @@ Run without specifying flag values.
 
     >>> run("guild run config -y")
     Resolving config:config.yml
-    <exit 0>
 
     >>> run("guild ls -n")
+    README.md
+    config.json
     config.yml
-    <exit 0>
+    guild.yml
 
     >>> run("guild cat -p config.yml")
     batch-size: 100
     dropout: 0.2
     lr: 0.1
-    <exit 0>
 
     >>> run("guild runs info -d")
     id: ...
@@ -292,7 +301,6 @@ Run without specifying flag values.
           paths:
           - .guild/generated/.../config.yml
           uri: config:config.yml
-    <exit 0>
 
 Set two of the three flag values.
 
@@ -301,14 +309,15 @@ Set two of the three flag values.
     <exit 0>
 
     >>> run("guild ls -n")
+    README.md
+    config.json
     config.yml
-    <exit 0>
+    guild.yml
 
     >>> run("guild cat -p config.yml")
     batch-size: 100
     dropout: 0.3
     lr: 0.2
-    <exit 0>
 
     >>> run("guild runs info -d")
     id: ...
@@ -323,39 +332,38 @@ Set two of the three flag values.
           paths:
           - .guild/generated/.../config.yml
           uri: config:config.yml
-    <exit 0>
 
 Use modified config.
 
     >>> run("guild run modified-config -y")
     Resolving config:config.yml
-    <exit 0>
 
     >>> run("guild ls -n")
+    README.md
+    config.json
     config.yml
-    <exit 0>
+    guild.yml
 
     >>> run("guild cat -p config.yml")
     batch-size: 100
     dropout: 0.4
     lr: 0.001
-    <exit 0>
 
 Change modified config with flags:
 
     >>> run("guild run modified-config dropout=0.5 -y")
     Resolving config:config.yml
-    <exit 0>
 
     >>> run("guild ls -n")
+    README.md
+    config.json
     config.yml
-    <exit 0>
+    guild.yml
 
     >>> run("guild cat -p config.yml")
     batch-size: 100
     dropout: 0.5
     lr: 0.001
-    <exit 0>
 
 JSON format:
 
@@ -368,36 +376,35 @@ JSON format:
 
     >>> run("guild run json-config -y")
     Resolving config:config.json
-    <exit 0>
 
     >>> run("guild ls -n")
+    README.md
     config.json
-    <exit 0>
+    config.yml
+    guild.yml
 
     >>> run("guild cat -p config.json")
     {"batch-size": 200, "dropout": 0.2, "lr": 0.05}
-    <exit 0>
 
 JSON format with flags:
 
     >>> run("guild run json-config lr=1e-2 -y")
     Resolving config:config.json
-    <exit 0>
 
     >>> run("guild ls -n")
+    README.md
     config.json
-    <exit 0>
+    config.yml
+    guild.yml
 
     >>> run("guild cat -p config.json")
     {"batch-size": 200, "dropout": 0.2, "lr": 0.01}
-    <exit 0>
 
 ## Modules
 
     >>> run("guild run modules -y")
     Resolving module:pandas
     Resolving module:sklearn
-    <exit 0>
 
     >>> run("guild runs info -d")
     id: ...
@@ -412,7 +419,6 @@ JSON format with flags:
         module:sklearn:
           paths: []
           uri: module:sklearn
-    <exit 0>
 
     >>> run("guild run missing-module -y")
     Resolving module:missing.module
@@ -425,7 +431,7 @@ JSON format with flags:
 
 Make sure `all-ops` runs:
 
-    >>> run("guild run all-ops -y")
+    >>> run("guild run all-ops -y")  # doctest: +REPORT_UDIFF
     INFO: [guild] running file: file
     Resolving file:file.txt
     INFO: [guild] running dir: dir
@@ -434,11 +440,11 @@ Make sure `all-ops` runs:
     Resolving https://guild-pub.s3.amazonaws.com/uat/file.txt
     Using cached file .../file.txt
     INFO: [guild] running file-op: file-op
-    Resolving file
-    Using run ... for file resource
+    Resolving operation:file
+    Using run ... for operation:file
     INFO: [guild] running dir-op: dir-op
-    Resolving dir
-    Using run ... for dir resource
+    Resolving operation:dir
+    Using run ... for operation:dir
     INFO: [guild] running config: config
     Resolving config:config.yml
     INFO: [guild] running modules: modules
@@ -446,15 +452,14 @@ Make sure `all-ops` runs:
     Resolving module:sklearn
     INFO: [guild] running downstream: downstream
     Resolving upstream
-    Using run ... for upstream resource
-    INFO: [guild] running customizable-file: customizable-file src=guild.yml
+    Using run ... for upstream
+    INFO: [guild] running customizable-file: customizable-file src=file-2.txt
     Resolving src
-    Using guild.yml for src resource
+    Using file-2.txt for src
     INFO: [guild] running modified-config: modified-config
     Resolving config:config.yml
     INFO: [guild] running json-config: json-config
     Resolving config:config.json
-    <exit 0>
 
 ## All resources
 
@@ -467,102 +472,91 @@ named resources.
     Resolving url
     Using cached file .../file.txt
     Resolving file-op
-    Using run ... for file-op resource
+    Using run ... for operation:file
     Resolving dir-op
-    Using run ... for dir-op resource
+    Using run ... for operation:dir
     Resolving config
     Resolving modules
     Resolving downstream
-    Using run ... for downstream resource
+    Using run ... for upstream
     Resolving customizable-file
     Resolving modified-config
     Resolving json-config
-    <exit 0>
 
-    >>> run("guild ls")
-    ???:
-      config.json
-      config.yml
-      customizable-file.txt
-      dir-op/
-      dir-op/a
-      dir-op/b
-      dir/
-      dir/a
-      dir/b
-      file-file.txt
-      file-op.txt
-      file.txt
-      modified-config.yml
-      url-file.txt
-    <exit 0>
+    >>> run("guild ls -n")  # doctest: +REPORT_UDIFF
+    README.md
+    config.json
+    config.yml
+    copy-of-file.txt
+    customizable-file.txt
+    dir/
+    dir-op/
+    dir-op/a
+    dir-op/b
+    dir/a
+    dir/b
+    file-op.txt
+    guild.yml
+    modified-config.yml
+    url-file.txt
 
-    >>> run("guild runs info -d")
-    id: ...
-    flags:
-      dir-op: ...
-      downstream: ...
-      file-op: ...
-    scalars:
-    dependencies:
-      config:
-        config:config.yml:
-          paths:
-          - .guild/generated/.../config.yml
-          uri: config:config.yml
-      customizable-file:
-        file:file.txt:
-          paths:
-          - .../examples/dependencies/file.txt
-          uri: file:file.txt
-      dir:
-        data:
-          paths:
-          - .../examples/dependencies/dir
-          uri: file:dir
-      dir-op:
-        operation:dir:
-          config: ...
-          paths:
-          - ../.../dir
-          uri: operation:dir
-      downstream:
-        upstream:
-          config: ...
-          paths:
-          - ../.../file.txt
-          uri: operation:file
-      file:
-        file:file.txt:
-          paths:
-          - .../examples/dependencies/file.txt
-          uri: file:file.txt
-      file-op:
-        operation:file:
-          config: ...
-          paths:
-          - ../.../file.txt
-          uri: operation:file
-      json-config:
-        config:config.json:
-          paths:
-          - .guild/generated/.../config.json
-          uri: config:config.json
-      modified-config:
-        config:config.yml:
-          paths:
-          - .guild/generated/.../config.yml
-          uri: config:config.yml
-      modules:
-        module:pandas:
-          paths: []
-          uri: module:pandas
-        module:sklearn:
-          paths: []
-          uri: module:sklearn
-      url:
-        https://guild-pub.s3.amazonaws.com/uat/file.txt:
-          paths:
-          - .../file.txt
-          uri: https://guild-pub.s3.amazonaws.com/uat/file.txt
-    <exit 0>
+    >>> run("guild select --attr deps")  # doctest: +REPORT_UDIFF
+    config:
+      config:config.yml:
+        paths:
+        - .guild/generated/.../config.yml
+        uri: config:config.yml
+    customizable-file:
+      file:file.txt:
+        paths:
+        - .../examples/dependencies/file.txt
+        uri: file:file.txt
+    dir:
+      data:
+        paths:
+        - .../examples/dependencies/dir
+        uri: file:dir
+    dir-op:
+      operation:dir:
+        config: ...
+        paths:
+        - ../.../dir
+        uri: operation:dir
+    downstream:
+      upstream:
+        config: ...
+        paths: []
+        uri: operation:file
+    file:
+      file:file.txt:
+        paths:
+        - .../examples/dependencies/file.txt
+        uri: file:file.txt
+    file-op:
+      operation:file:
+        config: ...
+        paths:
+        - ../.../file.txt
+        uri: operation:file
+    json-config:
+      config:config.json:
+        paths:
+        - .guild/generated/.../config.json
+        uri: config:config.json
+    modified-config:
+      config:config.yml:
+        paths:
+        - .guild/generated/.../config.yml
+        uri: config:config.yml
+    modules:
+      module:pandas:
+        paths: []
+        uri: module:pandas
+      module:sklearn:
+        paths: []
+        uri: module:sklearn
+    url:
+      https://guild-pub.s3.amazonaws.com/uat/file.txt:
+        paths:
+        - ../../cache/resources/.../file.txt
+        uri: https://guild-pub.s3.amazonaws.com/uat/file.txt
