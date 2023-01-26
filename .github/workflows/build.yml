@@ -32,13 +32,13 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest
+          #- macos-latest
         python-version:
           - '3.7'
-          - '3.8'
-          - '3.9'
-          - '3.10'
-          - '3.11'
+          #- '3.8'
+          #- '3.9'
+          #- '3.10'
+          #- '3.11'
 
     steps:
       - name: Checkout repository
@@ -190,6 +190,7 @@ jobs:
         run: Start-Sleep 3600
 
   publish-to-pypi:
+    on: ${{ false }}
     name: Publish to PyPI
     needs:
       - build-posix
