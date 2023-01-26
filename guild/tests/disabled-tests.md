@@ -29,6 +29,8 @@ tests or deleting them from the suite.
     ...     if line.startswith("    >> ") or "+FIXME" in line:
     ...         print(f"# {path}:{lineno}: {line}")  # doctest: +REPORT_UDIFF
     # autocomplete-zsh.md:2: doctest: -WINDOWS +FIXME
+    # breakpoints.md:4: doctest: +FIXME
+    # imports.md:4: doctest: +FIXME
     # uat/concurrent-queues.md:4: doctest: +FIXME
     # uat/dask-scheduler-resources.md:4: doctest: +FIXME
     # uat/dask-scheduler.md:4: doctest: +FIXME
