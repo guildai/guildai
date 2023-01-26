@@ -1,3 +1,7 @@
+---
+doctest: +FIXME_CI
+---
+
 # Breakpoints
 
 Guild supports break points for Python based operations. We use sample

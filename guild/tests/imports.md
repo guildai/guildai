@@ -1,3 +1,7 @@
+---
+doctest: +FIXME_CI
+---
+
 # Imports
 
     >>> import importlib

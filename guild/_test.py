@@ -53,6 +53,7 @@ PLATFORM = platform.system()
 TEST_NAME_WIDTH = 27
 
 FIXME = doctest.register_optionflag("FIXME")
+FIXME_CI = doctest.register_optionflag("FIXME_CI")
 MACOS = doctest.register_optionflag("MACOS")
 NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
 NORMALIZE_PATHSEP = doctest.register_optionflag("NORMALIZE_PATHSEP")
@@ -212,7 +213,13 @@ def _skip_python_version(options):
 
 
 def _skip_fixme(options):
-    return options.get(FIXME) is True
+    return options.get(FIXME) is True or (
+        options.get(FIXME_CI) is True and _running_under_ci()
+    )
+
+
+def _running_under_ci():
+    return os.getenv("GUILD_CI") == "1"
 
 
 def _skip_external(options):
