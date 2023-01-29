@@ -58,7 +58,10 @@ Run info:
 
 Files:
 
-    >>> run("guild ls")
-    ???:
-      weights.01-0...hdf5
+    >>> run("guild ls -n")
+    README.md
+    guild.yml
+    mnist_mlp.py
+    requirements.txt
+    weights.01-0...hdf5
     <exit 0>

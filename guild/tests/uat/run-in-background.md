@@ -34,8 +34,7 @@ Show the run output.
 
     >>> run("guild cat --output")
     0
-    1
-    ...
+    1...
     <exit 0>
 
 ## Explicit pidfile
@@ -65,8 +64,7 @@ Show the run output.
 
     >>> run("guild cat --output")
     0
-    1
-    ...
+    1...
     <exit 0>
 
 ## Run steps in background
