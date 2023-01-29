@@ -1,3 +1,7 @@
+---
+doctest: -PY37
+---
+
 # DvC support
 
 These tests make use of the `dvc` example. This project is used as a

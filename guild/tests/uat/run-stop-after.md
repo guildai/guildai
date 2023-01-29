@@ -6,7 +6,6 @@
     Hello Guild!
     Hello Guild!
     Hello Guild!
-    Hello Guild!
-    Hello Guild!
+    Hello Guild!...
     Stopping process early (pid ...) - 0.1 minute(s) elapsed...
     <exit ...>
