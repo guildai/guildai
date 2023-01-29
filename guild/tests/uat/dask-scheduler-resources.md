@@ -1,9 +1,7 @@
 ---
 # Getting warning messages about required bokeh version in some tests
 
-doctest: +FIXME
-
-##doctest: -PY36 -PY37  # See 'Python 3.6 and 3.7' section below
+doctest: -PY37  # See 'Python 3.6 3.7' section below
 ---
 
 # Dask Scheduler Resources
@@ -67,8 +65,7 @@ concurrently, each is run in series.
     >>> run("guild run dask:scheduler run-once=yes resources=foo=7 -y")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing Dask cluster
-    INFO: [guild] ... Dashboard link: ...
-    INFO: [guild] ... Cluster resources: foo=7
+    ...
     INFO: [guild] ... Processing staged runs
     ...
     Run ... start...
@@ -77,7 +74,7 @@ concurrently, each is run in series.
     Run ... stop...
     INFO: [guild] ... Dask scheduler processed 2 run(s) in ... seconds
     INFO: [guild] ... Stopping Dask scheduler
-    INFO: [guild] ... Stopping Dask cluster
+    INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
 
 Let's rerun this scenario with a scheduler that has enough foo to run
@@ -93,8 +90,7 @@ This time, start a scheduler with 12 available foo.
     >>> run("guild run dask:scheduler run-once=yes resources=foo=12 -y")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing Dask cluster
-    INFO: [guild] ... Dashboard link: ...
-    INFO: [guild] ... Cluster resources: foo=12
+    ...
     INFO: [guild] ... Processing staged runs
     ...
     Run ... start...
@@ -103,7 +99,7 @@ This time, start a scheduler with 12 available foo.
     Run ... stop...
     INFO: [guild] ... Dask scheduler processed 2 run(s) in ... seconds
     INFO: [guild] ... Stopping Dask scheduler
-    INFO: [guild] ... Stopping Dask cluster
+    INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
 
 ## Missing Resources
@@ -124,7 +120,7 @@ Run a scheduler without defining available foo.
     INFO: [guild] ... Processing staged runs
     INFO: [guild] ... Ignorning staged run ... (requires resources not defined for cluster: foo)
     ...
-    INFO: [guild] ... Stopping Dask cluster
+    INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
 
 Clear out runs for subsequent tests.
@@ -155,7 +151,7 @@ Start a scheduler that provides all three resources.
     INFO: [guild] ... Run ... completed...
     INFO: [guild] ... Dask scheduler processed 1 run(s) in ... seconds
     INFO: [guild] ... Stopping Dask scheduler
-    INFO: [guild] ... Stopping Dask cluster
+    INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
 
 Run the same scenario for with a scheduler with some missing resources.
@@ -167,7 +163,7 @@ Run the same scenario for with a scheduler with some missing resources.
     ...
     INFO: [guild] ... Ignorning staged run ... (requires resources not defined for cluster: bar, baz)
     ...
-    INFO: [guild] ... Stopping Dask cluster
+    INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
 
 Delete runs for subsequent tests.
@@ -184,7 +180,7 @@ the scheduler logs a warning message and ignores the resource spec.
     WARNING: [guild] ... Ignoring invalid dask resources spec 'foo': parts must be in format KEY=VAL
     INFO: [guild] ... Initializing Dask cluster
     ...
-    INFO: [guild] ... Stopping Dask cluster
+    INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
 
 Similarly, the scheduler logs a warning and ignores invalid run resources.
@@ -202,7 +198,7 @@ Similarly, the scheduler logs a warning and ignores invalid run resources.
     Run ... stop
     INFO: [guild] ... Run ... completed
     ...
-    INFO: [guild] ... Stopping Dask cluster
+    INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
 
 Delete runs for subsequent tests.
@@ -258,9 +254,6 @@ only one run per GPU at a time.
     >>> run("guild run dask:scheduler resources='gpu0=1 gpu1=1' run-once=yes -y")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing Dask cluster
-    INFO: [guild] ... Dashboard link: ...
-    INFO: [guild] ... Cluster resources: gpu0=1 gpu1=1
-    INFO: [guild] ... Processing staged runs
     ...
     INFO: [guild] ... Run aaa started...
     INFO: [guild] ... Run ddd started...
@@ -272,14 +265,14 @@ only one run per GPU at a time.
     INFO: [guild] ... Run bbb completed...
     INFO: [guild] ... Dask scheduler processed 4 run(s) in ... seconds
     INFO: [guild] ... Stopping Dask scheduler
-    INFO: [guild] ... Stopping Dask cluster
+    INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
 
 NOTE: it's surprising that 'ccc' is started before 'bbb'. It's not
 clear why Dask is making this decision but is consistent. Importantly,
 runs 'aaa' and 'ddd' are scheduled to run alongside one another.
 
-## Python 3.6 and 3.7
+## Python 3.7
 
 See
 

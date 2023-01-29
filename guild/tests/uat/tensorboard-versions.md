@@ -37,7 +37,7 @@ TensorBoard versions.
 
 ## 2.7.0
 
-    >>> check("tensorboard==2.7.0")  # doctest: -PY3 +PY36 +PY37 +PY38 +PY39
+    >>> check("tensorboard==2.7.0")  # doctest: -PY3 +PY37 +PY38 +PY39
     venv: ...
     python_path: ...
     internal tests:

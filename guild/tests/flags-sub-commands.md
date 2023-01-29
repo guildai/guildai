@@ -55,7 +55,7 @@ Run the operations with default flag vals.
 The following error is expected. The operation is configured to use
 the `b` command, which is a Click group.
 
-    >>> run("guild run click-b -y")  # doctest: -PY36
+    >>> run("guild run click-b -y")
     base-foo=4
     Usage: python -m guild.args_click b [OPTIONS] COMMAND [ARGS]...
     Try 'python -m guild.args_click b --help' for help.
@@ -94,7 +94,7 @@ Run with modified flag vals.
 
 View the runs.
 
-    >>> run("guild runs") # doctest: -PY36
+    >>> run("guild runs")
     [1:...]  click-b-sub  ...  completed  b-sub-foo=77
     [2:...]  click-a      ...  completed  a-foo=55
     [3:...]  argparse-b   ...  completed  b-foo=33

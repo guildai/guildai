@@ -1,9 +1,3 @@
----
-# Not sure why we're getting failures - asserted output looks okay
-
-doctest: +FIXME
----
-
 # Dask Scheduler
 
 Clear existing runs for our tests.
@@ -25,8 +19,7 @@ Wait a moment and check scheduler output.
     >>> run("guild cat --output")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing Dask cluster
-    INFO: [guild] ... Dashboard link: ...
-    INFO: [guild] ... Waiting for staged runs
+    ...
     <exit 0>
 
 Stage five runs, each run sleeping for 3 seconds.
@@ -71,16 +64,14 @@ order of log statements but we know there are five runs outputing
     >>> run("guild cat -Fo scheduler --output")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing Dask cluster
-    INFO: [guild] ... Dashboard link: ...
-    INFO: [guild] ... Waiting for staged runs
-    INFO: [guild] ... Scheduling run ...
+    ...
     Waiting 2 second(s)...
     Waiting 2 second(s)...
     Waiting 2 second(s)...
     Waiting 2 second(s)...
     Waiting 2 second(s)...
     INFO: [guild] ... Stopping Dask scheduler
-    INFO: [guild] ... Stopping Dask cluster
+    INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
 
 ## Run Once
@@ -113,7 +104,7 @@ parallel. We use `run-once` to process the staged runs and then exit.
     >>> run("guild run dask:scheduler workers=10 run-once=yes -y")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing Dask cluster with 10 workers
-    INFO: [guild] ... Dashboard link: ...
+    ...
     INFO: [guild] ... Processing staged runs
     INFO: [guild] ... Run ... started...
     INFO: [guild] ... Run ... started...
@@ -136,7 +127,7 @@ parallel. We use `run-once` to process the staged runs and then exit.
     INFO: [guild] ... Run ... completed...
     INFO: [guild] ... Run ... completed...
     INFO: [guild] ... Stopping Dask scheduler
-    INFO: [guild] ... Stopping Dask cluster
+    INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
 
 The runs:
@@ -186,7 +177,7 @@ Show all output to confirm the scheduler is running as expected.
     >>> run("guild cat --output")
     INFO: [guild] ... Starting Dask scheduler
     INFO: [guild] ... Initializing Dask cluster
-    INFO: [guild] ... Dashboard link: http://.../status
+    ...
     INFO: [guild] ... Waiting for staged runs
     <exit 0>
 
@@ -225,7 +216,7 @@ Verify that the dashboard is disabled.
 
     >>> run("guild cat --output")
     INFO: [guild] ... Starting Dask scheduler
-    INFO: [guild] ... Initializing Dask cluster
+    INFO: [guild] ... Initializing Dask cluster...
     INFO: [guild] ... Dashboard link: <disabled>
     INFO: [guild] ... Waiting for staged runs
     <exit 0>

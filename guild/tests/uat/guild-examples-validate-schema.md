@@ -1,7 +1,3 @@
----
-doctest: -PY36  # Failures on 3.6 - see below
----
-
 # Validate Examples Schema
 
 To exercise the schema validation and to verify the correctness of our

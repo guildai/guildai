@@ -58,7 +58,6 @@ MACOS = doctest.register_optionflag("MACOS")
 NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
 NORMALIZE_PATHSEP = doctest.register_optionflag("NORMALIZE_PATHSEP")
 PY3 = doctest.register_optionflag("PY3")
-PY36 = doctest.register_optionflag("PY36")
 PY37 = doctest.register_optionflag("PY37")
 PY38 = doctest.register_optionflag("PY38")
 PY39 = doctest.register_optionflag("PY39")
@@ -200,7 +199,6 @@ def _skip_python_version(options):
         skip = True
     # Force tests on/off if more specific Python versions specified.
     for opt, maj_ver, min_ver in [
-        (options.get(PY36), 3, 6),
         (options.get(PY37), 3, 7),
         (options.get(PY38), 3, 8),
         (options.get(PY39), 3, 9),

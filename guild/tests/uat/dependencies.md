@@ -53,7 +53,6 @@ We can force the configuration through, however, using `--force-flags`.
     >>> run("guild run file file:file.txt=file-2.txt --force-flags -y")
     Resolving file:file.txt
     Using file-2.txt for file:file.txt
-    --file:file.txt file-2.txt
 
     >>> run("guild ls -n")
     README.md

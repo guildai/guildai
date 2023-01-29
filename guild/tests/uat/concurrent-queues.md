@@ -1,9 +1,3 @@
----
-# Tests are not existing
-
-doctest: +FIXME
----
-
 # Concurrent Queues
 
 Multiple queues may be started to process runs concurrently.

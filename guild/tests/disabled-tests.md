@@ -28,12 +28,9 @@ tests or deleting them from the suite.
     >>> for lineno, line, path in iter_test_lines():
     ...     if line.startswith("    >> ") or "+FIXME" in line:
     ...         print(f"# {path}:{lineno}: {line}")  # doctest: +REPORT_UDIFF
-    # autocomplete-zsh.md:2: doctest: -WINDOWS +FIXME
+    # autocomplete-zsh.md:2: doctest: -WINDOWS +FIXME_CI
     # breakpoints.md:2: doctest: +FIXME_CI
     # imports.md:2: doctest: +FIXME_CI
-    # uat/concurrent-queues.md:4: doctest: +FIXME
-    # uat/dask-scheduler-resources.md:4: doctest: +FIXME
-    # uat/dask-scheduler.md:4: doctest: +FIXME
     # uat/dvc.md:572:     >> run("guild run faketrain-dvc-stage x=[-1.0,0.0,1.0] -y")  # doctest: +REPORT_UDIFF
     # uat/dvc.md:599:     >> run("guild compare -t -cc .operation,.status,.label,=noise,=x,loss -n3")
     # uat/dvc.md:698:     >> run("guild run dvc.yaml:faketrain x=[0.2,0.3] -y")  # doctest: +REPORT_UDIFF
