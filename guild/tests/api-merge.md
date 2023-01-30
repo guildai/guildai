@@ -8,23 +8,24 @@ merge`.
 Create a new project that we can freely modify without changing test
 code.
 
-    >>> project_dir = mkdtemp()
-    >>> copytree(sample("projects", "merge"), project_dir)
+    >>> guild_home = mkdtemp()
+    >>> use_project(mkdtemp(), guild_home)
+    >>> copytree(sample("projects", "merge"), ".")
 
 Remove ignored files if they exit. Use a helper function so we can run
 this as needed.
 
     >>> def clean_project():
-    ...     rm(path(project_dir, "a"), force=True)
-    ...     rm(path(project_dir, "b"), force=True)
-    ...     rmdir(path(project_dir, "subdir"), force=True)
-    ...     rmdir(path(project_dir, "__pycache__"), force=True)
+    ...     rm("a", force=True)
+    ...     rm("b", force=True)
+    ...     rmdir("subdir", force=True)
+    ...     rmdir("__pycache__", force=True)
 
     >>> clean_project()
 
 Project files:
 
-    >>> find(project_dir)
+    >>> find(".")
     .gitignore
     dep-1
     dep-subdir/dep-2
@@ -33,48 +34,28 @@ Project files:
     op.py
     overlap.py
 
-Create a new Guild home to isolate runs.
-
-    >>> guild_home = mkdtemp()
-
-Helpers to run commands from the project dir and with `GUILD_HOME` set
-for Guild commands.
-
-    >>> def project_run(cmd, **kw):
-    ...     run(cmd, cwd=project_dir, env={"GUILD_HOME": guild_home}, **kw)
-
-    >>> def project_quiet(cmd, **kw):
-    ...     quiet(cmd, cwd=project_dir, env={"GUILD_HOME": guild_home}, **kw)
-
-    >>> def project_capture(cmd, **kw):
-    ...     return run_capture(cmd, cwd=project_dir, env={"GUILD_HOME": guild_home}, **kw)
-    ...     assert code == 0, (code, out)
-
 Verify the project ops.
 
-    >>> project_run("guild ops")
+    >>> run("guild ops")
     default
     overlap
     remote-dep
-    <exit 0>
 
 ## Generate a run
 
 Generate a run from the sample project.
 
-    >>> project_run("guild run default -y")
+    >>> run("guild run default -y")
     Resolving file:dep-1
     Resolving file:dep-subdir/dep-2
     Resolving file:files.zip
     Unpacking .../files.zip
     Generating files
-    <exit 0>
 
-    >>> project_run("guild runs")
-    [1:...]  default  ...  completed
-    <exit 0>
+    >>> run("guild runs -s")
+    [1]  default  completed
 
-    >>> project_run("guild runs info --manifest")
+    >>> run("guild runs info --manifest")
     id: ...
     operation: default
     from: .../guild.yml
@@ -90,9 +71,8 @@ Generate a run from the sample project.
         - guild.yml
         - op.py
         - overlap.py
-    <exit 0>
 
-    >>> project_run("guild ls -n")
+    >>> run("guild ls -n")
     a
     b
     dep-1
@@ -105,7 +85,6 @@ Generate a run from the sample project.
     subdir/c
     yyy
     zzz
-    <exit 0>
 
 ## Non-VCS behavior
 
@@ -117,13 +96,12 @@ As there are no differences between the run files (those to be copied)
 and the project files, the merge command completes without an error
 but with a message indicating that nothing is copied.
 
-    >>> project_run("guild api merge -y")
+    >>> run("guild api merge -y")
     {"resp": "nothing-to-copy"}
-    <exit 0>
 
 Show the skipped files using the '--preview' option.
 
-    >>> project_run("guild api merge --preview -f")  # doctest: +REPORT_UDIFF
+    >>> run("guild api merge --preview -f")  # doctest: +REPORT_UDIFF
     {
       "resp": "preview",
       "run": {
@@ -209,15 +187,14 @@ Show the skipped files using the '--preview' option.
         }
       ]
     }
-    <exit 0>
 
 Let's modify some of the project files.
 
-    >>> write(path(project_dir, "dep-1"), "xxx")
-    >>> write(path(project_dir, "dep-subdir", "dep-2"), "yyy")
+    >>> write("dep-1", "xxx")
+    >>> write(path("dep-subdir", "dep-2"), "yyy")
 
-    >>> run_dir = project_capture("guild select --path")
-    >>> compare_dirs((run_dir, "run-dir"), (project_dir, "project-dir"))  # doctest: +REPORT_UDIFF
+    >>> run_dir = run_capture("guild select --dir")
+    >>> compare_dirs((run_dir, "run-dir"), (".", "project-dir"))  # doctest: +REPORT_UDIFF
     diff /run-dir /project-dir
     Only in /run-dir : ['.guild', 'a', 'b', 'subdir', 'yyy', 'zzz']
     Only in /project-dir : ['.gitignore', 'files.zip']
@@ -228,16 +205,24 @@ Let's modify some of the project files.
     diff /run-dir/dep-subdir /project-dir/dep-subdir
     Differing files : ['dep-2']
 
-    >>> cat(path(project_dir, "dep-1"))
+The differing files:
+
+    >>> cat("dep-1")
     xxx
 
-    >>> cat(path(project_dir, "dep-subdir", "dep-2"))
+    >>> run("guild cat -p dep-1")
+    <exit 0>
+
+    >>> cat("dep-subdir", "dep-2")
     yyy
+
+    >>> run("guild cat -p dep-subdir/dep-2")
+    <exit 0>
 
 If a project is not under version control, Guild maintains a strict
 no-replace policy for all copied files.
 
-    >>> project_run("guild api merge -y -f")
+    >>> run("guild api merge -y -f")
     {
       "paths": [
         "dep-1",
@@ -245,11 +230,10 @@ no-replace policy for all copied files.
       ],
       "resp": "replacement-paths"
     }
-    <exit 0>
 
 This is shown as well with the '--preview' option.
 
-    >>> project_run("guild api merge --preview -f")
+    >>> run("guild api merge --preview -f")
     {
       "paths": [
         "dep-1",
@@ -257,12 +241,11 @@ This is shown as well with the '--preview' option.
       ],
       "resp": "replacement-paths"
     }
-    <exit 0>
 
 If we include '--replace' along with '--preview', Guild shows the two
 project-local dependencies as the files to-be-copied.
 
-    >>> project_run("guild api merge --preview --replace -f")
+    >>> run("guild api merge --preview --replace -f")
     {
       "resp": "preview",
       ...
@@ -280,11 +263,10 @@ project-local dependencies as the files to-be-copied.
       ],
       "toSkip": ...
     }
-    <exit 0>
 
-To perform the merge, use the '--replace' without preview.
+To perform the merge, use the `--replace` without preview.
 
-    >>> project_run("guild api merge --replace -y -f")
+    >>> run("guild api merge --replace -y -f")
     {
       "copied": [
         "dep-1",
@@ -292,11 +274,10 @@ To perform the merge, use the '--replace' without preview.
       ],
       "resp": "ok"
     }
-    <exit 0>
 
 Compare files after the merge.
 
-    >>> compare_dirs((run_dir, "run-dir"), (project_dir, "project-dir"))  # doctest: +REPORT_UDIFF
+    >>> compare_dirs((run_dir, "run-dir"), (".", "project-dir"))  # doctest: +REPORT_UDIFF
     diff /run-dir /project-dir
     Only in /run-dir : ['.guild', 'a', 'b', 'subdir', 'yyy', 'zzz']
     Only in /project-dir : ['.gitignore', 'files.zip']
@@ -306,10 +287,10 @@ Compare files after the merge.
     diff /run-dir/dep-subdir /project-dir/dep-subdir
     Identical files : ['dep-2']
 
-    >>> cat(path(project_dir, "dep-1"))
+    >>> cat("dep-1")
     <empty>
 
-    >>> cat(path(project_dir, "dep-subdir", "dep-2"))
+    >>> cat(path("dep-subdir", "dep-2"))
     <empty>
 
 ### Merging to an empty directory
@@ -322,7 +303,7 @@ Create a temp directory for our various merge targets.
 
 Merge only source code and depepdencies (default behavior):
 
-    >>> project_run(f"guild api merge -t {tmp}/default -y -f")
+    >>> run(f"guild api merge -t {tmp}/default -y -f")
     {
       "copied": [
         "dep-1",
@@ -333,9 +314,8 @@ Merge only source code and depepdencies (default behavior):
       ],
       "resp": "ok"
     }
-    <exit 0>
 
-    >>> find(f"{tmp}/default")
+    >>> find(path(tmp, "default"))
     dep-1
     dep-subdir/dep-2
     guild.yml
@@ -344,38 +324,35 @@ Merge only source code and depepdencies (default behavior):
 
 Merge sourcecode only:
 
-    >>> project_run(f"guild merge --sourcecode -t {tmp}/sourcecode -y")
+    >>> run(f"guild merge --sourcecode -t {path(tmp, 'sourcecode')} -y")
     Copying guild.yml
     Copying op.py
     Copying overlap.py
-    <exit 0>
 
-    >>> find(f"{tmp}/sourcecode")
+    >>> find(path(tmp, "sourcecode"))
     guild.yml
     op.py
     overlap.py
 
 Merge deps only (skip source code):
 
-    >>> project_run(f"guild merge --skip-sourcecode -t {tmp}/deps -y")
+    >>> run(f"guild merge --skip-sourcecode -t {path(tmp, 'deps')} -y")
     Copying dep-1
     Copying dep-subdir/dep-2
-    <exit 0>
 
-    >>> find(f"{tmp}/deps")
+    >>> find(path(tmp, "deps"))
     dep-1
     dep-subdir/dep-2
 
 Merge only generated by including all and skipping both source code
 and dependencies:
 
-    >>> project_run(f"guild merge --all --skip-sourcecode --skip-deps -t {tmp}/generated -y")
+    >>> run(f"guild merge --all --skip-sourcecode --skip-deps -t {path(tmp, 'generated')} -y")
     Copying a
     Copying b
     Copying subdir/c
-    <exit 0>
 
-    >>> find(f"{tmp}/generated")
+    >>> find(path(tmp, "generated"))
     a
     b
     subdir/c
@@ -387,7 +364,7 @@ is configured with a VCS.
 
 Initialize a git repositiry in the project directory.
 
-    >>> project_quiet("git init")
+    >>> quiet("git init")
 
 Remove deps and generated files (from previous merges).
 
@@ -395,20 +372,20 @@ Remove deps and generated files (from previous merges).
 
 Attempt to merge with unchanged files.
 
+    >>> run("guild merge -y")
     Nothing to copy for the following run:
       [...]  default  ...  completed
     Try 'guild merge --preview' for a list of skipped files.
-    <exit 0>
 
 Modify local project files.
 
-    >>> write(path(project_dir, "dep-1"), "xxx")
-    >>> write(path(project_dir, "dep-subdir", "dep-2"), "yyy")
-    >>> write(path(project_dir, "op.py"), "print('hi')\n")
+    >>> write("dep-1", "xxx")
+    >>> write(path("dep-subdir", "dep-2"), "yyy")
+    >>> write("op.py", "print('hi')\n")
 
 Preview the merge.
 
-    >>> project_run("guild merge --preview")
+    >>> run("guild merge --preview")
     guild: files in the current directory have unstaged changes:
       dep-1
       dep-subdir/dep-2
@@ -418,7 +395,7 @@ Preview the merge.
 
 Attempt the merge.
 
-    >>> project_run("guild merge -y")
+    >>> run("guild merge -y")
     guild: files in the current directory have unstaged changes:
       dep-1
       dep-subdir/dep-2
@@ -432,11 +409,11 @@ VCS (git in this case).
 Stage the changes and try again. Guild copies the files because
 they're staged.
 
-    >>> project_quiet("git add .")
+    >>> quiet("git add .")
 
 Preview the merge.
 
-    >>> project_run("guild merge --preview")
+    >>> run("guild merge --preview")
     Merge will copy files from the following run to the current directory:
       [...]  default  ...  completed
     Files:
@@ -451,42 +428,38 @@ Preview the merge.
       subdir/c    non-project file
       yyy         non-project dependency
       zzz         non-project dependency
-    <exit 0>
 
-    >>> project_run("guild merge -y")
+    >>> run("guild merge -y")
     Copying dep-1
     Copying dep-subdir/dep-2
     Copying op.py
-    <exit 0>
 
-Now that the project is merged with the run changes, there's nothing
-to copy on a subsequent merge.
+With the project merged with the run changes, there's nothing to copy
+on a subsequent merge.
 
-    >>> project_run("guild merge -y")
+    >>> run("guild merge -y")
     Nothing to copy for the following run:
       [...]  default  ...  completed
     Try 'guild merge --preview' for a list of skipped files.
-    <exit 0>
 
-Let's restore the project to its staged stage.
+Restore the project to its staged stage.
 
-    >>> project_quiet("git restore .")
+    >>> quiet("git restore .")
 
 When we merge, Guild copies the project files as before because the
 project is safely staged.
 
-    >>> project_run("guild merge -y")
+    >>> run("guild merge -y")
     Copying dep-1
     Copying dep-subdir/dep-2
     Copying op.py
-    <exit 0>
 
-Let's restore again and then commit the changes.
+Restore again and commit the changes.
 
-    >>> project_quiet("git restore .")
-    >>> project_quiet("git commit -m 'First commit'")
+    >>> quiet("git restore .")
+    >>> quiet("git commit -m 'First commit'")
 
-    >>> project_run("guild merge --preview")
+    >>> run("guild merge --preview")
     Merge will copy files from the following run to the current directory:
       [...]  default  ...  completed
     Files:
@@ -501,13 +474,11 @@ Let's restore again and then commit the changes.
       subdir/c    non-project file
       yyy         non-project dependency
       zzz         non-project dependency
-    <exit 0>
 
-    >>> project_run("guild merge -y")
+    >>> run("guild merge -y")
     Copying dep-1
     Copying dep-subdir/dep-2
     Copying op.py
-    <exit 0>
 
 ## Default directory checks
 
@@ -547,14 +518,14 @@ configurable opref info.
 Create a run that's not associated with a project.
 
     >>> _ = init_run("func", "", "hello")
-    >>> project_run("guild runs -n1")
+    >>> run("guild runs -n1")
     [1:...]  hello()    pending
     <exit 0>
 
 The run pkg type 'func' in the run opdef indicates the run does not
 originate from a project directory.
 
-    >>> project_run("guild cat -p .guild/opref")
+    >>> run("guild cat -p .guild/opref")
     func:'' '' '' hello
     <exit 0>
 
@@ -580,7 +551,7 @@ We test Guild using two cases:
 
 Generate a new run from the project dir.
 
-    >>> project_quiet("guild run default -y")
+    >>> quiet("guild run default -y")
 
 Attempt to merge from a new, empty directory.
 
@@ -598,12 +569,12 @@ project directory from a Guild file based run.
 Create a pathological/broken run where the pkg_name is empty.
 
     >>> _ = init_run("guildfile", "", "broken")
-    >>> project_run("guild cat -p .guild/opref")
+    >>> run("guild cat -p .guild/opref")
     guildfile:'' '' '' broken
     <exit 0>
 
-    >>> project_run("guild runs -n1")
-    [1:...]  broken    pending
+    >>> run("guild runs -s -n1")
+    [1]  broken  pending
     <exit 0>
 
 Attempt to merge this run to tmp.
@@ -616,37 +587,34 @@ Attempt to merge this run to tmp.
 
 ## Overlapping targets
 
-As of 0.9, Guild treats explicitly defined project local required
+As of 0.9, Guild treats explicitly-defined project local required
 files as dependencies and not as source code, even if those files are
 selected as source code files.
 
 The `overlap` operation defines the same files in both its
 `sourcecode` spec and its dependencies.
 
-    >>> project_run("guild run overlap -y")
+    >>> run("guild run overlap -y")
     Resolving file:dep-1
     Resolving file:dep-subdir/dep-2
     Generating files
-    <exit 0>
 
 The manifest shows the two project-local files (`dep-1` and
 `dep-subdir/dep-2` as dependencies and not as source code.
 
-    >>> project_run("guild cat -p .guild/manifest")
+    >>> run("guild cat -p .guild/manifest")
     s guild.yml ... guild.yml
     s op.py ... op.py
     s overlap.py ... overlap.py
     d dep-1 ... file:dep-1
     d dep-subdir/dep-2 ... file:dep-subdir/dep-2
-    <exit 0>
 
 The run file `dep-1` is modified by the operation.
 
-    >>> project_run("guild cat -p dep-1")
+    >>> run("guild cat -p dep-1")
     generated!
-    <exit 0>
 
-    >>> cat(path(project_dir, "dep-1"))
+    >>> cat("dep-1")
     <empty>
 
 When we merge such a run, Guild gives preference to non-source code
@@ -673,7 +641,7 @@ the following reasons:
 At this point `dep-1` is modified by the generated file. We can't
 merge unless we specify either '--replace' or stage/stash the changes.
 
-    >>> project_run("guild merge -y")
+    >>> run("guild merge -y")
     guild: files in the current directory have unstaged changes:
       dep-1
     Stage or stash these changes or use --replace to skip this check.
@@ -681,19 +649,17 @@ merge unless we specify either '--replace' or stage/stash the changes.
 
 Let's use '--replace' to ignore the VCS status check.
 
-    >>> project_run("guild merge --replace -y")
+    >>> run("guild merge --replace -y")
     Copying dep-1
-    <exit 0>
 
 We can use git to view changes to the project.
 
-    >>> project_run("git status -s")
+    >>> run("git status -s")
     M dep-1
      M dep-subdir/dep-2
      M op.py
-    <exit 0>
 
-    >>> cat(path(project_dir, "dep-1"))
+    >>> cat("dep-1")
     generated!
 
 # TODO

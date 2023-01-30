@@ -1347,9 +1347,9 @@ def _compare_dirs(d1, d2):
     d2_path, d2_label = d2
     cmp_dir = mkdtemp()
     d1_link = os.path.join(cmp_dir, d1_label)
-    os.symlink(d1_path, d1_link)
+    os.symlink(os.path.realpath(d1_path), d1_link)
     d2_link = os.path.join(cmp_dir, d2_label)
-    os.symlink(d2_path, d2_link)
+    os.symlink(os.path.realpath(d2_path), d2_link)
     with util.StdoutCapture() as out:
         filecmp.dircmp(d1_link, d2_link).report_full_closure()
     print(out.get_value().replace(cmp_dir, ""), end="")
