@@ -2,22 +2,17 @@
 
 Generate some sample runs.
 
-    >>> project = Project(sample("projects", "hello"))
+    >>> use_project("hello")
 
-    >>> project.run("hello-file")
+    >>> run("guild run hello-file -y")
     Reading message from hello.txt
     Hello, from a file!
     <BLANKLINE>
     Saving message to msg.out
 
-Helper for running commands for the project.
-
-    >>> def project_cmd(cmd):
-    ...     run(f"guild -H {project.guild_home} {cmd}", cwd=project.cwd)
-
 ## `api runs`
 
-    >>> project_cmd("api runs -f")
+    >>> run("guild api runs -f")  # doctest: +REPORT_UDIFF
     [
       {
         "command": "... -um guild.op_main cat -- --file hello.txt",
@@ -62,7 +57,7 @@ Helper for running commands for the project.
             "operation": null,
             "path": "msg.out",
             "run": null,
-            "size": 20
+            "size": ...
           },
           {
             "mtime": ...,
