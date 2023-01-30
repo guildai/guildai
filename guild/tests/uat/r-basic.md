@@ -1,5 +1,5 @@
 ---
-doctest: -WINDOWS
+doctest: -FIXME_CI -WINDOWS
 ---
 
 # R script support
