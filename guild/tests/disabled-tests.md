@@ -31,10 +31,10 @@ tests or deleting them from the suite.
     # autocomplete-zsh.md:2: doctest: -WINDOWS +FIXME_CI
     # breakpoints.md:2: doctest: +FIXME_CI
     # imports.md:2: doctest: +FIXME_CI
-    # uat/dvc.md:572:     >> run("guild run faketrain-dvc-stage x=[-1.0,0.0,1.0] -y")  # doctest: +REPORT_UDIFF
-    # uat/dvc.md:599:     >> run("guild compare -t -cc .operation,.status,.label,=noise,=x,loss -n3")
-    # uat/dvc.md:698:     >> run("guild run dvc.yaml:faketrain x=[0.2,0.3] -y")  # doctest: +REPORT_UDIFF
-    # uat/dvc.md:720:     >> run("guild runs info")
+    # uat/dvc.md:576:     >> run("guild run faketrain-dvc-stage x=[-1.0,0.0,1.0] -y")  # doctest: +REPORT_UDIFF
+    # uat/dvc.md:603:     >> run("guild compare -t -cc .operation,.status,.label,=noise,=x,loss -n3")
+    # uat/dvc.md:702:     >> run("guild run dvc.yaml:faketrain x=[0.2,0.3] -y")  # doctest: +REPORT_UDIFF
+    # uat/dvc.md:724:     >> run("guild runs info")
     # uat/evaluate-mnist-intro-example.md:2: doctest: +FIXME  # Example needs to be updated
     # uat/mnist-example-runs-after-intro-evaluate.md:2: doctest: +FIXME  # Dep on evaluate-mnist-intro-example.md
     # uat/project-sourcecode.md:4: doctest: +FIXME
