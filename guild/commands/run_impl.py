@@ -1362,7 +1362,7 @@ def _ignored_sourcecode_paths(op):
 
 def _project_local_dependencies(op):
     return [
-        source.project_local_path
+        os.path.normpath(source.project_local_path)
         for dep in op.deps
         for source in dep.resdef.sources
         if source.project_local_path
