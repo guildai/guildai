@@ -1,3 +1,8 @@
+
+---
+doctest: -PY37
+---
+
 # Dask Scheduler
 
 Clear existing runs for our tests.
@@ -41,13 +46,13 @@ accommodate the scheduler poll interval of one second (see above).
 
 Check the run status.
 
-    >>> run("guild runs")
-    [1:...]  op              ...  completed  sleep=2
-    [2:...]  op              ...  completed  sleep=2
-    [3:...]  op              ...  completed  sleep=2
-    [4:...]  op              ...  completed  sleep=2
-    [5:...]  op              ...  completed  sleep=2
-    [6:...]  dask:scheduler  ...  running    ...
+    >>> run("guild runs -s")
+    [1]  op              completed  sleep=2
+    [2]  op              completed  sleep=2
+    [3]  op              completed  sleep=2
+    [4]  op              completed  sleep=2
+    [5]  op              completed  sleep=2
+    [6]  dask:scheduler  running    ...
     <exit 0>
 
 Stop the sceduler.
