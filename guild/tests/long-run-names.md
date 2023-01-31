@@ -23,9 +23,10 @@ If the default run name, which would contain the full flag value for
 Let's illustrate using a temp directory.
 
     >>> tmp = mkdtemp()
+    
     >>> open(join_path(tmp, "a" * 374), "w").close()  # doctest: +WINDOWS_ONLY
     Traceback (most recent call last):
-    OSError: [Errno ...] Invalid argument: '...aaaaaaaaaaaaaaaaaaaaaaaa'
+    FileNotFoundError: [Errno 2] No such file or directory: '...aaaaaaaaaaaaaaaaaaaaaa'
 
     >>> open(join_path(tmp, "a" * 374), "w").close()  # doctest: -WINDOWS
     Traceback (most recent call last):
