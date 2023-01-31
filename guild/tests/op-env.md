@@ -16,7 +16,7 @@ and a run:
 
     >>> from guild import run as runlib
     >>> run_dir = mkdtemp()
-    >>> run = runlib.for_dir(run_dir)
+    >>> sample_run = runlib.for_dir(run_dir)
 
 For our tests, assert various locations:
 
@@ -35,7 +35,7 @@ With empty system env and op env:
 
     >>> with Env({}, replace=True):
     ...     with SetGuildHome(guild_home):
-    ...         env = op_env(op, run)
+    ...         env = op_env(op, sample_run)
 
     >>> sorted(env)
     ['CMD_DIR', 'GUILD_HOME', 'GUILD_SOURCECODE', 'LOG_LEVEL', 'RUN_DIR', 'RUN_ID']
@@ -49,17 +49,17 @@ With empty system env and op env:
     >>> env["LOG_LEVEL"]
     '20'
 
-    >>> env["RUN_DIR"] == run.dir, (env, run.dir)
+    >>> env["RUN_DIR"] == sample_run.dir, (env, sample_run.dir)
     (True, ...)
 
-    >>> env["RUN_ID"] == run.id, (env, run.id)
+    >>> env["RUN_ID"] == sample_run.id, (env, sample_run.id)
     (True, ...)
 
 If we specify an `opref`, we get `GUILD_OP` in the env.
 
     >>> from guild import opref
     >>> op.opref = opref.OpRef("script", ".", "", "", "test.py")
-    >>> op_env(op, run).get("GUILD_OP")
+    >>> op_env(op, sample_run).get("GUILD_OP")
     './test.py'
 
 ## System env
@@ -68,7 +68,7 @@ With some system env - a new var and a var that Guild defines.
 
     >>> with Env({"FOO": "env-foo", "GUILD_HOME": "env-guild-home"}, replace=True):
     ...     with SetGuildHome(guild_home):
-    ...         env = op_env(op, run)
+    ...         env = op_env(op, sample_run)
 
 `FOO` is available, in addition to the vars above.
 
@@ -103,7 +103,7 @@ operation defines env using the `env` attribute.
 
     >>> with Env({"FOO": "env-foo", "GUILD_HOME": "env-guild-home"}, replace=True):
     ...     with SetGuildHome(guild_home):
-    ...         env = op_env(op, run)
+    ...         env = op_env(op, sample_run)
 
 The env contains the expected vars:
 
@@ -129,27 +129,25 @@ Neither is `RUN_DIR`:
     >>> env["RUN_DIR"] == "op-run-dir"
     False
 
-    >>> env["RUN_DIR"] == run.dir, (env, run.dir)
+    >>> env["RUN_DIR"] == sample_run.dir, (env, sample_run.dir)
     (True, ...)
 
 ## Project examples
 
 These tests use the project `op-env`.
 
-    >>> project = Project(sample("projects", "op-env"))
+    >>> use_project("op-env")
 
 The `test` operation defined `env`.
 
-    >>> gf = guildfile.for_dir(project.cwd)
+    >>> gf = guildfile.for_dir(".")
 
     >>> pprint(gf.default_model.get_operation("test").env)
     {'BAR': '2', 'BAZ': '${i} ${f} ${s}', 'FOO': 1, 'PYTHONPATH': 'hello'}
 
-This is applied to the run.
+This is applied when running the `test` operation.
 
-    >>> run, out = project.run_capture("test")
-
-    >>> print(out)  # doctest: +NORMALIZE_PATHSEP
+    >>> run("guild run test -y")
     globals: 1 1.1 hello True False
     env BAR: 2
     env BAZ: 1 1.1 hello
@@ -159,12 +157,13 @@ This is applied to the run.
     env FLAG_I: 1
     env FLAG_S: hello
     env FOO: 1
-    env PYTHONPATH: hello:...
+    env PYTHONPATH: hello...
 
 The environment is saved in the `env` run attribute.
 
-    >>> env = run.get("env")
-    >>> for name in sorted(env):  # doctest: +NORMALIZE_PATHSEP
+    >>> env = yaml.safe_load(run_capture("guild select --attr env"))
+    
+    >>> for name in sorted(env):
     ...     if name.startswith("FLAG_") or name in ("FOO", "BAR", "BAZ", "PYTHONPATH"):
     ...         print("%s: %s" % (name, env[name]))
     BAR: 2
@@ -175,7 +174,7 @@ The environment is saved in the `env` run attribute.
     FLAG_I: 1
     FLAG_S: hello
     FOO: 1
-    PYTHONPATH: hello:...
+    PYTHONPATH: hello...
 
 ## Secrets
 
@@ -192,11 +191,19 @@ output should not contain secrets.
     ... }
 
     >>> with Env(secrets):
-    ...     run, out = project.run_capture("test", debug=True)
+    ...     out = run_capture("guild --debug run test -y")
+
+Verify that the operaiton env is printed to stdout under the `DEBUG`
+log level.
+
+    >>> print(out)
+    ???
+        DEBUG: [guild] operation env: ...
+    ...
 
 Confirm that the run env does not contain secrets.
 
-    >>> env = run.get("env")
+    >>> env = yaml.safe_load(run_capture("guild select --attr env"))
     >>> for name in sorted(secrets):
     ...     assert name not in env, (name, env)
     ...     print("%s not in env" % name)
@@ -206,11 +213,6 @@ Confirm that the run env does not contain secrets.
 
 Config that the run output, which contain debug statements of the
 command env, does not contain secrets.
-
-    >>> print(out)
-    ???
-        DEBUG: [guild] operation env: ...
-    ...
 
     >>> for secret in sorted(secrets.values()):
     ...     assert secret not in out, (secret, out)
