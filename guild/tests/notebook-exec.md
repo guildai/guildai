@@ -106,11 +106,18 @@ Run with different flag values.
     ... A second line for hello.
     ...
     ... A third line for hello.'
-    ... """)
+    ... """)  # doctest: -WINDOWS
+
+Simplified version for Windows (avoid newlines in shell command):
+
+    >>> quiet("guild run flags.ipynb -y x=1.123 b=3.3 s='Hello hello!'")
+
+Output for latest run:
 
     >>> run_dir = run_capture("guild select --dir")
 
-    >>> nb_source(path(run_dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE -NORMALIZE_PATHS
+    >>> nb_source(path(run_dir, "flags.ipynb"))
+    ... # doctest: -NORMALIZE_WHITESPACE -NORMALIZE_PATHS -WINDOWS
     x = 1.123
     y : int = 2
     z = x + y
@@ -124,12 +131,34 @@ Run with different flag values.
     if f:
         print(s)
 
-    >>> nb_output(path(run_dir, "flags.ipynb"))
+    >>> nb_output(path(run_dir, "flags.ipynb"))  # doctest: -WINDOWS
     z: 3.123
     c: 2.200000
     Hello hello!
     A second line for hello.
     A third line for hello.
+
+Corresponding results for Windows:
+
+    >>> nb_source(path(run_dir, "flags.ipynb"))
+    ... # doctest: -NORMALIZE_WHITESPACE -NORMALIZE_PATHS +WINDOWS_ONLY
+    x = 1.123
+    y : int = 2
+    z = x + y
+    print("z: %s" % z)
+    a:float = 1.1; b = 3.3
+    c = b - a
+    print("c: %f" % c)
+    f = 1
+    s = 'Hello hello!'
+    <BLANKLINE>
+    if f:
+        print(s)
+
+    >>> nb_output(path(run_dir, "flags.ipynb"))  # doctest: +WINDOWS_ONLY
+    z: 3.123
+    c: 2.200000
+    Hello hello!
 
 ## Replace Patterns
 
