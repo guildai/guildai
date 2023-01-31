@@ -30,6 +30,7 @@ tests or deleting them from the suite.
     ...         print(f"# {path}:{lineno}: {line}")  # doctest: +REPORT_UDIFF
     # autocomplete-zsh.md:2: doctest: -WINDOWS +FIXME_CI
     # breakpoints.md:2: doctest: +FIXME_CI
+    # command-help.md:136:     >>> pprint(json.loads(out))  # doctest: +REPORT_UDIFF +FIXME_WINDOWS
     # imports.md:2: doctest: +FIXME_CI
     # uat/dvc.md:576:     >> run("guild run faketrain-dvc-stage x=[-1.0,0.0,1.0] -y")  # doctest: +REPORT_UDIFF
     # uat/dvc.md:603:     >> run("guild compare -t -cc .operation,.status,.label,=noise,=x,loss -n3")

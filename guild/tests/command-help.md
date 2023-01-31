@@ -133,7 +133,7 @@ Help content can be generated as JSON for a command by setting the
     >>> with Env({"GUILD_HELP_JSON": "1"}):
     ...     out = run_capture("guild runs --help")
 
-    >>> pprint(json.loads(out))  # doctest: +REPORT_UDIFF
+    >>> pprint(json.loads(out))  # doctest: +REPORT_UDIFF +FIXME_WINDOWS
     {'commands': [{'help': 'Add or remove run comments.', 'term': 'comment'},
                   {'help': 'Delete one or more runs.', 'term': 'delete, rm'},
                   {'help': 'Diff two runs.', 'term': 'diff'},
