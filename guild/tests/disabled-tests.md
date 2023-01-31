@@ -38,6 +38,7 @@ tests or deleting them from the suite.
     # uat/evaluate-mnist-intro-example.md:2: doctest: +FIXME  # Example needs to be updated
     # uat/mnist-example-runs-after-intro-evaluate.md:2: doctest: +FIXME  # Dep on evaluate-mnist-intro-example.md
     # uat/project-sourcecode.md:4: doctest: +FIXME
+    # uat/r-basic.md:2: doctest: +FIXME_CI -WINDOWS
     # uat/r-basic.md:139:     >> from guild.plugins.r_script import op_data_for_script
     # uat/r-basic.md:144:     >> def op_data(script):
     # uat/r-basic.md:153:     >> op_data("empty.R")
