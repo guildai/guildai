@@ -107,7 +107,7 @@ Guild runs the user-specified script as a module using
 `guild.op_main`.
 
     >>> run.get("cmd")
-    ['...python', '-um', 'guild.op_main', 'sys_path_test']
+    ['...', '-um', 'guild.op_main', 'sys_path_test']
 
 The `PYTHONPATH` env var is used to configure Python with the
 appropriate system paths.
@@ -310,7 +310,7 @@ The command run for the operation includes the subdirectoryu location
 in the argument to `guild.op_main`.
 
     >>> run.get("cmd")
-    ['...python', '-um', 'guild.op_main', 'src/sys_path_test2', '--']
+    ['...', '-um', 'guild.op_main', 'src/sys_path_test2', '--']
 
 The module `guild.op_main` uses the spec `src/sys_path_test2` to
 locate the target module under the `src` directory. It modifies the
