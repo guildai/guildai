@@ -1,3 +1,7 @@
+---
+doctest: -PY37
+---
+
 # TensorBoard Plugin
 
 The TensorBoard plugin API insulates Guild from the ever-changing
@@ -35,19 +39,9 @@ TensorBoard versions.
     ...     pip_install(req, venv)
     ...     tensorboard_check(req, venv)
 
-## 2.7.0
-
-    >>> check("tensorboard==2.7.0")  # doctest: -PY37
-    venv: ...
-    python_path: ...
-    internal tests:
-      tensorboard==2.7.0.md:       ok...
-    <exit 0>
-
-
 ## 2.8.0
 
-    >>> check("tensorboard==2.8.0")  # doctest: -PY37
+    >>> check("tensorboard==2.8.0")
     venv: ...
     python_path: ...
     internal tests:
@@ -56,7 +50,7 @@ TensorBoard versions.
 
 ## 2.9.0
 
-    >>> check("tensorboard==2.9.0")  # doctest: -PY37
+    >>> check("tensorboard==2.9.0")
     venv: ...
     python_path: ...
     internal tests:
@@ -65,9 +59,27 @@ TensorBoard versions.
 
 ## 2.9.1
 
-    >>> check("tensorboard==2.9.1")  # doctest: -PY37
+    >>> check("tensorboard==2.9.1")
     venv: ...
     python_path: ...
     internal tests:
       tensorboard==2.9.1.md:       ok...
+    <exit 0>
+
+## 2.10.0
+
+    >>> check("tensorboard==2.10.0")
+    venv: ...
+    python_path: ...
+    internal tests:
+      tensorboard==2.10.0.md:       ok...
+    <exit 0>
+
+## 2.11.0
+
+    >>> check("tensorboard==2.11.0")
+    venv: ...
+    python_path: ...
+    internal tests:
+      tensorboard==2.11.0.md:       ok...
     <exit 0>

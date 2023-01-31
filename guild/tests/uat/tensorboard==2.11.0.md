@@ -1,9 +1,9 @@
-# TensorBoard Plugin
+# TensorBoard Support
 
     >>> from guild import tensorboard_util as tb
 
     >>> tb.tensorboard_version()
-    '2.7.0'
+    '2.11.0'
 
     >>> tb.tensorboard_version_supported()
     True
@@ -22,7 +22,7 @@ Simple value (used for scalars):
     >>> tb.Summary("tag", simple_value=1.123)
     value {
       tag: "tag"
-      simple_value: 1.123000...
+      simple_value: 1.123...
     }
     <BLANKLINE>
 
@@ -50,7 +50,7 @@ Images:
     summary {
       value {
         tag: "tag"
-        simple_value: 1.123000...
+        simple_value: 1.123...
       }
     }
 
