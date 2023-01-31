@@ -101,6 +101,7 @@ jobs:
           UAT_SKIP: remote-*,hiplot-*
           GUILD_START_THRESHOLD: 1.0
           DASK_SPEEDUP_THRESHOLD: 0
+          BREAKPOINT_PROMPT_TIMEOUT: 5.0
         run: |
           test-env/bin/guild check --force-uat
 

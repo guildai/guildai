@@ -10,6 +10,10 @@ scripts to illustrate.
     >>> set_guild_home(mkdtemp())
     >>> cd(sample("scripts"))
 
+For tests below that wait for a prompt, we use a configurable timeout.
+
+    >>> prompt_timeout = float(os.getenv("BREAKPOINT_PROMPT_TIMEOUT") or 2)
+
 ## Break on Line Number
 
 To break on the first breakable line of the main module, use `1` with
@@ -23,7 +27,7 @@ first breakable line it 5.
     >>> python_util.first_breakable_line("breakable_lines.py")
     5
 
-    >>> run("guild run breakable_lines.py --break 1 -y", timeout=2)
+    >>> run("guild run breakable_lines.py --break 1 -y", timeout=prompt_timeout)
     ???Breakpoint 1 at .../breakable_lines.py:5
     > .../breakable_lines.py(5)<module>()
     -> def foo():
@@ -33,7 +37,7 @@ first breakable line it 5.
 Break accepts file names with line numbers.
 
     >>> run("guild run breakable_lines.py --break breakable_lines:41 -y",
-    ...     timeout=4)
+    ...     timeout=prompt_timeout)
     Breakpoint 1 at .../breakable_lines.py:41
     hello
     hello from loop
@@ -49,7 +53,7 @@ It also accepts function names. Function names must be preceded by
 their containing module.
 
     >>> run("guild run breakable_lines.py --break breakable_lines.bar -y",
-    ...     timeout=2)
+    ...     timeout=prompt_timeout)
     Breakpoint 1 at .../breakable_lines.py:39
     hello
     hello from loop
@@ -65,7 +69,7 @@ their containing module.
 
 Use `--break-on-error` to start a post mortem session on script error.
 
-    >>> run("guild run error.py --break-on-error -y", timeout=2)
+    >>> run("guild run error.py --break-on-error -y", timeout=prompt_timeout)
     ???Traceback (most recent call last):
       File ".../error.py", line 1, in <module>
         1 / 0
