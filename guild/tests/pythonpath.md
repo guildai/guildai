@@ -97,7 +97,7 @@ an intermediary to process flag values and make them available to the
 target script accoding to the `flags-dest` interface.
 
     >>> run_cmd("guild run sys_path_test.py --print-cmd")
-    ???python -um guild.op_main sys_path_test
+    ??? -um guild.op_main sys_path_test
 
 Generate a run for the `sys_path_test.py` script.
 
@@ -159,7 +159,7 @@ configuration. The behavior is the same as when running `python -m
 sys_path_test`.
 
     >>> run_cmd("guild run default --print-cmd")
-    ???python -um guild.op_main sys_path_test --
+    ??? -um guild.op_main sys_path_test --
 
     >>> run, sys_path = run_op("default")
 
