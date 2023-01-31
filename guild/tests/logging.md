@@ -130,5 +130,5 @@ what's being resolved.
 By setting `LOG_LEVEL` to 30 (the `WARN` level) we can squelch these
 messages.
 
-    >>> run("LOG_LEVEL=30 guild run file-source -y")
+    >>> run("guild run file-source -y", env={"LOG_LEVEL": "30"})
     <exit 0>
