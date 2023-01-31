@@ -14,6 +14,7 @@
 
 import fnmatch
 import logging
+import re
 import os
 
 from guild import cli
@@ -200,7 +201,7 @@ def _is_subpath(maybe_subpath, path):
 
 
 def _split_path(path):
-    return [part for part in path.split(os.path.sep) if part]
+    return [part for part in re.split(r"[/\\]", path) if part]
 
 
 class _ManifestFilter:
