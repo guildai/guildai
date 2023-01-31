@@ -149,7 +149,7 @@ def _diff(path, other_path, args):
     cmd = cmd_base + [path, other_path]
     log.debug("diff cmd: %r", cmd)
     try:
-        subprocess.call(cmd)
+        subprocess.call(cmd, shell=True)
     except OSError as e:
         cli.error(f"error running '{' '.join(cmd)}': {e}")
 
