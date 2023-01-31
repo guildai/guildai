@@ -1,9 +1,10 @@
 dask[distributed]
 dvc[s3]
-ipython
 hiplot
+ipython
 jinja2<3.2
 jupyter
+jupyter-server-proxy
 jupyter_contrib_nbextensions
 matplotlib
 pandas
