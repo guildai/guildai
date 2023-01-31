@@ -29,7 +29,7 @@ It's organized by module and tested code.
 `guild/_test.py: unused attribute '_OPTION_DIRECTIVE_RE'`
 
     >>> import doctest
-    >>> doctest.DocTestParser()._OPTION_DIRECTIVE_RE
+    >>> doctest.DocTestParser()._OPTION_DIRECTIVE_RE  # doctest: -NORMALIZE_PATHS
     re.compile('#\\s*doctest:\\s*([^\\n\\\'"]*)$', re.MULTILINE)
 
 `guild/_test.py:477: unused method '_parse_example'`
