@@ -2,7 +2,7 @@
 
 We use the sample 'notebooks' project.
 
-    >>> project = Project(sample("projects", "notebooks"))
+    >>> use_project("notebooks")
 
 Helper functions:
 
@@ -25,7 +25,7 @@ Helper functions:
 
 The `flags.ipynb` uses a number of variable assignments.
 
-    >>> nb_source(path(project.cwd, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >>> nb_source("flags.ipynb")  # doctest: -NORMALIZE_WHITESPACE
     x = 1
     y : int = 2
     z = x + y
@@ -41,7 +41,7 @@ The `flags.ipynb` uses a number of variable assignments.
 
 Guild detects these as flags.
 
-    >>> run("guild run flags.ipynb --help-op", cwd=project.cwd)
+    >>> run("guild run flags.ipynb --help-op")
     Usage: guild run [OPTIONS] flags.ipynb [FLAG]...
     <BLANKLINE>
     Use 'guild run --help' for a list of options.
@@ -57,15 +57,16 @@ Guild detects these as flags.
 
 When we run this notebook, the defaults are used.
 
-    >>> project.run("flags.ipynb")
+    >>> run("guild run flags.ipynb -y")
     INFO: [guild] Initializing flags.ipynb for run
     INFO: [guild] Executing flags.ipynb...
     z: 3...
     c: 1.100000...
     hello...
 
-    >>> run = project.list_runs()[0]
-    >>> nb_source(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >>> last_run_dir = run_capture("guild select --dir")
+    
+    >>> nb_source(path(last_run_dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     x = 1
     y : int = 2
     z = x + y
@@ -79,21 +80,23 @@ When we run this notebook, the defaults are used.
     if f:
         print(s)
 
-    >>> nb_output(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >>> nb_output(path(last_run_dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     z: 3
     c: 1.100000
     hello
 
 Guild saves a copy of the generated notebook and generates an HTML report.
 
-    >>> project.ls()
+    >>> run("guild ls")
+
+    >> project.ls()
     ['add.ipynb', 'dep.txt', 'deps.ipynb', 'flags.html',
      'flags.ipynb', 'guild.yml', 'invalid_language.ipynb',
      'magic.ipynb', 'params.ipynb', 'reg_301.ipynb']
 
 Run with different flag values.
 
-    >>> project.run_quiet("flags.ipynb", flags={
+    >> project.run_quiet("flags.ipynb", flags={
     ... "x": 1.123,
     ... "b": 3.3,
     ... "s": """Hello hello!
@@ -104,8 +107,8 @@ Run with different flag values.
     ... """
     ... })
 
-    >>> run = project.list_runs()[0]
-    >>> nb_source(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE -NORMALIZE_PATHS
+    >> run = project.list_runs()[0]
+    >> nb_source(path(run.dir, "flags.ipynb"))  # doctest: -NORMALIZE_WHITESPACE -NORMALIZE_PATHS
     x = 1.123
     y : int = 2
     z = x + y
@@ -119,7 +122,7 @@ Run with different flag values.
     if f:
         print(s)
 
-    >>> nb_output(path(run.dir, "flags.ipynb"))
+    >> nb_output(path(run.dir, "flags.ipynb"))
     z: 3.123
     c: 2.200000
     Hello hello!
@@ -131,21 +134,21 @@ Run with different flag values.
 The `add.ipynb` notebook requires the use of replacement patterns to
 set flag values.
 
-    >>> nb_source(path(project.cwd, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >> nb_source(path(project.cwd, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(1 + 2)
 
 While we can run the Notebook directly, we cannot affect the behavior.
 
-    >>> project.run("add.ipynb")
+    >> project.run("add.ipynb")
     INFO: [guild] Initializing add.ipynb for run
     INFO: [guild] Executing add.ipynb...
     3...
 
-    >>> run = project.list_runs()[0]
-    >>> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >> run = project.list_runs()[0]
+    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(1 + 2)
 
-    >>> nb_output(path(run.dir, "add.ipynb"))
+    >> nb_output(path(run.dir, "add.ipynb"))
     3
 
 To modify this notebook for a run, we need to define an operation with
@@ -154,29 +157,29 @@ the values `1` and `2` as flags `x` and `y` respectively.
 
 Run the operation with default values.
 
-    >>> project.run("add")
+    >> project.run("add")
     INFO: [guild] Initializing add.ipynb for run
     INFO: [guild] Executing add.ipynb...
     30...
 
 The run Notebook reflects the default flag values.
 
-    >>> run = project.list_runs()[0]
-    >>> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >> run = project.list_runs()[0]
+    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(10 + 20)
 
-    >>> nb_output(path(run.dir, "add.ipynb"))
+    >> nb_output(path(run.dir, "add.ipynb"))
     30
 
 We can specify different values for `x` and `y`.
 
-    >>> project.run_quiet("add", flags={"x": 10, "y": -3})
+    >> project.run_quiet("add", flags={"x": 10, "y": -3})
 
-    >>> run = project.list_runs()[0]
-    >>> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >> run = project.list_runs()[0]
+    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(10 + -3)
 
-    >>> nb_output(path(run.dir, "add.ipynb"))
+    >> nb_output(path(run.dir, "add.ipynb"))
     7
 
 Flag values are applied in lexical order. As flag values change the
@@ -184,25 +187,25 @@ Notebook source as they are applied, subsequent patterns may end up
 not matching as expected. Consider the patterns for `x` and `y` in the
 `add` operation.
 
-    >>> gf = guildfile.for_dir(project.cwd)
-    >>> add_op = gf.default_model.get_operation("add")
+    >> gf = guildfile.for_dir(project.cwd)
+    >> add_op = gf.default_model.get_operation("add")
 
-    >>> add_op.get_flagdef("x").extra["nb-replace"]  # doctest: -NORMALIZE_PATHS
+    >> add_op.get_flagdef("x").extra["nb-replace"]  # doctest: -NORMALIZE_PATHS
     'print\\((\\d+) \\+ \\d+\\)'
 
-    >>> add_op.get_flagdef("y").extra["nb-replace"]  # doctest: -NORMALIZE_PATHS
+    >> add_op.get_flagdef("y").extra["nb-replace"]  # doctest: -NORMALIZE_PATHS
     'print\\(\\d+ \\+ (\\d+)\\)'
 
 Note that the patterns match only integer values. Let's run `add` with
 float values for `x` and `y`.
 
-    >>> project.run_quiet("add", flags={"x": 1.1, "y": 2.2})
+    >> project.run_quiet("add", flags={"x": 1.1, "y": 2.2})
 
-    >>> run = project.list_runs()[0]
-    >>> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
+    >> run = project.list_runs()[0]
+    >> nb_source(path(run.dir, "add.ipynb"))  # doctest: -NORMALIZE_WHITESPACE
     print(1.1 + 2)
 
-    >>> nb_output(path(run.dir, "add.ipynb"))
+    >> nb_output(path(run.dir, "add.ipynb"))
     3.1
 
 The value for `y` is not changed in this case. This is because the
@@ -220,7 +223,7 @@ notebook.
 The operation `deps.ipynb` does not specify either `notebook` or
 `main` but is still run as a notebook.
 
-    >>> with Ignore(["Assertion failed: pfd.revents & POLLIN",
+    >> with Ignore(["Assertion failed: pfd.revents & POLLIN",
     ...              "NoCssSanitizerWarning",
     ...              "warnings.warn"]):
     ...     project.run("deps.ipynb")
@@ -233,7 +236,7 @@ The operation `deps.ipynb` does not specify either `notebook` or
 
 ## Errors
 
-    >>> project.run("invalid_language.ipynb")
+    >> project.run("invalid_language.ipynb")
     INFO: [guild] Initializing invalid_language.ipynb for run
     INFO: [guild] Executing invalid_language.ipynb...
     Traceback (most recent call last):
@@ -246,7 +249,7 @@ The operation `deps.ipynb` does not specify either `notebook` or
 The `add2` operation provides the option `--html-no-input`, which
 omits input cells from the generates HTML.
 
-    >>> project.run("add2")
+    >> project.run("add2")
     INFO: [guild] Initializing add.ipynb for run
     INFO: [guild] Executing add.ipynb...
     3...
@@ -257,6 +260,6 @@ omits input cells from the generates HTML.
 
 Fix for comments appearning on the last line of a cell.
 
-    >>> project.run("reg_301.ipynb")
+    >> project.run("reg_301.ipynb")
     INFO: [guild] Initializing reg_301.ipynb for run
     INFO: [guild] Executing reg_301.ipynb...
