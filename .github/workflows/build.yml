@@ -32,13 +32,13 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          #- macos-latest
+          - macos-latest
         python-version:
           - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
-          #- '3.11'
+          ##- '3.11'
 
     steps:
       - name: Checkout repository
@@ -112,20 +112,17 @@ jobs:
   build-windows:
     name: Build - Windows
     runs-on: windows-latest
-    if: ${{ false }}
+    ##if: ${{ false }}
 
     strategy:
       fail-fast: false
       matrix:
-        # Omitting 3.6 on Windows due to [issues installing test
-        # reqs](https://github.com/guildai/guildai/runs/8052694671)
-        # and 3.6 end-of-life.
         python-version:
           - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
-          - '3.11'
+          ##- '3.11'
 
     steps:
       - name: Checkout repository
