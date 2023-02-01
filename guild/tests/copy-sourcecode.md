@@ -72,9 +72,9 @@ repo.
 Ensure that the copied project doesn't contain any additional
 generated pyc files under `__pycache__`.
 
-    >>> run(f"rm -f '{non_repo_project}'/__pycache__/*.*.pyc")
-    ... # doctest: -WINDOWS
-    <exit 0>
+    >>> import glob
+    >>> for path in glob.glob(path(non_repo_project, "__pycache__", "*.*.pyc")):
+    ...     os.remove(path)
 
 Verify the copied project files.
 
