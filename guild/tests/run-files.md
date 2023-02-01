@@ -134,7 +134,7 @@ trial (the third run is from our previous test):
 List the files for the batch (run 2). We ignore linked run IDs using a
 regex.
 
-    >>> run("guild ls -n --all 2", ignore=r"^[a-f0-9]{32}/$")  # doctest: +REPORT_UDIFF
+    >>> run("guild ls -n --all 2", ignore=r"^[a-f0-9]{32}")  # doctest: +REPORT_UDIFF
     .guild/
     .guild/attrs/
     .guild/attrs/cmd
