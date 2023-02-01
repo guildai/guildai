@@ -374,10 +374,15 @@ renames the default arg name to `infile-path`. It also sets the flag
 type to `path`, which has the effect of resolving the value as an
 absoluate path.
 
-    >>> run("guild run file-source-with-flag-2 -y")
+    >>> run("guild run file-source-with-flag-2 -y")  # doctest: -WINDOWS
     Resolving infile
     Using foo.txt for infile
     --infile-path .../samples/projects/resource-flags/foo.txt
+
+    >>> run("guild run file-source-with-flag-2 -y")  # doctest: +WINDOWS_ONLY
+    Resolving infile
+    Using foo.txt for infile
+    --infile-path '.../samples/projects/resource-flags/foo.txt'
 
     >>> run("guild ls -n")
     foo.txt
@@ -386,9 +391,16 @@ absoluate path.
 Use an alternative path.
 
     >>> run("guild run file-source-with-flag-2 infile=bar.txt -y")
+    ... # doctest: -WINDOWS
     Resolving infile
     Using bar.txt for infile
     --infile-path .../samples/projects/resource-flags/bar.txt
+
+    >>> run("guild run file-source-with-flag-2 infile=bar.txt -y")
+    ... # doctest: +WINDOWS_ONLY
+    Resolving infile
+    Using bar.txt for infile
+    --infile-path '.../samples/projects/resource-flags/bar.txt'
 
     >>> run("guild ls -n")
     bar.txt

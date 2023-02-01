@@ -378,7 +378,7 @@ class _GitignoreSelectRule(FileSelectRule):
 
     def __init__(self, ignored):
         super().__init__(True, [])
-        self.ignored = set(ignored)
+        self.ignored = set(_normalize_paths(ignored))
 
     def __str__(self):
         return "gitignore + guildignore patterns"
@@ -392,6 +392,10 @@ class _GitignoreSelectRule(FileSelectRule):
         if relpath not in self.ignored:
             return True, None
         return None, None
+
+
+def _normalize_paths(paths):
+    return [os.path.normpath(path) for path in paths]
 
 
 class GitCheckResult:
