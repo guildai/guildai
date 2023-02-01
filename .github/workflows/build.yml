@@ -153,8 +153,8 @@ jobs:
       - name: Install package
         run: |
           python -m venv test-env
-          test-env\scripts\python -m pip install --upgrade pip
-          pwsh -Command 'test-env\scripts\pip install $(ls dist)'
+          test-env\Scripts\python -m pip install --upgrade pip
+          pwsh -Command 'test-env\Scripts\pip install $(ls dist)'
 
       - name: Install test requirements
         # setuptools==58 is a workaround for an issue described in
@@ -164,8 +164,8 @@ jobs:
         # versions of Windows. This can be removed when pywin32-ctypes
         # drops Python 2 support.
         run: |
-          test-env\scripts\pip install setuptools==58
-          test-env\scripts\pip install -r guild\tests\requirements.txt
+          test-env\Scripts\pip install setuptools==58
+          test-env\Scripts\pip install -r guild\tests\requirements.txt
 
       - name: Configure environment for tests
         # - git config required by Guild tests that run git commands
@@ -181,9 +181,10 @@ jobs:
         if: ${{ !inputs.skip_tests }}
         env:
           GUILD_START_THRESHOLD: 1.0
+          BREAKPOINT_PROMPT_TIMEOUT: 5.0
           TMPDIR: \Tmp
         run: |
-          test-env\scripts\guild check -nT
+          test-env\Scripts\guild check -nT
 
       - name: Keep server alive for SSH (cancel workflow to terminate)
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
