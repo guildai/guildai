@@ -1,5 +1,5 @@
 ---
-doctest: -WINDOWS +FIXME_CI
+doctest: -WINDOWS
 ---
 
 # Auto complete for zsh

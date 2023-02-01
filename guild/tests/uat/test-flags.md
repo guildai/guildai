@@ -1,7 +1,3 @@
----
-doctest: +FIXME  # Old TF tests - update with current API
----
-
 # Test Flags
 
     >>> cd(example("get-started-use-guild"))

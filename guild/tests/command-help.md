@@ -138,7 +138,7 @@ errors in the following assertion. When the output is pasted verbatim
 the line below fails with an empty banner `Differences (unified diff
 with -expected +actual):`
 
-    >>> pprint(json.loads(out))  # doctest: +REPORT_UDIFF +FIXME_WINDOWS
+    >>> pprint(json.loads(out))  # doctest: +REPORT_UDIFF
     {'commands': [{'help': 'Add or remove run comments.', 'term': 'comment'},
                   {'help': 'Delete one or more runs.', 'term': 'delete, rm'},
                   {'help': 'Diff two runs.', 'term': 'diff'},

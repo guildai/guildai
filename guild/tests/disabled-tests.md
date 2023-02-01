@@ -28,18 +28,12 @@ tests or deleting them from the suite.
     >>> for lineno, line, path in iter_test_lines():
     ...     if line.startswith("    >> ") or "+FIXME" in line:
     ...         print(f"# {path}:{lineno}: {line}")  # doctest: +REPORT_UDIFF
-    # autocomplete-zsh.md:2: doctest: -WINDOWS +FIXME_CI
-    # breakpoints.md:2: doctest: +FIXME_CI
-    # command-help.md:141:     >>> pprint(json.loads(out))  # doctest: +REPORT_UDIFF +FIXME_WINDOWS
-    # imports.md:2: doctest: +FIXME_CI
-    # publish-runs.md:2: doctest: +FIXME_WINDOWS
     # uat/dvc.md:576:     >> run("guild run faketrain-dvc-stage x=[-1.0,0.0,1.0] -y")  # doctest: +REPORT_UDIFF
     # uat/dvc.md:603:     >> run("guild compare -t -cc .operation,.status,.label,=noise,=x,loss -n3")
     # uat/dvc.md:702:     >> run("guild run dvc.yaml:faketrain x=[0.2,0.3] -y")  # doctest: +REPORT_UDIFF
     # uat/dvc.md:724:     >> run("guild runs info")
     # uat/evaluate-mnist-intro-example.md:2: doctest: +FIXME  # Example needs to be updated
     # uat/mnist-example-runs-after-intro-evaluate.md:2: doctest: +FIXME  # Dep on evaluate-mnist-intro-example.md
-    # uat/project-sourcecode.md:4: doctest: +FIXME
     # uat/r-basic.md:2: doctest: +FIXME_CI -WINDOWS
     # uat/r-basic.md:139:     >> from guild.plugins.r_script import op_data_for_script
     # uat/r-basic.md:144:     >> def op_data(script):
@@ -47,8 +41,4 @@ tests or deleting them from the suite.
     # uat/r-basic.md:161:     >> op_data("simple.R")
     # uat/r-basic.md:174:     >> run("guild run simple.R -y")
     # uat/remote-azure-blob.md:2: doctest: +FIXME
-    # uat/remote-deps.md:4: doctest: +FIXME
-    # uat/required-operation.md:5: doctest: +FIXME
-    # uat/stage-deps.md:4: doctest: +FIXME
     # uat/tensorflow2.md:6: doctest: +FIXME
-    # uat/test-flags.md:2: doctest: +FIXME  # Old TF tests - update with current API

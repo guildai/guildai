@@ -1,9 +1,3 @@
----
-# Missing 'file: unspecified' in run preview - what happened to this?
-
-doctest: +FIXME
----
-
 # Stage deps
 
 Delete runs as baseline.
