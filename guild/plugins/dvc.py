@@ -38,7 +38,6 @@ log = logging.getLogger("guild")
 
 
 class DvcModelProxy:
-
     name = "dvc.yaml"
 
     def __init__(self, target_stage, project_dir):

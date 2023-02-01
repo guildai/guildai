@@ -42,7 +42,6 @@ class ExecScriptModelProxy:
 
 
 class ExecScriptPlugin(plugin.Plugin):
-
     # Place plugin at the of the sort priority to let other
     # file-oriented plugins handle first - this plugin causes
     # resolution to fail with an error for any file that's not

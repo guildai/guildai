@@ -147,7 +147,6 @@ class RemoteType:
 
 
 class Remote:
-
     # pylint: disable=unused-argument
 
     name = None

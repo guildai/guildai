@@ -37,7 +37,6 @@ def install(
     reinstall=False,
     target=None,
 ):
-
     _reset_env_for_install()
     args = [sys.executable, "-m", "pip", "install"]
     if pre_releases:

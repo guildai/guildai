@@ -117,7 +117,6 @@ resources:
 
 
 class DaskModelProxy:
-
     name = "dask"
 
     def __init__(self):

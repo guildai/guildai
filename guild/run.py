@@ -26,7 +26,6 @@ from guild import yaml_util
 
 
 class Run:
-
     __properties__ = [
         "id",
         "path",

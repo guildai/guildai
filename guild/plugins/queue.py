@@ -67,7 +67,6 @@ gpus:
 
 
 class QueueModelProxy:
-
     name = ""
 
     def __init__(self):

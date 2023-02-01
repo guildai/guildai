@@ -260,7 +260,6 @@ class BadGuildfileDistribution(pkg_resources.Distribution):
 
 
 class ModelImporter:
-
     undef = object()
 
     def __init__(self, path):
@@ -309,7 +308,6 @@ def _model_finder(importer, path, _only=False):
 
 
 class GuildfileNamespace(namespace.PrefixNamespace):
-
     prefix = ".guildfile."
 
     @staticmethod

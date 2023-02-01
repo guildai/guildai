@@ -72,7 +72,6 @@ class Namespace:
 
 
 class PypiNamespace(Namespace):
-
     INDEX_INSTALL_URL = "https://pypi.python.org/simple"
 
     def project_name_membership(self, _name):
@@ -86,7 +85,6 @@ class PypiNamespace(Namespace):
 
 
 class PrefixNamespace(Namespace):
-
     prefix = None
     pip_install_urls = [PypiNamespace.INDEX_INSTALL_URL]
 

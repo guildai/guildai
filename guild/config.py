@@ -74,7 +74,6 @@ def cwd():
 
 
 class SetCwd:
-
     _save = None
 
     def __init__(self, path):
@@ -183,7 +182,6 @@ def _guild_home_current_scheme():
 
 
 class SetGuildHome:
-
     _save_attr = None
     _save_env = None
 
@@ -313,7 +311,6 @@ def _apply_parent(parent, target):
 
 
 class SetUserConfig:
-
     _save = None
 
     def __init__(self, data):

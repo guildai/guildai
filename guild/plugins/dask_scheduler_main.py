@@ -36,7 +36,6 @@ log = logging.getLogger("guild")
 
 
 class State(gen_queue.StateBase):
-
     client = None
     dashboard_disabled = False
     resources = None

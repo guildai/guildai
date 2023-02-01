@@ -79,7 +79,6 @@ def _format_template_files(t):
 
 
 class RunFilters:
-
     IMG_PATTERN = re.compile(r"\.(png|gif|jpe?g|tiff?|bmp|webp)", re.IGNORECASE)
 
     def __init__(self, run_dest):

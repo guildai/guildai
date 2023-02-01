@@ -55,6 +55,7 @@ except AttributeError:
 # This regular expression is used to match valid token names
 _is_identifier = re.compile(r'^[a-zA-Z0-9_]+$')
 
+
 # Exception thrown when invalid token encountered and no default error
 # handler is defined.
 class LexError(Exception):
@@ -468,6 +469,7 @@ class Lexer:
 # The functions and classes below are used to collect lexing information
 # and build a Lexer object from it.
 # -----------------------------------------------------------------------------
+
 
 # -----------------------------------------------------------------------------
 # _get_regex(func)
@@ -981,7 +983,6 @@ def lex(
     debuglog=None,
     errorlog=None,
 ):
-
     if lextab is None:
         lextab = 'lextab'
 

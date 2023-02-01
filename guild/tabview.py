@@ -60,7 +60,6 @@ viewer_help_key_width = 25
 
 
 class Viewer(ViewerBase):
-
     get_data = None
     get_detail = None
     actions = None

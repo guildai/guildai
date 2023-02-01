@@ -201,7 +201,6 @@ def _script_base(script_path, op_name):
 
 
 class PythonScriptPlugin(pluginlib.Plugin):
-
     resolve_model_op_priority = 60
 
     def resolve_model_op(self, opspec):

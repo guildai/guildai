@@ -800,7 +800,6 @@ def write(filename, contents, append=False):
 
 
 class SysPath:
-
     _sys_path0 = None
 
     def __init__(self, path=None, prepend=None, append=None):
@@ -821,7 +820,6 @@ class SysPath:
 
 
 class ModelPath:
-
     _model_path0 = None
 
     def __init__(self, path):

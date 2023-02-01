@@ -28,7 +28,6 @@ class Failed(Exception):
 
 
 class FileCheck:
-
     type_attr = "file"
 
     def __init__(self, data):
@@ -63,7 +62,6 @@ class FileCheck:
 
 
 class OutputCheck:
-
     type_attr = "output"
 
     def __init__(self, data):

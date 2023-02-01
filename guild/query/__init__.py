@@ -28,7 +28,6 @@ class Select:
 
 
 class Col:
-
     named_as = None
 
     def __repr__(self):

@@ -35,7 +35,6 @@ STATS = [
 
 
 class GPUPlugin(SummaryPlugin):
-
     _stats_cmd = None
 
     def __init__(self, ep):

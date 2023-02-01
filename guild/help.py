@@ -26,7 +26,6 @@ log = logging.getLogger("guild")
 
 
 class ConsoleFormatter(click_util.ClickBaseHelpFormatter):
-
     _in_section = False
 
     def start_section(self, val):
@@ -54,7 +53,6 @@ class ConsoleFormatter(click_util.ClickBaseHelpFormatter):
 
 
 class RstFormatter(click_util.ClickBaseHelpFormatter):
-
     _in_section = False
     _heading_chars = "#=^-`"
     _indent_level = 0

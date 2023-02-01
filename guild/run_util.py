@@ -52,7 +52,6 @@ class RunsImportError(Exception):
 
 
 class RunsMonitor(util.LoopingThread):
-
     STOP_TIMEOUT = 5
 
     def __init__(

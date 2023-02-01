@@ -26,7 +26,6 @@ class MsgSendError(Exception):
 
 
 class CmdContextHandler:
-
     disabledByError = False
 
     def __init__(self, port):

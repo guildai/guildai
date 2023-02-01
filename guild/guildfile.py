@@ -1316,7 +1316,6 @@ def _init_dependencies(requires, opdef):
 
 
 class OpDependencyDef:
-
     spec = None
     description = None
     inline_resource = None

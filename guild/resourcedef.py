@@ -38,7 +38,6 @@ class ResourceDefValueError(ValueError):
 
 
 class ResourceDef:
-
     source_types = [
         "config",
         "file",

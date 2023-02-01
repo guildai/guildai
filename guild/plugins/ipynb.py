@@ -31,7 +31,6 @@ log = logging.getLogger("guild")
 
 
 class NotebookPlugin(pluginlib.Plugin):
-
     resolve_model_op_priority = 60
 
     def resolve_model_op(self, opspec):
@@ -85,7 +84,6 @@ def _nbexec_notebook_path(opdef):
 
 
 class NotebookModelProxy:
-
     name = ""
 
     def __init__(self, notebook_path, op_name):

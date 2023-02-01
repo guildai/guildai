@@ -31,14 +31,12 @@ KERAS_OUTPUT_SCALARS = [
 
 
 class KerasScriptModelProxy(PythonScriptModelProxy):
-
     output_scalars = KERAS_OUTPUT_SCALARS
 
     plugins = ["summary"]
 
 
 class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
-
     resolve_model_op_priority = 50
 
     def resolve_model_op(self, opspec):

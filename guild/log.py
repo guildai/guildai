@@ -81,7 +81,6 @@ class Formatter(logging.Formatter):
 
 
 class ConsoleLogHandler(logging.StreamHandler):
-
     DEFAULT_FORMATS = {
         "_": "%(levelname)s: %(message)s",
         "DEBUG": "%(levelname)s: [%(name)s] %(message)s",

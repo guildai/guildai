@@ -91,7 +91,6 @@ def _apply_config_flags(modeldef, op_name):
 
 
 class RScriptPlugin(pluginlib.Plugin):
-
     resolve_model_op_priority = 60
 
     def resolve_model_op(self, opspec):

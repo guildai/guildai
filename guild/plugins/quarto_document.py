@@ -84,7 +84,6 @@ def _apply_config_flags(modeldef, op_name):
 
 
 class QuartoDocumentPlugin(pluginlib.Plugin):
-
     resolve_model_op_priority = 60
     # share priority level with python_script, 60
     # must be less than exec_script level of 100

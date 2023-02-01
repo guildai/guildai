@@ -399,7 +399,6 @@ def _normalize_paths(paths):
 
 
 class GitCheckResult:
-
     git_version = None
     git_exe = None
     error = None

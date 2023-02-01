@@ -7,7 +7,6 @@ log = logging.getLogger("guild.plugins.pytorch_flags")
 
 
 class PytorchArgparseActions(ArgparseActionFlagsImporter):
-
     priority = 40
 
     def flag_attrs_for_argparse_action(self, action, flag_name):

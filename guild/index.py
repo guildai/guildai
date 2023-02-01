@@ -86,7 +86,6 @@ class FlagReader:
 
 
 class ScalarReader:
-
     _col_index_map = {
         ("first", False): 3,
         ("first", True): 4,

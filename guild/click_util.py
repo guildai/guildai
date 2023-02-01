@@ -127,7 +127,6 @@ class ClickBaseHelpFormatter(click.formatting.HelpFormatter):
 
 
 class HelpFormatter(ClickBaseHelpFormatter):
-
     _text_subs = [
         (re.compile("``"), "'"),
         (re.compile("`"), ""),
@@ -149,7 +148,6 @@ class HelpFormatter(ClickBaseHelpFormatter):
 
 
 class JSONHelpFormatter:
-
     _finalized = object()
 
     def __init__(self):
@@ -212,7 +210,6 @@ class JSONHelpFormatter:
 
 
 class CmdContext:
-
     _handlers = []
 
     def __init__(self, id, args, ctx=None):

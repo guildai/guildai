@@ -262,7 +262,7 @@ def run_all(logdir, verbose=False):
         bisine_wave,
         bisine_wahwah_wave,
     ]
-    for (i, wave_constructor) in enumerate(waves):
+    for i, wave_constructor in enumerate(waves):
         wave_name = wave_constructor.__name__
         run_name = "%02d_%s" % (i + 1, wave_name)
         if verbose:

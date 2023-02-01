@@ -289,7 +289,6 @@ def file_sha1(path):
 
 
 def _gen_file_hash(path, hash_f):
-
     hash = hash_f()
     with open(path, "rb") as f:
         while True:
@@ -1274,7 +1273,6 @@ def format_bytes(n):
 
 
 class Chdir:
-
     _save = None
 
     def __init__(self, path):
@@ -1824,7 +1822,6 @@ def _shell_for_proc(p):
 
 
 class StderrCapture:
-
     closed = False
     _stderr = None
     _captured = []
@@ -1870,7 +1867,6 @@ class StderrCapture:
 
 
 class StdoutCapture:
-
     closed = False
     _stdout = None
     _captured = []
