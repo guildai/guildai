@@ -32,6 +32,7 @@ tests or deleting them from the suite.
     # breakpoints.md:2: doctest: +FIXME_CI
     # command-help.md:141:     >>> pprint(json.loads(out))  # doctest: +REPORT_UDIFF +FIXME_WINDOWS
     # imports.md:2: doctest: +FIXME_CI
+    # publish-runs.md:2: doctest: +FIXME_WINDOWS
     # uat/dvc.md:576:     >> run("guild run faketrain-dvc-stage x=[-1.0,0.0,1.0] -y")  # doctest: +REPORT_UDIFF
     # uat/dvc.md:603:     >> run("guild compare -t -cc .operation,.status,.label,=noise,=x,loss -n3")
     # uat/dvc.md:702:     >> run("guild run dvc.yaml:faketrain x=[0.2,0.3] -y")  # doctest: +REPORT_UDIFF
