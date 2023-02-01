@@ -186,6 +186,7 @@ jobs:
           TMPDIR: \Tmp
         run: |
           test-env\Scripts\guild check -nT
+        shell: cmd
 
       - name: Keep server alive for SSH (cancel workflow to terminate)
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
