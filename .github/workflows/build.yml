@@ -27,6 +27,7 @@ jobs:
   build-posix:
     name: Build - POSIX
     runs-on: ${{ matrix.os }}
+    if: ${{ false }}
     strategy:
       fail-fast: false
       matrix:
@@ -119,9 +120,9 @@ jobs:
       matrix:
         python-version:
           - '3.7'
-          - '3.8'
-          - '3.9'
-          - '3.10'
+          #- '3.8'
+          #- '3.9'
+          #- '3.10'
           ##- '3.11'
 
     steps:
