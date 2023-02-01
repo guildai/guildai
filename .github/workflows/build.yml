@@ -181,12 +181,12 @@ jobs:
       - name: Run built-in tests
         if: ${{ !inputs.skip_tests }}
         env:
+          GUILD_CI: 1
           GUILD_START_THRESHOLD: 1.0
           BREAKPOINT_PROMPT_TIMEOUT: 5.0
           TMPDIR: \Tmp
         run: |
-          test-env\Scripts\guild check -nt breakpoints
-          test-env\Scripts\guild check -nT -s breakpoints
+          test-env\Scripts\guild check -nT
         shell: cmd
 
       - name: Keep server alive for SSH (cancel workflow to terminate)
