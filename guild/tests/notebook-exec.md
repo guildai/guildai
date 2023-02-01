@@ -111,6 +111,7 @@ Run with different flag values.
 Simplified version for Windows (avoid newlines in shell command):
 
     >>> quiet("guild run flags.ipynb -y x=1.123 b=3.3 s='Hello hello!'")
+    ... # doctest: +WINDOWS_ONLY
 
 Output for latest run:
 
