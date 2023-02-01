@@ -185,7 +185,8 @@ jobs:
           BREAKPOINT_PROMPT_TIMEOUT: 5.0
           TMPDIR: \Tmp
         run: |
-          test-env\Scripts\guild check -nT
+          test-env\Scripts\guild check -nt breakpoints
+          test-env\Scripts\guild check -nT -s breakpoints
         shell: cmd
 
       - name: Keep server alive for SSH (cancel workflow to terminate)
