@@ -28,7 +28,7 @@ first breakable line it 5.
     5
 
     >>> run("guild run breakable_lines.py --break 1 -y", timeout=prompt_timeout)
-    ???Breakpoint 1 at .../breakable_lines.py:5
+    Breakpoint 1 at .../breakable_lines.py:5
     > .../breakable_lines.py(5)<module>()
     -> def foo():
     (Pdb)
