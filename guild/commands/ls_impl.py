@@ -290,6 +290,26 @@ def _print_path(path, run, args):
 
 
 def _ensure_trailing_slash_for_dir(path, full_path):
-    if os.path.isdir(full_path) and full_path[:-1] != os.path.sep:
+    if _is_dir_or_dir_link(full_path) and full_path[:-1] != os.path.sep:
         path += os.path.sep
     return path
+
+
+def _is_dir_or_dir_link(path):
+    """Checks for standard dirs and links to dirs (Windows).
+
+    Python+Windows seems to have issues with following links to their
+    target to infer their type. This function checks if the link
+    target is a directory on Windows only. Otherwise is identical to
+    `os.path.isdir`.
+    """
+    return os.path.isdir(path) or (
+        util.get_platform() == "Windows" and _is_dir_link(path)
+    )
+
+
+def _is_dir_link(path):
+    return os.path.islink(path) and (
+        os.path.isdir(os.path.join(os.path.dirname(path), os.readlink(path)))
+    )
+    
