@@ -22,7 +22,7 @@ Run in background - Guild chooses a pidfile.
 
 Wait for operation to run for a few seconds.
 
-    >>> sleep(4)
+    >>> sleep(5)
 
 Stop the operation (defaults to the running operation).
 
