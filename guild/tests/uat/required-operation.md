@@ -97,10 +97,11 @@ Files for latest `train` run (use `-L` to traverse links:
 
     >>> run("guild ls -n -Fo train -L --dependencies")
     data/data1.txt
+    data/subdir/
+    data/subdir/data2.txt
 
     >>> run("guild ls -n -Fo train -L --generated")
     checkpoint.h5
-    data/subdir/data2.txt
     model.json
 
 Run prepare-data again. We want to show that Guild can select an older
@@ -180,10 +181,10 @@ Run train using the two run IDs:
     ...     % (data_prep_1, data_prep_2))
     INFO: [guild] Running trial ...: train (prepared-data=...)
     INFO: [guild] Resolving prepared-data
-    INFO: [guild] Using run ... for prepared-data resource
+    INFO: [guild] Using run ... for prepared-data
     INFO: [guild] Running trial ...: train (prepared-data=...)
     INFO: [guild] Resolving prepared-data
-    INFO: [guild] Using run ... for prepared-data resource
+    INFO: [guild] Using run ... for prepared-data
     <exit 0>
 
 Verify train runs used the expected prepare runs:
@@ -200,7 +201,6 @@ the batch error.
 
     >>> run("guild run train prepared-data=[%s,xxx_invalid] "
     ...     "--fail-on-trial-error -y" % data_prep_1)
-    WARNING: cannot find a suitable run for required resource 'prepared-data'
     INFO: [guild] Running trial ...: train (prepared-data=...)
     INFO: [guild] Resolving prepared-data
     INFO: [guild] Using run ... for prepared-data

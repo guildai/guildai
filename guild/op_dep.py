@@ -535,7 +535,7 @@ def resolved_op_runs_for_opdef(opdef, flag_vals, resolver_factory=None):
 
 
 def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
-    """Returns an interation over resolved runs for deps and flag values.
+    """Returns an iteration over resolved runs for deps and flag values.
 
     Each iteration is a tuple of run and associated dependency from
     `deps`.
@@ -557,11 +557,15 @@ def _iter_resolved_op_runs(deps, flag_vals, resolver_factory=None):
 
 
 def _run_id_flag_val_candidates(resdef, flag_vals):
-    return [
-        str(val)
-        for val in [flag_vals.get(name) for name in resdef_flag_name_candidates(resdef)]
-        if val
-    ]
+    candidates = []
+    for name in resdef_flag_name_candidates(resdef):
+        flag_val = flag_vals.get(name)
+        if not flag_val:
+            continue
+        if not isinstance(flag_val, list):
+            flag_val = [str(flag_val)]
+        candidates.extend(flag_val)
+    return candidates
 
 
 def _op_sources_for_dep(dep):

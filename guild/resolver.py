@@ -384,7 +384,7 @@ def _resolve_run_files(run, source, unpack_dir):
 
 
 def _filter_default_run_files_for_resolve(paths, run):
-    index = set(_default_run_files_for_resolve(run))
+    index = _default_run_files_for_resolve(run)
     return [path for path in paths if path in index]
 
 
@@ -392,11 +392,25 @@ def _default_run_files_for_resolve(run):
     from guild import run_manifest
 
     filter_manifest_entry = _default_run_files_filter()
-    return [
+    filtered_files = [
         os.path.join(run.dir, path)
         for path, entry in run_manifest.iter_run_files(run.dir)
         if filter_manifest_entry(entry)
     ]
+    return _top_level_run_files(filtered_files, run.dir)
+
+
+def _top_level_run_files(paths, root):
+    return set(_top_level_path(path, root) for path in paths)
+
+
+def _top_level_path(path, root):
+    while True:
+        parent = os.path.dirname(path)
+        assert parent != path
+        if parent == root:
+            return path
+        path = parent
 
 
 def _default_run_files_filter():
