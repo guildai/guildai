@@ -198,7 +198,9 @@ def manifest_for_run(run_dir, mode="r"):
 
 
 def iter_run_files(run_dir, followlinks=False):
-    entries = {os.path.normpath(args[1]): args for args in read_manifest_entries(run_dir)}
+    entries = {
+        os.path.normpath(args[1]): args for args in read_manifest_entries(run_dir)
+    }
     for path, dirs, files in os.walk(run_dir, followlinks=followlinks):
         rel_path = _relpath_for_iter_files(path, run_dir)
         for name in dirs + files:

@@ -312,4 +312,3 @@ def _is_dir_link(path):
     return os.path.islink(path) and (
         os.path.isdir(os.path.join(os.path.dirname(path), os.readlink(path)))
     )
-    
