@@ -57,7 +57,7 @@ our tests.
 
 Wait to let the queues start the staged runs.
 
-    >>> sleep(8)
+    >>> sleep(10)
 
 The current runs:
 
