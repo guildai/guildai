@@ -241,11 +241,11 @@ def _format_exc(exc):
 def _start_run_(run, state):
     resources = _run_resources(run, quiet=True)
     _log_scheduling(run, resources)
-    run_kwargs = dict(
-        restart=run.id,
-        extra_env=_run_env(run),
-        gpus=state.gpus,
-    )
+    run_kwargs = {
+        "restart": run.id,
+        "extra_env": _run_env(run),
+        "gpus": state.gpus,
+    }
     future = state.client.submit(
         _run,
         run=run,

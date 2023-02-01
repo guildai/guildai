@@ -157,6 +157,12 @@ def _ensure_guildai_r_package_installled(version="0.0.0.9001"):
     # prefixing R_LIBS env var
 
 
+class RscriptProcessError(Exception):
+    def __init__(self, error_output, returncode):
+        self.error_output = error_output
+        self.returncode = returncode
+
+
 def run_r(
     *exprs,
     file=None,
@@ -202,8 +208,8 @@ def run_r(
 
     try:
         return subprocess.run(cmd, check=True, **run_kwargs).stdout.decode()
-    except subprocess.CalledProcessError as ex:
-        raise Exception(ex.stderr.decode()) from ex
+    except subprocess.CalledProcessError as e:
+        raise RscriptProcessError(e.stderr.decode(), e.returncode) from None
 
 
 def merge_dicts(dict1, dict2):

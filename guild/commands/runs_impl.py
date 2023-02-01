@@ -1279,7 +1279,7 @@ def _try_stop_remote_run(run, remote_lock, no_wait):
         )
     else:
         cli.out(f"Stopping {run.id} (remote)", err=True)
-        plugin.stop_run(run, dict(no_wait=no_wait))
+        plugin.stop_run(run, {"no_wait": no_wait})
 
 
 def _try_stop_local_run(run):

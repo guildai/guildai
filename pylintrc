@@ -149,7 +149,8 @@ disable=
         broad-except,
         consider-using-dict-items,
         consider-using-with,             # Brute force - applied for every call to open
-        cyclic-import,                   # [False positives](https://github.com/PyCQA/pylint/issues/5168) from deferred imports
+        cyclic-import,                   # [False positives](https://github.com/PyCQA/pylint/issues/5168)
+                                         # from deferred imports
         duplicate-code,                  # DRY is not a goal
         fixme,
         import-outside-toplevel,         # Used extensively to defer import cost
@@ -158,7 +159,19 @@ disable=
         missing-class-docstring,
         missing-function-docstring,
         missing-module-docstring,
-        no-member,                       # Too many false positives and generated-members [does not work](https://github.com/PyCQA/pylint/issues/2498)
+        no-else-raise,                   # See note for `no-else-return`
+        no-else-return,                  # This was recently applied to `try...else` blocks,
+                                         # which is being incorrectly lumped into `if...else`
+                                         # blocks (these are completely different expressions)
+                                         # and the rule forces the (arugable) anti-pattern of
+                                         # accessing variables defined in a `try` block from
+                                         # outside the block. The nominal value of the pattern
+                                         # they're trying to encourage (avoid nesting for `if...else`
+                                         # in cases where the code cannot be reached) is more
+                                         # than offset by the (arguable) bad programming pattern
+                                         # of leaking variables outside the `try` block.
+        no-member,                       # Too many false positives and generated-members
+                                         # [does not work](https://github.com/PyCQA/pylint/issues/2498)
         protected-access,
         redefined-builtin,
         redefined-outer-name,
@@ -320,8 +333,8 @@ check-str-concat-over-line-jumps=no
 [EXCEPTIONS]
 
 # Exceptions that will emit a warning when caught.
-overgeneral-exceptions=BaseException,
-                       Exception
+overgeneral-exceptions=builtins.BaseException,
+                       builtins.Exception
 
 
 [MISCELLANEOUS]

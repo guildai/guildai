@@ -114,7 +114,7 @@ def init_logging(level=None, formats=None):
             "disable_existing_loggers": False,
         }
     )
-    globals()["__last_init_kw"] = dict(level=level, formats=formats)
+    globals()["__last_init_kw"] = {"level": level, "formats": formats}
 
 
 def _log_level_for_arg(arg):

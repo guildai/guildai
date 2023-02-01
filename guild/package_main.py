@@ -152,25 +152,25 @@ def _setup_kw(pkgdef):
     project_name = pkgdef.name
     python_pkg_name = _python_pkg_name(pkgdef)
     packages, package_dir = _python_packages(pkgdef, python_pkg_name, project_dir)
-    return dict(
-        name=project_name,
-        version=pkgdef.version,
-        description=summary,
-        long_description=help_desc,
-        long_description_content_type="text/x-rst",
-        url=pkgdef.url,
-        author=pkgdef.author,
-        author_email=pkgdef.author_email,
-        license=pkgdef.license,
-        keywords=_pkg_keywords(pkgdef),
-        python_requires=pkgdef.python_requires,
-        install_requires=_pkg_install_requires(pkgdef),
-        packages=packages,
-        package_dir=package_dir,
-        namespace_packages=_namespace_packages(python_pkg_name),
-        package_data={python_pkg_name: _package_data(pkgdef)},
-        entry_points=_entry_points(pkgdef),
-    )
+    return {
+        "name": project_name,
+        "version": pkgdef.version,
+        "description": summary,
+        "long_description": help_desc,
+        "long_description_content_type": "text/x-rst",
+        "url": pkgdef.url,
+        "author": pkgdef.author,
+        "author_email": pkgdef.author_email,
+        "license": pkgdef.license,
+        "keywords": _pkg_keywords(pkgdef),
+        "python_requires": pkgdef.python_requires,
+        "install_requires": _pkg_install_requires(pkgdef),
+        "packages": packages,
+        "package_dir": package_dir,
+        "namespace_packages": _namespace_packages(python_pkg_name),
+        "package_data": {python_pkg_name: _package_data(pkgdef)},
+        "entry_points": _entry_points(pkgdef),
+    }
 
 
 def _pkg_description(pkgdef):
