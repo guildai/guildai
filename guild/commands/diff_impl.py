@@ -149,9 +149,13 @@ def _diff(path, other_path, args):
     cmd = cmd_base + [path, other_path]
     log.debug("diff cmd: %r", cmd)
     try:
-        subprocess.call(cmd, shell=True)
+        subprocess.call(cmd, shell=_use_shell_for_diff_cmd())
     except OSError as e:
         cli.error(f"error running '{' '.join(cmd)}': {e}")
+
+
+def _use_shell_for_diff_cmd():
+    return util.get_platform() == "Windows"
 
 
 def _diff_cmd(args, path):
