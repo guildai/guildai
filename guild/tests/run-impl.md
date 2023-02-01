@@ -855,9 +855,9 @@ To illustreate, create a new project.
 Attempt to run an operation in the background on Windows.
 
     >>> run("guild run pass.py --background -y")  # doctest: +WINDOWS_ONLY
-    Run in background is not supported on Windows.
+    guild: Run in background is not supported on Windows.
     <exit 1>
 
-    >>> run("guild run pass.py --pidfile not0used -y")  # doctest: +WINDOWS_ONLY
-    Run in background is not supported on Windows.
+    >>> run("guild run pass.py --pidfile notused -y")  # doctest: +WINDOWS_ONLY
+    guild: Run in background is not supported on Windows.
     <exit 1>

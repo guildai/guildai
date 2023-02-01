@@ -100,7 +100,7 @@ Generated:
     dep-2 says: hola
     Generating files
 
-    >>> run("guild ls -n")  # doctest: -WINDOWS
+    >>> run("guild ls -n")
     dep-1.txt
     dep-2.txt
     generated-1.txt
@@ -111,32 +111,11 @@ Generated:
     subdir/
     subdir/generated-3.txt
 
-Windows does not play well with symbolic links and Guild's behavior on
-Windows is incorrect. It's documented here.
-
-`linked`, which is a linked directory, is considered a file on Windows
-and is listed without a trailing slash.
-
-    >>> run("guild ls -n")  # doctest: +WINDOWS_ONLY
-    dep-1.txt
-    dep-2.txt
-    generated-1.txt
-    generated-2.txt
-    guild.yml
-    linked
-    op.py
-    subdir/
-    subdir/generated-3.txt
-    
 Show dependencies.
 
-    >>> run("guild ls -n -d")  # doctest: -WINDOWS
+    >>> run("guild ls -n -d")
     dep-1.txt
     linked/
-
-    >>> run("guild ls -n -d")  # doctest: +WINDOWS_ONLY
-    dep-1.txt
-    linked
 
 Guild doesn't list under `linked` by default. We need the
 `--follow-links` option.
@@ -148,13 +127,16 @@ Guild doesn't list under `linked` by default. We need the
     linked/file-2
     linked/subdir/file-3
 
+Windows does not play well with symbolic links and Guild's behavior on
+Windows is incorrect. It's documented here.
+
 The behavior under Windows is particularly egregious as links cannot
 be traversed (the underlying support in Python via `os.walk` does not
 traverse these files on Windows).
 
     >>> run("guild ls -ndL")  # doctest: +WINDOWS_ONLY
     dep-1.txt
-    linked
+    linked/
 
 `op-legacy-sourcecode-dest` copies sourcecode to `.guild/sourcecode`.
 
