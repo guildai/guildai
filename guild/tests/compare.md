@@ -2,116 +2,196 @@
 
 The `compare` project illustrates various compare features.
 
-    >>> project = Project(sample("projects/compare"))
+    >>> use_project("compare")
 
 ## Default compare columns
 
 By default all of the flags and scalars are used in compare.
 
-Here's a run of the script, which has no compare info:
+Run the script `op1.py`, which has no additional compare
+configuration.
 
-    >>> project.run("op1.py")
+    >>> run("guild run op1.py -y")
     x: 2
     y: 4
     z/ab: 3
     sys/x: 123
 
-Here's the default compare output:
+Show the run with the `compare` command.
 
-    >>> project.compare()
-    [['run', 'operation', 'started', 'time', 'status', 'label', 'a', 'b', 'step', 'x', 'y', 'z/ab'],
-     ['...', 'op1.py', '...', '...', 'completed', 'a=1 b=2', 1, 2, 0, 2.0, 4.0, 3.0]]
+    >>> run("guild compare -t")
+    run  operation  started  time     status     label    a  b  step  x    y    z/ab
+    ...  op1.py     ...      ...      completed  a=1 b=2  1  2  0     2.0  4.0  3.0
 
+Use the `api` command to generate parseable JSON with the compare data.
 
-Compare with extra cols, which includes source code digest:
+    >>> pprint(json.loads(run_capture("guild api compare")))
+    [['id',
+      'operation',
+      'started',
+      'time',
+      'status',
+      'label',
+      'a',
+      'b',
+      'step',
+      'x',
+      'y',
+      'z/ab'],
+     ['...',
+      'op1.py',
+      '...',
+      '...',
+      'completed',
+      'a=1 b=2',
+      1,
+      2,
+      0,
+      2.0,
+      4.0,
+      3.0]]
 
-    >>> project.compare(extra_cols=True)
-    [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'a', 'b', 'step', 'x', 'y', 'z/ab'],
-     ['...', 'op1.py', '...', '...', 'completed', 'a=1 b=2', '8ae8b71b', 1, 2, 0, 2.0, 4.0, 3.0]]
+Show extra columns. This shows the `sourcecode` digest for the runs.
 
-Include all scalars:
+    >>> run("guild compare -t --extra-cols")
+    run  operation  started  time  status     label    sourcecode  a  b  step  x    y    z/ab
+    ...  op1.py     ...      ...   completed  a=1 b=2  8ae8b71b    1  2  0     2.0  4.0  3.0
 
-    >>> project.compare(all_scalars=True)
-    [['run', 'operation', 'started', 'time', 'status', 'label', 'a', 'b', 'step', 'sys/x', 'x', 'y', 'z/ab'],
-     ['...', 'op1.py', '...', '...', 'completed', 'a=1 b=2', 1, 2, 0, 123.0, 2.0, 4.0, 3.0]]
+Show all scalars.
+
+    >>> run("guild compare -t --all-scalars")
+    run  operation  started  time  status     label    a  b  step  sys/x  x    y    z/ab
+    ...  op1.py     ...      ...   completed  a=1 b=2  1  2  0     123.0  2.0  4.0  3.0
 
 ## Explicit compare columns
 
 The project Guild file defines explicit compare cols for the `op1` operation.
 
-    >>> from guild import guildfile
-    >>> gf = guildfile.for_dir(project.cwd)
-
+    >>> gf = guildfile.for_dir(".")
     >>> op1 = gf.default_model.operations[0]
+
     >>> op1.name
     'op1'
 
     >>> op1.compare
     ['=a as A', '=b as B', 'x step as x_step', 'x', 'y', 'z/ab as ab']
 
-Let's run the operation:
+Run the operation.
 
-    >>> project.run("op1", flags={"a": 2, "b": 3})
+    >>> run("guild run op1 a=2 b=3 -y")
     x: 3
     y: 5
     z/ab: 5
     sys/x: 123
 
-And compare the runs:
+Compare the runs.
 
-    >>> project.compare(extra_cols=True)
-    [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'A', 'B', 'x_step', 'x', 'y', 'ab', 'a', 'b', 'step', 'z/ab'],
-     ['...', 'op1', '...', '...', 'completed', 'a=2 b=3', '8ae8b71b', 2, 3, 0, 3.0, 5.0, 5.0, None, None, None, None],
-     ['...', 'op1.py', '...', '...', 'completed', 'a=1 b=2', '8ae8b71b', None, None, None, 2.0, 4.0, None, 1, 2, 0, 3.0]]
+    >>> run("guild compare -t")
+    run  operation  started  time  status     label    A  B  x_step  x    y    ab   a  b  step  z/ab
+    ...  op1        ...      ...   completed  a=2 b=3  2  3  0       3.0  5.0  5.0
+    ...  op1.py     ...      ...   completed  a=1 b=2                2.0  4.0       1  2  0     3.0
+
+    >>> pprint(json.loads(run_capture("guild api compare")))
+    [['id',
+      'operation',
+      'started',
+      'time',
+      'status',
+      'label',
+      'A',
+      'B',
+      'x_step',
+      'x',
+      'y',
+      'ab',
+      'a',
+      'b',
+      'step',
+      'z/ab'],
+     ['...',
+      'op1',
+      '...',
+      '...',
+      'completed',
+      'a=2 b=3',
+      2,
+      3,
+      0,
+      3.0,
+      5.0,
+      5.0,
+      None,
+      None,
+      None,
+      None],
+     ['...',
+      'op1.py',
+      '...',
+      '...',
+      'completed',
+      'a=1 b=2',
+      None,
+      None,
+      None,
+      2.0,
+      4.0,
+      None,
+      1,
+      2,
+      0,
+      3.0]]
 
 ## Comparing columns containing diverse value types
 
-Reset the project:
+Reset the project.
 
-    >>> project = Project(sample("projects/compare"))
+    >>> use_project("compare")
 
-Generate runs with a diverse range of values types for flag `a`:
+Generate runs with various value types for flag `a`.
 
-    >>> project.run("op2.py")
+    >>> run("guild run op2.py -y --run-id 1")
     None
+    <exit 0>
 
-    >>> project.run("op2.py", flags={"x": 1})
+    >>> run("guild run op2.py x=1 -y --run-id 2")
     1
 
-    >>> project.run("op2.py", flags={"x": 1.123})
+    >>> run("guild run op2.py x=1.123 -y --run-id 3")
     1.123
 
-    >>> project.run("op2.py", flags={"x": "hello"})
+    >>> run("guild run op2.py x=hello -y --run-id 4")
     hello
 
-    >>> project.run("op2.py", flags={"x": ""})
+    >>> run("guild run op2.py x= -y --run-id 5")
+    <exit 0>
 
-    >>> project.run("op2.py", flags={"x": None})
+    >>> run("guild run op2.py x=null -y --run-id 6")
     None
 
-Compare, sorting by min `x`:
+Compare, sorting by min `x`.
 
-    >>> project.compare(cols="x", skip_core=True, min_col="x")
-    [['run', 'x'],
-     ['...', ''],
-     ['...', 1],
-     ['...', 1.123],
-     ['...', 'hello'],
-     ['...', None],
-     ['...', None]]
+    >>> run("guild compare -t --skip-core --cols .label,x --min x")
+    run  x      label
+    5           x=''
+    2    1      x=1
+    3    1.123  x=1.123
+    4    hello  x=hello
+    6
+    1
 
-Compare, sorting by max `x`:
+Compare, sorting by max `x`.
 
-    >>> project.compare(cols="x", skip_core=True, max_col="x")
-    [['run', 'x'],
-     ['...', 'hello'],
-     ['...', 1.123],
-     ['...', 1],
-     ['...', ''],
-     ['...', None],
-     ['...', None]]
+    >>> run("guild compare -t --skip-core --cols .label,x --max x")
+    run  x      label
+    4    hello  x=hello
+    3    1.123  x=1.123
+    2    1      x=1
+    5           x=''
+    6
+    1
 
-Note that `None` values appear at the bottom in both cases.
+Note that runs where `x=None` (IDs `6` and `1`) appear at the bottom
+in both cases.
 
 ### Sort keys
 
@@ -192,34 +272,35 @@ containing unchanged values -- i.e. that only contain the same value.
 As a baseline, here's a comparison using some columns we might be
 interested in.
 
-    >>> project.compare(strict_cols=".op,.status,.label,=x")
-    [['run',    'op',    'status', 'label',   'x'],
-    ['...', 'op2.py', 'completed', None,      None],
-    ['...', 'op2.py', 'completed', "x=''",    ''],
-    ['...', 'op2.py', 'completed', 'x=hello', 'hello'],
-    ['...', 'op2.py', 'completed', 'x=1.123', 1.123],
-    ['...', 'op2.py', 'completed', 'x=1',     1],
-    ['...', 'op2.py', 'completed', None,      None]]
+    >>> run("guild compare --strict-cols .op,.status,.label,=x -t")
+    run  op      status     label    x
+    6    op2.py  completed
+    5    op2.py  completed  x=''
+    4    op2.py  completed  x=hello  hello
+    3    op2.py  completed  x=1.123  1.123
+    2    op2.py  completed  x=1      1
+    1    op2.py  completed
 
-Note in this case that the op and status columns each have unchanged
-values. We can skip these columns using `skip_unchanged`.
+Note `op` and `status` columns each have unchanged values. We can skip
+these columns using `--skip-unchanged`.
 
-    >>> project.compare(strict_cols=".op,.status,.label,=x", skip_unchanged=True)
-    [['run', 'label',   'x'],
-    ['...', None,      None],
-    ['...', "x=''",    ''],
-    ['...', 'x=hello', 'hello'],
-    ['...', 'x=1.123', 1.123],
-    ['...', 'x=1',     1],
-    ['...', None,      None]]
+    >>> run("guild compare --strict-cols .op,.status,.label,=x -t --skip-unchanged")
+    run  label    x
+    6
+    5    x=''
+    4    x=hello  hello
+    3    x=1.123  1.123
+    2    x=1      1
+    1
 
-We can apply this feature to a subset of runs. Let's compare run that
-have the same values for label and the x flags.
+Compare runs where `x` is `None` (runs `6` and `1`) using
+`--skip-unchanged`. In this case, all specified columns are skipped
+because they're the same.
 
-    >>> project.compare(runs=("1", "6"), skip_unchanged=True)
-    [['run', 'started'],
-    ['...', '...'],
-    ['...', '...']]
+    >>> run("guild compare --strict-cols .op,.status,.label,=x -t --skip-unchanged 1 6")
+    run
+    6
+    1
 
 ## Run detail
 
@@ -230,9 +311,13 @@ compare tabview. To illustrate, we call a private function in
 We need an index for the project runs.
 
     >>> from guild import index as indexlib
-    >>> with SetGuildHome(project.guild_home):
-    ...     index = indexlib.RunIndex()
-    ...     index.refresh(project.list_runs())
+    >>> index = indexlib.RunIndex()
+
+Refresh the index using the current runs.
+
+    >>> from guild import var
+    >>> runs = var.runs(sort=["-timestamp"])
+    >>> index.refresh(runs)
 
 Get the default callback function used to format run detail from
 `compare_impl`.
@@ -241,27 +326,26 @@ Get the default callback function used to format run detail from
 
 Show run detail for some runs.
 
-    >>> runs = project.list_runs()
-    >>> print(_format_run_detail(runs[0], index))
-    Id: ...
+    >>> print(_format_run_detail(runs[1], index))
+    Id: 5
     Operation: op2.py
     From: .../samples/projects/compare
     Status: completed
     Started: ...
     Stopped: ...
-    Time: 0:00:0...
-    Label:
+    Time: 0:00:...
+    Label: x=''
     Flags:
       x:
 
-    >>> print(_format_run_detail(runs[2], index))
-    Id: ...
+    >>> print(_format_run_detail(runs[3], index))
+    Id: 3
     Operation: op2.py
     From: .../samples/projects/compare
     Status: completed
     Started: ...
     Stopped: ...
-    Time: 0:00:0...
-    Label: x=hello
+    Time: 0:00:...
+    Label: x=1.123
     Flags:
-      x: hello
+      x: 1.123
