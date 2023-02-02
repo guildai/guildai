@@ -280,7 +280,6 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [no-run-output](no-run-output.md)
 - [staged-dependency-error](staged-dependency-error.md)
 - [link-vs-copy-dep](link-vs-copy-dep.md)
-- [test-flags](test-flags.md)
 - [tensorboard-export-scalars](tensorboard-export-scalars.md)
 - [tensorboard-versions](tensorboard-versions.md)
 - [guild-patch](guild-patch.md)
