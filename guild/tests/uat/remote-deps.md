@@ -35,11 +35,11 @@ Run the downstream op without an upstream op, which is required:
 
     >>> run("guild run downstream -r guild-uat -y")
     Getting run info on guild-uat
-    WARNING: cannot find a suitable run for required resource 'upstream'
+    WARNING: cannot find a suitable run for required resource 'operation:upstream'
     Building package
     ...
     Starting downstream on guild-uat as ...
-    WARNING: cannot find a suitable run for required resource 'upstream'
+    WARNING: cannot find a suitable run for required resource 'operation:upstream'
     Resolving operation:upstream
     guild: run failed because a dependency was not met: could not resolve
     'operation:upstream' in operation:upstream resource: no suitable run for
@@ -54,14 +54,12 @@ Let's run a remote upstream operation:
     Successfully installed ...
     Starting upstream on guild-uat as ...
     Run ... stopped with a status of 'completed'
-    <exit 0>
 
 Verify that we now have an upstream run:
 
     >>> run("guild runs -r guild-uat")
     [1:...]  gpkg.anonymous-.../upstream    ...  completed
     [2:...]  gpkg.anonymous-.../downstream  ...  error
-    <exit 0>
 
 Show run preview to confirm that Guild is finding the remote upstream
 to provide as a default value.
@@ -82,9 +80,8 @@ Run downstream again:
     Successfully installed gpkg.anonymous-...-0.0.0
     Starting downstream on guild-uat as ...
     Resolving operation:upstream
-    Using run ... for operation:upstream resource
+    Using run ... for operation:upstream
     Run ... stopped with a status of 'completed'
-    <exit 0>
 
 Remote runs:
 
@@ -92,7 +89,6 @@ Remote runs:
     [1:...]  gpkg.anonymous-.../downstream  ...  completed  operation:upstream=...
     [2:...]  gpkg.anonymous-.../upstream    ...  completed
     [3:...]  gpkg.anonymous-.../downstream  ...  error
-    <exit 0>
 
 Specify an invalid upstream run ID reference:
 
@@ -100,7 +96,7 @@ Specify an invalid upstream run ID reference:
     Getting run info on guild-uat
     WARNING: cannot find a suitable run for required resource 'operation:upstream'
     You are about to run downstream on guild-uat
-      upstream: xxx
+      operation:upstream: xxx
     Continue? (Y/n)
     <exit -9>
 
@@ -117,5 +113,6 @@ but it fails.
     WARNING: cannot find a suitable run for required resource 'operation:upstream'
     Resolving operation:upstream
     guild: run failed because a dependency was not met: could not resolve
-    'operation:upstream' in upstream resource: no suitable run for upstream
+    'operation:upstream' in operation:upstream resource: no suitable run for
+    upstream
     <exit 1>
