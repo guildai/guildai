@@ -215,10 +215,12 @@ def _trial_op_attr(proto_run, trial_flag_vals):
 
 def _apply_flag_vals_to_deps_config(flag_vals, deps):
     for dep in deps:
-        _apply_flag_vals_to_dep_config(flag_vals, dep.config)
+        if dep.config is not None:
+            _apply_flag_vals_to_dep_config(flag_vals, dep.config)
 
 
 def _apply_flag_vals_to_dep_config(flag_vals, config):
+    assert config is not None
     for name in flag_vals:
         if name in config:
             config[name] = flag_vals.get(name)
