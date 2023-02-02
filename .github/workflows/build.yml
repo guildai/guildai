@@ -91,8 +91,11 @@ jobs:
         if: ${{ !inputs.skip_tests && inputs.skip_uat }}
         env:
           GUILD_START_THRESHOLD: 1.0
+          BREAKPOINT_PROMPT_TIMEOUT: 5.0
+          GUILD_CI: 1
         run: |
           test-env/bin/guild check -nT -c8 --fast
+
       - name: Run user acceptance tests
         if: ${{ !inputs.skip_tests && !inputs.skip_uat }}
         env:
