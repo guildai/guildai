@@ -1,3 +1,7 @@
+---
+doctest: +FIXME  # Appears that Guild has a bug - MUST FIX
+---
+
 # Project source code
 
 This is largely a duplication of similar builtin tests

@@ -1,5 +1,5 @@
 ---
-doctest: +FIXME
+doctest: +FIXME  # Need to reinstate test account with MS
 ---
 
 # Azure Blob Storage remote

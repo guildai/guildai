@@ -3,7 +3,7 @@
 # to install. We need to update to a more current tensorflow version
 # that has wheels available.
 
-doctest: +FIXME
+doctest: +FIXME  # Shows our TF summary patching is broken
 ---
 
 # TensorFlow 2.0
@@ -16,8 +16,7 @@ These tests use `guild.tfevent`, which requires that we call
 
 Install TensorFlow 2:
 
-    >>> quiet("pip install 'tensorflow>=2.0.0,<2.1' --upgrade",
-    ...     ignore="DEPRECATION")
+    >>> quiet("pip install 'tensorflow>=2.0.0,<2.1' --upgrade")
 
 NOTE: We install 2.0.0 here because `tensorflow` 2.1 appears to be
 enabling CUDA support, which introduces variability across out test
