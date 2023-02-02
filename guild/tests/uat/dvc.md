@@ -573,39 +573,37 @@ the `dvcstage` source type.
 The 'faketrain' DvC stage can be run using the 'faketrain-dvc-stage'
 operation. We can use the flag support to run a batch.
 
-    >> run("guild run faketrain-dvc-stage x=[-1.0,0.0,1.0] -y")  # doctest: +REPORT_UDIFF
+    >>> run("guild run faketrain-dvc-stage x=[-1.0,0.0,1.0] -y")  # doctest: +REPORT_UDIFF
     INFO: [guild] Running trial ...: faketrain-dvc-stage (noise=0.1, x=-1.0)
     INFO: [guild] Resolving config:params.json.in
     INFO: [guild] Initializing run
-    INFO: [guild] Copying faketrain.py
     INFO: [guild] Running stage 'faketrain'
     x: -1.000000
     noise: 0.100000
     loss: ...
+    INFO: [guild] Logging metrics from summary.json
     INFO: [guild] Running trial ...: faketrain-dvc-stage (noise=0.1, x=0.0)
     INFO: [guild] Resolving config:params.json.in
     INFO: [guild] Initializing run
-    INFO: [guild] Copying faketrain.py
     INFO: [guild] Running stage 'faketrain'
     x: 0.000000
     noise: 0.100000
     loss: ...
+    INFO: [guild] Logging metrics from summary.json
     INFO: [guild] Running trial ...: faketrain-dvc-stage (noise=0.1, x=1.0)
     INFO: [guild] Resolving config:params.json.in
     INFO: [guild] Initializing run
-    INFO: [guild] Copying faketrain.py
     INFO: [guild] Running stage 'faketrain'
     x: 1.000000
     noise: 0.100000
     loss: ...
-    <exit 0>
+    INFO: [guild] Logging metrics from summary.json
 
-    >> run("guild compare -t -cc .operation,.status,.label,=noise,=x,loss -n3")
+    >>> run("guild compare -t -cc .operation,.status,.label,=noise,=x,loss -n3")
     run  operation            status     label             noise  x     loss
     ...  faketrain-dvc-stage  completed  noise=0.1 x=1.0   0.1    1.0   ...
     ...  faketrain-dvc-stage  completed  noise=0.1 x=0.0   0.1    0.0   ...
     ...  faketrain-dvc-stage  completed  noise=0.1 x=-1.0  0.1    -1.0  ...
-    <exit 0>
 
 ## Cross op-style dependencies
 
@@ -699,7 +697,7 @@ Note that Guild imports the required stage params as flags.
 
 We can run the stage as an operation, including as a batch.
 
-    >> run("guild run dvc.yaml:faketrain x=[0.2,0.3] -y")  # doctest: +REPORT_UDIFF
+    >>> run("guild run dvc.yaml:faketrain x=[0.2,0.3] -y")  # doctest: +REPORT_UDIFF
     INFO: [guild] Running trial ...: dvc.yaml:faketrain (x=0.2)
     INFO: [guild] Resolving dvcfile:faketrain.py
     INFO: [guild] Resolving config:params.json.in
@@ -721,7 +719,7 @@ We can run the stage as an operation, including as a batch.
 When run directly, the run has a `dvc-stage` attribute, which
 specifies the stage.
 
-    >> run("guild runs info")
+    >>> run("guild runs info")
     id: ...
     operation: dvc.yaml:faketrain
     ...
