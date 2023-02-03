@@ -24,13 +24,20 @@ Let's illustrate using a temp directory.
 
     >>> tmp = mkdtemp()
     
-    >>> open(join_path(tmp, "a" * 374), "w").close()  # doctest: +WINDOWS_ONLY
-    Traceback (most recent call last):
-    FileNotFoundError: [Errno 2] No such file or directory: '...aaaaaaaaaaaaaaaaaaaaaa'
-
     >>> open(join_path(tmp, "a" * 374), "w").close()  # doctest: -WINDOWS
     Traceback (most recent call last):
     OSError: [Errno ...] File name too long: '...aaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+The error on Windows varies across versions of Windows and Python, so
+we use a different assertion pattern.
+
+    >>> try:  # doctest: +WINDOWS_ONLY -NORMALIZE_PATHS
+    ...     open(join_path(tmp, "a" * 374), "w").close()
+    ... except (FileNotFoundError, OSError) as e:
+    ...     print(e.filename)
+    ... else:
+    ...     assert False
+    ???\aaaa...aaaaaaaaaaaaa
 
 Runs monitor support handles this problem by truncating the run path
 to fit within the system limits.
