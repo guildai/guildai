@@ -140,8 +140,12 @@ def _nbexec(notebook):
         notebook_relpath,
     ]
     log.debug("jupyter-nbconvert cmd: %s", cmd)
+    env = {
+        **os.environ,
+        **{"PYDEVD_DISABLE_FILE_VALIDATION": "1"},
+    }
     log.info("Executing %s", notebook_relpath)
-    returncode = subprocess.call(cmd)
+    returncode = subprocess.call(cmd, env=env)
     if returncode != 0:
         sys.exit(returncode)
 
@@ -596,9 +600,13 @@ def _nbconvert_html(notebook, args):
         cmd.append("--no-input")
     cmd.append(notebook_relpath)
     log.debug("jupyter-nbconvert cmd: %s", cmd)
+    env = {
+        **os.environ,
+        **{"PYDEVD_DISABLE_FILE_VALIDATION": "1"},
+    }
     omitting_desc = " (omitting input cells)" if args.html_no_input else ""
     log.info(f"Saving HTML{omitting_desc}")
-    returncode = subprocess.call(cmd)
+    returncode = subprocess.call(cmd, env=env)
     if returncode != 0:
         sys.exit(returncode)
 
