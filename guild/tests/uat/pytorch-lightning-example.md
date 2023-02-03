@@ -1,4 +1,21 @@
+---
+doctest: -PY311  # Update example/install reqs below to support recent versions of Python
+---
+
 # PyTorch Lightning Example
+
+Install PyTorch.
+
+    >>> quiet("pip install torch==1.12.0 pytorch-lightning==1.6.4 torchvision==0.13.0")
+
+    >>> run("guild check --offline --pytorch")
+    guild_version:             ...
+    pytorch_version:           1...
+    pytorch_cuda_version:      ...
+    pytorch_cuda_available:    ...
+    pytorch_cuda_devices:...
+    cuda_version:              ...
+    <exit 0>
 
 Use the `pytorch-lightning` example.
 
