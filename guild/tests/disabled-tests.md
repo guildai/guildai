@@ -28,6 +28,9 @@ tests or deleting them from the suite.
     >>> for lineno, line, path in iter_test_lines():
     ...     if line.startswith("    >> ") or "+FIXME" in line:
     ...         print(f"# {path}:{lineno}: {line}")  # doctest: +REPORT_UDIFF
+    # autocomplete-zsh.md:2: doctest: -WINDOWS +FIXME_CI  # Actual issue - MUST FIX
+    # breakpoints.md:2: doctest: +FIXME_CI  # Issue appears specific to CI env (can't reproduce over ssh - may be tty related)
+    # imports.md:2: doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr to stdout)
     # uat/evaluate-mnist-intro-example.md:2: doctest: +FIXME  # Example needs to be updated
     # uat/mnist-example-runs-after-intro-evaluate.md:2: doctest: +FIXME  # Dep on evaluate-mnist-intro-example.md
     # uat/project-sourcecode.md:2: doctest: +FIXME  # Appears that Guild has a bug - MUST FIX

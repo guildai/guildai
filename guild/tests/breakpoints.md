@@ -1,3 +1,7 @@
+---
+doctest: +FIXME_CI  # Issue appears specific to CI env (can't reproduce over ssh - may be tty related)
+---
+
 # Breakpoints
 
 Guild supports break points for Python based operations. We use sample
@@ -66,9 +70,10 @@ their containing module.
 Use `--break-on-error` to start a post mortem session on script error.
 
     >>> run("guild run error.py --break-on-error -y", timeout=prompt_timeout)
-    ???Traceback (most recent call last):
+    Traceback (most recent call last):
       File ".../error.py", line 1, in <module>
         1 / 0
+        ...
     ZeroDivisionError: ...
     Entering post mortem debug session
     > .../error.py(1)<module>()

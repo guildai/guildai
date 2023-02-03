@@ -1,3 +1,8 @@
+---
+doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr to stdout)
+---
+
+
 # Imports
 
     >>> import importlib
