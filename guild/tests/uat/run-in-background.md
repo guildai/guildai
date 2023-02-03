@@ -52,7 +52,7 @@ Guild uses the specified pidfile.
 
 Wait for the operation to run.
 
-    >>> sleep(3)
+    >>> sleep(5)
 
 Stop the operation (defaults to the running operation).
 
