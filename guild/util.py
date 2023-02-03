@@ -1672,7 +1672,7 @@ def _strip_windows_prefix(path):
     return path
 
 
-def norm_path_sep(path):
+def stdpath(path):
     return path.replace(os.path.sep, "/")
 
 

@@ -662,9 +662,8 @@ def _all_dir_files(dir):
     for root, dirs, files in os.walk(dir):
         root = os.path.relpath(root, dir) if dir != root else ""
         for name in dirs + files:
-            path = os.path.join(root, name)
-            normalized_path = path.replace(os.path.sep, "/")
-            all.append(normalized_path)
+            path = util.stdpath(os.path.join(root, name))
+            all.append(path)
     return all
 
 

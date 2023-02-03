@@ -709,7 +709,7 @@ def find(root, followlinks=False, includedirs=False, ignore=None):
     paths = file_util.find(root, followlinks, includedirs)
     if ignore:
         paths = _filter_ignored(paths, ignore)
-    paths = _normalize_paths(paths)
+    paths = _standarize_paths(paths)
     paths.sort(key=natsort.natsort_key)
     if not paths:
         print("<empty>")
@@ -718,8 +718,8 @@ def find(root, followlinks=False, includedirs=False, ignore=None):
             print(path)
 
 
-def _normalize_paths(paths):
-    return [path.replace(os.path.sep, "/") for path in paths]
+def _standarize_paths(paths):
+    return [util.stdpath(path) for path in paths]
 
 
 def _filter_ignored(paths, ignore):
@@ -1175,8 +1175,7 @@ def _run_shell_cmd(cmd):
 
 
 def _run_shell_win_cmd(cmd):
-    cmd_norm_paths = cmd.replace(os.path.sep, "/")
-    parts = util.shlex_split(cmd_norm_paths)
+    parts = util.shlex_split(util.stdpath(cmd))
     _apply_guild_cmd_for_win(parts)
     return parts
 

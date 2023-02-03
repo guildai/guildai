@@ -176,7 +176,7 @@ class FileSelectRule:
     @staticmethod
     def _regex_match_f(patterns):
         compiled = [re.compile(p) for p in patterns]
-        return lambda path: any((p.match(util.norm_path_sep(path)) for p in compiled))
+        return lambda path: any((p.match(util.stdpath(path)) for p in compiled))
 
     @staticmethod
     def _fnmatch_f(patterns):
@@ -498,7 +498,7 @@ def files_digest(paths, root_dir):
 
     md5 = hashlib.md5()
     for path in paths:
-        normpath = _normalize_path_for_digest(path)
+        normpath = _path_for_digest(path)
         md5.update(_encode_file_path_for_digest(normpath))
         md5.update(b"\x00")
         _apply_digest_file_bytes(os.path.join(root_dir, path), md5)
@@ -506,7 +506,7 @@ def files_digest(paths, root_dir):
     return md5.hexdigest()
 
 
-def _normalize_path_for_digest(path):
+def _path_for_digest(path):
     return path.replace(os.path.sep, "/")
 
 

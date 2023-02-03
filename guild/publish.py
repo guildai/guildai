@@ -614,7 +614,7 @@ class _SourcecodeFilter(util.CopyFilter):
 
 
 def _is_sourcecode_file(path, run_dir, manifest_set):
-    relpath = util.norm_path_sep(os.path.relpath(path, run_dir))
+    relpath = util.stdpath(os.path.relpath(path, run_dir))
     return relpath in manifest_set
 
 
