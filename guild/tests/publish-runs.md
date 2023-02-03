@@ -10,10 +10,8 @@ is the public interface to a run. It consists of:
 
 We use the `publish` sample project.
 
-    >>> cd(sample("projects/publish"))
-
     >>> guild_home = mkdtemp()
-    >>> set_guild_home(guild_home)
+    >>> use_project("publish", guild_home)
 
 Generate a run for each of the four operations defined in the project.
 
@@ -573,7 +571,7 @@ Compare each run file to the copies in the published location.
 
 The source code files (from the run directory):
 
-    >>> cat(path(guild_home, "runs", "ccc", "op3.py"))
+    >>> cat(path(guild_home, "runs", "ccc", "op3.py"))  # doctest: -NORMALIZE_PATHS
     import op
     <BLANKLINE>
     c = 4
@@ -582,7 +580,7 @@ The source code files (from the run directory):
     <BLANKLINE>
     open("generated-3.txt", "wb").write(b"Super!\n")
 
-    >>> cat(path(guild_home, "runs", "ccc", "op3.py"))
+    >>> cat(path(guild_home, "runs", "ccc", "op3.py"))  # doctest: -NORMALIZE_PATHS
     import op
     <BLANKLINE>
     c = 4
