@@ -212,7 +212,7 @@ encoding/decoding features.
 Function to decode a string using the unpatched PyYAML library:
 
     >>> def decode_yaml_unpatched(s):
-    ...    out = run_capture("python -c \""
+    ...    out = run_capture(f"{sys.executable} -c \""
     ...        "import yaml, json; "
     ...        f"decoded = yaml.safe_load('{s}'); "
     ...        "print(json.dumps(decoded))"
