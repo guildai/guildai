@@ -72,8 +72,7 @@ Use `--break-on-error` to start a post mortem session on script error.
     >>> run("guild run error.py --break-on-error -y", timeout=prompt_timeout)
     Traceback (most recent call last):
       File ".../error.py", line 1, in <module>
-        1 / 0
-        ...
+        1 / 0...
     ZeroDivisionError: ...
     Entering post mortem debug session
     > .../error.py(1)<module>()
