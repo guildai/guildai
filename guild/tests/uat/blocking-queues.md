@@ -161,7 +161,7 @@ As we have a race condition for which queue starts the second staged
 run, we can't assert which queue starts it. We wait, however, to
 confirm that the second staged run is eventually started and finishes.
 
-    >>> sleep(10)
+    >>> sleep(15)
 
 Our runs:
 
