@@ -15,7 +15,11 @@ Run `setup.py` from the `dvc` example directory to setup the project.
 
     >>> cd(example("dvc"))
 
-    >>> quiet("python setup.py '%s'" % project_dir)
+    >>> run("python setup.py '%s'" % project_dir)
+    Initializing ...
+    Initializing Git
+    Initializing DvC
+    Copying source code files
 
 Use the project for the remaining tests.
 
