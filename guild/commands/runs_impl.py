@@ -699,8 +699,7 @@ def runs_op(
 
 
 def _apply_runs_op_callback(op_callback, selected, formatted):
-    # pylint: disable=deprecated-method
-    if len(inspect.getargspec(op_callback).args) == 2:
+    if len(inspect.signature(op_callback).parameters) == 2:
         if formatted is None:
             formatted = format_runs(selected)
         op_callback(selected, formatted)
