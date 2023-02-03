@@ -93,6 +93,7 @@ jobs:
           GUILD_START_THRESHOLD: 1.0
           BREAKPOINT_PROMPT_TIMEOUT: 5.0
           GUILD_CI: 1
+          GH_TOKEN: 'NOT_USED'
         run: |
           test-env/bin/guild check -nT -c8 --fast
 
@@ -106,6 +107,7 @@ jobs:
           GUILD_START_THRESHOLD: 1.0
           DASK_SPEEDUP_THRESHOLD: 0
           BREAKPOINT_PROMPT_TIMEOUT: 5.0
+          GH_TOKEN: 'NOT_USED'
         run: |
           test-env/bin/guild check --force-uat
 
@@ -188,6 +190,7 @@ jobs:
           GUILD_START_THRESHOLD: 1.0
           BREAKPOINT_PROMPT_TIMEOUT: 5.0
           TMPDIR: \Tmp
+          GH_TOKEN: 'NOT_USED'
         run: |
           test-env\Scripts\guild check -nT
         shell: cmd
