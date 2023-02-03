@@ -704,10 +704,13 @@ def mktemp_guild_dir():
 
 
 def find(root, followlinks=False, includedirs=False, ignore=None):
+    import natsort
+
     paths = file_util.find(root, followlinks, includedirs)
     if ignore:
         paths = _filter_ignored(paths, ignore)
-    _sort_normalized_paths(paths)
+    paths = _normalize_paths(paths)
+    paths.sort(key=natsort.natsort_key)
     if not paths:
         print("<empty>")
     else:
@@ -715,10 +718,8 @@ def find(root, followlinks=False, includedirs=False, ignore=None):
             print(path)
 
 
-def _sort_normalized_paths(paths):
-    import natsort
-
-    paths.sort(key=natsort.natsort_keygen(lambda p: p.replace(os.path.sep, "/")))
+def _normalize_paths(paths):
+    return [path.replace(os.path.sep, "/") for path in paths]
 
 
 def _filter_ignored(paths, ignore):
