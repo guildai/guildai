@@ -13,7 +13,9 @@ tests.
 
 Run the other tests.
 
-    >>> run("NO_SKIPPED_MSG=1 guild check -nT -s startup-time -c ${CONCURRENCY:-1}")
+    >>> concurrency = os.getenv("CONCURRENCY") or "1"
+
+    >>> run(f"guild check -nT -s startup-time -c {concurrency}", env={"NO_SKIPPED_MSG": "1"})
     ... # doctest: +REPORT_UDIFF
     internal tests:
       ac-support:                  ok

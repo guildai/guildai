@@ -4,7 +4,8 @@ Tests require additional packages that are not included in the Guild
 distribution or requirements.txt. They are defined in
 guild/tests/requirements.txt.
 
-    >>> quiet("pip install -r $GUILD_PKGDIR/guild/tests/requirements.txt")
+    >>> test_reqs = path(guild.__pkgdir__, "guild/tests/requirements.txt")
+    >>> quiet(f"pip install -r '{test_reqs}'")
 
 Verify Guild info across supported environments. Note that only some
 versions are asserted to varying degrees. These assertions roughly

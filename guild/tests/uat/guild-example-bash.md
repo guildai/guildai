@@ -1,3 +1,7 @@
+---
+doctest: -WINDOWS
+---
+
 # Guild Example: shell-script
 
     >>> cd(example("languages"))

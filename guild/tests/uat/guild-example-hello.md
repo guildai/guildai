@@ -82,7 +82,8 @@ List operations:
     A temp file!
     <exit 0>
 
-    >>> run("guild run hello-op op=`guild select -Fo hello-file 2` -y")
+    >>> hello_op_run_id = run_capture("guild select -Fo hello-file 2")
+    >>> run(f"guild run hello-op op={hello_op_run_id} -y")
     Resolving op
     Using run ... for op
     Reading message from msg.out

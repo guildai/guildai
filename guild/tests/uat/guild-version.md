@@ -9,7 +9,7 @@ This test assumes we're running under the source tree, which indicates
 
 Use `check` to verfiy that we are running the expected version:
 
-    >>> run("guild check -n --version '>=0.9.0rc1'")
+    >>> run("guild check -n --version 0.9.0")
     <exit 0>
 
 And an incorrect version:

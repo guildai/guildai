@@ -1,3 +1,7 @@
+---
+doctest: -WINDOWS
+---
+
 # Concurrent Queues
 
 Multiple queues may be started to process runs concurrently.
