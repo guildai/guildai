@@ -18,6 +18,14 @@ on:
         description: Skip all tests (use with SSH to manually test)
         type: boolean
         default: false
+      skip_posix:
+        description: Skip build for POSIX
+        type: boolean
+        default: false
+      skip_windows:
+        description: Skip build for Windows
+        type: boolean
+        default: false
       release:
         description: Publish to PyPI (select for release)
         type: boolean
@@ -26,8 +34,7 @@ on:
 jobs:
   build-posix:
     name: Build - POSIX
-    runs-on: ${{ matrix.os }}
-    ##if: ${{ false }}
+    if: ${{ !inputs.skip_posix }}
     strategy:
       fail-fast: false
       matrix:
@@ -40,7 +47,7 @@ jobs:
           - '3.9'
           - '3.10'
           - '3.11'
-
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -48,7 +55,7 @@ jobs:
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v4
         with:
-          python: ${{ matrix.python }}
+          python-version: ${{ matrix.python }}
 
       - name: Configure SSH
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
@@ -117,27 +124,27 @@ jobs:
 
   build-windows:
     name: Build - Windows
-    runs-on: windows-latest
-    ##if: ${{ false }}
-
+    if: ${{ !inputs.skip_windows }}
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - windows-latest
         python:
           - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
           - '3.11'
-
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
-          python: ${{ matrix.python }}
+          python-version: ${{ matrix.python }}
 
       - name: Configure SSH
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
@@ -201,20 +208,27 @@ jobs:
 
   publish-to-pypi:
     name: Publish to PyPI
+    if: ${{ inputs.release }}
     needs:
       - build-posix
       - build-windows
-    runs-on: ubuntu-latest
-    if: ${{ inputs.release }}
+    strategy:
+      matrix:
+        os:
+          # Always create dist on Linux
+          - ubuntu-latest
+        python:
+          # Use oldest supported version of Python to create dist
+          - '3.7'
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python for build
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
-          # Use oldest supported version of Python to create dist
-          python-version: 3.7
+          python-version: ${{ matrix.python }}
 
       - name: Build package
         run: |
