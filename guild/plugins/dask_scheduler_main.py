@@ -14,7 +14,6 @@
 
 import argparse
 import logging
-import os
 import time
 
 from guild import _api as gapi
@@ -23,8 +22,7 @@ from guild import util
 from . import gen_queue
 
 logging.basicConfig(
-    # pylint: disable=invalid-envvar-default
-    level=int(os.getenv("LOG_LEVEL", logging.INFO)),
+    level=util.get_env("LOG_LEVEL", int, logging.INFO),
     format="%(levelname)s: [%(name)s] %(asctime)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )

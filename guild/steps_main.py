@@ -275,8 +275,7 @@ def main():
 
 
 def _init_logging():
-    # pylint: disable=invalid-envvar-default
-    level = int(os.getenv("LOG_LEVEL", logging.WARN))
+    level = util.get_env("LOG_LEVEL", int, logging.WARN)
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     guild.log.init_logging(level, {"_": format})
     globals()["log"] = logging.getLogger("guild")

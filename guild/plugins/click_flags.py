@@ -29,8 +29,7 @@ from . import python_script
 
 
 def _init_log():
-    # pylint: disable=invalid-envvar-default
-    level = int(os.getenv("LOG_LEVEL", logging.WARN))
+    level = util.get_env("LOG_LEVEL", int, logging.WARN)
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     logging.basicConfig(level=level, format=format)
     return logging.getLogger("import_flags_main")
