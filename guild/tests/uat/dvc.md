@@ -119,7 +119,7 @@ The run manifest shows the source code and resolved dependencies.
     s params.json.in 4f3b452fd0e8ab0a8cecb8cb5560effc7f8d25de params.json.in
     s prepare_data.py 57ccaa3725415e99ec0b3d8323c060a73b3417bf prepare_data.py
     s requirements.txt bd2d0f656b9bf3b9a94a8670b5b3763274dd97f3 requirements.txt
-    s setup.py 7332d32ccbbbc302f47e7cbfa892d7e6ce1887cd setup.py
+    s setup.py 530130c38cdcf0b132a6a127d975012d34922939 setup.py
     s train_models.py f6e97ad8827262c41cc94944ffd560a4a2ab399f train_models.py
     s .dvc/config 3ef04083edec4c15909f60aea3f685e5551f5b69 .dvc/config
     i .dvc/.gitignore da39a3ee5e6b4b0d3255bfef95601890afd80709 dvcfile:hello.in
