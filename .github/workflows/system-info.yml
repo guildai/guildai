@@ -1,7 +1,12 @@
 name: System info
 
 on:
-  - workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      run_with_ssh:
+        description: Run with SSH
+        type: boolean
+        default: false
 
 jobs:
   system-info:
@@ -14,7 +19,36 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
+        python:
+          - '3.7'
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
     steps:
-    - name: System info
-      run: |
-        python -c "import os; print(os.uname(), os.cpu_count())"
+      - name: Configure SSH
+        if: ${{ (success() || failure()) && inputs.run_with_ssh }}
+        # ssh action (below) waits for a 'continue' sentinel - we want
+        # the job to continue while ssh is available for connections
+        run: touch continue
+
+      - name: Start SSH
+        if: ${{ (success() || failure()) && inputs.run_with_ssh }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Python version
+        run: python --version
+
+      - name: Platform uname info
+        run: python -c "import platform; print(platform.uname())"
+
+      - name: CPU count
+        run: python -c "import os; print(os.cpu_count())"
