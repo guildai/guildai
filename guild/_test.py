@@ -60,6 +60,7 @@ KEEP_LF = doctest.register_optionflag("KEEP_LF")
 MACOS = doctest.register_optionflag("MACOS")
 NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
 NORMALIZE_PATHSEP = doctest.register_optionflag("NORMALIZE_PATHSEP")
+TIMING_CRITICAL = doctest.register_optionflag("TIMING_CRITICAL")
 PY3 = doctest.register_optionflag("PY3")
 PY310 = doctest.register_optionflag("PY310")
 PY311 = doctest.register_optionflag("PY311")
@@ -72,6 +73,7 @@ STRIP_EXIT_0 = doctest.register_optionflag("STRIP_EXIT_0")
 WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 
+DEFAULT_TIMING_MIN_CPUS = 8
 
 def run_all(skip=None, fail_fast=False, concurrency=None):
     return run(all_tests(), skip=skip, fail_fast=fail_fast, concurrency=concurrency)
@@ -171,10 +173,11 @@ def _parse_doctest_options(encoded_options, filename):
 
 def _skip_for_doctest_options(options):
     return (
-        _skip_platform(options)
+        _skip_fixme(options)
+        or _skip_platform(options)
         or _skip_python_version(options)
-        or _skip_fixme(options)
-        or _skip_external(options)
+        or _skip_timing_critical(options)
+        or _skip_git_ls_files_target(options)
     )
 
 
@@ -223,11 +226,38 @@ def _running_under_ci():
     return os.getenv("GUILD_CI") == "1"
 
 
-def _skip_external(options):
-    git_ls_files_target_opt = options.get(GIT_LS_FILES_TARGET)
-    if git_ls_files_target_opt is not None:
-        return git_ls_files_target_opt != _git_ls_files_is_target()
-    return False
+def _skip_timing_critical(options):
+    """Skips tests that rely on a performant system to test timings.
+
+    Performance threshold is measured by CPU cores, as returned by
+    `os.cpu_count()`. The minimum number of cores for a performant
+    system can be configured using the environment variable
+    `TIMING_MIN_CPUS`.
+    """
+    opt = options.get(TIMING_CRITICAL)
+    if opt is None:
+        return False
+    return opt != _is_performant_system()
+
+
+def _is_performant_system():
+    min_cpus = util.get_env("TIMING_MIN_CPUS", int, DEFAULT_TIMING_MIN_CPUS)
+    return os.cpu_count() >= min_cpus
+
+
+def _skip_git_ls_files_target(options):
+
+    """Skips test if system Git does not support ls-files target behavior.
+
+    Earlier versions of Git do no support a behavior that Guild relies
+    on for source code detection optimization. Tests that exerise this
+    behavior can use the option `GIT_LS_FILES_TARGET` to skip tests
+    that don't apply to the current version of Git.
+    """
+    opt = options.get(GIT_LS_FILES_TARGET)
+    if opt is None:
+        return False
+    return opt != _git_ls_files_is_target()
 
 
 def _git_ls_files_is_target():

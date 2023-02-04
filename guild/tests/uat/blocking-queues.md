@@ -1,3 +1,7 @@
+---
+doctest: +TIMING_CRITICAL
+---
+
 # Blocking Queues
 
 By default, a queue starts staged runs even when other runs are in
@@ -161,7 +165,7 @@ As we have a race condition for which queue starts the second staged
 run, we can't assert which queue starts it. We wait, however, to
 confirm that the second staged run is eventually started and finishes.
 
-    >>> sleep(15)
+    >>> sleep(8)
 
 Our runs:
 
