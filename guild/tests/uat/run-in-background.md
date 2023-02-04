@@ -32,10 +32,12 @@ Stop the operation (defaults to the running operation).
 
 Show the run output.
 
-    >>> run("guild cat --output")
+    >>> run("guild cat --output")  # doctest: +TIMING_CRITICAL
     0
-    1...
-    <exit 0>
+    1
+    2
+    3
+    4
 
 ## Explicit pidfile
 
