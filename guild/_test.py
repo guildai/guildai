@@ -75,6 +75,7 @@ WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 
 DEFAULT_TIMING_MIN_CPUS = 8
 
+
 def run_all(skip=None, fail_fast=False, concurrency=None):
     return run(all_tests(), skip=skip, fail_fast=fail_fast, concurrency=concurrency)
 
@@ -246,7 +247,6 @@ def _is_performant_system():
 
 
 def _skip_git_ls_files_target(options):
-
     """Skips test if system Git does not support ls-files target behavior.
 
     Earlier versions of Git do no support a behavior that Guild relies

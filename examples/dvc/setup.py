@@ -33,7 +33,9 @@ def _init_git(args):
 
 def _init_dvc(args):
     print("Initializing DvC")
-    _ = subprocess.check_output(["dvc", "init"], cwd=args.dest, stderr=subprocess.STDOUT)
+    _ = subprocess.check_output(
+        ["dvc", "init"], cwd=args.dest, stderr=subprocess.STDOUT
+    )
 
 
 def _config_dvc(args):
