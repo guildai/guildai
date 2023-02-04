@@ -25,7 +25,6 @@ jobs:
           - '3.9'
           - '3.10'
           - '3.11'
-          - '3.12'
     steps:
       - name: Configure SSH
         if: ${{ (success() || failure()) && inputs.run_with_ssh }}
@@ -52,3 +51,6 @@ jobs:
 
       - name: CPU count
         run: python -c "import os; print(os.cpu_count())"
+
+      - name: Performance benchmark
+        run: python -c "import time; t0 = time.time(); [x+1 for x in range(10000000)]; print(time.time() - t0)"
