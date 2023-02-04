@@ -73,7 +73,7 @@ STRIP_EXIT_0 = doctest.register_optionflag("STRIP_EXIT_0")
 WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 
-DEFAULT_TIMING_MIN_CPUS = 8
+DEFAULT_TIMING_MIN_CPUS = 4
 
 
 def run_all(skip=None, fail_fast=False, concurrency=None):
