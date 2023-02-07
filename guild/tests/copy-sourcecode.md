@@ -1100,3 +1100,121 @@ When we run the operation, it runs without conflicts.
     >>> run("guild run downstream-fixed -y")
     Resolving operation:upstream
     Using run ... for operation:upstream
+
+## Broken Git configuration
+
+To use Git, Guild relies on the `git` executable being available on
+the system path (i.e. in a directory specified in the `PATH`
+environment variable). Alternative, the user can configure the Git
+executable in user config under the `git.executable` attribute.
+
+If Git is unavailable to test a project for source code copy rules,
+Guild logs a warning message when run inside Git repositories. In this
+case the user is attempting to run an operation inside a Git
+repository, which controls the source code rules, but does not have
+Git available to run.
+
+In this case, Guild falls back on its default source code copy rules.
+
+To illustrate, create a project directory and initialize it as a Git
+repository.
+
+    >>> cd(mkdtemp())
+    >>> quiet("git init")
+
+Create user configuration inside the project. Guild uses this
+configuration when running project operations.
+
+    >>> write("guild-config.yml", """
+    ... git:
+    ...   executable: not-a-git-exe
+    ... """)
+
+Create a script to run.
+
+    >>> touch("test.py")
+
+Create another file that is a source code candidate.
+
+    >>> touch("test.txt")
+
+Configure Git to ignore `*.txt` files.
+
+    >>> write(".gitignore", "*.txt")
+
+Test the source code copy rules for `test.py`.
+
+    >>> run("guild run test.py --test-sourcecode")
+    WARNING: The current project appears to use Git for version control
+    but git is not available on the system path. To apply Git's source
+    code rules to this run, install Git [1] or specify the Git executable
+    in Guild user config [2].
+    <BLANKLINE>
+    [1] https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+    [2] https://my.guild.ai/t/user-config-reference
+    <BLANKLINE>
+    To disable this warning, set 'NO_WARN_GIT_MISSING=1'
+    <BLANKLINE>
+    Copying from the current directory
+    Rules:
+      exclude dir .*
+      exclude dir * containing .guild-nocopy
+      include text * size < 1048577, max match 100
+      exclude dir __pycache__
+      exclude dir * containing bin/activate
+      exclude dir * containing Scripts/activate
+      exclude dir build
+      exclude dir dist
+      exclude dir *.egg-info
+    Selected for copy:
+      .gitignore
+      guild-config.yml
+      test.py
+      test.txt
+    Skipped:
+      .git/
+
+When we have Git configured correctly, Guild uses the Git rules.
+
+Use an explicit path to the Git exe.
+
+    >>> write("guild-config.yml", f"""
+    ... git:
+    ...   executable: {which('git')}
+    ... """)
+
+    >>> run("guild run test.py --test-sourcecode")
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      guild-config.yml
+      test.py
+    Skipped:
+      .git/
+      .gitignore
+      test.txt
+
+Rely on the default from Guild.
+
+    >>> write("guild-config.yml", "")
+
+    >>> run("guild run test.py --test-sourcecode")
+    Copying from the current directory
+    Rules:
+      exclude dir .guild
+      exclude dir * containing .guild-nocopy
+      exclude dir .git
+      gitignore + guildignore patterns
+      exclude .git*, .guildignore
+    Selected for copy:
+      guild-config.yml
+      test.py
+    Skipped:
+      .git/
+      .gitignore
+      test.txt
