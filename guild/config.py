@@ -159,26 +159,16 @@ def _guild_home_current_scheme():
     does not exist in any of the directories, returns the real path to
     `~/.guild`.
     """
-    _home_dir = None
+    from guild import file_util
 
-    def is_home_dir(dir):
-        nonlocal _home_dir
-        if _home_dir is None:
-            _home_dir = os.path.realpath(_user_home())
-        return os.path.realpath(dir) == _home_dir
-
-    cur = os.path.abspath(cwd())
-    while True:
-        guild_home = os.path.join(cur, ".guild")
-        if os.path.isdir(guild_home) or is_home_dir(cur):
-            break
-        parent = os.path.dirname(cur)
-        if parent == cur:
-            guild_home = os.path.join(_home_dir, ".guild")
-            break
-        cur = parent
-
-    return guild_home
+    user_home = _user_home()
+    existing = file_util.find_up(
+        ".guild",
+        start_dir=cwd(),
+        stop_dir=user_home,
+        check=os.path.isdir,
+    )
+    return existing or os.path.join(user_home, ".guild")
 
 
 class SetGuildHome:
@@ -405,3 +395,28 @@ def _find_apply(funs, *args):
     from guild import util
 
     return util.find_apply(funs, *args)
+
+
+class ConfigValue:
+    _unread = object()
+
+    def __init__(self, attr_path, default):
+        self.attr_path = attr_path
+        self.default = default
+        self._val = self._unread
+
+    def read(self, no_cache=False):
+        if not no_cache and self._val is not self._unread:
+            return self._val
+        try:
+            self._val = _read_config_value(self.attr_path)
+        except KeyError:
+            self._val = self.default
+        return self._val
+
+
+def _read_config_value(attr_path):
+    cur = user_config()
+    for name in attr_path:
+        cur = cur[name]
+    return cur

@@ -473,6 +473,30 @@ def find(root, followlinks=False, includedirs=False, unsorted=False):
     return paths if unsorted else sorted(paths)
 
 
+def find_up(relpath, start_dir=None, stop_dir=None, check=os.path.exists):
+    start_dir = os.path.abspath(start_dir) if start_dir else os.getcwd()
+    stop_dir = util.realpath(stop_dir) if stop_dir else _user_home()
+
+    cur = start_dir
+    while True:
+        maybe_target = os.path.join(cur, relpath)
+        if check(maybe_target):
+            return maybe_target
+        if util.realpath(cur) == stop_dir:
+            return None
+        parent = os.path.dirname(cur)
+        if parent == cur:
+            return None
+        cur = parent
+
+    # `parent == cur` above should be the definitive terminal case
+    assert False
+
+
+def _user_home():
+    return os.path.expanduser("~")
+
+
 def expand_path(path):
     return os.path.expanduser(os.path.expandvars(path))
 

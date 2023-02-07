@@ -1423,7 +1423,7 @@ def compare_paths(p1, p2):
 
 
 def _resolve_path(p):
-    return realpath(os.path.abspath(os.path.expanduser(p)))
+    return realpath(os.path.expanduser(p))
 
 
 def shorten_path(path, max_len=28, ellipsis="\u2026", sep=os.path.sep):

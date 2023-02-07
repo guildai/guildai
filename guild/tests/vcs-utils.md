@@ -199,3 +199,129 @@ check:
     >>> print(check_result.error, check_result.out)  # doctest: -GIT_LS_FILES_TARGET
     unexpected output for ls-files:
      b''
+
+## Git executable
+
+Guild uses the `PATH` environment variable to locate the Git
+executable. However, it can also be specified in user config under the
+`git.exeutable`.
+
+For tests, we assume that Git is available on `PATH`.
+
+    >>> from guild import util
+
+    >>> util.which("git") is not None
+    True
+
+This is used to get the Git version.
+
+    >>> gitver = vcs_util.git_version()
+
+    >>> isinstance(gitver, tuple), gitver
+    (True, ...)
+
+    >>> all(type(x) is int for x in gitver), gitver
+    (True, ...)
+
+Guild caches read values from
+
+If we specify an invalid path for the Git executable in user config,
+Guild doesn't see it because it caches results from previous calls.
+
+
+    >>> with UserConfig({"git": {"executable": "not-a-valid-git-exe"}}):
+    ...     vcs_util.git_version()
+    (..., ..., ...)
+
+We need to reset `guild.vcs_util._git_exe`, which is the state
+associated with the Git executable value.
+
+    >>> def reset_git_exe_state():
+    ...     vcs_util._git_exe._val = vcs_util._git_exe._unread
+
+    >>> reset_git_exe_state()
+
+    >>> with UserConfig({"git": {"executable": "not-a-valid-git-exe"}}):
+    ...      vcs_util.git_version()
+    Traceback (most recent call last):
+    GitNotInstalled
+
+Reset the state and try again.
+
+    >>> reset_git_exe_state()
+
+    >>> vcs_util.git_version()
+    (..., ..., ...)
+
+When used in the context of source code copying, Guild handles a
+missing or invalid Git exe by logging a warning message when run for
+Git repos.
+
+To illustrate, first create a project that is not a Git repo.
+
+    >>> project_dir = mkdtemp()
+    >>> touch(path(project_dir, "test.py"))
+
+Guild uses the `git` executable to determine if a project is a Git
+repo.
+
+    >>> vcs_util.git_project_select_rules(project_dir)
+    Traceback (most recent call last):
+    NoVCS: ('...', (128, ...not a git repository...))
+
+When we initialize a Git repo in the project, we get select rules for
+the project.
+
+    >>> quiet("git init", cwd=project_dir)
+
+    >>> vcs_util.git_project_select_rules(project_dir)
+    [<guild.file_util.FileSelectRule object ...>,
+     <guild.vcs_util._GitignoreSelectRule ...>,
+     <guild.file_util.FileSelectRule ...>]
+
+However, when we intentionally disable Git by using invalid
+configuration, Guild is unable to process the project source code
+files. In this case Guild prints a warning message.
+
+We need to reset the Git exe state.
+
+    >>> reset_git_exe_state()
+
+Call `git_project_select_rules` using invalid configuration.
+
+    >>> with LogCapture() as logs:
+    ...     with UserConfig({"git": {"executable": "not-a-git-exe"}}):
+    ...         vcs_util.git_project_select_rules(project_dir)
+    Traceback (most recent call last):
+    NoVCS: ...
+
+    >>> logs.print_all()
+    WARNING: The current project appears to use Git for version control
+    but git is not available on the system path. To apply Git's source
+    code rules to this run, install Git [1] or specify the Git executable
+    in Guild user config [2].
+    <BLANKLINE>
+    [1] https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+    [2] https://my.guild.ai/t/user-config-reference
+    <BLANKLINE>
+    To disable this warning, set 'NO_WARN_GIT_MISSING=1'
+
+Guild does show the warning if the project is not a Git repo.
+
+The invalid Git exe is cached so we don't need to run with user
+config.
+
+    >>> vcs_util._git_exe._val
+    'not-a-git-exe'
+
+    >>> rmdir(path(project_dir, ".git"))
+    >>> with LogCapture() as logs:
+    ...    vcs_util.git_project_select_rules(project_dir)
+    Traceback (most recent call last):
+    NoVCS: ...
+
+    >>> logs.print_all()
+
+Reset the Git exe state.
+
+    >>> reset_git_exe_state()

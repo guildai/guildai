@@ -18,6 +18,8 @@ import re
 import os
 import subprocess
 
+from guild import config
+from guild import file_util
 from guild import util
 
 from guild.file_util import FileSelectRule
@@ -31,6 +33,10 @@ class UnsupportedRepo(Exception):
 
 
 class NoVCS(Exception):
+    pass
+
+
+class GitNotInstalled(Exception):
     pass
 
 
@@ -54,13 +60,16 @@ class Scheme:
         self.status_ok_errors = status_ok_errors
 
 
-SCHEMES = [
+# Configurable values used by VCS tools
+_git_exe = config.ConfigValue(["git", "executable"], "git")
+
+COMMIT_INFO_SCHEMES = [
     Scheme(
         "git",
-        commit_cmd=["git", "log", "-1", "."],
+        commit_cmd=[_git_exe, "log", "-1", "."],
         commit_pattern=re.compile(r"commit ([a-f0-9]+)"),
         commit_ok_errors=[128],
-        status_cmd=["git", "status", "-s"],
+        status_cmd=[_git_exe, "status", "-s"],
         status_pattern=re.compile(r"(.)"),
         status_ok_errors=[],
     )
@@ -127,10 +136,10 @@ def commit_for_dir(dir):
     Raises NoCommit if a commit is not available.
     """
     dir = os.path.abspath(dir)
-    for scheme in SCHEMES:
+    for scheme in COMMIT_INFO_SCHEMES:
         commit = _apply_scheme(
             dir,
-            scheme.commit_cmd,
+            _resolve_str(scheme.commit_cmd),
             scheme.commit_pattern,
             scheme.commit_ok_errors,
         )
@@ -146,8 +155,14 @@ def commit_for_dir(dir):
     raise NoCommit(dir)
 
 
+def _resolve_str(val):
+    if isinstance(val, config.ConfigValue):
+        return str(val.read())
+    return val
+
+
 def _apply_scheme(repo_dir, cmd_template, pattern, ok_errors):
-    cmd = [arg.format(repo=repo_dir) for arg in cmd_template]
+    cmd = [_resolve_str(arg).format(repo=repo_dir) for arg in cmd_template]
     log.debug("vcs scheme cmd for repo %s: %s", repo_dir, cmd)
     try:
         out = subprocess.check_output(
@@ -196,7 +211,7 @@ def _try_git_source_iter(dir):
 
 
 def _try_git_ls_files(dir, untracked=False):
-    cmd = ["git", "ls-files"]
+    cmd = [_git_exe.read(), "ls-files"]
     if untracked:
         cmd.extend(["--other", "--exclude-standard"])
     try:
@@ -223,7 +238,7 @@ def status(dir, ignored=False):
 
 def _try_git_status(dir, ignored):
     ignored_args = ["--ignored=matching"] if ignored else []
-    cmd = ["git", "status", "--short", "--renames"] + ignored_args + ["."]
+    cmd = [_git_exe.read(), "status", "--short", "--renames"] + ignored_args + ["."]
     try:
         out = subprocess.check_output(cmd, cwd=dir, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
@@ -286,9 +301,41 @@ def git_project_select_rules(project_dir):
 
 
 def _git_ls_ignored(cwd, extended_patterns_file=None):
-    if git_version() < GIT_LS_FILES_TARGET_VER:
-        return _git_ls_ignored_legacy(cwd, extended_patterns_file)
-    return _git_ls_ignored_(cwd, extended_patterns_file)
+    try:
+        gitver = git_version()
+    except GitNotInstalled:
+        _maybe_warn_git_not_installed(cwd)
+        raise NoVCS(cwd) from None
+    else:
+        if gitver < GIT_LS_FILES_TARGET_VER:
+            return _git_ls_ignored_legacy(cwd, extended_patterns_file)
+        return _git_ls_ignored_(cwd, extended_patterns_file)
+
+
+def _maybe_warn_git_not_installed(cwd):
+    """Prints a warning if `cwd` is part of a Git repo.
+
+    Warning can be disabled by setting env `NO_WARN_GIT_MISSING` to `1`.
+    """
+    if os.getenv("NO_WARN_GIT_MISSING") == "1":
+        return
+    if _is_git_repo(cwd):
+        log.warning(
+            "The current project appears to use Git for version control\n"
+            "but git is not available on the system path. To apply Git's source\n"
+            "code rules to this run, install Git [1] or specify the Git executable\n"
+            "in Guild user config [2].\n"
+            "\n"
+            "[1] https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)\n"
+            "[2] https://my.guild.ai/t/user-config-reference\n"
+            "\n"
+            "To disable this warning, set 'NO_WARN_GIT_MISSING=1'\n"
+        )
+
+
+def _is_git_repo(dir):
+    """Returns True if `dir` is managed under a Git repo."""
+    return file_util.find_up(os.path.join(".git", "HEAD"), dir) is not None
 
 
 def _git_ls_ignored_legacy(cwd, extended_patterns_file):
@@ -329,7 +376,7 @@ def _git_ls_ignored_cmd(extended_patterns_file, directory_flag):
 
     If `directory_flag` is True, includes `--directory` option.
     """
-    cmd = ["git", "ls-files", "-ioc", "--exclude-standard"]
+    cmd = [_git_exe.read(), "ls-files", "-ioc", "--exclude-standard"]
     if directory_flag:
         cmd.append("--directory")
     if extended_patterns_file:
@@ -413,7 +460,7 @@ class GitCheckResult:
 def check_git_ls_files():
     """Checks Git for a specific ls-files behavior.
 
-    As of ??? the behavior of the command:
+    As of 2.32 the behavior of the command:
 
         git ls-files -ioc --exclude-standard --directory
 
@@ -430,15 +477,17 @@ def check_git_ls_files():
 
     This function is used to explicitly test the behavior Git on the
     system. It relies on the system PATH to locate the `git`
-    executable.
+    executable by default. User can provide an explicit Git executable
+    in user config under `git.executable`.
 
     Returns an instance of `GitCheckResult`. If the expected behavior
     of Git is incorrect, the result error is specified in the `error`
     attribute.
+
     """
     result = GitCheckResult()
     result.git_version = git_version()
-    result.git_exe = util.which("git")
+    result.git_exe = util.which(_git_exe.read())
     project_dir = _init_git_ls_files_sample_project()
     result.out = subprocess.check_output(
         [
@@ -468,7 +517,7 @@ def _init_git_ls_files_sample_project():
     Returns the project directory.
     """
     project_dir = util.mktempdir("guild-check-")
-    _ = subprocess.check_output(["git", "init"], cwd=project_dir)
+    _ = subprocess.check_output([_git_exe.read(), "init"], cwd=project_dir)
     os.mkdir(os.path.join(project_dir, "files"))
     util.touch(os.path.join(project_dir, "files", "foo.txt"))
     with open(os.path.join(project_dir, ".gitignore"), "w") as f:
@@ -477,8 +526,14 @@ def _init_git_ls_files_sample_project():
 
 
 def git_version():
-    cmd = ["git", "--version"]
-    out = subprocess.check_output(cmd).decode().strip()
-    m = re.search(r"([0-9]+)\.([0-9]+)\.([0-9]+)", out)
-    assert m and m.lastindex == 3, out
-    return tuple(int(x) for x in m.groups())
+    cmd = [_git_exe.read(), "--version"]
+    try:
+        out = subprocess.check_output(cmd).decode().strip()
+    except (FileNotFoundError, subprocess.CalledProcessError) as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("error getting git version")
+        raise GitNotInstalled() from e
+    else:
+        m = re.search(r"([0-9]+)\.([0-9]+)\.([0-9]+)", out)
+        assert m and m.lastindex == 3, out
+        return tuple(int(x) for x in m.groups())
