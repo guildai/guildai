@@ -1,5 +1,5 @@
 ---
-doctest: -WINDOWS +FIXME_CI  # Actual issue - MUST FIX
+doctest: -WINDOWS
 ---
 
 # Auto complete for zsh
@@ -116,17 +116,38 @@ number of runs.
 
     >>> runs = project.list_runs()
 
-    >>> runs[0].id, project.ls(runs[0])
-    ('ccc', ['bar.txt', 'c.out', 'c.src.out', 'echo.py', 'foo.txt',
-             'foo/xxx.txt', 'foo/yyy.txt', 'guild.yml'])
+    >>> pprint((runs[0].id, project.ls(runs[0])))  # doctest: +REPORT_UDIFF
+    ('ccc',
+     ['bar.txt',
+      'c.out',
+      'c.src.out',
+      'echo.py',
+      'foo.txt',
+      'foo/xxx.txt',
+      'foo/yyy.txt',
+      'guild.yml'])
 
-    >>> runs[1].id, project.ls(runs[1])
-    ('bbb', ['b.out', 'b.src.out', 'bar.txt', 'echo.py', 'foo.txt',
-             'foo/xxx.txt', 'foo/yyy.txt', 'guild.yml'])
+    >>> pprint((runs[1].id, project.ls(runs[1])))  # doctest: +REPORT_UDIFF
+    ('bbb',
+     ['b.out',
+      'b.src.out',
+      'bar.txt',
+      'echo.py',
+      'foo.txt',
+      'foo/xxx.txt',
+      'foo/yyy.txt',
+      'guild.yml'])
 
-    >>> runs[2].id, project.ls(runs[2])
-    ('aaa', ['a.out', 'a.src.out', 'bar.txt', 'echo.py', 'foo.txt',
-             'foo/xxx.txt', 'foo/yyy.txt', 'guild.yml'])
+    >>> pprint((runs[2].id, project.ls(runs[2])))  # doctest: +REPORT_UDIFF
+    ('aaa',
+     ['a.out',
+      'a.src.out',
+      'bar.txt',
+      'echo.py',
+      'foo.txt',
+      'foo/xxx.txt',
+      'foo/yyy.txt',
+      'guild.yml'])
 
 A helper to show completions:
 
@@ -545,7 +566,7 @@ Source code paths (see notes above about unexpected behavior here):
 Path completion with `--working` refers to project path:
 
     >>> cmd_ac(diff.diff, "paths", ["--working"])
-    .gitignore
+    .guildignore
     bar.txt
     echo.py
     foo.txt
@@ -555,7 +576,7 @@ Path completion with `--working` refers to project path:
     foo/
 
     >>> cmd_ac(diff.diff, "paths", ["--working", "-Fo", "a"])
-    .gitignore
+    .guildignore
     bar.txt
     echo.py
     foo.txt
@@ -565,7 +586,7 @@ Path completion with `--working` refers to project path:
     foo/
 
     >>> cmd_ac(diff.diff, "paths", ["--working", "aaa", "bbb"])
-    .gitignore
+    .guildignore
     bar.txt
     echo.py
     foo.txt
