@@ -31,12 +31,17 @@ jobs:
         with:
           python-version: ${{ inputs.python }}
 
+      - name: Configure SSH
+        if: ${{ (success() || failure()) && inputs.run_with_ssh }}
+        # ssh action (below) waits for a 'continue' sentinel - we want
+        # the job to continue while ssh is available for connections
+        run: touch continue
+
       - name: Start SSH
         if: ${{ (success() || failure()) }}
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true
-        run: touch continue
 
       - name: Build package
         run: |
