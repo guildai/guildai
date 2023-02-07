@@ -66,7 +66,7 @@ def _ac_builtin_tests(ctx, _param, incomplete):
     shell_complete=_ac_builtin_tests,
 )
 @click.option(
-    "--force-test",
+    "--force",
     help=(
         "Run a test even if it's skipped. Does not apply to tests "
         "specified with '--skip'."
