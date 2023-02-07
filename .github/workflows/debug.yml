@@ -5,12 +5,14 @@ on:
     inputs:
       os:
         description: OS to debug
+        type: choice
         options:
           - ubuntu-latest
           - macos-latest
           - windows-latest
       python:
         description: Python version to debug
+        type: choice
         options:
           - '3.7'
           - '3.8'
