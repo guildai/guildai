@@ -198,6 +198,7 @@ def _run_tests_(check):
             skip=check.args.skip,
             fail_fast=check.args.fast,
             concurrency=check.args.concurrency,
+            force=check.args.force_test,
         )
     elif check.args.tests:
         if check.args.skip:
@@ -206,6 +207,7 @@ def _run_tests_(check):
             check.args.tests,
             fail_fast=check.args.fast,
             concurrency=check.args.concurrency,
+            force=check.args.force_test,
         )
     if not success:
         check.error()

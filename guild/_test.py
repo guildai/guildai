@@ -76,8 +76,14 @@ WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 DEFAULT_TIMING_MIN_CPUS = 4
 
 
-def run_all(skip=None, fail_fast=False, concurrency=None):
-    return run(all_tests(), skip=skip, fail_fast=fail_fast, concurrency=concurrency)
+def run_all(skip=None, fail_fast=False, force=False, concurrency=None):
+    return run(
+        all_tests(),
+        skip=skip,
+        fail_fast=fail_fast,
+        concurrency=concurrency,
+        force=force,
+    )
 
 
 def all_tests():
@@ -94,18 +100,18 @@ def _test_name_for_path(path):
     return name
 
 
-def run(tests, skip=None, fail_fast=False, concurrency=None):
+def run(tests, skip=None, fail_fast=False, force=False, concurrency=None):
     if concurrency and concurrency > 1:
-        return _run_parallel(tests, skip, fail_fast, concurrency)
-    return _run_(tests, skip, fail_fast)
+        return _run_parallel(tests, skip, fail_fast, force, concurrency)
+    return _run_(tests, skip, fail_fast, force)
 
 
-def _run_(tests, skip, fail_fast):
+def _run_(tests, skip, fail_fast, force):
     skip = skip or []
     success = True
     for test in tests:
         if test not in skip:
-            run_success = _run_test(test, fail_fast)
+            run_success = _run_test(test, fail_fast, force)
             success &= run_success
         else:
             sys.stdout.write(_test_skipped_output(test))
@@ -116,14 +122,18 @@ def _test_skipped_output(test):
     return f"  {test}:{' ' * (TEST_NAME_WIDTH - len(test))} skipped\n"
 
 
-def _run_test(name, fail_fast):
+def _run_test(name, fail_fast, force):
     sys.stdout.write(f"  {name}: ")
     sys.stdout.flush()
     filename = _filename_for_test(name)
     if not os.path.exists(filename):
         _log_test_not_found(name)
         return False
-    if os.getenv("FORCE_TEST") != "1" and front_matter_skip_test(filename):
+    if (
+        not force
+        and os.getenv("FORCE_TEST") != "1"
+        and front_matter_skip_test(filename)
+    ):
         _log_skipped_test(name)
         return True
     try:
@@ -1538,12 +1548,12 @@ def use_project(project_name, guild_home=None):
     _set_guild_home(guild_home)
 
 
-def _run_parallel(tests, skip, fail_fast, concurrency):
+def _run_parallel(tests, skip, fail_fast, force, concurrency):
     skip = skip or []
     tests = _init_concurrent_tests(tests, skip)
     test_queue = _init_test_queue([test for test in tests if not test.skip])
+    test_runners = _init_test_runners(test_queue, fail_fast, force, concurrency)
     try:
-        test_runners = _init_test_runners(test_queue, fail_fast, concurrency)
         success = True
         for test in tests:
             if test.skip:
@@ -1595,16 +1605,19 @@ def _init_test_queue(tests):
     return q
 
 
-def _init_test_runners(test_queue, fail_fast, concurrency):
+def _init_test_runners(test_queue, fail_fast, force, concurrency):
     assert not test_queue.empty()
-    return [_ConcurrentTestRunner(test_queue, fail_fast) for _ in range(concurrency)]
+    return [
+        _ConcurrentTestRunner(test_queue, fail_fast, force) for _ in range(concurrency)
+    ]
 
 
 class _ConcurrentTestRunner(threading.Thread):
-    def __init__(self, test_queue, fail_fast):
+    def __init__(self, test_queue, fail_fast, force):
         super().__init__()
         self.test_queue = test_queue
         self.fail_fast = fail_fast
+        self.force = force
         self._p_lock = threading.Lock()
         self._p = None
         self._running_lock = threading.Lock()
@@ -1638,7 +1651,11 @@ class _ConcurrentTestRunner(threading.Thread):
                 try:
                     with self._p_lock:
                         assert not self._p
-                        self._p = _start_external_test_proc(test.name, self.fail_fast)
+                        self._p = _start_external_test_proc(
+                            test.name,
+                            self.fail_fast,
+                            self.force,
+                        )
                     out, _err = self._p.communicate()
                     assert self._p.returncode is not None
                     assert out is not None
@@ -1655,7 +1672,7 @@ class _ConcurrentTestRunner(threading.Thread):
                     test.set_done(success, out)
 
 
-def _start_external_test_proc(test_name, fail_fast):
+def _start_external_test_proc(test_name, fail_fast, force):
     env = dict(os.environ)
     env["PYTHONPATH"] = guild.__pkgdir__
     cmd = [
@@ -1669,6 +1686,8 @@ def _start_external_test_proc(test_name, fail_fast):
     ]
     if fail_fast:
         cmd.append("--fast")
+    if force:
+        cmd.append("--force-test")
     return subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
