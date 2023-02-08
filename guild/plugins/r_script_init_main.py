@@ -17,7 +17,7 @@ from guild.plugins.r_script import run_r
 
 
 def main():
-    print("Installing R package 'guildai' ...",  end="")
+    print("Installing R package 'guildai' ...", end="")
 
     install_pkg_R_snippet = """
         if (file.access(.libPaths()[[1L]], 2) != 0L)
