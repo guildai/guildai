@@ -13,35 +13,45 @@
 # limitations under the License.
 
 # from guild import cli
-# from guild.plugins.r_script import run_r
+from guild.plugins.r_script import run_r
 
 
 def main():
-    print("TODO: install ze package")
+    print("Installing R package 'guildai' ...",  end="")
 
-    # consent = cli.confirm(". Continue?", True)
-    # if consent:
+    install_pkg_R_snippet = """
+        if (file.access(.libPaths()[[1L]], 2) != 0L)
+        local({
+            # if default lib not writable, try create user lib dir
+            userlibs <- strsplit(Sys.getenv("R_LIBS_USER"), .Platform$path.sep)[[1L]]
+            if (length(userlibs) && userlibs[[1L]] != "NULL")
+            dir.create(userlibs[[1L]], recursive = TRUE, showWarnings = FALSE)
+        })
 
-    #     run_r(
-    #         infile="""
-    #     if(!require("remotes", quietly = TRUE))
-    #         utils::install.packages("remotes", repos = c(CRAN = "https://cran.rstudio.com/"))
+        local({
+            repos <- getOption("repos")
+            if (identical(repos["CRAN"], "@CRAN@")) {
+                repos["CRAN"] <- "https://cran.rstudio.com/"
+                options(repos = repos)
+            }
+        })
 
-    #     install_github("t-kalinowski/guildai-r")
-    #     """
-    #     )
+        install_dev_version <- TRUE
 
-    #     # Still need to figure out the appropriate home for this r package
-    #     # if we bundle it w/ the python module we could install with something like:
-    #     #   path_r_pkg_src_dir = resolve_using(__path__)
-    #     #   run_r('remotes::install_local("%s")' % path_r_pkg_src_dir)
-    #     # or we could pull from cran directly:
-    #     #  'utils::install.packages("guildai", repos = c(CRAN = "https://cran.rstudio.com/"))'
-    #     #  or install w/o the remotes, but then we'll have to resolve
-    #     #  R dep pkgs (e.g., jsonlite) manually first
-    #     # 'utils::install.packages("%s", repos = NULL, type = "source")' % path_to_r_pkg_src
+        if (install_dev_version) {
+            if (!require("remotes", quietly = TRUE))
+                utils::install.packages("remotes")
 
-    #     return
+            remotes::install_github("guildai/guildai-r")
+        } else {
+
+        # install_cran_release_version
+            utils::install.packages("guildai")
+        }
+
+    """
+    run_r(infile=install_pkg_R_snippet)
+    print(" Done!")
 
     # cli.error("The 'guildai' R package is not available.")
 
