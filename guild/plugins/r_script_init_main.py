@@ -24,8 +24,10 @@ def main():
         local({
             # if default lib not writable, try create user lib dir
             userlibs <- strsplit(Sys.getenv("R_LIBS_USER"), .Platform$path.sep)[[1L]]
-            if (length(userlibs) && userlibs[[1L]] != "NULL")
+            if (!length(userlibs)) return()
+            if (userlibs[[1L]] == "NULL") return()
             dir.create(userlibs[[1L]], recursive = TRUE, showWarnings = FALSE)
+            .libPaths(userlibs[[1L]])
         })
 
         local({
