@@ -1897,8 +1897,7 @@ def check_guild_version(req):
     import guild
     from guild import python_util
 
-    version_without_dev = re.match(r"(\d+\.\d+\.\d+).*", guild.__version__).group(1)
-    return python_util.check_package_version(version_without_dev, req)
+    return python_util.check_package_version(guild.__version__, req)
 
 
 def split_lines(s):

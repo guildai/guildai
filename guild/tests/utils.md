@@ -803,14 +803,6 @@ Provide an invalid spec (error message varies across Python versions).
     Traceback (most recent call last):
     ValueError: ...error at "'a valid '"...
 
-Test against current verion, minus any development component.
-
-    >>> guild_version_without_dev = re.match(
-    ...     r"(\d+\.\d+\.\d+).*", current_guild_version).group(1)
-
-    >>> check_guild_version(f"=={guild_version_without_dev}")
-    True
-
 ## Format duration
 
     >>> from guild.util import format_duration as fd
