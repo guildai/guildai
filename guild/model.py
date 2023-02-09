@@ -263,41 +263,44 @@ class ModelImporter:
     undef = object()
 
     def __init__(self, path):
-        if not self._is_guildfile_dir(path):
+        if not _is_guildfile_dir(path):
             raise ModelImportError(path)
         self.path = path
         self._dist = self.undef  # lazy
 
-    @staticmethod
-    def _is_guildfile_dir(path):
-        return os.path.abspath(path) == os.path.abspath(
-            config.cwd()
-        ) or guildfile.is_guildfile_dir(path)
-
     @property
     def dist(self):
         if self._dist is self.undef:
-            self._dist = self._init_dist()
+            self._dist = _init_guildfile_dist(self.path)
         return self._dist
-
-    def _init_dist(self):
-        if not os.path.isdir(self.path):
-            return None
-        try:
-            gf = guildfile.for_dir(self.path)
-        except guildfile.NoModels:
-            return None
-        except Exception as e:
-            if log.getEffectiveLevel() <= logging.DEBUG:
-                log.exception(self.path)
-            log.error("error loading guildfile from %s: %s", self.path, e)
-            return BadGuildfileDistribution(self.path)
-        else:
-            return GuildfileDistribution(gf)
 
     @staticmethod
     def find_module(_fullname, _path=None):
         return None
+
+
+def _init_guildfile_dist(path):
+    if not os.path.isdir(path):
+        return None
+    try:
+        gf = guildfile.for_dir(path)
+    except guildfile.NoModels:
+        return None
+    except Exception as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception(path)
+        log.error("error loading guildfile from %s: %s", path, e)
+        return BadGuildfileDistribution(path)
+    else:
+        return GuildfileDistribution(gf)
+
+
+def _is_guildfile_dir(path):
+    return guildfile.is_guildfile_dir(path) or _is_cwd(path)
+
+
+def _is_cwd(path):
+    return os.path.abspath(path) == os.path.abspath(config.cwd())
 
 
 def _model_finder(importer, path, _only=False):
@@ -385,4 +388,13 @@ def _register_model_finder():
     pkg_resources.register_finder(ModelImporter, _model_finder)
 
 
-_register_model_finder()
+# TODO: This needs to be removed as we don't need to customize module
+# loading. The original intention was use Python's module import
+# mechanism (PEP 302) as a facility to load Guild models. This is tied
+# to Guild's original vision as a software packaging system, where
+# models behave like distributions. It's not clear there's any benefit
+# to this. Note that removing this will trigger a consider refactoring
+# effort throughout the code base.
+
+if os.getenv("NO_GUILD_MODEL_FINDER") != "1":
+    _register_model_finder()

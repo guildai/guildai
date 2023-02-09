@@ -32,7 +32,6 @@ tests or deleting them from the suite.
     # imports.md:2: doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr to stdout)
     # uat/evaluate-mnist-intro-example.md:2: doctest: +FIXME  # Example needs to be updated
     # uat/mnist-example-runs-after-intro-evaluate.md:2: doctest: +FIXME  # Dep on evaluate-mnist-intro-example.md
-    # uat/project-sourcecode.md:2: doctest: +FIXME  # Appears that Guild has a bug - MUST FIX
     # uat/r-basic.md:2: doctest: +FIXME -WINDOWS  # Need to clean this up for 0.9!!
     # uat/remote-azure-blob.md:2: doctest: +FIXME  # Need to reinstate test account with MS
     # uat/tensorflow2.md:6: doctest: +FIXME  # Shows our TF summary patching is broken

@@ -123,9 +123,28 @@ def _parse_args():
 
 def _apply_plugins():
     plugins = os.getenv("GUILD_PLUGINS")
-    if plugins:
-        for name in plugins.split(","):
-            _apply_plugin(name)
+    if not plugins:
+        return
+    _fix_guild_model_finder()
+    for name in plugins.split(","):
+        _apply_plugin(name)
+
+
+def _fix_guild_model_finder():
+    """Preemptively loads `guild.model` without registering a model finder.
+
+    For reasons that date back to early development, Guild uses
+    Python's `sys.path_hooks` to register a model finder that resolved
+    Guild file operations via Python's module loading mechanism. This
+    facility is slated for removal, however, in the meantime there is
+    an issue running Python operations that load packages (submodules)
+    that contain Guild files.
+
+    The workaround is to load `guild.module` with the environment
+    variable `NO_GUILD_MODEL_FINDER` set to `1`.
+    """
+    with util.Env({"NO_GUILD_MODEL_FINDER": "1"}):
+        import guild.model as _
 
 
 def _apply_plugin(name):
