@@ -323,6 +323,7 @@ def _check_kw(args):
         "check_url",
         "concurrency",
         "external",
+        "force_test",
         "force_uat",
         "no_chrome",
         "no_info",
