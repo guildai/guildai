@@ -231,12 +231,11 @@ def _gen_ac_command(directive_filter, regex_filter, incomplete):
         "/bin/sh",
         "-c",
         (
-            "/bin/ls $(echo $PATH "
-            "| /bin/tr ':' ' ') "
-            "| /bin/grep -v '/' "
-            "| /bin/grep . "
-            "| /bin/sort "
-            "| /bin/uniq"
+            "/bin/ls $(echo $PATH | /usr/bin/tr ':' ' ') "
+            "| /usr/bin/grep -v '/' "
+            "| /usr/bin/grep . "
+            "| /usr/bin/sort "
+            "| /usr/bin/uniq"
         ),
     ]
     out = subprocess.check_output(cmd, stderr=subprocess.DEVNULL)
