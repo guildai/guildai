@@ -180,7 +180,7 @@ def ensure_dvc_repo(run_dir, project_dir, resolved_repo_paths):
     _ensure_git_repo(run_dir, resolved_repo_paths)
     _ensure_dvc_config(run_dir, project_dir, resolved_repo_paths)
     _ensure_shared_dvc_cache(run_dir, project_dir, resolved_repo_paths)
-    _ensure_dvc_interim_stubs(run_dir, resolved_repo_paths)
+    _ensure_dvc_internal_stubs(run_dir, resolved_repo_paths)
 
 
 def _ensure_git_repo(run_dir, resolved_repo_paths):
@@ -260,7 +260,7 @@ def _ensure_shared_dvc_cache(run_dir, project_dir, resolved_repo_paths):
     resolved_repo_paths.append(dest)
 
 
-def _ensure_dvc_interim_stubs(run_dir, resolved_repo_paths):
+def _ensure_dvc_internal_stubs(run_dir, resolved_repo_paths):
     _ensure_dvc_gitignore(run_dir, resolved_repo_paths)
     _ensure_dvc_tmpdir(run_dir, resolved_repo_paths)
 

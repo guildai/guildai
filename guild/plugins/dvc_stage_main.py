@@ -125,16 +125,16 @@ def _init_dvc_repo(state):
         raise SystemExit(str(e)) from e
     else:
         state.manifest_entries.extend(
-            _interim_file_entries_for_repo_paths(repo_paths, state)
+            _internal_file_entries_for_repo_paths(repo_paths, state)
         )
 
 
-def _interim_file_entries_for_repo_paths(repo_paths, state):
-    return [_interim_file_entry_for_path(path, state) for path in repo_paths]
+def _internal_file_entries_for_repo_paths(repo_paths, state):
+    return [_internal_file_entry_for_path(path, state) for path in repo_paths]
 
 
-def _interim_file_entry_for_path(path, state):
-    return run_manifest.interim_file_args(
+def _internal_file_entry_for_path(path, state):
+    return run_manifest.internal_file_args(
         state.run_dir,
         os.path.relpath(path, state.run_dir),
         state.source_uri,
@@ -149,7 +149,7 @@ def _copy_dvc_yaml(state):
     if not os.path.exists(src):
         raise SystemExit("missing dvc.yaml - cannot run DvC stage")
     util.copyfile(src, dest)
-    state.manifest_entries.append(_interim_file_entry_for_path(dest, state))
+    state.manifest_entries.append(_internal_file_entry_for_path(dest, state))
 
 
 def _resolve_deps(state):
@@ -292,7 +292,7 @@ def _repro_run(state):
     if not _debug_enabled():
         cmd.append("--quiet")
     log.info("Running stage '%s'", state.target_stage)
-    state.manifest_entries.extend(_interim_file_entries_for_repro_cmd(state))
+    state.manifest_entries.extend(_internal_file_entries_for_repro_cmd(state))
     p = subprocess.Popen(cmd, cwd=state.run_dir)
     returncode = p.wait()
     if returncode != 0:
@@ -306,12 +306,12 @@ def _debug_enabled():
     return log.getEffectiveLevel() <= logging.DEBUG
 
 
-def _interim_file_entries_for_repro_cmd(state):
+def _internal_file_entries_for_repro_cmd(state):
     # Files implicitly created when running `dvc repro` - these are
-    # logged as interim files so as not to be treated as generated
+    # logged as internal files so as not to be treated as generated
     relpaths = [".gitignore", "dvc.lock"]
     return [
-        _interim_file_entry_for_path(
+        _internal_file_entry_for_path(
             os.path.join(state.run_dir, path),
             state,
         )

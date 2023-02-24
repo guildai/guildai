@@ -255,7 +255,7 @@ class DvcFileResolver(resolverlib.FileResolver):
         run_dir = resolve_context.run.dir
         project_dir = self.resource.location
         repo_paths = _ensure_dvc_repo(run_dir, project_dir)
-        _log_interim_files(repo_paths, run_dir, self.source.uri)
+        _log_internal_files(repo_paths, run_dir, self.source.uri)
         remote = self.source.remote
         pulled_dep_path = _pull_dvc_dep(dep, run_dir, project_dir, remote=remote)
         return [pulled_dep_path]
@@ -271,11 +271,11 @@ def _ensure_dvc_repo(run_dir, project_dir):
         return repo_paths
 
 
-def _log_interim_files(paths, run_dir, source):
+def _log_internal_files(paths, run_dir, source):
     with run_manifest.manifest_for_run(run_dir, mode="a") as m:
         for path in sorted(paths):
             relpath = os.path.relpath(path, run_dir)
-            m.write(run_manifest.interim_file_args(run_dir, relpath, source))
+            m.write(run_manifest.internal_file_args(run_dir, relpath, source))
 
 
 def _pull_dvc_dep(dep, run_dir, project_dir, remote=None):

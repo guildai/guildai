@@ -166,8 +166,8 @@ def generic_dependency_args(run_dir, run_relative_path, source_uri, subpath=None
     )
 
 
-def interim_file_args(run_dir, run_relative_path, source_uri, subpath=None):
-    """Returns manifest args for an interim file or directory.
+def internal_file_args(run_dir, run_relative_path, source_uri, subpath=None):
+    """Returns manifest args for an internal file or directory.
 
     Args:
 

@@ -78,7 +78,11 @@ which bypasses any explicitly set value in the VM.
     >>> from guild.config import default_guild_home
 
     >>> def guild_home_for_dir(dir, config=None, extra_env=None):
-    ...     env = {"GUILD_HOME": ""}
+    ...     env = {
+    ...         "GUILD_HOME": "",
+    ...         "VIRTUAL_ENV": "",
+    ...         "CONDA_PREFIX": "",
+    ...     }
     ...     if extra_env:
     ...         env.update(extra_env)
     ...     with SetUserConfig(config or {}):
