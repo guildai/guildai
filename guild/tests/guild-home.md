@@ -103,9 +103,11 @@ under such environment locations.
 Guild infers an activate environment using environment variables.
 
 Create a sample virtual environment with Guild home as a `.guild`
-subdirectory.
+subdirectory. We use `realpath()` here to match the output from
+`default_guild_home()`, which resolves returned values to their real
+path.
 
-    >>> env_home = mkdtemp()
+    >>> env_home = os.path.realpath(mkdtemp())
     >>> real_guild_home = path(env_home, ".guild")
     >>> mkdir(real_guild_home)
 
