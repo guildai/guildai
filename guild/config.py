@@ -153,12 +153,35 @@ def _user_home():
 def _guild_home_current_scheme():
     """Returns the Guild home directory using the current scheme.
 
-    Returns the path to `.guild` from the current directory. If the
-    current directory doesn't contain `.guild`, applies the scheme to
-    the parent directory up until the user home directory. If `.guild`
-    does not exist in any of the directories, returns the real path to
-    `~/.guild`.
+    The current scheme checks for Guild home in two locations:
+
+    - Under an activated virtual environment
+    - In `.guild` from the current directory up to user home
+
     """
+    return _explicit_activated_env_guild_home() or _dot_guild_for_cwd()
+
+
+def _explicit_activated_env_guild_home():
+    """Returns the path to `.guild` for an acticated env."""
+    activated_env = _find_apply([_conda_home, _virtualenv_home])
+    if not activated_env:
+        return None
+    maybe_guild_home = os.path.realpath(os.path.join(activated_env, ".guild"))
+    if not os.path.isdir(maybe_guild_home):
+        return None
+    return maybe_guild_home
+
+
+def _dot_guild_for_cwd():
+    """Returns the path to `.guild` for the current directory.
+
+    If the current directory doesn't contain `.guild`, applies the
+    scheme to the parent directory up until the user home
+    directory. If `.guild` does not exist in any of the directories,
+    returns the real path to `~/.guild`.
+    """
+
     from guild import file_util
 
     user_home = _user_home()

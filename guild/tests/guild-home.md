@@ -63,12 +63,68 @@ If Guild Home is not otherwise specified (see above) Guild uses the
 following scheme to locate Guild home relative to the current
 directory:
 
+- Use `.guild` directory in an activated virtual env (Conda or Virtual
+  env)
 - Use `.guild` directory in the current directory, if it exists
 - Otherwise look in the current directory parent for `.guild` and use
   it, if it exists
 - Otherwise continue looking in subsequent parent directories for
   `.guild` stopping at the user home directory or the volume root
   directory
+
+Helper to get Guild home using `guild.config.default_guild_home()`,
+which bypasses any explicitly set value in the VM.
+
+    >>> from guild.config import default_guild_home
+
+    >>> def guild_home_for_dir(dir, config=None, extra_env=None):
+    ...     env = {"GUILD_HOME": ""}
+    ...     if extra_env:
+    ...         env.update(extra_env)
+    ...     with SetUserConfig(config or {}):
+    ...         with SetCwd(dir):
+    ...             with Env(env):
+    ...                 return default_guild_home()
+
+Get user home (used in tests below).
+
+    >>> user_home = os.path.expanduser("~")
+
+### `.guild` from an activated virtual env
+
+To preserve backward compatibility with existing Guild home locations
+under activate virtual environments, Guild first checks for `.guild`
+under such environment locations.
+
+Guild infers an activate environment using environment variables.
+
+Create a sample virtual environment with Guild home as a `.guild`
+subdirectory.
+
+    >>> env_home = mkdtemp()
+    >>> real_guild_home = path(env_home, ".guild")
+    >>> mkdir(real_guild_home)
+
+Standard Python veirtual environment:
+
+    >>> gh = guild_home_for_dir("unused", extra_env={"VIRTUAL_ENV": env_home})
+    >>> gh == real_guild_home, (gh, real_guild_home)
+    (True, ...)
+
+Conda virtual environment:
+
+    >>> gh = guild_home_for_dir("unused", extra_env={"CONDA_PREFIX": env_home})
+    >>> gh == real_guild_home, (gh, real_guild_home)
+    (True, ...)
+
+If there is no known activate environment, Guild uses `.guild` under
+user home for invalid directory locations.
+
+    >>> gh = guild_home_for_dir("unused")
+    >>> gh == path(user_home, ".guild"), (gh, user_home)
+    (True, ...)
+
+### `.guild` from current directory
 
 Let's demonstrate using a sample nested hiearchy.
 
@@ -91,20 +147,6 @@ References to these directories:
     >>> a_dir = path(tmp, "a")
     >>> ab_dir = path(tmp, "a", "b")
     >>> abc_dir = path(tmp, "a", "b", "c")
-
-Helper to get Guild home using `guild.config.default_guild_home()`,
-which bypasses any explicitly set value in the VM.
-
-    >>> from guild.config import default_guild_home
-
-    >>> def guild_home_for_dir(dir, config=None, extra_env=None):
-    ...     env = {"GUILD_HOME": ""}
-    ...     if extra_env:
-    ...         env.update(extra_env)
-    ...     with SetUserConfig(config or {}):
-    ...         with SetCwd(dir):
-    ...             with Env(env):
-    ...                 return default_guild_home()
 
 Guild home for `a/b/c` is `a/b/c/.guild`.
 
@@ -135,10 +177,6 @@ uses `~/.guild` as Guild home when it's not otherwise specified by
 Config indicating pre-0.9 Guild home scheme:
 
     >>> pre0_9_config = {"legacy": {"guild-home": "pre-0.9"}}
-
-User home:
-
-    >>> user_home = os.path.expanduser("~")
 
 We need to remove `VIRTUAL_ENV` and `CONDA_PREFIX` to ensure these
 aren't used, if set.
