@@ -40,6 +40,7 @@ PYTHON_REQ_P = re.compile(r"^\s*#\s*python(\S+?)\s*$", re.MULTILINE)
 class Config:
     def __init__(self, args):
         self.env_dir = os.path.abspath(args.dir)
+        self.venv = args.venv
         self.env_name = self._init_env_name(args.name, self.env_dir)
         self.guild = args.guild
         self.guild_home = self._init_guild_home(args)
@@ -207,20 +208,26 @@ def _implicit_guild_version():
 
 
 def main(args):
-    _error_if_active_env()
+    _maybe_venv(args)
     config = Config(args)
-    if args.yes or _confirm(config):
+    if not args.venv or args.yes or _confirm(config):
         _init(config)
 
 
-def _error_if_active_env():
-    active_env = os.getenv("VIRTUAL_ENV")
-    if active_env:
-        cli.error(
-            f"cannot run init from an activated environment ({active_env})\n"
-            "Deactivate the environment by running 'deactivate' "
-            "and try again."
-        )
+def _maybe_venv(args):
+    """Sets `args.venv` to `True` if venv related config is specified."""
+    args.venv = (
+        args.venv
+        or args.name
+        or args.python
+        or args.guild
+        or args.system_site_packages
+        or args.requirement
+        or args.path
+        or args.no_reqs
+        or args.pre_release
+    )
+    args.dir = args.dir or ("venv" if args.venv else ".")
 
 
 def _confirm(config):
@@ -236,6 +243,13 @@ def _confirm(config):
 
 
 def _init(config):
+    if config.venv:
+        _init_with_venv(config)
+    else:
+        _init_guild_env(config)
+
+
+def _init_with_venv(config):
     _test_symlinks()
     _init_guild_env(config)
     _init_venv(config)

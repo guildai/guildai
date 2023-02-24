@@ -53,18 +53,27 @@ def _ac_dir(_ctx, _param, incomplete):
 
 
 @click.command()
-@click.argument("dir", default="venv", shell_complete=_ac_dir)
+@click.argument("dir", default=None, required=False, shell_complete=_ac_dir)
+@click.option(
+    "--venv",
+    is_flag=True,
+    help=(
+        "Creates a virtual environment in DIR. This option "
+        "enabled pre-0.9 init behavior and is implied when "
+        "specifying any of the virtual environment settings below."
+    ),
+)
 @click.option(
     "-n",
     "--name",
     metavar="NAME",
-    help="Environment name (default is env parent directory name).",
+    help=("Environment name (default is env parent directory name). Implies `--venv`."),
 )
 @click.option(
     "-p",
     "--python",
     metavar="VERSION",
-    help="Version of Python to use for the environment.",
+    help=("Version of Python to use for the environment. Implies `--venv`."),
     shell_complete=_ac_python,
 )
 @click.option(
@@ -72,9 +81,10 @@ def _ac_dir(_ctx, _param, incomplete):
     "--guild",
     metavar="VERSION_OR_PATH",
     help=(
-        "Version of Guild AI to use for the environment. "
-        "By default, the active version of Guild is installed. This "
-        "value may alternatively be a path to a Guild wheel distribution."
+        "Version of Guild AI to use for the environment. The activate "
+        "version of Guild is installed by default. This value may "
+        "alternatively be a path to a Guild wheel distribution. Implies "
+        "`--venv`."
     ),
     shell_complete=_ac_guild_version_or_path,
 )
@@ -82,7 +92,7 @@ def _ac_dir(_ctx, _param, incomplete):
     "-s",
     "--system-site-packages",
     is_flag=True,
-    help="Give environment access to system site packages.",
+    help="Give environment access to system site packages. Implies `--venv`.",
 )
 @click.option(
     "-H",
@@ -90,7 +100,7 @@ def _ac_dir(_ctx, _param, incomplete):
     is_flag=True,
     help=(
         "Use current Guild home for the environment. Ignored if `--guild-home` "
-        "is also specified, this option is ignored."
+        "is specified."
     ),
 )
 @click.option(
@@ -98,8 +108,8 @@ def _ac_dir(_ctx, _param, incomplete):
     "--guild-home",
     metavar="PATH",
     help=(
-        "Alternative Guild home location associated with the environment. "
-        "By default, Guild home is '.guild' in the environment directory."
+        "Alternative Guild home location for with the environment. "
+        "By default, Guild home is '.guild' in `DIR`."
     ),
     shell_complete=_ac_guild_home,
 )
@@ -110,7 +120,7 @@ def _ac_dir(_ctx, _param, incomplete):
     multiple=True,
     help=(
         "Install required package or packages defined in a file. May be "
-        "used multiple times."
+        "used multiple times. Implies `--venv`."
     ),
     shell_complete=_ac_requirement,
 )
@@ -119,7 +129,7 @@ def _ac_dir(_ctx, _param, incomplete):
     "--path",
     metavar="DIR",
     multiple=True,
-    help="Include DIR as a Python path in the environment.",
+    help="Include DIR as a Python path in the environment. Implies `--venv`.",
     shell_complete=_ac_dir,
 )
 @click.option(
@@ -127,7 +137,7 @@ def _ac_dir(_ctx, _param, incomplete):
     is_flag=True,
     help=(
         "Don't install from requirements.txt or guild.yml in environment "
-        "parent directory."
+        "parent directory. Implies `--venv`."
     ),
 )
 @click.option(
@@ -145,24 +155,43 @@ def _ac_dir(_ctx, _param, incomplete):
 @click.option(
     "--no-progress",
     is_flag=True,
-    help="Don't show progress when installing environment packages.",
+    help=(
+        "Don't show progress when installing environment packages. Ignored "
+        "if a virtual environment is not created."
+    ),
 )
 @click.option(
     "--pre",
     "pre_release",
     is_flag=True,
-    help="Install pre-release versions of applicable packages.",
+    help="Install pre-release versions of applicable packages. Implies `--venv`.",
 )
 @click_util.use_args
 def init(args):
     """Initialize a Guild environment.
 
-    `init` initializes a Guild environment in `DIR`, which is the
-    current directory by default.
+    By default, creates `.guild` under `DIR`, or the current directory
+    if `DIR` is omitted.
 
-    `init` creates a virtual environment in `DIR` using the `venv`
-    module if available or the `virtualenv` program if `venv` is not
-    available.
+    NOTE: As of 0.9, this command does NOT create a virtual directory
+    in `DIR`. To enable pre-0.9 behavior, specify `--venv` along with
+    any of the applicable virtual environment options. We recommend
+    creating a virtual environment using standard tools rather than
+    using this command. Backward compatibility will be maintained via
+    the `--venv` option.
+
+    Options that are associated with virtual environments are noted as
+    such below.
+
+    ### Resource Cache
+
+    By default resources are cached and shared at the user level in
+    `~/.guild/cache/resources` so that resources downloaded from one
+    environment are available to other environments. You can modify
+    this behavior to have all resources downloaded local to the
+    environment by specifying `--local-resource-cache`.
+
+    ### Python Interpreter (virtual environments only)
 
     Use `--python` to specify the Python interpreter to use within the
     generated virtual environment. By default, the default Python
@@ -170,7 +199,7 @@ def init(args):
     listed as a requirement. If `no-venv` is specified, `--python` is
     ignored.
 
-    ### Requirements
+    ### Requirements (virtual environments only)
 
     By default, any required packages listed under packages.requires
     in `guild.yml` in the environment parent directory are installed
@@ -193,20 +222,11 @@ def init(args):
     not automatically install packages in `requirements.txt` -- that
     file must be specified explicitly in the command.
 
-    ### Guild AI Version
+    ### Guild AI Version (virtual environments only)
 
     By default `init` installs the active version of Guild AI in the
     initialized environment. To install a different version, or to
     install a Guild wheel distribution file use the `--guild` option.
-
-    ### Resource Cache
-
-    By default resources are cached and shared at the user level in
-    `~/.guild/cache/resources` so that resources downloaded from one
-    environment are available to other environments. You can modify
-    this behavior to have all resources downloaded local to the
-    environment by specifying `--local-resource-cache`.
-
     """
     from . import init_impl
 

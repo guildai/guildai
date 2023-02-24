@@ -13,13 +13,14 @@ For this test we'll use the `init-env` project.
 We'll work with the internals of `init_impl` to generate the prompt
 parameters for the init command.
 
-Here's a helper function to generate a Config object.
+Create a helper function to generate an init Config object.
 
     >>> def config(**kw):
     ...   from guild import config as configlib
     ...   from guild import click_util
     ...   arg_kw = dict(
     ...     dir=join_path(project_dir, "venv"),
+    ...     venv=False,
     ...     name=None,
     ...     python=None,
     ...     guild=None,
@@ -39,8 +40,7 @@ Here's a helper function to generate a Config object.
     ...   with configlib.SetCwd(project_dir):
     ...     return init_impl.Config(args)
 
-Here's the default prompt, assuming we're creating the environment
-within the project directory:
+Show a prompt for creating an env within the project directory.
 
     >>> pprint(config().prompt_params)
     [('Location', '.../samples/projects/init-env/venv'),
@@ -55,20 +55,22 @@ within the project directory:
        'tensorflow...')),
      ('Resource cache', 'shared')]
 
-## Requires Guild packages
+## Required Guild packages
 
-Guild init attempts to install package requirements. It will traverse
-required Guild packages to find non Guild packages to install provided
-the user provides package locations using `-p, --path` options.
+Guild init attempts to install Guild package requirements. It
+traverses required Guild packages to find non Guild packages to
+install when the user provides package locations using `-p, --path`
+options.
 
 In the case above, we didn't provide the location of the `pkg-a` and
-`pkg-b`, so the prompt shows that these will be installed.
+`pkg-b`, so the prompt shows that only these will be installed and not
+their dependencies.
 
 If we specify the location of these packages, init will read any Guild
-files in those packages and install those. The rationale for this
-behavior is that if the package can be found on one of the paths
-specified by `--path` it should not be installed as it will be
-available on the Python path configured for the environment.
+files in those packages and install them. The rationale is that if the
+package can be found on one of the paths specified by `--path` it
+should not be installed as it will be available on the Python path
+configured for the environment.
 
 Here's the preview when we specify the location of `pkg-a` and `pkg-b`
 using a `--path` option.
@@ -88,9 +90,9 @@ using a `--path` option.
      ('Additional paths', ('.../samples/projects/init-env',)),
      ('Resource cache', 'shared')]
 
-Note that there are cycles in the Guild package requirements in the
-sample project: `pkg-a` requires `pkg-b` and vise-versa. Guild init
-stop traversing package requirements if it's already processed a Guild
+There are cycles in the Guild package requirements in the sample
+project: `pkg-a` requires `pkg-b` and vise-versa. Guild init stops
+traversing package requirements if it's already processed a Guild
 file.
 
 ## Guild home
@@ -132,13 +134,14 @@ The module `guild.init` is used to perform initialization.
 
 ### Init Guild env
 
-Use `init_env` to initialize a Guild environment.
+The `init_env` function initializes an environment for a specified
+directory.
 
-Our target directory:
+Create a target directory.
 
     >>> env_dir = mkdtemp()
 
-Initialize an env:
+Initialize the environment.
 
     >>> init.init_env(env_dir)
 
