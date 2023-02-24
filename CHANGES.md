@@ -1,5 +1,28 @@
 # Changes
 
+## 0.9.0
+
+- Comprehensive support for R based scripts (R plugin)
+- Change default location of source code to run directory root
+- Use `.guild` directories as default `GUILD_HOME`
+- Support for Python 3.11
+- Drop tests for Python 3.6
+- Bring scikit-learn under Guild repo (version 0.9)
+- Bug fixes
+
+## 0.8.2
+
+- Merge command
+- Run file manifest to track copied run files
+- Guild file schema
+- Commands for API level functionality
+- Dark mode for TensorBoard
+- Support latest versions of scikit-learn
+- Support for PowerShell and pwsh on Windows
+- Support for debugging via debugpy
+- Bug fixes
+- Officially drop support for Python 2
+
 ## 0.8.1
 
 ### NOTE: if you use guild's autocomplete functionality, you will need to re-install the completion scripts, as they have changed. It should be sufficient to run `guild completion --install`.
