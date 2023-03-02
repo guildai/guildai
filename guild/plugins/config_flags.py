@@ -108,15 +108,15 @@ def _load_flags_json(src):
 
 def _load_flags_cfg(src):
     import configparser
+    from guild import yaml_util
 
-    config = configparser.ConfigParser()
+    config = configparser.ConfigParser(default_section=None)
     config.read(src)
-    data = {
-        name: _read_typed_cfg(config, "DEFAULT", name) for name in config.defaults()
-    }
+    ##data = {key: yaml_util.decode_yaml(val) for key, val in config.defaults().items()}
+    data = {}
     for section in config.sections():
         for name in config.options(section):
-            val = _read_typed_cfg(config, section, name)
+            val = yaml_util.decode_yaml(config.get(section, name))
             data[f"{section}.{name}"] = val
     return data
 

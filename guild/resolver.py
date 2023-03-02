@@ -527,13 +527,13 @@ class ConfigResolver(FileResolver):
     def _cfg_load(path):
         import configparser
 
-        config = configparser.ConfigParser()
+        config = configparser.ConfigParser(default_section=None)
         config.read(path)
-        data = dict(config.defaults())
+        data = {}
         for section in config.sections():
             section_data = data.setdefault(section, {})
             for name in config.options(section):
-                section_data[name] = config.get(section, name)
+                section_data[name] = yaml_util.decode_yaml(config.get(section, name))
         return data
 
     def _apply_params(self, config):
@@ -625,15 +625,15 @@ class ConfigResolver(FileResolver):
         import io
         import configparser
 
-        cfg = configparser.ConfigParser()
+        cfg = configparser.ConfigParser(default_section=None)
         io = io.StringIO()
         for key, val in sorted(config_data.items()):
             if isinstance(val, dict):
                 cfg.add_section(key)
                 for option, option_val in sorted(val.items()):
-                    cfg.set(key, option, str(option_val))
+                    cfg.set(key, option, yaml_util.encode_yaml(option_val))
             else:
-                cfg.set(configparser.DEFAULTSECT, key, str(val))
+                cfg.set(configparser.DEFAULTSECT, key, yaml_util.encode_yaml(val))
         cfg.write(io)
         return io.getvalue()
 

@@ -37,12 +37,14 @@ We use the `config-flags` sample project for the tests below.
     <BLANKLINE>
         cfg
           Flags:
-            b      (default is yes)
-            foo.b  (default is 0)
-            foo.f  (default is 2.234)
-            foo.i  (default is 456)
-            foo.s  (default is bye)
-            i      (default is 123)
+            DEFAULT.b  (default is yes)
+            DEFAULT.f  (default is 1.123)
+            DEFAULT.i  (default is 123)
+            DEFAULT.s  (default is 'hello there')
+            foo.b      (default is 0)
+            foo.f      (default is 2.234)
+            foo.i      (default is 456)
+            foo.s      (default is bye)
     <BLANKLINE>
         cfg-2
           Flags:
@@ -50,15 +52,30 @@ We use the `config-flags` sample project for the tests below.
             i  (default is 456)
             s  (default is bye)
     <BLANKLINE>
-       explicit-no-replace
-         Flags:
-           b    (default is yes)
-           d.a  (default is A)
-           d.b  (default is B)
-           f    (default is 2.234)
-           i    (default is 456)
-           l    (default is '1 2 abc')
-           s    (default is 'flu flam')
+        cfg-3
+          Flags:
+            DEFAULT.b  (default is yes)
+            DEFAULT.f  (default is 1.123)
+            DEFAULT.i  (default is 123)
+            DEFAULT.s  (default is 'hello there')
+            a.b.b      (default is 0)
+            a.b.c.b    (default is no)
+            a.b.c.f    (default is 3.321)
+            a.b.c.i.1  (default is 789)
+            a.b.c.i.2  (default is 10)
+            a.b.c.s    (default is hi.again)
+            a.b.i      (default is 456)
+            a.b.s      (default is bye)
+    <BLANKLINE>
+        explicit-no-replace
+          Flags:
+            b    (default is yes)
+            d.a  (default is A)
+            d.b  (default is B)
+            f    (default is 2.234)
+            i    (default is 456)
+            l    (default is '1 2 abc')
+            s    (default is 'flu flam')
     <BLANKLINE>
         json
           Flags:
@@ -73,6 +90,7 @@ We use the `config-flags` sample project for the tests below.
           Flags:
             aa  (default is A)
             bb  (default is BB)
+    <BLANKLINE>
         json-in
           Flags:
             b    (default is yes)
@@ -263,10 +281,10 @@ The original config file:
 When run with default values we get the same content. Note the order
 of options is sorted.
 
-    >>> run("guild run cfg -y")
+    >>> run("guild run cfg -y")  # doctest: +REPORT_UDIFF
     Resolving config:flags.cfg
     [DEFAULT]
-    b = True
+    b = true
     f = 1.123
     i = 123
     s = hello there
@@ -279,31 +297,33 @@ of options is sorted.
 
 Run with modified flags.
 
-    >>> run("guild run cfg b=no i=321 foo.b=yes foo.f=432.2 foo.s='hej hej' -y")
+    >>> run("guild run cfg DEFAULT.b=no DEFAULT.i=321 foo.b=yes "
+    ...     "foo.f=432.2 foo.s='hej hej' -y")
+    ... # doctest: +REPORT_UDIFF
     Resolving config:flags.cfg
     [DEFAULT]
-    b = False
+    b = false
     f = 1.123
     i = 321
     s = hello there
     <BLANKLINE>
     [foo]
-    b = True
+    b = true
     f = 432.2
     i = 456
     s = hej hej
 
 Guild generates a run specific config file.
 
-    >>> run("guild cat -p flags.cfg")
+    >>> run("guild cat -p flags.cfg")  # doctest: +REPORT_UDIFF
     [DEFAULT]
-    b = False
+    b = false
     f = 1.123
     i = 321
     s = hello there
     <BLANKLINE>
     [foo]
-    b = True
+    b = true
     f = 432.2
     i = 456
     s = hej hej
@@ -313,10 +333,10 @@ Guild generates a run specific config file.
 The `cfg-2` operation maps alternative flag names to various INI
 entries.
 
-    >>> run("guild run cfg-2 i=222 -y")
+    >>> run("guild run cfg-2 i=222 -y")  # doctest: +REPORT_UDIFF
     Resolving config:flags.cfg
     [DEFAULT]
-    b = yes
+    b = true
     f = 1.123
     i = 123
     s = hello there
@@ -327,7 +347,152 @@ entries.
     i = 222
     s = bye
 
-    >> 'TODO: tests for moved encode_cfg from util'
+Note that the flag assignment `i=222` results in `foo.i` being set to
+`222`. This is by design according to the operation config, which maps
+flags to alternative arg names (arg names being used in this case to
+specify target section/options in the INI file).
+
+### CFG v3
+
+`cfg-3` uses `cfg-2.ini` to define flags, which uses dots in names
+(dot-name keys).
+
+Show the original INI file.
+
+    >>> cat("flags-2.ini")
+    [DEFAULT]
+    # Values applied to sections below when not otherwise defined
+    i = 123
+    f = 1.123
+    s = hello there
+    b = yes
+    <BLANKLINE>
+    [a.b]
+    i = 456
+    s = bye
+    b = 0
+    <BLANKLINE>
+    [a.b.c]
+    i.1 = 789
+    i.2 = 012
+    f = 3.321
+    s = hi.again
+    b = False
+
+Run `cfg-3` without specifying flag values.
+
+    >>> run("guild run cfg-3 -y")  # doctest: +REPORT_UDIFF
+    Resolving config:flags-2.ini
+    [DEFAULT]
+    b = true
+    f = 1.123
+    i = 123
+    s = hello there
+    <BLANKLINE>
+    [a.b]
+    b = 0
+    i = 456
+    s = bye
+    <BLANKLINE>
+    [a.b.c]
+    b = false
+    f = 3.321
+    i.1 = 789
+    i.2 = 10
+    s = hi.again
+
+Run the operation specifying various flag values.
+
+    >>> run("guild run cfg-3 DEFAULT.i=222 DEFAULT.b=no a.b.i=333 "
+    ...     "a.b.c.s='bye again' a.b.c.b=yes -y")
+    ... # doctest: +REPORT_UDIFF
+    Resolving config:flags-2.ini
+    [DEFAULT]
+    b = false
+    f = 1.123
+    i = 222
+    s = hello there
+    <BLANKLINE>
+    [a.b]
+    b = 0
+    i = 333
+    s = bye
+    <BLANKLINE>
+    [a.b.c]
+    b = true
+    f = 3.321
+    i.1 = 789
+    i.2 = 10
+    s = bye again
+
+Use `--force-flags` to insert values that aren't defined in the
+original INI file.
+
+    >>> run("guild run cfg-3 a.b.b=true a.b.new-attr=444 a.b.c.new-attr-2='hola' "
+    ...     "--force-flags -y")
+    ... # doctest: +REPORT_UDIFF
+    Resolving config:flags-2.ini
+    [DEFAULT]
+    b = true
+    f = 1.123
+    i = 123
+    s = hello there
+    <BLANKLINE>
+    [a.b]
+    b = true
+    i = 456
+    new-attr = 444
+    s = bye
+    <BLANKLINE>
+    [a.b.c]
+    b = false
+    f = 3.321
+    i.1 = 789
+    i.2 = 10
+    new-attr-2 = hola
+    s = hi.again
+
+    >>> run("guild run cfg-3 DEFAULT.f=777.0 -y")
+    Resolving config:flags-2.ini
+    [DEFAULT]
+    b = true
+    f = 777.0
+    i = 123
+    s = hello there
+    <BLANKLINE>
+    [a.b]
+    b = 0
+    i = 456
+    s = bye
+    <BLANKLINE>
+    [a.b.c]
+    b = false
+    f = 3.321
+    i.1 = 789
+    i.2 = 10
+    s = hi.again
+
+Apply new flag values to options containing dots.
+
+    >>> run("guild run cfg-3 a.b.c.i.1=888 a.b.c.i.2=999 -y")
+    Resolving config:flags-2.ini
+    [DEFAULT]
+    b = true
+    f = 1.123
+    i = 123
+    s = hello there
+    <BLANKLINE>
+    [a.b]
+    b = 0
+    i = 456
+    s = bye
+    <BLANKLINE>
+    [a.b.c]
+    b = false
+    f = 3.321
+    i.1 = 888
+    i.2 = 999
+    s = hi.again
 
 ### `.in` files
 

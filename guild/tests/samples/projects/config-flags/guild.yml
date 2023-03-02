@@ -76,6 +76,11 @@
         s:
           arg-name: foo.s
 
+    cfg-3:
+      main: config_cfg flags-2.ini
+      flags-dest: config:flags-2.ini
+      flags-import: all
+
     test-args-1:
       main: test_args
       flags-dest: config:empty.json
