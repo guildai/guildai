@@ -622,7 +622,20 @@ class ConfigResolver(FileResolver):
 
     @staticmethod
     def _cfg_encode(config_data):
-        return util.encode_cfg(config_data)
+        import io
+        import configparser
+
+        cfg = configparser.ConfigParser()
+        io = io.StringIO()
+        for key, val in sorted(config_data.items()):
+            if isinstance(val, dict):
+                cfg.add_section(key)
+                for option, option_val in sorted(val.items()):
+                    cfg.set(key, option, str(option_val))
+            else:
+                cfg.set(configparser.DEFAULTSECT, key, str(val))
+        cfg.write(io)
+        return io.getvalue()
 
 
 def _config_file_ext(path):
