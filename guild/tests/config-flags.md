@@ -327,6 +327,8 @@ entries.
     i = 222
     s = bye
 
+    >> 'TODO: tests for moved encode_cfg from util'
+
 ### `.in` files
 
 Guild supports all of the above extensions when named with a `.in`
