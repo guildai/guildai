@@ -542,7 +542,7 @@ class ConfigResolver(FileResolver):
             if not isinstance(params, dict):
                 log.warning("unexpected params %r - cannot apply to config", params)
                 return
-            util.nested_config(params, config)
+            util.apply_nested_config(params, config)
 
     def _apply_run_flags(self, config, run):
         flags = self._run_flags_for_config(run)
@@ -582,11 +582,11 @@ class ConfigResolver(FileResolver):
         return [flag_util.decode_flag_val(part) for part in split_val]
 
     def _apply_nested_config(self, flags, flags_config, config):
-        flag_with_applied_name = {
+        flags_with_applied_name = {
             self._apply_config_flag_name(name, flags_config): val
             for name, val in flags.items()
         }
-        util.nested_config(flag_with_applied_name, config)
+        util.apply_nested_config(flags_with_applied_name, config)
 
     @staticmethod
     def _apply_config_flag_name(name, flags_config):

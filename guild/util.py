@@ -1351,25 +1351,64 @@ def guild_user_agent():
     return f"python-guildai/{guild.__version__} ({system}; {machine}; {release})"
 
 
-def nested_config(kv, nested=None):
-    nested = nested or {}
-    for name, val in sorted(kv.items()):
-        _apply_nested(name, val, nested)
-    return nested
+def apply_nested_config(kv, config):
+    for name, val in kv.items():
+        _apply_nested_config(name, val, config)
 
 
-def _apply_nested(name, val, nested):
-    parts = name.split(".")
-    cur = nested
-    for i in range(0, len(parts) - 1):
-        cur = cur.setdefault(parts[i], {})
-        if not isinstance(cur, dict):
-            conflicts_with = ".".join(parts[0 : i + 1])
-            raise ValueError(
-                f"{name!r} cannot be nested: conflicts with "
-                f"{{{conflicts_with!r}: {cur}}}"
-            )
-    cur[parts[-1]] = val
+def _apply_nested_config(name, val, config):
+    name, parent = _nested_config_dest(name, config)
+    parent[name] = val
+
+
+def _nested_config_dest(name, config, nested_name_prefix=""):
+    """Returns a tuple of name and dict as dest for a named value.
+
+    `name` may contain dots, which are used to locate the destination
+    in `config`.
+
+    Follows a path from `name`, delimited by dots, to either find a
+    matching dot-named entry in `config` or a nest entry in
+    `config`. If neither a dot-named entry nor a nested entry exists
+    in `config`, implicitly creates a nested entry.
+
+    For examples, see *Applying values to existing configuation* in
+    `guild/tests/util.md`.
+    """
+    assert isinstance(config, dict), config
+    for name_trial in _iter_dot_name_trials(name):
+        try:
+            val = config[name_trial]
+        except KeyError:
+            pass
+        else:
+            attr_name = name[len(name_trial) + 1 :]
+            if not attr_name:
+                return name_trial, config
+            if not isinstance(val, dict):
+                raise ValueError(
+                    f"'{nested_name_prefix}{name}' cannot be nested: conflicts with "
+                    f"{{'{nested_name_prefix}{name_trial}': {val}}}"
+                )
+            return _nested_config_dest(attr_name, val, name_trial + ".")
+    return _ensure_nested_dest(name, config)
+
+
+def _iter_dot_name_trials(name):
+    while True:
+        yield name
+        parts = name.rsplit(".", 1)
+        if len(parts) == 1:
+            break
+        name = parts[0]
+
+
+def _ensure_nested_dest(name, data):
+    name_parts = name.split(".")
+    for i in range(len(name_parts) - 1):
+        data = data.setdefault(name_parts[i], {})
+        assert isinstance(data, dict), (name, data)
+    return name_parts[-1], data
 
 
 def encode_nested_config(config):

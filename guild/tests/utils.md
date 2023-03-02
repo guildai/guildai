@@ -437,7 +437,13 @@ using dots to denote levels in the decoded dict.
 The decoding function is `guild.util.nested_config`. It takes a flag
 map of dot-delimeted names to values.
 
-    >>> from guild.util import nested_config as nc
+
+    >>> def nc(kv, config=None):
+    ...     from guild.util import apply_nested_config
+    ...
+    ...     config = config or {}
+    ...     apply_nested_config(kv, config)
+    ...     pprint(config)
 
     >>> nc({})
     {}
@@ -448,23 +454,132 @@ map of dot-delimeted names to values.
     >>> nc({"1.1": 11})
     {'1': {'1': 11}}
 
-    >>> pprint(nc({"1.1": 11, "1.2": 12}))
+    >>> nc({"1.1": 11, "1.2": 12})
     {'1': {'1': 11, '2': 12}}
 
 Cannot nest within a non-dict:
 
-    >>> pprint(nc({"1": 1, "1.1": 11, "1.2": 12}))
+    >>> nc({"1": 1, "1.1": 11, "1.2": 12})
     Traceback (most recent call last):
     ValueError: '1.1' cannot be nested: conflicts with {'1': 1}
 
-    >>> pprint(nc({"1.2": 12, "1.1.1": 111, "1.2.1": 121}))
+    >>> nc({"1.2": 12, "1.1.1": 111, "1.2.1": 121})
     Traceback (most recent call last):
     ValueError: '1.2.1' cannot be nested: conflicts with {'1.2': 12}
 
 An explicit dict is okay:
 
-    >>> pprint(nc({"1.2": {}, "1.1.1": 111, "1.2.1": 121}))
+    >>> nc({"1.2": {}, "1.1.1": 111, "1.2.1": 121})
     {'1': {'1': {'1': 111}, '2': {'1': 121}}}
+
+### Applying values to existing configuation
+
+`apply_nested_config()` can be used to apply config to existing
+values. If the specified data structure contains sections with
+dot-names, Guild applies the config to the applicable sections without
+creating nested dicts.
+
+Simple case of no dot-names:
+
+    >>> nc({"a": 1}, {"a": 2})
+    {'a': 1}
+
+    >>> nc({"a": 1}, {"b": 2})
+    {'a': 1, 'b': 2}
+
+Matching dot-names:
+
+    >>> nc({"a.b": 1}, {"a.b": 2})
+    {'a.b': 1}
+
+    >>> nc({"a.b.c": 1}, {"a.b.c": 2})
+    {'a.b.c': 1}
+
+    >>> nc({"a.b.c.d": 11}, {"a.b.c.d": 22})
+    {'a.b.c.d': 11}
+
+Dot-name applied to various combinations of matches:
+
+    >>> nc({"a.b": 1}, {"a": {}})
+    {'a': {'b': 1}}
+
+    >>> nc({"a.b": 1}, {"a": 2})
+    Traceback (most recent call last):
+    ValueError: 'a.b' cannot be nested: conflicts with {'a': 2}
+
+    >>> nc({"a": 1}, {"a.b": 2})
+    {'a': 1, 'a.b': 2}
+
+    >>> nc({"a.b.c.d": 1}, {"a.b.c": {"d": 2}})
+    {'a.b.c': {'d': 1}}
+
+    >>> nc({"a.b.c.d": 1}, {"a.b": {"c.d": 2}})
+    {'a.b': {'c.d': 1}}
+
+    >>> nc({"a.b.c.d": 1}, {"a": {"b.c.d": 2}})
+    {'a': {'b.c.d': 1}}
+
+    >>> nc({"a.b.c.d": 1}, {"a": {"b.c": {"d": 2}}})
+    {'a': {'b.c': {'d': 1}}}
+
+    >>> nc({"a.b.c.d": 1}, {"a": {"b": {"c.d": 2}}})
+    {'a': {'b': {'c.d': 1}}}
+
+    >>> nc({"a.b.c.d": 1}, {"a": {"b": {"c": {"d": 2}}}})
+    {'a': {'b': {'c': {'d': 1}}}}
+
+Dot-name applied to empty matches:
+
+    >>> nc({"a.b.c.d": 1}, {})
+    {'a': {'b': {'c': {'d': 1}}}}
+
+    >>> nc({"a.b.c.d": 1}, {"a": {}})
+    {'a': {'b': {'c': {'d': 1}}}}
+
+    >>> nc({"a.b.c.d": 1}, {"a": {"b": {}}})
+    {'a': {'b': {'c': {'d': 1}}}}
+
+    >>> nc({"a.b.c.d": 1}, {"a": {"b": {"c": {}}}})
+    {'a': {'b': {'c': {'d': 1}}}}
+
+    >>> nc({"a.b.c.d": 1}, {"a": {"b": {"c": {"d": {}}}}})
+    {'a': {'b': {'c': {'d': 1}}}}
+
+Dot-name applied to match and additional configuation:
+
+    >>> nc({"a.b.c.d": 1}, {"a.b.c": {"d": 2, "e": 3}})
+    {'a.b.c': {'d': 1, 'e': 3}}
+
+Dot-name applied to both flat and nested matching config (highest
+specified nested version is matched):
+
+    >>> nc({"a.b.c.d": 1}, {"a.b.c.d": 2, "a.b.c": {"d": 3}})
+    {'a.b.c': {'d': 3}, 'a.b.c.d': 1}
+
+    >>> nc({"a.b.c.d": 1}, {"a.b": {"c.d": 2}, "a.b.c": {"d": 3}})
+    {'a.b': {'c.d': 2}, 'a.b.c': {'d': 1}}
+
+#### Name parts split
+
+Tests for `_iter_dot_name_trials` - shows search order of dot names to
+when applying key values to config in `nested_config()`.
+
+    >>> def dot_name_trials(s):
+    ...     from guild.util import _iter_dot_name_trials
+    ...     for trial in _iter_dot_name_trials(s):
+    ...         print(trial)
+
+    >>> dot_name_trials("a")
+    a
+
+    >>> dot_name_trials("a.b")
+    a.b
+    a
+
+    >>> dot_name_trials("a.b.c")
+    a.b.c
+    a.b
+    a
 
 ### Encoding nested config
 
@@ -682,28 +797,6 @@ with underscore.
 
     >>> safe_filename("hello/there\\friend")
     'hello_there_friend'
-
-## Encoding Cfg (configparser)
-
-    >>> from guild.util import encode_cfg
-
-    >>> print(encode_cfg({}))
-
-    >>> print(encode_cfg({"foo": 123}))
-    [DEFAULT]
-    foo = 123
-
-    >>> print(encode_cfg({"foo": {"bar": 1.123, "baz": "hello"}, "bam": True}))
-    [DEFAULT]
-    bam = True
-    <BLANKLINE>
-    [foo]
-    bar = 1.123
-    baz = hello
-
-    >>> print(encode_cfg({"foo.bar.baz": [1, 2, 3]}))
-    [DEFAULT]
-    foo.bar.baz = [1, 2, 3]
 
 ## File hashes
 
