@@ -279,8 +279,9 @@ def _base_args_and_flags_for_globals(args):
 
 def _global_dict_dest(args, global_name):
     base_args, flags = _base_args_and_flags_for_globals(args)
-    flags = util.apply_nested_config(flags)
-    global_dest = op_util.global_dest(global_name, flags)
+    global_config = {}
+    util.apply_nested_config(flags, global_config)
+    global_dest = op_util.global_dest(global_name, global_config)
     return "globals", base_args, global_dest
 
 
