@@ -531,10 +531,10 @@ class ConfigResolver(FileResolver):
         config.read(path)
         data = dict(config.defaults())
         for section in config.sections():
+            section_data = data.setdefault(section, {})
             for name in config.options(section):
-                val = config.get(section, name)
-                data[f"{section}.{name}"] = val
-        return util.nested_config(data)
+                section_data[name] = config.get(section, name)
+        return data
 
     def _apply_params(self, config):
         params = self.source.params
