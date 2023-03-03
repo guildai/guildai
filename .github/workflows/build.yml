@@ -102,7 +102,7 @@ jobs:
           GUILD_CI: 1
           GH_TOKEN: ${{ github.token }}
         run: |
-          test-env/bin/guild check -nT -c8 --fast
+          test-env/bin/guild check -T -c8 --fast
 
       - name: Run user acceptance tests
         if: ${{ !inputs.skip_tests && !inputs.skip_uat }}
@@ -199,7 +199,7 @@ jobs:
           TMPDIR: \Tmp
           GH_TOKEN: ${{ github.token }}
         run: |
-          test-env\Scripts\guild check -nT
+          test-env\Scripts\guild check -T
         shell: cmd
 
       - name: Keep server alive for SSH (cancel workflow to terminate)

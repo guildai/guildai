@@ -90,6 +90,7 @@ def main(args):
 
 
 def _check(args):
+    _apply_implicit_args(args)
     try:
         _check_impl(args)
     except SystemExit as e:
@@ -97,6 +98,11 @@ def _check(args):
         raise
     else:
         _maybe_notify(args)
+
+
+def _apply_implicit_args(args):
+    if args.tests or args.all_tests:
+        args.no_info = True
 
 
 def _check_impl(args):

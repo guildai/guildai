@@ -1681,7 +1681,7 @@ def _start_external_test_proc(test_name, fail_fast, force):
         "guild.main_bootstrap",
         "check",
         "--no-chrome",  # just print test results
-        "-nt",
+        "-t",
         test_name,
     ]
     if fail_fast:

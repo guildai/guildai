@@ -23,7 +23,7 @@ TensorBoard versions.
     >>> def tensorboard_check(req, venv):
     ...     python_path = path(_python_lib_dir(venv), "site-packages")
     ...     print("python_path: %s" % python_path)
-    ...     run("PYTHONPATH='%s' guild check -nt %s.md" % (python_path, req))
+    ...     run("PYTHONPATH='%s' guild check -t %s.md" % (python_path, req))
 
     >>> def _python_lib_dir(venv):
     ...     venv_lib_dir_names = dir(path(venv, "lib"))

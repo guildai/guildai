@@ -21,7 +21,7 @@ Files used in these tests:
 
 To run the tests in this document, change to this directory and run:
 
-    guild check -nt TEST.md
+    guild check -t TEST.md
 
 ## Setup
 

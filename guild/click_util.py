@@ -340,7 +340,7 @@ def _patched_is_incomplete_option(*args):
 
     Fixes issue testing a cmd param against the current list of
     args. Upstream version does not consider combined short form args
-    and so a command like `guild check -nt <auto>` doesn't work. The
+    and so a command like `guild check -t <auto>` doesn't work. The
     patched version considers that `t` above is the current param
     option.
 

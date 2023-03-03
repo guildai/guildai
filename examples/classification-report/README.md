@@ -66,4 +66,4 @@ steps.
     <exit 0>
 
 You can run this example as a test using Guild 0.7.3 or later by
-running `guild check -nt README.md`.
+running `guild check -t README.md`.

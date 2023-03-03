@@ -78,4 +78,4 @@ plugins, please feel free to [post a question](https://my.guild.ai) or
 to get help/advice.
 
 Refer to [TEST.md](TEST.md) for sample usage. To run the tests, use
-`guild check -nt TEST.md` from this directory.
+`guild check -t TEST.md` from this directory.

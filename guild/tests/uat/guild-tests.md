@@ -7,7 +7,7 @@ tests).
 Run `startup-time` separately to avoid false fails from to concurrent
 tests.
 
-    >>> run("guild check -nt startup-time")
+    >>> run("guild check -t startup-time")
     internal tests:
       startup-time:                ok
 
@@ -15,7 +15,7 @@ Run the other tests.
 
     >>> concurrency = os.getenv("CONCURRENCY") or "1"
 
-    >>> run(f"guild check -nT -s startup-time -c {concurrency}", env={"NO_SKIPPED_MSG": "1"})
+    >>> run(f"guild check -T -s startup-time -c {concurrency}", env={"NO_SKIPPED_MSG": "1"})
     ... # doctest: +REPORT_UDIFF
     internal tests:
       ac-support:                  ok

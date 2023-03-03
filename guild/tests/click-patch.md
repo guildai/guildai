@@ -15,13 +15,13 @@ behavior, execute these steps manually:
 
 Run completion for tests:
 
-    $ guild check -nt <TAB>
+    $ guild check -t <TAB>
 
 The list of tests should be presented as completions.
 
 Disable the patching and try to show the tests:
 
-    $ SKIP_PATCH_CLICK=1 guild check -nt <TAB>
+    $ SKIP_PATCH_CLICK=1 guild check -t <TAB>
 
 The tests are not shown as completions.
 
