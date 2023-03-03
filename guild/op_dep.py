@@ -305,11 +305,12 @@ def _source_resolution_error(source, dep, e) -> typing.NoReturn:
 
 
 def _unknown_source_resolution_error(source, dep, e):
-    log.exception(
-        "resolving required source '%s' in %s resource",
-        source.resolving_name,
-        dep.resdef.resolving_name,
-    )
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        log.exception(
+            "resolving required source '%s' in %s resource",
+            source.resolving_name,
+            dep.resdef.resolving_name,
+        )
     raise OpDependencyError(
         f"unexpected error resolving '{source.resolving_name}' in "
         f"{dep.resdef.resolving_name} resource: {e!r}"

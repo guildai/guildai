@@ -253,11 +253,9 @@ Run with an invalid flag.
 
     >>> run("guild run yaml-nested -y g.h.i=444 --force-flags")
     Resolving config:nested.yml
-    ERROR: resolving required source 'config:nested.yml' in config:nested.yml resource
-    Traceback (most recent call last):
-      File ...
-    ValueError: 'g.h.i' cannot be nested: conflicts with {'g.h': 999}
-    guild: run failed because a dependency was not met: unexpected error resolving 'config:nested.yml' in config:nested.yml resource: ValueError("'g.h.i' cannot be nested: conflicts with {'g.h': 999}")
+    guild: run failed because a dependency was not met: unexpected error resolving
+    'config:nested.yml' in config:nested.yml resource: ValueError("'g.h.i' cannot
+    be nested: conflicts with {'g.h': 999}")
     <exit 1>
 
 ### JSON
