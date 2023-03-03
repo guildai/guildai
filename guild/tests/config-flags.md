@@ -115,9 +115,11 @@ We use the `config-flags` sample project for the tests below.
     <BLANKLINE>
         yaml-nested
           Flags:
-            a.b.c  (default is 123)
-            a.d    (default is 1.123)
-            e.f    (default is hello)
+            a.b.c    (default is 123)
+            a.d      (default is 1.123)
+            e.f      (default is hello)
+            g.h      (default is 999)
+            i.j.k.l  (default is 2)
     <BLANKLINE>
         yaml-subdir-1
           Flags:
@@ -191,6 +193,71 @@ invalid value generates an error.
 
     >>> run("guild run yaml f=not-a-number -y")
     guild: invalid value not-a-number for f: invalid value for type 'number'
+    <exit 1>
+
+### YAML v2
+
+These tests in this section use `nested.yml`, which contains nested
+values and uses dots in some keys.
+
+Show the original config file.
+
+    >>> cat("nested.yml")
+    a:
+      b:
+        c: 123
+      d: 1.123
+    e:
+      f: hello
+    g.h: 999
+    i.j:
+      k.l: 2
+
+Display results with default flags.
+
+    >>> run("guild run yaml-nested -y")
+    Resolving config:nested.yml
+    {'a': {'b': {'c': 123}, 'd': 1.123},
+     'e': {'f': 'hello'},
+     'g.h': 999,
+     'i.j': {'k.l': 2}}
+
+Run with various modified flags.
+
+    >>> run("guild run yaml-nested -y a.b.c=888 g.h=777")
+    Resolving config:nested.yml
+    {'a': {'b': {'c': 888}, 'd': 1.123},
+     'e': {'f': 'hello'},
+     'g.h': 777,
+     'i.j': {'k.l': 2}}
+
+    >>> run("guild run yaml-nested -y i.j.k.l=666 a.d=555")
+    Resolving config:nested.yml
+    {'a': {'b': {'c': 123}, 'd': 555},
+     'e': {'f': 'hello'},
+     'g.h': 999,
+     'i.j': {'k.l': 666}}
+
+Run with undefined flags using `--force-flags`.
+
+    >>> run("guild run yaml-nested -y y=1 z.1=2 z.2=3 a.e=4 --force-flags")
+    Resolving config:nested.yml
+    {'a': {'b': {'c': 123}, 'd': 1.123, 'e': 4},
+     'e': {'f': 'hello'},
+     'g.h': 999,
+     'i.j': {'k.l': 2},
+     'y': 1,
+     'z': {'1': 2, '2': 3}}
+
+Run with an invalid flag.
+
+    >>> run("guild run yaml-nested -y g.h.i=444 --force-flags")
+    Resolving config:nested.yml
+    ERROR: resolving required source 'config:nested.yml' in config:nested.yml resource
+    Traceback (most recent call last):
+      File ...
+    ValueError: 'g.h.i' cannot be nested: conflicts with {'g.h': 999}
+    guild: run failed because a dependency was not met: unexpected error resolving 'config:nested.yml' in config:nested.yml resource: ValueError("'g.h.i' cannot be nested: conflicts with {'g.h': 999}")
     <exit 1>
 
 ### JSON
