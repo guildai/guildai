@@ -1964,3 +1964,17 @@ def try_env(name, cvt=None):
         return cvt(val_str)
     except (TypeError, ValueError):
         return None
+
+
+def decode_cfg(s):
+    assert isinstance(s, str)
+    for conv in [int, float, _cfg_bool]:
+        try:
+            return conv(s)
+        except ValueError:
+            pass
+    return s
+
+
+def _cfg_bool(s):
+    assert False, "TODO - check source code for configparser"
