@@ -894,7 +894,7 @@ Provide an invalid spec (error message varies across Python versions).
 
     >>> check_guild_version("not a valid spec")
     Traceback (most recent call last):
-    ValueError: ...error at "'a valid '"...
+    ValueError: invalid version spec 'not a valid spec': ...
 
 ## Format duration
 

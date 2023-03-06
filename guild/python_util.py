@@ -605,29 +605,31 @@ def _split_module(main_mod, gf_dir):
 
 
 def check_package_version(version, req):
-    req = _parse_req(req)
+    req = _parse_req_for_version_spec(req)
     matches = list(req.specifier.filter({version: ""}, prereleases=True))
     return len(matches) > 0
 
 
-def _parse_req(req):
+def _parse_req_for_version_spec(version_spec):
     import pkg_resources
 
-    req = _apply_equals(req)
+    version_spec = _maybe_apply_equals(version_spec)
     try:
-        return pkg_resources.Requirement.parse(f"fakepkg{req}")
+        return pkg_resources.Requirement.parse(f"fakepkg{version_spec}")
     except Exception as e:
-        raise ValueError(e) from e
+        # Assert name to avoid import of low-level exception class
+        assert "InvalidRequirement" in e.__class__.__name__, e
+        raise ValueError(f"invalid version spec {version_spec!r}: {e}") from None
 
 
-def _apply_equals(req):
-    return ",".join([_apply_equals2(part) for part in req.split(",")])
+def _maybe_apply_equals(version_spec):
+    return ",".join(
+        [_maybe_apply_equals_to_version(part) for part in version_spec.split(",")]
+    )
 
 
-def _apply_equals2(s):
-    if re.match(r"^\d", s):
-        return f"=={s}"
-    return s
+def _maybe_apply_equals_to_version(s):
+    return f"=={s}" if re.match(r"^\d", s) else s
 
 
 def first_breakable_line(src):
