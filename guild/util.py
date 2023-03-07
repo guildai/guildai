@@ -1977,6 +1977,7 @@ def decode_cfg_val(s):
 
 def _cfg_bool(s):
     import configparser
+
     try:
         return configparser.ConfigParser.BOOLEAN_STATES[s.lower()]
     except KeyError:
