@@ -6,16 +6,8 @@ on:
 
   workflow_dispatch:
     inputs:
-      run_with_ssh:
-        description: Run with SSH
-        type: boolean
-        default: false
       skip_uat:
         description: Skip user-acceptance tests (built-in tests still run)
-        type: boolean
-        default: false
-      skip_tests:
-        description: Skip all tests (use with SSH to manually test)
         type: boolean
         default: false
       skip_posix:
@@ -57,18 +49,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Configure SSH
-        if: ${{ (success() || failure()) && inputs.run_with_ssh }}
-        # ssh action (below) waits for a 'continue' sentinel - we want
-        # the job to continue while ssh is available for connections
-        run: touch continue
-
-      - name: Start SSH
-        if: ${{ (success() || failure()) && inputs.run_with_ssh }}
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-
       - name: Build package
         run: |
           python -m pip install --upgrade pip wheel setuptools
@@ -95,7 +75,7 @@ jobs:
           git config --global init.defaultBranch main
 
       - name: Run built-in tests
-        if: ${{ !inputs.skip_tests && inputs.skip_uat }}
+        if: ${{ inputs.skip_uat }}
         env:
           GUILD_START_THRESHOLD: 1.0
           BREAKPOINT_PROMPT_TIMEOUT: 5.0
@@ -105,7 +85,7 @@ jobs:
           test-env/bin/guild check -T -c8 --fast
 
       - name: Run user acceptance tests
-        if: ${{ !inputs.skip_tests && !inputs.skip_uat }}
+        if: ${{ !inputs.skip_uat }}
         env:
           WORKSPACE: /tmp/guild-uat
           EXAMPLES: examples
@@ -117,10 +97,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           test-env/bin/guild check --force-uat
-
-      - name: Keep server alive for SSH (cancel workflow to terminate)
-        if: ${{ (success() || failure()) && inputs.run_with_ssh }}
-        run: sleep 3600
 
   build-windows:
     name: Build - Windows
@@ -145,18 +121,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-
-      - name: Configure SSH
-        if: ${{ (success() || failure()) && inputs.run_with_ssh }}
-        # ssh action (below) waits for a 'continue' sentinel - we want
-        # the job to continue while ssh is available for connections
-        run: touch continue
-
-      - name: Start SSH
-        if: ${{ (success() || failure()) && inputs.run_with_ssh }}
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
 
       - name: Build package
         run: |
@@ -191,7 +155,6 @@ jobs:
           mkdir \Tmp -Force
 
       - name: Run built-in tests
-        if: ${{ !inputs.skip_tests }}
         env:
           GUILD_CI: 1
           GUILD_START_THRESHOLD: 1.0
@@ -201,10 +164,6 @@ jobs:
         run: |
           test-env\Scripts\guild check -T
         shell: cmd
-
-      - name: Keep server alive for SSH (cancel workflow to terminate)
-        if: ${{ (success() || failure()) && inputs.run_with_ssh }}
-        run: Start-Sleep 3600
 
   publish-to-pypi:
     name: Publish to PyPI
