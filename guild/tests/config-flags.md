@@ -62,7 +62,7 @@ We use the `config-flags` sample project for the tests below.
             a.b.c.b    (default is no)
             a.b.c.f    (default is 3.321)
             a.b.c.i.1  (default is 789)
-            a.b.c.i.2  (default is 10)
+            a.b.c.i.2  (default is 12)
             a.b.c.s    (default is hi.again)
             a.b.i      (default is 456)
             a.b.s      (default is bye)
@@ -349,7 +349,7 @@ of options is sorted.
     >>> run("guild run cfg -y")  # doctest: +REPORT_UDIFF
     Resolving config:flags.cfg
     [DEFAULT]
-    b = true
+    b = True
     f = 1.123
     i = 123
     s = hello there
@@ -367,13 +367,13 @@ Run with modified flags.
     ... # doctest: +REPORT_UDIFF
     Resolving config:flags.cfg
     [DEFAULT]
-    b = false
+    b = False
     f = 1.123
     i = 321
     s = hello there
     <BLANKLINE>
     [foo]
-    b = true
+    b = True
     f = 432.2
     i = 456
     s = hej hej
@@ -382,13 +382,13 @@ Guild generates a run specific config file.
 
     >>> run("guild cat -p flags.cfg")  # doctest: +REPORT_UDIFF
     [DEFAULT]
-    b = false
+    b = False
     f = 1.123
     i = 321
     s = hello there
     <BLANKLINE>
     [foo]
-    b = true
+    b = True
     f = 432.2
     i = 456
     s = hej hej
@@ -401,7 +401,7 @@ entries.
     >>> run("guild run cfg-2 i=222 -y")  # doctest: +REPORT_UDIFF
     Resolving config:flags.cfg
     [DEFAULT]
-    b = true
+    b = True
     f = 1.123
     i = 123
     s = hello there
@@ -449,7 +449,7 @@ Run `cfg-3` without specifying flag values.
     >>> run("guild run cfg-3 -y")  # doctest: +REPORT_UDIFF
     Resolving config:flags-2.ini
     [DEFAULT]
-    b = true
+    b = True
     f = 1.123
     i = 123
     s = hello there
@@ -460,10 +460,10 @@ Run `cfg-3` without specifying flag values.
     s = bye
     <BLANKLINE>
     [a.b.c]
-    b = false
+    b = False
     f = 3.321
     i.1 = 789
-    i.2 = 10
+    i.2 = 12
     s = hi.again
 
 Run the operation specifying various flag values.
@@ -473,7 +473,7 @@ Run the operation specifying various flag values.
     ... # doctest: +REPORT_UDIFF
     Resolving config:flags-2.ini
     [DEFAULT]
-    b = false
+    b = False
     f = 1.123
     i = 222
     s = hello there
@@ -484,10 +484,10 @@ Run the operation specifying various flag values.
     s = bye
     <BLANKLINE>
     [a.b.c]
-    b = true
+    b = True
     f = 3.321
     i.1 = 789
-    i.2 = 10
+    i.2 = 12
     s = bye again
 
 Use `--force-flags` to insert values that aren't defined in the
@@ -498,29 +498,30 @@ original INI file.
     ... # doctest: +REPORT_UDIFF
     Resolving config:flags-2.ini
     [DEFAULT]
-    b = true
+    b = True
     f = 1.123
     i = 123
     s = hello there
     <BLANKLINE>
     [a.b]
-    b = true
+    b = True
     i = 456
     new-attr = 444
     s = bye
     <BLANKLINE>
     [a.b.c]
-    b = false
+    b = False
     f = 3.321
     i.1 = 789
-    i.2 = 10
+    i.2 = 12
     new-attr-2 = hola
     s = hi.again
 
     >>> run("guild run cfg-3 DEFAULT.f=777.0 -y")
+    ... # doctest: +REPORT_UDIFF
     Resolving config:flags-2.ini
     [DEFAULT]
-    b = true
+    b = True
     f = 777.0
     i = 123
     s = hello there
@@ -531,18 +532,19 @@ original INI file.
     s = bye
     <BLANKLINE>
     [a.b.c]
-    b = false
+    b = False
     f = 3.321
     i.1 = 789
-    i.2 = 10
+    i.2 = 12
     s = hi.again
 
 Apply new flag values to options containing dots.
 
     >>> run("guild run cfg-3 a.b.c.i.1=888 a.b.c.i.2=999 -y")
+    ... # doctest: +REPORT_UDIFF
     Resolving config:flags-2.ini
     [DEFAULT]
-    b = true
+    b = True
     f = 1.123
     i = 123
     s = hello there
@@ -553,7 +555,7 @@ Apply new flag values to options containing dots.
     s = bye
     <BLANKLINE>
     [a.b.c]
-    b = false
+    b = False
     f = 3.321
     i.1 = 888
     i.2 = 999

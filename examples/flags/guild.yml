@@ -63,7 +63,7 @@ config-3:
   flags-import: all
   flags-dest: config:flags.ini
   flags:
-    l:
+    flags.l:
       arg-split: yes
       type: auto  # type indicates the list part type, which
                   # is imported as string based on the INI option

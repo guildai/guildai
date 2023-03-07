@@ -26,7 +26,6 @@ One filter matching one val:
 
 One filter not matching one val:
 
-
     >>> match_filters(["a"], ["b"])
     False
 
@@ -1033,3 +1032,83 @@ Only flattens to one level.
 
     >>> flatten([[1, 2], [3, 4, 5], [[6]]])
     [1, 2, 3, 4, 5, [6]]
+
+## Encode/Decode CFG
+
+CFG/INI decoding is provided by the function `decode_cfg_val`. This 
+function implements the behavior outlined in Python's `configparser`
+support for [data types](https://docs.python.org/library/configparser.html#supported-datatypes).
+
+    >>> from guild.util import decode_cfg_val
+
+Ints:
+
+    >>> decode_cfg_val("0")
+    0
+
+    >>> decode_cfg_val("123")
+    123
+
+    >>> decode_cfg_val("012")
+    12
+
+Floats:
+
+    >>> decode_cfg_val("1.23")
+    1.23
+
+Bools:
+
+    >>> decode_cfg_val("yes")
+    True
+
+    >>> decode_cfg_val("no")
+    False
+
+    >>> decode_cfg_val("true")
+    True
+
+    >>> decode_cfg_val("false")
+    False
+
+    >>> decode_cfg_val("True")
+    True
+
+    >>> decode_cfg_val("False")
+    False
+
+Strings:
+
+    >>> decode_cfg_val("something")
+    'something'
+
+    >>> decode_cfg_val("[something, 1, True, 1.7]")
+    '[something, 1, True, 1.7]'
+
+    >>> decode_cfg_val("0xdeadbeef")
+    '0xdeadbeef'
+
+CFG/INI encoding is simply the application of `str` to a value.
+
+    >>> from guild.util import encode_cfg_val
+
+    >>> encode_cfg_val(123)
+    '123'
+
+    >>> encode_cfg_val(1.23)
+    '1.23'
+
+    >>> encode_cfg_val(True)
+    'True'
+
+    >>> encode_cfg_val(False)
+    'False'
+
+    >>> encode_cfg_val("something")
+    'something'
+
+    >>> encode_cfg_val([1, 1.23, True, "something"])
+    "[1, 1.23, True, 'something']"
+
+    >>> encode_cfg_val({"a": 1})
+    "{'a': 1}"

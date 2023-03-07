@@ -1966,8 +1966,7 @@ def try_env(name, cvt=None):
         return None
 
 
-def decode_cfg(s):
-    assert isinstance(s, str)
+def decode_cfg_val(s):
     for conv in [int, float, _cfg_bool]:
         try:
             return conv(s)
@@ -1977,4 +1976,12 @@ def decode_cfg(s):
 
 
 def _cfg_bool(s):
-    assert False, "TODO - check source code for configparser"
+    import configparser
+    try:
+        return configparser.ConfigParser.BOOLEAN_STATES[s.lower()]
+    except KeyError:
+        raise ValueError() from None
+
+
+def encode_cfg_val(x):
+    return str(x)

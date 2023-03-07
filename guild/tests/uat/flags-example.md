@@ -110,32 +110,38 @@ JSON based:
     <exit 0>
 
 INI based:
+    
+    >>> run("guild run config-3 --help-op")
+    ???
+    Flags:
+      flags.b  (default is no)
+      flags.f  (default is 1.123)
+      flags.i  (default is 123)
+      flags.l  (default is '1 1.2 blue yes')
+      flags.s  (default is 'Howdy Guild')
 
     >>> run("guild run config-3 -y")
     Resolving config:flags.ini
-    [DEFAULT]
+    [flags]
     b = False
     f = 1.123
     i = 123
     l = [1, 1.2, 'blue', True]
     s = Howdy Guild
-    <exit 0>
 
-    >>> run("guild run config-3 b=yes i=321 l='2 2.3 green no' -y")
+    >>> run("guild run config-3 flags.b=yes flags.i=321 flags.l='2 2.3 green no' -y")
     Resolving config:flags.ini
-    [DEFAULT]
+    [flags]
     b = True
     f = 1.123
     i = 321
     l = [2, 2.3, 'green', False]
     s = Howdy Guild
-    <exit 0>
 
     >>> run("guild cat -p flags.ini")
-    [DEFAULT]
+    [flags]
     b = True
     f = 1.123
     i = 321
     l = [2, 2.3, 'green', False]
     s = Howdy Guild
-    <exit 0>

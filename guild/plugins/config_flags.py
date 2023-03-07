@@ -18,6 +18,7 @@ import os
 from guild import guildfile
 from guild import op_util
 from guild import plugin as pluginlib
+from guild import util
 
 from . import flags_import_util
 
@@ -108,30 +109,15 @@ def _load_flags_json(src):
 
 def _load_flags_cfg(src):
     import configparser
-    from guild import yaml_util
 
     config = configparser.ConfigParser(default_section=None)
     config.read(src)
-    ##data = {key: yaml_util.decode_yaml(val) for key, val in config.defaults().items()}
     data = {}
     for section in config.sections():
         for name in config.options(section):
-            val = yaml_util.decode_yaml(config.get(section, name))
+            val = util.decode_cfg_val(config.get(section, name))
             data[f"{section}.{name}"] = val
     return data
-
-
-def _read_typed_cfg(cfg, section, name):
-    try:
-        return cfg.getint(section, name)
-    except ValueError:
-        try:
-            return cfg.getfloat(section, name)
-        except ValueError:
-            try:
-                return cfg.getboolean(section, name)
-            except ValueError:
-                return cfg.get(section, name)
 
 
 def _is_legal_flag_val(val):

@@ -533,7 +533,7 @@ class ConfigResolver(FileResolver):
         for section in config.sections():
             section_data = data.setdefault(section, {})
             for name in config.options(section):
-                section_data[name] = yaml_util.decode_yaml(config.get(section, name))
+                section_data[name] = util.decode_cfg_val(config.get(section, name))
         return data
 
     def _apply_params(self, config):
@@ -631,9 +631,9 @@ class ConfigResolver(FileResolver):
             if isinstance(val, dict):
                 cfg.add_section(key)
                 for option, option_val in sorted(val.items()):
-                    cfg.set(key, option, yaml_util.encode_yaml(option_val))
+                    cfg.set(key, option, util.encode_cfg_val(option_val))
             else:
-                cfg.set(configparser.DEFAULTSECT, key, yaml_util.encode_yaml(val))
+                cfg.set(configparser.DEFAULTSECT, key, util.encode_cfg_val(val))
         cfg.write(io)
         return io.getvalue()
 
