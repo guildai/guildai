@@ -19,6 +19,14 @@ on:
           - '3.9'
           - '3.10'
           - '3.11'
+      run_tests:
+        description: Run built-in tests
+        type: boolean
+        default: false
+      run_uat:
+        description: Run user acceptance tests
+        type: boolean
+        default: false
 
 jobs:
   debug:
@@ -60,6 +68,30 @@ jobs:
           git config --global user.name unused
           git config --global user.email unused@localhost
           git config --global init.defaultBranch main
+
+      - name: Run built-in tests
+        if: ${{ inputs.run_tests }}
+        env:
+          GUILD_START_THRESHOLD: 1.0
+          BREAKPOINT_PROMPT_TIMEOUT: 5.0
+          GUILD_CI: 1
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test-env/bin/guild check -T -c8 --fast
+
+      - name: Run user acceptance tests
+        if: ${{ inputs.run_uat }}
+        env:
+          WORKSPACE: /tmp/guild-uat
+          EXAMPLES: examples
+          GUILD_CI: 1
+          UAT_SKIP: remote-*,hiplot-*
+          GUILD_START_THRESHOLD: 1.0
+          DASK_SPEEDUP_THRESHOLD: 0
+          BREAKPOINT_PROMPT_TIMEOUT: 5.0
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test-env/bin/guild check --force-uat
 
       - name: Keep server alive for SSH (cancel workflow to terminate)
         run: sleep 7200
