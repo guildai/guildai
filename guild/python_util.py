@@ -617,8 +617,12 @@ def _parse_req_for_version_spec(version_spec):
     try:
         return pkg_resources.Requirement.parse(f"fakepkg{version_spec}")
     except Exception as e:
-        # Assert name to avoid import of low-level exception class
-        assert "InvalidRequirement" in e.__class__.__name__, e.__class__
+        # assert exception type name rather than handle explicitly
+        # (API changed in 67.5.1, breaking backward compatibility)
+        assert e.__class__.__name__ in (
+            "InvalidRequirement",
+            "RequirementParseError",
+        ), e.__class__
         raise ValueError(f"invalid version spec {version_spec!r}: {e}") from None
 
 
