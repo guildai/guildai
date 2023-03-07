@@ -23,10 +23,6 @@ on:
         description: Run built-in tests
         type: boolean
         default: false
-      run_uat:
-        description: Run user acceptance tests
-        type: boolean
-        default: false
 
 jobs:
   debug:
@@ -77,21 +73,8 @@ jobs:
           GUILD_CI: 1
           GH_TOKEN: ${{ github.token }}
         run: |
+          test-env/bin/pip install -r guild/tests/requirements.txt
           test-env/bin/guild check -T -c8 --fast
-
-      - name: Run user acceptance tests
-        if: ${{ inputs.run_uat }}
-        env:
-          WORKSPACE: /tmp/guild-uat
-          EXAMPLES: examples
-          GUILD_CI: 1
-          UAT_SKIP: remote-*,hiplot-*
-          GUILD_START_THRESHOLD: 1.0
-          DASK_SPEEDUP_THRESHOLD: 0
-          BREAKPOINT_PROMPT_TIMEOUT: 5.0
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          test-env/bin/guild check --force-uat
 
       - name: Keep server alive for SSH (cancel workflow to terminate)
         run: sleep 7200
