@@ -1805,13 +1805,14 @@ class lazy_str:
 
 _KNOWN_SHELLS = (
     "bash",
-    "zsh",
-    "fish",
-    "dash",
-    "sh",
     "cmd",
+    "dash",
+    "fish",
     "powershell",
     "pwsh",
+    "sh",
+    "xonsh",
+    "zsh",
 )
 _cached_active_shell = "__unset__"
 
