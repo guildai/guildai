@@ -913,7 +913,7 @@ def apply_env(target, source, names):
 
 def safe_filename(s):
     if get_platform() == "Windows":
-        s = re.sub(r"[:<>?]", "_", s)
+        s = re.sub(r"[:<>?]", "_", s).rstrip()
     return re.sub(r"[/\\]+", "_", s)
 
 
