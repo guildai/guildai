@@ -1187,10 +1187,17 @@ def _run(
         proc_env.update(env)
     proc_env["SYNC_RUN_OUTPUT"] = "1"
     p = _popen(cmd, proc_env, cwd)
-    with _kill_after(p, timeout):
-        out, err = p.communicate()
-        assert err is None, err
-        exit_code = p.returncode
+    with _kill_after(p, timeout) as timeout_context:
+        try:
+            out, err = p.communicate()
+        except KeyboardInterrupt:
+            # Handler for Ctrl-c - ideally would be an SIGINT handler
+            # (see #485)
+            timeout_context.kill_now()
+            raise
+        else:
+            assert err is None, err
+            exit_code = p.returncode
     if quiet and exit_code == 0:
         return None
     out = out.strip().decode("latin-1")
@@ -1316,6 +1323,9 @@ class _kill_after:
         self._p = p
         self._timer = threading.Timer(timeout, self._kill)
 
+    def kill_now(self):
+        self._kill()
+
     def _kill(self):
         if util.get_platform() == "Windows":
             self._kill_win()
@@ -1339,6 +1349,7 @@ class _kill_after:
 
     def __enter__(self):
         self._timer.start()
+        return self
 
     def __exit__(self, _type, _val, _tb):
         self._timer.cancel()
