@@ -7,7 +7,7 @@
 - Use `.guild` directories as default `GUILD_HOME`
 - Support for Python 3.11
 - Drop tests for Python 3.6
-- Bring scikit-learn under Guild repo (version 0.9)
+- Bring scikit-optimize under Guild repo (version 0.9)
 - Bug fixes
 
 ## 0.8.2
