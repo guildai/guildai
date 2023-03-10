@@ -27,6 +27,7 @@ from guild import model as modellib
 from guild import model_proxy
 from guild import plugin as pluginlib
 from guild import r_util
+from guild import guildfile
 
 log = logging.getLogger("guild")
 
@@ -108,6 +109,33 @@ class RScriptPlugin(pluginlib.Plugin):
             return True, "operation is an R script"
         return False, "operation is not an R script"
 
+    def guildfile_loaded(self, gf):
+        """Called immediately after a Guild file is loaded.
+
+        If op config for an R op is defined in guild.yml, this
+        augments that OpDef with r script guild data
+        (i.e., flags, user supplied hashpipe yaml frontmatter)
+        """
+        for m in gf.models.values():
+            for i, opdef in enumerate(m.operations):
+                if not r_util.is_r_script(opdef.name):
+                    continue
+
+                script_data = _op_data_for_script(opdef.name)
+                guildfile_data = opdef._data
+
+                # build up the new data by merging the two dicts
+                # config in the script frontmatter takes precedence
+                data = guildfile_data.copy()
+                data.update(script_data)
+
+                # TODO: merge select rules, other custom logic to be implemented
+                if "sourcecode" in guildfile_data and "sourcecode" in script_data:
+                    # data['sourcecode'] = ...
+                    pass
+
+                # replace the opdef with a new one built from the merged data dict
+                m.operations[i] = guildfile.OpDef(opdef.name, data, m)
 
 def _r_script_init_model_op():
     return RScriptBuiltinsModelProxy(), "init"

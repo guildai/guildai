@@ -217,6 +217,8 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 self._maybe_apply_main(opdef)
                 if not opdef.main or _is_explicit_guild_plugin(opdef.main):
                     continue
+                if opdef.name.endswith(".R") or opdef.name.endswith(".r"):
+                    continue
                 self._apply_script_flags(opdef, local_cache)
                 _notify_plugins_python_script_opdef_loaded(opdef)
 
