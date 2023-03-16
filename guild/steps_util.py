@@ -18,17 +18,14 @@ import re
 from guild import run as runlib
 
 
-def init_step_run(parent_run_dir):
-    """Initialize the run dir for a step run.
+def init_step_run_dir(parent_run_dir):
+    """Initializes and returns the run dir for a step run.
 
     Directory is based on a new, unique run ID but is not created.
-
-    Returns a step run.
+    The caller is responsible for creating the run.
     """
     runs_dir = os.path.dirname(parent_run_dir)
-    step_run_id = runlib.mkid()
-    step_run_dir = os.path.join(runs_dir, step_run_id)
-    return runlib.Run(step_run_id, step_run_dir)
+    return os.path.join(runs_dir, runlib.mkid())
 
 
 def link_to_step_run(step_name, step_run_dir, parent_run_dir):
