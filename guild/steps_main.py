@@ -28,6 +28,7 @@ from guild import flag_util
 from guild import op_util
 from guild import opref as opreflib
 from guild import steps_util
+from guild import run as runlib
 from guild import run_check
 from guild import util
 
@@ -303,8 +304,52 @@ def _run_steps():
         log.warning("no steps defined for run %s", parent_run.id)
         return
     for step in steps:
-        step_run = _run_step(step, parent_run)
-        _check_step_run(step, step_run)
+        _handle_run_step(parent_run, step)
+
+
+def _handle_run_step(parent_run, step):
+    step_run_dir = _choose_step_run_dir(parent_run, step)
+    step_run = _run_step(step, parent_run, step_run_dir)
+    _check_step_run(step, step_run)
+
+
+def _choose_step_run_dir(parent_run, step):
+    if _step_run_exists(parent_run, step):
+        log.info(f"{step.name} is being restarted")
+        return _step_run_dir_when_restarting(parent_run, step)
+    else:
+        _maybe_rm_dir_symlink(parent_run, step)
+        return _step_run_dir_when_not_restarting(parent_run)
+
+
+def _step_run_dir_when_restarting(parent_run, step):
+    step_dir_link = _step_dir_link(parent_run, step)
+    return os.path.realpath(step_dir_link)
+
+
+def _step_run_dir_when_not_restarting(parent_run):
+    return steps_util.init_step_run_dir(parent_run.dir)
+
+
+def _step_run_exists(parent_run, step):
+    step_dir_link = _step_dir_link(parent_run, step)
+    if os.path.isdir(step_dir_link):
+        assert os.path.islink(step_dir_link)
+        return True
+    else:
+        return False
+
+
+def _step_dir_link(parent_run, step):
+    return os.path.join(parent_run.dir, step.name)
+
+
+def _maybe_rm_dir_symlink(parent_run, step):
+    step_dir_link = _step_dir_link(parent_run, step)
+    try:
+        os.rmdir(step_dir_link)
+    except FileNotFoundError:
+        pass
 
 
 def _init_steps(run):
@@ -323,11 +368,9 @@ def _init_steps(run):
 # Run step
 # =================================================================
 
-
-def _run_step(step, parent_run):
-    step_run = steps_util.init_step_run(parent_run.dir)
-    steps_util.link_to_step_run(step, step_run.dir, parent_run.dir)
-    cmd = _step_run_cmd(step, step_run.dir, parent_run)
+def _run_step(step, parent_run, step_run_dir):
+    steps_util.link_to_step_run(step, step_run_dir, parent_run.dir)
+    cmd = _step_run_cmd(step, step_run_dir, parent_run)
     env = _step_run_env(step, parent_run)
     cwd = _step_run_cwd()
     log.info("running %s: %s", step, _format_step_cmd(cmd))
@@ -337,7 +380,7 @@ def _run_step(step, parent_run):
     returncode = subprocess.call(cmd, env=env, cwd=cwd)
     if returncode != 0:
         sys.exit(returncode)
-    return step_run
+    return runlib.for_dir(step_run_dir)
 
 
 def _step_run_cmd(step, step_run_dir, parent_run):
@@ -351,6 +394,7 @@ def _step_run_cmd(step, step_run_dir, parent_run):
         step_run_dir,
         step.op_spec,
     ]
+    
     parent_run_options = _parent_run_options(parent_run)
     step_options = _step_options(step)
     batch_file_args = _step_batch_file_args(step)
