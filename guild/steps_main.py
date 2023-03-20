@@ -110,14 +110,29 @@ class Step:
 
 def _coerce_step_data(data):
     if isinstance(data, str):
-        data = {"run": data}
-    elif isinstance(data, dict):
-        data = dict(data)
-    else:
-        _error(f"invalid step data: {data!r}")
-    if "flags" in data:
-        data["flags"] = _coerce_flags_data(data["flags"])
+        return _coerce_step_str(data)
+    if isinstance(data, dict):
+        return _coerce_step_dict(data)
+    _error(f"invalid step data: {data!r}")
+
+
+def _coerce_step_str(step_str):
+    return {"run": step_str}
+
+
+def _coerce_step_dict(data0):
+    data = dict(data0)
+    _maybe_apply_step_flags(data)
     return data
+
+
+def _maybe_apply_step_flags(data):
+    try:
+        flags_data = data["flags"]
+    except KeyError:
+        pass
+    else:
+        data["flags"] = _coerce_flags_data(flags_data)
 
 
 def _coerce_flags_data(data):
