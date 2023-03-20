@@ -30,9 +30,7 @@ themselves.
 
     >>> find(".")
     .dvc/.gitignore
-    .dvc/config
-    .dvc/tmp/hashes/local/cache.db
-    .dvc/tmp/links/cache.db
+    .dvc/config...
     .dvcignore
     .git/...
     README.md
