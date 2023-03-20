@@ -1049,9 +1049,17 @@ def _op_cmd_resolve_params(flag_vals, python_requires):
 
 
 def _proc_python_exe(python_requires):
-    if not python_requires:
-        return config.python_exe()
-    matching = util.find_python_interpreter(python_requires)
+    return (
+        _find_python_interpreter(python_requires)
+        if python_requires
+        else config.python_exe()
+    )
+
+
+def _find_python_interpreter(python_requires):
+    from guild import python_util
+
+    matching = python_util.find_python_interpreter(python_requires)
     if not matching:
         _op_cmd_error(
             f"cannot find a python interpreter for requirement {python_requires!r}"

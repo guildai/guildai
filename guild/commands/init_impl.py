@@ -30,6 +30,7 @@ from guild import config
 from guild import guildfile
 from guild import init
 from guild import pip_util
+from guild import python_util
 from guild import util
 
 log = logging.getLogger("guild")
@@ -547,19 +548,25 @@ def _suggest_python_interpreter(user_reqs):
     A Python spec can be provided in a requirements file using a
     special `python<spec>` comment. E.g. `python>=3.5`.
     """
-    python_requires = util.find_apply(
+    python_requires = _python_requires(user_reqs)
+    if not python_requires:
+        return None
+    matching = python_util.find_python_interpreter(python_requires)
+    return _python_interpreter_for_matching(matching) if matching else None
+
+
+def _python_interpreter_for_matching(matching):
+    _path, ver = matching
+    return f"python{ver}"
+
+
+def _python_requires(user_reqs):
+    return util.find_apply(
         [
             _python_requires_for_pkg,
             lambda: _python_requires_for_reqs(user_reqs),
         ]
     )
-    if not python_requires:
-        return None
-    matching = util.find_python_interpreter(python_requires)
-    if matching:
-        _path, ver = matching
-        return f"python{ver}"
-    return None
 
 
 def _python_requires_for_pkg():
