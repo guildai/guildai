@@ -469,3 +469,99 @@ The same is true for `--tag`.
     [1]  m1:hello      completed  blue green msg='hello m1, from composite'
     [2]  m2:hello      completed  blue green msg='hello m2, from composite'
     [3]  m2:composite  completed  blue green name=composite
+
+## Steps with --restart
+
+If a step is run more than once, the link names for subsequent runs
+use an incrementing suffix to avoid name collisions.
+
+    >>> run("guild run m1:steps-repeat -y")
+    INFO: [guild] running step-1: m1:step-1
+    hello step-1
+    INFO: [guild] running step-1: m1:step-1
+    hello step-1
+    INFO: [guild] running step-1: m1:step-1
+    hello step-1
+
+    >>> run("guild runs -s -n 4")
+    [1]  m1:step-1        completed
+    [2]  m1:step-1        completed
+    [3]  m1:step-1        completed
+    [4]  m1:steps-repeat  completed
+
+    >>> run("guild ls 4 -n")
+    step-1_0/
+    step-1_1/
+    step-1_2/
+
+As with the previous examples, links referencing the step runs are
+generated in the parent directory.
+
+Get the targets of the three step runs.
+
+    >>> parent_dir = run_capture("guild select 4 --path")
+    >>> step_1_0_link_target = realpath(path(parent_dir, "step-1_0"))
+    >>> step_1_1_link_target = realpath(path(parent_dir, "step-1_1"))
+    >>> step_1_2_link_target = realpath(path(parent_dir, "step-1_2"))
+
+Get the three step directories.
+
+    >>> step_1_0_path = run_capture("guild select 3 --path")
+    >>> step_1_1_path = run_capture("guild select 2 --path")
+    >>> step_1_2_path = run_capture("guild select 1 --path")
+
+Verify that the links point to the step runs:
+
+    >>> step_1_0_link_target == step_1_0_path
+    True
+
+    >>> step_1_1_link_target == step_1_1_path
+    True
+
+    >>> step_1_2_link_target == step_1_2_path
+    True
+
+Note the current time, so that we can verify the restarted runs were
+ran after the initial runs.
+
+    >>> from datetime import datetime
+    >>> before_restart = datetime.now().replace(microsecond=0)
+
+Restart the pipeline.
+
+    >>> parent_run_hash = parent_dir.split('/')[-1]
+    >>> run(f"guild run --restart {parent_run_hash} -y")
+    INFO: [guild] step-1 is being restarted
+    INFO: [guild] running step-1: m1:step-1
+    hello step-1
+    INFO: [guild] step-1 is being restarted
+    INFO: [guild] running step-1: m1:step-1
+    hello step-1
+    INFO: [guild] step-1 is being restarted
+    INFO: [guild] running step-1: m1:step-1
+    hello step-1
+
+Verify we see the runs we expect after restart.
+
+    >>> run(f"guild runs -s -n 4 --started \"after {before_restart}\"")
+    [1]  m1:step-1        completed
+    [2]  m1:step-1        completed
+    [3]  m1:step-1        completed
+    [4]  m1:steps-repeat  completed
+
+Get the three most recent (restarted) step directories.
+
+    >>> step_1_0_path = run_capture("guild select 3 --path")
+    >>> step_1_1_path = run_capture("guild select 2 --path")
+    >>> step_1_2_path = run_capture("guild select 1 --path")
+
+Verify that the same links point to the restarted step runs.
+
+    >>> step_1_0_link_target == step_1_0_path
+    True
+
+    >>> step_1_1_link_target == step_1_1_path
+    True
+
+    >>> step_1_2_link_target == step_1_2_path
+    True
