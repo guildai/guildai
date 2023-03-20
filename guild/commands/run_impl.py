@@ -636,7 +636,7 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
     try:
         return op_util.flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
     except op_util.MissingRequiredFlags as e:
-        _missing_required_flags_error(e)
+        _missing_required_flags_error(e, opdef)
     except op_util.InvalidFlagChoice as e:
         _invalid_flag_choice_error(e)
     except op_util.InvalidFlagValue as e:
@@ -1049,9 +1049,17 @@ def _op_cmd_resolve_params(flag_vals, python_requires):
 
 
 def _proc_python_exe(python_requires):
-    if not python_requires:
-        return config.python_exe()
-    matching = util.find_python_interpreter(python_requires)
+    return (
+        _find_python_interpreter(python_requires)
+        if python_requires
+        else config.python_exe()
+    )
+
+
+def _find_python_interpreter(python_requires):
+    from guild import python_util
+
+    matching = python_util.find_python_interpreter(python_requires)
     if not matching:
         _op_cmd_error(
             f"cannot find a python interpreter for requirement {python_requires!r}"
@@ -2577,7 +2585,7 @@ def _alias_and_name_specified_error(alias, flag_name) -> typing.NoReturn:
     )
 
 
-def _missing_required_flags_error(e) -> typing.NoReturn:
+def _missing_required_flags_error(e, opdef) -> typing.NoReturn:
     cli.out("Operation requires the following missing flags:\n", err=True)
     line1 = lambda s: s.split("\n")[0]
     cli.table(
@@ -2586,7 +2594,11 @@ def _missing_required_flags_error(e) -> typing.NoReturn:
         indent=2,
         err=True,
     )
-    cli.out("\nRun the command again with these flags specified as NAME=VAL.", err=True)
+    cli.out(
+        f"\nRun the command again with these flags or try 'guild run {opdef.name} "
+        "--help-op' for help.",
+        err=True,
+    )
     cli.error()
 
 

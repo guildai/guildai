@@ -115,7 +115,7 @@ def _ac_dir(_ctx, _param, incomplete):
 )
 @click.option(
     "-r",
-    "--requirement",
+    "--requirements",
     metavar="REQ",
     multiple=True,
     help=(

@@ -97,6 +97,7 @@ Run the other tests.
       includes:                    ok
       index:                       ok
       init:                        ok
+      init-env:                    ok
       ipy:                         ok
       isolate-runs-from-project:   ok
       keras:                       ok

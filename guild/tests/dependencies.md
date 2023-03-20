@@ -955,7 +955,7 @@ The `test5` resource illustrates different `target-type` attributes.
 #### Default target type
 
 The first source doesn't specify a target type. By default, target
-type is 'link'.
+type is 'copy'.
 
     >>> default_type = test5_resdef.sources[0]
     >>> default_type.uri

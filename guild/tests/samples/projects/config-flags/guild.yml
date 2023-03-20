@@ -90,3 +90,16 @@
       main: test_args foo bar baz
       flags-dest: config:empty.json
       flags-import: all
+
+    config-subdir-1:
+      main: guild.pass
+      flags-dest: config:subdir/flags.yml
+      sourcecode: off
+
+    config-subdir-2:
+      main: guild.pass
+      flags-dest: config:subdir/flags.yml
+      requires:
+        - config: subdir/flags.yml
+          target-path: .
+      sourcecode: off

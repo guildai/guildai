@@ -17,12 +17,11 @@ In this case, all config is specified via arguments. Flags must be
 explicitly defined in [guild.yml](guild.yml) as there are no other
 definitions to draw from.
 
-    $ guild run basic-tutorial-1 user=test -y
+    $ guild run basic-tutorial-1 user=test password=xxx -y
     db:
       driver: mysql
       user: test
-      password: secret
-    <exit 0>
+      password: xxx
 
 ## Example 2
 
@@ -31,24 +30,22 @@ The second example, implemented in [`my_app_2.py`](my_app_2.py) uses
 file
 example](https://hydra.cc/docs/tutorials/basic/your_first_app/config_file).
 
-    $ guild run basic-tutorial-2 db.user=test -y
-    Resolving config:config.yaml dependency
+    $ guild run basic-tutorial-2 db.user=test db.driver=postgresql -y
+    Resolving config:config.yaml
     db:
-      driver: mysql
+      driver: postgresql
       password: secret
       user: test
-    <exit 0>
 
 `basic-tutorial-2` uses `config.yaml` as the flags interface. It
-copies an updated config file to the run directory source path, which
-is where hydra expects it.
+copies an updated config file to the run directory -- the source code
+root -- which is where hydra expects it.
 
-    $ guild cat -p .guild/sourcecode/config.yaml
+    $ guild cat -p config.yaml
     db:
-      driver: mysql
+      driver: postgresql
       password: secret
       user: test
-    <exit 0>
 
 ## Example 3
 
@@ -60,15 +57,14 @@ flag values.
 
     $ guild run basic-tutorial-3
     >   db=postgresql
-    >   db-config="db.timeout=60 db.user=bob" -y
+    >   db-config="db.timeout=60 db.user=bob db.pass='my secret'" -y
     db:
       driver: postgresql
-      pass: drowssap
+      pass: my secret
       timeout: 60
       user: bob
-    <exit 0>
 
-This last approach relies on an intermediary interface - a standard
-argparse CLI - to adapt Guild to Hydra config. Guild does not support
-pass-through of arbitrary arguments to a script. Any operation config
-must be specified using the flags interface.
+This last approach relies on an intermediary interface to adapt Guild
+to Hydra config. Guild does not support pass-through of arbitrary
+arguments to a script and does not support flag groups/value-dependent
+flag defs.

@@ -1,7 +1,6 @@
 basic-tutorial-1:
   description: Pass flag values as Hydra command args
   main: my_app_1 +db.driver=${driver} +db.user=${user} +db.password=${password}
-  flags-dest: none
   flags:
     driver: mysql
     user: omry
@@ -12,20 +11,11 @@ basic-tutorial-2:
   main: my_app_2
   flags-dest: config:config.yaml
   flags-import: all
-  requires:
-    # This is required to write the config file in the source code
-    # path so that Hydra can find it. By default Guild writes to the
-    # root directory. We include replace-existing to ensure that the
-    # modified config replaces the source code version.
-    - config: config.yaml
-      target-path: .guild/sourcecode
-      replace-existing: yes
+
 
 basic-tutorial-3:
-  description: Use complex Hydra config with argparse interface
-  main: my_app_3
-  flags-dest: args
-  flags-import: all
+  description: Use a Hydra config group
+  main: my_app_3 ${db} ${db-config}
   flags:
     db:
       description: DB configuration to use

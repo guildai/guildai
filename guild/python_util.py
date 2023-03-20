@@ -695,3 +695,26 @@ except AttributeError:
 def _is_node_breakable(node):
     # pylint: disable=unidiomatic-typecheck
     return type(node) not in NON_BREAKABLE_NODE_TYPES
+
+
+def find_python_interpreter(version_spec):
+    req = _parse_req_for_version_spec(version_spec)
+    python_interps = {ver: path for path, ver in python_interpreters()}
+    matching = list(req.specifier.filter(sorted(python_interps)))
+    if not matching:
+        return None
+    matching_ver = matching[0]
+    return python_interps[matching_ver], matching_ver
+
+
+def python_interpreters():
+    import glob
+    from guild import config
+
+    bin_dir = os.path.dirname(config.python_exe())
+    ret = []
+    for path in glob.glob(os.path.join(bin_dir, "python*")):
+        m = re.match(r"python([0-9\.]+)$", os.path.basename(path))
+        if m:
+            ret.append((path, m.group(1)))
+    return ret

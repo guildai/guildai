@@ -65,7 +65,8 @@ When `--help-op` is not specified, normal validation applies.
     <BLANKLINE>
       s  a string
     <BLANKLINE>
-    Run the command again with these flags specified as NAME=VAL.
+    Run the command again with these flags or try 'guild run op
+    --help-op' for help.
     <exit 1>
 
 The op args:

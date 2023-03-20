@@ -1034,39 +1034,6 @@ def del_env(names):
             pass
 
 
-def python_interpreters():
-    import glob
-    from guild import config
-
-    bin_dir = os.path.dirname(config.python_exe())
-    ret = []
-    for path in glob.glob(os.path.join(bin_dir, "python*")):
-        m = re.match(r"python([0-9\.]+)$", os.path.basename(path))
-        if m:
-            ret.append((path, m.group(1)))
-    return ret
-
-
-def find_python_interpreter(version_spec):
-    import pkg_resources
-
-    try:
-        # Requirement.parse wants a package name, so we use 'python'
-        # here, but anything would do.
-        req = pkg_resources.Requirement.parse(f"python{version_spec}")
-    except pkg_resources.RequirementParseError as e:
-        # pylint under pre-commit is having a hard time determining
-        # that `RequirementParseError` is a valie exception type.
-        # pylint: disable=bad-exception-context
-        raise ValueError(version_spec) from e
-    python_interps = {ver: path for path, ver in python_interpreters()}
-    matching = list(req.specifier.filter(sorted(python_interps)))
-    if not matching:
-        return None
-    matching_ver = matching[0]
-    return python_interps[matching_ver], matching_ver
-
-
 def is_executable_file(path):
     return os.path.isfile(path) and os.access(path, os.X_OK)
 

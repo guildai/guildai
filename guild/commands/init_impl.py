@@ -18,6 +18,7 @@ import os
 import re
 import subprocess
 import sys
+import typing
 
 import pkg_resources
 
@@ -30,6 +31,7 @@ from guild import config
 from guild import guildfile
 from guild import init
 from guild import pip_util
+from guild import python_util
 from guild import util
 
 log = logging.getLogger("guild")
@@ -90,8 +92,8 @@ class Config:
         # -r options may be used with --no-reqs, in which case -r
         # takes precedence (--no-reqs may still be used to suppress
         # installation of Guild package reqs)
-        if args.requirement:
-            return args.requirement
+        if args.requirements:
+            return args.requirements
         if not args.no_reqs:
             default_reqs = os.path.join(config.cwd(), "requirements.txt")
             if os.path.exists(default_reqs):
@@ -208,26 +210,43 @@ def _implicit_guild_version():
 
 
 def main(args):
-    _maybe_venv(args)
+    _maybe_apply_venv(args)
+    _maybe_apply_default_dir(args)
     config = Config(args)
     if not args.venv or args.yes or _confirm(config):
         _init(config)
 
 
-def _maybe_venv(args):
-    """Sets `args.venv` to `True` if venv related config is specified."""
-    args.venv = (
-        args.venv
-        or args.name
-        or args.python
-        or args.guild
-        or args.system_site_packages
-        or args.requirement
-        or args.path
-        or args.no_reqs
-        or args.pre_release
-    )
-    args.dir = args.dir or ("venv" if args.venv else ".")
+VENV_IMPLIES = (
+    "name",
+    "python",
+    "guild",
+    "system_site_packages",
+    "requirements",
+    "path",
+    "no_reqs",
+    "pre_release",
+)
+
+
+def _maybe_apply_venv(args):
+    """Sets `args.venv` to `True` if venv related config is specified.
+
+    Venv related params are specified in `VENV_IMPLIES`.
+    """
+    if args.venv:
+        return
+    args.venv = any(getattr(args, name) for name in VENV_IMPLIES)
+
+
+def _maybe_apply_default_dir(args):
+    if args.dir:
+        return
+    args.dir = _default_dir(args)
+
+
+def _default_dir(args):
+    return "venv" if args.venv else "."
 
 
 def _confirm(config):
@@ -547,40 +566,61 @@ def _suggest_python_interpreter(user_reqs):
     A Python spec can be provided in a requirements file using a
     special `python<spec>` comment. E.g. `python>=3.5`.
     """
-    python_requires = util.find_apply(
+    python_requires = _python_requires(user_reqs)
+    if not python_requires:
+        return None
+    req, req_src = python_requires
+    try:
+        matching = python_util.find_python_interpreter(req)
+    except ValueError:
+        _invalid_python_spec_error(req, req_src)
+    else:
+        return _python_interpreter_for_matching(matching) if matching else None
+
+
+def _invalid_python_spec_error(req, req_src) -> typing.NoReturn:
+    cli.error(
+        f"invalid Python requirement {req!r} in {req_src}\n"
+        "Modify the requirement in that file or use '--python <version>' to provide "
+        "an explicit version."
+    )
+
+
+def _python_interpreter_for_matching(matching):
+    _path, ver = matching
+    return f"python{ver}"
+
+
+def _python_requires(user_reqs):
+    return util.find_apply(
         [
             _python_requires_for_pkg,
             lambda: _python_requires_for_reqs(user_reqs),
         ]
     )
-    if not python_requires:
-        return None
-    matching = util.find_python_interpreter(python_requires)
-    if matching:
-        _path, ver = matching
-        return f"python{ver}"
-    return None
 
 
 def _python_requires_for_pkg():
-    pkg_data = _guildfile_pkg_data()
-    if not pkg_data:
-        return None
-    return pkg_data.get("python-requires")
-
-
-def _guildfile_pkg_data():
     src = guildfile.guildfile_path()
     if not os.path.exists(src):
         return None
     data = _guildfile_data(src)
     for top_level in data:
         if isinstance(top_level, dict) and "package" in top_level:
-            return top_level
+            req = top_level.get("python-requires")
+            if not req:
+                return None
+            return req, src
     return None
 
 
 def _python_requires_for_reqs(reqs):
+    """Returns `requires`, `source` or None for a list of req files.
+
+    If a req file in `reqs` contains a Python requires spec (a comment
+    in the form `python<req>`) returns the req with the source
+    file. Otherwise returns None.
+    """
     for req_file in reqs:
         try:
             s = open(req_file, "r").read()
@@ -589,7 +629,7 @@ def _python_requires_for_reqs(reqs):
         else:
             m = PYTHON_REQ_P.search(s)
             if m:
-                return m.groups(1)
+                return m.group(1), req_file
     return None
 
 
