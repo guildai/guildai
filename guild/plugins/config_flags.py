@@ -42,11 +42,8 @@ def apply_config_flags(opdef):
     config_src = _config_src(opdef)
     if not config_src:
         return
-    flags_import_util.apply_flags(
-        opdef,
-        lambda: _flags_data(config_src),
-        lambda _data: _ensure_config_dep(config_src, opdef),
-    )
+    flags_import_util.apply_flags(opdef, lambda: _flags_data(config_src))
+    _ensure_config_dep(config_src, opdef)
 
 
 def _config_src(opdef):
@@ -158,12 +155,30 @@ def _ensure_config_dep_attrs(source):
 def _add_config_dep(config_src, opdef):
     """Adds a config dependency to opdef for a config source (path)."""
     opdef.dependencies.append(
-        guildfile.OpDependencyDef(
-            {
-                "config": config_src,
-                "replace-existing": True,
-                "always-resolve": True,
-            },
-            opdef,
-        )
+        guildfile.OpDependencyDef(_op_dep_data(config_src), opdef)
     )
+
+
+def _op_dep_data(config_src):
+    data = {
+        "config": config_src,
+        "replace-existing": True,
+        "always-resolve": True,
+    }
+    _maybe_set_target_path(config_src, data)
+    return data
+
+
+def _maybe_set_target_path(src, data):
+    """Sets target-path in op def data if `src` is in a subdirectory.
+
+    Guild assumes that if a config src is in a subdirectory (relative
+    to the Guild file), the intent is to install the resolved config
+    file in the run directory under the same relative path.
+
+    For example, if a flags dest is `config:foo/bar/config.yml`, Guild
+    will set `target-path` to `foo/bar` for the config dependency.
+    """
+    parent_dir = os.path.dirname(src)
+    if parent_dir:
+        data["target-path"] = parent_dir

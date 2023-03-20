@@ -67,6 +67,10 @@ We use the `config-flags` sample project for the tests below.
             a.b.i      (default is 456)
             a.b.s      (default is bye)
     <BLANKLINE>
+        config-subdir-1
+    <BLANKLINE>
+        config-subdir-2
+    <BLANKLINE>
         explicit-no-replace
           Flags:
             b    (default is yes)
@@ -611,12 +615,55 @@ Guild generates a run specific config file.
     {"b": true, "d": {"a": "A", "b": "B"}, "f": 2.234, "i": 456,
     "l": [2, 1, "a b", "d"], "s": "abc"}
 
+## Target paths
+
+By default resolved `config` files are installed to the run directory
+under the same subdirectories as their source relative to the Guild
+file.
+
+`config-subdir-1` specifies `config:subdir/flags.yml` as its flags
+dest. The operation disabled source code copies so we can clear show
+where the resolved config files are written under the run directory.
+
+Show the config source.
+
+    >>> cat("subdir/flags.yml")
+    msg: hello
+
+    >>> run("guild run config-subdir-1 -y")
+    Resolving config:subdir/flags.yml
+
+The resolved config file is located in the run directory under `subdir`.
+
+    >>> run("guild ls -n")
+    subdir/
+    subdir/flags.yml
+
+    >>> run("guild cat -p subdir/flags.yml")
+    msg: hello
+
+The target path can be configured by explicitly defining the config
+resource. `config-subdir-2` shows how the same configuration file can
+be written to the run directory root. It too disables source code
+copies.
+
+    >>> run("guild run config-subdir-2 -y")
+    Resolving config:subdir/flags.yml
+
+    >>> run("guild ls -n")
+    flags.yml
+
+    >>> run("guild cat -p flags.yml")
+    msg: hello
+
 ## Restarting runs with param flags
 
 When a run is restarted with flags destined for a config file, Guild
 re-writes the config file with the new flag values.
 
-    >>> last_run_id = run_capture("guild select")
+We restart the last `json-in` operation.
+
+    >>> last_run_id = run_capture("guild select -Fo json-in")
 
     >>> run(f"guild run --restart {last_run_id} b=no f=3.345 -y")
     Resolving config:flags.json.in
@@ -671,7 +718,7 @@ We return to the `config-flags` sample project to illustate.
 
     >>> use_project("config-flags")
 
-The project Guild file includes operation defines in
+The project Guild file includes operation defined in
 `subdir/guild-config.yml`.
 
     >>> cat("guild.yml")
@@ -695,14 +742,22 @@ The project Guild file includes operation defines in
           flags-import: yes
 
 The `yaml-subdir-1` operation includes `subdir` as a parent of
-`flags.yml`.
+`flags.yml`. When resolved, `flags.yml` is written to `subdir` in the
+run directory.
+
+Show the original config file.
+
+    >>> cat("subdir/flags.yml")
+    msg: hello
+
+Run `yaml-subdir-1`.
 
     >>> run("guild run yaml-subdir-1 -y")
     Resolving config:subdir/flags.yml
 
-The resolved config file originated from `subdir`.
+Show the resolved config file.
 
-    >>> run("guild cat -p flags.yml")
+    >>> run("guild cat -p subdir/flags.yml")
     msg: hello
 
 `yaml-subdir-2` does not include `subdir`. When it's resolved, it's
