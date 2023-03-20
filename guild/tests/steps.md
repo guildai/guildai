@@ -81,14 +81,14 @@ runs.
 Contents of the parent run:
 
     >>> run("guild ls 3 -n")
-    step-1/
-    step-2/
+    step-1_0/
+    step-2_0/
 
 Get the targets of the two links under parent:
 
     >>> parent_dir = run_capture("guild select 3 --path")
-    >>> step_1_link_target = realpath(path(parent_dir, "step-1"))
-    >>> step_2_link_target = realpath(path(parent_dir, "step-2"))
+    >>> step_1_link_target = realpath(path(parent_dir, "step-1_0"))
+    >>> step_2_link_target = realpath(path(parent_dir, "step-2_0"))
 
 Get the two step directories:
 
@@ -124,8 +124,8 @@ The `steps-named` operation shows how names are used.
 The links generated in the stepped run use the step names.
 
     >>> run("guild ls 3 -n")
-    s1/
-    s2/
+    s1_0/
+    s2_0/
 
 The stepped run `steps-basic` contains symbolic links to the two
 genated runs.
@@ -133,8 +133,8 @@ genated runs.
 Get the targets of the two step runs:
 
     >>> parent_dir = run_capture("guild select 3 --path")
-    >>> s1_link_target = realpath(path(parent_dir, "s1"))
-    >>> s2_link_target = realpath(path(parent_dir, "s2"))
+    >>> s1_link_target = realpath(path(parent_dir, "s1_0"))
+    >>> s2_link_target = realpath(path(parent_dir, "s2_0"))
 
 Get the two step directories:
 
@@ -169,34 +169,34 @@ use an incrementing suffix to avoid name collisions.
     [4]  m1:steps-repeat  completed
 
     >>> run("guild ls 4 -n")
-    step-1/
+    step-1_0/
+    step-1_1/
     step-1_2/
-    step-1_3/
 
 As with the previous examples, the links reference the step runs.
 
 Get the targets of the two step runs:
 
     >>> parent_dir = run_capture("guild select 4 --path")
-    >>> step_1_link_target = realpath(path(parent_dir, "step-1"))
+    >>> step_1_0_link_target = realpath(path(parent_dir, "step-1_0"))
+    >>> step_1_1_link_target = realpath(path(parent_dir, "step-1_1"))
     >>> step_1_2_link_target = realpath(path(parent_dir, "step-1_2"))
-    >>> step_1_3_link_target = realpath(path(parent_dir, "step-1_3"))
 
 Get the three step directories:
 
-    >>> step_1_path = run_capture("guild select 3 --path")
-    >>> step_1_2_path = run_capture("guild select 2 --path")
-    >>> step_1_3_path = run_capture("guild select 1 --path")
+    >>> step_1_0_path = run_capture("guild select 3 --path")
+    >>> step_1_1_path = run_capture("guild select 2 --path")
+    >>> step_1_2_path = run_capture("guild select 1 --path")
 
 Verify that the links point to the step runs:
 
-    >>> step_1_link_target == step_1_path
+    >>> step_1_0_link_target == step_1_0_path
+    True
+
+    >>> step_1_1_link_target == step_1_1_path
     True
 
     >>> step_1_2_link_target == step_1_2_path
-    True
-
-    >>> step_1_3_link_target == step_1_3_path
     True
 
 ## Stepped operations and flags
@@ -332,9 +332,9 @@ The generated runs:
 Files associated with each run:
 
     >>> run("guild ls -n 4")
-    eval/
-    prepare/
-    train/
+    eval_0/
+    prepare_0/
+    train_0/
 
     >>> run("guild ls -n 3")
     data

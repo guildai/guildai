@@ -321,7 +321,6 @@ def _unique_step_names(steps):
     return unique_step_names
 
 
-
 def _handle_run_step(parent_run, step, unique_name):
     step_run_dir = _choose_step_run_dir(parent_run, step, unique_name)
     step_run = _run_step(step, parent_run, step_run_dir, unique_name)
@@ -334,7 +333,9 @@ def _choose_step_run_dir(parent_run, step, unique_name):
         return _step_run_dir_when_restarting(parent_run, unique_name)
     else:
         _maybe_rm_dir_symlink(parent_run, unique_name)
-        return _step_run_dir_when_not_restarting(parent_run)
+        step_run_dir = _step_run_dir_when_not_restarting(parent_run)
+        steps_util.link_to_step_run(unique_name, step_run_dir, parent_run.dir)
+        return step_run_dir
 
 
 def _step_run_dir_when_restarting(parent_run, unique_name):
@@ -384,7 +385,6 @@ def _init_steps(run):
 # =================================================================
 
 def _run_step(step, parent_run, step_run_dir, unique_name):
-    steps_util.link_to_step_run(unique_name, step_run_dir, parent_run.dir)
     cmd = _step_run_cmd(step, step_run_dir, parent_run)
     env = _step_run_env(step, parent_run)
     cwd = _step_run_cwd()
