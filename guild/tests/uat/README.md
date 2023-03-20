@@ -124,7 +124,7 @@ Next we'll train the `mnist-mlp` model.
 
 - [train-keras-mnist-mlp](train-keras-mnist-mlp.md)
 
-## Training Guild example models
+## Guild example models
 
 *Run Guild examples.*
 
