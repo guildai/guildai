@@ -288,27 +288,42 @@ def _run_steps():
     if not steps:
         log.warning("no steps defined for run %s", parent_run.id)
         return
+
+    unique_step_names = _unique_step_names(steps)
+    for step, unique_name in zip(steps, unique_step_names):
+        _handle_run_step(parent_run, step, unique_name)
+
+
+def _unique_step_names(steps):
+    from collections import Counter
+    names_counter = Counter()
+    unique_step_names = []
     for step in steps:
-        _handle_run_step(parent_run, step)
+        name = step.name
+        count = names_counter[name]
+        unique_step_names.append(f"{name}_{count}")
+        names_counter[name] += 1
+    return unique_step_names
 
 
-def _handle_run_step(parent_run, step):
-    step_run_dir = _choose_step_run_dir(parent_run, step)
-    step_run = _run_step(step, parent_run, step_run_dir)
+
+def _handle_run_step(parent_run, step, unique_name):
+    step_run_dir = _choose_step_run_dir(parent_run, step, unique_name)
+    step_run = _run_step(step, parent_run, step_run_dir, unique_name)
     _check_step_run(step, step_run)
 
 
-def _choose_step_run_dir(parent_run, step):
-    if _step_run_exists(parent_run, step):
+def _choose_step_run_dir(parent_run, step, unique_name):
+    if _step_run_exists(parent_run, unique_name):
         log.info(f"{step.name} is being restarted")
-        return _step_run_dir_when_restarting(parent_run, step)
+        return _step_run_dir_when_restarting(parent_run, unique_name)
     else:
-        _maybe_rm_dir_symlink(parent_run, step)
+        _maybe_rm_dir_symlink(parent_run, unique_name)
         return _step_run_dir_when_not_restarting(parent_run)
 
 
-def _step_run_dir_when_restarting(parent_run, step):
-    step_dir_link = _step_dir_link(parent_run, step)
+def _step_run_dir_when_restarting(parent_run, unique_name):
+    step_dir_link = _step_dir_link(parent_run, unique_name)
     return os.path.realpath(step_dir_link)
 
 
@@ -316,8 +331,8 @@ def _step_run_dir_when_not_restarting(parent_run):
     return steps_util.init_step_run_dir(parent_run.dir)
 
 
-def _step_run_exists(parent_run, step):
-    step_dir_link = _step_dir_link(parent_run, step)
+def _step_run_exists(parent_run, unique_name):
+    step_dir_link = _step_dir_link(parent_run, unique_name)
     if os.path.isdir(step_dir_link):
         assert os.path.islink(step_dir_link)
         return True
@@ -325,12 +340,12 @@ def _step_run_exists(parent_run, step):
         return False
 
 
-def _step_dir_link(parent_run, step):
-    return os.path.join(parent_run.dir, step.name)
+def _step_dir_link(parent_run, unique_name):
+    return os.path.join(parent_run.dir, unique_name)
 
 
-def _maybe_rm_dir_symlink(parent_run, step):
-    step_dir_link = _step_dir_link(parent_run, step)
+def _maybe_rm_dir_symlink(parent_run, unique_name):
+    step_dir_link = _step_dir_link(parent_run, unique_name)
     try:
         os.rmdir(step_dir_link)
     except FileNotFoundError:
@@ -353,8 +368,8 @@ def _init_steps(run):
 # Run step
 # =================================================================
 
-def _run_step(step, parent_run, step_run_dir):
-    steps_util.link_to_step_run(step, step_run_dir, parent_run.dir)
+def _run_step(step, parent_run, step_run_dir, unique_name):
+    steps_util.link_to_step_run(unique_name, step_run_dir, parent_run.dir)
     cmd = _step_run_cmd(step, step_run_dir, parent_run)
     env = _step_run_env(step, parent_run)
     cwd = _step_run_cwd()
