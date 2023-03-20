@@ -29,7 +29,7 @@ Create a helper function to generate an init Config object.
     ...     no_isolate=False,
     ...     no_reqs=False,
     ...     path=(),
-    ...     requirement=(),
+    ...     requirements=(),
     ...     tensorflow=None,
     ...     skip_tensorflow=False,
     ...     isolate_resources=False,
