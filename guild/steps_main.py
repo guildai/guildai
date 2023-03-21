@@ -469,44 +469,67 @@ def _run_step(step, parent_run, step_run_dir):
     cmd = _step_run_cmd(step, step_run_dir, parent_run)
     env = _step_run_env(step, parent_run)
     cwd = _step_run_cwd()
+    _log_step_details(step_run_dir, step, cmd, env, cwd)
+    returncode = subprocess.call(cmd, env=env, cwd=cwd)
+    if returncode != 0:
+        sys.exit(returncode)
+
+
+def _log_step_details(step_run_dir, step, cmd, env, cwd):
     log.info(
         "%s %s: %s",
-        _running_or_restarting(step_run_dir),
+        "restarting" if _restarting_step(step_run_dir) else "running",
         step,
         _format_step_cmd(cmd),
     )
     log.debug("step cwd %s", cwd)
     log.debug("step command: %s", cmd)
     log.debug("step env: %s", env)
-    returncode = subprocess.call(cmd, env=env, cwd=cwd)
-    if returncode != 0:
-        sys.exit(returncode)
-
-
-def _running_or_restarting(step_run_dir):
-    return "restarting" if os.path.exists(step_run_dir) else "running"
 
 
 def _step_run_cmd(step, step_run_dir, parent_run):
-    base_args = [
+    return (
+        _step_run_base_args()
+        + _step_run_type_args(step, step_run_dir, parent_run)
+        + _step_run_parent_passthrough_args(parent_run)
+        + _step_run_step_config_args(step)
+    )
+
+
+def _step_run_base_args():
+    return [
         config.python_exe(),
         "-um",
         "guild.main_bootstrap",
         "run",
         "-y",
-        "--run-dir",
-        step_run_dir,
-        step.op_spec,
     ]
 
-    parent_run_options = _parent_run_options(parent_run)
-    step_options = _step_options(step)
-    batch_file_args = _step_batch_file_args(step)
-    flag_args = _step_flag_args(step)
-    return base_args + parent_run_options + step_options + batch_file_args + flag_args
+
+def _step_run_type_args(step, step_run_dir, parent_run):
+    if _restarting_step(step_run_dir):
+        return _step_run_restart_args(step_run_dir, parent_run)
+    return _step_run_dir_args(step, step_run_dir)
 
 
-def _parent_run_options(parent_run):
+def _restarting_step(step_run_dir):
+    return os.path.exists(step_run_dir)
+
+
+def _step_run_restart_args(step_run_dir, parent_run):
+    step_run_parent, step_run_id = os.path.split(step_run_dir)
+    assert step_run_parent == os.path.dirname(parent_run.dir), (
+        step_run_dir,
+        parent_run.dir,
+    )
+    return ["--restart", step_run_id]
+
+
+def _step_run_dir_args(step, step_run_dir):
+    return ["--run-dir", step_run_dir, step.op_spec]
+
+
+def _step_run_parent_passthrough_args(parent_run):
     opts = []
     params = parent_run.get("run_params")
     if params.get("stage_trials"):
@@ -514,53 +537,47 @@ def _parent_run_options(parent_run):
     return opts
 
 
-def _step_options(step):
-    opts = []
+def _step_run_step_config_args(step):
+    args = []
     if step.batch_label:
-        opts.extend(["--batch-label", step.batch_label])
+        args.extend(["--batch-label", step.batch_label])
     for tag in step.batch_tags:
-        opts.extend(["--batch-tag", tag])
+        args.extend(["--batch-tag", tag])
     if step.fail_on_trial_error:
-        opts.append("--fail-on-trial-error")
+        args.append("--fail-on-trial-error")
     if step.force_flags:
-        opts.append("--force-flags")
+        args.append("--force-flags")
     if step.gpus is not None:
-        opts.extend(["--gpus", str(step.gpus)])
+        args.extend(["--gpus", str(step.gpus)])
     if step.label:
-        opts.extend(["--label", step.label])
+        args.extend(["--label", step.label])
     if step.max_trials:
-        opts.extend(["--max-trials", str(step.max_trials)])
+        args.extend(["--max-trials", str(step.max_trials)])
     if step.maximize:
-        opts.extend(["--maximize", step.maximize])
+        args.extend(["--maximize", step.maximize])
     if step.minimize:
-        opts.extend(["--minimize", step.minimize])
+        args.extend(["--minimize", step.minimize])
     if step.needed:
-        opts.append("--needed")
+        args.append("--needed")
     if step.no_gpus:
-        opts.append("--no-gpus")
+        args.append("--no-gpus")
     for flag in step.opt_flags:
-        opts.extend(["--opt-flag", flag])
+        args.extend(["--opt-flag", flag])
     if step.optimize:
-        opts.append("--optimize")
+        args.append("--optimize")
     if step.optimizer:
-        opts.extend(["--optimizer", step.optimizer])
+        args.extend(["--optimizer", step.optimizer])
     if step.random_seed is not None:
-        opts.extend(["--random-seed", str(step.random_seed)])
+        args.extend(["--random-seed", str(step.random_seed)])
     if step.remote:
-        opts.extend(["--remote", step.remote])
+        args.extend(["--remote", step.remote])
     if step.stop_after:
-        opts.extend(["--stop-after", str(step.stop_after)])
+        args.extend(["--stop-after", str(step.stop_after)])
     for tag in step.tags:
-        opts.extend(["--tag", tag])
-    return opts
-
-
-def _step_batch_file_args(step):
-    return [f"@{file}" for file in step.batch_files]
-
-
-def _step_flag_args(step):
-    return flag_util.flag_assigns(step.flags)
+        args.extend(["--tag", tag])
+    args.extend([f"@{file}" for file in step.batch_files])
+    args.extend(flag_util.flag_assigns(step.flags))
+    return args
 
 
 def _step_run_env(step, parent_run):
@@ -577,17 +594,35 @@ def _step_run_cwd():
 
 
 def _format_step_cmd(cmd):
-    # Show only opspec onward - assert front matter to catch changes
-    # to cmd.
-    assert cmd[0:6] == [
-        config.python_exe(),
-        "-um",
-        "guild.main_bootstrap",
-        "run",
-        "-y",
-        "--run-dir",
-    ], cmd
-    return " ".join(cmd[7:])
+    """Returns user-facing formatted cmd.
+
+    `cmd` may take one or two forms: a restart command or a
+    run-with-directory command. The formatted commands differs based
+    on the cmd form.
+    """
+    return _try_format_run_dir_cmd(cmd) or _format_restart_cmd(cmd)
+
+
+def _try_format_run_dir_cmd(cmd):
+    try:
+        run_dir_pos = cmd.index("--run-dir")
+    except ValueError:
+        return None
+    else:
+        assert run_dir_pos == 5, cmd
+        # Args following --run-dir <dir>
+        return " ".join(cmd[run_dir_pos + 2 :])
+
+
+def _format_restart_cmd(cmd):
+    try:
+        restart_pos = cmd.index("--restart")
+    except ValueError:
+        assert False, cmd
+    else:
+        assert restart_pos == 5, cmd
+        # Args following --restart
+        return " ".join(cmd[restart_pos + 1 :])
 
 
 def _run_step_checks(step, step_run_dir):

@@ -51,8 +51,8 @@ to success.
 
     >>> parent_run = run_capture("guild select -Fo steps-restart")
     >>> run(f"guild run --restart {parent_run} fail=no -y")
-    INFO: [guild] restarting fail: m1:fail fail=no
-    INFO: [guild] restarting fail: m1:fail fail=no
+    INFO: [guild] restarting fail: ... fail=no
+    INFO: [guild] restarting fail: ... fail=no
 
     >>> run("guild runs -s")
     [1]  m1:fail           completed  fail=no
@@ -77,10 +77,16 @@ that the runs have been restarted by filtering on started time.
     <exit 0>
 
 
-##
+## TODO
 
-TODO:
-
+- `project_dir = mkdtemp()` insted of `use_project()`
+- Move `fail.py` from steps sample project into tmp project (update
+  `steps.md` to not include `fail.py` in examples)
+  - Move `m1:steps-repeat` from sample guild file to temp project (don't
+  put under a model - just top level op)
+- ensure that restart doesn't pick up project source code changes
+- ensure that --force-sourcecode to pipeline causes restarts to pick
+  up source code changes :(
 - step run doesn't start - e.g. validation error on flag
 - delete a run step link -> should auto-recreate it as if new run
 - delete a run step link and replace with a file or dir -> should error
