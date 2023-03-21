@@ -712,23 +712,30 @@ def _apply_dep_run_id_to_list(run_id, l):
 
 
 def _edit_op_flags(op):
-    flag_vals = op._op_flag_vals
-    if not flag_vals:
-        return flag_vals
+    """Allow user to edit op flag values.
+
+    Uses `util.edit()` to let user edit flag values, e.g. using an
+    editor. Handles editing error by prompting user to re-edit.
+
+    Has side-effect of updating `op._op_flag_vals` on successful edit.
+    """
+    if not op._op_flag_vals:
+        # Nothing to edit
+        return
     encoded_flags = _encode_flags_with_help(op._op_flag_vals, op._opdef)
     while True:
         # Loop to let user re-edit on error.
-        edited = util.edit(encoded_flags, extension=".yml")
-        if edited is None or not edited.strip():
+        edited_encoded_flags = util.edit(encoded_flags, extension=".yml")
+        if edited_encoded_flags is None or not edited_encoded_flags.strip():
             break
         try:
-            flag_vals = yaml_util.decode_yaml(edited)
+            editor_decoded_flags = yaml_util.decode_yaml(edited_encoded_flags)
         except ValueError as e:
             cli.out(f"Error reading flags: {e}", err=True)
             if not cli.confirm("Would you like to re-edit these flags?", default=True):
                 cli.error()
         else:
-            op._op_flag_vals = flag_vals
+            op._op_flag_vals = editor_decoded_flags
             break
 
 
