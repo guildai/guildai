@@ -92,8 +92,7 @@ When we run it:
     INFO: [guild] checking run ... output for 'bye'
     ERROR: [guild] check failed: could not find pattern 'bye' in run ... output
     INFO: [guild] 0 of 1 checks passed
-    ERROR: [guild] 1 check(s) failed - see above for details
-    guild: stopping because a check failed
+    guild: stopping because a check failed - see above for details
     <exit 3>
 
 Checks can be aggregated by simply running them as steps. `_test-all`
@@ -127,6 +126,5 @@ does this:
     INFO: [guild] checking run ... output for 'bye'
     ERROR: [guild] check failed: could not find pattern 'bye' in run ... output
     INFO: [guild] 0 of 1 checks passed
-    ERROR: [guild] 1 check(s) failed - see above for details
-    guild: stopping because a check failed
+    guild: stopping because a check failed - see above for details
     <exit 3>
