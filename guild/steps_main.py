@@ -311,6 +311,7 @@ def _run_steps():
 
 def _unique_step_names(steps):
     from collections import Counter
+
     names_counter = Counter()
     unique_step_names = []
     for step in steps:
@@ -383,6 +384,7 @@ def _init_steps(run):
 # =================================================================
 # Run step
 # =================================================================
+
 
 def _run_step(step, parent_run, step_run_dir):
     cmd = _step_run_cmd(step, step_run_dir, parent_run)

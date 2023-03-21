@@ -137,6 +137,7 @@ class RScriptPlugin(pluginlib.Plugin):
                 # replace the opdef with a new one built from the merged data dict
                 m.operations[i] = guildfile.OpDef(opdef.name, data, m)
 
+
 def _r_script_init_model_op():
     return RScriptBuiltinsModelProxy(), "init"
 
