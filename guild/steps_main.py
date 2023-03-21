@@ -323,7 +323,7 @@ def _unique_step_names(steps):
 
 def _handle_run_step(parent_run, step, unique_name):
     step_run_dir = _choose_step_run_dir(parent_run, step, unique_name)
-    step_run = _run_step(step, parent_run, step_run_dir, unique_name)
+    step_run = _run_step(step, parent_run, step_run_dir)
     _check_step_run(step, step_run)
 
 
@@ -384,7 +384,7 @@ def _init_steps(run):
 # Run step
 # =================================================================
 
-def _run_step(step, parent_run, step_run_dir, unique_name):
+def _run_step(step, parent_run, step_run_dir):
     cmd = _step_run_cmd(step, step_run_dir, parent_run)
     env = _step_run_env(step, parent_run)
     cwd = _step_run_cwd()
@@ -409,7 +409,7 @@ def _step_run_cmd(step, step_run_dir, parent_run):
         step_run_dir,
         step.op_spec,
     ]
-    
+
     parent_run_options = _parent_run_options(parent_run)
     step_options = _step_options(step)
     batch_file_args = _step_batch_file_args(step)
