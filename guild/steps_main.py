@@ -27,7 +27,6 @@ from guild import exit_code
 from guild import flag_util
 from guild import op_util
 from guild import opref as opreflib
-from guild import steps_util
 from guild import run as runlib
 from guild import run_check
 from guild import util
@@ -66,6 +65,7 @@ INHERITED_PARAMS = (
     ("label", None),
     ("tags", ()),
 )
+
 
 ###################################################################
 # State
@@ -303,10 +303,13 @@ def _run_steps():
     if not steps:
         log.warning("no steps defined for run %s", parent_run.id)
         return
+    for step, step_name in _iter_steps_with_names(steps):
+        _handle_run_step(parent_run, step, step_name)
 
+
+def _iter_steps_with_names(steps):
     unique_step_names = _unique_step_names(steps)
-    for step, unique_name in zip(steps, unique_step_names):
-        _handle_run_step(parent_run, step, unique_name)
+    return zip(steps, unique_step_names)
 
 
 def _unique_step_names(steps):
@@ -315,58 +318,134 @@ def _unique_step_names(steps):
     names_counter = Counter()
     unique_step_names = []
     for step in steps:
-        name = step.name
-        count = names_counter[name]
-        unique_step_names.append(f"{name}_{count}")
-        names_counter[name] += 1
+        unique_step_names.append(
+            _step_name_for_count(step.name, names_counter[step.name])
+        )
+        names_counter[step.name] += 1
     return unique_step_names
 
 
-def _handle_run_step(parent_run, step, unique_name):
-    step_run_dir = _choose_step_run_dir(parent_run, step, unique_name)
-    step_run = _run_step(step, parent_run, step_run_dir)
-    _check_step_run(step, step_run)
+def _step_name_for_count(step_name, count):
+    return step_name if count == 0 else f"{step_name}_{count + 1}"
 
 
-def _choose_step_run_dir(parent_run, step, unique_name):
-    if _step_run_exists(parent_run, unique_name):
-        log.info(f"{step.name} is being restarted")
-        return _step_run_dir_when_restarting(parent_run, unique_name)
-    else:
-        _maybe_rm_dir_symlink(parent_run, unique_name)
-        step_run_dir = _step_run_dir_when_not_restarting(parent_run)
-        steps_util.link_to_step_run(unique_name, step_run_dir, parent_run.dir)
-        return step_run_dir
+def _handle_run_step(parent_run, step, step_name):
+    step_run_dir = _resolve_step_run_dir(parent_run, step_name)
+    _run_step(step, parent_run, step_run_dir)
+    _run_step_checks(step, step_run_dir)
 
 
-def _step_run_dir_when_restarting(parent_run, unique_name):
-    step_dir_link = _step_dir_link(parent_run, unique_name)
+# def _ensure_step_run_dir(parent_run, step, step_name):
+#     if _step_run_exists(parent_run, step_name):
+#         log.info(f"{step.name} is being restarted")
+#         return _step_run_dir_when_restarting(parent_run, step_name)
+#     _maybe_rm_dir_symlink(parent_run, step_name)
+#     step_run_dir = _step_run_dir_when_not_restarting(parent_run)
+#     steps_util.link_to_step_run(step_name, step_run_dir, parent_run.dir)
+#     return step_run_dir
+
+
+def _resolve_step_run_dir(parent_run, step_name):
+    """Returns a resolved step run directory path.
+
+    A resolved dir may be an existing run directory or a to-be-created
+    run directory associated with a step dir link.
+
+    An existing directory is one linked to from an step dir link. A
+    to-be-created directory is a generated path to a non-existing run
+    directory that is similarly linked to. In this case the link is
+    initially broken and later resolved when the run is started.
+    """
+    step_dir_link = _step_dir_link(parent_run, step_name)
+    return util.find_apply(
+        [
+            _existing_step_run_dir,
+            _new_step_run_dir,
+        ],
+        step_dir_link,
+    )
+
+
+def _existing_step_run_dir(step_dir_link):
+    """Returns resolved link dest for dir link if exists.
+
+    If `step_dir_link` is not a link or does not point to a directory,
+    returns None.
+    """
+    if not os.path.islink(step_dir_link) or not os.path.isdir(step_dir_link):
+        return None
     return os.path.realpath(step_dir_link)
 
 
-def _step_run_dir_when_not_restarting(parent_run):
-    return steps_util.init_step_run_dir(parent_run.dir)
+def _new_step_run_dir(step_dir_link):
+    """Returns a generated run directory target of step dir link.
+
+    Creates a link to the generated run directory but does not create
+    the run directory.
+
+    Assumes that step dir link does not exist. If it does exist,
+    failed with an error message.
+
+    Assumes that step dir link is an immediate subdirectory of the
+    parent run and that the parent run is located in the runs
+    directory. Generated step run dir is located in the runs
+    directory.
+    """
+    _handle_broken_link(step_dir_link)
+    step_run_dir = _generate_run_dir_for_link(step_dir_link)
+    _make_run_dir_link(step_dir_link, step_run_dir)
+    return step_run_dir
 
 
-def _step_run_exists(parent_run, unique_name):
-    step_dir_link = _step_dir_link(parent_run, unique_name)
-    if os.path.isdir(step_dir_link):
-        assert os.path.islink(step_dir_link)
-        return True
-    else:
-        return False
+def _handle_broken_link(step_dir_link):
+    """Deletes step dir link if broken.
+
+    If step dir link exists and is not a link, fails with an error
+    message.
+    """
+    if not os.path.exists(step_dir_link):
+        return
+    if not os.path.islink(step_dir_link):
+        _error(f"unexpected step run link {step_dir_link}: expected symlink")
+    os.remove(step_dir_link)
 
 
-def _step_dir_link(parent_run, unique_name):
-    return os.path.join(parent_run.dir, unique_name)
+def _generate_run_dir_for_link(step_dir_link):
+    """Generates a path for a to-be-creatd run directory."""
+    parent_run_dir = os.path.dirname(step_dir_link)
+    runs_dir = os.path.dirname(parent_run_dir)
+    return os.path.join(runs_dir, runlib.mkid())
 
 
-def _maybe_rm_dir_symlink(parent_run, unique_name):
-    step_dir_link = _step_dir_link(parent_run, unique_name)
-    try:
-        os.rmdir(step_dir_link)
-    except FileNotFoundError:
-        pass
+def _make_run_dir_link(step_dir_link, step_run_dir):
+    rel_step_run_dir = os.path.relpath(step_run_dir, os.path.dirname(step_dir_link))
+    os.symlink(rel_step_run_dir, step_dir_link)
+
+
+# def _step_run_dir_when_restarting(parent_run, step_name):
+#     step_dir_link = _step_dir_link(parent_run, step_name)
+#     return os.path.realpath(step_dir_link)
+
+
+# def _step_run_dir_when_not_restarting(parent_run):
+#     return steps_util.init_step_run_dir(parent_run.dir)
+
+
+def _step_run_exists(parent_run, step_name):
+    step_dir_link = _step_dir_link(parent_run, step_name)
+    return os.path.exists(step_dir_link)
+
+
+def _step_dir_link(parent_run, step_name):
+    return os.path.join(parent_run.dir, step_name)
+
+
+# def _maybe_rm_dir_symlink(parent_run, step_name):
+#     step_dir_link = _step_dir_link(parent_run, step_name)
+#     try:
+#         os.rmdir(step_dir_link)
+#     except FileNotFoundError:
+#         pass
 
 
 def _init_steps(run):
@@ -390,14 +469,22 @@ def _run_step(step, parent_run, step_run_dir):
     cmd = _step_run_cmd(step, step_run_dir, parent_run)
     env = _step_run_env(step, parent_run)
     cwd = _step_run_cwd()
-    log.info("running %s: %s", step, _format_step_cmd(cmd))
+    log.info(
+        "%s %s: %s",
+        _running_or_restarting(step_run_dir),
+        step,
+        _format_step_cmd(cmd),
+    )
     log.debug("step cwd %s", cwd)
     log.debug("step command: %s", cmd)
     log.debug("step env: %s", env)
     returncode = subprocess.call(cmd, env=env, cwd=cwd)
     if returncode != 0:
         sys.exit(returncode)
-    return runlib.for_dir(step_run_dir)
+
+
+def _running_or_restarting(step_run_dir):
+    return "restarting" if os.path.exists(step_run_dir) else "running"
 
 
 def _step_run_cmd(step, step_run_dir, parent_run):
@@ -503,45 +590,29 @@ def _format_step_cmd(cmd):
     return " ".join(cmd[7:])
 
 
-def _check_step_run(step, run):
-    if not step.checks:
-        return
-    if _run_skipped(run):
-        log.info("skipping checks for %s", step.name)
-        return
-    checks_passed = _check_step_run_(step, run)
-    if not checks_passed:
-        _error("stopping because a check failed", exit_code.TEST_FAILED)
+def _run_step_checks(step, step_run_dir):
+    """Applies check config to completed step run in run_dir.
 
-
-def _run_skipped(run):
-    """Returns True if run was skipped.
-
-    We infer that a run was skipped if it's directory doesn't
-    exist. The rationale relies on the assertion that the step run
-    creates the specified run directory only when the run is not
-    skipped.
+    Raises CheckFailed if a check fails.
     """
-    return not os.path.exists(run.dir)
-
-
-def _check_step_run_(step, run):
     if not step.checks:
-        return True
-    passed = 0
-    failed = 0
+        return
+    passed = []
+    failed = []
     for check in step.checks:
         try:
-            check.check_run(run)
+            check.check_run(runlib.for_dir(step_run_dir))
         except run_check.Failed as e:
             log.error("check failed: %s", e)
-            failed += 1
+            failed.append(check)
         else:
-            passed += 1
-    log.info("%i of %i checks passed", passed, passed + failed)
-    if failed > 0:
-        log.error("%i check(s) failed - see above for details", failed)
-    return failed == 0
+            passed.append(check)
+    log.info("%i of %i checks passed", len(passed), len(step.checks))
+    if failed:
+        _error(
+            "stopping because a check failed - see above for details",
+            exit_code.TEST_FAILED,
+        )
 
 
 ###################################################################
