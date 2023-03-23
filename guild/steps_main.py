@@ -374,10 +374,11 @@ def _existing_step_run_dir(step_dir_link):
     """
     if not os.path.islink(step_dir_link):
         return None
-    link_realpath = util.realpath(step_dir_link)
-    if not os.path.isdir(link_realpath):
+    # Use `util.realpath` to properly resolve link targets on Windows
+    link_target = util.realpath(step_dir_link)
+    if not os.path.isdir(link_target):
         return None
-    return link_realpath
+    return link_target
 
 
 def _new_step_run_dir(step_dir_link):
