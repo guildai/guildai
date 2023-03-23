@@ -25,8 +25,9 @@ on:
         default: false
 
 jobs:
-  debug:
+  debug-posix:
     name: Debug ${{ inputs.os }} python-${{ inputs.python }}
+    if: ${{ inputs.os != 'windows-latest' }}
     runs-on: ${{ inputs.os }}
     strategy:
       fail-fast: false
@@ -77,6 +78,67 @@ jobs:
         run: |
           test-env/bin/pip install -r guild/tests/requirements.txt
           test-env/bin/guild check -T -c8 --fast
+
+      - name: Keep server alive for SSH (cancel workflow to terminate)
+        run: sleep 7200
+
+  debug-windows:
+    name: Debug ${{ inputs.os }} python-${{ inputs.python }}
+    if: ${{ inputs.os == 'windows-latest' }}
+    runs-on: ${{ inputs.os }}
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ inputs.python }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ inputs.python }}
+
+      - name: Configure SSH
+        # ssh action (below) waits for a 'continue' sentinel - we want
+        # the job to continue while ssh is available for connections
+        run: touch continue
+
+      - name: Start SSH
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
+      - name: Build package
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          python setup.py bdist_wheel
+
+      - name: Install package
+        run: |
+          python -m venv test-env
+          test-env\Scripts\python -m pip install --upgrade pip
+          pwsh -Command 'test-env\Scripts\pip install $(ls dist)'
+
+      - name: Install test requirements
+        # setuptools==58 is a workaround for an issue described in
+        # https://stackoverflow.com/questions/69100275/error-while-downloading-the-requirements-using-pip-install-setup-command-use-2
+        # In our case we get 'error in pywin32-ctypes setup command:
+        # use_2to3 is invalid' when installing test reqs on some
+        # versions of Windows. This can be removed when pywin32-ctypes
+        # drops Python 2 support.
+        run: |
+          test-env\Scripts\pip install setuptools==58
+          test-env\Scripts\pip install -r guild\tests\requirements.txt
+
+      - name: Run built-in tests
+        if: ${{ inputs.run_tests }}
+        env:
+          GUILD_START_THRESHOLD: 1.0
+          BREAKPOINT_PROMPT_TIMEOUT: 5.0
+          GUILD_CI: 1
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test-env\Scripts\guild check -T
+        shell: cmd
 
       - name: Keep server alive for SSH (cancel workflow to terminate)
         run: sleep 7200
