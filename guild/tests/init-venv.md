@@ -94,7 +94,7 @@ Preview the init operation using the default values.
 
 Create the environment.
 
-    >>> run("guild init --venv -y")  # doctest: +REPORT_UDIFF
+    >>> run("guild init --venv -y")  # doctest: -WINDOWS
     Initializing Guild environment in ...guild-test-.../venv
     Creating virtual environment
     ...
@@ -106,6 +106,22 @@ Create the environment.
     To activate it run:
     <BLANKLINE>
       source guild-env
+
+On Windows instruction to activate the environment (last line) is
+different from POSIX systems.
+
+    >>> run("guild init --venv -y")  # doctest: +WINDOWS_ONLY
+    Initializing Guild environment in ...guild-test-.../venv
+    Creating virtual environment
+    ...
+    Upgrading pip
+    Installing Guild ...
+    ...
+    Guild environment initialized in ...guild-test-.../venv
+    <BLANKLINE>
+    To activate it run:
+    <BLANKLINE>
+      .../guild-test-.../venv/Scripts/activate
 
 Verify that `chardet` is installed in the virtual env.
 
