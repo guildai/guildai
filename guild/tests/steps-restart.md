@@ -47,7 +47,7 @@ Note the current time to confirm that Guild restarts the expected runs.
     >>> before_restart = datetime.now().replace(microsecond=0)
 
 Restart the parent run using an updated flag to cause the second step
-to success.
+to succeed.
 
     >>> parent_run = run_capture("guild select -Fo steps-restart")
     >>> run(f"guild run --restart {parent_run} fail=no -y")
