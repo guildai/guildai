@@ -517,12 +517,22 @@ def _restarting_step(step_run_dir):
 
 
 def _step_run_restart_args(step_run_dir, parent_run):
-    step_run_parent, step_run_id = os.path.split(step_run_dir)
-    assert step_run_parent == os.path.dirname(parent_run.dir), (
+    step_run_id = _restartable_id_for_step_run_dir(step_run_dir, parent_run)
+    return ["--restart", step_run_id]
+
+
+def _restartable_id_for_step_run_dir(step_run_dir, parent_run):
+    """Returns a confirmed restartable run ID for a step dir.
+
+    Asserts that the step and parent runs are both located in the same
+    parent directory - i.e. they're peers.
+    """
+    step_run_dir_parent, step_run_id = os.path.split(step_run_dir)
+    assert util.compare_paths(step_run_dir_parent, os.path.dirname(parent_run.dir)), (
         step_run_dir,
         parent_run.dir,
     )
-    return ["--restart", step_run_id]
+    return step_run_id
 
 
 def _step_run_dir_args(step, step_run_dir):
