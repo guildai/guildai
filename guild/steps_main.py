@@ -372,9 +372,12 @@ def _existing_step_run_dir(step_dir_link):
     If `step_dir_link` is not a link or does not point to a directory,
     returns None.
     """
-    if not os.path.islink(step_dir_link) or not os.path.isdir(step_dir_link):
+    if not os.path.islink(step_dir_link):
         return None
-    return os.path.realpath(step_dir_link)
+    link_realpath = util.realpath(step_dir_link)
+    if not os.path.isdir(link_realpath):
+        return None
+    return link_realpath
 
 
 def _new_step_run_dir(step_dir_link):
