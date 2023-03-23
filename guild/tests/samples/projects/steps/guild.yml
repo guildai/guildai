@@ -29,6 +29,14 @@
         - hello msg='${msg} (again)'
       flags:
         msg: hello steps
+    steps-restart:
+      flags:
+        fail: yes
+      steps:
+        - fail fail=no
+        - fail fail=${fail}
+    fail:
+      flags-import: all
 
 - model: m2
   operations:

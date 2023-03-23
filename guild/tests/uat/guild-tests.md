@@ -97,7 +97,7 @@ Run the other tests.
       includes:                    ok
       index:                       ok
       init:                        ok
-      init-env:                    ok
+      init-venv:                   ok
       ipy:                         ok
       isolate-runs-from-project:   ok
       keras:                       ok
@@ -172,6 +172,7 @@ Run the other tests.
       step-checks:                 ok
       steps:                       ok
       steps-inherited-params:      ok
+      steps-restart:               ok
       steps-run-isolation:         ok
       summary:                     ok
       summary-utils:               ok
