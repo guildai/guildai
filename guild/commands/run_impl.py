@@ -729,13 +729,13 @@ def _edit_op_flags(op):
         if edited_encoded_flags is None or not edited_encoded_flags.strip():
             break
         try:
-            editor_decoded_flags = yaml_util.decode_yaml(edited_encoded_flags)
+            edited_decoded_flags = yaml_util.decode_yaml(edited_encoded_flags)
         except ValueError as e:
             cli.out(f"Error reading flags: {e}", err=True)
             if not cli.confirm("Would you like to re-edit these flags?", default=True):
                 cli.error()
         else:
-            op._op_flag_vals = editor_decoded_flags
+            op._op_flag_vals = edited_decoded_flags
             break
 
 
