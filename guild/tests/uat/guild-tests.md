@@ -69,6 +69,7 @@ Run the other tests.
       dependencies-2:              ok
       dependencies-3:              ok
       dependencies-4:              ok
+      dependencies-5:              ok
       disabled-tests:              ok
       disk-plugin:                 ok
       entry-points:                ok

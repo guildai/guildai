@@ -1,0 +1,5 @@
+up: {}
+
+down:
+  requires:
+    - operation: up

@@ -1,0 +1,1 @@
+open("generated", "w").close()
