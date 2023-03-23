@@ -335,16 +335,6 @@ def _handle_run_step(parent_run, step, step_name):
     _run_step_checks(step, step_run_dir)
 
 
-# def _ensure_step_run_dir(parent_run, step, step_name):
-#     if _step_run_exists(parent_run, step_name):
-#         log.info(f"{step.name} is being restarted")
-#         return _step_run_dir_when_restarting(parent_run, step_name)
-#     _maybe_rm_dir_symlink(parent_run, step_name)
-#     step_run_dir = _step_run_dir_when_not_restarting(parent_run)
-#     steps_util.link_to_step_run(step_name, step_run_dir, parent_run.dir)
-#     return step_run_dir
-
-
 def _resolve_step_run_dir(parent_run, step_name):
     """Returns a resolved step run directory path.
 
