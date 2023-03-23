@@ -388,7 +388,9 @@ def _new_step_run_dir(step_dir_link):
 
     Assumes that step dir link is an immediate subdirectory of the
     parent run and that the parent run is located in the runs
-    directory. Generated step run dir is located in the runs
+    directory.
+
+    The returned generated step run dir is located in the runs
     directory.
     """
     _handle_broken_link(step_dir_link)
@@ -422,15 +424,6 @@ def _make_run_dir_link(step_dir_link, step_run_dir):
     os.symlink(rel_step_run_dir, step_dir_link)
 
 
-# def _step_run_dir_when_restarting(parent_run, step_name):
-#     step_dir_link = _step_dir_link(parent_run, step_name)
-#     return os.path.realpath(step_dir_link)
-
-
-# def _step_run_dir_when_not_restarting(parent_run):
-#     return steps_util.init_step_run_dir(parent_run.dir)
-
-
 def _step_run_exists(parent_run, step_name):
     step_dir_link = _step_dir_link(parent_run, step_name)
     return os.path.exists(step_dir_link)
@@ -438,14 +431,6 @@ def _step_run_exists(parent_run, step_name):
 
 def _step_dir_link(parent_run, step_name):
     return os.path.join(parent_run.dir, step_name)
-
-
-# def _maybe_rm_dir_symlink(parent_run, step_name):
-#     step_dir_link = _step_dir_link(parent_run, step_name)
-#     try:
-#         os.rmdir(step_dir_link)
-#     except FileNotFoundError:
-#         pass
 
 
 def _init_steps(run):
