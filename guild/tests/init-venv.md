@@ -126,4 +126,8 @@ different from POSIX systems.
 Verify that `chardet` is installed in the virtual env.
 
     >>> run("venv/bin/python -c 'import chardet; print(chardet.__file__)'")
+    ... # doctest: -WINDOWS
     ???guild-test-.../venv/lib/python.../site-packages/chardet/__init__.py
+
+    >>> run("venv\Scripts\python -c 'import chardet; print(chardet.__file__)'")
+    ... # doctest: +WINDOWS_ONLY
