@@ -488,7 +488,7 @@ def _step_run_base_args():
 def _step_run_type_args(step, step_run_dir, parent_run):
     if _restarting_step(step_run_dir):
         return _step_run_restart_args(step_run_dir, parent_run)
-    return _step_run_dir_args(step, step_run_dir)
+    return _step_run_new_run_args(step, step_run_dir)
 
 
 def _restarting_step(step_run_dir):
@@ -514,8 +514,8 @@ def _restartable_id_for_step_run_dir(step_run_dir, parent_run):
     return step_run_id
 
 
-def _step_run_dir_args(step, step_run_dir):
-    return ["--run-dir", step_run_dir, step.op_spec]
+def _step_run_new_run_args(step, step_run_dir):
+    return ["--keep-batch", "--run-dir", step_run_dir,  step.op_spec]
 
 
 def _step_run_parent_passthrough_args(parent_run):
@@ -598,7 +598,7 @@ def _try_format_run_dir_cmd(cmd):
     except ValueError:
         return None
     else:
-        assert run_dir_pos == 5, cmd
+        assert run_dir_pos == 6, cmd
         # Args following --run-dir <dir>
         return " ".join(cmd[run_dir_pos + 2 :])
 
