@@ -91,3 +91,14 @@ that the runs have been restarted by filtering on started time.
 - delete a run step link -> should auto-recreate it as if new run
 - delete a run step link and replace with a file or dir -> should error
 - delete a step run, orphaning the link
+- show use of batch (default and random)
+
+Example of using temp dir for test-defined project:
+
+    >>> use_project(mkdtemp())
+
+    >>> write("guild.yml", """
+    ... # Sample guild file!
+    ... """)
+
+Etc.
