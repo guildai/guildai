@@ -116,6 +116,7 @@ The runs are complete:
     say.py    loud=no msg=hola   completed
     say.py    loud=no msg=hello  completed
     say.py    loud=no msg=hi     completed
+    say.py+                      completed
     say-many                     completed
 
 Next, use `--stage-trials`:
@@ -132,8 +133,10 @@ And the runs:
     say.py    loud=no msg=hola   staged
     say.py    loud=no msg=hello  staged
     say.py    loud=no msg=hi     staged
+    say.py+                      completed
     say-many                     completed
     say.py    loud=no msg=hola   completed
     say.py    loud=no msg=hello  completed
     say.py    loud=no msg=hi     completed
+    say.py+                      completed
     say-many                     completed
