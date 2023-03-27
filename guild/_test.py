@@ -1207,7 +1207,8 @@ def _run(
         out = _cut_cols(out, cut)
     if _capture:
         if exit_code != 0:
-            raise gapi.RunError((cmd, cwd, proc_env), exit_code, out)
+            # raise gapi.RunError((cmd, cwd, proc_env), exit_code, out)
+            raise gapi.RunError((cmd, cwd, None), exit_code, out)
         return out
     if out:
         print(out)

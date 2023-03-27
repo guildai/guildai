@@ -7,17 +7,43 @@ Pipelines are commonly restarted when one or more steps fail.
 
 Use the sample project `steps` to illustrate the behavior.
 
-    >>> use_project("steps")
+    >> use_project("steps")
+
+Create and use a helper to initiliaze a fresh temporary project.
+
+    >>> def use_tmp_project():
+    ...     use_project(mkdtemp())
+    ...
+    ...     write("guild.yml", """
+    ...     - model: m1
+    ...       operations:
+    ...         steps-restart:
+    ...           flags:
+    ...             fail: yes
+    ...           steps:
+    ...             - fail fail=no
+    ...             - fail fail=${fail}
+    ...         fail:
+    ...           flags-import: all
+    ...     """)
+    ...
+    ...     write("fail.py", ""
+    ...     "fail = True\n"
+    ...     "if fail:\n"
+    ...     "    raise SystemExit('FAIL')\n"
+    ...     "")
+
+    >>> use_tmp_project()
 
 Create a helper to validate parent run and step links. Step links
 should resolve to their expected run directories.
 
-    >>> def check_steps(parent_spec, link_names, step_specs):
-    ...     parent_dir = run_capture(f"guild select {parent_spec} --dir")
-    ...     for link_name, step_spec in zip(link_names, step_specs):
-    ...         step_run_dir = run_capture(f"guild select {step_spec} --dir")
+    >>> def check_steps(link_names):
+    ...     parent_dir = run_capture(f"guild select {len(link_names)+1} --dir")
+    ...     for i, link_name in enumerate(link_names[::-1]):
+    ...         step_run_dir = run_capture(f"guild select {i+1} --dir")
     ...         step_link_target = realpath(path(parent_dir, link_name))
-    ...         assert step_link_target == step_run_dir, (parent_dir, link_name, step_spec)
+    ...         assert step_link_target == step_run_dir, (parent_dir, link_name, i+1)
 
 `m1:steps-restart` runs two steps, the second of which fails by
 default.
@@ -39,7 +65,7 @@ default.
 
 Confirm that the step links resolve to the expected step runs.
 
-    >>> check_steps("3", ["fail", "fail_2"], ["2", "1"])
+    >>> check_steps(["fail", "fail_2"])
 
 Note the current time to confirm that Guild restarts the expected runs.
 
@@ -63,7 +89,7 @@ to succeed.
     fail/
     fail_2/
 
-    >>> check_steps("3", ["fail", "fail_2"], ["2", "1"])
+    >>> check_steps(["fail", "fail_2"])
 
 When Guild restarts a run, it updates its `started` attribute. Confirm
 that the runs have been restarted by filtering on started time.
@@ -79,10 +105,7 @@ that the runs have been restarted by filtering on started time.
 
 ## TODO
 
-- `project_dir = mkdtemp()` insted of `use_project()`
-- Move `fail.py` from steps sample project into tmp project (update
-  `steps.md` to not include `fail.py` in examples)
-  - Move `m1:steps-repeat` from sample guild file to temp project (don't
+- Move `m1:steps-repeat` from sample guild file to temp project (don't
   put under a model - just top level op)
 - ensure that restart doesn't pick up project source code changes
 - ensure that --force-sourcecode to pipeline causes restarts to pick
@@ -92,13 +115,3 @@ that the runs have been restarted by filtering on started time.
 - delete a run step link and replace with a file or dir -> should error
 - delete a step run, orphaning the link
 - show use of batch (default and random)
-
-Example of using temp dir for test-defined project:
-
-    >>> use_project(mkdtemp())
-
-    >>> write("guild.yml", """
-    ... # Sample guild file!
-    ... """)
-
-Etc.
