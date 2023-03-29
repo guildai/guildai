@@ -399,9 +399,11 @@ def _handle_broken_link(step_dir_link):
     If step dir link exists and is not a link, fails with an error
     message.
     """
-    if not os.path.exists(step_dir_link):
+    exists = os.path.exists(step_dir_link)
+    islink = os.path.islink(step_dir_link)
+    if not exists and not islink:
         return
-    if not os.path.islink(step_dir_link):
+    if not islink:
         _error(f"unexpected step run link {step_dir_link}: expected symlink")
     os.remove(step_dir_link)
 
