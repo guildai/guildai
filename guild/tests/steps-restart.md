@@ -152,6 +152,43 @@ Fix the pipeline and run the steps again; everything passes.
     [2]  m1:fail                    completed  fail=no
     [3]  m1:steps-validation-error  completed  fail=no
 
+## Pipeline step's run link replaced with a non-link produces error
+
+Initialize the project and run the pipeline.
+
+    >>> use_tmp_project()
+    >>> run("guild run m1:steps-restart fail=no -y")
+    INFO: [guild] running fail: m1:fail fail=no
+    INFO: [guild] running fail: m1:fail fail=no
+    
+    >>> run("guild runs -s")
+    [1]  m1:fail           completed  fail=no
+    [2]  m1:fail           completed  fail=no
+    [3]  m1:steps-restart  completed  fail=no
+
+Remove link to first step and replace it with a file.
+
+    >>> parent_run = run_capture("guild select -Fo steps-restart")
+    >>> parent_path = os.path.join(os.environ["GUILD_HOME"], "runs", parent_run)
+    >>> step_link = os.path.join(parent_path, "fail")
+
+    >>> os.listdir(parent_path)
+    ['.guild', 'fail', 'fail_2']
+
+    >>> os.remove(step_link)
+    >>> os.listdir(parent_path)
+    ['.guild', 'fail_2']
+
+    >>> write(step_link, "test")
+    >>> os.listdir(parent_path)
+    ['.guild', 'fail', 'fail_2']
+
+Restart the pipeline and observe the error.
+
+    >>> run(f"guild run --restart {parent_run} fail=no -y")
+    guild: unexpected step run link /tmp/guild-test-.../runs/.../fail: expected symlink
+    <exit 1>
+
 ## TODO
 
 - Move `m1:steps-repeat` from sample guild file to temp project (don't
@@ -163,8 +200,6 @@ Fix the pipeline and run the steps again; everything passes.
   up source code changes :(
 
 - delete a run step link -> should auto-recreate it as if new run
-
-- delete a run step link and replace with a file or dir -> should error
 
 - delete a step run, orphaning the link
 
