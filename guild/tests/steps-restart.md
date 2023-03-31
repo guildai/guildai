@@ -189,6 +189,53 @@ Restart the pipeline and observe the error.
     guild: unexpected step run link /tmp/guild-test-.../runs/.../fail: expected symlink
     <exit 1>
 
+## Pipeline step run deleted, orphaning link
+
+Initialize the project and run the pipeline.
+
+    >>> use_tmp_project()
+    >>> run("guild run m1:steps-restart fail=no -y")
+    INFO: [guild] running fail: m1:fail fail=no
+    INFO: [guild] running fail: m1:fail fail=no
+    
+    >>> run("guild runs -s")
+    [1]  m1:fail           completed  fail=no
+    [2]  m1:fail           completed  fail=no
+    [3]  m1:steps-restart  completed  fail=no
+
+Delete the step that the first link points to.
+
+    >>> parent_run = run_capture("guild select -Fo steps-restart")
+    >>> parent_path = os.path.join(os.environ["GUILD_HOME"], "runs", parent_run)
+    >>> step = realpath(os.path.join(parent_path, "fail"))
+
+    >>> os.listdir(parent_path)
+    ['.guild', 'fail', 'fail_2']
+
+    >>> rmdir(step)
+    >>> os.listdir(parent_path)
+    ['.guild', 'fail', 'fail_2']
+
+    >>> os.path.exists(os.path.join(parent_path, "fail"))
+    False
+
+    >>> os.listdir(parent_path)
+    ['.guild', 'fail', 'fail_2']
+
+Restarting the pipeline reruns all steps.
+
+    >>> run(f"guild run --restart {parent_run} fail=no -y")
+    INFO: [guild] running fail: m1:fail fail=no
+    INFO: [guild] restarting fail: ... fail=no
+
+    >>> run("guild runs -s")
+    [1]  m1:fail           completed  fail=no
+    [2]  m1:fail           completed  fail=no
+    [3]  m1:steps-restart  completed  fail=no
+
+    >>> os.listdir(parent_path)
+    ['.guild', 'fail', 'fail_2']
+
 ## TODO
 
 - Move `m1:steps-repeat` from sample guild file to temp project (don't
@@ -200,7 +247,5 @@ Restart the pipeline and observe the error.
   up source code changes :(
 
 - delete a run step link -> should auto-recreate it as if new run
-
-- delete a step run, orphaning the link
 
 - show use of batch (default and random)
