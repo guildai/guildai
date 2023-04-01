@@ -517,7 +517,7 @@ def _restartable_id_for_step_run_dir(step_run_dir, parent_run):
 
 
 def _step_run_new_run_args(step, step_run_dir):
-    return ["--keep-batch", "--run-dir", step_run_dir,  step.op_spec]
+    return ["--keep-batch", "--run-dir", step_run_dir, step.op_spec]
 
 
 def _step_run_parent_passthrough_args(parent_run):
