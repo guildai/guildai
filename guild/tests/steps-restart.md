@@ -243,7 +243,7 @@ Restarting the pipeline reruns all steps.
 
 ## Pipeline with restarted batch step
 
-Initialize the project and run the pipeline.
+Initialize the project and run the batch step pipeline.
 
     >>> use_tmp_project()
     >>> run("guild run m1:steps-batch fail=no -y")
@@ -259,11 +259,10 @@ Initialize the project and run the pipeline.
     [4]  m1:fail+        completed  
     [5]  m1:steps-batch  completed  fail=no
 
-parent_run.
+
+Restarting the pipeline reruns the batch and new trials are generated.
 
     >>> parent_run = run_capture("guild select -Fo steps-batch")
-
-Restarting the pipeline reruns all steps.
 
     >>> run(f"guild run --restart {parent_run} fail=no -y")
     INFO: [guild] restarting fail: ... fail=[no, no, no]
