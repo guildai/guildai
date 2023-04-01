@@ -25,6 +25,11 @@ Create and use a helper to initiliaze a fresh temporary project.
     ...           steps:
     ...             - fail fail=no validation.error=yes
     ...             - fail fail=${fail}
+    ...         steps-batch:
+    ...           flags:
+    ...             fail: yes
+    ...           steps:
+    ...             - fail fail=[no,no,no]
     ...         fail:
     ...           flags-import: all
     ...     """)
@@ -236,10 +241,47 @@ Restarting the pipeline reruns all steps.
     >>> os.listdir(parent_path)
     ['.guild', 'fail', 'fail_2']
 
-## TODO
+## Pipeline with restarted batch step
 
-- Move `m1:steps-repeat` from sample guild file to temp project (don't
-  put under a model - just top level op)
+Initialize the project and run the pipeline.
+
+    >>> use_tmp_project()
+    >>> run("guild run m1:steps-batch fail=no -y")
+    INFO: [guild] running fail: m1:fail fail=[no, no, no]
+    INFO: [guild] Running trial ...: m1:fail (fail=no)
+    INFO: [guild] Running trial ...: m1:fail (fail=no)
+    INFO: [guild] Running trial ...: m1:fail (fail=no)
+
+    >>> run("guild runs -s")
+    [1]  m1:fail         completed  fail=no
+    [2]  m1:fail         completed  fail=no
+    [3]  m1:fail         completed  fail=no
+    [4]  m1:fail+        completed  
+    [5]  m1:steps-batch  completed  fail=no
+
+parent_run.
+
+    >>> parent_run = run_capture("guild select -Fo steps-batch")
+
+Restarting the pipeline reruns all steps.
+
+    >>> run(f"guild run --restart {parent_run} fail=no -y")
+    INFO: [guild] restarting fail: ... fail=[no, no, no]
+    INFO: [guild] Running trial ...: m1:fail (fail=no)
+    INFO: [guild] Running trial ...: m1:fail (fail=no)
+    INFO: [guild] Running trial ...: m1:fail (fail=no)
+
+    >>> run("guild runs -s")
+    [1]  m1:fail         completed  fail=no
+    [2]  m1:fail         completed  fail=no
+    [3]  m1:fail         completed  fail=no
+    [4]  m1:fail+        completed  
+    [5]  m1:steps-batch  completed  fail=no
+    [6]  m1:fail         completed  fail=no
+    [7]  m1:fail         completed  fail=no
+    [8]  m1:fail         completed  fail=no
+
+## TODO
 
 - ensure that restart doesn't pick up project source code changes
 
@@ -248,4 +290,4 @@ Restarting the pipeline reruns all steps.
 
 - delete a run step link -> should auto-recreate it as if new run
 
-- show use of batch (default and random)
+- show use of random batch
