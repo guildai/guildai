@@ -30,15 +30,28 @@ Create and use a helper to initiliaze a fresh temporary project.
     ...             fail: yes
     ...           steps:
     ...             - fail fail=[no,no,no]
+    ...         steps-random-batch:
+    ...           steps:
+    ...             - train x=[-2.0:2.0] --max-trials 3
     ...         fail:
+    ...           flags-import: all
+    ...         train:
     ...           flags-import: all
     ...     """)
     ...
     ...     write("fail.py", ""
-    ...     "fail = True\n"
-    ...     "if fail:\n"
-    ...     "    raise SystemExit('FAIL')\n"
-    ...     "")
+    ...         "fail = True\n"
+    ...         "if fail:\n"
+    ...         "    raise SystemExit('FAIL')\n"
+    ...     )
+    ...
+    ...     write("train.py", ""
+    ...         "import numpy as np\n"
+    ...         "noise = 0.1\n"
+    ...         "x = 0\n"
+    ...         "loss = (np.sin(5 * x) * (1 - np.tanh(x ** 2)) + np.random.randn() * noise)\n"
+    ...         "print(f'loss: {loss}')\n"
+    ...     )
 
     >>> use_tmp_project()
 
@@ -280,6 +293,49 @@ Restarting the pipeline reruns the batch and new trials are generated.
     [7]  m1:fail         completed  fail=no
     [8]  m1:fail         completed  fail=no
 
+## Pipeline with restarted random batch step
+
+Initialize the project and run the batch step pipeline.
+
+    >>> use_tmp_project()
+    >>> run("guild run m1:steps-random-batch -y")
+    INFO: [guild] running train: m1:train --max-trials 3 x='[-2.0:2.0]'
+    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    loss: ...
+    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    loss: ...
+    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    loss: ...
+
+    >>> run("guild runs -s")
+    [1]  m1:train               completed  noise=0.1 x=...
+    [2]  m1:train               completed  noise=0.1 x=...
+    [3]  m1:train               completed  noise=0.1 x=...
+    [4]  m1:train+skopt:random  completed  
+    [5]  m1:steps-random-batch  completed
+
+Restarting the pipeline reruns the batch and new trials are generated.
+
+    >>> parent_run = run_capture("guild select -Fo steps-random-batch")
+    >>> run(f"guild run --restart {parent_run} -y")
+    INFO: [guild] restarting train: ... --max-trials 3 x='[-2.0:2.0]'
+    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    loss: ...
+    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    loss: ...
+    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    loss: ...
+
+    >>> run("guild runs -s")
+    [1]  m1:train               completed  noise=0.1 x=...
+    [2]  m1:train               completed  noise=0.1 x=...
+    [3]  m1:train               completed  noise=0.1 x=...
+    [4]  m1:train+skopt:random  completed  
+    [5]  m1:steps-random-batch  completed  
+    [6]  m1:train               completed  noise=0.1 x=...
+    [7]  m1:train               completed  noise=0.1 x=...
+    [8]  m1:train               completed  noise=0.1 x=...
+
 ## TODO
 
 - ensure that restart doesn't pick up project source code changes
@@ -288,5 +344,3 @@ Restarting the pipeline reruns the batch and new trials are generated.
   up source code changes :(
 
 - delete a run step link -> should auto-recreate it as if new run
-
-- show use of random batch
