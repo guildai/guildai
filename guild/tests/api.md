@@ -1,8 +1,8 @@
 # Guild API (private)
 
-NOTE: This module tests the internal `guild._api` module. This is not
-an officially supported public API and should not be relied on for
-long term support.
+This module tests the internal `guild._api` module. This is not an
+officially supported public API and should not be relied on for long
+term support.
 
     >>> from guild import _api as gapi
 
@@ -74,6 +74,27 @@ than a tuple of `out` and `err` output.
 
 Note that the return error output is the same as
 `run_capture_output` - stderr and stdout are combined.
+
+## Run errors
+
+The exception `gapi.RunError` is generated when a run command
+fails. It captures the run command and error details. Run command is
+provided as a tuple of args, cwd, and env.
+
+When presented as an exception, the error omits the environment for
+both security reasons (environments may contain secrets from other
+applications) and to avoid potentially noisy output for tests.
+
+    >>> raise gapi.RunError(
+    ...     cmd=(
+    ...         ["cmd", "arg1", "arg1"],
+    ...         "cwd",
+    ...         {"ENV1": "1", "ENV2": "2"}
+    ...     ),
+    ...     returncode=1,
+    ...     output="command output")
+    Traceback (most recent call last):
+    RunError: (['cmd', 'arg1', 'arg1'], 'cwd', 1, 'command output')
 
 ## Runs List
 

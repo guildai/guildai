@@ -26,6 +26,9 @@ class RunError(Exception):
         self.returncode = returncode
         self.output = output
 
+    def __str__(self):
+        return str((self.cmd_args, self.cmd_cwd, self.returncode, self.output))
+
 
 class Env:
     def __init__(self, cwd, guild_home=None):
