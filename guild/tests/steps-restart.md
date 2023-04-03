@@ -11,47 +11,45 @@ Create and use a helper to initiliaze a fresh temporary project.
     ...     use_project(mkdtemp())
     ...
     ...     write("guild.yml", """
-    ...     - model: m1
-    ...       operations:
-    ...         steps-restart:
-    ...           flags:
-    ...             fail: yes
-    ...           steps:
-    ...             - fail fail=no
-    ...             - fail fail=${fail}
-    ...         steps-validation-error:
-    ...           flags:
-    ...             fail: yes
-    ...           steps:
-    ...             - fail fail=no validation.error=yes
-    ...             - fail fail=${fail}
-    ...         steps-batch:
-    ...           flags:
-    ...             fail: yes
-    ...           steps:
-    ...             - fail fail=[no,no,no]
-    ...         steps-random-batch:
-    ...           steps:
-    ...             - train x=[-2.0:2.0] --max-trials 3
-    ...         fail:
-    ...           flags-import: all
-    ...         train:
-    ...           flags-import: all
-    ...     """)
+    ... steps-restart:
+    ...   flags:
+    ...     fail: yes
+    ...   steps:
+    ...     - fail fail=no
+    ...     - fail fail=${fail}
+    ... steps-validation-error:
+    ...   flags:
+    ...     fail: yes
+    ...   steps:
+    ...     - fail fail=no validation.error=yes
+    ...     - fail fail=${fail}
+    ... steps-batch:
+    ...   flags:
+    ...     fail: yes
+    ...   steps:
+    ...     - fail fail=[no,no,no]
+    ... steps-random-batch:
+    ...   steps:
+    ...     - train x=[-2.0:2.0] --max-trials 3
+    ... fail:
+    ...   flags-import: all
+    ... train:
+    ...   flags-import: all
+    ... """)
     ...
-    ...     write("fail.py", ""
-    ...         "fail = True\n"
-    ...         "if fail:\n"
-    ...         "    raise SystemExit('FAIL')\n"
-    ...     )
+    ...     write("fail.py", """
+    ... fail = True
+    ... if fail:
+    ...     raise SystemExit('FAIL')
+    ... """)
     ...
-    ...     write("train.py", ""
-    ...         "import numpy as np\n"
-    ...         "noise = 0.1\n"
-    ...         "x = 0\n"
-    ...         "loss = (np.sin(5 * x) * (1 - np.tanh(x ** 2)) + np.random.randn() * noise)\n"
-    ...         "print(f'loss: {loss}')\n"
-    ...     )
+    ...     write("train.py", """
+    ... import numpy as np
+    ... noise = 0.1
+    ... x = 0
+    ... loss = (np.sin(5 * x) * (1 - np.tanh(x ** 2)) + np.random.randn() * noise)
+    ... print(f'loss: {loss}')
+    ... """)
 
     >>> use_tmp_project()
 
@@ -67,19 +65,19 @@ should resolve to their expected run directories.
 
 ## Restart pipeline with errors
 
-`m1:steps-restart` runs two steps, the second of which fails by
+`steps-restart` runs two steps, the second of which fails by
 default.
 
-    >>> run("guild run m1:steps-restart -y")
-    INFO: [guild] running fail: m1:fail fail=no
-    INFO: [guild] running fail: m1:fail fail=yes
+    >>> run("guild run steps-restart -y")
+    INFO: [guild] running fail: fail fail=no
+    INFO: [guild] running fail: fail fail=yes
     FAIL
     <exit 1>
 
     >>> run("guild runs -s")
-    [1]  m1:fail           error      fail=yes
-    [2]  m1:fail           completed  fail=no
-    [3]  m1:steps-restart  error      fail=yes
+    [1]  fail           error      fail=yes
+    [2]  fail           completed  fail=no
+    [3]  steps-restart  error      fail=yes
 
     >>> run("guild ls -Fo steps-restart -n")
     fail/
@@ -103,9 +101,9 @@ to succeed.
     INFO: [guild] restarting fail: ... fail=no
 
     >>> run("guild runs -s")
-    [1]  m1:fail           completed  fail=no
-    [2]  m1:fail           completed  fail=no
-    [3]  m1:steps-restart  completed  fail=no
+    [1]  fail           completed  fail=no
+    [2]  fail           completed  fail=no
+    [3]  steps-restart  completed  fail=no
 
     >>> run("guild ls -Fo steps-restart -n")
     fail/
@@ -117,9 +115,9 @@ When Guild restarts a run, it updates its `started` attribute. Confirm
 that the runs have been restarted by filtering on started time.
 
     >>> run(f"guild runs -s --started 'after {before_restart}'")
-    [1]  m1:fail           completed  fail=no
-    [2]  m1:fail           completed  fail=no
-    [3]  m1:steps-restart  completed  fail=no
+    [1]  fail           completed  fail=no
+    [2]  fail           completed  fail=no
+    [3]  steps-restart  completed  fail=no
 
     >>> run(f"guild runs -s --started 'before {before_restart}'")
     <exit 0>
@@ -130,59 +128,61 @@ Initialize the project and run pipeline where one step has an invalid
 flag (this creates a broken link).
 
     >>> use_tmp_project()
-    >>> run("guild run m1:steps-validation-error -y")
-    INFO: [guild] running fail: m1:fail fail=no validation.error=yes
+    >>> run("guild run steps-validation-error -y")
+    INFO: [guild] running fail: fail fail=no validation.error=yes
     guild: unsupported flag 'validation.error'
-    Try 'guild run m1:fail --help-op' for a list of flags or use --force-flags to skip this check.
+    Try 'guild run fail --help-op' for a list of flags or use --force-flags to skip this check.
     <exit 1>
 
     >>> run("guild runs -s")
-    [1]  m1:steps-validation-error  error  fail=yes
+    [1]  steps-validation-error  error  fail=yes
 
-Fix the pipeline and run the steps again; everything passes.
+Fix the pipeline.
 
     >>> write("guild.yml", """
-    ... - model: m1
-    ...   operations:
-    ...     steps-restart:
-    ...       flags:
-    ...         fail: yes
-    ...       steps:
-    ...         - fail fail=no
-    ...         - fail fail=${fail}
-    ...     steps-validation-error:
-    ...       flags:
-    ...         fail: yes
-    ...       steps:
-    ...         - fail fail=no
-    ...         - fail fail=${fail}
-    ...     fail:
-    ...       flags-import: all
+    ... steps-restart:
+    ...   flags:
+    ...     fail: yes
+    ...   steps:
+    ...     - fail fail=no
+    ...     - fail fail=${fail}
+    ... steps-validation-error:
+    ...   flags:
+    ...     fail: yes
+    ...   steps:
+    ...     - fail fail=no
+    ...     - fail fail=${fail}
+    ... fail:
+    ...   flags-import: all
     ... """)
+
+Run the steps again.
 
     >>> parent_run = run_capture("guild select -Fo steps-validation-error")
     >>> run(f"guild run --restart {parent_run} fail=no -y")
-    INFO: [guild] running fail: m1:fail fail=no
-    INFO: [guild] running fail: m1:fail fail=no
+    INFO: [guild] running fail: fail fail=no
+    INFO: [guild] running fail: fail fail=no
+
+Verify that the steps passed.
 
     >>> run("guild runs -s")
-    [1]  m1:fail                    completed  fail=no
-    [2]  m1:fail                    completed  fail=no
-    [3]  m1:steps-validation-error  completed  fail=no
+    [1]  fail                    completed  fail=no
+    [2]  fail                    completed  fail=no
+    [3]  steps-validation-error  completed  fail=no
 
 ## Pipeline step's run link replaced with a non-link produces error
 
 Initialize the project and run the pipeline.
 
     >>> use_tmp_project()
-    >>> run("guild run m1:steps-restart fail=no -y")
-    INFO: [guild] running fail: m1:fail fail=no
-    INFO: [guild] running fail: m1:fail fail=no
+    >>> run("guild run steps-restart fail=no -y")
+    INFO: [guild] running fail: fail fail=no
+    INFO: [guild] running fail: fail fail=no
 
     >>> run("guild runs -s")
-    [1]  m1:fail           completed  fail=no
-    [2]  m1:fail           completed  fail=no
-    [3]  m1:steps-restart  completed  fail=no
+    [1]  fail           completed  fail=no
+    [2]  fail           completed  fail=no
+    [3]  steps-restart  completed  fail=no
 
 Remove link to first step and replace it with a file.
 
@@ -212,14 +212,14 @@ Restart the pipeline and observe the error.
 Initialize the project and run the pipeline.
 
     >>> use_tmp_project()
-    >>> run("guild run m1:steps-restart fail=no -y")
-    INFO: [guild] running fail: m1:fail fail=no
-    INFO: [guild] running fail: m1:fail fail=no
+    >>> run("guild run steps-restart fail=no -y")
+    INFO: [guild] running fail: fail fail=no
+    INFO: [guild] running fail: fail fail=no
 
     >>> run("guild runs -s")
-    [1]  m1:fail           completed  fail=no
-    [2]  m1:fail           completed  fail=no
-    [3]  m1:steps-restart  completed  fail=no
+    [1]  fail           completed  fail=no
+    [2]  fail           completed  fail=no
+    [3]  steps-restart  completed  fail=no
 
 Delete the step that the first link points to.
 
@@ -243,13 +243,13 @@ Delete the step that the first link points to.
 Restarting the pipeline reruns all steps.
 
     >>> run(f"guild run --restart {parent_run} fail=no -y")
-    INFO: [guild] running fail: m1:fail fail=no
+    INFO: [guild] running fail: fail fail=no
     INFO: [guild] restarting fail: ... fail=no
 
     >>> run("guild runs -s")
-    [1]  m1:fail           completed  fail=no
-    [2]  m1:fail           completed  fail=no
-    [3]  m1:steps-restart  completed  fail=no
+    [1]  fail           completed  fail=no
+    [2]  fail           completed  fail=no
+    [3]  steps-restart  completed  fail=no
 
     >>> dir(parent_path)
     ['.guild', 'fail', 'fail_2']
@@ -259,19 +259,18 @@ Restarting the pipeline reruns all steps.
 Initialize the project and run the batch step pipeline.
 
     >>> use_tmp_project()
-    >>> run("guild run m1:steps-batch fail=no -y")
-    INFO: [guild] running fail: m1:fail fail=[no, no, no]
-    INFO: [guild] Running trial ...: m1:fail (fail=no)
-    INFO: [guild] Running trial ...: m1:fail (fail=no)
-    INFO: [guild] Running trial ...: m1:fail (fail=no)
+    >>> run("guild run steps-batch fail=no -y")
+    INFO: [guild] running fail: fail fail=[no, no, no]
+    INFO: [guild] Running trial ...: fail (fail=no)
+    INFO: [guild] Running trial ...: fail (fail=no)
+    INFO: [guild] Running trial ...: fail (fail=no)
 
     >>> run("guild runs -s")
-    [1]  m1:fail         completed  fail=no
-    [2]  m1:fail         completed  fail=no
-    [3]  m1:fail         completed  fail=no
-    [4]  m1:fail+        completed
-    [5]  m1:steps-batch  completed  fail=no
-
+    [1]  fail         completed  fail=no
+    [2]  fail         completed  fail=no
+    [3]  fail         completed  fail=no
+    [4]  fail+        completed
+    [5]  steps-batch  completed  fail=no
 
 Restarting the pipeline reruns the batch and new trials are generated.
 
@@ -279,62 +278,62 @@ Restarting the pipeline reruns the batch and new trials are generated.
 
     >>> run(f"guild run --restart {parent_run} fail=no -y")
     INFO: [guild] restarting fail: ... fail=[no, no, no]
-    INFO: [guild] Running trial ...: m1:fail (fail=no)
-    INFO: [guild] Running trial ...: m1:fail (fail=no)
-    INFO: [guild] Running trial ...: m1:fail (fail=no)
+    INFO: [guild] Running trial ...: fail (fail=no)
+    INFO: [guild] Running trial ...: fail (fail=no)
+    INFO: [guild] Running trial ...: fail (fail=no)
 
     >>> run("guild runs -s")
-    [1]  m1:fail         completed  fail=no
-    [2]  m1:fail         completed  fail=no
-    [3]  m1:fail         completed  fail=no
-    [4]  m1:fail+        completed
-    [5]  m1:steps-batch  completed  fail=no
-    [6]  m1:fail         completed  fail=no
-    [7]  m1:fail         completed  fail=no
-    [8]  m1:fail         completed  fail=no
+    [1]  fail         completed  fail=no
+    [2]  fail         completed  fail=no
+    [3]  fail         completed  fail=no
+    [4]  fail+        completed
+    [5]  steps-batch  completed  fail=no
+    [6]  fail         completed  fail=no
+    [7]  fail         completed  fail=no
+    [8]  fail         completed  fail=no
 
 ## Pipeline with restarted random batch step
 
 Initialize the project and run the batch step pipeline.
 
     >>> use_tmp_project()
-    >>> run("guild run m1:steps-random-batch -y")
-    INFO: [guild] running train: m1:train --max-trials 3 x='[-2.0:2.0]'
-    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    >>> run("guild run steps-random-batch -y")
+    INFO: [guild] running train: train --max-trials 3 x='[-2.0:2.0]'
+    INFO: [guild] Running trial ...: train (noise=0.1, x=...)
     loss: ...
-    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    INFO: [guild] Running trial ...: train (noise=0.1, x=...)
     loss: ...
-    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    INFO: [guild] Running trial ...: train (noise=0.1, x=...)
     loss: ...
 
     >>> run("guild runs -s")
-    [1]  m1:train               completed  noise=0.1 x=...
-    [2]  m1:train               completed  noise=0.1 x=...
-    [3]  m1:train               completed  noise=0.1 x=...
-    [4]  m1:train+skopt:random  completed
-    [5]  m1:steps-random-batch  completed
+    [1]  train               completed  noise=0.1 x=...
+    [2]  train               completed  noise=0.1 x=...
+    [3]  train               completed  noise=0.1 x=...
+    [4]  train+skopt:random  completed
+    [5]  steps-random-batch  completed
 
 Restarting the pipeline reruns the batch and new trials are generated.
 
     >>> parent_run = run_capture("guild select -Fo steps-random-batch")
     >>> run(f"guild run --restart {parent_run} -y")
     INFO: [guild] restarting train: ... --max-trials 3 x='[-2.0:2.0]'
-    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    INFO: [guild] Running trial ...: train (noise=0.1, x=...)
     loss: ...
-    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    INFO: [guild] Running trial ...: train (noise=0.1, x=...)
     loss: ...
-    INFO: [guild] Running trial ...: m1:train (noise=0.1, x=...)
+    INFO: [guild] Running trial ...: train (noise=0.1, x=...)
     loss: ...
 
     >>> run("guild runs -s")
-    [1]  m1:train               completed  noise=0.1 x=...
-    [2]  m1:train               completed  noise=0.1 x=...
-    [3]  m1:train               completed  noise=0.1 x=...
-    [4]  m1:train+skopt:random  completed
-    [5]  m1:steps-random-batch  completed
-    [6]  m1:train               completed  noise=0.1 x=...
-    [7]  m1:train               completed  noise=0.1 x=...
-    [8]  m1:train               completed  noise=0.1 x=...
+    [1]  train               completed  noise=0.1 x=...
+    [2]  train               completed  noise=0.1 x=...
+    [3]  train               completed  noise=0.1 x=...
+    [4]  train+skopt:random  completed
+    [5]  steps-random-batch  completed
+    [6]  train               completed  noise=0.1 x=...
+    [7]  train               completed  noise=0.1 x=...
+    [8]  train               completed  noise=0.1 x=...
 
 ## TODO
 
