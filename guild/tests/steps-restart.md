@@ -178,7 +178,7 @@ Initialize the project and run the pipeline.
     >>> run("guild run m1:steps-restart fail=no -y")
     INFO: [guild] running fail: m1:fail fail=no
     INFO: [guild] running fail: m1:fail fail=no
-    
+
     >>> run("guild runs -s")
     [1]  m1:fail           completed  fail=no
     [2]  m1:fail           completed  fail=no
@@ -187,18 +187,18 @@ Initialize the project and run the pipeline.
 Remove link to first step and replace it with a file.
 
     >>> parent_run = run_capture("guild select -Fo steps-restart")
-    >>> parent_path = os.path.join(os.environ["GUILD_HOME"], "runs", parent_run)
-    >>> step_link = os.path.join(parent_path, "fail")
+    >>> parent_path = path(guild_home(), "runs", parent_run)
+    >>> step_link = path(parent_path, "fail")
 
-    >>> os.listdir(parent_path)
+    >>> dir(parent_path)
     ['.guild', 'fail', 'fail_2']
 
-    >>> os.remove(step_link)
-    >>> os.listdir(parent_path)
+    >>> rm(step_link)
+    >>> dir(parent_path)
     ['.guild', 'fail_2']
 
     >>> write(step_link, "test")
-    >>> os.listdir(parent_path)
+    >>> dir(parent_path)
     ['.guild', 'fail', 'fail_2']
 
 Restart the pipeline and observe the error.
@@ -215,7 +215,7 @@ Initialize the project and run the pipeline.
     >>> run("guild run m1:steps-restart fail=no -y")
     INFO: [guild] running fail: m1:fail fail=no
     INFO: [guild] running fail: m1:fail fail=no
-    
+
     >>> run("guild runs -s")
     [1]  m1:fail           completed  fail=no
     [2]  m1:fail           completed  fail=no
@@ -224,20 +224,20 @@ Initialize the project and run the pipeline.
 Delete the step that the first link points to.
 
     >>> parent_run = run_capture("guild select -Fo steps-restart")
-    >>> parent_path = os.path.join(os.environ["GUILD_HOME"], "runs", parent_run)
-    >>> step = realpath(os.path.join(parent_path, "fail"))
+    >>> parent_path = path(guild_home(), "runs", parent_run)
+    >>> step = realpath(path(parent_path, "fail"))
 
-    >>> os.listdir(parent_path)
+    >>> dir(parent_path)
     ['.guild', 'fail', 'fail_2']
 
     >>> rmdir(step)
-    >>> os.listdir(parent_path)
+    >>> dir(parent_path)
     ['.guild', 'fail', 'fail_2']
 
-    >>> os.path.exists(os.path.join(parent_path, "fail"))
+    >>> exists(path(parent_path, "fail"))
     False
 
-    >>> os.listdir(parent_path)
+    >>> dir(parent_path)
     ['.guild', 'fail', 'fail_2']
 
 Restarting the pipeline reruns all steps.
@@ -251,7 +251,7 @@ Restarting the pipeline reruns all steps.
     [2]  m1:fail           completed  fail=no
     [3]  m1:steps-restart  completed  fail=no
 
-    >>> os.listdir(parent_path)
+    >>> dir(parent_path)
     ['.guild', 'fail', 'fail_2']
 
 ## Pipeline with restarted batch step
@@ -269,7 +269,7 @@ Initialize the project and run the batch step pipeline.
     [1]  m1:fail         completed  fail=no
     [2]  m1:fail         completed  fail=no
     [3]  m1:fail         completed  fail=no
-    [4]  m1:fail+        completed  
+    [4]  m1:fail+        completed
     [5]  m1:steps-batch  completed  fail=no
 
 
@@ -287,7 +287,7 @@ Restarting the pipeline reruns the batch and new trials are generated.
     [1]  m1:fail         completed  fail=no
     [2]  m1:fail         completed  fail=no
     [3]  m1:fail         completed  fail=no
-    [4]  m1:fail+        completed  
+    [4]  m1:fail+        completed
     [5]  m1:steps-batch  completed  fail=no
     [6]  m1:fail         completed  fail=no
     [7]  m1:fail         completed  fail=no
@@ -311,7 +311,7 @@ Initialize the project and run the batch step pipeline.
     [1]  m1:train               completed  noise=0.1 x=...
     [2]  m1:train               completed  noise=0.1 x=...
     [3]  m1:train               completed  noise=0.1 x=...
-    [4]  m1:train+skopt:random  completed  
+    [4]  m1:train+skopt:random  completed
     [5]  m1:steps-random-batch  completed
 
 Restarting the pipeline reruns the batch and new trials are generated.
@@ -330,8 +330,8 @@ Restarting the pipeline reruns the batch and new trials are generated.
     [1]  m1:train               completed  noise=0.1 x=...
     [2]  m1:train               completed  noise=0.1 x=...
     [3]  m1:train               completed  noise=0.1 x=...
-    [4]  m1:train+skopt:random  completed  
-    [5]  m1:steps-random-batch  completed  
+    [4]  m1:train+skopt:random  completed
+    [5]  m1:steps-random-batch  completed
     [6]  m1:train               completed  noise=0.1 x=...
     [7]  m1:train               completed  noise=0.1 x=...
     [8]  m1:train               completed  noise=0.1 x=...
