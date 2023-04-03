@@ -5,51 +5,13 @@ demonstrate Guild's behavior when restarting a pipeline.
 
 Pipelines are commonly restarted when one or more steps fail.
 
-Create and use a helper to initiliaze a fresh temporary project.
+The tests below modify project source code and so use an ephemeral
+project rather than a test sample.
 
     >>> def use_tmp_project():
-    ...     use_project(mkdtemp())
-    ...
-    ...     write("guild.yml", """
-    ... steps-restart:
-    ...   flags:
-    ...     fail: yes
-    ...   steps:
-    ...     - fail fail=no
-    ...     - fail fail=${fail}
-    ... steps-validation-error:
-    ...   flags:
-    ...     fail: yes
-    ...   steps:
-    ...     - fail fail=no validation.error=yes
-    ...     - fail fail=${fail}
-    ... steps-batch:
-    ...   flags:
-    ...     fail: yes
-    ...   steps:
-    ...     - fail fail=[no,no,no]
-    ... steps-random-batch:
-    ...   steps:
-    ...     - train x=[-2.0:2.0] --max-trials 3
-    ... fail:
-    ...   flags-import: all
-    ... train:
-    ...   flags-import: all
-    ... """)
-    ...
-    ...     write("fail.py", """
-    ... fail = True
-    ... if fail:
-    ...     raise SystemExit('FAIL')
-    ... """)
-    ...
-    ...     write("train.py", """
-    ... import numpy as np
-    ... noise = 0.1
-    ... x = 0
-    ... loss = (np.sin(5 * x) * (1 - np.tanh(x ** 2)) + np.random.randn() * noise)
-    ... print(f'loss: {loss}')
-    ... """)
+    ...     project_dir = mkdtemp()
+    ...     copytree(sample("projects", "steps-restart"), project_dir)
+    ...     use_project(project_dir)
 
     >>> use_tmp_project()
 
@@ -65,8 +27,7 @@ should resolve to their expected run directories.
 
 ## Restart pipeline with errors
 
-`steps-restart` runs two steps, the second of which fails by
-default.
+`steps-restart` runs two steps, the second of which fails by default.
 
     >>> run("guild run steps-restart -y")
     INFO: [guild] running fail: fail fail=no
@@ -87,7 +48,8 @@ Confirm that the step links resolve to the expected step runs.
 
     >>> check_steps(["fail", "fail_2"])
 
-Note the current time to confirm that Guild restarts the expected runs.
+Note the current time to confirm that Guild restarts the expected
+runs.
 
     >>> from datetime import datetime
     >>> before_restart = datetime.now().replace(microsecond=0)
@@ -122,53 +84,66 @@ that the runs have been restarted by filtering on started time.
     >>> run(f"guild runs -s --started 'before {before_restart}'")
     <exit 0>
 
-## Restart pipeline with validation error on flag and broken link
+## Step pre-run validation errors
 
-Initialize the project and run pipeline where one step has an invalid
-flag (this creates a broken link).
+When prepraring to run a step, `steps_main` creates a link to a
+non-existing run directory. This ensures that it can detect a run that
+was not started, e.g. due to a validation error.
+
+The `steps-validation-error` operation is a pipeline that runs a step
+with an invalid flag value.
+
+Reset the project.
 
     >>> use_tmp_project()
+
+Run the pipeline with the default values. The step is run but fails
+with a flag validation error. This occurs before the step run is
+created.
+
     >>> run("guild run steps-validation-error -y")
-    INFO: [guild] running fail: fail fail=no validation.error=yes
-    guild: unsupported flag 'validation.error'
-    Try 'guild run fail --help-op' for a list of flags or use --force-flags to skip this check.
+    INFO: [guild] running train: train x=foo
+    guild: invalid value foo for x: invalid value for type 'number'
     <exit 1>
 
-    >>> run("guild runs -s")
-    [1]  steps-validation-error  error  fail=yes
-
-Fix the pipeline.
-
-    >>> write("guild.yml", """
-    ... steps-restart:
-    ...   flags:
-    ...     fail: yes
-    ...   steps:
-    ...     - fail fail=no
-    ...     - fail fail=${fail}
-    ... steps-validation-error:
-    ...   flags:
-    ...     fail: yes
-    ...   steps:
-    ...     - fail fail=no
-    ...     - fail fail=${fail}
-    ... fail:
-    ...   flags-import: all
-    ... """)
-
-Run the steps again.
-
-    >>> parent_run = run_capture("guild select -Fo steps-validation-error")
-    >>> run(f"guild run --restart {parent_run} fail=no -y")
-    INFO: [guild] running fail: fail fail=no
-    INFO: [guild] running fail: fail fail=no
-
-Verify that the steps passed.
+Show the runs. There is only a `steps-validation-error` run (the
+pipeline) - the step run was not created.
 
     >>> run("guild runs -s")
-    [1]  fail                    completed  fail=no
-    [2]  fail                    completed  fail=no
-    [3]  steps-validation-error  completed  fail=no
+    [1]  steps-validation-error  error  x=foo
+
+The pipeline run has a link to an non-existing run directory.
+
+    >>> run("guild ls -n")
+    train
+
+The link target does not exist.
+
+    >>> train_step_link = run_capture("guild ls -f -p train")
+
+    >>> islink(train_step_link)
+    True
+
+    >>> exists(train_step_link)
+    False
+
+Restart the pipeline with a valid flag value for `x`.
+
+    >>> parent_run = run_capture("guild select")
+
+    >>> run(f"guild run --restart {parent_run} x=1 -y")
+    INFO: [guild] running train: train x=1
+    loss: ...
+
+The step run is completed.
+
+    >>> run("guild runs -s")
+    [1]  train                   completed  noise=0.1 x=1
+    [2]  steps-validation-error  completed  x=1
+
+Verify that the step link resolves as expected.
+
+    >>> check_steps(["train"])
 
 ## Pipeline step's run link replaced with a non-link produces error
 
@@ -204,7 +179,7 @@ Remove link to first step and replace it with a file.
 Restart the pipeline and observe the error.
 
     >>> run(f"guild run --restart {parent_run} fail=no -y")
-    guild: unexpected step run link /tmp/guild-test-.../runs/.../fail: expected symlink
+    guild: unexpected step run link .../guild-test-.../runs/.../fail: expected symlink
     <exit 1>
 
 ## Pipeline step run deleted, orphaning link
@@ -342,4 +317,5 @@ Restarting the pipeline reruns the batch and new trials are generated.
 - ensure that --force-sourcecode to pipeline causes restarts to pick
   up source code changes :(
 
-- delete a run step link -> should auto-recreate it as if new run
+- delete a run step link -> should create a new step link with the
+  same name as if new run - old step run will effectively be orphaned

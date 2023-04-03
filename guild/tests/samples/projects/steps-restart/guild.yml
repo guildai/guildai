@@ -1,0 +1,23 @@
+steps-restart:
+  flags:
+    fail: yes
+  steps:
+    - fail fail=no
+    - fail fail=${fail}
+steps-validation-error:
+  flags:
+    x: foo  # intentionally invalid value
+  steps:
+    - train x=${x}
+steps-batch:
+  flags:
+    fail: yes
+  steps:
+    - fail fail=[no,no,no]
+steps-random-batch:
+  steps:
+    - train x=[-2.0:2.0] --max-trials 3
+fail:
+  flags-import: all
+train:
+  flags-import: all
