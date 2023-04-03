@@ -131,4 +131,4 @@ Verify that `chardet` is installed in the virtual env.
 
     >>> run("venv\Scripts\python -c 'import chardet; print(chardet.__file__)'")
     ... # doctest: +WINDOWS_ONLY
-    ???guild-test-...\venv\lib\site-packages\chardet\__init__.py
+    ???guild-test-.../venv/lib/site-packages/chardet/__init__.py
