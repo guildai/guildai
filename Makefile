@@ -45,19 +45,23 @@ pip-clean:
 	rm -rf build dist guildai.egg-info
 
 check:
-	@if [ -z "$(TESTS)" ]; then \
-	  opts="-n --tests --fast --notify -c8"; \
-	else \
-	  opts="-n "; \
-	  if [ "$(TESTS)" = "all" ]; then \
-	    opts="$$opts --tests --fast --notify -c8"; \
-	  else \
-	    for test in $(TESTS); do \
-	      opts="$$opts -t $$test"; \
-	    done; \
-	  fi; \
+	@opts="--fast -c8"; \
+	command -v notify-send2; \
+	if [ -x "$(command -v notify-send)" ]; then \
+	  opts="$$opts --notify"; \
 	fi; \
-	COLUMNS=999 START_THRESHOLD=0.3 BREAKPOINT_PROMPT_TIMEOUT=4 $(guild) check $$opts
+	if [ -z "$(TESTS)" -o "$(TESTS)" = "all" ]; then \
+	  opts="$$opts --tests"; \
+	else \
+	  for test in $(TESTS); do \
+	    opts="$$opts -t $$test"; \
+	  done; \
+	fi; \
+	echo guild check $$opts; \
+	COLUMNS=999 \
+	START_THRESHOLD=0.3 \
+	BREAKPOINT_PROMPT_TIMEOUT=4 \
+	$(guild) check $$opts
 
 lint:
 	pylint setup.py tools.py guild
