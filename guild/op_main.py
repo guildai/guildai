@@ -400,13 +400,11 @@ def _pdb_commands(module_info):
 
 
 def _pdb_break_cmd(location):
-    # Include \n as Python 2.7 assumes line ending
-    return f"break {location}\n"
+    return f"break {location}"
 
 
 def _pdb_continue_cmd():
-    # Include \n as Python 2.7 assumes line ending
-    return "continue\n"
+    return "continue"
 
 
 def _resolve_break(b, module_info):
