@@ -42,6 +42,7 @@ STEP_USED_PARAMS = (
     "fail_on_trial_error",
     "flags",
     "force_flags",
+    "force_sourcecode",
     "gpus",
     "label",
     "max_trials",
@@ -76,7 +77,7 @@ class Step:
     def __init__(self, data, parent_flags, parent_opref, parent_run_params):
         data = _coerce_step_data(data)
         params = _run_params_for_step_data(data)
-        _apply_batch_params_to_trial(parent_run_params, params)
+        _apply_parent_params_to_step_params(parent_run_params, params)
         assert params["opspec"], params
         opspec_param = params["opspec"]
         self.op_spec = _apply_default_model(opspec_param, parent_opref)
@@ -90,6 +91,7 @@ class Step:
         self.fail_on_trial_error = params["fail_on_trial_error"]
         self.flags = _init_step_flags(flag_args, parent_flags, self)
         self.force_flags = params["force_flags"]
+        self.force_sourcecode = params["force_sourcecode"]
         self.gpus = _resolve_refs(params["gpus"], parent_flags)
         self.label = _resolve_refs(params["label"], parent_flags)
         self.max_trials = params["max_trials"]
@@ -181,14 +183,14 @@ def _apply_data_params(data, ctx, run_spec):
                 log.warning("run parameter %s used in %r ignored", name, run_spec)
 
 
-def _apply_batch_params_to_trial(batch_params, trial_params):
-    """Applies batch params to trial params.
+def _apply_parent_params_to_step_params(parent_run_params, step_params):
+    """Applies parent params to step params.
 
     The list of parent params that are applied is defined by INHERITED_PARAMS.
     """
     for name, unset_val in INHERITED_PARAMS:
-        if name in batch_params and trial_params.get(name) == unset_val:
-            trial_params[name] = batch_params[name]
+        if name in parent_run_params and step_params.get(name) == unset_val:
+            step_params[name] = parent_run_params[name]
 
 
 def _init_step_flags(flag_args, parent_flag_vals, step):
@@ -521,11 +523,13 @@ def _step_run_new_run_args(step, step_run_dir):
 
 
 def _step_run_parent_passthrough_args(parent_run):
-    opts = []
+    args = []
     params = parent_run.get("run_params")
     if params.get("stage_trials"):
-        opts.append("--stage-trials")
-    return opts
+        args.append("--stage-trials")
+    if params.get("force_sourcecode"):
+        args.append("--force-sourcecode")
+    return args
 
 
 def _step_run_step_config_args(step):

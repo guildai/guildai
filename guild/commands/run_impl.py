@@ -68,6 +68,7 @@ FLAG_TEST_ATTRS = [
 ]
 
 RESPECIFIABLE_RUN_PARAMS = {
+    "force_sourcecode",
     "gpus",
     "label",
     "tags",
@@ -170,11 +171,12 @@ def _apply_run_params_for_args(args, attrs):
     """
     params = attrs.setdefault("run_params", {})
     for name, val in args.as_kw().items():
-        if name not in params:
+        if name not in params or _respecify_run_param(name, val):
             params[name] = val
-            continue
-        if val and name in RESPECIFIABLE_RUN_PARAMS:
-            params[name] = val
+
+
+def _respecify_run_param(name, val):
+    return val and name in RESPECIFIABLE_RUN_PARAMS
 
 
 def _op_config_data(op):

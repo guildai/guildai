@@ -310,12 +310,138 @@ Restarting the pipeline reruns the batch and new trials are generated.
     [7]  train               completed  noise=0.1 x=...
     [8]  train               completed  noise=0.1 x=...
 
-## TODO
+## Pipeline restart uses latest source code with --force-sourcecode
 
-- ensure that restart doesn't pick up project source code changes
+Initialize the project and run the pipeline.
 
-- ensure that --force-sourcecode to pipeline causes restarts to pick
-  up source code changes :(
+    >>> use_tmp_project()
+    >>> run("guild run steps-force-sourcecode -y")
+    INFO: [guild] running simple.py: simple.py
+    hello
 
-- delete a run step link -> should create a new step link with the
-  same name as if new run - old step run will effectively be orphaned
+Change the sourcecode.
+
+    >>> write("simple.py", """
+    ... print('bye')
+    ... """)
+
+Rerun the pipeline with `--force-sourcecode` and new output is generated.
+
+    >>> parent_run = run_capture("guild select -Fo steps-force-sourcecode")
+    >>> run(f"guild run --restart {parent_run} --force-sourcecode  -y")
+    INFO: [guild] restarting simple.py: ... --force-sourcecode
+    bye
+
+## Pipeline restart doesn't pick up source code changes
+
+Initialize the project and run the pipeline.
+
+    >>> use_tmp_project()
+    >>> run("guild run steps-force-sourcecode -y")
+    INFO: [guild] running simple.py: simple.py
+    hello
+
+Change the sourcecode.
+
+    >>> write("simple.py", """
+    ... print('bye')
+    ... """)
+
+Rerun the pipeline without `--force-sourcecode` and old output is generated.
+
+    >>> parent_run = run_capture("guild select -Fo steps-force-sourcecode")
+    >>> run(f"guild run --restart {parent_run}  -y")
+    INFO: [guild] restarting simple.py: ...
+    hello
+
+## (bug) Pipeline with batch step picks up sourcecode changes on restart
+
+Initialize the project and run the pipeline.
+
+    >>> use_tmp_project()
+    >>> run("guild run steps-random-batch -y")
+    INFO: [guild] running train: train --max-trials 3 x='[-2.0:2.0]'
+    INFO: [guild] Running trial ...: train (noise=0.1, x=...)
+    loss: ...
+    INFO: [guild] Running trial ...: train (noise=0.1, x=...)
+    loss: ...
+    INFO: [guild] Running trial ...: train (noise=0.1, x=...)
+    loss: ...
+
+Add a new flag to the `train.py` script.
+
+    >>> write("train.py", """
+    ... import numpy as np
+    ... noise = 0.1
+    ... x = 0
+    ... y = 0
+    ... loss = (np.sin(5 * x) * (1 - np.tanh(x ** 2)) + np.random.randn() * noise)
+    ... print(f'moss: moss')
+    ... print(f'loss: {loss}')
+    ... """)
+
+Rerun the pipeline without `--force-sourcecode` and new flag is wrongly shown.
+
+    >>> parent_run = run_capture("guild select -Fo steps-random-batch")
+    >>> run(f"guild run --restart {parent_run} -y")
+    INFO: [guild] restarting train: ... --max-trials 3 x='[-2.0:2.0]'
+    INFO: [guild] Running trial ...: train (noise=0.1, x=..., y=0)
+    loss: ...
+    INFO: [guild] Running trial ...: train (noise=0.1, x=..., y=0)
+    loss: ...
+    INFO: [guild] Running trial ...: train (noise=0.1, x=..., y=0)
+    loss: ...
+
+## Deleted pipeline step link causes lost reference and new step run
+
+Initialize the project and run the pipeline.
+
+    >>> use_tmp_project()
+    >>> run("guild run steps-restart fail=no -y")
+    INFO: [guild] running fail: fail fail=no
+    INFO: [guild] running fail: fail fail=no
+
+    >>> run("guild runs -s")
+    [1]  fail           completed  fail=no
+    [2]  fail           completed  fail=no
+    [3]  steps-restart  completed  fail=no
+
+Remove link to first step and replace it with a file.
+
+    >>> parent_run = run_capture("guild select -Fo steps-restart")
+    >>> parent_path = path(guild_home(), "runs", parent_run)
+    >>> step_link = path(parent_path, "fail")
+    >>> orphan_run = realpath(step_link)
+
+    >>> dir(parent_path)
+    ['.guild', 'fail', 'fail_2']
+
+    >>> rm(step_link)
+    >>> dir(parent_path)
+    ['.guild', 'fail_2']
+
+Restart the pipeline and observe the error.
+
+    >>> run(f"guild run --restart {parent_run} fail=no -y")
+    INFO: [guild] running fail: fail fail=no
+    INFO: [guild] restarting fail: ... fail=no
+
+Note that the new run link exists and its target is different from the old one.
+
+    >>> run("guild runs -s")
+    [1]  fail           completed  fail=no
+    [2]  fail           completed  fail=no
+    [3]  steps-restart  completed  fail=no
+    [4]  fail           completed  fail=no
+
+    >>> dir(parent_path)
+    ['.guild', 'fail', 'fail_2']
+
+    >>> new_step = realpath(path(parent_path, "fail"))
+    >>> new_step == orphan_run
+    False
+
+And the old run still exists.
+
+    >>> exists(orphan_run)
+    True

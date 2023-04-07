@@ -17,6 +17,9 @@ steps-batch:
 steps-random-batch:
   steps:
     - train x=[-2.0:2.0] --max-trials 3
+steps-force-sourcecode:
+  steps:
+    - simple.py
 fail:
   flags-import: all
 train:
