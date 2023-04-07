@@ -20,10 +20,10 @@ steps below.
     ???test.py started in background as ... (pidfile ...)
     <exit 0>
 
-The script prints associated OS pids associated. Wait a moment and
-read these from the run output.
+The script prints associated OS pids. Wait a moment and read these
+from the run output.
 
-    >>> sleep(1)
+    >>> sleep(2)
     >>> out = run_capture("guild cat --output -Fl run-stop-test")
 
 Get the list of pids from the output.

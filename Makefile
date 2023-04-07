@@ -57,7 +57,7 @@ check:
 	    done; \
 	  fi; \
 	fi; \
-	COLUMNS=999 $(guild) check $$opts; \
+	COLUMNS=999 START_THRESHOLD=0.3 BREAKPOINT_PROMPT_TIMEOUT=4 $(guild) check $$opts
 
 lint:
 	pylint setup.py tools.py guild
