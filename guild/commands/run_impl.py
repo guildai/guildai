@@ -71,6 +71,7 @@ RESPECIFIABLE_RUN_PARAMS = {
     "force_sourcecode",
     "gpus",
     "label",
+    "needed",
     "tags",
 }
 

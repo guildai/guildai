@@ -474,7 +474,7 @@ def _step_run_cmd(step, step_run_dir, parent_run):
     return (
         _step_run_base_args()
         + _step_run_type_args(step, step_run_dir, parent_run)
-        + _step_run_parent_passthrough_args(parent_run)
+        + _step_run_parent_passthrough_args(parent_run, step_run_dir)
         + _step_run_step_config_args(step)
     )
 
@@ -522,13 +522,20 @@ def _step_run_new_run_args(step, step_run_dir):
     return ["--keep-batch", "--run-dir", step_run_dir, step.op_spec]
 
 
-def _step_run_parent_passthrough_args(parent_run):
+def _step_completed(step_run_dir):
+    step_run = runlib.for_dir(step_run_dir)
+    return step_run and step_run.status == "completed"
+
+
+def _step_run_parent_passthrough_args(parent_run, step_run_dir):
     args = []
     params = parent_run.get("run_params")
     if params.get("stage_trials"):
         args.append("--stage-trials")
     if params.get("force_sourcecode"):
         args.append("--force-sourcecode")
+    if params.get("needed") and _step_completed(step_run_dir):
+        args.append("--needed")
     return args
 
 

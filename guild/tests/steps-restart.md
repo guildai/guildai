@@ -445,3 +445,61 @@ And the old run still exists.
 
     >>> exists(orphan_run)
     True
+
+## Restart pipeline with --needed flag
+
+`steps-restart` runs two steps, the second of which fails by default.
+
+    >>> use_tmp_project()
+    >>> run("guild run steps-restart -y")
+    INFO: [guild] running fail: fail fail=no
+    INFO: [guild] running fail: fail fail=yes
+    FAIL
+    <exit 1>
+
+    >>> run("guild runs -s")
+    [1]  fail           error      fail=yes
+    [2]  fail           completed  fail=no
+    [3]  steps-restart  error      fail=yes
+
+    >>> run("guild ls -Fo steps-restart -n")
+    fail/
+    fail_2/
+
+Confirm that the step links resolve to the expected step runs.
+
+    >>> check_steps(["fail", "fail_2"])
+
+Note the current time to confirm that Guild restarts the expected
+runs.
+
+    >>> from datetime import datetime
+    >>> before_restart = datetime.now().replace(microsecond=0)
+
+Restart the parent run using an updated flag to cause the second step
+to succeed, along with the `--needed` flag to only run failing steps.
+
+    >>> parent_run = run_capture("guild select -Fo steps-restart")
+    >>> run(f"guild run --restart {parent_run} --needed fail=no -y")
+    INFO: [guild] restarting fail: ... --needed fail=no
+    Skipping run because flags have not changed (--needed specified)
+    INFO: [guild] restarting fail: ... fail=no
+
+    >>> run("guild runs -s")
+    [1]  fail           completed  fail=no
+    [2]  steps-restart  completed  fail=no
+    [3]  fail           completed  fail=no
+
+    >>> run("guild ls -Fo steps-restart -n")
+    fail/
+    fail_2/
+
+When Guild restarts a run, it updates its `started` attribute. Confirm
+that the runs have been restarted by filtering on started time.
+
+    >>> run(f"guild runs -s --started 'after {before_restart}'")
+    [1]  fail           completed  fail=no
+    [2]  steps-restart  completed  fail=no
+
+    >>> run(f"guild runs -s --started 'before {before_restart}'")
+    [1]  fail           completed  fail=no
