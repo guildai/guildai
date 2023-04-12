@@ -5,10 +5,10 @@ ENV LANG C.UTF-8
 
 RUN apt-get update --assume-yes \
     && apt-get install --assume-yes \
-        wget \
-        unzip \
-        python3 \
-        python3-pip \
+        wget=1.19.* \ 
+        unzip=6.0-* \ 
+        python3=3.6.* \ 
+        python3-pip=9.0.* \ 
     && update-alternatives --install /usr/bin/python python /usr/bin/python3 2 \
     && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 2 \
     &&  rm -rf /var/lib/apt/lists/*
