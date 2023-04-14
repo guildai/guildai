@@ -642,6 +642,7 @@ def init_run(path=None):
 
 
 def set_run_marker(run, marker):
+    util.ensure_dir(run.guild_path())
     open(run.guild_path(marker), "w").close()
 
 
@@ -1886,22 +1887,6 @@ def split_batch_files(flag_args):
         else:
             rest.append(arg)
     return batch_files, rest
-
-
-def find_matching_runs(opref, flag_vals, include_pending=False):
-    return [
-        run
-        for run in var.runs()
-        if is_matching_run(run, opref, flag_vals, include_pending)
-    ]
-
-
-def is_matching_run(run, opref, flag_vals, include_pending=False):
-    return (
-        run.opref == opref
-        and run.get("flags") == flag_vals
-        and (include_pending or run.status != "pending")
-    )
 
 
 def op_flag_encoder(flag_encoder):

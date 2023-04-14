@@ -1,66 +1,56 @@
 # Batch Handle Trial Status
 
-A batch run must confirm that a trial is in a 'pending' state before
+A batch run confirms that a trial is in a 'staged' state before
 running it.
 
-To illustrate, we work with the private API of `guild.batch_util`.
+To illustrate, we work with `guild.batch_util`.
 
     >>> from guild import batch_util
 
-Use a project to stage and test.
+Use a simple script that prints an ID that can assign as a flag val.
 
-    >>> project = Project(mkdtemp(), guild_home=mkdtemp())
+    >>> guild_home = mkdtemp()
+    >>> use_project(mkdtemp(), guild_home)
 
-The runs dir for the project:
+    >>> write("op.py", "id = None")
 
-    >>> runs_dir = path(project.guild_home, "runs")
+Stage an empty batch.
 
-We use a simple script that prints an ID that can assign as a flag val.
-
-    >>> write(path(project.cwd, "op.py"), "id = None")
-
-Stage a batch:
-
-    >>> project.run("op.py", optimizer="+", stage=True)
+    >>> run("guild run op.py -o + --stage -y")
     op.py+ staged as ...
     To start the operation, use 'guild run --start ...
 
-The current runs:
+    >>> run("guild runs -s")
+    [1]  op.py+  staged
 
-    >>> project.print_runs(status=True)
-    op.py+  staged
+We have a staged batch run that we can use to initialize some trials
+using `init_trial_run` from `batch_util`.
 
-We have a staged batch run that we can use to initialize some pending
-trials.
+    >>> from guild.batch_util import init_trial_run
 
-    >>> batch_run = project.list_runs()[0]
-    >>> batch_run.opref.to_opspec()
-    '+'
-
-Helper to init a trial run using `batch_util._init_trial_run`.
+Create a run for the batch that we can use with `init_trial_run`.
 
     >>> from guild import run as runlib
 
-    >>> def init_trial_run(trial_flag_vals):
-    ...     trial_run_id = runlib.mkid()
-    ...     return batch_util.init_trial_run(
-    ...         batch_run,
-    ...         trial_flag_vals,
-    ...         path(runs_dir, trial_run_id))
-
+    >>> batch_run_dir = run_capture("guild select --dir")
+    >>> batch_run = runlib.for_dir(batch_run_dir)
 
 Initialize some trial runs.
 
-    >>> trials = [{"id": 1}, {"id": 2}, {"id": 3}]
-    >>> trial_runs = [init_trial_run(trial) for trial in trials]
+    >>> trial_flags = [{"id": 1}, {"id": 2}, {"id": 3}]
+    >>> trial_runs = [init_trial_run(batch_run, flags) for flags in trial_flags]
 
-Our runs:
+Guild generates three pending runs. Pending status indicates that the
+runs are initialized and read to start by the batch parent run.
 
-    >>> project.print_runs(status=True, flags=True)
-    op.py   id=3  pending
-    op.py   id=2  pending
-    op.py   id=1  pending
-    op.py+        staged
+    >>> run("guild runs -s")
+    [1]  op.py   pending  id=3
+    [2]  op.py   pending  id=2
+    [3]  op.py   pending  id=1
+    [4]  op.py+  staged
+
+Verify that each trial run is initialized with the expected flag
+value.
 
     >>> trial_runs[0].get("flags")
     {'id': 1}
@@ -71,46 +61,53 @@ Our runs:
     >>> trial_runs[2].get("flags")
     {'id': 3}
 
-We want to run the trials to show how `batch_util` handles trial run
-status. Here's a helper that uses `batch_util._try_run_pending` to
-start a trial.
+Guild confirms that each run status is `pending` before running it. If
+Guild encounters a trial and a non-pending status, it skips the trial
+and logs a message. Use the private `batch_util._start_pending_trial`
+function to run a trial and check log output.
 
-    >>> from guild import lock as locklib
+    >>> from guild.batch_util import _start_pending_trial
 
-    >>> def _run_trial(trial_run):
-    ...     status_lock = locklib.Lock(locklib.RUN_STATUS, timeout=5)
-    ...     with SetGuildHome(project.guild_home):
-    ...         batch_util._start_pending_trial(trial_run, batch_run, status_lock)
+Create a helper to run `_start_staged_trial`.
 
-Run the first pending trial.
+    >>> def start_trial(trial_run):
+    ...     from guild import lock
+    ...     status_lock = lock.Lock(lock.RUN_STATUS, timeout=5)
+    ...     with SetGuildHome(guild_home):
+    ...         _start_pending_trial(trial_run, batch_run, status_lock)
+
+Start the first trial.
 
     >>> with LogCapture() as logs:
-    ...     _run_trial(trial_runs[0])
+    ...     start_trial(trial_runs[0])
+
+Guild logs that it runs the trial.
 
     >>> logs.print_all()
     Running trial ...: op.py (id=1)
 
-Our runs:
+    >>> run("guild runs -s")
+    [1]  op.py   completed  id=1
+    [2]  op.py   pending    id=3
+    [3]  op.py   pending    id=2
+    [4]  op.py+  staged
 
-    >>> project.print_runs(status=True, flags=True)
-    op.py   id=1  completed
-    op.py   id=3  pending
-    op.py   id=2  pending
-    op.py+        staged
-
-If we run the first trial again, Guild refuses because the trial is
-not pending.
-
-    >>> trial_runs[0].status
-    'completed'
+Run the first trial again. Guild refuses because the trial status is
+not `pending`.
 
     >>> with LogCapture() as logs:
-    ...     _run_trial(trial_runs[0])
+    ...     start_trial(trial_runs[0])
 
     >>> logs.print_all()
-    Skipping ... because its status is completed
+    Skipping ... because its status is 'completed' (expected 'pending')
 
-Let's change the status of the second trial from pending to staged.
+Change the status of the second trial from `pending` to
+`staged`. First, confirm the current run status is `pending`.
+
+    >>> trial_runs[1].status
+    'pending'
+
+Use `op_util` to set the status to staged.
 
     >>> from guild import op_util
 
@@ -119,26 +116,25 @@ Let's change the status of the second trial from pending to staged.
     >>> trial_runs[1].status
     'staged'
 
-Try to start the second trial.
+Start the second trial. Guild skips it because it's status is staged
+and not pending.
 
     >>> with LogCapture() as logs:
-    ...     _run_trial(trial_runs[1])
+    ...     start_trial(trial_runs[1])
 
     >>> logs.print_all()
-    Skipping ... because its status is staged
+    Skipping ... because its status is 'staged' (expected 'pending')
 
-Finally, start the third trial.
+Start the third trial.
 
     >>> with LogCapture() as logs:
-    ...     _run_trial(trial_runs[2])
+    ...     start_trial(trial_runs[2])
 
     >>> logs.print_all()
     Running trial ...: op.py (id=3)
 
-The runs:
-
-    >>> project.print_runs(status=True, flags=True)
-    op.py   id=3  completed
-    op.py   id=2  staged
-    op.py   id=1  completed
-    op.py+        staged
+    >>> run("guild runs -s")
+    [1]  op.py   completed  id=3
+    [2]  op.py   staged     id=2
+    [3]  op.py   completed  id=1
+    [4]  op.py+  staged

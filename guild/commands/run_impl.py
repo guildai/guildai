@@ -2313,6 +2313,7 @@ def _remote_args(S):
 
 
 def _run_local(S):
+    _check_invalid_restart(S)
     _check_run_needed(S)
     op = _init_op_for_run(S)
     if S.args.stage:
@@ -2321,50 +2322,11 @@ def _run_local(S):
         _run_op(op, S.args)
 
 
-def _check_run_needed(S):
-    if not S.args.needed:
+def _check_invalid_restart(S):
+    if not S.restart_run:
         return
-    matching = _remove_failed_runs(_find_matching_runs(S))
-    if matching:
-        if _restarting_match(matching, S):
-            _skip_needed_unchanged_flags_info()
-        else:
-            _skip_needed_matches_info(matching)
-        raise SystemExit(0)
-
-
-def _find_matching_runs(S):
-    if S.batch_op:
-        matching = op_util.find_matching_runs(
-            S.batch_op.opref, S.batch_op._op_flag_vals
-        )
-        return _filter_matching_batch_runs(matching, S.user_op)
-    return op_util.find_matching_runs(S.user_op.opref, S.user_op._op_flag_vals)
-
-
-def _filter_matching_batch_runs(batch_runs, user_op):
-    return [
-        run
-        for run in batch_runs
-        if (
-            run.batch_proto
-            and op_util.is_matching_run(
-                run.batch_proto,
-                user_op.opref,
-                user_op._op_flag_vals,
-                include_pending=True,
-            )
-        )
-    ]
-
-
-def _remove_failed_runs(runs):
-    return [run for run in runs if run.status != "error"]
-
-
-def _restarting_match(matches, S):
-    restart_run = S.batch_op._run if S.batch_op else S.user_op._run
-    return restart_run and restart_run.id in (run.id for run in matches)
+    if S.restart_run.status == "running":
+        _restart_running_error(S)
 
 
 def _init_op_for_run(S):
@@ -2479,6 +2441,163 @@ def _log_delete_run(run):
 
 def _handle_run_error(exit_status) -> typing.NoReturn:
     cli.error(exit_status=exit_status)
+
+
+# =================================================================
+# Needed support
+# =================================================================
+
+
+def _check_run_needed(S):
+    if not S.args.needed:
+        return
+    if S.restart_run:
+        _check_restart_needed(S.restart_run, S)
+    else:
+        _check_available_runs_for_needed(S)
+
+
+def _restarting_run(S):
+    """Returns a run specified with `--restart/--start`."""
+    return S.batch_op._run if S.batch_op else S.user_op._run
+
+
+def _check_restart_needed(restart_run, S):
+    """Checks if a restart run needs to be restarted.
+
+    A run restart can be skipped when needed is specified if the run
+    is not an error and its flag values are not being changed by the
+    command.
+
+    When a batch run is restarted, the function compares both the
+    batch flag values and the user flag values when determining if a
+    restart is needed.
+
+    If the run does not needed a restart, the function prints a
+    message and exists with a 0 exit code.
+
+    """
+    assert restart_run
+    if not _restart_needed_for_run_status(
+        restart_run.status
+    ) and _op_flag_vals_unchanged(restart_run, S):
+        _print_skipping_restart_and_exit()
+
+
+def _print_skipping_restart_and_exit() -> typing.NoReturn:
+    cli.out("Skipping run because flags have not changed (--needed specified)")
+    raise SystemExit(0)
+
+
+def _restart_needed_for_run_status(status):
+    """Returns True when a restart is needed for a run status.
+
+    A restart is needed when the run status is not completed or
+    terminated. A terminated run is treated the same as completed for
+    consistency with the default behavior for resolving operation
+    dependencies (which will select terminated runs).
+    """
+    return status not in ("completed", "terminated")
+
+
+def _op_flag_vals_unchanged(run, S):
+    """Returns True if a run flag values match the state op flag vals.
+
+    If a run is a batch, checks both the batch flag values and the
+    proto/user op flag values.
+    """
+    if S.batch_op:
+        return _compare_batch_op_flag_vals(run, S)
+    return _compare_user_op_flag_vals(run, S)
+
+
+def _compare_batch_op_flag_vals(batch_run, S):
+    assert S.batch_op
+    return _compare_op_flags(batch_run, S.batch_op) and _compare_op_flags(
+        batch_run.batch_proto, S.user_op
+    )
+
+
+def _compare_op_flags(run, op):
+    return run.get("flags") == op._op_flag_vals
+
+
+def _compare_user_op_flag_vals(run, S):
+    return _compare_op_flags(run, S.user_op)
+
+
+def _check_available_runs_for_needed(S):
+    matching_runs = _matching_runs_for_needed(S)
+    if matching_runs:
+        _print_skipping_matches_and_exit(matching_runs)
+
+
+def _print_skipping_matches_and_exit(matching_runs) -> typing.NoReturn:
+    cli.out(
+        "Skipping because the following runs match "
+        "this operation (--needed specified):"
+    )
+    formatted = [run_util.format_run(run) for run in matching_runs]
+    cols = [
+        "index",
+        "operation",
+        "started",
+        "status_with_remote",
+        "label",
+    ]
+    cli.table(formatted, cols=cols, indent=2)
+    raise SystemExit(0)
+
+
+def _matching_runs_for_needed(S):
+    """Returns a list of runs that match the command state.
+
+    A run is matched if all of the following are true:
+
+    - opref is the same
+    - flag values are the same
+
+    If the command applies to a batch (i.e. `S.batch_op` is set),
+    checks both the batch opref and flag values and the batch proto
+    opref and flag values, which correspond to the user op
+    (i.e. `S.user_op`).
+    """
+    return var.runs(filter=_matching_run_for_needed_filter(S), sort=["-timestamp"])
+
+
+def _matching_run_for_needed_filter(S):
+    def f(run):
+        return _is_matching_run_for_needed(run, S)
+
+    return f
+
+
+def _is_matching_run_for_needed(run, S):
+    return _is_matching_op_run(run, S) and not _restart_needed_for_run_status(
+        run.status
+    )
+
+
+def _is_matching_op_run(run, S):
+    if S.batch_op:
+        return _is_matching_batch_run(run, S)
+    return _is_matching_user_run(run, S)
+
+
+def _is_matching_batch_run(run, S):
+    assert S.batch_op
+
+    return _is_matching_op_run_(run, S.batch_op) and _is_matching_op_run_(
+        run.batch_proto, S.user_op
+    )
+
+
+def _is_matching_op_run_(run, op):
+    return run.opref == op.opref and _compare_op_flags(run, op)
+
+
+def _is_matching_user_run(run, S):
+    return _is_matching_op_run_(run, S.user_op)
 
 
 ###################################################################
@@ -2693,25 +2812,18 @@ def _save_trials_for_non_batch_error() -> typing.NoReturn:
     cli.error("cannot save trials for a non-batch operation")
 
 
-def _skip_needed_unchanged_flags_info():
-    cli.out("Skipping run because flags have not changed (--needed specified)")
-
-
-def _skip_needed_matches_info(matching_runs):
-    cli.out(
-        "Skipping because the following runs match "
-        "this operation (--needed specified):"
-    )
-    formatted = [run_util.format_run(run) for run in matching_runs]
-    cols = ["index", "operation", "started", "status_with_remote", "label"]
-    cli.table(formatted, cols=cols, indent=2)
-
-
 def _no_default_optimizer_error(opdef) -> typing.NoReturn:
     opt_names = ", ".join([opt.name for opt in opdef.optimizers])
     cli.error(
         f"no default optimizer defined for {opdef.name}\n"
         f"Specify one of the following with '--optimizer': {opt_names}"
+    )
+
+
+def _restart_running_error(S) -> typing.NoReturn:
+    cli.error(
+        f"cannot restart run {S.restart_run.id} because it's running\n"
+        f"Use 'guild stop {S.restart_run.id}' to stop it first and try again."
     )
 
 

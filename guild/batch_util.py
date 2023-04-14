@@ -150,20 +150,11 @@ def _init_trial_runs(batch_run, trials):
 
 
 def init_trial_run(batch_run, trial_flag_vals, run_dir=None):
-    run = op_util.init_run(run_dir)
-    _link_to_trial(batch_run, run)
-    proto_run = batch_run.batch_proto
-    assert (
-        proto_run
-    ), f"proto_run not initialized for batch {batch_run.id} ({batch_run.dir})"
-    util.copytree(proto_run.dir, run.dir)
-    run.write_attr("id", run.id)
-    run.write_attr("flags", trial_flag_vals)
-    run.write_attr("label", _trial_label(proto_run, trial_flag_vals))
-    run.write_attr("op", _trial_op_attr(proto_run, trial_flag_vals))
-    op_util.set_run_pending(run)
-    op_util.set_run_started(run)
-    return run
+    assert batch_run.batch_proto, batch_run.dir
+    trial_run = op_util.init_run(run_dir)
+    _link_to_trial(batch_run, trial_run)
+    _init_trial_for_batch_proto(batch_run.batch_proto, trial_run, trial_flag_vals)
+    return trial_run
 
 
 def _link_to_trial(batch_run, trial_run):
@@ -171,6 +162,17 @@ def _link_to_trial(batch_run, trial_run):
     rel_trial_path = os.path.relpath(trial_run.dir, os.path.dirname(trial_link))
     util.ensure_deleted(trial_link)
     os.symlink(rel_trial_path, trial_link)
+
+
+def _init_trial_for_batch_proto(proto_run, trial_run, trial_flag_vals):
+    op_util.set_run_pending(trial_run)
+    util.copytree(proto_run.dir, trial_run.dir)
+    trial_run.write_attr("id", trial_run.id)
+    trial_run.write_attr("flags", trial_flag_vals)
+    trial_run.write_attr("label", _trial_label(proto_run, trial_flag_vals))
+    trial_run.write_attr("op", _trial_op_attr(proto_run, trial_flag_vals))
+    op_util.set_run_pending(trial_run)
+    op_util.set_run_started(trial_run)
 
 
 def _trial_label(proto_run, trial_flag_vals):
@@ -184,7 +186,7 @@ def _start_pending_trial(trial_run, batch_run, status_lock):
         trial_status = trial_run.status
         if trial_status != "pending":
             log.info(
-                "Skipping %s because its status is %s",
+                "Skipping %s because its status is '%s' (expected 'pending')",
                 trial_run.id,
                 trial_status,
             )

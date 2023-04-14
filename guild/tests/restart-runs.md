@@ -1,109 +1,119 @@
 # Restarting runs
 
-Runs can be restarted using the --restart option.
+The user can restarts a run using the `--restart` option.
 
-We'll use the `optimizers` project for our tests.
+Use the `optimizers` project for our tests.
 
-    >>> project = Project(sample("projects", "optimizers"))
+    >>> use_project("optimizers")
 
-And a helper to get the run ID for a 1-index based run:
+Run `echo.py` with the default flag values.
 
-    >>> def run_id(index):
-    ...     return project.list_runs()[index-1].id
-
-Let's generate a run:
-
-    >>> project.run("echo.py")
+    >>> run("guild run echo.py -y")
     1.0 2 'a'
 
-And our runs:
+Run `echo.py` a second time with explicit flag values.
 
-    >>> project.print_runs(flags=True, status=True)
-    echo.py  x=1.0 y=2 z=a  completed
-
-Let's run a second operation with explicit flag values:
-
-    >>> project.run("echo.py", flags={"x": 2.0, "y": 3, "z": "b"})
+    >>> run("guild run echo.py x=2.0 y=3 z=b -y")
     2.0 3 'b'
 
-And our runs:
+    >>> run("guild runs -s")
+    [1]  echo.py  completed  x=2.0 y=3 z=b
+    [2]  echo.py  completed  x=1.0 y=2 z=a
 
-    >>> project.print_runs(flags=True, status=True)
-    echo.py  x=2.0 y=3 z=b  completed
-    echo.py  x=1.0 y=2 z=a  completed
+Restart the latest run. Guild restarts it using its original flag
+values.
 
-Let's restart the last run (run 1) without specifying any flags:
+    >>> last_run = run_capture("guild select")
 
-    >>> project.run(restart=run_id(1))
+    >>> run(f"guild run --restart {last_run} -y")
     2.0 3 'b'
 
-We can also use the operation name, which restarts the latest or
-marked run matching the name:
+    >>> run(f"guild select -a flags {last_run}")
+    x: 2.0
+    y: 3
+    z: b
 
-    >>> project.run(restart="echo.py")
-    2.0 3 'b'
+Restart the run with a modified flag value.
 
-Note the original flags are used and that these are not the default
-flag values (which are represented in run 2).
-
-Let's restart run 1 with a new value for x:
-
-    >>> project.run(restart=run_id(1), flags={"x": 10})
+    >>> run(f"guild run --restart {last_run} x=10 -y")
     10 3 'b'
 
-When we restart run 1 again, this time with no explicit flag values,
-it uses the last-specified flag values:
+    >>> run(f"guild select -a flags {last_run}")
+    x: 10
+    y: 3
+    z: b
 
-    >>> project.run(restart=run_id(1))
+Restart it again, this time with no explicit flag values. Guild uses
+the flag values from the last restart.
+
+    >>> run(f"guild run --restart {last_run} -y")
     10 3 'b'
 
-And again using the operation name:
+    >>> run(f"guild select -a flags {last_run}")
+    x: 10
+    y: 3
+    z: b
 
-    >>> project.run(restart="echo.py")
-    10 3 'b'
+## Restart with `--needed`
 
-We can use the `needed` flag to instruct Guild to run the operation
-only if it needs to based on the specified flag values. If the flag
-values are the same as the last run, the operation is skipped.
+When run with `--restart`, the `--needed` option tells Guild to run
+the operation only if needs to be based on its status and the command
+flag values. If the run-to-be-restarted is not completed or different
+flag values are specified for the command, Guild restarts the
+run. Otherwise it skips the restart and shows a message.
 
-    >>> project.run(restart=run_id(1), needed=True)
+For additional tests related to *needed*, see
+[`needed.md`](needed.md).
+
+Attempt to restart the latest run using the `--needed` flag. In this
+case Guild skips the restart because it is not needed.
+
+    >>> run(f"guild run --restart {last_run} --needed -y")
     Skipping run because flags have not changed (--needed specified)
 
-Let's request a run restart with needed using the same flag values
-explicitly:
+    >>> run(f"guild select -a flags {last_run}")
+    x: 10
+    y: 3
+    z: b
 
-    >>> project.run(restart=run_id(1), flags={"x": 10, "y": 3, "z": "b"},
-    ...             needed=True)
+Restart using explicit flag values that equal those from the
+restarting run. Guild again skips the run because it's already
+completed and the flag values have not changed.
+
+    >>> run(f"guild run --restart {last_run} --needed x=10 y=3 -y")
     Skipping run because flags have not changed (--needed specified)
 
-If any flag value differs, the run proceeds:
+    >>> run(f"guild select -a flags {last_run}")
+    x: 10
+    y: 3
+    z: b
 
-    >>> project.run(restart=run_id(1), flags={"x": 100, "y": 3, "z": "b"},
-    ...             needed=True)
+Restart using modified flag values. In this case, Guild considers the
+restart to be needed and proceeds.
+
+    >>> run(f"guild run --restart {last_run} --needed x=100 -y")
     100 3 'b'
 
-Finally, let's restart run 2 twice with the same flag values and the
-needed flag.
-
-    >>> project.run(restart=run_id(2), flags={"x": 1.0, "y": 2, "z": "d"},
-    ...             needed=True)
-    1.0 2 'd'
-
-    >>> project.run(restart=run_id(2), flags={"x": 1.0, "y": 2, "z": "d"},
-    ...             needed=True)
-    Skipping because the following runs match this operation (--needed specified):
-      [...]  echo.py  ...  completed  x=1.0 y=2 z=d
+    >>> run(f"guild select -a flags {last_run}")
+    x: 100
+    y: 3
+    z: b
 
 ## Run params for restarts
 
-The `op_util` module provides a function that returns a list of run
-params that should be used when restarting a particular run. The
-params are based on the params that were used when originally running
-or staging the run.
+The `op_util` module provides the function `run_params_for_restart`
+that returns a list of run params that should be used when restarting
+a particular run. The params are based on the params that were used
+when originally running or staging the run.
 
-    >>> from guild import op_util
+    >>> from guild.op_util import run_params_for_restart
 
-    >>> pprint(op_util.run_params_for_restart(project.list_runs()[0]))
+Get the run params for restarting the latest run.
+
+    >>> from guild import run as runlib
+
+    >>> last_run = runlib.for_dir(run_capture("guild select --dir"))
+    >>> pprint(run_params_for_restart(last_run))
     {'force_flags': False,
      'gpus': None,
      'max_trials': None,
@@ -116,84 +126,70 @@ or staging the run.
 
 ## Check for restart
 
-`op_util` also provides a check to determine whether or not a run
-should be restarted based on a set of new flags.
+`op_util.restart_needed` determined whether or not a run needs to be
+restarted based on a set of flag values.
 
-Here are the flags for the latest run:
+    >>> from guild.op_util import restart_needed
 
-    >>> latest = project.list_runs()[0]
-    >>> pprint(latest.get("flags"))
-    {'x': 1.0, 'y': 2, 'z': 'd'}
+Show the latest run flag values.
 
-And various checks for restart:
+    >>> pprint(last_run.get("flags"))
+    {'x': 100, 'y': 3, 'z': 'b'}
 
-    >>> op_util.restart_needed(latest, {})
+Use `restart_needed` to check whether or not various flag values
+combinations would triggr a restart when `--needed` is specified.
+
+    >>> restart_needed(last_run, {})
     True
 
-    >>> op_util.restart_needed(latest, {"x": 1.0})
+    >>> restart_needed(last_run, {"x": 100})
     True
 
-    >>> op_util.restart_needed(latest, {"x": 1.0, "y": 2})
+    >>> restart_needed(last_run, {"x": 100, "y": 3})
     True
 
-    >>> op_util.restart_needed(latest, {"x": 1.0, "y": 2, "z": "d"})
+    >>> restart_needed(last_run, {"x": 100, "y": 3, "z": "b"})
     False
 
-    >>> op_util.restart_needed(latest, {"x": 1.0, "y": 2, "z": "d", "a": 0})
+    >>> restart_needed(last_run, {"x": 100, "y": 3, "z": "b", "a": 0})
     True
 
 ## Restarts and Source Code
 
-By default, a restart uses the unmodified soure code.
+By default, a restart uses unmodified soure code.
 
-To illustate, we create a custom project with a sample hello script.
+To illustate, create a custom project with a sample hello script.
 
-    >>> cd(mkdtemp())
+    >>> use_project(mkdtemp())
+
     >>> write("hello.py", "print('hello-1')\n")
-
-Isolate our runs.
-
-    >>> set_guild_home(mkdtemp())
 
 Run the script.
 
     >>> run("guild run hello.py -y")
-    ???hello-1
-    <exit 0>
+    hello-1
 
-Source code for the run:
-
-    >>> run("guild cat --sourcecode -p hello.py")
+    >>> run("guild cat -p hello.py")
     print('hello-1')
-    <exit 0>
 
-Let's modify the script to print a different message.
+Modify the script to print a different message.
 
     >>> write("hello.py", "print('hello-2')\n")
 
-Confirm the message by running the script a second time (without
-restarting).
+Restart the run.
 
-    >>> run("guild run hello.py -y")
-    ???hello-2
-    <exit 0>
+    >>> last_run = run_capture("guild select")
 
-Source code for the second run:
-
-    >>> run("guild cat --sourcecode --path hello.py")
-    print('hello-2')
-    <exit 0>
-
-Restart the first run without `--force-sourcecode`.
-
-    >>> run_id = run_capture("guild select 2")
-
-    >>> run("guild run --restart %s -y" % run_id)
+    >>> run(f"guild run --restart {last_run} -y")
     hello-1
-    <exit 0>
 
-Restart the first run with `--force-sourcecode`:
+    >>> run("guild cat -p hello.py")
+    print('hello-1')
 
-    >>> run("guild run --restart %s --force-sourcecode -y" % run_id)
+Restart the run with `--fource-sourcecode`.
+
+    >>> run(f"guild run --restart {last_run} --force-sourcecode -y")
     hello-2
-    <exit 0>
+
+    >>> run("guild cat -p hello.py")
+    print('hello-2')
