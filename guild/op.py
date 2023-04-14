@@ -210,7 +210,8 @@ def _op_start_proc(op, run, quiet, extra_env):
     run.write_attr("env", _safe_env(env, op))
     log.debug("starting run %s in %s", run.id, run.dir)
     log.debug("operation command: %s", op.cmd_args)
-    log.debug("operation env: %s", _hide_secret_env(env))
+    if os.getenv("DEBUG_ENV") == "1":
+        log.debug("operation env: %s", _hide_secret_env(env))
     stdout, stderr = _proc_streams(quiet)
     try:
         proc = subprocess.Popen(

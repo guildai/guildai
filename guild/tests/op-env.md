@@ -162,7 +162,7 @@ This is applied when running the `test` operation.
 The environment is saved in the `env` run attribute.
 
     >>> env = yaml.safe_load(run_capture("guild select --attr env"))
-    
+
     >>> for name in sorted(env):
     ...     if name.startswith("FLAG_") or name in ("FOO", "BAR", "BAZ", "PYTHONPATH"):
     ...         print("%s: %s" % (name, env[name]))
@@ -178,11 +178,16 @@ The environment is saved in the `env` run attribute.
 
 ## Secrets
 
-Guild attempts to avoid saving secets to the `env` attribute as well as logging.
+Guild attempts to avoid saving secets to the `env` attribute as well
+as logging.
 
-Let's run `test` with some environment variables that Guild deems
+Run `test` with some environment variables that Guild deems
 "secret". We run with debug to have Guild log the command env. The
 output should not contain secrets.
+
+Note that as of 2023/04 Guild does not log the operation environment
+by default. To ensure that the environment is logged, we must specify
+`DEBUG_ENV=1` when running the command.
 
     >>> secrets = {
     ...   "ACCESS_TOKEN": "access-token-123",
@@ -191,10 +196,11 @@ output should not contain secrets.
     ... }
 
     >>> with Env(secrets):
-    ...     out = run_capture("guild --debug run test -y")
+    ...     out = run_capture(
+    ...               "guild --debug run test -y",
+    ...               env={"DEBUG_ENV": "1"})
 
-Verify that the operaiton env is printed to stdout under the `DEBUG`
-log level.
+Verify that the operaiton env is logged under the `DEBUG` log level.
 
     >>> print(out)
     ???
