@@ -24,9 +24,9 @@ exception.
 
     >>> project.run("fail.py")
     Traceback (most recent call last):
-      File ".../fail.py", line 17, in <module>
+      File ".../fail.py", line 20, in <module>
         fail()
-      File ".../fail.py", line 7, in fail
+      File ".../fail.py", line 9, in fail
         fail2()
       File ".../fail.py", line 14, in fail2
         raise Exception("FAIL")
@@ -50,9 +50,9 @@ When we run with the debug option, we get the full stack:
         python_util.exec_script(module_info.mod_path, globals, mod_name=mod_name)
       File ".../guild/python_util.py", line ..., in exec_script
         exec(code, script_globals)
-      File ".../fail.py", line 17, in <module>
+      File ".../fail.py", line 20, in <module>
         fail()
-      File ".../fail.py", line 7, in fail
+      File ".../fail.py", line 9, in fail
         fail2()
       File ".../fail.py", line 14, in fail2
         raise Exception("FAIL")
@@ -73,9 +73,9 @@ case, the project defines a `fail` operation that runs `fail.py`.
 
     >>> project.run("fail")
     Traceback (most recent call last):
-      File ".../fail.py", line 17, in <module>
+      File ".../fail.py", line 20, in <module>
         fail()
-      File ".../fail.py", line 7, in fail
+      File ".../fail.py", line 9, in fail
         fail2()
       File ".../fail.py", line 14, in fail2
         raise Exception("FAIL")
