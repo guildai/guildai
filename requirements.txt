@@ -4,6 +4,9 @@
 # guildai.dist-info/METADATA. You must manually edit
 # that file to reflect any changes made here.
 
+Pillow>=5.0
+PyYAML>=2.12
+Werkzeug>=0.15
 chardet>=3.0.4
 click>=8
 daemonize>=2.4.7
@@ -13,16 +16,12 @@ importlib-metadata;python_version<"3.8"
 jinja2>=3.0.3
 natsort
 numpy>=1.16
-Pillow>=5.0
 pip
 pkginfo
 protobuf<5
 psutil>=5.6.3
-PyYAML>=2.12
 scikit-learn>=0.19.1
 tabview>=1.4.3
 tensorboard>=2.0.0
-typing-extensions;python_version<"3.8"
 virtualenv>=15.1.0
-Werkzeug>=0.15
 windows-curses;platform_system=="Windows"
