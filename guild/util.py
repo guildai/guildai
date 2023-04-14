@@ -189,9 +189,7 @@ def _open_url_with_webbrowser(url):
 def loop(cb, wait, interval, first_interval=None):
     try:
         _loop(cb, wait, interval, first_interval)
-    except Stop:
-        pass
-    except KeyboardInterrupt:
+    except (Stop, KeyboardInterrupt):
         pass
 
 

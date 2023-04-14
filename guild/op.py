@@ -352,11 +352,12 @@ def _handle_proc_keyboard_interrupt(proc):
                 log.info("Operation interrupted - waiting for process to exit")
             log_waiting_after = None
         if proc.poll() is not None:
-            break
+            return proc.returncode
         time.sleep(1)
-    if proc.poll() is None:
-        log.warning("Operation process did not exit - stopping forcefully")
-        util.kill_process_tree(proc.pid, force=True)
+    log.warning("Operation process did not exit - stopping forcefully")
+    util.kill_process_tree(proc.pid, force=True)
+    if proc.poll():
+        return proc.returncode
     return exit_code.KEYBOARD_INTERRUPT
 
 

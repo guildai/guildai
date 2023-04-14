@@ -339,21 +339,6 @@ def _maybe_test_internal_error():
     assert os.getenv("__GUILD_OP_MAIN_INTERNAL_ERROR") != "1"
 
 
-def _interrupt_handler():
-    """Returns interrupt handler that's independent of module namespace."""
-    if os.getenv("HANDLE_KEYBOARD_INTERRUPT"):
-        return None
-    # Save everything we need to handle interrupt.
-    log_exception = log.getEffectiveLevel() <= logging.DEBUG
-    log_exception_f = log.exception
-
-    def handler():
-        if log_exception:
-            log_exception_f("interrupted")
-
-    return handler
-
-
 def _exec_module(module_info, args, globals=None):
     from guild import python_util
 
@@ -374,15 +359,7 @@ def _gen_exec(exec_cb, module_info):
         debugger.rcLines.extend(pdb_commands)
         debugger.runcall(exec_cb)
     else:
-        # Use a closure to handle anything post load_module, which
-        # effectively refefines the current module namespace.
-        handle_interrupt = _interrupt_handler()
-        try:
-            exec_cb()
-        except KeyboardInterrupt:
-            if not handle_interrupt:
-                raise
-            handle_interrupt()
+        exec_cb()
 
 
 def _pdb_commands(module_info):
@@ -470,7 +447,7 @@ def _error(msg):
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
+    except (Exception, KeyboardInterrupt) as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
             raise
         exc_lines = traceback.format_exception(*sys.exc_info())
