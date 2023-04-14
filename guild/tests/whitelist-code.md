@@ -5,6 +5,10 @@ This set of tests addresses false positives when running
 base. It contains explicit usage of code otherwise not used, untested,
 or simply missed by Vulture.
 
+It's used in conjunction with [`tools.py`](../../../tools.py) in
+applying test code to the corpus of code used to measure "unused
+code".
+
 It's organized by module and tested code.
 
 `guild/_api.py: unused attribute 'cmd_cwd'`
