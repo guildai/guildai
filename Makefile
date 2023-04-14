@@ -105,14 +105,14 @@ format-code:
 	@black setup.py tools.py guild examples
 
 coverage-check:
-	@if [ -z "$(TESTS)" ]; then \
+	if [ -z "$(TESTS)" ]; then \
 	  tests="-St"; \
 	else \
 	  for test in $(TESTS); do \
 	    tests="$$tests -t $$test"; \
 	  done; \
 	fi; \
-	coverage run -a -m guild.main_bootstrap check -n $$tests
+	coverage run -a -m guild.main_bootstrap check $$tests
 
 coverage-report:
 	coverage report -m --include=guild/* --omit=guild/_lex.py,guild/_yacc.py,guild/external/*
