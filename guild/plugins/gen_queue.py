@@ -96,7 +96,7 @@ def _init_sigterm_handler():
     def handler(_signum, _stack_frame):
         # Reset handler for SIGTERM to avoid reentry.
         signal.signal(signal.SIGTERM, signal.SIG_DFL)
-        raise SystemExit()
+        raise SystemExit(0)
 
     signal.signal(signal.SIGTERM, handler)
 
