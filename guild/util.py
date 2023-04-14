@@ -1040,11 +1040,12 @@ def is_executable_file(path):
 
 def copytree(src, dest, preserve_links=True):
     try:
-        # dirs_exist_ok was added in python 3.8:
+        # dirs_exist_ok was added in Python 3.8:
         # https://docs.python.org/3/library/shutil.html#shutil.copytree
         shutil.copytree(src, dest, symlinks=preserve_links, dirs_exist_ok=True)
-    except:
-        # distutils is deprecated, so we should move off of this where possible
+    except TypeError as e:
+        assert "got an unexpected keyword argument 'dirs_exist_okay'" in str(e), e
+        # Drop this fallback when drop support for Python 3.7
         # pylint: disable=deprecated-module
         from distutils import dir_util
 
