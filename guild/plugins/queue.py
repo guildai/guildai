@@ -85,6 +85,7 @@ class QueueModelProxy:
                             "${flag_args}"
                         ),
                         "flags": queue_flags_data,
+                        "delete-on-success": True
                     }
                 },
             }

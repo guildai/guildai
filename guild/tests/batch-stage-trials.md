@@ -34,6 +34,7 @@ Use a `queue` to run the staged trials.
     INFO: [guild] ... Starting staged run ...
     c
     INFO: [guild] ... Stopping queue
+    Deleting interim run ... ('queue' is configured for deletion on success)
 
 Our runs after the queue finished.
 
@@ -41,7 +42,6 @@ Our runs after the queue finished.
     say.py   loud=no msg=c                                                completed
     say.py   loud=no msg=b                                                completed
     say.py   loud=no msg=a                                                completed
-    queue    gpus=null poll-interval=10 run-once=yes wait-for-running=no  completed
     say.py+                                                               completed
 
 ## Staging batch runs that stage trials
@@ -51,7 +51,7 @@ We can, perhaps oddly, stage a batch operation that stages trials.
 First clear our runs.
 
     >>> project.delete_runs()
-    Deleted 5 run(s)
+    Deleted 4 run(s)
 
 And stage a batch run that stages trials.
 
