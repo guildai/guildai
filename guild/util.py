@@ -63,6 +63,20 @@ def try_apply(funs, *args):
     raise TryFailed(funs, args)
 
 
+def any_apply(funs, *args):
+    for f in funs:
+        if f(*args):
+            return True
+    return False
+
+
+def all_apply(funs, *args):
+    for f in funs:
+        if not f(*args):
+            return False
+    return True
+
+
 def ensure_dir(d):
     d = realpath(d)
     try:

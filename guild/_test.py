@@ -182,12 +182,14 @@ def _parse_doctest_options(encoded_options, filename):
 
 
 def _skip_for_doctest_options(options):
-    return (
-        _skip_fixme(options)
-        or _skip_platform(options)
-        or _skip_python_version(options)
-        or _skip_timing_critical(options)
-        or _skip_git_ls_files_target(options)
+    return util.any_apply(
+        [
+            _skip_fixme,
+            _skip_platform,
+            _skip_python_version,
+            _skip_timing_critical,
+            _skip_git_ls_files_target,
+        ], options
     )
 
 

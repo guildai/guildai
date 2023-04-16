@@ -1035,7 +1035,7 @@ Only flattens to one level.
 
 ## Encode/Decode CFG
 
-CFG/INI decoding is provided by the function `decode_cfg_val`. This 
+CFG/INI decoding is provided by the function `decode_cfg_val`. This
 function implements the behavior outlined in Python's `configparser`
 support for [data types](https://docs.python.org/library/configparser.html#supported-datatypes).
 
@@ -1112,3 +1112,86 @@ CFG/INI encoding is simply the application of `str` to a value.
 
     >>> encode_cfg_val({"a": 1})
     "{'a': 1}"
+
+## `any_apply` and `all_apply`
+
+These two functions evaluate a series of functions and return True or
+False depending on the function and the truthiness of the applied
+results.
+
+    >>> from guild.util import any_apply, all_apply
+
+Create functions that evaluate True and False, printing that they're
+called.
+
+    >>> def t():
+    ...     print('t()')
+    ...     return True
+
+    >>> def f():
+    ...     print('f()')
+    ...     return False
+
+`any_apply` returns early with True on the first True, otherwise
+returns False.
+
+    >>> any_apply([])
+    False
+
+    >>> any_apply([t])
+    t()
+    True
+
+    >>> any_apply([f])
+    f()
+    False
+
+    >>> any_apply([f, t])
+    f()
+    t()
+    True
+
+    >>> any_apply([t, f])
+    t()
+    True
+
+    >>> any_apply([f, f])
+    f()
+    f()
+    False
+
+    >>> any_apply([t, t])
+    t()
+    True
+
+`any_all` returns early with False on the first False, otherwise
+returns True.
+
+    >>> all_apply([])
+    True
+
+    >>> all_apply([t])
+    t()
+    True
+
+    >>> all_apply([f])
+    f()
+    False
+
+    >>> all_apply([f, t])
+    f()
+    False
+
+    >>> all_apply([t, f])
+    t()
+    f()
+    False
+
+    >>> all_apply([f, f])
+    f()
+    False
+
+    >>> all_apply([t, t])
+    t()
+    t()
+    True
