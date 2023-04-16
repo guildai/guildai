@@ -24,7 +24,6 @@ Queue an operation for v1:
     >>> run("guild run say.py --stage -y")
     say.py staged as ...
     To start the operation, use 'guild run --start ...'
-    <exit 0>
 
 Write v2 of a script:
 
@@ -35,15 +34,18 @@ Queue an operation for v2:
     >>> run("guild run say.py --stage -y")
     say.py staged as ...
     To start the operation, use 'guild run --start ...'
-    <exit 0>
 
 Run a queue once:
 
-    >>> run("guild run queue run-once=yes -y")
+    >>> run("guild run queue run-once=yes --keep-run -y")
     INFO: [guild] ... Starting queue
     INFO: [guild] ... Starting staged run ...
     Hello v1
     INFO: [guild] ... Starting staged run ...
     Hello v2
     INFO: [guild] ... Stopping queue
-    <exit 0>
+
+    >>> run("guild runs -s -n3")
+    [1]  say.py  completed
+    [2]  say.py  completed
+    [3]  queue   completed  poll-interval=10 run-once=yes wait-for-running=no
