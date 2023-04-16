@@ -109,8 +109,13 @@ def init_logging(level=None, formats=None):
     logging.config.dictConfig(
         {
             "version": 1,
-            "handlers": {"console": console_handler},
-            "root": {"level": level, "handlers": ["console"]},
+            "handlers": {
+                "console": console_handler
+            },
+            "root": {
+                "level": level,
+                "handlers": ["console"]
+            },
             "disable_existing_loggers": False,
         }
     )

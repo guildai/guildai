@@ -93,7 +93,7 @@ def _cmp_oprefs(run_opref, opref, match_regex):
         and (
             opref.model_name is None
             or _cmp(run_opref.model_name, opref.model_name, match_regex)
-        )
+        )  #
         and _cmp(run_opref.op_name, opref.op_name, match_regex)
     )
 

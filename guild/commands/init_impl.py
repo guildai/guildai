@@ -328,10 +328,10 @@ def _virtual_env_cmd(config):
     if not virtualenv_exe:
         return None
     return (
-        [virtualenv_exe]
-        + _python_version_args(config)
-        + _prompt_args(config)
-        + _system_site_packages_args(config)
+        [virtualenv_exe]  #
+        + _python_version_args(config)  #
+        + _prompt_args(config)  #
+        + _system_site_packages_args(config)  #
         + [config.env_dir]
     )
 
@@ -355,9 +355,9 @@ def _venv_module_cmd(config):
         return None
     else:
         return (
-            [sys.executable, "-m", "venv"]
-            + _prompt_args(config)
-            + _system_site_packages_args(config)
+            [sys.executable, "-m", "venv"]  #
+            + _prompt_args(config)  #
+            + _system_site_packages_args(config)  #
             + [config.env_dir]
         )
 
@@ -459,8 +459,8 @@ def _pip_extra_install_opts(config):
 
 def _install_reqs(reqs, config, ignore_installed=False):
     cmd_args = (
-        _pip_bin_args(config.env_dir)
-        + ["install", "--no-warn-script-location"]
+        _pip_bin_args(config.env_dir)  #
+        + ["install", "--no-warn-script-location"]  #
         + _pip_extra_install_opts(config)
     )
     if ignore_installed:

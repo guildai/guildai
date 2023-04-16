@@ -23,7 +23,6 @@ def main():
             "name": name,
             "type": r.get("type", ""),
             "desc": r.get("description", ""),
-        }
-        for name, r in sorted(remotes.items())
+        } for name, r in sorted(remotes.items())
     ]
     cli.table(data, ["name", "type", "desc"])

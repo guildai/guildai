@@ -33,7 +33,6 @@ model.compile(
 logdir = os.getenv("LOGDIR") or "logs/image/" + datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 
-
 model.fit(
     x_train,
     y_train,

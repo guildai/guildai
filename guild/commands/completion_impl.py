@@ -26,7 +26,6 @@ from guild import util
 
 log = logging.getLogger("guild")
 
-
 SHELL_INIT_BACKUP_SUFFIX_PATTERN = ".guild-backup.{n}"
 
 

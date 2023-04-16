@@ -41,7 +41,6 @@ class SystemExitWithDetail(Exception):
 
     For detail types, see `XxxDetail` classes below.
     """
-
     def __init__(self, code, detail):
         super().__init__(code, detail)
         self.code = code
@@ -379,8 +378,7 @@ def _format_merge_copy_files(to_copy):
         {
             "run_path": cf.run_path,
             "target_path": cf.target_path,
-        }
-        for cf in to_copy
+        } for cf in to_copy
     ]
 
 
@@ -420,8 +418,7 @@ def _format_merge_skip_files(to_skip):
         {
             "path": _skip_file_path(sf),
             "reason": cli.style(_skip_file_reason(sf), italic=True),
-        }
-        for sf in to_skip
+        } for sf in to_skip
     ]
 
 

@@ -67,7 +67,6 @@ INHERITED_PARAMS = (
     ("tags", ()),
 )
 
-
 ###################################################################
 # State
 ###################################################################
@@ -230,7 +229,7 @@ def _prefixed_flag_vals(prefixes, flag_vals):
     for prefix in prefixes:
         for full_name in flag_vals:
             if full_name.startswith(prefix):
-                prefixed_name = full_name[len(prefix) :]
+                prefixed_name = full_name[len(prefix):]
                 prefixed.setdefault(prefixed_name, flag_vals[full_name])
     return prefixed
 
@@ -472,7 +471,7 @@ def _log_step_details(step_run_dir, step, cmd, env, cwd):
 
 def _step_run_cmd(step, step_run_dir, parent_run):
     return (
-        _step_run_base_args()
+        _step_run_base_args()  #
         + _step_run_type_args(step, step_run_dir, parent_run)
         + _step_run_parent_passthrough_args(parent_run, step_run_dir)
         + _step_run_step_config_args(step)
@@ -613,7 +612,7 @@ def _try_format_run_dir_cmd(cmd):
     else:
         assert run_dir_pos == 6, cmd
         # Args following --run-dir <dir>
-        return " ".join(cmd[run_dir_pos + 2 :])
+        return " ".join(cmd[run_dir_pos + 2:])
 
 
 def _format_restart_cmd(cmd):
@@ -624,7 +623,7 @@ def _format_restart_cmd(cmd):
     else:
         assert restart_pos == 5, cmd
         # Args following --restart
-        return " ".join(cmd[restart_pos + 1 :])
+        return " ".join(cmd[restart_pos + 1:])
 
 
 def _run_step_checks(step, step_run_dir):

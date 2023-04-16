@@ -139,7 +139,6 @@ class AsyncPredictor:
     Because rendering the visualization takes considerably amount of time,
     this helps improve throughput when rendering videos.
     """
-
     class _StopToken:
         pass
 

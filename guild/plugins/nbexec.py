@@ -142,7 +142,9 @@ def _nbexec(notebook):
     log.debug("jupyter-nbconvert cmd: %s", cmd)
     env = {
         **os.environ,
-        **{"PYDEVD_DISABLE_FILE_VALIDATION": "1"},
+        **{
+            "PYDEVD_DISABLE_FILE_VALIDATION": "1"
+        },
     }
     log.info("Executing %s", notebook_relpath)
     returncode = subprocess.call(cmd, env=env)
@@ -282,15 +284,13 @@ def _assigns_lookup_for_source(source, flags):
 
 def _assigns_for_source(source, flags):
     return [
-        (target_node, val_node, flags[target_node.id])
-        for (
+        (target_node, val_node, flags[target_node.id]) for (
             _assign,
             target_node,
             val_node,
             _val,
             _ann_type,
-        ) in ipynb._iter_source_val_assigns(source)
-        if target_node.id in flags
+        ) in ipynb._iter_source_val_assigns(source) if target_node.id in flags
     ]
 
 
@@ -417,7 +417,7 @@ def _is_assign_value_token(t, assign):
     _target, val_node, _flag_val = assign
     return (
         _tok_start(t) == (val_node.lineno, val_node.col_offset)
-        or val_node.col_offset == -1
+        or val_node.col_offset == -1  #
         and _tok_end(t)[0] == val_node.lineno
     )
 
@@ -489,15 +489,13 @@ def _replace_tokens(cur_tokens, new_tokens):
     for t in new_tokens:
         line_end = line + _token_line_offset(t)
         pos_end = pos + _token_pos_offset(t)
-        repl_tokens.append(
-            (
-                t[0],
-                t[1],
-                (line, pos),
-                (line_end, pos_end),
-                t[4],
-            )
-        )
+        repl_tokens.append((
+            t[0],
+            t[1],
+            (line, pos),
+            (line_end, pos_end),
+            t[4],
+        ))
         line = line_end
         pos = pos_end
     cur_end = _tok_end(cur_tokens[-1])
@@ -602,7 +600,9 @@ def _nbconvert_html(notebook, args):
     log.debug("jupyter-nbconvert cmd: %s", cmd)
     env = {
         **os.environ,
-        **{"PYDEVD_DISABLE_FILE_VALIDATION": "1"},
+        **{
+            "PYDEVD_DISABLE_FILE_VALIDATION": "1"
+        },
     }
     omitting_desc = " (omitting input cells)" if args.html_no_input else ""
     log.info(f"Saving HTML{omitting_desc}")

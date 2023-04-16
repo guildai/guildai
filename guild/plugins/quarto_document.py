@@ -8,7 +8,6 @@ from guild import guildfile
 from guild import model as modellib
 from guild import plugin as pluginlib
 
-
 log = logging.getLogger("guild")
 
 
@@ -27,7 +26,7 @@ class QuartoDocumentModelProxy:
             self.op_name = os.path.basename(op_name)
         else:
             self.op_name = op_name
-        script_base = script_path[: -len(self.op_name)]
+        script_base = script_path[:-len(self.op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
         self.modeldef = self._init_modeldef()
         _apply_config_flags(self.modeldef, self.op_name)
@@ -65,12 +64,12 @@ class QuartoDocumentModelProxy:
         # lua_filter_path = get_quarto_filter("extract-scalar-outputs")
         # op_data["exec"] += f" --lua-filter {lua_filter_path}"
 
-        data = [
-            {
-                "model": self.name,
-                "operations": {self.op_name: op_data},
-            }
-        ]
+        data = [{
+            "model": self.name,
+            "operations": {
+                self.op_name: op_data
+            },
+        }]
 
         gf = guildfile.Guildfile(data, dir=os.getcwd())  # dir = GUILD_PROJECT
         return gf.models[self.name]
@@ -85,6 +84,7 @@ def _apply_config_flags(modeldef, op_name):
 
 class QuartoDocumentPlugin(pluginlib.Plugin):
     resolve_model_op_priority = 60
+
     # share priority level with python_script, 60
     # must be less than exec_script level of 100
 

@@ -29,13 +29,20 @@ class ExecScriptModelProxy:
         self.name = ""
         self.fullname = ""
         self.modeldef = self._init_modeldef()
-        script_base = script_path[: -len(op_name)]
+        script_base = script_path[:-len(op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
 
     def _init_modeldef(self):
         abs_script = os.path.abspath(self.script_path)
         data = [
-            {"model": self.name, "operations": {self.op_name: {"exec": abs_script}}}
+            {
+                "model": self.name,
+                "operations": {
+                    self.op_name: {
+                        "exec": abs_script
+                    }
+                }
+            }
         ]
         gf = guildfile.Guildfile(data, dir=os.path.dirname(abs_script))
         return gf.models[self.name]

@@ -66,9 +66,9 @@ def ssh_cmd(
 def _ssh_cmd(host, cmd, user, private_key, connect_timeout, port, proxy):
     host = _full_host(host, user)
     return (
-        ["ssh"]
-        + _ssh_opts(private_key, False, connect_timeout, port, proxy)
-        + [host]
+        ["ssh"]  #
+        + _ssh_opts(private_key, False, connect_timeout, port, proxy)  #
+        + [host]  #
         + cmd
     )
 
@@ -117,8 +117,8 @@ def rsync_copy_to(
 ):
     dest = format_rsync_host_path(host, host_dest, user)
     cmd = (
-        ["rsync", "-vr"]
-        + rsync_ssh_opts(private_key, connect_timeout, port, proxy)
+        ["rsync", "-vr"]  #
+        + rsync_ssh_opts(private_key, connect_timeout, port, proxy)  #
         + [src, dest]
     )
     log.debug("rsync cmd: %r", cmd)

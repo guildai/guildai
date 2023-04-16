@@ -179,8 +179,7 @@ def _unary_val(val):
 
 def _is_namespace(val):
     return (
-        isinstance(val, ast.Call)
-        and isinstance(val.func, ast.Name)
+        isinstance(val, ast.Call) and isinstance(val.func, ast.Name)
         and val.func.id.endswith("SimpleNamespace")
     )
 
@@ -523,8 +522,7 @@ def update_refs(module, ref_spec, new_val, recurse=False, seen=None):
 def _match_ref(name, val, ref_spec):
     target_name, target_type, target_attrs = ref_spec
     return (
-        name == target_name
-        and isinstance(val, target_type)
+        name == target_name and isinstance(val, target_type)
         and _match_ref_attrs(val, target_attrs)
     )
 

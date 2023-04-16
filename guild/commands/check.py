@@ -23,8 +23,9 @@ from . import remote_support
 def _ac_all_tests(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
-    return _ac_builtin_tests(ctx, param, incomplete) + ac_support.ac_filename(
-        ["md", "txt"], incomplete
+    return (
+        _ac_builtin_tests(ctx, param, incomplete)
+        + ac_support.ac_filename(["md", "txt"], incomplete)
     )
 
 

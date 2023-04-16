@@ -200,7 +200,10 @@ class AzureVMRemote(ssh_remote.SSHRemote):
         remote_name = self._safe_name()
         remote_key = f"guild_{remote_name}"
         resource_group = {
-            remote_key: {"name": f"guild-{remote_name}-rg", "location": self.region}
+            remote_key: {
+                "name": f"guild-{remote_name}-rg",
+                "location": self.region
+            }
         }
         vnet = {
             remote_key: {
@@ -314,12 +317,17 @@ class AzureVMRemote(ssh_remote.SSHRemote):
             }
         }
         if self.root_device_size:
-            instance[remote_key]["storage_os_disk"][
-                "disk_size_gb"
-            ] = self.root_device_size
+            instance[remote_key]["storage_os_disk"]["disk_size_gb"] = (
+                self.root_device_size
+            )
         output = {"host": {"value": f"${{azurerm_public_ip.{remote_key}.ip_address}}"}}
         config = {
-            "provider": {"azurerm": {"features": {}}, "null": {}},
+            "provider": {
+                "azurerm": {
+                    "features": {}
+                },
+                "null": {}
+            },
             "resource": {
                 "azurerm_resource_group": resource_group,
                 "azurerm_virtual_network": vnet,
@@ -334,22 +342,14 @@ class AzureVMRemote(ssh_remote.SSHRemote):
         }
         if not self.user:
             self.user = util.user()
-            (
-                config["resource"]["azurerm_virtual_machine"][remote_key]["os_profile"][
-                    "admin_username"
-                ]
-            ) = self.user
+            config["resource"]["azurerm_virtual_machine"][remote_key]["os_profile"][
+                "admin_username"] = self.user
         public_key = self._public_key()
-        (
-            config["resource"]["azurerm_virtual_machine"][remote_key][
-                "os_profile_linux_config"
-            ]["ssh_keys"]["key_data"]
-        ) = public_key
-        (
-            config["resource"]["azurerm_virtual_machine"][remote_key][
-                "os_profile_linux_config"
-            ]["ssh_keys"]["path"]
-        ) = f"/home/{self.user}/.ssh/authorized_keys"
+        config["resource"]["azurerm_virtual_machine"][remote_key][
+            "os_profile_linux_config"]["ssh_keys"]["key_data"] = public_key
+        config["resource"]["azurerm_virtual_machine"][remote_key][
+            "os_profile_linux_config"]["ssh_keys"][
+                "path"] = f"/home/{self.user}/.ssh/authorized_keys"
         init_script = self._init_script()
         if init_script:
             init_script_path = self._write_init_script(init_script)
@@ -374,7 +374,11 @@ class AzureVMRemote(ssh_remote.SSHRemote):
                         )
                     },
                     "connection": connection,
-                    "provisioner": [{"remote-exec": {"script": init_script_path}}],
+                    "provisioner": [{
+                        "remote-exec": {
+                            "script": init_script_path
+                        }
+                    }],
                 }
             }
         return config

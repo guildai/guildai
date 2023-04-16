@@ -130,8 +130,7 @@ def _run_test(name, fail_fast, force):
         _log_test_not_found(name)
         return False
     if (
-        not force
-        and os.getenv("FORCE_TEST") != "1"
+        not force and os.getenv("FORCE_TEST") != "1"
         and front_matter_skip_test(filename)
     ):
         _log_skipped_test(name)
@@ -362,7 +361,6 @@ class Checker(doctest.OutputChecker):
     environment variable to `1`.
 
     """
-
     def check_output(self, want, got, optionflags):
         if optionflags & STRICT:
             optionflags -= optionflags & doctest.ELLIPSIS
@@ -538,7 +536,7 @@ class BashDocTestParser(doctest.DocTestParser):
         source_lines = m.group("source").split("\n")
         _check_prompt_blank(source_lines, indent, name, lineno)
         self._check_prefix(source_lines[1:], " " * indent + ">", name, lineno)
-        source = "\n".join([sl[indent + 2 :] for sl in source_lines])
+        source = "\n".join([sl[indent + 2:] for sl in source_lines])
 
         want = m.group("want")
         want_lines = want.split("\n")
@@ -766,7 +764,8 @@ def _filter_ignored(paths, ignore):
     if isinstance(ignore, str):
         ignore = [ignore]
     return [
-        p for p in paths if not any((fnmatch.fnmatch(p, pattern) for pattern in ignore))
+        p for p in paths
+        if not any((fnmatch.fnmatch(p, pattern) for pattern in ignore))
     ]
 
 
@@ -813,8 +812,7 @@ _py_dir = dir
 def dir(path=".", ignore=None):
     return sorted(
         [
-            name
-            for name in os.listdir(path)
+            name for name in os.listdir(path)
             if ignore is None or not any((fnmatch.fnmatch(name, p) for p in ignore))
         ]
     )
@@ -887,7 +885,6 @@ class Project:
     facility should be refactored to use the pattern described in
     `guild/tests/test-template.md` using `use_project()`.
     """
-
     def __init__(self, cwd, guild_home=None, env=None):
         from guild import index as indexlib  # expensive
 
@@ -990,8 +987,7 @@ class Project:
             ignore = [ignore]
         return "\n".join(
             [
-                line
-                for line in out.split("\n")
+                line for line in out.split("\n")
                 if all(s and s not in line for s in ignore)
             ]
         )
@@ -1148,7 +1144,7 @@ def _strip_error_module(last_line):
 
 
 def _strip_class_module(class_name):
-    return class_name[class_name.rfind(".") + 1 :]
+    return class_name[class_name.rfind(".") + 1:]
 
 
 def _normlf(s):
@@ -1359,8 +1355,7 @@ def _strip_lines(out, patterns):
     if isinstance(patterns, str):
         patterns = [patterns]
     stripped_lines = [
-        line
-        for line in out.split("\n")
+        line for line in out.split("\n")
         if not any((re.search(p, line) for p in patterns))
     ]
     return "\n".join(stripped_lines)
@@ -1376,7 +1371,7 @@ def _cut_line(line, to_cut):
     cut_line = []
     cols = line.split()
     for i in to_cut:
-        cut_line.extend(cols[i : i + 1])
+        cut_line.extend(cols[i:i + 1])
     return cut_line
 
 

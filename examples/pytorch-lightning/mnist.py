@@ -69,7 +69,10 @@ parser = Trainer.add_argparse_args(parser)
 args = parser.parse_args()
 
 transform = transforms.Compose(
-    [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+    [
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,)),
+    ]
 )
 
 mnist_train = MNIST(os.getcwd(), train=True, download=True, transform=transform)

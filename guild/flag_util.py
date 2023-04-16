@@ -279,8 +279,7 @@ def _fix_surprising_number(val, s):
     as the integer 123. YAML treags '1:12' as a time value.
     """
     if (
-        isinstance(val, (int, float))
-        and "!!" not in s
+        isinstance(val, (int, float)) and "!!" not in s
         and _contains_non_numeric_chars(s)
     ):
         return s
@@ -420,7 +419,7 @@ def _maybe_truncate_dec_part(part, trunc_len):
         return part
     if len(part) <= trunc_len:  # lte to include leading '.'
         return part
-    return part[: trunc_len + 1]
+    return part[:trunc_len + 1]
 
 
 def split_encoded_flag_val(encoded, split_spec):

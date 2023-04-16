@@ -29,7 +29,7 @@ def s3_sync():
     "--sync-interval",
     default=60,
     type=click.IntRange(5, None),
-    help=("Maximum interval between synchronization attempts " "(default is 60)."),
+    help="Maximum interval between synchronization attempts (default is 60).",
 )
 @click.option(
     "-m",
@@ -45,7 +45,7 @@ def s3_sync():
     metavar="N",
     default=5,
     type=click.IntRange(0, None),
-    help=("Number of log backups to maintain when run as a service " "(default is 5)."),
+    help="Number of log backups to maintain when run as a service (default is 5).",
 )
 @click.option("-f", "--foreground", is_flag=True, help="Run in the foreground.")
 @click_util.use_args

@@ -19,7 +19,6 @@ from guild import click_util
 from . import runs_support
 from . import remote_support
 
-
 # List of formatted run attrs supported by select with attr.
 _RUN_UTIL_FORMAT_ATTRS = [
     "command",

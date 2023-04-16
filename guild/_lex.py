@@ -384,8 +384,7 @@ class Lexer:
                 if not self.lexoptimize:
                     if newtok.type not in self.lextokens_all:
                         raise LexError(
-                            "%s:%d: Rule '%s' returned an unknown token type '%s'"
-                            % (
+                            "%s:%d: Rule '%s' returned an unknown token type '%s'" % (
                                 func.__code__.co_filename,
                                 func.__code__.co_firstlineno,
                                 func.__name__,
@@ -417,10 +416,11 @@ class Lexer:
                     self.lexpos = lexpos
                     newtok = self.lexerrorf(tok)
                     if lexpos == self.lexpos:
-                        # Error method didn't change text position at all. This is an error.
+                        # Error method didn't change text position at
+                        # all. This is an error.
                         raise LexError(
-                            "Scanning error. Illegal character '%s'"
-                            % (lexdata[lexpos]),
+                            "Scanning error. Illegal character '%s'" %
+                            (lexdata[lexpos]),
                             lexdata[lexpos:],
                         )
                     lexpos = self.lexpos

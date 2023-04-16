@@ -38,8 +38,9 @@ class op_handler:
             _handle_op_error(e, self.remote)
         elif issubclass(etype, remotelib.RemoteProcessError):
             _handle_remote_process_error(e)
-        elif issubclass(etype, remotelib.OperationNotSupported) or issubclass(
-            etype, NotImplementedError
+        elif (
+            issubclass(etype, remotelib.OperationNotSupported)
+            or issubclass(etype, NotImplementedError)
         ):
             _handle_not_supported(self.remote, e)
 

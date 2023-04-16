@@ -23,7 +23,6 @@ from guild import log as loglib
 from guild import python_util
 from guild import util
 
-
 _action_importers = entry_point_util.EntryPointResources(
     "guild.python.argparse_actions", "Argparse action importers"
 )
@@ -50,7 +49,6 @@ flag_action_class_names = [
 ignore_flag_action_class_names = [
     "_HelpAction",
 ]
-
 
 loglib.init_logging()
 log = logging.getLogger("guild.plugins.import_argparse_flags_main")
@@ -225,8 +223,8 @@ def _apply_store_false_flag_attrs(attrs):
 
 def _apply_boolean_option_flag_attrs(action, attrs):
     if (
-        len(action.option_strings) != 2
-        or action.option_strings[0][:2] != "--"
+        len(action.option_strings) != 2  #
+        or action.option_strings[0][:2] != "--"  #
         or action.option_strings[1][:2] != "--"
     ):
         log.debug("unexpected option_strings for action: %s", action)

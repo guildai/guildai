@@ -216,7 +216,7 @@ def _table_item_out(
         val_display_len = len(ansi_util.strip_ansi_format(val))
         line_pos = line_pos + val_display_len
         if max_col_width is not None:
-            display_val = val[: -(line_pos - max_col_width)]
+            display_val = val[:-(line_pos - max_col_width)]
         else:
             display_val = val
         if max_col_width is not None and line_pos > max_col_width:

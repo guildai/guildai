@@ -314,8 +314,7 @@ def _internal_file_entries_for_repro_cmd(state):
         _internal_file_entry_for_path(
             os.path.join(state.run_dir, path),
             state,
-        )
-        for path in relpaths
+        ) for path in relpaths
     ]
 
 

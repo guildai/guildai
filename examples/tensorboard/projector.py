@@ -51,8 +51,9 @@ history = model.fit(
 )
 
 # Set up a logs directory, so Tensorboard knows where to look for files
-log_dir = os.getenv("LOGDIR") or "logs/imdb-example/" + datetime.now().strftime(
-    "%Y%m%d-%H%M%S"
+log_dir = (
+    os.getenv("LOGDIR")
+    or ("logs/imdb-example/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
 )
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
@@ -64,7 +65,6 @@ with open(os.path.join(log_dir, 'metadata.tsv'), "w") as f:
     # Fill in the rest of the labels with "unknown"
     for unknown in range(1, encoder.vocab_size - len(encoder.subwords)):
         f.write("unknown #{}\n".format(unknown))
-
 
 # Save the weights we want to analyse as a variable. Note that the first
 # value represents any unknown word, which is not in the metadata, so

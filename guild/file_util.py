@@ -428,9 +428,8 @@ def _ignored_path_select_result(path):
 def _copytree_src(root_start, select):
     assert root_start
     return (
-        os.path.normpath(os.path.join(root_start, select.root))
-        if select.root
-        else root_start
+        os.path.normpath(os.path.join(root_start, select.root))  #
+        if select.root else root_start
     )
 
 

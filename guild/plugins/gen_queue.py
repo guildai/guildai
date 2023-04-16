@@ -273,7 +273,7 @@ def _check_state_can_start(run, state):
 
 
 def _limit_startable_runs(runs, state):
-    return runs[0 : state.max_startable_runs]
+    return runs[0:state.max_startable_runs]
 
 
 def _start_runs(runs, state):

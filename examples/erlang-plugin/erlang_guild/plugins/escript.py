@@ -22,7 +22,9 @@ class EScriptModelProxy:
             operations={
                 script_name: {
                     "exec": exec_spec,
-                    "sourcecode": {"dest": "."},
+                    "sourcecode": {
+                        "dest": "."
+                    },
                     "flags": flagdefs,
                 },
             },

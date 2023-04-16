@@ -188,8 +188,7 @@ def _log_state_info(state):
     cluster = state.client.cluster
     link = (
         _cluster_dashboard_link(cluster)
-        if not state.dashboard_disabled
-        else "<disabled>"
+        if not state.dashboard_disabled else "<disabled>"
     )
     log.info("Dashboard link: %s", link)
     if state.resources:

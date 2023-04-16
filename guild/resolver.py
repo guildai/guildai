@@ -896,8 +896,7 @@ def _gen_unpack(unpack_dir, list_members, member_name, extract):
     members = list_members()
     names = [member_name(m) for m in members]
     to_extract = [
-        member
-        for member, name in zip(members, names)
+        member for member, name in zip(members, names)
         if not os.path.exists(os.path.join(unpack_dir, name))
     ]
     extract(unpack_dir, to_extract)

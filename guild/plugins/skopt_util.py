@@ -32,7 +32,6 @@ log = logging.getLogger("guild")
 DEFAULT_MAX_TRIALS = 20
 DEFAULT_OBJECTIVE = "loss"
 
-
 ###################################################################
 # Exceptions
 ###################################################################
@@ -578,9 +577,10 @@ def _patched_gp_base_estimator(dimensions, random_state, noise):
     estimator = skopt.utils.cook_estimator(
         "GP",
         space=space,
-        random_state=rng.randint(0, np.iinfo(np.int32).max),
+        random_state=rng.randint(0,
+                                 np.iinfo(np.int32).max),
         noise=noise,
     )
-    # The point of this function - setting normalize_y to False.
+    # The point of this function - setting normalize_y to False
     estimator.normalize_y = False
     return estimator

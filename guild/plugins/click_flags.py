@@ -179,14 +179,16 @@ def _is_int_param(p):
 
 
 def _is_float_param(p):
-    return p.type in (float, click.FLOAT) or isinstance(
-        p.type, click.types.FloatParamType
+    return (
+        p.type in (float, click.FLOAT)
+        or isinstance(p.type, click.types.FloatParamType)
     )
 
 
 def _is_string_param(p):
-    return p.type in (str, click.STRING) or isinstance(
-        p.type, click.types.StringParamType
+    return (
+        p.type in (str, click.STRING)
+        or isinstance(p.type, click.types.StringParamType)
     )
 
 

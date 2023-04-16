@@ -101,8 +101,8 @@ README.html: README.md
 	markdown_py README.md > README.html
 
 format-code:
-	@echo Formatting guild code
-	@black setup.py tools.py guild examples
+	@echo Formating Guild source code
+	@yapf -ri setup.py tools.py guild examples
 
 coverage-check:
 	if [ -z "$(TESTS)" ]; then \

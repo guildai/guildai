@@ -35,7 +35,6 @@ PipInfo = namedtuple("PipInfo", ["project_name", "install_urls"])
 
 class NamespaceError(LookupError):
     """Raised if a namespace doesn't exist."""
-
     def __init__(self, value):
         super().__init__(value)
         self.value = value
@@ -97,7 +96,7 @@ class PrefixNamespace(Namespace):
     def package_name(self, project_name):
         if not project_name.startswith(self.prefix):
             raise TypeError(f"{project_name} is not a member of {self.name} namespace")
-        return project_name[len(self.prefix) :]
+        return project_name[len(self.prefix):]
 
 
 def iter_namespaces():

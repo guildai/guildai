@@ -386,8 +386,7 @@ def _git_ls_ignored_cmd(extended_patterns_file, directory_flag):
 
 def _exclude_args_for_patterns_file(patterns_file):
     return [
-        arg
-        for pattern in _exclude_patterns_file_entries(patterns_file)
+        arg for pattern in _exclude_patterns_file_entries(patterns_file)
         for arg in ["-x", pattern]
     ]
 
@@ -422,7 +421,6 @@ class _GitignoreSelectRule(FileSelectRule):
     in place of a select '*' select rule - with the exception that git
     ignored files are not selected.
     """
-
     def __init__(self, ignored):
         super().__init__(True, [])
         self.ignored = set(_normalize_paths(ignored))

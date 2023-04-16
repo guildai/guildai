@@ -43,12 +43,10 @@ class S3RemoteType(remotelib.RemoteType):
         bucket, root = _parse_spec(spec)
         assert root.startswith("/")
         name = _remote_name(bucket, root)
-        config = remotelib.RemoteConfig(
-            {
-                "bucket": bucket,
-                "root": root,
-            }
-        )
+        config = remotelib.RemoteConfig({
+            "bucket": bucket,
+            "root": root,
+        })
         return S3Remote(name, config)
 
 

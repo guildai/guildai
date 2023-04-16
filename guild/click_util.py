@@ -68,7 +68,6 @@ class Group(click.Group):
     as the same command. This subclass enables this for the parent
     group (i.e. `guild runs`).
     """
-
     def get_command(self, ctx, cmd_name):
         cmd_name = _group_cmd_name(self.commands.values(), cmd_name)
         return super().get_command(ctx, cmd_name)
@@ -202,7 +201,10 @@ class JSONHelpFormatter:
     def write_dl(self, rows, **_kw):
         assert self._cur_dl is not None
         self._cur_dl.extend(
-            [{"term": term, "help": definition} for term, definition in rows]
+            [{
+                "term": term,
+                "help": definition
+            } for term, definition in rows]
         )
 
     def getvalue(self):
@@ -422,7 +424,7 @@ def _remove_param_extra(help_record):
 
 def _remove_param_extra_help_text(help_text):
     m = PARAM_HELP_EXTRA_P.search(help_text)
-    return help_text[: m.start()] if m else help_text
+    return help_text[:m.start()] if m else help_text
 
 
 if os.getenv("SKIP_PATCH_CLICK") != "1":

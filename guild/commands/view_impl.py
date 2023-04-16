@@ -214,7 +214,7 @@ def _format_deps(deps):
         for path in paths:
             if not path.startswith(runs_dir):
                 continue
-            subdir = path[len(runs_dir) + 1 :]
+            subdir = path[len(runs_dir) + 1:]
             parts = subdir.split(os.path.sep)
             run_id = parts[0]
             try:
@@ -255,7 +255,7 @@ def _format_files(files, root):
 def _format_file(path, root):
     typeDesc, icon, iconTooltip, viewer = _file_type_info(path)
     opDesc, opRun = _op_source_info(path)
-    relpath = path[len(root) + 1 :]
+    relpath = path[len(root) + 1:]
     mtime = util.safe_mtime(path)
     if mtime:
         mtime = int(mtime * 1000)
@@ -336,7 +336,7 @@ def _op_source_info(path):
     runs_dir = var.runs_dir()
     if not path.startswith(runs_dir):
         return None, None
-    subdir = path[len(runs_dir) + 1 :]
+    subdir = path[len(runs_dir) + 1:]
     parts = subdir.split(os.path.sep, 1)
     try:
         run = _run_for_id(parts[0])

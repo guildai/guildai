@@ -308,7 +308,6 @@ class TagSummary:
 
 class RunIndex:
     """Interface for using a run index."""
-
     def __init__(self, path=None):
         self.path = path or var.cache_dir("runs")
         self._db = self._init_db()

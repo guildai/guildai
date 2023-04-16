@@ -124,12 +124,10 @@ def _apply_stage_dep_data(parent_stage, deps, requires_data):
 
 
 def _apply_operation_dep(parent_stage, deps, requires_data):
-    requires_data.append(
-        {
-            "dvcstage": parent_stage,
-            "select": deps,
-        }
-    )
+    requires_data.append({
+        "dvcstage": parent_stage,
+        "select": deps,
+    })
 
 
 def _apply_dvcfile_deps(deps, requires_data):

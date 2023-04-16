@@ -40,7 +40,6 @@ tokens = reserved + (
 
 t_ignore = " \t"
 
-
 # Use function defs to explicitly order lex matching.
 
 

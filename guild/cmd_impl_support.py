@@ -196,8 +196,7 @@ def check_incompatible_args(incompatible, args, ctx=None):
         if getattr(args, arg1_name, None) and getattr(args, arg2_name):
             err_help = (
                 f"\nTry '{ctx.command_path} --help' for more information."
-                if ctx
-                else ""
+                if ctx else ""
             )
             cli.error(f"{opt1} and {opt2} cannot both be specified{err_help}")
 

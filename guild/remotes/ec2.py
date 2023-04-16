@@ -239,7 +239,12 @@ class EC2Remote(ssh_remote.SSHRemote):
             }
         output = {"host": {"value": "${{aws_instance.{remote_key}.public_dns}}"}}
         config = {
-            "provider": {"aws": {"region": self.region}, "null": {}},
+            "provider": {
+                "aws": {
+                    "region": self.region
+                },
+                "null": {}
+            },
             "resource": {
                 "aws_default_vpc": vpc,
                 "aws_security_group": security_group,
@@ -250,7 +255,10 @@ class EC2Remote(ssh_remote.SSHRemote):
         public_key = self._public_key()
         if public_key:
             config["resource"]["aws_key_pair"] = {
-                remote_key: {"key_name": remote_key, "public_key": public_key}
+                remote_key: {
+                    "key_name": remote_key,
+                    "public_key": public_key
+                }
             }
             instance[remote_key]["key_name"] = remote_key
         init_script = self._init_script()
@@ -276,7 +284,11 @@ class EC2Remote(ssh_remote.SSHRemote):
                         "cluster_instance_ids": f"${{aws_instance.{remote_key}.id}}"
                     },
                     "connection": connection,
-                    "provisioner": [{"remote-exec": {"script": init_script_path}}],
+                    "provisioner": [{
+                        "remote-exec": {
+                            "script": init_script_path
+                        }
+                    }],
                 }
             }
         return config

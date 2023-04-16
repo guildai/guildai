@@ -156,8 +156,8 @@ def _dvc_stage_op_filter(stage, run_id_prefix, status):
 
     def f(run):
         return (
-            _filter_run_id(run, run_id_prefix)
-            and _filter_run_dvc_stage(run, stage)
+            _filter_run_id(run, run_id_prefix)  #
+            and _filter_run_dvc_stage(run, stage)  #
             and _filter_run_status(run, status)
         )
 

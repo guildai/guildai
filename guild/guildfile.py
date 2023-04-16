@@ -66,7 +66,6 @@ DEFAULT_PKG_VERSION = "0.0.0"
 
 _cache = {}
 
-
 ###################################################################
 # Exceptions
 ###################################################################
@@ -179,7 +178,7 @@ class Guildfile:
                 i += 1
             else:
                 new_items = self._include_data(includes, included)
-                data[i : i + 1] = new_items
+                data[i:i + 1] = new_items
                 i += len(new_items)
         return data
 
@@ -327,7 +326,8 @@ def _coerce_guildfile_item_data(data, guildfile):
     if not isinstance(data, dict):
         return data
     coerced = {
-        name: _coerce_top_level_attr(name, val, guildfile) for name, val in data.items()
+        name: _coerce_top_level_attr(name, val, guildfile)
+        for name, val in data.items()
     }
     _maybe_apply_anonymous_model(coerced)
     return coerced
@@ -1404,7 +1404,8 @@ def _coerce_opts_data(data, opdef):
             f"invalid optimizer config {data!r}: expected list or mapping",
         )
     return {
-        name: _coerce_opt_data_item(opt_data) for name, opt_data in opts_data.items()
+        name: _coerce_opt_data_item(opt_data)
+        for name, opt_data in opts_data.items()
     }
 
 
@@ -1516,14 +1517,12 @@ class FileSelectSpec:
 
         if "include" in data:
             self.type = "include"
-            (self.patterns, self.patterns_type) = self._init_patterns(
-                data, "include", guildfile
-            )
+            (self.patterns,
+             self.patterns_type) = self._init_patterns(data, "include", guildfile)
         elif "exclude" in data:
             self.type = "exclude"
-            (self.patterns, self.patterns_type) = self._init_patterns(
-                data, "exclude", guildfile
-            )
+            (self.patterns,
+             self.patterns_type) = self._init_patterns(data, "exclude", guildfile)
         else:
             raise GuildfileError(guildfile, f"unsupported file select spec: {data!r}")
 

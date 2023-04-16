@@ -203,7 +203,9 @@ def _invalid_dependency_error(spec, depdef):
 
 def dep_for_path(path, resource_name=None):
     res_data = {
-        "sources": [{"file": path}],
+        "sources": [{
+            "file": path
+        }],
         "target-type": "link",
     }
     resource_name = resource_name or f"file:{path}"
@@ -286,7 +288,6 @@ class ResourceProxy:
     interface is created, we use a proxy resource to work with the
     current interface.
     """
-
     def __init__(self, location, config):
         assert not config or isinstance(config, dict), config
         assert location
@@ -578,12 +579,10 @@ def _resolve_runs_for_run_id_candidates(run_id_candidates, resolver):
     # resolver, which is represented by `None`
     run_id_candidates = run_id_candidates or [None]
     return [
-        run
-        for run in [
+        run for run in [
             _try_resolved_run(run_id_prefix, resolver)
             for run_id_prefix in run_id_candidates
-        ]
-        if run
+        ] if run
     ]
 
 

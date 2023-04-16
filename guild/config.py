@@ -347,13 +347,11 @@ def user_config():
 
 
 def user_config_path():
-    return _find_apply(
-        [
-            _user_config_env,
-            _cwd_user_config,
-            _user_home_user_config,
-        ]
-    )
+    return _find_apply([
+        _user_config_env,
+        _cwd_user_config,
+        _user_home_user_config,
+    ])
 
 
 def _user_config_env():
@@ -374,13 +372,11 @@ def user_config_home():
 
 
 def python_exe():
-    return _find_apply(
-        [
-            _guild_python_exe,
-            _virtualenv_python_exe,
-            _sys_executable,
-        ]
-    )
+    return _find_apply([
+        _guild_python_exe,
+        _virtualenv_python_exe,
+        _sys_executable,
+    ])
 
 
 def _guild_python_exe():

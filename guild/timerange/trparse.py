@@ -308,7 +308,13 @@ def p_unit_range_year_ago(p):
 
 def _year_range(ref, shift=0):
     start = ref.replace(
-        year=ref.year + shift, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+        year=ref.year + shift,
+        month=1,
+        day=1,
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0,
     )
     end = start.replace(year=start.year + 1)
     return start, end

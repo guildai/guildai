@@ -29,9 +29,7 @@ models = (
     svm.SVC(kernel="poly", degree=3, gamma="auto", C=C),
 )
 
-
 X, y = load_data()
-
 
 for i, m in enumerate(models):
     print("Saving model-%i.joblib" % (i + 1))

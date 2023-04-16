@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+
 """Sample data exhibiting audio summaries, via a waveform generator."""
 
 import inspect
@@ -24,7 +25,6 @@ import tensorflow as tf
 from tensorboard.plugins.audio import summary
 
 tf.compat.v1.disable_eager_execution()
-
 
 FLAGS = flags.FLAGS
 

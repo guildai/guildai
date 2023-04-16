@@ -36,7 +36,6 @@ def plot_contours(ax, clf, xx, yy, **params):
 
 X, y = load_data()
 
-
 models = (
     joblib.load("model-1.joblib"),
     joblib.load("model-2.joblib"),

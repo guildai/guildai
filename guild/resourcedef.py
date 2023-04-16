@@ -231,8 +231,8 @@ class ResourceSource:
     @property
     def project_local_path(self):
         return (
-            self.parsed_uri.path
-            if self.parsed_uri.scheme in ("file", "config")
+            self.parsed_uri.path  #
+            if self.parsed_uri.scheme in ("file", "config")  #
             else None
         )
 

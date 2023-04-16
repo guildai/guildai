@@ -33,8 +33,9 @@ model.compile(
 train_images = train_images / 255.0
 
 # Define the Keras TensorBoard callback.
-logdir = os.getenv("TRAIN_LOGDIR") or "logs/fit/" + datetime.now().strftime(
-    "%Y%m%d-%H%M%S"
+logdir = (
+    os.getenv("TRAIN_LOGDIR")
+    or ("logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
 )
 tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 

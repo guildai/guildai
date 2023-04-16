@@ -45,8 +45,9 @@ print("Label: ", train_labels[0], "->", class_names[train_labels[0]])
 img = np.reshape(train_images[0], (-1, 28, 28, 1))
 
 # Sets up a timestamped log directory.
-logdir = os.getenv("TRAIN_DATA_LOGDIR") or "logs/train_data/" + datetime.now().strftime(
-    "%Y%m%d-%H%M%S"
+logdir = (
+    os.getenv("TRAIN_DATA_LOGDIR")
+    or ("logs/train_data/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
 )
 # Creates a file writer for the log directory.
 file_writer = tf.summary.create_file_writer(logdir)
@@ -60,8 +61,9 @@ with file_writer.as_default():
     images = np.reshape(train_images[0:25], (-1, 28, 28, 1))
     tf.summary.image("25 training data examples", images, max_outputs=25, step=0)
 
-logdir = os.getenv("PLOTS_LOGDIR") or "logs/plots/" + datetime.now().strftime(
-    "%Y%m%d-%H%M%S"
+logdir = (
+    os.getenv("PLOTS_LOGDIR")
+    or ("logs/plots/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
 )
 file_writer = tf.summary.create_file_writer(logdir)
 
@@ -103,7 +105,6 @@ figure = image_grid()
 # Convert to image and log
 with file_writer.as_default():
     tf.summary.image("Training data", plot_to_image(figure), step=0)
-
 
 model = keras.models.Sequential(
     [
@@ -149,8 +150,9 @@ def plot_confusion_matrix(cm, class_names):
     return figure
 
 
-logdir = os.getenv("IMAGE_LOGDIR") or "logs/image/" + datetime.now().strftime(
-    "%Y%m%d-%H%M%S"
+logdir = (
+    os.getenv("IMAGE_LOGDIR")
+    or ("logs/image/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
 )
 # Define the basic TensorBoard callback.
 tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)

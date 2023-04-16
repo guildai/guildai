@@ -33,8 +33,8 @@ y = 0.5 * x + 2 + np.random.normal(0, 0.05, (data_size,))
 x_train, y_train = x[:train_size], y[:train_size]
 x_test, y_test = x[train_size:], y[train_size:]
 
-logdir = os.getenv("LOGDIR") or "logs/scalars/" + datetime.now().strftime(
-    "%Y%m%d-%H%M%S"
+logdir = (
+    os.getenv("LOGDIR") or ("logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
 )
 file_writer = tf.summary.create_file_writer(logdir + "/metrics")
 file_writer.set_as_default()

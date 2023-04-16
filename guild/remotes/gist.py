@@ -47,12 +47,10 @@ class GistRemoteType(remotelib.RemoteType):
     def remote_for_spec(self, spec):
         name = f"gist:{spec}"
         user, gist_name = _parse_spec(spec)
-        config = remotelib.RemoteConfig(
-            {
-                "user": user,
-                "gist-name": gist_name,
-            }
-        )
+        config = remotelib.RemoteConfig({
+            "user": user,
+            "gist-name": gist_name,
+        })
         return GistRemote(name, config)
 
 
@@ -367,8 +365,7 @@ def _unpack_meta(archive, runs_dir):
 
 def _is_meta_file(name):
     return (
-        name.endswith(".guild/opref")
-        or "/.guild/attrs/" in name
+        name.endswith(".guild/opref") or "/.guild/attrs/" in name
         or "/.guild/LOCK" in name
     )
 

@@ -26,3 +26,76 @@ exclude = [
 ignore_names = [
   "_unused",
 ]
+
+[tool.yapfignore]
+
+ignore_patterns = [
+  "guild/tests/samples/*",
+  "guild/_skopt/*",
+  "venv/*",
+  ".venv/*",
+  "**/venv/*",
+  "**/.venv/*"
+]
+
+[tool.yapf]
+
+allow_multiline_dictionary_keys = true
+allow_split_before_dict_value = false
+blank_line_before_module_docstring = true
+blank_line_before_nested_class_or_def = false
+column_limit = 88
+dedent_closing_brackets = true
+join_multiple_lines = false
+space_between_ending_comma_and_closing_bracket = false
+split_before_arithmetic_operator = true
+split_before_bitwise_operator = true
+split_before_dot = true
+split_before_logical_operator = true
+split_complex_comprehension = true
+
+##align_closing_bracket_with_visual_indent = false
+##allow_split_before_default_or_named_assigns = true
+##arithmetic_precedence_indication = false
+##blank_line_before_class_docstring = false
+##blank_lines_around_top_level_definition = 2
+##blank_lines_between_top_level_imports_and_variables = 1
+##coalesce_brackets = false
+##continuation_align_style = 'space'
+##continuation_indent_width = 4
+##disable_ending_comma_heuristic = false
+##each_dict_entry_on_separate_line = false
+##force_multiline_dict = false
+##i18n_comment = ''
+##i18n_function_call = ''
+##indent_blank_lines = false
+##indent_closing_brackets = false
+##indent_dictionary_value = false
+##indent_width = 4
+##no_spaces_around_selected_binary_operators = []
+##space_inside_brackets = false
+##spaces_around_default_or_named_assign = false
+##spaces_around_dict_delimiters = false
+##spaces_around_list_delimiters = false
+##spaces_around_power_operator = false
+##spaces_around_subscript_colon = false
+##spaces_around_tuple_delimiters = false
+##spaces_before_comment = 2
+##split_all_comma_separated_values = false
+##split_all_top_level_comma_separated_values = false
+##split_arguments_when_comma_terminated = false
+##split_before_closing_bracket = true
+##split_before_dict_set_generator = true
+##split_before_expression_after_opening_paren = false
+##split_before_first_argument = false
+##split_before_named_assigns = true
+##split_penalty_after_opening_bracket = 300
+##split_penalty_after_unary_operator = 10000
+##split_penalty_arithmetic_operator = 300
+##split_penalty_before_if_expr = 0
+##split_penalty_bitwise_operator = 300
+##split_penalty_comprehension = 80
+##split_penalty_excess_character = 7000
+##split_penalty_for_added_line_split = 30
+##split_penalty_import_names = 0
+##split_penalty_logical_operator = 300

@@ -35,16 +35,14 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
-BASE_COLS = ",".join(
-    [
-        ".run",
-        ".operation",
-        ".started",
-        ".time",
-        ".status",
-        ".label",
-    ]
-)
+BASE_COLS = ",".join([
+    ".run",
+    ".operation",
+    ".started",
+    ".time",
+    ".status",
+    ".label",
+])
 
 EXTRA_COLS = ".sourcecode"
 
@@ -180,7 +178,7 @@ def _compare_data(args, index, format_cells, skip_header_if_empty):
             header = [NO_RUNS_CAPTION]
         rows = _sorted_table_rows(table, header, args)
         if args.limit:
-            rows = rows[: args.limit]
+            rows = rows[:args.limit]
         if format_cells:
             _format_cells(rows, header, runs)
         log = log_capture.get_all()

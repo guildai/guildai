@@ -70,15 +70,13 @@ class RScriptModelProxy:
             self.op_name = os.path.basename(op_name)
         else:
             self.op_name = op_name
-        script_base = script_path[: -len(self.op_name)]
+        script_base = script_path[:-len(self.op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
         self.modeldef = model_proxy.modeldef(
             self.name,
-            {
-                "operations": {
-                    self.op_name: _op_data_for_script(script_path),
-                }
-            },
+            {"operations": {
+                self.op_name: _op_data_for_script(script_path),
+            }},
             dir=os.path.dirname(script_path),
         )
         _apply_config_flags(self.modeldef, self.op_name)

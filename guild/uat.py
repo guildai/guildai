@@ -25,7 +25,6 @@ from guild import config
 from guild import pip_util
 from guild import util
 
-
 INDEX = "tests/uat/README.md"
 try:
     _workspace_env = os.environ["WORKSPACE"]
@@ -126,7 +125,6 @@ class UATContext:
     Note that the UAT Guild home is, by default, local to the UAT
     workspace and not the current process Guild home.
     """
-
     def __init__(self):
         self._env = util.Env(
             {

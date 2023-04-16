@@ -88,7 +88,6 @@ class PythonScriptOpdefSupport:
     `python_script_opdef_loaded` is called to potentially update
     opdef.
     """
-
     def python_script_opdef_loaded(self, opdef):
         """Called by Python plugin when an opdef is loaded.
 
@@ -98,7 +97,6 @@ class PythonScriptOpdefSupport:
 
 class PythonFlagsImporter:
     """Interface for Python flags importer."""
-
     def __init__(self, ep):
         self.ep = ep
 
@@ -197,7 +195,7 @@ def _script_module(script_path):
 
 
 def _script_base(script_path, op_name):
-    return script_path[: -len(op_name)]
+    return script_path[:-len(op_name)]
 
 
 class PythonScriptPlugin(pluginlib.Plugin):
@@ -306,7 +304,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
     ):
         if (
             os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1"
-            and os.getenv("FLAGS_TEST") != "1"
+            and os.getenv("FLAGS_TEST") != "1"  #
             and not os.getenv("_GUILD_COMPLETE")
         ):
             cli.note_once("Refreshing flags...")
@@ -370,15 +368,16 @@ def _uses_python(exec_):
 
 def _is_python_exe(cmd):
     return (
-        cmd == "${python_exe}"
-        or cmd == "${guild_python_exe}"
+        cmd == "${python_exe}"  #
+        or cmd == "${guild_python_exe}"  #
         or _is_python_exe_path(cmd)
     )
 
 
 def _is_python_exe_path(s):
-    return util.is_executable_file(s) and os.path.basename(s).lower().startswith(
-        "python"
+    return (
+        util.is_executable_file(s)  #
+        and os.path.basename(s).lower().startswith("python")
     )
 
 

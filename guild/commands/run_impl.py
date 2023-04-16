@@ -100,7 +100,6 @@ CORE_RUN_ATTRS = {
     "r_packages_loaded",
 }
 
-
 ###################################################################
 # State
 ###################################################################
@@ -210,9 +209,10 @@ def _apply_op_config_data(data, op):
     op._label_template = data.get("label-template")
     op._output_scalars = data.get("output-scalars")
     op._sourcecode_root = data.get("sourcecode", {}).get("root")
-    op._sourcecode_dest = data.get("sourcecode", {}).get(
-        "dest"
-    ) or _backward_compatible_sourcecode_dest(data)
+    op._sourcecode_dest = (
+        data.get("sourcecode", {}).get("dest")
+        or _backward_compatible_sourcecode_dest(data)
+    )
     op._flags_extra = data.get("flags-extra")
     op._delete_on_success = data.get("delete-on-success")
     op.deps = op_util.op_deps_for_data(data.get("deps"))
@@ -466,8 +466,7 @@ def _op_init_plugins(op):
 def _op_plugins(opdef):
     configured_plugins = _configured_plugins(opdef)
     return [
-        plugin
-        for plugin in _iter_plugins()
+        plugin for plugin in _iter_plugins()
         if _plugin_selected_for_op(plugin, opdef, configured_plugins)
     ]
 
@@ -485,8 +484,9 @@ def _iter_plugins():
 
 
 def _plugin_selected_for_op(plugin, opdef, configured_plugins):
-    return _configured_plugin(plugin, configured_plugins) or _plugin_enabled_for_op(
-        plugin, opdef
+    return (
+        _configured_plugin(plugin, configured_plugins)
+        or _plugin_enabled_for_op(plugin, opdef)
     )
 
 
@@ -778,7 +778,6 @@ def _remote_resolver_for_source_f(remote):
     remote version that uses a customized callback for returning a
     remote 'latest or marked' run matching the op requirements.
     """
-
     def f(source, dep):
         scheme = source.parsed_uri.scheme
         assert scheme == "operation", source
@@ -794,7 +793,6 @@ class _RemoteOperationResolver(resolverlib.OperationResolver):
     Overrides `resolve_op_run` to lookup remote runs instead of the
     default resolver's lookup of local runs.
     """
-
     def __init__(self, remote, source, resource):
         super().__init__(source, resource)
         self.remote = remote
@@ -812,7 +810,6 @@ class _RemoteOperationResolver(resolverlib.OperationResolver):
 
 def _remote_marked_or_latest_run_f(remote):
     """Returns a remote-enabled lookup function for 'marked or latest run'."""
-
     def f(oprefs, run_id_prefix=None, status=None):
         runs = _remote_runs_for_marked_or_latest(remote, oprefs, run_id_prefix, status)
         log.debug("remote runs for %s: %s", oprefs, runs)
@@ -1061,8 +1058,7 @@ def _op_cmd_resolve_params(flag_vals, python_requires):
 def _proc_python_exe(python_requires):
     return (
         _find_python_interpreter(python_requires)
-        if python_requires
-        else config.python_exe()
+        if python_requires else config.python_exe()
     )
 
 
@@ -1199,7 +1195,10 @@ def _op_deps_for_opdef(opdef, flag_vals):
 
 def _append_additional_deps(args, op):
     op.deps.extend(
-        [op_dep.dep_for_path(path, resource_name=path) for path in args.additional_deps]
+        [
+            op_dep.dep_for_path(path, resource_name=path)
+            for path in args.additional_deps
+        ]
     )
 
 
@@ -1648,8 +1647,8 @@ def _op_init_batch_cmd_run_attrs(args, op):
         _apply_stage_trials(
             args.stage_trials or op._run.get("stage_trials"), op._op_cmd_run_attrs
         )
-        op._op_cmd_run_attrs["stage_trials"] = args.stage_trials or op._run.get(
-            "stage_trials"
+        op._op_cmd_run_attrs["stage_trials"] = (
+            args.stage_trials or op._run.get("stage_trials")
         )
     else:
         _apply_stage_trials(args.stage_trials, op._op_cmd_run_attrs)
@@ -1676,9 +1675,7 @@ def _apply_batch_flag_encoder(batch_op, user_op):
     is - it is never encoded.
     """
     if (
-        batch_op._run
-        or not batch_op._opdef
-        or not batch_op._opdef.flag_encoder
+        batch_op._run or not batch_op._opdef or not batch_op._opdef.flag_encoder
         or not user_op._opdef
     ):
         return
@@ -1779,12 +1776,20 @@ def _check_incompatible_with_restart(args):
 
 
 def _check_platform_compatibility(args):
-    if (
-        (args.background or args.pidfile)
-        and util.get_platform() == "Windows"
-        and os.getenv("FORCE_RUN_IN_BACKGROUND") != "1"
-    ):
+    if _background_arg(args) and _is_windows() and not _force_background():
         _background_on_windows_error()
+
+
+def _background_arg(args):
+    return args.background or args.pidfile
+
+
+def _is_windows():
+    return util.get_platform() == "Windows"
+
+
+def _force_background():
+    return os.getenv("FORCE_RUN_IN_BACKGROUND") == "1"
 
 
 ###################################################################
@@ -2236,8 +2241,7 @@ def _preview_flags(flag_vals, null_labels):
                 f"  {_format_flag(name, val, null_labels)}"
                 for name, val in sorted(flag_vals.items())
             ]
-        )
-        + "\n"
+        ) + "\n"
     )
 
 
@@ -2513,8 +2517,9 @@ def _op_flag_vals_unchanged(run, S):
 
 def _compare_batch_op_flag_vals(batch_run, S):
     assert S.batch_op
-    return _compare_op_flags(batch_run, S.batch_op) and _compare_op_flags(
-        batch_run.batch_proto, S.user_op
+    return (
+        _compare_op_flags(batch_run, S.batch_op)
+        and _compare_op_flags(batch_run.batch_proto, S.user_op)
     )
 
 
@@ -2573,8 +2578,9 @@ def _matching_run_for_needed_filter(S):
 
 
 def _is_matching_run_for_needed(run, S):
-    return _is_matching_op_run(run, S) and not _restart_needed_for_run_status(
-        run.status
+    return (
+        _is_matching_op_run(run, S)  #
+        and not _restart_needed_for_run_status(run.status)
     )
 
 
@@ -2587,8 +2593,9 @@ def _is_matching_op_run(run, S):
 def _is_matching_batch_run(run, S):
     assert S.batch_op
 
-    return _is_matching_op_run_(run, S.batch_op) and _is_matching_op_run_(
-        run.batch_proto, S.user_op
+    return (
+        _is_matching_op_run_(run, S.batch_op)
+        and _is_matching_op_run_(run.batch_proto, S.user_op)
     )
 
 
@@ -2718,7 +2725,10 @@ def _missing_required_flags_error(e, opdef) -> typing.NoReturn:
     cli.out("Operation requires the following missing flags:\n", err=True)
     line1 = lambda s: s.split("\n")[0]
     cli.table(
-        [{"name": flag.name, "desc": line1(flag.description)} for flag in e.missing],
+        [{
+            "name": flag.name,
+            "desc": line1(flag.description)
+        } for flag in e.missing],
         ["name", "desc"],
         indent=2,
         err=True,
@@ -2740,8 +2750,7 @@ def _invalid_flag_choice_error(e) -> typing.NoReturn:
             {
                 "val": flag_util.encode_flag_val(choice.value),
                 "desc": choice.description,
-            }
-            for choice in e.flag.choices
+            } for choice in e.flag.choices
         ],
         ["val", "desc"],
         indent=2,

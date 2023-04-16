@@ -23,7 +23,6 @@ import shutil
 from guild import file_util
 from guild import run_manifest
 
-
 log = logging.getLogger("guild")
 
 
@@ -33,7 +32,6 @@ class MergeError(Exception):
 
 class StopMerge(Exception):
     """Raised during a merge to indicate the operation stopped early."""
-
     def __init__(self, target_file, msg=None):
         super().__init__([target_file, msg])
         self.target_file = target_file
@@ -382,9 +380,7 @@ def _prune_overlapping_targets(merge, prefer_nonsource=False):
     source_lookup = {cf.target_path for cf in merge.to_copy if cf.file_type == "s"}
     nonsource_lookup = {cf.target_path for cf in merge.to_copy if cf.file_type != "s"}
     merge.to_copy[:] = [
-        cf
-        for cf in merge.to_copy
-        if _keep_for_prune_overlapping(
+        cf for cf in merge.to_copy if _keep_for_prune_overlapping(
             cf,
             source_lookup,
             nonsource_lookup,
@@ -394,6 +390,7 @@ def _prune_overlapping_targets(merge, prefer_nonsource=False):
 
 
 def _keep_for_prune_overlapping(cf, source_lookup, nonsource_lookup, prefer_nonsource):
-    return not (
-        cf.target_path in source_lookup and cf.target_path in nonsource_lookup
-    ) or (cf.file_type != "s" if prefer_nonsource else cf.file_type == "s")
+    return (
+        not (cf.target_path in source_lookup and cf.target_path in nonsource_lookup)
+        or (cf.file_type != "s" if prefer_nonsource else cf.file_type == "s")
+    )

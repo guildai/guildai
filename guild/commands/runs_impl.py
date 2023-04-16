@@ -151,7 +151,7 @@ def _filter_syntax_error(e) -> typing.NoReturn:
         else:
             cli.error(f"invalid filter expression: {e}")
     elif m.group(1) == "1":
-        cli.error("syntax error in filter at position " f"{m.group(2)}: {m.group(3)}")
+        cli.error(f"syntax error in filter at position {m.group(2)}: {m.group(3)}")
     else:
         cli.error(
             f"syntax error in filter on line {m.group(1)}, "
@@ -472,8 +472,9 @@ def _find_run_by_id(id_part, runs, ctx):
 
 
 def _in_range(slice_start, slice_end, l):
-    return (slice_start is None or slice_start >= 0) and (
-        slice_end is None or slice_end <= len(l)
+    return (
+        (slice_start is None or slice_start >= 0)
+        and (slice_end is None or slice_end <= len(l))
     )
 
 
@@ -589,8 +590,8 @@ def _limit_runs(runs, args):
     if args.all:
         return runs
     if args.limit and args.limit > 0:
-        return runs[: args.limit]
-    limited = runs[: (args.more + 1) * RUNS_PER_GROUP]
+        return runs[:args.limit]
+    limited = runs[:(args.more + 1) * RUNS_PER_GROUP]
     if len(limited) < len(runs):
         cli.note(
             f"Showing the first {len(limited)} runs ({len(runs)} total) - use --all "
@@ -658,8 +659,9 @@ def format_run(run):
 
 
 def _no_selected_runs_exit(help_msg=None):
-    help_msg = (
-        help_msg or "No matching runs\n" "Try 'guild runs list' to list available runs."
+    help_msg = help_msg or (
+        "No matching runs\n"
+        "Try 'guild runs list' to list available runs."
     )
     cli.out(help_msg, err=True)
     raise SystemExit(0)
@@ -876,7 +878,8 @@ def _run_info_data(run, args):
 
 def _format_comments_for_run_info(run):
     return [
-        _format_comment_for_run_info(comment) for comment in (run.get("comments") or [])
+        _format_comment_for_run_info(comment)
+        for comment in (run.get("comments") or [])
     ]
 
 
@@ -1717,20 +1720,19 @@ def _set_tags(args, ctx):
 
 def _set_tags_preview(args):
     lines = ["You are about to modify tags for the following runs:"]
-    if args.sync_labels:
-        lines.append(
-            cmd_impl_support.format_warn(
-                "Labels are updated to reflect the latest tags."
-            )
-        )
-    else:
-        lines.append(
-            cmd_impl_support.format_warn(
-                "Labels are not updated - use --sync-labels to "
-                "apply changes run labels."
-            )
-        )
+    lines.append(_labels_sync_desc(args))
     return "\n".join(lines)
+
+
+def _labels_sync_desc(args):
+    if args.sync_labels:
+        return cmd_impl_support.format_warn(
+            "Labels are updated to reflect the latest tags."
+        )
+    return cmd_impl_support.format_warn(
+        "Labels are not updated - use --sync-labels to "
+        "apply changes run labels."
+    )
 
 
 def _tags_for_run(old_tags, args):

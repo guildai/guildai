@@ -93,7 +93,7 @@ class NotebookModelProxy:
         else:
             self.op_name = op_name
         self.modeldef = _init_modeldef(self.notebook_path, self.name, self.op_name)
-        script_base = notebook_path[: -len(self.op_name)]
+        script_base = notebook_path[:-len(self.op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
 
 

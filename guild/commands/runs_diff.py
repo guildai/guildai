@@ -43,9 +43,9 @@ def _ac_path(ctx, _param, incomplete):
 
 def _has_non_path_options(params):
     return (
-        params.get("env")
-        or params.get("flags")
-        or params.get("attrs")
+        params.get("env")  #
+        or params.get("flags")  #
+        or params.get("attrs")  #
         or params.get("deps")
     )
 

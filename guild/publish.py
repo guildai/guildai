@@ -747,7 +747,6 @@ class _CopyRunFilesFilter(util.CopyFilter):
     value is `True` if the candidate is not a link or
     `state.include_links` is true.
     """
-
     def __init__(self, state):
         self.state = state
         self.sourcecode_files = set(run_util.sourcecode_files(state.run))

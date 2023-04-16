@@ -79,8 +79,9 @@ def _filter_model(model, args):
         model["fullname"],
         model["description"],
     ]
-    return (model["name"][:1] != "_" or args.all) and util.match_filters(
-        args.filters, filter_vals
+    return (
+        (model["name"][:1] != "_" or args.all)
+        and util.match_filters(args.filters, filter_vals)
     )
 
 

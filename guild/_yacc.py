@@ -461,8 +461,8 @@ class LRParser:
             debug.debug(
                 'Stack  : %s',
                 (
-                    '%s . %s'
-                    % (' '.join([xx.type for xx in symstack][1:]), str(lookahead))
+                    '%s . %s' %
+                    (' '.join([xx.type for xx in symstack][1:]), str(lookahead))
                 ).lstrip(),
             )
             # --! DEBUG
@@ -501,14 +501,12 @@ class LRParser:
                         debug.info(
                             'Action : Reduce rule [%s] with %s and goto state %d',
                             p.str,
-                            '['
-                            + ','.join(
+                            '[' + ','.join(
                                 [
                                     format_stack_entry(_v.value)
                                     for _v in symstack[-plen:]
                                 ]
-                            )
-                            + ']',
+                            ) + ']',
                             goto[statestack[-1 - plen]][pname],
                         )
                     else:
@@ -522,7 +520,7 @@ class LRParser:
                     # --! DEBUG
 
                     if plen:
-                        targ = symstack[-plen - 1 :]
+                        targ = symstack[-plen - 1:]
                         targ[0] = sym
 
                         # --! TRACKING
@@ -629,8 +627,8 @@ class LRParser:
                 debug.error(
                     'Error  : %s',
                     (
-                        '%s . %s'
-                        % (' '.join([xx.type for xx in symstack][1:]), str(lookahead))
+                        '%s . %s' %
+                        (' '.join([xx.type for xx in symstack][1:]), str(lookahead))
                     ).lstrip(),
                 )
                 # --! DEBUG
@@ -671,8 +669,8 @@ class LRParser:
                                 lineno = 0
                             if lineno:
                                 sys.stderr.write(
-                                    'yacc: Syntax error at line %d, token=%s\n'
-                                    % (lineno, errtoken.type)
+                                    'yacc: Syntax error at line %d, token=%s\n' %
+                                    (lineno, errtoken.type)
                                 )
                             else:
                                 sys.stderr.write(
@@ -858,7 +856,7 @@ class LRParser:
                     sym.value = None
 
                     if plen:
-                        targ = symstack[-plen - 1 :]
+                        targ = symstack[-plen - 1:]
                         targ[0] = sym
 
                         # --! TRACKING
@@ -987,8 +985,8 @@ class LRParser:
                                 lineno = 0
                             if lineno:
                                 sys.stderr.write(
-                                    'yacc: Syntax error at line %d, token=%s\n'
-                                    % (lineno, errtoken.type)
+                                    'yacc: Syntax error at line %d, token=%s\n' %
+                                    (lineno, errtoken.type)
                                 )
                             else:
                                 sys.stderr.write(
@@ -1174,7 +1172,7 @@ class LRParser:
                     sym.value = None
 
                     if plen:
-                        targ = symstack[-plen - 1 :]
+                        targ = symstack[-plen - 1:]
                         targ[0] = sym
 
                         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1287,8 +1285,8 @@ class LRParser:
                                 lineno = 0
                             if lineno:
                                 sys.stderr.write(
-                                    'yacc: Syntax error at line %d, token=%s\n'
-                                    % (lineno, errtoken.type)
+                                    'yacc: Syntax error at line %d, token=%s\n' %
+                                    (lineno, errtoken.type)
                                 )
                             else:
                                 sys.stderr.write(
@@ -1649,13 +1647,13 @@ class Grammar:
     def add_production(self, prodname, syms, func=None, file='', line=0):
         if prodname in self.Terminals:
             raise GrammarError(
-                '%s:%d: Illegal rule name %r. Already defined as a token'
-                % (file, line, prodname)
+                '%s:%d: Illegal rule name %r. Already defined as a token' %
+                (file, line, prodname)
             )
         if prodname == 'error':
             raise GrammarError(
-                '%s:%d: Illegal rule name %r. error is a reserved word'
-                % (file, line, prodname)
+                '%s:%d: Illegal rule name %r. error is a reserved word' %
+                (file, line, prodname)
             )
         if not _is_identifier.match(prodname):
             raise GrammarError('%s:%d: Illegal rule name %r' % (file, line, prodname))
@@ -1696,8 +1694,8 @@ class Grammar:
             prodprec = self.Precedence.get(precname)
             if not prodprec:
                 raise GrammarError(
-                    '%s:%d: Nothing known about the precedence of %r'
-                    % (file, line, precname)
+                    '%s:%d: Nothing known about the precedence of %r' %
+                    (file, line, precname)
                 )
             else:
                 self.UsedPrecedence.add(precname)
@@ -2011,7 +2009,7 @@ class Grammar:
                 for i, B in enumerate(p.prod):
                     if B in self.Nonterminals:
                         # Okay. We got a non-terminal in a production
-                        fst = self._first(p.prod[i + 1 :])
+                        fst = self._first(p.prod[i + 1:])
                         hasempty = False
                         for f in fst:
                             if f != '<empty>' and f not in self.Follow[B]:
@@ -2792,9 +2790,8 @@ class LRGeneratedTable(LRTable):
                                     sprec, slevel = Precedence.get(a, ('right', 0))
 
                                     # Reduce precedence comes from the rule that could have been reduced
-                                    rprec, rlevel = Productions[
-                                        st_actionp[a].number
-                                    ].prec
+                                    rprec, rlevel = Productions[st_actionp[a].number
+                                                                ].prec
 
                                     if (slevel > rlevel) or (
                                         (slevel == rlevel) and (rprec == 'right')
@@ -2890,8 +2887,7 @@ _tabversion = %r
 _lr_method = %r
 
 _lr_signature = %r
-    '''
-                % (
+    ''' % (
                     os.path.basename(filename),
                     __tabversion__,
                     self.lr_method,
@@ -2990,8 +2986,7 @@ del _lr_goto_items
             for p in self.lr_productions:
                 if p.func:
                     f.write(
-                        '  (%r,%r,%d,%r,%r,%d),\n'
-                        % (
+                        '  (%r,%r,%d,%r,%r,%d),\n' % (
                             p.str,
                             p.name,
                             p.len,
@@ -3030,7 +3025,10 @@ del _lr_goto_items
             for p in self.lr_productions:
                 if p.func:
                     outp.append(
-                        (p.str, p.name, p.len, p.func, os.path.basename(p.file), p.line)
+                        (
+                            p.str, p.name, p.len, p.func, os.path.basename(p.file),
+                            p.line
+                        )
                     )
                 else:
                     outp.append((str(p), p.name, p.len, None, None, None))
@@ -3384,8 +3382,9 @@ class ParserReflect:
         # or functions that look like they might be grammar rules.
 
         for n, v in self.pdict.items():
-            if n.startswith('p_') and isinstance(
-                v, (types.FunctionType, types.MethodType)
+            if (
+                n.startswith('p_')
+                and isinstance(v, (types.FunctionType, types.MethodType))
             ):
                 continue
             if n.startswith('t_'):

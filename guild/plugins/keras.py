@@ -65,12 +65,11 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
         imports = script.imports
         return any(
             (
-                name == "keras"
-                or name == "tensorflow"
-                or name.startswith("keras.")
+                name == "keras"  #
+                or name == "tensorflow"  #
+                or name.startswith("keras.")  #
                 or name.startswith("tensorflow.")
-            )
-            for name in imports
+            ) for name in imports
         )
 
     @staticmethod

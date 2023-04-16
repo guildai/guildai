@@ -97,8 +97,7 @@ if __name__ == "__main__":
                 "{}: {} in {:.2f}s".format(
                     path,
                     "detected {} instances".format(len(predictions["instances"]))
-                    if "instances" in predictions
-                    else "finished",
+                    if "instances" in predictions else "finished",
                     time.time() - start_time,
                 )
             )

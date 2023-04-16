@@ -39,7 +39,6 @@ from guild import var
 
 from guild.commands import runs_impl
 
-
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", Warning)
     warnings.filterwarnings("ignore", message="numpy.dtype size changed")

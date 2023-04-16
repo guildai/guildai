@@ -19,7 +19,6 @@ This is useful during development or to simply print a message.
 
 import sys
 
-
 if __name__ == "__main__":
     to_print = sys.argv[1:]
     if to_print:

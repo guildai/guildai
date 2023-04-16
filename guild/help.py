@@ -447,8 +447,7 @@ def _format_flag_choices_dl(choices, out):
             (
                 flag_util.encode_flag_val(choice.alias or choice.value),
                 "\n\n".join(choice.description.strip().split("\n")),
-            )
-            for choice in choices
+            ) for choice in choices
         ],
         preserve_paragraphs=True,
     )
@@ -545,7 +544,8 @@ def print_op_help(opdef):
 
 def _format_op_deps_dl(opdef):
     model_resources = {
-        res.name: res.description or "" for res in opdef.modeldef.resources
+        res.name: res.description or ""
+        for res in opdef.modeldef.resources
     }
     formatted = [
         (dep.spec, _dep_description(dep, model_resources)) for dep in opdef.dependencies

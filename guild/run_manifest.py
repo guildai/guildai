@@ -161,8 +161,9 @@ def generic_dependency_args(run_dir, run_relative_path, source_uri, subpath=None
     """
     full_path = os.path.join(run_dir, run_relative_path)
     hash_arg = _resolved_source_hash_manifest_arg(full_path)
-    return ["d", run_relative_path, hash_arg, source_uri] + (
-        [subpath] if subpath else []
+    return (
+        ["d", run_relative_path, hash_arg, source_uri]  #
+        + ([subpath] if subpath else [])
     )
 
 
@@ -184,8 +185,9 @@ def internal_file_args(run_dir, run_relative_path, source_uri, subpath=None):
     """
     full_path = os.path.join(run_dir, run_relative_path)
     hash_arg = _resolved_source_hash_manifest_arg(full_path)
-    return ["i", run_relative_path, hash_arg, source_uri] + (
-        [subpath] if subpath else []
+    return (
+        ["i", run_relative_path, hash_arg, source_uri]  #
+        + ([subpath] if subpath else [])
     )
 
 
@@ -199,7 +201,8 @@ def manifest_for_run(run_dir, mode="r"):
 
 def iter_run_files(run_dir, followlinks=False):
     entries = {
-        os.path.normpath(args[1]): args for args in read_manifest_entries(run_dir)
+        os.path.normpath(args[1]): args
+        for args in read_manifest_entries(run_dir)
     }
     for path, dirs, files in os.walk(run_dir, followlinks=followlinks):
         rel_path = _relpath_for_iter_files(path, run_dir)

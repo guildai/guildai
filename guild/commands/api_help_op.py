@@ -93,6 +93,5 @@ def _flag_choices_data(choices):
             "value": c.value,
             "alias": c.alias,
             "description": c.description,
-        }
-        for c in choices
+        } for c in choices
     ]

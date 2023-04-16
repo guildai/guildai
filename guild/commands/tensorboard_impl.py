@@ -30,7 +30,6 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
-
 DEFAULT_PREPARE_THRESHOLD = 5  # seconds
 
 
@@ -178,8 +177,7 @@ def _list_runs_cb(args):
     def f():
         return (
             _runs_for_infile(args.runs_infile)
-            if args.runs_infile
-            else _runs_for_args(args)
+            if args.runs_infile else _runs_for_args(args)
         )
 
     return f

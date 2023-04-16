@@ -64,7 +64,6 @@ class Build(build_py):
     See MANIFEST.in for a complete list of data files includes in the
     Guild distribution.
     """
-
     def run(self):
         if os.getenv("BUILD_GUILD_VIEW") == "1":
             _check_npm()

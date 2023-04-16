@@ -4,7 +4,6 @@ This module can be run as a Python script. Try `python -m gen_schema
 --help` for command help.
 """
 
-
 import argparse
 import os
 
@@ -81,7 +80,6 @@ class TFDVSchemaDisplay(object):
 
     Patch is unapplied when the context manager exits.
     """
-
     def __init__(self):
         self._display_save = None
         self.display_obj = []

@@ -168,7 +168,9 @@ def _setup_kw(pkgdef):
         "packages": packages,
         "package_dir": package_dir,
         "namespace_packages": _namespace_packages(python_pkg_name),
-        "package_data": {python_pkg_name: _package_data(pkgdef)},
+        "package_data": {
+            python_pkg_name: _package_data(pkgdef)
+        },
         "entry_points": _entry_points(pkgdef),
     }
 

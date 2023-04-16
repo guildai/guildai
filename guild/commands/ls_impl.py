@@ -105,19 +105,16 @@ def _base_path_filter(args):
 
 def _manifest_file_types(args):
     return [
-        x[1]
-        for x in (
+        x[1] for x in (
             (args.sourcecode, "s"),
             (args.dependencies, "d"),
             (args.generated, "g"),
-        )
-        if x[0]
+        ) if x[0]
     ]
 
 
 class _DefaultFilter:
     """Filters out hidden files unless configured to show all files."""
-
     def __init__(self, all):
         self.all = all
 
@@ -214,7 +211,6 @@ class _ManifestFilter:
     Note that 'g' is a virtual manigest type -- this type does not exist in a
     manifest by definition but is inferred by the absence of a manifest entry.
     """
-
     def __init__(self, run, entry_types, base_filter, follow_links):
         self.run = run
         self.entry_types = tuple(entry_types)
@@ -249,7 +245,9 @@ def _init_manifest_index(run, follow_links):
 
 def _index_dirs(index):
     index_dirs = {
-        dirname for dirname in [os.path.dirname(path) for path in index] if dirname
+        dirname
+        for dirname in [os.path.dirname(path) for path in index]
+        if dirname
     }
     return set(_expand_parents(index_dirs))
 
@@ -303,12 +301,14 @@ def _is_dir_or_dir_link(path):
     target is a directory on Windows only. Otherwise is identical to
     `os.path.isdir`.
     """
-    return os.path.isdir(path) or (
-        util.get_platform() == "Windows" and _is_dir_link(path)
+    return (
+        os.path.isdir(path)
+        or (util.get_platform() == "Windows" and _is_dir_link(path))
     )
 
 
 def _is_dir_link(path):
-    return os.path.islink(path) and (
-        os.path.isdir(os.path.join(os.path.dirname(path), os.readlink(path)))
+    return (
+        os.path.islink(path)
+        and (os.path.isdir(os.path.join(os.path.dirname(path), os.readlink(path))))
     )

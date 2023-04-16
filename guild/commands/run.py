@@ -121,14 +121,12 @@ def _apply_resource_flagdefs(opdef, flag_vals):
 
 def _candidate_flag_names_for_source(source):
     return [
-        name
-        for name in [
+        name for name in [
             source.flag_name,
             source.name,
             source.uri,
             source.parsed_uri.path,
-        ]
-        if name
+        ] if name
     ]
 
 
@@ -517,7 +515,9 @@ def run_params(fn):
                 ),
             ),
             click.Option(
-                ("--test-sourcecode",), help="Test source code selection.", is_flag=True
+                ("--test-sourcecode",),
+                help="Test source code selection.",
+                is_flag=True,
             ),
             click.Option(
                 ("--test-flags",), help="Test flag configuration.", is_flag=True

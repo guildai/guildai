@@ -45,7 +45,6 @@ PREV_TRIALS_BATCH = "batch"
 PREV_TRIALS_SOURCECODE = "sourcecode"
 PREV_TRIALS_OPERATION = "operation"
 
-
 __trial_running_lock = threading.Lock()
 __batch_exiting = threading.Event()
 
@@ -247,7 +246,9 @@ def _trial_name(run):
 
 def _trial_flags_desc(run):
     flags = {
-        name: val for name, val in (run.get("flags") or {}).items() if val is not None
+        name: val
+        for name, val in (run.get("flags") or {}).items()
+        if val is not None
     }
     return op_util.flags_desc(flags)
 

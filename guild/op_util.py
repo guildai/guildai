@@ -93,7 +93,6 @@ RUN_PROTO_ATTRS = [
     "pip_freeze",
 ]
 
-
 NoCurrentRun = _api.NoCurrentRun
 
 ###################################################################
@@ -595,8 +594,8 @@ def _iter_matching_models(model_ref, cwd_guildfile):
 def _is_default_cwd_model(model, cwd_guildfile):
     default_model = cwd_guildfile.default_model
     return (
-        default_model
-        and default_model.guildfile.dir == model.modeldef.guildfile.dir
+        default_model  #
+        and default_model.guildfile.dir == model.modeldef.guildfile.dir  #
         and default_model.name == model.name
     )
 
@@ -898,8 +897,8 @@ def _select_rules_for_opdef_(opdef, sourcecode_root):
 
 def _sourcecode_disabled(opdef):
     return (
-        opdef.sourcecode.disabled
-        or opdef.modeldef.sourcecode.disabled
+        opdef.sourcecode.disabled  #
+        or opdef.modeldef.sourcecode.disabled  #
         and not opdef.sourcecode.specs
     )
 
@@ -951,8 +950,7 @@ def _plugins_for_default_select_rules(opdef):
 
     return sorted(
         [
-            plugin
-            for _name, plugin in pluginlib.iter_plugins()
+            plugin for _name, plugin in pluginlib.iter_plugins()
             if plugin.enabled_for_op(opdef)[0]
         ],
         key=lambda plugin: plugin.sourcecode_select_rules_priority,
@@ -1040,8 +1038,8 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
     @staticmethod
     def _default_rules_in_effect(results):
         return (
-            len(results) == 1
-            and results[0][1].result is True
+            len(results) == 1  #
+            and results[0][1].result is True  #
             and results[0][1].size_lt == MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1
             and results[0][1].max_matches == MAX_DEFAULT_SOURCECODE_COUNT
         )
@@ -1132,7 +1130,7 @@ def _apply_main_args(main_args, exec_args):
     i = 0
     while i < len(exec_args):
         if exec_args[i] == "${main_args}":
-            exec_args[i : i + 1] = main_args
+            exec_args[i:i + 1] = main_args
             i += len(main_args)
         i += 1
 
@@ -1166,7 +1164,8 @@ def _op_cmd_env(opdef, extra_env):
 
 def _op_cmd_flags(opdef):
     return {
-        flagdef.name: _flag_cmd_for_flagdef(flagdef) for flagdef in opdef.flags or []
+        flagdef.name: _flag_cmd_for_flagdef(flagdef)
+        for flagdef in opdef.flags or []
     }
 
 
@@ -1277,10 +1276,10 @@ def _coerced_flag_value(name, val, flagdefs):
 def coerce_flag_value(val, flagdef):
     """Coerces a flag value based on flagdef settings."""
     if (
-        val is None
-        or not flagdef
-        or not flagdef.type
-        or flagdef.type == "auto"
+        val is None  #
+        or not flagdef  #
+        or not flagdef.type  #
+        or flagdef.type == "auto"  #
         or flag_util.is_flag_function(val)
     ):
         return val
@@ -1465,8 +1464,7 @@ def _check_required_flags(vals, flagdefs):
 
 def _missing_flags(vals, flagdefs):
     return [
-        flag
-        for flag in flagdefs
+        flag for flag in flagdefs
         if flag.required and _flag_missing(vals.get(flag.name))
     ]
 
@@ -1605,7 +1603,7 @@ def split_args_for_flags(args):
     """
     for i in range(len(args) - 1, -1, -1):
         if args[i] == "--":
-            return args[i + 1 :], args[:i]
+            return args[i + 1:], args[:i]
     return args, []
 
 

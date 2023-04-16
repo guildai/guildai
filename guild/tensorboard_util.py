@@ -167,8 +167,9 @@ def _wsgi_app_v1(
         from tensorboard import program
 
     tb = program.TensorBoard(plugins)
-    argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
-        tensorboard_options
+    argv = (
+        _base_tb_args(logdir, reload_interval, path_prefix)
+        + _extra_tb_args(tensorboard_options)
     )
     log.debug("TensorBoard args: %r", argv)
     tb.configure(argv)
@@ -205,8 +206,9 @@ def _wsgi_app_v2(
         from tensorboard import program
 
     tb = program.TensorBoard(plugins)
-    argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
-        tensorboard_options
+    argv = (
+        _base_tb_args(logdir, reload_interval, path_prefix)
+        + _extra_tb_args(tensorboard_options)
     )
     log.debug("TensorBoard args: %r", argv)
     tb.configure(argv)

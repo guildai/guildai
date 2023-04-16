@@ -190,9 +190,9 @@ def _encode_yaml_list_for_globals_arg(parts):
 
 def _encode_flag_arg(val, dest, cmd_flag):
     if (
-        dest == "globals"
-        or dest.startswith("global:")
-        or dest.startswith("dict:")
+        dest == "globals"  #
+        or dest.startswith("global:")  #
+        or dest.startswith("dict:")  #
         or dest.startswith("namespace:")
     ):
         return _encode_flag_arg_for_globals(val)
@@ -292,8 +292,7 @@ def _apply_flag_env(flag_vals, op_cmd, env):
 def _flag_env_name(flag_name, cmd_flag):
     return (
         cmd_flag.env_name
-        if cmd_flag and cmd_flag.env_name
-        else _default_flag_env_name(flag_name)
+        if cmd_flag and cmd_flag.env_name else _default_flag_env_name(flag_name)
     )
 
 

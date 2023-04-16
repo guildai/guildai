@@ -139,9 +139,9 @@ class SSHRemote(remotelib.Remote):
         dest_path = f"{self.guild_home}/runs/{run.id}/"
         dest = ssh_util.format_rsync_host_path(self.host, dest_path, self.user)
         cmd = (
-            ["rsync"]
-            + self._rsync_path_mkdir_opts(dest_path)
-            + self._push_rsync_opts(delete)
+            ["rsync"]  #
+            + self._rsync_path_mkdir_opts(dest_path)  #
+            + self._push_rsync_opts(delete)  #
             + [src, dest]
         )
         cmd.extend(
@@ -312,7 +312,9 @@ class SSHRemote(remotelib.Remote):
             "mkdir {run_dir}/.guild/attrs; "
             "echo 'pending:? ? ? {opspec}' > {run_dir}/.guild/opref; "
             "echo \"$(date +%s)000000\" > {run_dir}/.guild/attrs/started; "
-            "mkdir {run_dir}/.guild/job-packages".format(run_dir=run_dir, opspec=opspec)
+            "mkdir {run_dir}/.guild/job-packages".format(
+                run_dir=run_dir, opspec=opspec
+            )
         )
         log.info("Initializing remote run")
         self._ssh_cmd(cmd)
@@ -543,7 +545,6 @@ def _join_args(args):
 
 class _noquote:
     """Wraper to signify that a value must not be quoted."""
-
     def __init__(self, val):
         self.val = val
 

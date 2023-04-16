@@ -295,8 +295,7 @@ def _sourcecode_paths(run, other_run, args):
             (
                 os.path.join(run_sourcecode_dir, path),
                 os.path.join(other_run_sourcecode_dir, path),
-            )
-            for path in args.paths
+            ) for path in args.paths
         ]
     return [(run_sourcecode_dir, other_run_sourcecode_dir)]
 

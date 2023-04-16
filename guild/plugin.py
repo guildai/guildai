@@ -59,6 +59,7 @@ class Plugin:
 
     def enabled_for_op(self, opdef):
         # pylint: disable=unused-argument
+
         """Returns a tuple of boolean and reason.
 
         The boolean indicates whether or not the plugin is enabled for
@@ -86,6 +87,7 @@ class Plugin:
 
     def resolve_model_op(self, opspec):
         # pylint: disable=unused-argument
+
         """Return a tuple of model, op_name for opspec.
 
         If opspec cannot be resolved to a model, the function should
@@ -95,6 +97,7 @@ class Plugin:
 
     def resource_source_for_data(self, data, resdef):
         # pylint: disable=unused-argument
+
         """Return an instance of `guild.resourcedef.ResourceSource` for data.
 
         Return None if data is not supported as a resource source.
@@ -103,6 +106,7 @@ class Plugin:
 
     def resolver_class_for_source(self, source):
         # pylint: disable=unused-argument
+
         """Return a class (or factory) for a resolver suitable for `source`.
 
         `source` is an instance of `guild.resourcedef.ResourceSource`.
@@ -146,6 +150,7 @@ class Plugin:
 
     def default_sourcecode_select_rules_for_op(self, opdef):
         # pylint: disable=unused-argument
+
         """Returns a default list of source code select rules for an operation.
 
         This is called only when the plugin is enabled for the operation and Guild.

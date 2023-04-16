@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+
 """Create sample PR curve summary data.
 
 We have 3 classes: R, G, and B. We generate colors within RGB space from 3
@@ -152,22 +153,16 @@ def start_runs(logdir, steps, run_name, thresholds, mask_every_other_prediction=
     # tail of the normal distribution.
     examples = tf.concat([true_reds, true_greens, true_blues], axis=0)
     probabilities_colors_are_red = (
-        1
-        - red_predictor.cdf(
-            tf.norm(tensor=examples - tf.constant([255.0, 0, 0]), axis=1)
-        )
+        1 - red_predictor
+        .cdf(tf.norm(tensor=examples - tf.constant([255.0, 0, 0]), axis=1))
     ) * 2
     probabilities_colors_are_green = (
-        1
-        - green_predictor.cdf(
-            tf.norm(tensor=examples - tf.constant([0, 255.0, 0]), axis=1)
-        )
+        1 - green_predictor
+        .cdf(tf.norm(tensor=examples - tf.constant([0, 255.0, 0]), axis=1))
     ) * 2
     probabilities_colors_are_blue = (
-        1
-        - blue_predictor.cdf(
-            tf.norm(tensor=examples - tf.constant([0, 0, 255.0]), axis=1)
-        )
+        1 - blue_predictor
+        .cdf(tf.norm(tensor=examples - tf.constant([0, 0, 255.0]), axis=1))
     ) * 2
 
     predictions = (
