@@ -25,6 +25,10 @@ should resolve to their expected run directories.
     ...         step_link_target = realpath(path(parent_dir, link_name))
     ...         assert step_link_target == step_run_dir, (parent_dir, link_name, i+1)
 
+Import `datetime` for filtering runs by when they were ran.
+
+    >>> from datetime import datetime
+
 ## Restart pipeline with errors
 
 `steps-restart` runs two steps, the second of which fails by default.
@@ -51,7 +55,6 @@ Confirm that the step links resolve to the expected step runs.
 Note the current time to confirm that Guild restarts the expected
 runs.
 
-    >>> from datetime import datetime
     >>> before_restart = datetime.now().replace(microsecond=0)
 
 Restart the parent run using an updated flag to cause the second step
@@ -473,13 +476,13 @@ Confirm that the step links resolve to the expected step runs.
 Note the current time to confirm that Guild restarts the expected
 runs.
 
-    >>> from datetime import datetime
     >>> before_restart = datetime.now().replace(microsecond=0)
 
 Restart the parent run using an updated flag to cause the second step
 to succeed, along with the `--needed` flag to only run failing steps.
 
     >>> parent_run = run_capture("guild select -Fo steps-restart")
+
     >>> run(f"guild run --restart {parent_run} --needed fail=no -y")
     INFO: [guild] restarting fail: ... --needed fail=no
     Skipping run because flags have not changed (--needed specified)
@@ -489,6 +492,8 @@ to succeed, along with the `--needed` flag to only run failing steps.
     [1]  fail           completed  fail=no
     [2]  steps-restart  completed  fail=no
     [3]  fail           completed  fail=no
+
+After restarting there are still only two links to the two step runs.
 
     >>> run("guild ls -Fo steps-restart -n")
     fail/
