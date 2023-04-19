@@ -108,7 +108,7 @@ The run manifest shows the source code and resolved dependencies.
     s data_util.py 7f25fc56a155212abdffec82fdf63a723144ff74 data_util.py
     s dvc.config.in 3ef04083edec4c15909f60aea3f685e5551f5b69 dvc.config.in
     s dvc.yaml 915c778af8ee728754c7196a565a495b00bda1d9 dvc.yaml
-    s eval_models.py b579028cfecf6410b7d9a8d9c81d9bf112d2e7a8 eval_models.py
+    s eval_models.py 0826586a3818783c2590952c27413a3305995287 eval_models.py
     s faketrain.py ac665f1c42be6e5096c30d7b588a8cbfedd55891 faketrain.py
     s guild.yml 3387c13e7a59764599ddc9f960df3a15b49e6b00 guild.yml
     s hello.in.dvc 34fc482704b5d6e14520b1176fe78d841f94f111 hello.in.dvc
@@ -118,7 +118,7 @@ The run manifest shows the source code and resolved dependencies.
     s prepare_data.py 57ccaa3725415e99ec0b3d8323c060a73b3417bf prepare_data.py
     s requirements.txt bd2d0f656b9bf3b9a94a8670b5b3763274dd97f3 requirements.txt
     s setup.py 530130c38cdcf0b132a6a127d975012d34922939 setup.py
-    s train_models.py f6e97ad8827262c41cc94944ffd560a4a2ab399f train_models.py
+    s train_models.py 99ef5d05581158a4d380c0313595cbe3d7f77946 train_models.py
     s .dvc/config 3ef04083edec4c15909f60aea3f685e5551f5b69 .dvc/config
     i .dvc/.gitignore da39a3ee5e6b4b0d3255bfef95601890afd80709 dvcfile:hello.in
     i .dvc/cache - dvcfile:hello.in
