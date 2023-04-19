@@ -1058,7 +1058,7 @@ def copytree(src, dest, preserve_links=True):
         # https://docs.python.org/3/library/shutil.html#shutil.copytree
         shutil.copytree(src, dest, symlinks=preserve_links, dirs_exist_ok=True)
     except TypeError as e:
-        assert "got an unexpected keyword argument 'dirs_exist_okay'" in str(e), e
+        assert "got an unexpected keyword argument 'dirs_exist_ok'" in str(e), e
         # Drop this fallback when drop support for Python 3.7
         # pylint: disable=deprecated-module
         from distutils import dir_util
