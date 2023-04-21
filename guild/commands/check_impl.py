@@ -332,9 +332,9 @@ def _tensorboard_version(check):
 
 
 def _print_r_script_info(check):
-    from guild.plugins import r_script
+    from guild.plugins import r_util
 
-    _attr("rscript_version", _safe_apply(check, r_script.r_script_version))
+    _attr("rscript_version", _safe_apply(check, r_util.r_script_version))
 
 
 def _print_tensorflow_info(check):

@@ -14,20 +14,18 @@
 
 import logging
 import os
-import re
-import subprocess
 
 import yaml
 
 import guild
 
-from guild import cli
 from guild import config
 from guild import model as modellib
 from guild import model_proxy
 from guild import plugin as pluginlib
-from guild import r_util
 from guild import guildfile
+
+from . import r_util
 
 log = logging.getLogger("guild")
 
@@ -64,7 +62,6 @@ class RScriptModelProxy:
     def __init__(self, script_path, op_name):
         assert script_path[-2:].upper() == ".R", script_path
         assert script_path.endswith(op_name), (script_path, op_name)
-        _ensure_guildai_r_package_installled()
         self.script_path = script_path
         if os.path.isabs(op_name) or op_name.startswith(".."):
             self.op_name = os.path.basename(op_name)
@@ -100,7 +97,16 @@ class RScriptPlugin(pluginlib.Plugin):
         """
         if opspec == "r-script:init":
             return _r_script_init_model_op()
-        return _maybe_r_script_model_op(opspec)
+        path = _path_for_opspec(opspec)
+        if not r_util.is_r_script(path):
+            return None
+        try:
+            r_util.verify_r_env()
+        except r_util.REnvError as e:
+            raise pluginlib.ModelOpResolutionError(e)
+        else:
+            model = RScriptModelProxy(path, opspec)
+            return model, model.op_name
 
     def enabled_for_op(self, opdef):
         if r_util.is_r_script(opdef.name):
@@ -140,14 +146,6 @@ def _r_script_init_model_op():
     return RScriptBuiltinsModelProxy(), "init"
 
 
-def _maybe_r_script_model_op(opspec):
-    path = _path_for_opspec(opspec)
-    if not r_util.is_r_script(path):
-        return None
-    model = RScriptModelProxy(path, opspec)
-    return model, model.op_name
-
-
 def _path_for_opspec(opspec):
     if opspec.startswith(("/", "./")) and os.path.isfile(opspec):
         return opspec
@@ -156,87 +154,12 @@ def _path_for_opspec(opspec):
 
 def _op_data_for_script(r_script_path):
     try:
-        out = run_r("guildai:::emit_r_script_guild_data()", args=[r_script_path])
-    except subprocess.CalledProcessError as e:
+        out = r_util.run_r("guildai:::emit_r_script_guild_data()", args=[r_script_path])
+    except r_util.RScriptProcessError as e:
         log.warning(e.output.rstrip().decode("utf-8"))
         return {}
     else:
         return yaml.safe_load(out)
-
-
-def _ensure_guildai_r_package_installled(version="0.0.0.9001"):
-    is_installed_expr = (
-        'cat(requireNamespace("guildai", quietly = TRUE) &&'
-        f' getNamespaceVersion("guildai") >= "{version}")'
-    )
-
-    installed = run_r(is_installed_expr) == "TRUE"
-    if installed:
-        return
-
-    cli.error(
-        "missing required 'guildai' R package\n"
-        "Install it by running 'guild run r-script:init' and try again."
-    )
-
-    # TODO, consider vendoring r-pkg as part of pip pkg,
-    # auto-bootstrap R install into a stand-alone lib we inject via
-    # prefixing R_LIBS env var
-
-
-class RscriptProcessError(Exception):
-    def __init__(self, error_output, returncode):
-        self.error_output = error_output
-        self.returncode = returncode
-
-
-def run_r(
-    *exprs,
-    file=None,
-    infile=None,
-    vanilla=True,
-    args=None,
-    default_packages='base',
-    **run_kwargs,
-):
-    """Run R code in a subprocess, return stderr+stdout output in a single string.
-
-    This has different defaults from `Rscript`, designed for isolated,
-    fast invocations.
-
-    Args:
-      `exprs`: strings of individual R expressions to be evaluated sequentially
-      `file`: path to an R script
-      `infile`: multiline string of R code, piped into Rscript frontend via stdin.
-
-    """
-    assert (
-        sum(map(bool, [exprs, file, infile])) == 1
-    ), "exprs, file, and infile, are mutually exclusive. Only supply one."
-
-    cmd = ["Rscript"]
-    if default_packages:
-        cmd.append(f"--default-packages={default_packages}")
-    if vanilla:
-        cmd.append("--vanilla")
-    if file:
-        cmd.append(file)
-    elif exprs:
-        for e in exprs:
-            cmd.extend(["-e", e])
-    elif infile:
-        cmd.append("-")
-        run_kwargs['input'] = infile.encode()
-
-    if args:
-        cmd.extend(args)
-
-    run_kwargs.setdefault('capture_output', True)
-
-    try:
-        return subprocess.run(cmd, check=True, **run_kwargs).stdout.decode()
-    except subprocess.CalledProcessError as e:
-        raise RscriptProcessError(e.stderr.decode(), e.returncode) from None
 
 
 def merge_dicts(dict1, dict2):
@@ -247,14 +170,3 @@ def merge_dicts(dict1, dict2):
         else:
             dict1[k] = dict2[k]
     return dict1
-
-
-def r_script_version():
-    out = subprocess.check_output(
-        ["Rscript", "--version"],
-        stderr=subprocess.STDOUT,
-    ).decode()
-    m = re.search(r"R scripting front-end version (.*)", out)
-    if not m:
-        raise ValueError(f"unknown version ({out})")
-    return m.group(1)

@@ -67,6 +67,7 @@ PY311 = doctest.register_optionflag("PY311")
 PY37 = doctest.register_optionflag("PY37")
 PY38 = doctest.register_optionflag("PY38")
 PY39 = doctest.register_optionflag("PY39")
+R = doctest.register_optionflag("R")
 STRICT = doctest.register_optionflag("STRICT")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 STRIP_EXIT_0 = doctest.register_optionflag("STRIP_EXIT_0")
@@ -231,11 +232,16 @@ def _skip_fixme(options):
         options.get(FIXME) is True
         or (options.get(FIXME_CI) is True and _running_under_ci())
         or (options.get(FIXME_WINDOWS) is True and PLATFORM == "Windows")
+        or (options.get(R) is True and not _r_available())
     )
 
 
 def _running_under_ci():
     return os.getenv("GUILD_CI") == "1"
+
+
+def _r_available():
+    return util.which("Rscript") is not None
 
 
 def _skip_timing_critical(options):
