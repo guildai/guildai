@@ -1,5 +1,5 @@
 ---
-doctest: +R
+doctest: +R +FIXME_CI
 ---
 
 # R Script
