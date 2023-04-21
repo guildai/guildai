@@ -1,5 +1,8 @@
 # Run scripts
 
+These tests cover similar topics to those in
+[python-scripts](python-scripts.md).
+
 Guild can run scripts directly.
 
 We'll use _api to run some examples.
