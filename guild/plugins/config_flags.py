@@ -56,8 +56,7 @@ def _flags_data(src):
     data = _load_flags(src)
     return {
         name: flags_import_util.flag_data_for_val(val)
-        for name, val in data.items()
-        if _is_legal_flag_val(val)
+        for name, val in data.items() if _is_legal_flag_val(val)
     }
 
 

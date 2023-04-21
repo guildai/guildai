@@ -68,8 +68,7 @@ class FileSelect:
         of applied rules and their results (two-tuples).
         """
         rule_results = [
-            (rule.test(src_root, relpath), rule)
-            for rule in self.rules
+            (rule.test(src_root, relpath), rule) for rule in self.rules
             if rule.type != "dir"
         ]
         result, _test = reduce_file_select_results(rule_results)

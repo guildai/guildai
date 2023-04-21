@@ -276,8 +276,7 @@ def _entry_points(pkgdef):
         for name, eps in [
             ("guild.models", _model_entry_points(pkgdef)),
             ("guild.resources", _resource_entry_points(pkgdef)),
-        ]
-        if eps
+        ] if eps
     }
 
 

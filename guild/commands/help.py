@@ -28,8 +28,7 @@ def _ac_package_names(incomplete):
 
     return sorted(
         [
-            pkg.metadata['Name']
-            for pkg in packages_impl.packages(all=False)
+            pkg.metadata['Name'] for pkg in packages_impl.packages(all=False)
             if pkg.metadata['Name'].startswith(incomplete)
         ]
     )

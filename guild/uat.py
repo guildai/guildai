@@ -109,8 +109,7 @@ def _test_globals():
 def _global_vars():
     return {
         name: str(val)
-        for name, val in globals().items()
-        if name[0] != "_" and isinstance(val, str)
+        for name, val in globals().items() if name[0] != "_" and isinstance(val, str)
     }
 
 

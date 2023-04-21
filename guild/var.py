@@ -130,8 +130,7 @@ def _runs_for_parent(parent, root):
 def _runs_for_parent_links(parent_path, names, runs_dir):
     real_paths = [util.realpath(os.path.join(parent_path, name)) for name in names]
     return [
-        runlib.for_dir(path)
-        for path in real_paths
+        runlib.for_dir(path) for path in real_paths
         if _is_parent_run_path(path, runs_dir)
     ]
 
@@ -269,8 +268,7 @@ def restore_runs(runs):
 def find_runs(run_id_prefix, root=None):
     root = root or runs_dir()
     return (
-        (name, path)
-        for name, path in _iter_dirs(root)
+        (name, path) for name, path in _iter_dirs(root)
         if name.startswith(run_id_prefix)
     )
 

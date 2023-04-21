@@ -247,8 +247,7 @@ def _trial_name(run):
 def _trial_flags_desc(run):
     flags = {
         name: val
-        for name, val in (run.get("flags") or {}).items()
-        if val is not None
+        for name, val in (run.get("flags") or {}).items() if val is not None
     }
     return op_util.flags_desc(flags)
 

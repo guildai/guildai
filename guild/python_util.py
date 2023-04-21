@@ -411,8 +411,7 @@ def scripts_for_dir(dir, exclude=None):
 
     exclude = [] if exclude is None else exclude
     return [
-        Script(src)
-        for src in glob.glob(os.path.join(dir, "*.py"))
+        Script(src) for src in glob.glob(os.path.join(dir, "*.py"))
         if not any((fnmatch.fnmatch(src, pattern) for pattern in exclude))
     ]
 

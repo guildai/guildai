@@ -708,8 +708,7 @@ def _root_dir_files(source_path):
 def _root_paths(root, files):
     root_names = {path.split("/")[0] for path in sorted(files)}
     return [
-        os.path.join(root, name)
-        for name in sorted(root_names)
+        os.path.join(root, name) for name in sorted(root_names)
         if not name.startswith(".guild")
     ]
 

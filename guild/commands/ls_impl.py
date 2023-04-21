@@ -246,8 +246,7 @@ def _init_manifest_index(run, follow_links):
 def _index_dirs(index):
     index_dirs = {
         dirname
-        for dirname in [os.path.dirname(path) for path in index]
-        if dirname
+        for dirname in [os.path.dirname(path) for path in index] if dirname
     }
     return set(_expand_parents(index_dirs))
 

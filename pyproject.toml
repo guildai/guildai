@@ -52,7 +52,6 @@ split_before_arithmetic_operator = true
 split_before_bitwise_operator = true
 split_before_dot = true
 split_before_logical_operator = true
-split_complex_comprehension = true
 
 ##align_closing_bracket_with_visual_indent = false
 ##allow_split_before_default_or_named_assigns = true
@@ -89,6 +88,7 @@ split_complex_comprehension = true
 ##split_before_expression_after_opening_paren = false
 ##split_before_first_argument = false
 ##split_before_named_assigns = true
+##split_complex_comprehension = false
 ##split_penalty_after_opening_bracket = 300
 ##split_penalty_after_unary_operator = 10000
 ##split_penalty_arithmetic_operator = 300

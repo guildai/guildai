@@ -260,8 +260,7 @@ class LoopingThread(threading.Thread):
 def safe_osenv():
     return {
         name: val
-        for name, val in os.environ.items()
-        if name not in UNSAFE_OS_ENVIRON
+        for name, val in os.environ.items() if name not in UNSAFE_OS_ENVIRON
     }
 
 

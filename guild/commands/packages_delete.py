@@ -22,8 +22,7 @@ def _ac_package(_ctx, _param, incomplete):
 
     return sorted(
         [
-            pkg.project_name
-            for pkg in packages_impl.packages()
+            pkg.project_name for pkg in packages_impl.packages()
             if pkg.project_name.startswith(incomplete)
         ]
     )

@@ -73,8 +73,7 @@ def dep_for_depdef(depdef, flag_vals):
 def _resdef_config(resdef, flag_vals):
     return {
         name: flag_vals[name]
-        for name in resdef_flag_name_candidates(resdef)
-        if name in flag_vals
+        for name in resdef_flag_name_candidates(resdef) if name in flag_vals
     }
 
 

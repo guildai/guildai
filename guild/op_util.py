@@ -736,8 +736,7 @@ def _render_template_formatted_vals(flag_vals, default_label):
     formatted_vals.update(
         {
             name: FormattedValue(val)
-            for name, val in flag_vals.items()
-            if val is not None
+            for name, val in flag_vals.items() if val is not None
         }
     )
     return formatted_vals
@@ -1488,8 +1487,7 @@ def _apply_default_flag_vals(flagdefs, flag_vals):
 
 def flag_assigns(flags, skip_none=False):
     return [
-        flag_assign(name, val)
-        for name, val in sorted(flags.items())
+        flag_assign(name, val) for name, val in sorted(flags.items())
         if not skip_none or val is not None
     ]
 

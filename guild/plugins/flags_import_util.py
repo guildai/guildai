@@ -63,8 +63,7 @@ def apply_flags(opdef, import_flags_data_cb, apply_flags_data_cb=None):
             apply_flags_data_cb(flags_data)
         import_data = {
             name: flags_data[name]
-            for name in flags_data
-            if (
+            for name in flags_data if (
                 (to_import is import_all_marker or name in to_import)
                 and not name in to_skip
             )

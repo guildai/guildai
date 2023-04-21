@@ -404,8 +404,7 @@ def _exclude_patterns_file_entries(src):
 
 def _dirs_for_git_ignored(ignored, root_dir):
     return [
-        _strip_trailing_slash(path)
-        for path in ignored
+        _strip_trailing_slash(path) for path in ignored
         if os.path.isdir(os.path.join(root_dir, path))
     ]
 

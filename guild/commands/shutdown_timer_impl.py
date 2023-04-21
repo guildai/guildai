@@ -98,8 +98,7 @@ def _log_function(log, now, pids):
 
 def _guild_ops():
     return [
-        p.pid
-        for p in psutil.process_iter(attrs=["cmdline"])
+        p.pid for p in psutil.process_iter(attrs=["cmdline"])
         if "guild.op_main" in p.info["cmdline"]
     ]
 
