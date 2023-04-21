@@ -1,5 +1,8 @@
 # Python Scripts
 
+These tests cover similar topics to those in
+[run-scripts](run-scripts.md).
+
 Guild support running of Python scripts directly via the
 `python_script` plugin.
 
