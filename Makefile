@@ -59,7 +59,7 @@ check:
 	fi; \
 	echo guild check $$opts; \
 	COLUMNS=999 \
-	START_THRESHOLD=0.3 \
+        GUILD_START_THRESHOLD=0.5 \
 	BREAKPOINT_PROMPT_TIMEOUT=4 \
 	$(guild) check $$opts
 
