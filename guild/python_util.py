@@ -535,11 +535,6 @@ def is_python_script(opspec):
     return os.path.isfile(opspec) and opspec[-3:] == ".py"
 
 
-def script_module(script_path, cwd=os.path.curdir):
-    mod_path = os.path.splitext(script_path)[0]
-    return os.path.relpath(mod_path, cwd)
-
-
 def safe_module_name(s):
     if s.lower().endswith(".py"):
         s = s[:-3]

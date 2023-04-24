@@ -1750,3 +1750,16 @@ def _maybe_apply_anonymous_model(data):
         if name in data:
             return
     data["model"] = ""
+
+
+def split_script_path(script_path, cwd=None):
+    """Returns a tuple of guildfile directory and relative script path.
+
+    Guildfile dir is the common path between the script path and `cwd`.
+    If `cwd` is `None` (default) `config.cwd()` is used.
+    """
+    script_realpath = os.path.realpath(script_path)
+    cwd_realpath = os.path.realpath(cwd or config.cwd())
+    guildfile_dir = os.path.commonpath([script_realpath, cwd_realpath])
+    rel_script_path = os.path.relpath(script_realpath, guildfile_dir)
+    return guildfile_dir, rel_script_path

@@ -56,6 +56,7 @@ from guild import cli
 from guild import config
 from guild import entry_point_util
 from guild import file_util
+from guild import guildfile
 from guild import model as modellib
 from guild import model_proxy
 from guild import op_util
@@ -126,12 +127,14 @@ class PythonScriptModelProxy:
             self.name,
             _script_base(script_path, self.op_name),
         )
+        guildfile_dir, rel_script_path = guildfile.split_script_path(script_path)
         self.modeldef = model_proxy.modeldef(
             self.name,
             {
                 "operations": {
                     self.op_name: _op_data_for_script(
                         script_path,
+                        rel_script_path,
                         output_scalars=self.output_scalars,
                         objective=self.objective,
                         plugins=self.plugins,
@@ -139,30 +142,18 @@ class PythonScriptModelProxy:
                     )
                 }
             },
-            dir=_guildfile_dir(script_path),
+            dir=guildfile_dir,
         )
-
-
-def _guildfile_dir(script_path):
-    return _guildfile_dir_and_script_path(script_path)[0]
-
-
-def _guildfile_dir_and_script_path(script_path):
-    script_realpath = os.path.realpath(script_path)
-    cwd_realpath = os.path.realpath(config.cwd())
-    guildfile_dir = os.path.commonpath([script_realpath, cwd_realpath])
-    rel_script_path = os.path.relpath(script_realpath, guildfile_dir)
-    return guildfile_dir, rel_script_path
 
 
 def _op_data_for_script(
     script_path,
+    rel_script_path,
     output_scalars=None,
     objective=None,
     plugins=None,
     sourcecode=None,
 ):
-    _, rel_script_path = _guildfile_dir_and_script_path(script_path)
     plugins = plugins or []
     flags_data = _flags_data(script_path)
     flags_dest = flags_data.pop("$dest", None)
@@ -185,13 +176,16 @@ def _flags_data(script_path):
     return plugin._flags_data_for_path(script_path, "", ".", [], None)
 
 
-def _exec_attr(script_path):
-    quoted_module = shlex.quote(_script_module(script_path))
+def _exec_attr(rel_script_path):
+    module = _script_module(rel_script_path)
+    quoted_module = shlex.quote(module)
     return f"${{python_exe}} -um guild.op_main {quoted_module} ${{flag_args}}"
 
 
-def _script_module(script_path):
-    return python_util.script_module(script_path, config.cwd())
+def _script_module(rel_script_path):
+    assert not os.path.isabs(rel_script_path), rel_script_path
+    mod_path, _ext = os.path.splitext(rel_script_path)
+    return mod_path
 
 
 def _script_base(script_path, op_name):
