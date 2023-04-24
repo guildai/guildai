@@ -20,10 +20,10 @@ import yaml
 import guild
 
 from guild import config
+from guild import guildfile
 from guild import model as modellib
 from guild import model_proxy
 from guild import plugin as pluginlib
-from guild import guildfile
 
 from . import r_util
 
@@ -69,12 +69,13 @@ class RScriptModelProxy:
             self.op_name = op_name
         script_base = script_path[:-len(self.op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
+        guildfile_dir, _rel_script_path = guildfile.split_script_path(script_path)
         self.modeldef = model_proxy.modeldef(
             self.name,
             {"operations": {
                 self.op_name: _op_data_for_script(script_path),
             }},
-            dir=os.path.dirname(script_path),
+            dir=guildfile_dir,
         )
         _apply_config_flags(self.modeldef, self.op_name)
 
