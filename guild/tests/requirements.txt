@@ -10,3 +10,4 @@ matplotlib
 pandas
 tensorboardX
 twine
+pins
