@@ -43,3 +43,4 @@ ec2 = guild.remotes.ec2:EC2RemoteType
 gist = guild.remotes.gist:GistRemoteType
 s3 = guild.remotes.s3:S3RemoteType
 ssh = guild.remotes.ssh:SSHRemoteType
+pins = guild.remotes.pins:PinsRemoteType
