@@ -202,3 +202,90 @@ regex.
 Note the additional `proto` directory. This contains the prototype for
 the `say.py` operation, which is used by the batch operation to
 generate each specific trial op.
+
+## Resolved operation resource dependencies
+
+When specifying that a resource should be linked to it creates a link.
+
+Initialize the project and run the `first` operation.
+
+    >>> use_project("run-files")
+    
+    >>> run("guild run first -y")
+    <exit 0>
+
+    >>> run("guild ls -Fo first -n")
+    data.csv
+    guild.yml
+    script.py
+
+Next run the `second-link` operation, which requires a linked `data.csv`.
+
+    >>> run("guild run second-link -y")
+    Resolving operation:first
+    Using run ... for operation:first
+
+    >>> run("guild ls -Fo second-link -n")
+    data.csv
+    guild.yml
+    script.py
+
+This csv is a link, not a hard-copy.
+
+    >>> second_run = run_capture("guild select -Fo second-link")
+    
+    >>> run_path = path(guild_home(), "runs", second_run)
+    
+    >>> resource_path = path(run_path, "data.csv")
+
+    >>> islink(resource_path)
+    True
+
+When specifying that a resource should be a copy it creates a copy.
+
+Run the `second-copy` operation, which requires a copied `data.csv`.
+
+    >>> run("guild run second-copy -y")
+    Resolving operation:first
+    Using run ... for operation:first
+
+    >>> run("guild ls -Fo second-copy -n")
+    data.csv
+    guild.yml
+    script.py
+
+This csv is a hard-copy, not a link.
+
+    >>> second_run = run_capture("guild select -Fo second-copy")
+    
+    >>> run_path = path(guild_home(), "runs", second_run)
+    
+    >>> resource_path = path(run_path, "data.csv")
+
+    >>> islink(resource_path)
+    False
+
+When not specifying that an operation's resource should either be
+a link or a copy, it defaults to link.
+
+Run the `second` operation, which defaults to a linked `data.csv`.
+
+    >>> run("guild run second -y")
+    Resolving operation:first
+    Using run ... for operation:first
+
+    >>> run("guild ls -Fo second -n")
+    data.csv
+    guild.yml
+    script.py
+
+This csv is a hard-copy, not a link.
+
+    >>> second_run = run_capture("guild select -Fo second")
+    
+    >>> run_path = path(guild_home(), "runs", second_run)
+    
+    >>> resource_path = path(run_path, "data.csv")
+
+    >>> islink(resource_path)
+    True

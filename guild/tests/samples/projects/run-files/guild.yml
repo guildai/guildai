@@ -1,0 +1,19 @@
+first:
+  main: script
+
+second:
+  main: guild.pass
+  requires:
+    - operation: first
+
+second-link:
+  main: guild.pass
+  requires:
+    - operation: first
+      target-type: link
+
+second-copy:
+  main: guild.pass
+  requires:
+    - operation: first
+      target-type: copy
