@@ -243,6 +243,7 @@ doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr 
     guild.plugins.queue_main
     guild.plugins.r_script
     guild.plugins.r_script_init_main
+    guild.plugins.r_util
     guild.plugins.random_main
     guild.plugins.resource_flags
     guild.plugins.skopt
@@ -256,7 +257,6 @@ doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr 
     guild.query.__init__
     guild.query.qlex
     guild.query.qparse
-    guild.r_util
     guild.remote
     guild.remote_run_support
     guild.remote_util
