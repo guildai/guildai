@@ -68,7 +68,7 @@ generated and dependencies.
     ...     run("guild run down -y")
     Resolving operation:up
     Using run ... for operation:up
-    WARNING: .../foo.txt already exists, skipping copy
+    WARNING: .../foo.txt already exists, skipping link
     Hello!
 
 Setting `GUILD_LEGACY_OPDEP_SELECT` to `2` causes Guild to select all
@@ -78,10 +78,10 @@ run files.
     ...     run("guild run down -y")
     Resolving operation:up
     Using run ... for operation:up
-    WARNING: .../down.py already exists, skipping copy
-    WARNING: .../foo.txt already exists, skipping copy
-    WARNING: .../guild.yml already exists, skipping copy
-    WARNING: .../up.py already exists, skipping copy
+    WARNING: .../down.py already exists, skipping link
+    WARNING: .../foo.txt already exists, skipping link
+    WARNING: .../guild.yml already exists, skipping link
+    WARNING: .../up.py already exists, skipping link
     Hello!
 
 Guild shows warnings for files that are already present in the `down`

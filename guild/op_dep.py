@@ -30,8 +30,6 @@ MODEL_RES_P = re.compile(rf"({RES_TERM})$")
 GUILDFILE_RES_P = re.compile(rf"({RES_TERM}):({RES_TERM})$")
 PACKAGE_RES_P = re.compile(rf"({RES_TERM})/({RES_TERM})$")
 
-DEFAULT_TARGET_TYPE = "copy"
-
 ###################################################################
 # Exception classes
 ###################################################################
@@ -374,7 +372,13 @@ def _target_type_for_source(source):
         return _validate_target_type(
             source.resdef.target_type, f"resource {source.resdef.name}"
         )
-    return DEFAULT_TARGET_TYPE
+    return _default_target_type_for_source(source)
+
+
+def _default_target_type_for_source(source):
+    if source.parsed_uri.scheme == "operation":
+        return "link"
+    return "copy"
 
 
 def _validate_target_type(val, desc):

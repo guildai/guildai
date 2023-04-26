@@ -1057,7 +1057,7 @@ When we run `downstream-conflict` we see the conflict.
     >>> run("guild run downstream-conflict -y")
     Resolving operation:upstream
     Using run ... for operation:upstream
-    WARNING: .../config.yml already exists, skipping copy
+    WARNING: .../config.yml already exists, skipping link
 
 The `downstream-fixed` operation is configured to exclude `config.yml`
 as source code.
