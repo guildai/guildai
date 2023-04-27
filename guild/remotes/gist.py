@@ -359,15 +359,8 @@ def _unpack_meta(archive, runs_dir):
     log.debug("unpacking %s meta to %s", archive, runs_dir)
     with zipfile.ZipFile(archive, "r") as zf:
         for name in zf.namelist():
-            if _is_meta_file(name):
+            if meta_sync.is_meta_file(name):
                 zf.extract(name, runs_dir)
-
-
-def _is_meta_file(name):
-    return (
-        name.endswith(".guild/opref") or "/.guild/attrs/" in name
-        or "/.guild/LOCK" in name
-    )
 
 
 def _is_git_repo(dir):

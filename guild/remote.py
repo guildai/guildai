@@ -94,6 +94,10 @@ class RemoteConfig(dict):
         except KeyError as e:
             raise MissingRequiredConfig(key) from e
 
+    def pop_config(self, key, default=None):
+        val = self.get(key, default) if default is not None else self[key]
+        return val, RemoteConfig({ikey: self[ikey] for ikey in self if ikey != key})
+
 
 class RunProxy:
     def __init__(self, data):

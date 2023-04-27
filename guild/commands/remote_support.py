@@ -90,25 +90,16 @@ def remote_for_args(args):
         if inline_remote:
             return inline_remote
         cli.error(
-            f"remote '{args.remote}' is not defined\n"
+            f"remote {args.remote} is not defined\n"
             "Show remotes by running 'guild remotes' or "
             "'guild remotes --help' for more information."
         )
     except remotelib.UnsupportedRemoteType as e:
-        cli.error(
-            f"remote '{args.remote}' in ~/.guild/config.yml has unsupported "
-            f"type: {e.args[0]}"
-        )
+        cli.error(f"remote {args.remote} has unsupported type: {e.args[0]}")
     except remotelib.MissingRequiredConfig as e:
-        cli.error(
-            f"remote '{args.remote}' in ~/.guild/config.yml is missing required "
-            f"config: {e.args[0]}"
-        )
+        cli.error(f"remote {args.remote} is missing required config: {e.args[0]}")
     except remotelib.ConfigError as e:
-        cli.error(
-            f"remote '{args.remote}' in ~/.guild/config.yml has a configuration "
-            f"error: {e.args[0]}"
-        )
+        cli.error(f"remote {args.remote} has a configuration error: {e.args[0]}")
 
 
 def _try_inline_remote(remote_arg):

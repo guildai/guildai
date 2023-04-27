@@ -224,3 +224,12 @@ def meta_current(local_sync_dir, remote_meta_id_cb):
     log.debug("local meta-id: %s", local_id)
     log.debug("remote meta-id: %s", remote_id)
     return local_id == remote_id
+
+
+def is_meta_file(name):
+    name = name.replace("\\", "/")
+    return (
+        name.endswith(".guild/opref") or  #
+        "/.guild/attrs/" in name  #
+        or "/.guild/LOCK" in name
+    )

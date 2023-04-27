@@ -273,6 +273,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [labels](labels.md)
 - [link-vs-copy-dep](link-vs-copy-dep.md)
 - [no-run-output](no-run-output.md)
+- [pins](pins.md)
 - [pip-freeze](pip-freeze.md)
 - [project-sourcecode](project-sourcecode.md)
 - [r-script](r-script.md)
@@ -307,5 +308,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [remote-s3](remote-s3.md)
 - [remote-azure-blob](remote-azure-blob.md)
 - [remote-gist](remote-gist.md)
-- [remote-pins](remote-pins.md)
 - [remote-status](remote-status.md)
+
+NOTE that `pins` is tested above with `pins.md` as those tests are
+purely local and don't require remote configuration.

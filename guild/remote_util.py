@@ -184,3 +184,16 @@ def remote_activity(msg, *args):
     user feedback. E.g. use when synchronizing meta data.
     """
     log.info(loglib.dim(msg), *args)
+
+
+def strip_common_config(config):
+    """Returns a copy of `config` that does not contain common config.
+
+    Common config is shared across all remote types.
+
+    Common config attributes are: `type`, `description`.
+    """
+    return remotelib.RemoteConfig(
+        {key: config[key]
+         for key in config if key not in ("type", "description")}
+    )
