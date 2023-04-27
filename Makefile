@@ -102,7 +102,7 @@ README.html: README.md
 
 format-code:
 	@echo Formating Guild source code
-	@yapf -ri setup.py tools.py guild examples
+	@yapf -vv -r -i setup.py tools.py guild examples
 
 coverage-check:
 	if [ -z "$(TESTS)" ]; then \
