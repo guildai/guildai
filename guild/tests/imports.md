@@ -79,6 +79,8 @@ doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr 
     guild.commands.api_merge
     guild.commands.api_ops
     guild.commands.api_runs
+    guild.commands.api_serve
+    guild.commands.api_serve_impl
     guild.commands.api_support
     guild.commands.cat
     guild.commands.cat_impl

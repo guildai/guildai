@@ -66,16 +66,18 @@ def make_server(host, port, app, logging=True):
         request_handler = QuietRequestHandler
     try:
         return serving.make_server(
-            host, port, app, threaded=True, request_handler=request_handler
+            host,
+            port,
+            app,
+            threaded=True,
+            request_handler=request_handler,
         )
     except socket.error as e:
         if host:
             raise
         log.debug(
-            "error starting server on %s:%s (%s), trying IPv6 default host '::'",
-            host,
-            port,
-            e,
+            "error starting server on %s:%s (%s), trying IPv6 default host '::'", host,
+            port, e
         )
         return serving.make_server("::", port, app, threaded=True)
 
@@ -121,3 +123,25 @@ def App(routes):
         return dispatch(routes, env, start_resp)
 
     return app
+
+
+def request_get(app, url):
+    resp = {}
+
+    def start_resp(status, _headers):
+        resp["status"] = status
+
+    resp["body"] = app(_request_get_env(url), start_resp)
+    return resp
+
+
+def _request_get_env(url):
+    from urllib.parse import urlparse
+
+    req = urlparse(url)
+    return {
+        "wsgi.url_scheme": "http",
+        "REQUEST_METHOD": "GET",
+        "PATH_INFO": req.path,
+        "QUERY_INFO": req.query,
+    }

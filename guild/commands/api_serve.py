@@ -16,26 +16,19 @@ import click
 
 from guild import click_util
 
-from .api_compare import main as compare
-from .api_help_op import main as help_op
-from .api_merge import main as merge
-from .api_ops import main as ops
-from .api_runs import main as runs
-from .api_serve import main as serve
+from . import server_support
 
 
-@click.group(cls=click_util.Group)
-def api(**_kw):
-    """CLI based API calls.
+@click.command("serve")
+@server_support.host_and_port_options
+@click.option("--get", help="Perform a GET call and exit.")
+@click_util.use_args
+@click_util.render_doc
+def main(args):
+    """Start Guild API server.
 
-    IMPORTANT: These commands are experimental and subject to change without
+    IMPORTANT: This command is experimental and subject to change without
     notice.
     """
-
-
-api.add_command(compare)
-api.add_command(help_op)
-api.add_command(merge)
-api.add_command(ops)
-api.add_command(runs)
-api.add_command(serve)
+    from .api_serve_impl import main
+    main(args)

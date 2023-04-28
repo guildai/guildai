@@ -1971,3 +1971,25 @@ def _cfg_bool(s):
 
 def encode_cfg_val(x):
     return str(x)
+
+
+class Cache:
+    def __init__(self, ttl):
+        self._ttl = ttl
+        self._entries = {}
+
+    def read(self, key, gen):
+        now = time.time()
+        try:
+            val, expires = self._entries[key]
+        except KeyError:
+            return self.__store(key, gen, now)
+        else:
+            if now > expires:
+                return self.__store(key, gen, now)
+            return val
+
+    def __store(self, key, gen, now):
+        val, expires = gen(), now + self._ttl
+        self._entries[key] = val, expires
+        return val

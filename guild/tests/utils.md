@@ -1195,3 +1195,52 @@ returns True.
     t()
     t()
     True
+
+## Cache
+
+`util.Cache` provides expiring cache serices.
+
+    >>> from guild.util import Cache
+
+A cache is created with a time-to-live in seconds.
+
+    >>> c = Cache(0.1)
+
+Values are only read from the cache using the `read` method. A
+generator function is provided with each call to `read` to generate a
+value for a key in the event a cached value is missing or has
+expired. The generator takes no arguments and returns the
+value-to-cache.
+
+Generator factory:
+
+    >>> def mkgen(val):
+    ...     def gen():
+    ...         print(f"{val} generated")
+    ...         return val
+    ...     return gen
+
+Read multiple times from the cache.
+
+    >>> c.read("foo", mkgen(1))
+    1 generated
+    1
+
+    >>> c.read("foo", mkgen(2))
+    1
+
+    >>> c.read("foo", mkgen(3))
+    1
+
+Wait for 'foo' to expire.
+
+    >>> sleep(0.1)
+
+Read more values.
+
+    >>> c.read("foo", mkgen(4))
+    4 generated
+    4
+
+    >>> c.read("foo", mkgen(5))
+    4
