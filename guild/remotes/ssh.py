@@ -948,10 +948,14 @@ def _check_args(
     return args
 
 
-def _stop_runs_args(runs, no_wait, yes, **filters):
+def _stop_runs_args(runs, force, no_wait, timeout, yes, **filters):
     args = _filter_args(**filters)
     if no_wait:
         args.append("-n")
+    if force:
+        args.append("--force")
+    if timeout is not None:
+        args.extend(["--timeout", str(timeout)])
     if yes:
         args.append("-y")
     args.extend(runs)

@@ -42,6 +42,9 @@ _MAX_WIN_DIR_LEN = 248
 _RUN_FILES_PADDING = 100
 MAX_RUN_PATH_LEN = _MAX_WIN_DIR_LEN - _RUN_FILES_PADDING
 
+DEFAULT_RUN_STOP_TIMEOUT = 30
+RUN_KILL_TIMEOUT = 5
+
 
 class RunsExportError(Exception):
     pass
@@ -740,3 +743,15 @@ def sourcecode_digest(run):
     if not files:
         return None
     return file_util.files_digest(sorted(files), run.dir)
+
+
+def stop_run(run_pid, force=False, timeout=None):
+    timeout = timeout if timeout is not None else DEFAULT_RUN_STOP_TIMEOUT
+    _gone, alive = util.kill_process_tree(run_pid, force=False, timeout=timeout)
+    if not alive:
+        return []
+    if force:
+        _gone, alive = util.kill_process_tree(
+            run_pid, force=True, timeout=RUN_KILL_TIMEOUT
+        )
+    return [p.pid for p in alive]

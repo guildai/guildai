@@ -119,9 +119,6 @@ if not os.getenv("SHELL"):
 else:
     STYLE_TABLE_WIDTH_ADJ = 0
 
-STOP_TIMEOUT = 30
-CHILD_TERM_TIMEOUT = 5
-
 
 def runs_for_args(args, ctx=None):
     filtered = filtered_runs(args, ctx)
@@ -1241,7 +1238,12 @@ def _stop_runs(args, ctx):
 
     def stop_f(selected):
         for run in selected:
-            _stop_run(run, args.no_wait)
+            _stop_run(
+                run,
+                no_wait=args.no_wait,
+                force=args.force,
+                timeout=args.timeout,
+            )
 
     def select_runs_f(args, ctx, default_runs_arg):
         runs = runs_op_selected(args, ctx, default_runs_arg)
@@ -1260,12 +1262,12 @@ def _stop_runs(args, ctx):
     )
 
 
-def _stop_run(run, no_wait):
+def _stop_run(run, no_wait=False, force=False, timeout=None):
     remote_lock = remote_run_support.lock_for_run(run)
     if remote_lock:
         _try_stop_remote_run(run, remote_lock, no_wait)
     else:
-        _try_stop_local_run(run)
+        _try_stop_local_run(run, force=force, timeout=timeout)
 
 
 def _try_stop_remote_run(run, remote_lock, no_wait):
@@ -1284,19 +1286,19 @@ def _try_stop_remote_run(run, remote_lock, no_wait):
         plugin.stop_run(run, {"no_wait": no_wait})
 
 
-def _try_stop_local_run(run):
+def _try_stop_local_run(run, force=False, timeout=None):
     pid = run.pid
-    if pid and util.pid_exists(pid):
-        cli.out(f"Stopping {run.id} (pid {run.pid})", err=True)
-        _gone, alive = util.kill_process_tree(
-            pid, timeout=STOP_TIMEOUT, child_term_timeout=CHILD_TERM_TIMEOUT
-        )
-        if alive:
-            _handle_non_stopped_pids(alive)
+    if not pid or not util.pid_exists(pid):
+        cli.out(f"Run {run.id} is not running")
+        return
+    cli.out(f"Stopping {run.id} (pid {run.pid})", err=True)
+    alive_pids = run_util.stop_run(pid, force=force, timeout=timeout)
+    if alive_pids:
+        _unstopped_process_error(alive_pids)
 
 
-def _handle_non_stopped_pids(alive):
-    alive_desc = ", ".join(alive)
+def _unstopped_process_error(pids) -> typing.NoReturn:
+    alive_desc = ", ".join([str(pid) for pid in pids])
     cli.out(f"The following processes did not stop as expected: {alive_desc}")
     cli.error()
 

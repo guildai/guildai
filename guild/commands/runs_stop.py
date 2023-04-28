@@ -24,9 +24,6 @@ def runs_stop_params(fn):
     click_util.append_params(
         fn,
         [
-            runs_support.runs_arg,
-            runs_support.common_filters,
-            remote_support.remote_option("Stop remote runs."),
             click.Option(
                 ("-y", "--yes"), help="Do not prompt before stopping.", is_flag=True
             ),
@@ -35,6 +32,24 @@ def runs_stop_params(fn):
                 help="Don't wait for remote runs to stop.",
                 is_flag=True,
             ),
+            click.Option(
+                ("--force",),
+                help=(
+                    "Forceably stop the runs after a period of time (specified by "
+                    "'--timeout')."
+                ),
+                is_flag=True,
+            ),
+            click.Option(
+                ("--timeout",),
+                type=click.IntRange(min=0),
+                metavar="N",
+                default=30,
+                help="Timeout in seconds to wait for a run to stop (default is 30)."
+            ),
+            runs_support.runs_arg,
+            runs_support.common_filters,
+            remote_support.remote_option("Stop remote runs."),
         ],
     )
     return fn

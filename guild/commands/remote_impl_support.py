@@ -346,8 +346,10 @@ def stop_runs(args):
 
 def _stop_runs_kw(args):
     names = _filter_names() + [
+        "force",
         "no_wait",
         "runs",
+        "timeout",
         "yes",
     ]
     ignore = ["digest", "remote"]

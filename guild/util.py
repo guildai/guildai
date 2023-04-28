@@ -824,32 +824,27 @@ def getmtime(filename):
         return None
 
 
-def kill_process_tree(pid, force=False, timeout=None, child_term_timeout=None):
+def kill_process_tree(pid, force=False, timeout=None):
     import psutil
     import signal
 
-    if force:
-        sig = signal.SIGKILL
-    else:
-        sig = signal.SIGTERM
+    sig = signal.SIGKILL if force else signal.SIGTERM
+
+    def send_sig(proc):
+        try:
+            proc.send_signal(sig)
+        except psutil.NoSuchProcess:
+            pass
+
     root = psutil.Process(pid)
     children = root.children(recursive=True)
-    all_procs = [root] + children
-    _safe_send_signal(root, sig)
-    if child_term_timeout is not None:
-        psutil.wait_procs(children, timeout=child_term_timeout)
-    for child in children:
-        _safe_send_signal(child, sig)
-    return psutil.wait_procs(all_procs, timeout=timeout)
-
-
-def _safe_send_signal(proc, sig):
-    import psutil
-
-    try:
-        proc.send_signal(sig)
-    except psutil.NoSuchProcess:
-        pass
+    send_sig(root)
+    if not force:
+        # Give children an opportunity to respond to signal
+        psutil.wait_procs(children, timeout=5)
+    for proc in children:
+        send_sig(proc)
+    return psutil.wait_procs([root] + children, timeout=timeout)
 
 
 def safe_filesize(path):
