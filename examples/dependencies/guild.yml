@@ -1,5 +1,5 @@
 -
-  # Named resources - mirror the inline resources above.
+  # Named resources - mirror the inline resources above
   resources:
     file:
       - file: file.txt
@@ -209,7 +209,7 @@
     all-resources:
       description: Run one op that requires all named resources
       main: guild.pass
-      requires:  # Refs to named resources, defined below.
+      requires:  # Refs to named resources, defined below
         - file
         - dir
         - url
