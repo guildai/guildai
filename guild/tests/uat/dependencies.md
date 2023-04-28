@@ -482,7 +482,7 @@ named resources.
     Resolving modified-config
     Resolving json-config
 
-    >>> run("guild ls -n")  # doctest: +REPORT_UDIFF
+    >>> run("guild ls -Ln")  # doctest: +REPORT_UDIFF
     README.md
     config.json
     config.yml
