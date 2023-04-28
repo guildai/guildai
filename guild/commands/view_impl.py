@@ -30,7 +30,7 @@ from guild import index as indexlib
 from guild import run_util
 from guild import util
 from guild import var
-from guild import view
+from guild import view as viewlib
 
 from . import compare_impl
 from . import runs_impl
@@ -38,7 +38,7 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 
-class ViewDataImpl(view.ViewData):
+class ViewDataImpl(viewlib.ViewData):
     def __init__(self, args):
         self._args = args
 
@@ -397,7 +397,7 @@ def main(args):
 def _test_runs_data(args):
     data = ViewDataImpl(args)
     runs_data = data.runs_data()
-    view.fix_runs_data_for_json(runs_data)
+    viewlib.fix_runs_data_for_json(runs_data)
     json.dump(runs_data, sys.stdout)
 
 
@@ -409,7 +409,7 @@ def _start_view(args):
         _start_tester(host, port)
         args.no_open = True
     try:
-        view.serve_forever(data, host, port, args.no_open, args.dev, args.logging)
+        viewlib.serve_forever(data, host, port, args.no_open, args.dev, args.logging)
     except socket.gaierror as e:
         cli.error(str(e))
 
