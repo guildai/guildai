@@ -31,7 +31,6 @@ class PinsRemoteType(remotelib.RemoteType):
 
 
 class PinsRemote(meta_sync.MetaSyncRemote):
-
     def __init__(self, name, config):
         self.name = name
         self.board = _init_board(config)
