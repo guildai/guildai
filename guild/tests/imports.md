@@ -266,6 +266,7 @@ doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr 
     guild.remotes.ec2
     guild.remotes.gist
     guild.remotes.meta_sync
+    guild.remotes.pins
     guild.remotes.s3
     guild.remotes.ssh
     guild.remotes.ssh_util

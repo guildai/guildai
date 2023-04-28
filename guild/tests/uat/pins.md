@@ -7,8 +7,6 @@ backend runs storage. It supports the following Guild commands:
 - runs
 - runs info
 - runs delete
-- runs restore
-- runs purge
 - pull
 - push
 
@@ -20,8 +18,12 @@ Pins remote does not support these commands:
 - label
 - ls
 - run
+- runs purge
+- runs restore
 - stop
 - watch
+
+See tests below for the expected behavior of each command.
 
 ## Pins configuration
 
@@ -297,21 +299,14 @@ TODO: something's definitely happening here that we want to show ^^^
 
 ### Deleting remote runs
 
-Delete runs from the remote.
+Pins does not support non-permanent deletes.
 
     >>> run("guild runs rm -r folder -y")
-    Refreshing run info for folder
-    WARNING: Deleting pins runs is always permanent. Nothing will be deleted.
-    Refreshing run info for folder
+    guild: remote 'folder' does not support non permanent deletes
+    Use the '--permanent' with this command and try again.
+    <exit 1>
 
-TODO: The command should fail early unless `-p` is used.
-
-    >>> run("guild runs -s -r folder")
-    Refreshing run info for folder
-    [1]  hello.py  completed  green msg='hello run-2'
-    [2]  hello.py  completed  red msg='hello run-1'
-
-To delet the pins we need to specify the `--permanent` option.
+To delete pins, specify the `--permanent` option.
 
     >>> run("guild runs rm -p -r folder -y")
     Refreshing run info for folder
@@ -383,6 +378,17 @@ TODO: See if we can avoid this duplication ^^^
     <exit 1>
 
     >>> run("guild label --set xxx -r folder -y")
+    guild: remote 'folder' does not support this operation
+    <exit 1>
+
+Pins does not support non-permanent deletes and so `purge` and
+`restore` commands are not supported.
+
+    >>> run("guild runs purge -r folder -y")
+    guild: remote 'folder' does not support this operation
+    <exit 1>
+
+    >>> run("guild runs restore -r folder -y")
     guild: remote 'folder' does not support this operation
     <exit 1>
 

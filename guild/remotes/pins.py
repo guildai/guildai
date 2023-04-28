@@ -17,7 +17,6 @@ from . import meta_sync
 log = logging.getLogger("guild.remotes.pins")
 
 RUNS_PATH = ["runs"]
-DELETED_RUNS_PATH = ["trash", "runs"]
 
 
 class PinsRemoteType(remotelib.RemoteType):
@@ -32,14 +31,14 @@ class PinsRemoteType(remotelib.RemoteType):
 
 
 class PinsRemote(meta_sync.MetaSyncRemote):
+
     def __init__(self, name, config):
         self.name = name
         self.board = _init_board(config)
         self.subdir = config.get("subdir", "")
         local_sync_dir = meta_sync.local_meta_dir(name, str(config))
         runs_dir = os.path.join(local_sync_dir, *RUNS_PATH)
-        deleted_runs_dir = os.path.join(local_sync_dir, *DELETED_RUNS_PATH)
-        super().__init__(runs_dir, deleted_runs_dir)
+        super().__init__(runs_dir)
 
     def status(self, verbose=False):
         try:
@@ -145,12 +144,8 @@ class PinsRemote(meta_sync.MetaSyncRemote):
                 zip_ref.extractall(os.path.join(var.runs_dir(), run.id, ""))
 
     def _delete_runs(self, runs, permanent):
+        assert permanent
         for run in runs:
-            if not permanent:
-                log.warning(
-                    "Deleting pins runs is always permanent. Nothing will be deleted."
-                )
-                return
             try:
                 self.board.pin_delete(self._get_run_pin_name(run.id))
             except pins.errors.PinsError as e:
@@ -178,7 +173,7 @@ def _init_board(config):
             f"unsupported board type '{board_type}' - refer to "
             "https://rstudio.github.io/pins-python/api/constructors "
             "for list of supported types"
-        )
+        ) from None
     try:
         return init_f(**board_config)
     except TypeError as e:
@@ -188,7 +183,7 @@ def _init_board(config):
         raise remotelib.ConfigError(
             f"board type '{board_type}' requires the following "
             f"config: {missing_params}"
-        )
+        ) from None
 
 
 def _split_remote_config(config):
