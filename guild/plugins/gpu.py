@@ -136,7 +136,7 @@ def _parse_bytes(val):
 def _parse_watts(val):
     if val.endswith(" W"):
         return float(val[0:-2])
-    if "N/A" in val:
+    if "No data" in val or "N/A" in val:
         return None
     assert False, repr(val)
 
