@@ -1244,3 +1244,110 @@ Read more values.
 
     >>> c.read("foo", mkgen(5))
     4
+
+### Pruning a cache
+
+A cache can be configured with `prune_threshold`, which specifies the
+number of entries to allow before pruning the cache. By default the
+cache is never pruned.
+
+#### Default prune behavior
+
+To illustrate, configure a cache without `prune_threshold` and read a
+value.
+
+    >>> c = Cache(ttl=0.1)
+
+    >>> c.read("a", lambda: 1)
+    1
+
+Use `entries()` to view the caches items.
+
+    >>> c.entries()
+    [('a', ..., 1)]
+
+Wait a moment to let the cached entry expire.
+
+    >>> sleep(0.2)
+
+Read another entry.
+
+    >>> c.read("b", lambda: 2)
+    2
+
+The original entry is still in the cache.
+
+    >>> sorted(c.entries())
+    [('a', ..., 1), ('b', ..., 2)]
+
+We can explicitly prune the cache using the `prune()` method. This
+removes expired entries from the ache.
+
+    >>> c.prune()
+
+    >>> c.entries()
+    [('b', ..., 2)]
+
+#### Setting prune threshold
+
+Create a cache that prunes when there is more than one entry.
+
+    >>> c = Cache(ttl=0.1, prune_threshold=1)
+
+Read one value.
+
+    >>> c.read("a", lambda: 1)
+    1
+
+    >>> [(key, val) for key, _expires, val in c.entries()]
+    [('a', 1)]
+
+Wait a moment to let the entry expire.
+
+    >>> sleep(0.2)
+
+Read another value.
+
+    >>> c.read("b", lambda: 2)
+    2
+
+After this read, the original entry is expired and is removed from the
+cache.
+
+    >>> [(key, val) for key, _expires, val in c.entries()]
+    [('b', 2)]
+
+Configure a cache to prune when there are two entries.
+
+    >>> c = Cache(ttl=0.1, prune_threshold=2)
+
+Read one value.
+
+    >>> c.read("a", lambda: 1)
+    1
+
+    >>> [(key, val) for key, _expires, val in c.entries()]
+    [('a', 1)]
+
+Wait a moment to let the entry expire.
+
+    >>> sleep(0.2)
+
+Read another value.
+
+    >>> c.read("b", lambda: 2)
+    2
+
+The cache has two entries and so is not pruned - the threshold defines
+the allowed number of entries before pruning.
+
+    >>> [(key, val) for key, _expires, val in sorted(c.entries())]
+    [('a', 1), ('b', 2)]
+
+Read a third value. A this point, the cache prunes expired entries.
+
+    >>> c.read("c", lambda: 3)
+    3
+
+    >>> [(key, val) for key, _expires, val in sorted(c.entries())]
+    [('b', 2), ('c', 3)]

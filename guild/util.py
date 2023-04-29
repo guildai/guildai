@@ -1969,12 +1969,14 @@ def encode_cfg_val(x):
 
 
 class Cache:
-    def __init__(self, ttl):
+    def __init__(self, ttl, prune_threshold=None):
         self._ttl = ttl
         self._entries = {}
+        self._prune_threshold = prune_threshold
 
     def read(self, key, gen):
         now = time.time()
+        self._maybe_prune()
         try:
             val, expires = self._entries[key]
         except KeyError:
@@ -1988,3 +1990,19 @@ class Cache:
         val, expires = gen(), now + self._ttl
         self._entries[key] = val, expires
         return val
+
+    def _maybe_prune(self):
+        if (
+            self._prune_threshold is not None
+            and len(self._entries) >= self._prune_threshold
+        ):
+            self.prune()
+
+    def prune(self):
+        now = time.time()
+        for key, (_val, expires) in list(self._entries.items()):
+            if now > expires:
+                del self._entries[key]
+
+    def entries(self):
+        return [(key, expires, val) for key, (val, expires) in self._entries.items()]
