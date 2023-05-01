@@ -35,7 +35,9 @@ ignore_patterns = [
   "venv/*",
   ".venv/*",
   "**/venv/*",
-  "**/.venv/*"
+  "**/.venv/*",
+  "build/*",
+  "**/build/*",
 ]
 
 [tool.yapf]
