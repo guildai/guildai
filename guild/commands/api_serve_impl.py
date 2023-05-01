@@ -12,12 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 
+from guild import index as indexlib
+from guild import run as runlib
 from guild import run_util
 from guild import serving_util
 from guild import util
 from guild import var
+
+
+def json_resp(f0):
+    def f(*args, **kw):
+        try:
+            return serving_util.json_resp(f0(*args, **kw))
+        except serving_util.NotFound:
+            return serving_util.json_resp({"error": 404, "msg": "Not Found"}, 404)
+
+    return f
 
 
 def main(args):
@@ -51,20 +64,26 @@ def _serve(host, port):
     server.serve_forever()
 
 
-def _api_app(cache_ttl=5):
-    cache = util.Cache(cache_ttl)
-    routes = serving_util.Map([
-        ("/runs", _handle_runs, (cache,)),
-    ])
+def _api_app(cache_ttl=5, cache_prune_threshold=1000):
+    cache = util.Cache(cache_ttl, prune_threshold=cache_prune_threshold)
+    routes = serving_util.Map(
+        [
+            ("/runs/", _handle_runs, (cache,)),
+            ("/runs/<run_id>/attrs/<attr_name>", _handle_run_attr, (cache,)),
+            ("/runs/<run_id>/attrs", _handle_run_multi_attr, (cache,)),
+            ("/runs/<run_id>/scalars", _handle_run_scalars, (cache,)),
+            ("/cache", _handle_cache, (cache,)),
+        ]
+    )
     return serving_util.App(routes)
 
 
+@json_resp
 def _handle_runs(_req, cache):
-    runs = cache.read("runs", _gen_runs)
-    return serving_util.json_resp(runs)
+    return cache.read("/runs", _read_runs)
 
 
-def _gen_runs():
+def _read_runs():
     return [
         {
             "id": run.id,
@@ -75,3 +94,53 @@ def _gen_runs():
             "status": run.status,
         } for run in var.runs()
     ]
+
+
+@json_resp
+def _handle_run_attr(_req, cache, run_id, attr_name):
+    return cache.read(
+        f"/runs/{run_id}/attrs/{attr_name}",  #
+        lambda: _read_run_attr(run_id, attr_name)
+    )
+
+
+def _read_run_attr(run_id, attr_name):
+    return _run_for_id(run_id).get(attr_name)
+
+
+def _run_for_id(run_id):
+    run_dir = os.path.join(var.runs_dir(), run_id)
+    if not os.path.isdir(run_dir):
+        raise serving_util.NotFound()
+    return runlib.for_dir(run_dir)
+
+
+@json_resp
+def _handle_run_multi_attr(req, cache, run_id):
+    return {
+        attr_name: cache.read(
+            f"/runs/{run_id}/attrs/{attr_name}",
+            (_read_run_attr, (run_id, attr_name)))
+        )
+        for attr_name in _attr_names_for_req(req)
+    }
+
+
+def _attr_names_for_req(req):
+    return req.args.keys()
+
+
+@json_resp
+def _handle_run_scalars(_req, cache, run_id):
+    return cache.read(f"/runs/{run_id}/scalars", lambda: _read_run_scalars(run_id))
+
+
+def _read_run_scalars(run_id):
+    run = _run_for_id(run_id)
+    index = indexlib.RunIndex()
+    index.refresh([run], ["scalar"])
+    return [util.dict_to_camel_case(s) for s in index.run_scalars(run)]
+
+
+def _handle_cache(_req, cache):
+    return serving_util.json_resp(sorted(cache.entries()))

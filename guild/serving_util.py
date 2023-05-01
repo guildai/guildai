@@ -143,5 +143,5 @@ def _request_get_env(url):
         "wsgi.url_scheme": "http",
         "REQUEST_METHOD": "GET",
         "PATH_INFO": req.path,
-        "QUERY_INFO": req.query,
+        "QUERY_STRING": req.query,
     }
