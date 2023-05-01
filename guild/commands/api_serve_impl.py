@@ -119,8 +119,7 @@ def _run_for_id(run_id):
 def _handle_run_multi_attr(req, cache, run_id):
     return {
         attr_name: cache.read(
-            f"/runs/{run_id}/attrs/{attr_name}",
-            (_read_run_attr, (run_id, attr_name)))
+            f"/runs/{run_id}/attrs/{attr_name}", (_read_run_attr, (run_id, attr_name))
         )
         for attr_name in _attr_names_for_req(req)
     }
