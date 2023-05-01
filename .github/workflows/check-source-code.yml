@@ -25,7 +25,6 @@ jobs:
         pip install -r guild/tests/requirements.txt
 
     - name: Run linter
-      if: ${{ success() || failure() }}
       run: |
         python -m pylint setup.py guild --reports y
 
