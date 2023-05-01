@@ -1245,6 +1245,54 @@ Read more values.
     >>> c.read("foo", mkgen(5))
     4
 
+### Read value generator functions
+
+When reading a value from a cache, the `read` methods requires a
+generator function, which is called to create the value being read if
+the value doesn't exist in the cache or has expired.
+
+The generator function may be a single function or a tuple of function
+and arguments. Arguments may be provided as additional items in a
+tuple as a list/tuple for positional arguments or a dict for named
+arguments.
+
+    >>> c = Cache(0)
+
+Callable:
+
+    >>> c.read("a", lambda: 1)
+    1
+
+List of positional args:
+
+    >>> c.read("b", (lambda x: x + 1, (1,)))
+    2
+
+    >>> c.read("b", (lambda x, y=1: x + y, (1, 2)))
+    3
+
+    >>> c.read("b", (lambda x, y=1: x + y, [3]))
+    4
+
+Named arguments;
+
+    >>> c.read("b", (lambda x, y=1: x + y, {"x": 4}))
+    5
+
+    >>> c.read("b", (lambda x, y=1: x + y, {"x": 4, "y": 2}))
+    6
+
+Positional and named arguments:
+
+    >>> c.read("b", (lambda x, y=1: x + y, [3], {"y": 4}))
+    7
+
+Overlapping arguments:
+
+    >>> c.read("b", (lambda x, y=1: x + y, [3], {"x": 4}))
+    Traceback (most recent call last):
+    TypeError: <lambda>() got multiple values for argument 'x'
+
 ### Pruning a cache
 
 A cache can be configured with `prune_threshold`, which specifies the

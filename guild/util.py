@@ -1973,36 +1973,79 @@ class Cache:
         self._ttl = ttl
         self._entries = {}
         self._prune_threshold = prune_threshold
+        self._lock = threading.Lock()
 
-    def read(self, key, gen):
+    def read(self, key, gen, ttl=None):
         now = time.time()
         self._maybe_prune()
         try:
-            val, expires = self._entries[key]
+            with self._lock:
+                val, expires = self._entries[key]
         except KeyError:
-            return self.__store(key, gen, now)
+            return self._store(key, gen, now, ttl)
         else:
             if now > expires:
-                return self.__store(key, gen, now)
+                return self._store(key, gen, now, ttl)
             return val
 
-    def __store(self, key, gen, now):
-        val, expires = gen(), now + self._ttl
-        self._entries[key] = val, expires
+    def _store(self, key, gen, now, ttl):
+        ttl = ttl or self._ttl
+        val, expires = _cache_apply_gen(gen), now + ttl
+        with self._lock:
+            self._entries[key] = val, expires
         return val
 
     def _maybe_prune(self):
-        if (
-            self._prune_threshold is not None
-            and len(self._entries) >= self._prune_threshold
-        ):
-            self.prune()
+        with self._lock:
+            if (
+                self._prune_threshold is not None
+                and len(self._entries) >= self._prune_threshold
+            ):
+                self._unsafe_prune()
 
     def prune(self):
+        with self._lock:
+            self._unsafe_prune()
+
+    def _unsafe_prune(self):
+        """Unsafe prune - does not lock.
+
+        Calls to this function must be made with the lock.
+        """
         now = time.time()
         for key, (_val, expires) in list(self._entries.items()):
             if now > expires:
                 del self._entries[key]
 
     def entries(self):
-        return [(key, expires, val) for key, (val, expires) in self._entries.items()]
+        with self._lock:
+            return [
+                (key, expires, val) for key, (val, expires) in self._entries.items()
+            ]
+
+
+def _cache_apply_gen(gen):
+    f, args, kw = _cache_split_gen(gen)
+    return f(*args, **kw)
+
+
+def _cache_split_gen(gen):
+    if callable(gen):
+        return (gen, (), {})
+    if isinstance(gen, (tuple, list)):
+        f = None
+        args = ()
+        kw = {}
+        for x in gen:
+            if callable(x):
+                f = x
+            elif isinstance(x, (tuple, list)):
+                args = x
+            elif isinstance(x, dict):
+                kw = x
+            else:
+                raise ValueError(gen)
+        if f is None:
+            raise ValueError(gen)
+        return f, args, kw
+    raise ValueError(gen)
