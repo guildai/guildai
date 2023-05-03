@@ -89,7 +89,7 @@ def RunsMonitor(
 def _safe_run_name_cb(base_cb):
     def f(run):
         name = (base_cb or run_util.default_run_name)(run)
-        return _remove_invalid_dom_chars(name)
+        return _remove_invalid_dom_chars(name.strip())
 
     return f
 
