@@ -72,6 +72,8 @@ def _api_app(cache_ttl=5, cache_prune_threshold=1000):
             ("/runs/<run_id>/attrs/<attr_name>", _handle_run_attr, (cache,)),
             ("/runs/<run_id>/attrs", _handle_run_multi_attr, (cache,)),
             ("/runs/<run_id>/scalars", _handle_run_scalars, (cache,)),
+            ("/runs/<run_id>/files", _handle_run_files, (cache,)),
+            ("/runs/<run_id>/comments", _handle_run_comments, (cache,)),
             ("/cache", _handle_cache, (cache,)),
         ]
     )
@@ -99,8 +101,8 @@ def _read_runs():
 @json_resp
 def _handle_run_attr(_req, cache, run_id, attr_name):
     return cache.read(
-        f"/runs/{run_id}/attrs/{attr_name}",  #
-        lambda: _read_run_attr(run_id, attr_name)
+        f"/runs/{run_id}/attrs/{attr_name}",
+        (_read_run_attr, (run_id, attr_name)),
     )
 
 
@@ -119,7 +121,8 @@ def _run_for_id(run_id):
 def _handle_run_multi_attr(req, cache, run_id):
     return {
         attr_name: cache.read(
-            f"/runs/{run_id}/attrs/{attr_name}", (_read_run_attr, (run_id, attr_name))
+            f"/runs/{run_id}/attrs/{attr_name}",
+            (_read_run_attr, (run_id, attr_name)),
         )
         for attr_name in _attr_names_for_req(req)
     }
@@ -131,7 +134,10 @@ def _attr_names_for_req(req):
 
 @json_resp
 def _handle_run_scalars(_req, cache, run_id):
-    return cache.read(f"/runs/{run_id}/scalars", lambda: _read_run_scalars(run_id))
+    return cache.read(
+        f"/runs/{run_id}/scalars",
+        (_read_run_scalars, (run_id,)),
+    )
 
 
 def _read_run_scalars(run_id):
@@ -143,3 +149,52 @@ def _read_run_scalars(run_id):
 
 def _handle_cache(_req, cache):
     return serving_util.json_resp(sorted(cache.entries()))
+
+
+@json_resp
+def _handle_run_files(_req, cache, run_id):
+    return cache.read(
+        f"/runs/{run_id}/files",
+        (_read_run_files, (run_id,)),
+    )
+
+
+def _read_run_files(run_id):
+    run = _run_for_id(run_id)
+    return _run_files_for_dir(run.dir)
+
+
+def _run_files_for_dir(path):
+    files = []
+    _apply_files(path, files)
+    return files
+
+
+def _apply_files(path, files):
+    for entry in os.scandir(path):
+        stat = entry.stat()
+        files.append(
+            {
+                "name": entry.name,
+                "isFile": entry.is_file(),
+                "isDir": entry.is_dir(),
+                "isLink": entry.is_symlink(),
+                "isText": util.is_text_file(os.path.join(path, entry.name)),
+                "size": stat.st_size,
+                "mtime": int(stat.st_mtime * 1000),
+                "files": _run_files_for_dir(entry.path) if entry.is_dir() else None,
+            }
+        )
+
+
+@json_resp
+def _handle_run_comments(_req, cache, run_id):
+    return cache.read(
+        f"/runs/{run_id}/comments",
+        (_read_comments, (run_id,)),
+    )
+
+
+def _read_comments(run_id):
+    run = _run_for_id(run_id)
+    return run.get("comments")
