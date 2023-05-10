@@ -33,6 +33,6 @@ tests or deleting them from the suite.
     # uat/evaluate-mnist-intro-example.md:2: doctest: +FIXME  # Example needs to be updated
     # uat/mnist-example-runs-after-intro-evaluate.md:2: doctest: +FIXME  # Dep on evaluate-mnist-intro-example.md
     # uat/r-basic.md:2: doctest: +FIXME -WINDOWS  # Need to clean this up for 0.9!!
-    # uat/r-scripts.md:2: doctest: +R +FIXME_CI
+    # uat/r-script.md:2: doctest: +R +FIXME_CI
     # uat/remote-azure-blob.md:2: doctest: +FIXME  # Need to reinstate test account with MS
     # uat/tensorflow2.md:6: doctest: +FIXME  # Shows our TF summary patching is broken
