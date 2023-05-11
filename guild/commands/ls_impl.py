@@ -221,9 +221,9 @@ class _ManifestFilter:
     def match(self, path):
         entry_type = self.index.get(path)
         if not entry_type:
-            # If path doesn't have a manifest entry, it can be one of:
-            # a directory, an internal Guild file, or a run-generated file.
-            # If path is a dir or an internal Guild file, we don't want to
+            # If path doesn't have a manifest entry, it can a
+            # directory, an internal Guild file, or a run-generated
+            # file. If path is a dir or an internal Guild file, don't
             # show it.
             if _is_dir(self.run.dir, path) or _is_guild_path(path):
                 return False

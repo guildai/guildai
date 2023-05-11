@@ -209,10 +209,10 @@ def _status_filter_args(args):
 
 def _apply_ops_filter(args, filters):
     if args.filter_ops:
-        filters.append(_op_run_filter(args.filter_ops))
+        filters.append(operation_filter(args.filter_ops))
 
 
-def _op_run_filter(op_refs):
+def operation_filter(op_refs):
     def f(run):
         opspec = run_util.format_operation(run, nowarn=True)
         return any((_compare_op(ref, opspec) for ref in op_refs))
@@ -374,7 +374,7 @@ def _apply_started_filter(args, ctx, filters):
     if args.filter_started:
         start, end = _parse_timerange(args.filter_started, ctx)
         log.debug("time range filter: %s to %s", start, end)
-        filters.append(_started_filter(start, end))
+        filters.append(started_filter(start, end))
 
 
 def _parse_timerange(spec, ctx):
@@ -404,7 +404,7 @@ def _range_help_suffix(ctx):
     return f"\nTry '{ctx.command_path} --help' for help specifying time ranges."
 
 
-def _started_filter(start, end):
+def started_filter(start, end):
     def f(run):
         started = run.timestamp
         if not started:
