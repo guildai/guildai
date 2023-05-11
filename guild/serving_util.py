@@ -18,11 +18,15 @@ import socket
 
 from werkzeug import routing
 from werkzeug import serving
-from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug import exceptions
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response
 
 log = logging.getLogger("guild")
+
+HTTPException = exceptions.HTTPException
+NotFound = exceptions.NotFound
+BadRequest = exceptions.BadRequest
 
 
 class QuietRequestHandler(serving.WSGIRequestHandler):

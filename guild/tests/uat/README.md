@@ -273,7 +273,6 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [labels](labels.md)
 - [link-vs-copy-dep](link-vs-copy-dep.md)
 - [no-run-output](no-run-output.md)
-- [pins](pins.md)
 - [pip-freeze](pip-freeze.md)
 - [project-sourcecode](project-sourcecode.md)
 - [r-script](r-script.md)
