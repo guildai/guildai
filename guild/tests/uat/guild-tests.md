@@ -133,7 +133,7 @@ Run the other tests.
       project-api:                 ok
       publish-runs:                ok
       publish-templates:           ok
-      python-script:              ok
+      python-script:               ok
       python-utils:                ok
       pythonpath:                  ok
       query-parser:                ok
