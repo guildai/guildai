@@ -26,6 +26,8 @@ from guild import var
 
 from . import runs_impl
 
+DEFAULT_RUN_FILE_MAX_SIZE = 10**6
+
 
 def json_resp(f0):
     def f(*args, **kw):
@@ -76,7 +78,8 @@ def _api_app(cache_ttl=5, cache_prune_threshold=1000):
             ("/runs/<run_id>/attrs/<attr_name>", _handle_run_attr, (cache,)),
             ("/runs/<run_id>/attrs", _handle_run_multi_attr, (cache,)),
             ("/runs/<run_id>/scalars", _handle_run_scalars, (cache,)),
-            ("/runs/<run_id>/files", _handle_run_files, (cache,)),
+            ("/runs/<run_id>/files/", _handle_run_files, (cache,)),
+            ("/runs/<run_id>/files/<path:path>", _handle_run_file, (cache,)),
             ("/runs/<run_id>/comments", _handle_run_comments, (cache,)),
             ("/runs/<run_id>/tags", _handle_run_tags, (cache,)),
             ("/operations/", _handle_operations, (cache,)),
@@ -300,6 +303,41 @@ def _maybe_generated(entry, relpath):
     generated files.
     """
     return "g" if not entry.is_dir() and not _is_guild_path(relpath) else None
+
+
+@json_resp
+def _handle_run_file(req, cache, run_id, path):
+    run = _run_for_id(run_id)
+    size, contents = _read_run_file(run, path, _max_size_arg(req))
+    return {
+        "run": run_id,
+        "path": path,
+        "size": size,
+        "contents": contents,
+    }
+
+
+def _max_size_arg(req):
+    val = req.args.get("maxsize")
+    if not val:
+        return None
+    try:
+        return int(val)
+    except ValueError:
+        return None
+
+
+def _read_run_file(run, path, max_size=None):
+    max_size = max_size or DEFAULT_RUN_FILE_MAX_SIZE
+    full_path = os.path.join(run.dir, path)
+
+    try:
+        stat = os.stat(full_path)
+    except FileNotFoundError:
+        raise serving_util.NotFound(f"{run.id}/{path}")
+    else:
+        with open(os.path.join(run.dir, path)) as f:
+            return stat.st_size, f.read(max_size)
 
 
 def _is_guild_path(path):
