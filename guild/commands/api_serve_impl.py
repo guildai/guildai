@@ -208,7 +208,15 @@ def _read_run_scalars(run_id):
     run = _run_for_id(run_id)
     index = indexlib.RunIndex()
     index.refresh([run], ["scalar"])
+    return {s["tag"]: _run_scalar_val(s) for s in index.run_scalars(run)}
     return [util.dict_to_camel_case(s) for s in index.run_scalars(run)]
+
+
+def _run_scalar_val(scalar):
+    val = util.dict_to_camel_case(scalar)
+    del val["tag"]
+    del val["run"]
+    return val
 
 
 def _handle_cache(_req, cache):
