@@ -53,7 +53,7 @@ def _get_and_exit(args):
     resp = serving_util.request_get(_api_app(), args.get)
     exit = 0 if resp["status"] == "200 OK" else 1
     for part in resp["body"]:
-        sys.stdout.write(part.decode())
+        sys.stdout.buffer.write(part)
     sys.exit(exit)
 
 
@@ -82,7 +82,8 @@ def _api_app(cache_ttl=5, cache_prune_threshold=1000):
             ("/runs/<run_id>/files/<path:path>", _handle_run_file, (cache,)),
             ("/runs/<run_id>/comments", _handle_run_comments, (cache,)),
             ("/runs/<run_id>/tags", _handle_run_tags, (cache,)),
-            ("/operations/", _handle_operations, (cache,)),
+            ("/operations", _handle_operations, (cache,)),
+            ("/compare", _handle_compare, (cache,)),
             ("/cache", _handle_cache, (cache,)),
             ("/<path:path>", _handle_not_supported, ()),
         ]
@@ -129,10 +130,17 @@ def _read_runs(args):
 
 def _runs_filter(args):
     filters = []
+    _apply_id_filter(args, filters)
     _apply_status_filter(args, filters)
     _apply_operation_filter(args, filters)
     _apply_started_filter(args, filters)
     return var.run_filter("all", filters) if filters else None
+
+
+def _apply_id_filter(args, filters):
+    ids = set(args.getlist("run"))
+    if ids:
+        filters.append(lambda run: run.id in ids)
 
 
 def _apply_status_filter(args, filters):
@@ -204,12 +212,12 @@ def _handle_run_scalars(req, cache, run_id):
     )
 
 
-def _read_run_scalars(run_id):
+def _read_run_scalars(run_id, index=None):
     run = _run_for_id(run_id)
-    index = indexlib.RunIndex()
-    index.refresh([run], ["scalar"])
+    if not index:
+        index = indexlib.RunIndex()
+        index.refresh([run], ["scalar"])
     return {s["tag"]: _run_scalar_val(s) for s in index.run_scalars(run)}
-    return [util.dict_to_camel_case(s) for s in index.run_scalars(run)]
 
 
 def _run_scalar_val(scalar):
@@ -217,6 +225,24 @@ def _run_scalar_val(scalar):
     del val["tag"]
     del val["run"]
     return val
+
+
+@json_resp
+def _handle_compare(req, cache):
+    return cache.read(_cache_key_for_req(req), (_read_compare_data, (req.args,)))
+
+
+def _read_compare_data(args):
+    runs = var.runs(filter=_runs_filter(args))
+    index = indexlib.RunIndex()
+    index.refresh(runs, ["scalar"])
+    return {
+        run.id: {
+            "flags": run.get("flags"),
+            "scalars": _read_run_scalars(run.id, index)
+        }
+        for run in runs
+    }
 
 
 def _handle_cache(_req, cache):
@@ -268,6 +294,7 @@ def _apply_files(path, relpath, manifest_index, files):
         files.append(
             {
                 "name": entry.name,
+                "path": entry_relpath,
                 "isFile": entry.is_file(),
                 "isDir": entry.is_dir(),
                 "isLink": entry.is_symlink(),
@@ -313,43 +340,30 @@ def _maybe_generated(entry, relpath):
     return "g" if not entry.is_dir() and not _is_guild_path(relpath) else None
 
 
-@json_resp
 def _handle_run_file(req, cache, run_id, path):
     run = _run_for_id(run_id)
-    size, contents = _read_run_file(run, path, _max_size_arg(req))
-    return {
-        "run": run_id,
-        "path": path,
-        "size": size,
-        "contents": contents,
-    }
-
-
-def _max_size_arg(req):
-    val = req.args.get("maxsize")
-    if not val:
-        return None
-    try:
-        return int(val)
-    except ValueError:
-        return None
-
-
-def _read_run_file(run, path, max_size=None):
-    max_size = max_size or DEFAULT_RUN_FILE_MAX_SIZE
     full_path = os.path.join(run.dir, path)
 
-    try:
-        stat = os.stat(full_path)
-    except FileNotFoundError:
-        raise serving_util.NotFound(f"{run.id}/{path}")
-    else:
-        with open(os.path.join(run.dir, path)) as f:
-            return stat.st_size, f.read(max_size)
+    def not_found(_env, _start_resp):
+        raise serving_util.NotFound()
+
+    file_data = serving_util.SharedDataMiddleware(not_found, {full_path: full_path})
+
+    def app(env, start_resp):
+        env["PATH_INFO"] = full_path
+
+        def start_resp_wrapped(status, headers):
+            headers.append(("Access-Control-Allow-Origin", "*"))
+            start_resp(status, headers)
+
+        return iter(file_data(env, start_resp_wrapped))
+
+    return app
 
 
 def _is_guild_path(path):
     return path.split(os.path.sep, 1)[0] == ".guild"
+    return app
 
 
 @json_resp
