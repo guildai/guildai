@@ -32,7 +32,7 @@ n_sample = len(X)
 np.random.seed(random_seed)
 order = np.random.permutation(n_sample)
 X = X[order]
-y = y[order].astype(np.float)
+y = y[order].astype(float)
 
 split_pos = int((1 - test_split) * n_sample)
 X_train = X[:split_pos]
