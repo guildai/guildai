@@ -20,6 +20,7 @@ from guild import run as runlib
 from guild import run_manifest
 from guild import run_util
 from guild import serving_util
+from guild import tfevent
 from guild import timerange
 from guild import util
 from guild import var
@@ -84,6 +85,7 @@ def _api_app(cache_ttl=5, cache_prune_threshold=1000):
             ("/runs/<run_id>/tags", _handle_run_tags, (cache,)),
             ("/operations", _handle_operations, (cache,)),
             ("/compare", _handle_compare, (cache,)),
+            ("/scalars", _handle_scalars, (cache,)),
             ("/cache", _handle_cache, (cache,)),
             ("/<path:path>", _handle_not_supported, ()),
         ]
@@ -243,6 +245,33 @@ def _read_compare_data(args):
         }
         for run in runs
     }
+
+
+@json_resp
+def _handle_scalars(req, cache):
+    return cache.read(_cache_key_for_req(req), (_read_scalars_data, (req.args,)))
+
+
+def _read_scalars_data(args):
+    return {
+        run.id: _scalars_data_for_run(run)
+        for run in var.runs(filter=_runs_filter(args))
+    }
+
+
+def _scalars_data_for_run(run):
+    return {
+        _run_scalars_path(path, run): _scalars_data_for_reader(reader)
+        for path, _digest, reader in tfevent.scalar_readers(run.dir)
+    }
+
+
+def _run_scalars_path(reader_path, run):
+    return os.path.relpath(reader_path, run.dir)
+
+
+def _scalars_data_for_reader(reader):
+    return [[tag, value, step] for tag, value, step in reader]
 
 
 def _handle_cache(_req, cache):
