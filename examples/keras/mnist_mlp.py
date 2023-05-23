@@ -14,6 +14,7 @@ from keras.optimizers import RMSprop
 batch_size = 128
 num_classes = 10
 epochs = 20
+dropout = 0.2
 
 # the data, split between train and test sets
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -33,9 +34,9 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 
 model = Sequential()
 model.add(Dense(512, activation='relu', input_shape=(784,)))
-model.add(Dropout(0.2))
+model.add(Dropout(dropout))
 model.add(Dense(512, activation='relu'))
-model.add(Dropout(0.2))
+model.add(Dropout(dropout))
 model.add(Dense(num_classes, activation='softmax'))
 
 model.summary()
