@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mimetypes
 import os
 import sys
 
@@ -330,10 +331,19 @@ def _apply_files(path, relpath, manifest_index, files):
                 "isText": util.is_text_file(os.path.join(path, entry.name)),
                 "size": stat.st_size,
                 "mtime": int(stat.st_mtime * 1000),
+                **_type_attrs(entry.name),
                 **_dir_attrs(entry, entry_relpath, manifest_index),
                 **_manifest_attrs(entry, entry_relpath, manifest_index),
             }
         )
+
+
+def _type_attrs(name):
+    type, encoding = mimetypes.guess_type(name)
+    return {
+        "type": type,
+        "encoding": encoding,
+    }
 
 
 def _dir_attrs(entry, relpath, manifest_index):
