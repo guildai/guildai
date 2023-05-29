@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import mimetypes
 import os
 import sys
@@ -27,6 +28,8 @@ from guild import util
 from guild import var
 
 from . import runs_impl
+
+log = logging.getLogger("guild")
 
 DEFAULT_RUN_FILE_MAX_SIZE = 10**6
 
@@ -91,7 +94,16 @@ def _api_app(cache_ttl=5, cache_prune_threshold=1000):
             ("/<path:path>", _handle_not_supported, ()),
         ]
     )
-    return serving_util.App(routes)
+    return serving_util.App(routes, _error_handler)
+
+
+def _error_handler(e):
+    def app(env, start_resp):
+        log.exception("unhandled error for %s", env)
+        resp = serving_util.json_resp({"error": 500, "msg": "Internal Error"}, 500)
+        return resp(env, start_resp)
+
+    return app
 
 
 @json_resp
@@ -383,8 +395,9 @@ def _handle_run_file(req, cache, run_id, path):
     run = _run_for_id(run_id)
     full_path = os.path.join(run.dir, path)
 
-    def not_found(_env, _start_resp):
-        raise serving_util.NotFound()
+    def not_found(env, start_resp):
+        app = serving_util.json_resp({"error": 404, "msg": "Not Found"}, 404)
+        return app(env, start_resp)
 
     file_data = serving_util.SharedDataMiddleware(not_found, {full_path: full_path})
 

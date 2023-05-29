@@ -122,9 +122,14 @@ def _del_underscore_vars(kw):
     return {k: kw[k] for k in kw if k[0] != "_"}
 
 
-def App(routes):
+def App(routes, error_handler=None):
     def app(env, start_resp):
-        return dispatch(routes, env, start_resp)
+        try:
+            return dispatch(routes, env, start_resp)
+        except Exception as e:
+            if error_handler:
+                return error_handler(e)(env, start_resp)
+            raise
 
     return app
 
