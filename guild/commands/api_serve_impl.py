@@ -331,7 +331,7 @@ def _run_files_for_dir(path, relpath, manifest_index):
 
 def _apply_files(path, relpath, manifest_index, files):
     for entry in os.scandir(path):
-        stat = entry.stat()
+        stat = _stat_for_entry(entry)
         entry_relpath = os.path.join(relpath, entry.name)
         files.append(
             {
@@ -340,14 +340,21 @@ def _apply_files(path, relpath, manifest_index, files):
                 "isFile": entry.is_file(),
                 "isDir": entry.is_dir(),
                 "isLink": entry.is_symlink(),
-                "isText": util.is_text_file(os.path.join(path, entry.name)),
-                "size": stat.st_size,
-                "mtime": int(stat.st_mtime * 1000),
+                "isText": entry.is_file() and util.is_text_file(entry.path),
+                "size": stat.st_size if stat else None,
+                "mtime": int(stat.st_mtime * 1000) if stat else None,
                 **_type_attrs(entry.name),
                 **_dir_attrs(entry, entry_relpath, manifest_index),
                 **_manifest_attrs(entry, entry_relpath, manifest_index),
             }
         )
+
+def _stat_for_entry(entry):
+    try:
+        return entry.stat()
+    except FileNotFoundError:
+        # Occurs for broken symlinks
+        return None
 
 
 def _type_attrs(name):
