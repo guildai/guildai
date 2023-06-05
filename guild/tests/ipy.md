@@ -285,6 +285,27 @@ Read the scalars:
     1  ...  .guild   y       -1.0           0      -1.0          0     -1.0         0     -1.0         0     -1.0      1   -1.0
     2  ...  .guild   z        1.0           0       1.0          0      1.0         0      1.0         0      1.0      1    1.0
 
+Col types:
+
+    >>> for col in ["run", "prefix", "tag", "first_val", "first_step",
+    ...             "last_val", "last_step", "min_val", "min_step",
+    ...             "max_val", "max_step", "avg_val", "count", "total"]:
+    ...     print(f"{col}: {type(scalars[col].iloc[0])}")
+    run: <class 'str'>
+    prefix: <class 'str'>
+    tag: <class 'str'>
+    first_val: <class 'numpy.float64'>
+    first_step: <class 'numpy.int64'>
+    last_val: <class 'numpy.float64'>
+    last_step: <class 'numpy.int64'>
+    min_val: <class 'numpy.float64'>
+    min_step: <class 'numpy.int64'>
+    max_val: <class 'numpy.float64'>
+    max_step: <class 'numpy.int64'>
+    avg_val: <class 'numpy.float64'>
+    count: <class 'numpy.int64'>
+    total: <class 'numpy.float64'>
+
 Print some of the more interesting columns:
 
     >>> scalars[["run", "tag", "last_step", "last_val"]]
@@ -296,11 +317,24 @@ Print some of the more interesting columns:
 The underlying scalar summaries can be read using `scalars_detail`.
 
     >>> with guild_home:
-    ...     ipy.runs().scalars_detail()
+    ...     scalars = ipy.runs().scalars_detail()
+
+    >>> scalars
        run    path tag  val  step
     0  ...  .guild   x  3.0     0
     1  ...  .guild   y -1.0     0
     2  ...  .guild   z  1.0     0
+
+
+Col types:
+
+    >>> for col in ["run", "path", "tag", "val", "step"]:
+    ...     print(f"{col}: {type(scalars[col].iloc[0])}")
+    run: <class 'str'>
+    path: <class 'str'>
+    tag: <class 'str'>
+    val: <class 'numpy.float64'>
+    step: <class 'numpy.int64'>
 
 ### Logging scalars as TFEvents
 

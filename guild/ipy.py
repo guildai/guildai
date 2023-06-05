@@ -694,7 +694,7 @@ def _runs_scalars_detail(runs):
         for path, _run_id, scalars in tfevent.scalar_readers(run.dir):
             rel_path = os.path.relpath(path, run.dir)
             for tag, val, step in scalars:
-                data.append([run, rel_path, tag, val, step])
+                data.append([run.id, rel_path, tag, val, step])
     return pd.DataFrame(data, columns=cols)
 
 
