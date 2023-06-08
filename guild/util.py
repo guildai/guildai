@@ -77,6 +77,16 @@ def all_apply(funs, *args):
     return True
 
 
+def pop_find(l, f, default=None):
+    popped = default
+    for x in list(l):
+        if f(x):
+            popped = x
+            l.remove(x)
+            break
+    return popped
+
+
 def ensure_dir(d):
     d = realpath(d)
     try:

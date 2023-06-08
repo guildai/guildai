@@ -1399,3 +1399,32 @@ Read a third value. A this point, the cache prunes expired entries.
 
     >>> [(key, val) for key, _expires, val in sorted(c.entries())]
     [('b', 2), ('c', 3)]
+
+## Pop find
+
+`util.pop_find` removes and returns the first element in a list
+matching a filter call.
+
+    >>> from guild.util import pop_find
+
+    >>> l = [1,2,3]
+    >>> pop_find(l, lambda x: x >=2)
+    2
+
+    >>> l
+    [1, 3]
+
+If the filter does not match an element, returns a default value
+without modifying the list. If not specified the default is None.
+
+    >>> print(pop_find(l, lambda x: False))
+    None
+
+    >>> l
+    [1, 3]
+
+    >>> pop_find(l, lambda x: False, 'another default')
+    'another default'
+
+    >>> l
+    [1, 3]

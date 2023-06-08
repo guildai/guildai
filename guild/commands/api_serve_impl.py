@@ -349,6 +349,7 @@ def _apply_files(path, relpath, manifest_index, files):
             }
         )
 
+
 def _stat_for_entry(entry):
     try:
         return entry.stat()
@@ -413,11 +414,27 @@ def _handle_run_file(req, cache, run_id, path):
 
         def start_resp_wrapped(status, headers):
             headers.append(("Access-Control-Allow-Origin", "*"))
+            _maybe_plain_text_type(full_path, headers)
             start_resp(status, headers)
 
         return iter(file_data(env, start_resp_wrapped))
 
     return app
+
+
+def _maybe_plain_text_type(path, headers):
+    content_type_h = util.pop_find(headers, lambda h: h[0].lower() == 'content-type')
+    if not content_type_h:
+        return
+    headers.append(
+        ('Content-Type', 'text/plain')  #
+        if _force_plain_text(path, content_type_h[1])  #
+        else content_type_h
+    )
+
+
+def _force_plain_text(path, content_type):
+    return content_type == 'application/octet-stream' and util.is_text_file(path)
 
 
 def _is_guild_path(path):
