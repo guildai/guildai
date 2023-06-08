@@ -407,17 +407,17 @@ def _handle_run_file(req, cache, run_id, path):
         app = serving_util.json_resp({"error": 404, "msg": "Not Found"}, 404)
         return app(env, start_resp)
 
-    file_data = serving_util.SharedDataMiddleware(not_found, {full_path: full_path})
+    static_app = serving_util.SharedDataMiddleware(not_found, {full_path: full_path})
 
     def app(env, start_resp):
         env["PATH_INFO"] = full_path
 
-        def start_resp_wrapped(status, headers):
+        def start_resp_allow_origin(status, headers):
             headers.append(("Access-Control-Allow-Origin", "*"))
             _maybe_plain_text_type(full_path, headers)
             start_resp(status, headers)
 
-        return iter(file_data(env, start_resp_wrapped))
+        return static_app(env, start_resp_allow_origin)
 
     return app
 
