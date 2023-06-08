@@ -16,4 +16,4 @@ import os
 
 __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 
-__version__ = "0.9.1.dev1"
+__version__ = "0.10.0.dev1"
