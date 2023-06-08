@@ -500,7 +500,9 @@ for the run.
     operation: op3
     status: completed
     started: ... UTC
+    started_epoch: ...
     stopped: ... UTC
+    stopped_epoch: ...
     time: 0:00:...
     marked: 'no'
     label: c=4
@@ -911,9 +913,12 @@ Show the generated index.
     - [aaa](aaa/README.md) - op
     <BLANKLINE>
 
-The index template can also be specified as a file.
+The index template can also be specified as a file. The template
+`index-t2/TEMPLATE.md` includes the run label to the right of the run
+operation name.
 
-    >>> quiet(f"guild publish --dest {publish_dest} --index-template=index-t2/TEMPLATE.md -y")
+    >>> quiet(f"guild publish --dest {publish_dest} "
+    ...       "--index-template=index-t2/TEMPLATE.md -y")
 
     >>> cat(path(publish_dest, "README.md"))
     Yet another index:

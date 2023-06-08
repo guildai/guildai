@@ -415,7 +415,9 @@ def _publish_run_info(state):
         f.write(f"operation: {encode(frun['operation'])}\n")
         f.write(f"status: {encode(frun['status'])}\n")
         f.write(f"started: {fmt_ts(started)}\n")
+        f.write(f"started_epoch: {started}\n")
         f.write(f"stopped: {fmt_ts(stopped)}\n")
+        f.write(f"stopped_epoch: {stopped}\n")
         f.write(f"time: {_format_time(started, stopped)}\n")
         f.write(f"marked: {encode(frun['marked'])}\n")
         f.write(f"label: {encode(run.get('label'))}\n")
@@ -801,4 +803,4 @@ def _published_runs(dest_home):
             continue
         info = yaml.safe_load(open(run_yml, "r"))
         runs.append(info)
-    return sorted(runs, key=lambda run: run.get("started"), reverse=True)
+    return sorted(runs, key=lambda run: run.get("started_epoch"), reverse=True)
