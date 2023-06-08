@@ -45,6 +45,6 @@ def main(args):
 
 
 def _runs_data(args):
-    from .view_impl import ViewDataImpl
+    from .view_impl_legacy import ViewDataImpl
 
     return ViewDataImpl(args).runs_data(api_version=int(args.api_version))

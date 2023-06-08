@@ -115,7 +115,7 @@ def _handle_preview(merge, args):
 
 
 def _run_data(run):
-    from .view_impl import run_data
+    from .view_impl_legacy import run_data
 
     attrs = (
         "id",

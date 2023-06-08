@@ -439,6 +439,7 @@ def _maybe_generated(entry, relpath):
     return "g" if not entry.is_dir() and not _is_guild_path(relpath) else None
 
 
+
 def _handle_run_file(_req, run_id, path):
     run = _run_for_id(run_id)
     full_path = os.path.join(run.dir, path)

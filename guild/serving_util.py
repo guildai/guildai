@@ -60,6 +60,17 @@ class StaticDir(StaticBase):
         return app
 
 
+class RedirectMiddleware:
+    def __init__(self, map, app):
+        self.map = map
+        self.app = app
+
+    def __call__(self, env, start_resp):
+        path = env.get("PATH_INFO")
+        env["PATH_INFO"] = self.map.get(path, path)
+        return self.app(env, start_resp)
+
+
 def make_server(host, port, app, logging=True):
     if host is None:
         raise RuntimeError("host cannot be None")

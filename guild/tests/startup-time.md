@@ -28,63 +28,6 @@ Run `guild.main_bootstrap` module with no arguments to test startup time.
     ...     print("<exit %i>" % e.returncode)
     >>> time1 = time.time()
 
-Expected output (Guild help):
-
-    >>> print(out.decode())  # doctest: +REPORT_UDIFF
-    Usage: python -m guild.main_bootstrap [OPTIONS] COMMAND [ARGS]...
-    <BLANKLINE>
-      Guild AI command line interface.
-    <BLANKLINE>
-    Options:
-      --version  Show the version and exit.
-      -C PATH    Use PATH as current directory for a command.
-      -H PATH    Use PATH as Guild home.
-      --debug    Log more information during command.
-      --help     Show this message and exit.
-    <BLANKLINE>
-    Commands:
-      api              CLI based API calls.
-      cat              Show contents of a run file.
-      check            Check the Guild setup.
-      comment          Add or remove run comments.
-      compare          Compare run results.
-      completion       Generate command completion script.
-      diff             Diff two runs.
-      download         Download a file resource.
-      export           Export one or more runs.
-      help             Show help for a path or package.
-      import           Import one or more runs from ARCHIVE.
-      init             Initialize a Guild environment.
-      install          Install one or more packages.
-      label            Set run labels.
-      ls               List run files.
-      mark             Mark a run.
-      merge            Copy run files to a project directory.
-      models           Show available models.
-      open             Open a run path or output.
-      operations, ops  Show model operations.
-      package          Create a package for distribution.
-      packages         Show or manage packages.
-      publish          Publish one or more runs.
-      pull             Copy one or more runs from a remote location.
-      push             Copy one or more runs to a remote location.
-      remote           Manage remote status.
-      remotes          Show available remotes.
-      run              Run an operation.
-      runs             Show or manage runs.
-      search           Search for a package.
-      select           Select a run and shows its ID.
-      shell            Start a Python shell for API use.
-      stop             Stop one or more runs.
-      sync             Synchronize remote runs.
-      sys              System utilities.
-      tag              Add or remove run tags.
-      tensorboard      Visualize runs with TensorBoard.
-      tensorflow       Collection of TensorFlow tools.
-      uninstall        Uninstall one or more packages.
-      view             Visualize runs in a local web application.
-      watch            Watch run output.
-
 Our run time for the `guild` command:
 
     >>> run_time = time1 - time0

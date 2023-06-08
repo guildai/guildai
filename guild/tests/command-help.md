@@ -54,7 +54,7 @@ Guild provides help text to users with the `--help` option.
       tensorboard      Visualize runs with TensorBoard.
       tensorflow       Collection of TensorFlow tools.
       uninstall        Uninstall one or more packages.
-      view             Visualize runs in a local web application.
+      view             Run Guild View.
       watch            Watch run output.
 
     >>> run("guild runs --help")  # doctest: +REPORT_UDIFF

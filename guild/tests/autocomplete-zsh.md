@@ -71,7 +71,6 @@ markdown and text files.
     var
     vcs-source
     vcs-utils
-    view
     whitelist-code
     yaml-utils
     bar.md

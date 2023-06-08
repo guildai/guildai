@@ -188,7 +188,6 @@ Run the other tests.
       var:                         ok
       vcs-source:                  ok
       vcs-utils:                   ok
-      view:                        ok
       whitelist-code:              ok
       yaml-utils:                  ok
     <exit 0>

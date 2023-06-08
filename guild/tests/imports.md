@@ -182,6 +182,7 @@ doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr 
     guild.commands.uninstall
     guild.commands.view
     guild.commands.view_impl
+    guild.commands.view_impl_legacy
     guild.commands.view_tester
     guild.commands.watch
     guild.commands.watch_impl
@@ -296,5 +297,4 @@ doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr 
     guild.util
     guild.var
     guild.vcs_util
-    guild.view
     guild.yaml_util
