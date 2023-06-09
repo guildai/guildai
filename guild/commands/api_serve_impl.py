@@ -84,7 +84,7 @@ def _api_app(cache_ttl=5, cache_prune_threshold=1000):
             ("/runs/<run_id>/attrs", _handle_run_multi_attr, (cache,)),
             ("/runs/<run_id>/scalars", _handle_run_scalars, (cache,)),
             ("/runs/<run_id>/files/", _handle_run_files, (cache,)),
-            ("/runs/<run_id>/files/<path:path>", _handle_run_file, (cache,)),
+            ("/runs/<run_id>/files/<path:path>", _handle_run_file, ()),
             ("/runs/<run_id>/comments", _handle_run_comments, (cache,)),
             ("/runs/<run_id>/tags", _handle_run_tags, (cache,)),
             ("/operations", _handle_operations, (cache,)),
@@ -97,7 +97,7 @@ def _api_app(cache_ttl=5, cache_prune_threshold=1000):
     return serving_util.App(routes, _error_handler)
 
 
-def _error_handler(e):
+def _error_handler(_e):
     def app(env, start_resp):
         log.exception("unhandled error for %s", env)
         resp = serving_util.json_resp({"error": 500, "msg": "Internal Error"}, 500)
@@ -399,7 +399,7 @@ def _maybe_generated(entry, relpath):
     return "g" if not entry.is_dir() and not _is_guild_path(relpath) else None
 
 
-def _handle_run_file(req, cache, run_id, path):
+def _handle_run_file(_req, run_id, path):
     run = _run_for_id(run_id)
     full_path = os.path.join(run.dir, path)
 
@@ -439,7 +439,6 @@ def _force_plain_text(path, content_type):
 
 def _is_guild_path(path):
     return path.split(os.path.sep, 1)[0] == ".guild"
-    return app
 
 
 @json_resp
