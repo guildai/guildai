@@ -1986,7 +1986,10 @@ class Cache:
         self._lock = threading.Lock()
 
     def read(self, key, gen, ttl=None):
-        now = time.perf_counter()
+        if ttl == 0 and self._ttl == 0:
+            # ttl of 0 doesn't require cache lookup/storage
+            return _cache_appy_gen(gen)
+        now = time.time()
         self._maybe_prune()
         try:
             with self._lock:
