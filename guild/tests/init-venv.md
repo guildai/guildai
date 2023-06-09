@@ -92,9 +92,10 @@ Preview the init operation using the default values.
     Continue? (Y/n)
     <exit ...>
 
-Create the environment.
+Create the environment. Specify a version of Guild that we know is
+available on PyPI.
 
-    >>> run("guild init --venv -y")  # doctest: -WINDOWS
+    >>> run("guild init --venv --guild 0.9.0 -y")  # doctest: -WINDOWS
     Initializing Guild environment in ...guild-test-.../venv
     Creating virtual environment
     ...

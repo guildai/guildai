@@ -403,7 +403,7 @@ def _install_guild_dist(config):
         cli.out(f"Installing Guild {config.guild}")
         req = f"guildai=={config.guild}"
     else:
-        cli.out(f"Installing {config.guild}")
+        cli.out(f"Installing Guild from {config.guild}")
         req = config.guild
     # Install Guild dist ignoring installed. In some cases (behavior
     # seems to have landed in pip 19.3.1) pip will decide not to
