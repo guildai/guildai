@@ -111,7 +111,7 @@ available on PyPI.
 On Windows instruction to activate the environment (last line) is
 different from POSIX systems.
 
-    >>> run("guild init --venv -y")  # doctest: +WINDOWS_ONLY
+    >>> run("guild init --venv --guild 0.9.0 -y")  # doctest: +WINDOWS_ONLY
     Initializing Guild environment in ...guild-test-.../venv
     Creating virtual environment
     ...
