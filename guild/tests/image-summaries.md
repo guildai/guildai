@@ -30,8 +30,8 @@ in a log directory.
 
     >>> from guild.tensorboard import RunsMonitor
 
-Let's create a log directory. This is where the monitor stores run
-summary logs.
+Create a log directory. This is where the monitor stores run summary
+logs.
 
     >>> logdir = mkdtemp()
 
@@ -39,7 +39,7 @@ The monitor needs a callback for listing runs. We use the project.
 
     >>> list_runs_cb = project.list_runs
 
-Our monitor, configured to log only images:
+Create the monitor.
 
     >>> monitor = RunsMonitor(logdir, list_runs_cb, log_hparams=False)
 
