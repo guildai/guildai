@@ -331,7 +331,8 @@ class RunOutput:
 
     def _output_eol(self, index_fileno, line, stream_type):
         line_bytes = bytes(line)
-        entry = struct.pack("!QB", int(time.time() * 1000), stream_type)
+        entry = struct.pack("!QB", time.time_ns() // 1000000, stream_type)
+        entry = struct.pack("!QB", time.time_ns() // 1000000, stream_type)
         os.write(index_fileno, entry)
         if self._output_cb:
             try:

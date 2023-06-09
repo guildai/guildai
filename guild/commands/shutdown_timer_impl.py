@@ -43,7 +43,7 @@ def _run(args, log):
     log.info("%s started with timeout = %im", TITLE, args.timeout)
     if args.dont_shutdown:
         log.info("%s WILL NOT SHUTDOWN system because --dont-shutdown was used", TITLE)
-    last_activity = _now()
+    last_activity = _now_seconds()
     while True:
         try:
             last_activity = _check_activity(last_activity, log)
@@ -58,7 +58,7 @@ def _run(args, log):
 
 def _check_activity(last_activity, log):
     pids = _guild_ops()
-    now = _now()
+    now = _now_seconds()
     log_f = _log_function(log, now, pids)
     if pids:
         log_f("Active runs (pids): %s", ",".join(map(str, pids)))
@@ -104,10 +104,10 @@ def _guild_ops():
 
 
 def _timeout(last, timeout):
-    return _now() >= (last + (timeout * 60))
+    return _now_seconds() >= (last + (timeout * 60))
 
 
-def _now():
+def _now_seconds():
     return int(time.time())
 
 

@@ -254,7 +254,7 @@ def timestamp():
 
     Ensures that subsequent calls return increasing values.
     """
-    ts = int(time.time() * 1000000)
+    ts = time.time_ns() // 1000
     with __last_ts_lock:
         if __last_ts is not None and __last_ts >= ts:
             ts = __last_ts + 1

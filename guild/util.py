@@ -219,7 +219,7 @@ def loop(cb, wait, interval, first_interval=None):
 
 def _loop(cb, wait, interval, first_interval):
     loop_interval = first_interval if first_interval is not None else interval
-    start = time.perf_counter()
+    start = time.time()
     while True:
         sleep = _sleep_interval(loop_interval, start)
         loop_interval = interval
@@ -232,7 +232,7 @@ def _loop(cb, wait, interval, first_interval):
 def _sleep_interval(interval, start):
     if interval <= 0:
         return 0
-    now_ms = int(time.perf_counter() * 1000)
+    now_ms = time.time_ns() // 1000000
     interval_ms = int(interval * 1000)
     start_ms = int(start * 1000)
     sleep_ms = (
@@ -818,7 +818,7 @@ def safe_is_text_file(path, ignore_ext=False):
 
 def touch(filename):
     open(filename, "ab").close()
-    now = time.perf_counter()
+    now = time.time()
     os.utime(filename, (now, now))
 
 
@@ -901,7 +901,7 @@ def format_duration(start_time, end_time=None):
     if start_time is None:
         return None
     if end_time is None:
-        end_time = time.perf_counter() * 1000000
+        end_time = time.time() * 1000000
     seconds = int((end_time - start_time) // 1000000)
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
@@ -1759,11 +1759,11 @@ class PropertyCache:
         }
 
     def get(self, name, *args, **kw):
-        if time.perf_counter() < self._expirations[name]:
+        if time.time() < self._expirations[name]:
             return self._vals[name]
         val = self._callbacks[name](*args, **kw)
         self._vals[name] = val
-        self._expirations[name] = time.perf_counter() + self._timeouts[name]
+        self._expirations[name] = time.time() + self._timeouts[name]
         return val
 
 
@@ -2022,7 +2022,7 @@ class Cache:
 
         Calls to this function must be made with the lock.
         """
-        now = time.perf_counter()
+        now = time.time()
         for key, (_val, expires) in list(self._entries.items()):
             if now > expires:
                 del self._entries[key]
