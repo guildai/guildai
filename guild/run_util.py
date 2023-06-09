@@ -437,10 +437,14 @@ def latest_compare(run):
 
 
 def _try_guildfile_compare(run):
-    opdef = run_opdef(run)
-    if opdef:
-        return opdef.compare
-    return None
+    try:
+        opdef = run_opdef(run)
+    except guildfile.GuildfileError:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("getting opdef for run in %s", run.dir)
+        return None
+    else:
+        return opdef.compare if opdef else None
 
 
 def run_opdef(run):
