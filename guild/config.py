@@ -130,7 +130,11 @@ def _guild_home_scheme():
 
 
 def _guild_scheme_for_user_config():
-    return user_config().get("legacy", {}).get("guild-home")
+    # Only check user home config for `legacy` setting as the default
+    # `user_config()` relies on Guild home (which we're trying to find
+    # at this point)
+    config = user_config(_methods=[_user_home_user_config])
+    return config.get("legacy", {}).get("guild-home")
 
 
 def _guild_home_pre_0_9():
@@ -331,14 +335,14 @@ class SetUserConfig:
 
     def __enter__(self):
         self._save = user_config
-        globals()["user_config"] = lambda: self.data
+        globals()["user_config"] = lambda _methods: self.data
 
     def __exit__(self, *exc):
         globals()["user_config"] = self._save
 
 
-def user_config():
-    path = user_config_path()
+def user_config(_methods=None):
+    path = user_config_path(_methods)
     config = _user_config
     if config is None or config.path != path:
         config = _Config(path)
@@ -346,20 +350,28 @@ def user_config():
     return config.read()
 
 
-def user_config_path():
-    return _find_apply([
-        _user_config_env,
-        _cwd_user_config,
-        _user_home_user_config,
-    ])
+def user_config_path(_methods=None):
+    return _find_apply(
+        _methods or [
+            _env_user_config,
+            _cwd_user_config,
+            _guild_home_user_config,
+            _user_home_user_config,
+        ]
+    )
 
 
-def _user_config_env():
+def _env_user_config():
     return os.environ.get("GUILD_CONFIG")
 
 
 def _cwd_user_config():
     path = os.path.join(cwd(), "guild-config.yml")
+    return path if os.path.exists(path) else None
+
+
+def _guild_home_user_config():
+    path = os.path.join(guild_home(), "config.yml")
     return path if os.path.exists(path) else None
 
 

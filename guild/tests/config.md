@@ -11,6 +11,7 @@ of precedence:
 
 - In a path specified by the `GUILD_CONFIG` environment variable
 - `guild-config.yml` in the current working directory
+- `$GUILD_HOME/config.yml`
 - `~/.guild/config.yml`
 
 Define user config in three locations.
@@ -31,6 +32,12 @@ A sample project:
     >>> write(path(project_dir, "guild-config.yml"), """remotes:
     ...   foo:
     ...     description: Remote defined in project user config
+    ... """)
+
+    >>> mkdir(path(project_dir, ".guild"))
+    >>> write(path(project_dir, ".guild", "config.yml"), """remotes:
+    ...   bar:
+    ...     description: Remote defined in project user config v2
     ... """)
 
 A directory simulating user home (will be used by hacking the HOME env
@@ -56,6 +63,16 @@ Otherwise, the project config is used if it exists:
     ...     with Env({"HOME": fake_home}):
     ...         pprint(config.user_config())
     {'remotes': {'foo': {'description': 'Remote defined in project user config'}}}
+
+Delete `guild-config.yml` - Guild uses `.guild/config.yml`.
+
+    >>> rm(path(project_dir, "guild-config.yml"))
+
+    >>> with SetCwd(project_dir):
+    ...     with Env({"HOME": fake_home}):
+    ...         pprint(config.user_config())
+    {'remotes': {'bar': {'description': 'Remote defined in project user config '
+                                        'v2'}}}
 
 Otherwise, the default location `~/.guild/config.yml` is used. Here we
 redefine `HOME` to use the test config created above.
