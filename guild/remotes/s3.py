@@ -99,6 +99,7 @@ class S3Remote(meta_sync.MetaSyncRemote):
             "--include",
             "meta-id",
             "--delete",
+            "--exact-timestamps",
         ]
         self._s3_cmd("sync", sync_args, quiet=True)
 
@@ -223,7 +224,13 @@ class S3Remote(meta_sync.MetaSyncRemote):
     def _push_run(self, run, delete):
         local_run_src = os.path.join(run.path, "")
         remote_run_dest = self._s3_uri(*RUNS_PATH + [run.id]) + "/"
-        args = ["--no-follow-symlinks", local_run_src, remote_run_dest]
+        args = [
+            "--no-follow-symlinks",
+            "--delete",
+            "--exact-timestamps",
+            local_run_src,
+            remote_run_dest,
+        ]
         if delete:
             args.insert(0, "--delete")
         log.info("Copying %s to %s", run.id, self.name)
