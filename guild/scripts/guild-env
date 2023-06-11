@@ -15,8 +15,8 @@ if [ -z "$_guild_env" ]; then
         _guild_env=./venv
     elif [ -e "env/${BIN_DIR}/activate" ]; then
         _guild_env=./env
-    elif [ -e "env/Scripts/activate" ]; then
-        _guild_env=./env
+    elif [ -e ".venv/${BIN_DIR}/activate" ]; then
+        _guild_env=./.venv
     else
         echo "guild-env: cannot find a Guild environment in the current directory"
         echo "Try 'source guild-env PATH'."
