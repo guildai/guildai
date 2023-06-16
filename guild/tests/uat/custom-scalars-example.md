@@ -33,13 +33,13 @@ test custom output scalar patterns against sample script output.
 
     >>> run("echo 'foo: 1.123' | guild run train.py --test-output-scalars -")
     foo: 1.123
-      '[^ \t]+: +[0-9\\.e\\-]+\\s+\\((?:step\\s+)?(?P<step>[0-9]+)\\)$': <no matches>
-      '^([^ \t]+):\\s+([0-9\\.e\\-]+)(?:\\s+\\(.*\\))?$': [('foo', '1.123')] (foo=1.123)
+      '[^ \t]+: +(?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF])\\s+\\((?:step\\s+)?(?P<step>[0-9]+)\\)$': <no matches>
+      '^([^ \t]+):\\s+((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))(?:\\s+\\(.*\\))?$': [('foo', '1.123')] (foo=1.123)
 
     >>> run("echo 'bar' | guild run train.py --test-output-scalars -")
     bar
-      '[^ \t]+: +[0-9\\.e\\-]+\\s+\\((?:step\\s+)?(?P<step>[0-9]+)\\)$': <no matches>
-      '^([^ \t]+):\\s+([0-9\\.e\\-]+)(?:\\s+\\(.*\\))?$': <no matches>
+      '[^ \t]+: +(?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF])\\s+\\((?:step\\s+)?(?P<step>[0-9]+)\\)$': <no matches>
+      '^([^ \t]+):\\s+((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))(?:\\s+\\(.*\\))?$': <no matches>
 
 ## train
 
@@ -82,29 +82,29 @@ we don't match unless `NAME` is either `loss`, `accuracy`, or `step`:
     ... faz
     ... EOF""") # doctest: +REPORT_UDIFF
     step: 1
-      'accuracy: ([0-9\\.e\\-]+)': <no matches>
-      'loss: ([0-9\\.e\\-]+)': <no matches>
-      'step: ([0-9\\.e\\-]+)': [('1',)] (step=1.0)
+      'accuracy: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
+      'loss: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
+      'step: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': [('1',)] (step=1.0)
     loss: 1.1
-      'accuracy: ([0-9\\.e\\-]+)': <no matches>
-      'loss: ([0-9\\.e\\-]+)': [('1.1',)] (loss=1.1)
-      'step: ([0-9\\.e\\-]+)': <no matches>
+      'accuracy: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
+      'loss: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': [('1.1',)] (loss=1.1)
+      'step: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
     accuracy: 0.22
-      'accuracy: ([0-9\\.e\\-]+)': [('0.22',)] (accuracy=0.22)
-      'loss: ([0-9\\.e\\-]+)': <no matches>
-      'step: ([0-9\\.e\\-]+)': <no matches>
+      'accuracy: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': [('0.22',)] (accuracy=0.22)
+      'loss: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
+      'step: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
     foo: 2.2
-      'accuracy: ([0-9\\.e\\-]+)': <no matches>
-      'loss: ([0-9\\.e\\-]+)': <no matches>
-      'step: ([0-9\\.e\\-]+)': <no matches>
+      'accuracy: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
+      'loss: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
+      'step: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
     bar 3.3
-      'accuracy: ([0-9\\.e\\-]+)': <no matches>
-      'loss: ([0-9\\.e\\-]+)': <no matches>
-      'step: ([0-9\\.e\\-]+)': <no matches>
+      'accuracy: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
+      'loss: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
+      'step: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
     faz
-      'accuracy: ([0-9\\.e\\-]+)': <no matches>
-      'loss: ([0-9\\.e\\-]+)': <no matches>
-      'step: ([0-9\\.e\\-]+)': <no matches>
+      'accuracy: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
+      'loss: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
+      'step: ((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))': <no matches>
 
 Here are the other two operations:
 

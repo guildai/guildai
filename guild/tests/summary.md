@@ -60,6 +60,142 @@ Named groups:
           acc=(?P<acc>\S+)
           val_acc=(?P<val_acc>\S+)
 
+### Patterns
+
+Function to test patterns:
+
+    >>> def test_p(p, s):
+    ...     with LogCapture() as logs:
+    ...         compiled = summary._compile_patterns(f"^{p}$", None)
+    ...     logs.print_all()
+    ...     if not compiled:
+    ...         return False
+    ...     # _compile_patterns has an odd interface that
+    ...     # returns a list of compiled patterns when it
+    ...     # really should return None or a single compiled
+    ...     # pattern. This is an alleged convenience in the
+    ...     # implementation as the implementation works with
+    ...     # lists of patterns.
+    ...     return compiled[0][1].match(s) is not None
+
+Test various patterns.
+
+    >>> test_p("", "")
+    True
+
+    >>> test_p("foo", "")
+    False
+
+    >>> test_p("foo", "foo")
+    True
+
+    >>> test_p(r"loss: \d", "loss: 123")
+    False
+
+    >>> test_p(r"loss: \d+", "loss: 123")
+    True
+
+    >>> test_p(r"loss: \d", "loss: bar")
+    False
+
+    >>> test_p(r"loss: (\d\d)", "loss: 123")
+    False
+
+    >>> test_p(r"loss: (\d\d\d)", "loss: 123")
+    True
+
+Guild supports the following aliases:
+
+    >>> summary.ALIASES
+    [(re.compile('\\\\key'), '...'),
+     (re.compile('\\\\value'), '...'),
+     (re.compile('\\\\step'), '...')]
+
+Test various examples for `\value` alias:
+
+    >>> examples = [
+    ...     # Inf / NaN
+    ...     "inf",
+    ...     "nan",
+    ...     "NaN",
+    ...     "INF",
+    ...     "+inf",
+    ...     "-inf",
+    ...
+    ...     # Floats
+    ...     ".12",
+    ...     "-.12",
+    ...     "+.12",
+    ...     "16.",
+    ...     "1.2",
+    ...     "-0.3",
+    ...     "+0.3",
+    ...
+    ...     # Exponents
+    ...     "1e6",
+    ...     "1.7e-9",
+    ...     "1.7e+9",
+    ...     "-1.7e-9",
+    ...     "-1.7e+9",
+    ...     "+1.7e-9",
+    ...     "-1.7e+9",
+    ...     ".123e3",
+    ...     "-.123e3",
+    ...     "+.123e3",
+    ...
+    ...     # Ints
+    ...     "1",
+    ...     "12",
+    ...     "-12",
+    ...     "+12",
+    ...
+    ...     # Invalid values
+    ...     "e6",
+    ...     "tree",
+    ...     "1t7",
+    ...     ".1.7e+9",
+    ... ]
+
+    >>> for s in examples:  # doctest: +REPORT_UDIFF
+    ...     result = test_p(r"\value", s)
+    ...     print(f"{s}: {result}")
+    inf: True
+    nan: True
+    NaN: True
+    INF: True
+    +inf: True
+    -inf: True
+    .12: True
+    -.12: True
+    +.12: True
+    16.: True
+    1.2: True
+    -0.3: True
+    +0.3: True
+    1e6: True
+    1.7e-9: True
+    1.7e+9: True
+    -1.7e-9: True
+    -1.7e+9: True
+    +1.7e-9: True
+    -1.7e+9: True
+    .123e3: True
+    -.123e3: True
+    +.123e3: True
+    1: True
+    12: True
+    -12: True
+    +12: True
+    e6: True
+    tree: False
+    1t7: False
+    .1.7e+9: False
+
+Note that Guild incorrectly matches `e6` above - while incorrect we
+accept this to keep the regular pattern for `\value` somewhat sane and
+also match patterns like `.123`, which are reasonable float
+representations in Python.
+
 ### Processing output
 
 Create a function to process output lines according to output scalar

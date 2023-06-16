@@ -24,7 +24,12 @@ log = logging.getLogger("guild")
 
 ALIASES = [
     (re.compile(r"\\key"), "[^ \t]+"),
-    (re.compile(r"\\value"), "[0-9\\.e\\-]+"),
+    (
+        re.compile(r"\\value"),
+        r"(?:[-+]?[0-9]*\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?"  #
+        r"|[nN][aA][nN]"  #
+        r"|[-+]?[iI][nN][fF])"
+    ),
     (re.compile(r"\\step"), "[0-9]+"),
 ]
 
@@ -346,14 +351,15 @@ def _string_patterns(s):
 def _compile_patterns(val, key):
     if not isinstance(val, str):
         log.warning("invalid output scalar pattern: %r", val)
-        return
+        return []
     val = _replace_aliases(val)
     try:
         p = re.compile(val)
     except Exception as e:
         log.warning("error compiling pattern %s: %s", val, e)
+        return []
     else:
-        yield key, p
+        return [(key, p)]
 
 
 def _replace_aliases(val):
