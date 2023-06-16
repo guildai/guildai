@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
 import json
 import logging
 import socket
@@ -140,17 +141,34 @@ def request_get(app, url):
     def start_resp(status, _headers):
         resp["status"] = status
 
-    resp["body"] = app(_request_get_env(url), start_resp)
+    resp["body"] = app(_request_env("GET", url), start_resp)
     return resp
 
 
-def _request_get_env(url):
+def _request_env(method, url, body=None, content_type=None):
     from urllib.parse import urlparse
 
     req = urlparse(url)
-    return {
+    env = {
         "wsgi.url_scheme": "http",
-        "REQUEST_METHOD": "GET",
+        "REQUEST_METHOD": method,
         "PATH_INFO": req.path,
         "QUERY_STRING": req.query,
     }
+    if body is not None:
+        env["wsgi.input"] = io.BytesIO(body.encode())
+        env["CONTENT_LENGTH"] = str(len(body))
+    if content_type:
+        env["CONTENT_TYPE"] = content_type
+    return env
+
+
+def request_post(app, url, body, content_type=None):
+    # TODO body and content type
+    resp = {}
+
+    def start_resp(status, _headers):
+        resp["status"] = status
+
+    resp["body"] = app(_request_env("POST", url, body, content_type), start_resp)
+    return resp

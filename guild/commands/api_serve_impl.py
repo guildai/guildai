@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import logging
 import mimetypes
 import os
@@ -34,6 +35,11 @@ log = logging.getLogger("guild")
 DEFAULT_RUN_FILE_MAX_SIZE = 10**6
 
 
+class MethodNotSupported(serving_util.HTTPException):
+    code = 400
+    description = "method not supported"
+
+
 def json_resp(f0):
     def f(*args, **kw):
         try:
@@ -47,6 +53,8 @@ def json_resp(f0):
 def main(args):
     if args.get:
         _get_and_exit(args)
+    if args.post:
+        _post_and_exit(args)
     host, port = _host_and_port(args)
     view_url = util.local_server_url(host, port)
     sys.stdout.write(f"Running Guild API server at {view_url} (Type Ctrl-C to quit)\n")
@@ -56,6 +64,15 @@ def main(args):
 
 def _get_and_exit(args):
     resp = serving_util.request_get(_api_app(), args.get)
+    exit = 0 if resp["status"] == "200 OK" else 1
+    for part in resp["body"]:
+        sys.stdout.buffer.write(part)
+    sys.exit(exit)
+
+
+def _post_and_exit(args):
+    url, body = args.post
+    resp = serving_util.request_post(ApiApp(), url, body)
     exit = 0 if resp["status"] == "200 OK" else 1
     for part in resp["body"]:
         sys.stdout.buffer.write(part)
@@ -87,6 +104,7 @@ def _api_app(cache_ttl=5, cache_prune_threshold=1000):
             ("/runs/<run_id>/files/<path:path>", _handle_run_file, ()),
             ("/runs/<run_id>/comments", _handle_run_comments, (cache,)),
             ("/runs/<run_id>/tags", _handle_run_tags, (cache,)),
+            ("/runs/<run_id>/label", _handle_run_label, ()),
             ("/operations", _handle_operations, (cache,)),
             ("/compare", _handle_compare, (cache,)),
             ("/scalars", _handle_scalars, (cache,)),
@@ -107,12 +125,21 @@ def _error_handler(_e):
 
 
 @json_resp
-def _handle_not_supported(_req, path):
+def _handle_not_supported(req, path):
     raise serving_util.NotFound(path)
 
 
 @json_resp
+def _handle_ping(req):
+    if req.method != "GET":
+        raise MethodNotSupported()
+    return True
+
+
+@json_resp
 def _handle_runs(req, cache):
+    if req.method != "GET":
+        raise MethodNotSupported()
     return cache.read(_cache_key_for_req(req), (_read_runs, (req.args,)))
 
 
@@ -191,6 +218,8 @@ def _parse_timerange(spec):
 
 @json_resp
 def _handle_run_attr(req, cache, run_id, attr_name):
+    if req.method != "GET":
+        raise MethodNotSupported()
     return cache.read(
         _cache_key_for_req(req),
         (_read_run_attr, (run_id, attr_name)),
@@ -210,6 +239,8 @@ def _run_for_id(run_id):
 
 @json_resp
 def _handle_run_multi_attr(req, cache, run_id):
+    if req.method != "GET":
+        raise MethodNotSupported()
     return {
         attr_name: cache.read(
             _cache_key_for_req(req),
@@ -221,6 +252,8 @@ def _handle_run_multi_attr(req, cache, run_id):
 
 @json_resp
 def _handle_run_scalars(req, cache, run_id):
+    if req.method != "GET":
+        raise MethodNotSupported()
     return cache.read(
         _cache_key_for_req(req),
         (_read_run_scalars, (run_id,)),
@@ -244,6 +277,8 @@ def _run_scalar_val(scalar):
 
 @json_resp
 def _handle_compare(req, cache):
+    if req.method != "GET":
+        raise MethodNotSupported()
     return cache.read(_cache_key_for_req(req), (_read_compare_data, (req.args,)))
 
 
@@ -262,6 +297,8 @@ def _read_compare_data(args):
 
 @json_resp
 def _handle_scalars(req, cache):
+    if req.method != "GET":
+        raise MethodNotSupported()
     return cache.read(_cache_key_for_req(req), (_read_scalars_data, (req.args,)))
 
 
@@ -293,6 +330,8 @@ def _handle_cache(_req, cache):
 
 @json_resp
 def _handle_run_files(req, cache, run_id):
+    if req.method != "GET":
+        raise MethodNotSupported()
     return cache.read(
         _cache_key_for_req(req),
         (_read_run_files, (run_id,)),
@@ -443,6 +482,8 @@ def _is_guild_path(path):
 
 @json_resp
 def _handle_run_comments(req, cache, run_id):
+    if req.method != "GET":
+        raise MethodNotSupported()
     return cache.read(
         _cache_key_for_req(req),
         (_read_comments, (run_id,)),
@@ -456,6 +497,8 @@ def _read_comments(run_id):
 
 @json_resp
 def _handle_run_tags(req, cache, run_id):
+    if req.method != "GET":
+        raise MethodNotSupported()
     return cache.read(_cache_key_for_req(req), (_read_tags, (run_id,)))
 
 
@@ -465,7 +508,35 @@ def _read_tags(run_id):
 
 
 @json_resp
+def _handle_run_label(req, run_id):
+    if req.method == "GET":
+        return _read_run_attr(run_id, "label")
+    if req.method == "POST":
+        _handle_set_run_label(req, run_id)
+        return True
+    raise MethodNotSupported()
+
+
+def _handle_set_run_label(req, run_id):
+    label = _try_decode_data(req)
+    if not isinstance(label, str):
+        raise serving_util.BadRequest("value must be a string")
+    run = _run_for_id(run_id)
+    run.write_attr("label", label)
+
+
+def _try_decode_data(req):
+    data = req.get_data()
+    try:
+        return json.loads(data)
+    except ValueError:
+        raise serving_util.BadRequest("invalid JSON encoding") from None
+
+
+@json_resp
 def _handle_operations(req, cache):
+    if req.method != "GET":
+        raise MethodNotSupported()
     return cache.read(_cache_key_for_req(req), _read_operations)
 
 

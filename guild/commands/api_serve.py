@@ -21,7 +21,19 @@ from . import server_support
 
 @click.command("serve")
 @server_support.host_and_port_options
-@click.option("-G", "--get", help="Perform a GET call and exit.")
+@click.option(
+    "-G",
+    "--get",
+    metavar="PATH",
+    help="Perform a GET call and exit.",
+)
+@click.option(
+    "-P",
+    "--post",
+    nargs=2,
+    metavar="PATH JSON",
+    help="Perform a POST call and exit.",
+)
 @click_util.use_args
 @click_util.render_doc
 def main(args):
