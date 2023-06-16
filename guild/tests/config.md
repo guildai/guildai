@@ -26,7 +26,10 @@ An arbitrary directory (will be specified using environment variable
     ...     description: Remote defined in arbitrary location
     ... """)
 
-A sample project:
+Create a sample project, which includes two project-based user config
+files.
+
+First config, `guild-config.yml`:
 
     >>> project_dir = mkdtemp()
     >>> write(path(project_dir, "guild-config.yml"), """remotes:
@@ -34,14 +37,22 @@ A sample project:
     ...     description: Remote defined in project user config
     ... """)
 
+Second config, `.guild/config.yml`:
+
     >>> mkdir(path(project_dir, ".guild"))
     >>> write(path(project_dir, ".guild", "config.yml"), """remotes:
     ...   bar:
     ...     description: Remote defined in project user config v2
     ... """)
 
-A directory simulating user home (will be used by hacking the HOME env
-var):
+Project layout:
+
+    >>> find(project_dir)
+    .guild/config.yml
+    guild-config.yml
+
+Create a directory simulating user home (will be used by hacking the
+HOME env var).
 
     >>> fake_home = mkdtemp()
     >>> mkdir(path(fake_home, ".guild"))
@@ -50,37 +61,63 @@ var):
     ...     description: Remote defined in default location
     ... """)
 
-`GUILD_CONFIG` is always used if specified:
+For each of the tests below, we override any explicitly set Guild home
+(e.g. via `config.set_guild_home()`) and use the project `.guild`
+directory. This ensuree that Guild doesn't use any activated virtual
+environments for Guild home by default.
+
+    >>> project_gh = path(project_dir, ".guild")
+
+`GUILD_CONFIG` is always used if specified.
 
     >>> with SetCwd(project_dir):
-    ...     with Env({"GUILD_CONFIG": other_guild_config, "HOME": fake_home}):
-    ...         pprint(config.user_config())
+    ...     with Env({
+    ...         "GUILD_CONFIG": other_guild_config,
+    ...         "HOME": fake_home
+    ...     }):
+    ...         with SetGuildHome(project_gh):
+    ...             pprint(config.user_config())
     {'remotes': {'foo': {'description': 'Remote defined in arbitrary location'}}}
 
-Otherwise, the project config is used if it exists:
+Otherwise, the project config is used if it exists.
+
+Guild first checks for `guild-config.yml`.
 
     >>> with SetCwd(project_dir):
     ...     with Env({"HOME": fake_home}):
-    ...         pprint(config.user_config())
+    ...         with SetGuildHome(project_gh):
+    ...             pprint(config.user_config())
     {'remotes': {'foo': {'description': 'Remote defined in project user config'}}}
+
+If `guild-config.yml` doesn't exst, Guild looks for
+`$GUILD_HOME/config.yml`. As of 0.9 and beyond, Guild uses the
+project-local `.guild` subdirectory as `GUILD_HOME` by default.
 
 Delete `guild-config.yml` - Guild uses `.guild/config.yml`.
 
     >>> rm(path(project_dir, "guild-config.yml"))
 
+    >>> find(project_dir)
+    .guild/config.yml
+
+Check user config when `guild-config.yml` is missing.
+
     >>> with SetCwd(project_dir):
     ...     with Env({"HOME": fake_home}):
-    ...         pprint(config.user_config())
+    ...         with SetGuildHome(project_gh):
+    ...             pprint(config.user_config())
     {'remotes': {'bar': {'description': 'Remote defined in project user config '
                                         'v2'}}}
 
-Otherwise, the default location `~/.guild/config.yml` is used. Here we
-redefine `HOME` to use the test config created above.
+When `config.yml` doesn't exist under `GUILD_HOME`, Guild uses
+`~/.guild/config.yml`. Here we redefine `HOME` to use the test config
+created above.
 
     >>> empty_dir = mkdtemp()
     >>> with SetCwd(empty_dir):  # doctest: -WINDOWS
     ...     with Env({"HOME": fake_home}):
-    ...         pprint(config.user_config())
+    ...         with SetGuildHome(empty_dir):
+    ...             pprint(config.user_config())
     {'remotes': {'foo': {'description': 'Remote defined in default location'}}}
 
 ## User config inheritance
