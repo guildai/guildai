@@ -184,8 +184,6 @@ resolution.
     ???
     d hello.in f6f4da8d93e88a08220e03b7810451d3ba540a34 file:hello.in
 
-Note that the dependency is resolved as a `file` type.
-
 ### Configuring DvC
 
 DvC configuration for a project is providfed using
@@ -201,7 +199,8 @@ configuration. This is where we configure remote storage.
     ['remote "guild-s3"']
         url = s3://guild-pub/dvc-store
 
-Run-specific configuration is generated as `.dvc/config`.
+Run-specific configuration is generated as `.dvc/config` in the run
+directory.
 
     >>> run("guild cat -p .dvc/config")
     [core]
@@ -213,11 +212,11 @@ Run-specific configuration is generated as `.dvc/config`.
         url = s3://guild-pub/dvc-store
     <exit 0>
 
-A DvC dependency can always be pulled by setting 'always-pull' to true
+A DvC dependency can always be pulled by setting `always-pull` to true
 in the Guild file. The operation `hello-dvc-dep-always-pull`
 illustrates this.
 
-The project contains a modified version of 'hello.in'.
+Note that the project contains a modified version of 'hello.in'.
 
     >>> cat("hello.in")
     Project
@@ -337,14 +336,17 @@ As specified in `dvc.yaml`, `train-models-dvc-stage` requires
 information is not configured in `guild.yml` - Guild uses DvC for
 dependency configuration.
 
-Try to run `train-models-dvc-stage`.
+Run `train-models-dvc-stage`, which uses
+`guild.plugins.dvc_stage_main` to run the `train-models` stage defined
+in `dvc.yaml`.
 
     >>> run("guild run train-models-dvc-stage -y")
     INFO: [guild] Initializing run
     guild: no suitable run for stage 'prepare-data' (needed for iris.npy)
     <exit 1>
 
-Similarly, try to run `eval-models-dvc-stage`.
+Similarly, try to run `eval-models-dvc-stage`, which uses
+`guild.plugins.dvc_stage_main` to run the `eval-models` DvC stage.
 
     >>> run("guild run eval-models-dvc-stage -y")
     INFO: [guild] Initializing run
@@ -369,10 +371,10 @@ Run `prepare-data-dvc-stage`.
 This resolves `iris.csv` by pulling from remote storage. This is
 reflected as a resolved dependency file.
 
-    >>> run("guild ls -n --dependencies")
+    >>> run("guild ls -n -d")
     iris.csv
 
-NOTE, however, the `deps` attribute is missing any formal dependency
+Note, however, the `deps` attribute is missing any formal dependency
 spec. This SHOULD be implemented by the DvC plugin.
 
     >>> run("guild select --attr deps")
@@ -380,7 +382,7 @@ spec. This SHOULD be implemented by the DvC plugin.
 
 The operation generates `iris.npy`.
 
-    >>> run("guild ls -n --generated")
+    >>> run("guild ls -n -g")
     iris.npy
 
 With a `prepare-data` run, we can run `train-models`.

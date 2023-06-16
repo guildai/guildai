@@ -231,7 +231,6 @@ def _copy_project_file(src, dep, state):
     dest = os.path.join(state.run_dir, dep)
     log.info("Copying %s", dep)
     util.copyfile(src, dest)
-    print(f"##### DEP 2 {src} -> {dest}")
 
 
 def _link_project_file(src, dep, state):
@@ -239,7 +238,6 @@ def _link_project_file(src, dep, state):
     rel_src = os.path.relpath(src, os.path.dirname(link))
     log.info("Linking to %s", dep)
     util.symlink(rel_src, link)
-    print(f"##### DEP 3 {rel_src} -> {link}")
 
 
 def _pull_dep(dep, state):
@@ -274,7 +272,6 @@ def _copy_params_with_flags(state):
             )
         log.info("Copying %s", name)
         util.copyfile(src, dest)
-        print(f"##### DEP 5 {src} -> {dest}")
 
 
 def _iter_stage_param_files(state):
@@ -293,12 +290,18 @@ def _repro_run(state):
         cmd.append("--quiet")
     log.info("Running stage '%s'", state.target_stage)
     state.manifest_entries.extend(_internal_file_entries_for_repro_cmd(state))
+    log.debug("dvc cmd: %s", cmd)
     p = subprocess.Popen(cmd, cwd=state.run_dir)
     returncode = p.wait()
     if returncode != 0:
+        help = (
+            "see above for details" if _debug_enabled() else
+            "run this command again using 'guild --debug run ...' "
+            "for additional information"
+        )
         raise SystemExit(
             f"'dvc repro {util.shlex_quote(state.target_stage)}' "
-            f"failed (exit code {returncode}) - see above for details"
+            f"failed (exit code {returncode}) - {help}"
         )
 
 
