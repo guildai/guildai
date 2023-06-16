@@ -167,7 +167,14 @@ def _guild_home_current_scheme():
 
 
 def _explicit_activated_env_guild_home():
-    """Returns the path to `.guild` for an acticated env."""
+    """Returns path to existing `.guild` for an acticated env.
+
+    If `.guild` does not exist, returns None.
+
+    This function provides backward compatibility for the pre-0.9
+    scheme where Guild initialized a virtual environment with a
+    `.guild` directory.
+    """
     activated_env = _find_apply([_conda_home, _virtualenv_home])
     if not activated_env:
         return None
@@ -178,7 +185,10 @@ def _explicit_activated_env_guild_home():
 
 
 def _dot_guild_for_cwd():
-    """Returns the path to `.guild` for the current directory.
+    """Returns the path to `.guild` for the configured cwd.
+
+    The configured cwd can be set using `set_cwd()` and is otherwise
+    the system cwd.
 
     If the current directory doesn't contain `.guild`, applies the
     scheme to the parent directory up until the user home
