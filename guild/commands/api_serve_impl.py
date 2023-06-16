@@ -63,7 +63,7 @@ def main(args):
 
 
 def _get_and_exit(args):
-    resp = serving_util.request_get(_api_app(), args.get)
+    resp = serving_util.request_get(ApiApp(), args.get)
     exit = 0 if resp["status"] == "200 OK" else 1
     for part in resp["body"]:
         sys.stdout.buffer.write(part)
@@ -87,12 +87,12 @@ def _host_and_port(args):
 
 
 def _serve(host, port):
-    app = _api_app()
+    app = ApiApp()
     server = serving_util.make_server(host, port, app)
     server.serve_forever()
 
 
-def _api_app(cache_ttl=5, cache_prune_threshold=1000):
+def ApiApp(cache_ttl=5, cache_prune_threshold=1000):
     cache = util.Cache(cache_ttl, prune_threshold=cache_prune_threshold)
     routes = serving_util.Map(
         [
@@ -109,6 +109,7 @@ def _api_app(cache_ttl=5, cache_prune_threshold=1000):
             ("/compare", _handle_compare, (cache,)),
             ("/scalars", _handle_scalars, (cache,)),
             ("/cache", _handle_cache, (cache,)),
+            ("/ping", _handle_ping, ()),
             ("/<path:path>", _handle_not_supported, ()),
         ]
     )
