@@ -106,7 +106,7 @@ Test various patterns.
 
 Guild supports the following aliases:
 
-    >>> summary.ALIASES
+    >>> summary.ALIASES  # doctest: -NORMALIZE_PATHS
     [(re.compile('\\\\key'), '...'),
      (re.compile('\\\\value'), '...'),
      (re.compile('\\\\step'), '...')]
