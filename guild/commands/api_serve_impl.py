@@ -18,6 +18,8 @@ import mimetypes
 import os
 import sys
 
+from guild import filter as filterlib
+from guild import filter_util
 from guild import index as indexlib
 from guild import run as runlib
 from guild import run_manifest
@@ -167,11 +169,38 @@ def _read_runs(args):
             "stopped": run.get("stopped"),
             "label": run.get("label"),
             "status": run.status,
-        } for run in var.runs(filter=_runs_filter(args))
+        } for run in _runs_for_args(args)
     ]
 
 
-def _runs_filter(args):
+def _runs_for_args(args):
+    return filter_util.filtered_runs(
+        _maybe_parsed_text_filter(args),
+        base_filter=_runs_base_filter(args),
+    )
+
+
+def _maybe_parsed_text_filter(args):
+    text = (args.get("text") or "").strip()
+    if not text:
+        return None
+    parser = filterlib.parser()
+    filter_expr = _maybe_filter_expr(text) or _generic_text_filter_expr(text)
+    try:
+        return parser.parse(filter_expr)
+    except SyntaxError as e:
+        raise serving_util.BadRequest(*e.args)
+
+
+def _maybe_filter_expr(text):
+    return text[1:] if text[:1] == "/" else None
+
+
+def _generic_text_filter_expr(text):
+    return f"op contains '{text}' or label contains '{text}' or tags contains '{text}'"
+
+
+def _runs_base_filter(args):
     filters = []
     _apply_id_filter(args, filters)
     _apply_status_filter(args, filters)
@@ -284,7 +313,7 @@ def _handle_compare(req, cache):
 
 
 def _read_compare_data(args):
-    runs = var.runs(filter=_runs_filter(args))
+    runs = var.runs(filter=_runs_base_filter(args))
     index = indexlib.RunIndex()
     index.refresh(runs, ["scalar"])
     return {
@@ -306,7 +335,7 @@ def _handle_scalars(req, cache):
 def _read_scalars_data(args):
     return {
         run.id: _scalars_data_for_run(run)
-        for run in var.runs(filter=_runs_filter(args))
+        for run in var.runs(filter=_runs_base_filter(args))
     }
 
 
