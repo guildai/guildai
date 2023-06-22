@@ -187,6 +187,32 @@ A  non-empty string value, while an odd term, is value and evaluates to True.
     util:test  e394b696
     util:test  a5520d13
 
+    >>> filter("tags contains red")
+    train  2dc1529b
+
+    >>> filter("tags contains green")
+    util:test  e394b696
+    train      2dc1529b
+
+    >>> filter("tags contains Green")
+    train  2dc1529b
+
+    >>> filter("tags contains [red, green]")
+    train  2dc1529b
+
+    >>> filter("tags contains [red, blue]")
+    <empty>
+
+    >>> filter("tags not contains [green]")
+    util:test  a5520d13
+    train      79ca9e64
+    train      ac99cff4
+    train      fe83a924
+    train      fa6f74ad
+
+    >>> filter("tags contains [red]")
+    train  2dc1529b
+
 ## Status
 
     >>> filter("status = completed", status=True)
@@ -465,7 +491,6 @@ We must provide the required refresh type.
 Run selection filters only support selection using attributes, flags,
 and scalars. The do not provide equivalent filter support for:
 
-- Tags
 - Comments
 - Start date/time (time range specs)
 

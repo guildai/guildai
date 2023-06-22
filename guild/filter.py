@@ -459,9 +459,27 @@ class Contains:
         if not run_val:
             return maybe_negate(False)
         target_val = self.target_expr(run)
-        if isinstance(run_val, list):
-            return maybe_negate(target_val in run_val)
-        return maybe_negate(str(target_val).lower() in str(run_val).lower())
+        return maybe_negate(_apply_contains(run_val, target_val))
+
+
+def _apply_contains(run_val, target_val):
+    if isinstance(run_val, list):
+        if isinstance(target_val, list):
+            return _list_contains_list(run_val, target_val)
+        return _list_contains_item(run_val, target_val)
+    return _string_contains(run_val, target_val)
+
+
+def _list_contains_list(l, lsub):
+    return not set(lsub) - set(l)
+
+
+def _list_contains_item(l, x):
+    return x in l
+
+
+def _string_contains(x, xsub):
+    return str(xsub).lower() in str(x).lower()
 
 
 # =================================================================

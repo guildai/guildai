@@ -609,3 +609,90 @@ Some sample syntax errors:
     >>> parse("a = 1 or \nb(")
     Traceback (most recent call last):
     SyntaxError: Syntax error at line 2, pos 11: unexpected token '('
+
+## Contains tests
+
+`guild.filter` implements support for a `contains` operator. There are
+three types of applications for 'contains'.
+
+- List contains a list
+- List contains an item
+- A string representation of an item contains the string
+  representation of another item
+
+List contains a list is implemented by `_list_contains_list`.
+
+    >>> from guild.filter import _list_contains_list as lcl
+
+    >>> lcl([], [])
+    True
+
+    >>> lcl([1], [1])
+    True
+
+    >>> lcl([1], [])
+    True
+
+    >>> lcl([], [1])
+    False
+
+    >>> lcl([1,2], [1])
+    True
+
+    >>> lcl([1], [1,2])
+    False
+
+List contains an item is implemented by `_list_contains_item`. Checks
+are literal. String tests are case-sensitive.
+
+    >>> from guild.filter import _list_contains_item as lci
+
+    >>> lci([], 1)
+    False
+
+    >>> lci([1], 1)
+    True
+
+    >>> lci([1], "1")
+    False
+
+    >>> lci(["a"], "a")
+    True
+
+    >>> lci(["a"], "A")
+    False
+
+Tests for item contains item are made using a case insensitive string
+test. This is implemenyted by `_string_contains`.
+
+    >>> from guild.filter import _string_contains as sc
+
+    >>> sc("", "")
+    True
+
+    >>> sc("a", "a")
+    True
+
+    >>> sc("ab", "a")
+    True
+
+    >>> sc("b", "a")
+    False
+
+    >>> sc("Ab", "a")
+    True
+
+    >>> sc("Ab", "B")
+    True
+
+    >>> sc(1, 1)
+    True
+
+    >>> sc(1, 2)
+    False
+
+    >>> sc(123, 12)
+    True
+
+    >>> sc(321, 12)
+    False
