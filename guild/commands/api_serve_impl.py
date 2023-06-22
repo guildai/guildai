@@ -92,7 +92,7 @@ def _serve(host, port):
     server.serve_forever()
 
 
-def ApiApp(cache_ttl=5, cache_prune_threshold=1000):
+def ApiApp(cache_ttl=0, cache_prune_threshold=1000):
     cache = util.Cache(cache_ttl, prune_threshold=cache_prune_threshold)
     routes = serving_util.Map(
         [
@@ -523,7 +523,11 @@ def _handle_set_run_label(req, run_id):
     if not isinstance(label, str):
         raise serving_util.BadRequest("value must be a string")
     run = _run_for_id(run_id)
-    run.write_attr("label", label)
+    label = label.strip()
+    if not label:
+        run.del_attr("label")
+    else:
+        run.write_attr("label", label)
 
 
 def _try_decode_data(req):
