@@ -99,6 +99,7 @@ def ApiApp(cache_ttl=0, cache_prune_threshold=1000):
     routes = serving_util.Map(
         [
             ("/runs/", _handle_runs, (cache,)),
+            ("/runs/<run_id>", _handle_run, (cache,)),
             ("/runs/<run_id>/attrs/<attr_name>", _handle_run_attr, (cache,)),
             ("/runs/<run_id>/attrs", _handle_run_multi_attr, (cache,)),
             ("/runs/<run_id>/scalars", _handle_run_scalars, (cache,)),
@@ -143,7 +144,11 @@ def _handle_ping(req):
 def _handle_runs(req, cache):
     if req.method != "GET":
         raise MethodNotSupported()
-    return cache.read(_cache_key_for_req(req), (_read_runs, (req.args,)))
+    return _cache_read(cache, req, (_read_runs, (req.args,)))
+
+
+def _cache_read(cache, req, args):
+    return cache.read(_cache_key_for_req(req), args)
 
 
 def _cache_key_for_req(req):
@@ -161,16 +166,18 @@ def _cache_key_part_for_args(args):
 
 
 def _read_runs(args):
-    return [
-        {
-            "id": run.id,
-            "operation": run_util.format_operation(run, nowarn=True),
-            "started": run.get("started"),
-            "stopped": run.get("stopped"),
-            "label": run.get("label"),
-            "status": run.status,
-        } for run in _runs_for_args(args)
-    ]
+    return [_run_base_attrs(run) for run in _runs_for_args(args)]
+
+
+def _run_base_attrs(run):
+    return {
+        "id": run.id,
+        "operation": run_util.format_operation(run, nowarn=True),
+        "started": run.get("started"),
+        "stopped": run.get("stopped"),
+        "label": run.get("label"),
+        "status": run.status,
+    }
 
 
 def _runs_for_args(args):
@@ -247,13 +254,21 @@ def _parse_timerange(spec):
 
 
 @json_resp
+def _handle_run(req, cache, run_id):
+    if req.method != "GET":
+        raise MethodNotSupported()
+    return _cache_read(cache, req, (_read_run, (run_id,)))
+
+
+def _read_run(run_id):
+    return _run_base_attrs(_run_for_id(run_id))
+
+
+@json_resp
 def _handle_run_attr(req, cache, run_id, attr_name):
     if req.method != "GET":
         raise MethodNotSupported()
-    return cache.read(
-        _cache_key_for_req(req),
-        (_read_run_attr, (run_id, attr_name)),
-    )
+    return _cache_read(cache, req, (_read_run_attr, (run_id, attr_name)))
 
 
 def _read_run_attr(run_id, attr_name):
@@ -272,10 +287,7 @@ def _handle_run_multi_attr(req, cache, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
     return {
-        attr_name: cache.read(
-            _cache_key_for_req(req),
-            (_read_run_attr, (run_id, attr_name)),
-        )
+        attr_name: _cache_read(cache, req, (_read_run_attr, (run_id, attr_name)))
         for attr_name in req.args.keys()
     }
 
@@ -284,10 +296,7 @@ def _handle_run_multi_attr(req, cache, run_id):
 def _handle_run_scalars(req, cache, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
-    return cache.read(
-        _cache_key_for_req(req),
-        (_read_run_scalars, (run_id,)),
-    )
+    return _cache_read(cache, req, (_read_run_scalars, (run_id,)))
 
 
 def _read_run_scalars(run_id, index=None):
@@ -309,7 +318,7 @@ def _run_scalar_val(scalar):
 def _handle_compare(req, cache):
     if req.method != "GET":
         raise MethodNotSupported()
-    return cache.read(_cache_key_for_req(req), (_read_compare_data, (req.args,)))
+    return _cache_read(cache, req, (_read_compare_data, (req.args,)))
 
 
 def _read_compare_data(args):
@@ -329,7 +338,7 @@ def _read_compare_data(args):
 def _handle_scalars(req, cache):
     if req.method != "GET":
         raise MethodNotSupported()
-    return cache.read(_cache_key_for_req(req), (_read_scalars_data, (req.args,)))
+    return _cache_read(cache, req, (_read_scalars_data, (req.args,)))
 
 
 def _read_scalars_data(args):
@@ -362,10 +371,7 @@ def _handle_cache(_req, cache):
 def _handle_run_files(req, cache, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
-    return cache.read(
-        _cache_key_for_req(req),
-        (_read_run_files, (run_id,)),
-    )
+    return _cache_read(cache, req, (_read_run_files, (run_id,)))
 
 
 def _read_run_files(run_id):
@@ -514,10 +520,7 @@ def _is_guild_path(path):
 def _handle_run_comments(req, cache, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
-    return cache.read(
-        _cache_key_for_req(req),
-        (_read_comments, (run_id,)),
-    )
+    return _cache_read(cache, req, (_read_comments, (run_id,)))
 
 
 def _read_comments(run_id):
@@ -527,14 +530,33 @@ def _read_comments(run_id):
 
 @json_resp
 def _handle_run_tags(req, cache, run_id):
-    if req.method != "GET":
-        raise MethodNotSupported()
-    return cache.read(_cache_key_for_req(req), (_read_tags, (run_id,)))
+    if req.method == "GET":
+        return _cache_read(cache, req, (_read_tags, (run_id,)))
+    if req.method == "POST":
+        _handle_set_run_tags(req, run_id)
+        return True
+    raise MethodNotSupported()
 
 
 def _read_tags(run_id):
     run = _run_for_id(run_id)
     return run.get("tags") or []
+
+
+def _handle_set_run_tags(req, run_id):
+    run = _run_for_id(run_id)
+    tags = _try_decode_tags(req)
+    if not tags:
+        run.del_attr("tags")
+    else:
+        run.write_attr("tags", tags)
+
+
+def _try_decode_tags(req):
+    l = _try_decode_data(req)
+    if not isinstance(l, list):
+        raise serving_util.BadRequest("value must be a list")
+    return [str(x).strip() for x in l]
 
 
 @json_resp
@@ -548,10 +570,10 @@ def _handle_run_label(req, run_id):
 
 
 def _handle_set_run_label(req, run_id):
+    run = _run_for_id(run_id)
     label = _try_decode_data(req)
     if not isinstance(label, str):
         raise serving_util.BadRequest("value must be a string")
-    run = _run_for_id(run_id)
     label = label.strip()
     if not label:
         run.del_attr("label")
@@ -571,7 +593,7 @@ def _try_decode_data(req):
 def _handle_operations(req, cache):
     if req.method != "GET":
         raise MethodNotSupported()
-    return cache.read(_cache_key_for_req(req), _read_operations)
+    return _cache_read(cache, req, _read_operations)
 
 
 def _read_operations():
