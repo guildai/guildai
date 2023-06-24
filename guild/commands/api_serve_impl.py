@@ -488,7 +488,12 @@ def _handle_run_file(_req, run_id, path):
         env["PATH_INFO"] = full_path
 
         def start_resp_allow_origin(status, headers):
-            headers.append(("Access-Control-Allow-Origin", "*"))
+            headers.extend(
+                [
+                    ("Access-Control-Allow-Origin", "*"),
+                    ("Cache-Control", "no-cache"),
+                ]
+            )
             _maybe_plain_text_type(full_path, headers)
             start_resp(status, headers)
 
