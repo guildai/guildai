@@ -204,7 +204,12 @@ def _maybe_filter_expr(text):
 
 
 def _generic_text_filter_expr(text):
-    return f"op contains '{text}' or label contains '{text}' or tags contains '{text}'"
+    return (
+        f"op contains '{text}' "
+        f"or label contains '{text}' "
+        f"or tags contains '{text}' "
+        f"or id contains '{text}'"
+    )
 
 
 def _runs_base_filter(args):
