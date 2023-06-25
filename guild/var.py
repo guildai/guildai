@@ -62,9 +62,12 @@ def remote_dir(name=None):
     return path("remotes", name)
 
 
-def runs(root=None, sort=None, filter=None, force_root=False):
+def runs(root=None, sort=None, filter=None, force_root=False, base_runs=None):
     filter = filter or (lambda _: True)
-    all_runs = _all_runs_f(root, force_root)
+    all_runs = (
+        _all_runs_f(root, force_root) if base_runs is None  #
+        else lambda: base_runs
+    )
     runs = [run for run in all_runs() if filter(run)]
     if sort:
         runs = sorted(runs, key=_run_sort_key(sort))

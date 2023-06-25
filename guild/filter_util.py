@@ -60,8 +60,15 @@ def filtered_runs(
     base_filter=None,
     force_root=False,
     index=None,
+    base_runs=None,
 ):
-    runs = var.runs(root=root, sort=sort, filter=base_filter, force_root=force_root)
+    runs = var.runs(
+        root=root,
+        sort=sort,
+        filter=base_filter,
+        force_root=force_root,
+        base_runs=base_runs,
+    )
     if not filter:
         return runs
     if isinstance(filter, str):

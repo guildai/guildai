@@ -18,6 +18,7 @@ import mimetypes
 import os
 import sys
 
+from guild import config as configlib
 from guild import filter as filterlib
 from guild import filter_util
 from guild import index as indexlib
@@ -89,12 +90,12 @@ def _host_and_port(args):
 
 
 def _serve(host, port):
-    app = ApiApp()
+    app = ApiApp(cache_ttl=0)  # disable cache until we support invalidation
     server = serving_util.make_server(host, port, app)
     server.serve_forever()
 
 
-def ApiApp(cache_ttl=0, cache_prune_threshold=1000):
+def ApiApp(cache_ttl=5, cache_prune_threshold=1000):
     cache = util.Cache(cache_ttl, prune_threshold=cache_prune_threshold)
     routes = serving_util.Map(
         [
@@ -111,6 +112,7 @@ def ApiApp(cache_ttl=0, cache_prune_threshold=1000):
             ("/operations", _handle_operations, (cache,)),
             ("/compare", _handle_compare, (cache,)),
             ("/scalars", _handle_scalars, (cache,)),
+            ("/collections", _handle_collections, (cache,)),
             ("/cache", _handle_cache, (cache,)),
             ("/ping", _handle_ping, ()),
             ("/<path:path>", _handle_not_supported, ()),
@@ -184,7 +186,78 @@ def _runs_for_args(args):
     return filter_util.filtered_runs(
         _maybe_parsed_text_filter(args),
         base_filter=_runs_base_filter(args),
+        base_runs=_maybe_runs_for_collection(args),
     )
+
+
+def _maybe_runs_for_collection(args):
+    collection_name = args.get("collection")
+    if not collection_name:
+        return None
+    collection = _collection_for_name(collection_name)
+    if not collection:
+        raise serving_util.BadRequest(f"no such collection: {collection_name}")
+    return _runs_for_args(_CollectionArgsProxy(collection))
+
+
+def _collection_for_name(name):
+    config = configlib.user_config()
+    ids = name.split("/")
+    return _find_collection(ids, config.get("collections"))
+
+
+def _find_collection(ids, collections):
+    if not collections:
+        return None
+    cur_id = ids[0]
+    for c in collections:
+        if c.get("id") == cur_id:
+            if len(ids) == 1:
+                return c
+            return _find_collection(ids[1:], c.get("collections"))
+    return None
+
+
+class _CollectionArgsProxy:
+    def __init__(self, collection):
+        self.c = collection
+
+    def get(self, name):
+        val = self._get(name)
+        if isinstance(val, list):
+            return val[0]
+        return val
+
+    def _get(self, name):
+        assert name in ("started", "status", "op", "text", "collection", "run"), name
+        if name == "collection":
+            # Implementation explicitly prohibits recursive
+            # application of collections. While this is conceivable
+            # feature, we would need to check for cycles. In this
+            # case, the value is always None.
+            return None
+        val = self.c.get(self._map_arg_name(name))
+        return self._ensure_filter_text_prefix(val, name)
+
+    @staticmethod
+    def _map_arg_name(name):
+        if name == "text":
+            return "filter"
+        return name
+
+    @staticmethod
+    def _ensure_filter_text_prefix(val, name):
+        if val is not None and name == "text":
+            return f"/{val}"
+        return val
+
+    def getlist(self, name):
+        val = self._get(name)
+        if val is None:
+            return []
+        if isinstance(val, list):
+            return val
+        return [val]
 
 
 def _maybe_parsed_text_filter(args):
@@ -368,8 +441,33 @@ def _scalars_data_for_reader(reader):
     return [[tag, value, step] for tag, value, step in reader]
 
 
+@json_resp
+def _handle_collections(req, cache):
+    if req.method != "GET":
+        raise MethodNotSupported()
+    return _cache_read(cache, req, (_read_collections,))
+
+
+def _read_collections():
+    collections = configlib.user_config().get("collections") or []
+    _apply_path_ids(collections)
+    return collections
+
+
+def _apply_path_ids(collections, parents=None):
+    parents = parents or []
+    for c in collections:
+        c["id_path"] = _id_path(c, parents)
+        _apply_path_ids(c.get("collections") or [], parents + [c])
+
+
+def _id_path(collection, parents):
+    return "/".join([c.get("id", "") for c in parents] + [collection.get("id", "")])
+
+
+@json_resp
 def _handle_cache(_req, cache):
-    return serving_util.json_resp(sorted(cache.entries()))
+    return sorted(cache.entries())
 
 
 @json_resp
