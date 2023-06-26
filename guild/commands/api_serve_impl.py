@@ -90,30 +90,28 @@ def _host_and_port(args):
 
 
 def _serve(host, port):
-    app = ApiApp(cache_ttl=0)  # disable cache until we support invalidation
+    app = ApiApp()
     server = serving_util.make_server(host, port, app)
     server.serve_forever()
 
 
-def ApiApp(cache_ttl=5, cache_prune_threshold=1000):
-    cache = util.Cache(cache_ttl, prune_threshold=cache_prune_threshold)
+def ApiApp():
     routes = serving_util.Map(
         [
-            ("/runs/", _handle_runs, (cache,)),
-            ("/runs/<run_id>", _handle_run, (cache,)),
-            ("/runs/<run_id>/attrs/<attr_name>", _handle_run_attr, (cache,)),
-            ("/runs/<run_id>/attrs", _handle_run_multi_attr, (cache,)),
-            ("/runs/<run_id>/scalars", _handle_run_scalars, (cache,)),
-            ("/runs/<run_id>/files/", _handle_run_files, (cache,)),
+            ("/runs/", _handle_runs, ()),
+            ("/runs/<run_id>", _handle_run, ()),
+            ("/runs/<run_id>/attrs/<attr_name>", _handle_run_attr, ()),
+            ("/runs/<run_id>/attrs", _handle_run_multi_attr, ()),
+            ("/runs/<run_id>/scalars", _handle_run_scalars, ()),
+            ("/runs/<run_id>/files/", _handle_run_files, ()),
             ("/runs/<run_id>/files/<path:path>", _handle_run_file, ()),
-            ("/runs/<run_id>/comments", _handle_run_comments, (cache,)),
-            ("/runs/<run_id>/tags", _handle_run_tags, (cache,)),
+            ("/runs/<run_id>/comments", _handle_run_comments, ()),
+            ("/runs/<run_id>/tags", _handle_run_tags, ()),
             ("/runs/<run_id>/label", _handle_run_label, ()),
-            ("/operations", _handle_operations, (cache,)),
-            ("/compare", _handle_compare, (cache,)),
-            ("/scalars", _handle_scalars, (cache,)),
-            ("/collections", _handle_collections, (cache,)),
-            ("/cache", _handle_cache, (cache,)),
+            ("/operations", _handle_operations, ()),
+            ("/compare", _handle_compare, ()),
+            ("/scalars", _handle_scalars, ()),
+            ("/collections", _handle_collections, ()),
             ("/ping", _handle_ping, ()),
             ("/<path:path>", _handle_not_supported, ()),
         ]
@@ -143,28 +141,10 @@ def _handle_ping(req):
 
 
 @json_resp
-def _handle_runs(req, cache):
+def _handle_runs(req):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _cache_read(cache, req, (_read_runs, (req.args,)))
-
-
-def _cache_read(cache, req, args):
-    return cache.read(_cache_key_for_req(req), args)
-
-
-def _cache_key_for_req(req):
-    if not req.args:
-        return req.url
-    return "?".join([req.url, _cache_key_part_for_args(req.args)])
-
-
-def _cache_key_part_for_args(args):
-    kv = []
-    for key in sorted(args.keys()):
-        for val in sorted(args.getlist(key)):
-            kv.append(f"{key}={val}")
-    return "&".join(kv)
+    return _read_runs(req.args)
 
 
 def _read_runs(args):
@@ -181,7 +161,7 @@ def _runs_for_args(args):
 
 
 def _runs_dir(args):
-    return var.runs_dir(deleted=("deleted" in args))
+    return var.runs_dir(deleted="deleted" in args)
 
 
 def _runs_for_collection(args):
@@ -366,10 +346,10 @@ def _run_deleted(run):
 
 
 @json_resp
-def _handle_run(req, cache, run_id):
+def _handle_run(req, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _cache_read(cache, req, (_read_run, (run_id,)))
+    return _read_run(run_id)
 
 
 def _read_run(run_id):
@@ -377,10 +357,10 @@ def _read_run(run_id):
 
 
 @json_resp
-def _handle_run_attr(req, cache, run_id, attr_name):
+def _handle_run_attr(req, run_id, attr_name):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _cache_read(cache, req, (_read_run_attr, (run_id, attr_name)))
+    return _read_run_attr(run_id, attr_name)
 
 
 def _read_run_attr(run_id, attr_name):
@@ -396,20 +376,21 @@ def _run_for_id(run_id):
 
 
 @json_resp
-def _handle_run_multi_attr(req, cache, run_id):
+def _handle_run_multi_attr(req, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
-    return {
-        attr_name: _cache_read(cache, req, (_read_run_attr, (run_id, attr_name)))
-        for attr_name in req.args.keys()
-    }
+    return _read_multi_attr(run_id, req.args)
+
+
+def _read_multi_attr(run_id, args):
+    return {attr_name: _read_run_attr(run_id, attr_name) for attr_name in args.keys()}
 
 
 @json_resp
-def _handle_run_scalars(req, cache, run_id):
+def _handle_run_scalars(req, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _cache_read(cache, req, (_read_run_scalars, (run_id,)))
+    return _read_run_scalars(run_id)
 
 
 def _read_run_scalars(run_id, index=None):
@@ -428,10 +409,10 @@ def _run_scalar_val(scalar):
 
 
 @json_resp
-def _handle_compare(req, cache):
+def _handle_compare(req):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _cache_read(cache, req, (_read_compare_data, (req.args,)))
+    return _read_compare_data(req.args)
 
 
 def _read_compare_data(args):
@@ -448,10 +429,10 @@ def _read_compare_data(args):
 
 
 @json_resp
-def _handle_scalars(req, cache):
+def _handle_scalars(req):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _cache_read(cache, req, (_read_scalars_data, (req.args,)))
+    return _read_scalars_data(req.args)
 
 
 def _read_scalars_data(args):
@@ -477,10 +458,10 @@ def _scalars_data_for_reader(reader):
 
 
 @json_resp
-def _handle_collections(req, cache):
+def _handle_collections(req):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _cache_read(cache, req, (_read_collections,))
+    return _read_collections()
 
 
 def _read_collections():
@@ -501,15 +482,10 @@ def _id_path(collection, parents):
 
 
 @json_resp
-def _handle_cache(_req, cache):
-    return sorted(cache.entries())
-
-
-@json_resp
-def _handle_run_files(req, cache, run_id):
+def _handle_run_files(req, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _cache_read(cache, req, (_read_run_files, (run_id,)))
+    return _read_run_files(run_id)
 
 
 def _read_run_files(run_id):
@@ -660,10 +636,10 @@ def _is_guild_path(path):
 
 
 @json_resp
-def _handle_run_comments(req, cache, run_id):
+def _handle_run_comments(req, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _cache_read(cache, req, (_read_comments, (run_id,)))
+    return _read_comments(run_id)
 
 
 def _read_comments(run_id):
@@ -672,9 +648,9 @@ def _read_comments(run_id):
 
 
 @json_resp
-def _handle_run_tags(req, cache, run_id):
+def _handle_run_tags(req, run_id):
     if req.method == "GET":
-        return _cache_read(cache, req, (_read_tags, (run_id,)))
+        return _read_tags(run_id)
     if req.method == "POST":
         _handle_set_run_tags(req, run_id)
         return True
@@ -733,10 +709,10 @@ def _try_decode_data(req):
 
 
 @json_resp
-def _handle_operations(req, cache):
+def _handle_operations(req):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _cache_read(cache, req, _read_operations)
+    return _read_operations()
 
 
 def _read_operations():
