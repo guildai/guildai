@@ -171,33 +171,27 @@ def _read_runs(args):
     return [_run_base_attrs(run) for run in _runs_for_args(args)]
 
 
-def _run_base_attrs(run):
-    return {
-        "id": run.id,
-        "operation": run_util.format_operation(run, nowarn=True),
-        "started": run.get("started"),
-        "stopped": run.get("stopped"),
-        "label": run.get("label"),
-        "status": run.status,
-    }
-
-
 def _runs_for_args(args):
     return filter_util.filtered_runs(
         _maybe_parsed_text_filter(args),
+        root=_runs_dir(args),
         base_filter=_runs_base_filter(args),
-        base_runs=_maybe_runs_for_collection(args),
+        base_runs=_runs_for_collection(args),
     )
 
 
-def _maybe_runs_for_collection(args):
+def _runs_dir(args):
+    return var.runs_dir(deleted=("deleted" in args))
+
+
+def _runs_for_collection(args):
     collection_name = args.get("collection")
     if not collection_name:
         return None
     collection = _collection_for_name(collection_name)
     if not collection:
         raise serving_util.BadRequest(f"no such collection: {collection_name}")
-    return _runs_for_args(_CollectionArgsProxy(collection))
+    return _runs_for_args(_CollectionArgsProxy(collection, args))
 
 
 def _collection_for_name(name):
@@ -219,8 +213,28 @@ def _find_collection(ids, collections):
 
 
 class _CollectionArgsProxy:
-    def __init__(self, collection):
-        self.c = collection
+    _proxied_args = (
+        "deleted",
+        "started",
+        "status",
+        "op",
+        "text",
+        "collection",
+        "run",
+    )
+
+    def __init__(self, collection, args):
+        self.c = dict(collection)
+        self._apply_deleted(args)
+
+    def _apply_deleted(self, args):
+        # Apply 'deleted' from args as this determined where we apply
+        # the collection filter
+        if "deleted" in args:
+            self.c["deleted"] = args.get("deleted")
+        else:
+            # Ensure invalid config doesn't leak in args
+            self.c.pop("deleted", None)
 
     def get(self, name):
         val = self._get(name)
@@ -229,7 +243,7 @@ class _CollectionArgsProxy:
         return val
 
     def _get(self, name):
-        assert name in ("started", "status", "op", "text", "collection", "run"), name
+        assert name in self._proxied_args, name
         if name == "collection":
             # Implementation explicitly prohibits recursive
             # application of collections. While this is conceivable
@@ -258,6 +272,9 @@ class _CollectionArgsProxy:
         if isinstance(val, list):
             return val
         return [val]
+
+    def __iter__(self):
+        return (name for name in self._proxied_args if self._get(name) is not None)
 
 
 def _maybe_parsed_text_filter(args):
@@ -331,6 +348,23 @@ def _parse_timerange(spec):
         raise serving_util.BadRequest(*e.args)
 
 
+def _run_base_attrs(run):
+    return {
+        "id": run.id,
+        "dir": run.dir,
+        "operation": run_util.format_operation(run, nowarn=True),
+        "started": run.get("started"),
+        "stopped": run.get("stopped"),
+        "label": run.get("label"),
+        "status": run.status,
+        "deleted": _run_deleted(run),
+    }
+
+
+def _run_deleted(run):
+    return "/trash/runs/" in run.dir.replace("\\", "/")
+
+
 @json_resp
 def _handle_run(req, cache, run_id):
     if req.method != "GET":
@@ -354,10 +388,11 @@ def _read_run_attr(run_id, attr_name):
 
 
 def _run_for_id(run_id):
-    run_dir = os.path.join(var.runs_dir(), run_id)
-    if not os.path.isdir(run_dir):
-        raise serving_util.NotFound()
-    return runlib.for_dir(run_dir)
+    for runs_dir in (var.runs_dir(), var.runs_dir(deleted=True)):
+        run_dir = os.path.join(runs_dir, run_id)
+        if os.path.isdir(run_dir):
+            return runlib.for_dir(run_dir)
+    raise serving_util.NotFound()
 
 
 @json_resp
