@@ -98,12 +98,12 @@ def make_server(host, port, app, logging=True):
         return serving.make_server("::", port, app, threaded=True)
 
 
-def json_resp(data, status=200):
+def json_resp(data, status=200, headers=None):
     return Response(
         json.dumps(data),
         status=status,
         content_type="application/json",
-        headers=[("Access-Control-Allow-Origin", "*")],
+        headers=headers or [],
     )
 
 

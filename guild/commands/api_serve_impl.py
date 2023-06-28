@@ -46,11 +46,23 @@ class MethodNotSupported(serving_util.HTTPException):
 def json_resp(f0):
     def f(*args, **kw):
         try:
-            return serving_util.json_resp(f0(*args, **kw))
+            resp = f0(*args, **kw)
         except serving_util.HTTPException as e:
-            return serving_util.json_resp({"error": e.code, "msg": str(e)}, e.code)
+            return _json_resp(
+                {
+                    "error": e.code,
+                    "msg": str(e)
+                },
+                e.code,
+            )
+        else:
+            return _json_resp(resp)
 
     return f
+
+
+def _json_resp(resp, code=200):
+    return serving_util.json_resp(resp, code, [("Access-Control-Allow-Origin", "*")])
 
 
 def main(args):
@@ -122,7 +134,13 @@ def ApiApp():
 def _error_handler(_e):
     def app(env, start_resp):
         log.exception("unhandled error for %s", env)
-        resp = serving_util.json_resp({"error": 500, "msg": "Internal Error"}, 500)
+        resp = _json_resp(
+            {
+                "error": 500,
+                "msg": "Internal Error"
+            },
+            500,
+        )
         return resp(env, start_resp)
 
     return app
@@ -142,9 +160,11 @@ def _handle_ping(req):
 
 @json_resp
 def _handle_runs(req):
-    if req.method != "GET":
-        raise MethodNotSupported()
-    return _read_runs(req.args)
+    if req.method == "GET":
+        return _read_runs(req.args)
+    if req.method == "POST":
+        return _exec_runs_op(req)
+    raise MethodNotSupported()
 
 
 def _read_runs(args):
@@ -343,6 +363,75 @@ def _run_base_attrs(run):
 
 def _run_deleted(run):
     return "/trash/runs/" in run.dir.replace("\\", "/")
+
+
+def _exec_runs_op(req):
+    op, run_ids = _decode_runs_op(req)
+    runs, missing, running = _runs_for_op(op, run_ids)
+    if op == "delete":
+        var.delete_runs(runs)
+    elif op == "restore":
+        var.restore_runs(runs)
+    elif op == "purge":
+        var.purge_runs(runs)
+    else:
+        assert False, op
+    return {
+        "applied": [run.id for run in runs],
+        "missing": missing,
+        "running": running,
+    }
+
+
+def _decode_runs_op(req):
+    op = _decode_data(req)
+    if not isinstance(op, dict):
+        raise serving_util.BadRequest("value must be a dict")
+    name = _validate_op_name(op)
+    run_ids = _validate_op_run_ids(op)
+    return name, run_ids
+
+
+def _validate_op_name(op):
+    name = op.get("name")
+    if not name:
+        raise serving_util.BadRequest("op name not specified")
+    if name not in ("delete", "restore", "purge"):
+        raise serving_util.BadRequest("invalid op name")
+    return name
+
+
+def _validate_op_run_ids(op):
+    run_ids = op.get("runIds")
+    if run_ids is None:
+        raise serving_util.BadRequest("runIds not specified")
+    if not isinstance(run_ids, list):
+        raise serving_util.BadRequest("op runIds must be a list")
+    if any(not isinstance(id, str) for id in run_ids):
+        raise serving_util.BadRequest("invalid runIds - values must be strings")
+    return run_ids
+
+
+def _runs_for_op(op, run_ids):
+    runs = []
+    missing = []
+    running = []
+    runs_dir = var.runs_dir(deleted=op in ("restore", "purge"))
+    for run_id in run_ids:
+        run = _try_run_for_dir(os.path.join(runs_dir, run_id))
+        if not run:
+            missing.append(run_id)
+        elif run.status == "running":
+            running.append(run_id)
+        else:
+            runs.append(run)
+    return runs, missing, running
+
+
+def _try_run_for_dir(path):
+    if os.path.isdir(path):
+        return runlib.for_dir(path)
+    return None
 
 
 @json_resp
@@ -593,7 +682,7 @@ def _handle_run_file(_req, run_id, path):
     full_path = os.path.join(run.dir, path)
 
     def not_found(env, start_resp):
-        app = serving_util.json_resp({"error": 404, "msg": "Not Found"}, 404)
+        app = _json_resp({"error": 404, "msg": "Not Found"}, 404)
         return app(env, start_resp)
 
     static_app = serving_util.SharedDataMiddleware(not_found, {full_path: full_path})
@@ -652,8 +741,7 @@ def _handle_run_tags(req, run_id):
     if req.method == "GET":
         return _read_tags(run_id)
     if req.method == "POST":
-        _handle_set_run_tags(req, run_id)
-        return True
+        return _set_run_tags(req, run_id)
     raise MethodNotSupported()
 
 
@@ -662,17 +750,18 @@ def _read_tags(run_id):
     return run.get("tags") or []
 
 
-def _handle_set_run_tags(req, run_id):
+def _set_run_tags(req, run_id):
     run = _run_for_id(run_id)
-    tags = _try_decode_tags(req)
+    tags = _decode_tags(req)
     if not tags:
         run.del_attr("tags")
     else:
         run.write_attr("tags", tags)
+    return True
 
 
-def _try_decode_tags(req):
-    l = _try_decode_data(req)
+def _decode_tags(req):
+    l = _decode_data(req)
     if not isinstance(l, list):
         raise serving_util.BadRequest("value must be a list")
     return [str(x).strip() for x in l]
@@ -683,14 +772,13 @@ def _handle_run_label(req, run_id):
     if req.method == "GET":
         return _read_run_attr(run_id, "label")
     if req.method == "POST":
-        _handle_set_run_label(req, run_id)
-        return True
+        return _set_run_label(req, run_id)
     raise MethodNotSupported()
 
 
-def _handle_set_run_label(req, run_id):
+def _set_run_label(req, run_id):
     run = _run_for_id(run_id)
-    label = _try_decode_data(req)
+    label = _decode_data(req)
     if not isinstance(label, str):
         raise serving_util.BadRequest("value must be a string")
     label = label.strip()
@@ -698,9 +786,10 @@ def _handle_set_run_label(req, run_id):
         run.del_attr("label")
     else:
         run.write_attr("label", label)
+    return True
 
 
-def _try_decode_data(req):
+def _decode_data(req):
     data = req.get_data()
     try:
         return json.loads(data)
@@ -712,8 +801,13 @@ def _try_decode_data(req):
 def _handle_operations(req):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _read_operations()
+    return _read_operations(req.args)
 
 
-def _read_operations():
-    return sorted({run_util.format_operation(run, nowarn=True) for run in var.runs()})
+def _read_operations(args):
+    return sorted(
+        {
+            run_util.format_operation(run, nowarn=True)
+            for run in var.runs(var.runs_dir(deleted="deleted" in args))
+        }
+    )
