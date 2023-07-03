@@ -120,6 +120,7 @@ def ApiApp():
             ("/runs/<run_id>/comments", _handle_run_comments, ()),
             ("/runs/<run_id>/tags", _handle_run_tags, ()),
             ("/runs/<run_id>/label", _handle_run_label, ()),
+            ("/runs/<run_id>/process-info", _handle_process_info, ()),
             ("/operations", _handle_operations, ()),
             ("/compare", _handle_compare, ()),
             ("/scalars", _handle_scalars, ()),
@@ -795,6 +796,22 @@ def _decode_data(req):
         return json.loads(data)
     except ValueError:
         raise serving_util.BadRequest("invalid JSON encoding") from None
+
+
+@json_resp
+def _handle_process_info(req, run_id):
+    if req.method != "GET":
+        raise MethodNotSupported()
+    return _read_process_info(run_id)
+
+
+def _read_process_info(run_id):
+    run = _run_for_id(run_id)
+    return {
+        "exitStatus": run.get("exit_status"),
+        "command": run.get("cmd"),
+        "environment": run.get("env"),
+    }
 
 
 @json_resp
