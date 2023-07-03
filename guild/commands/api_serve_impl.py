@@ -563,7 +563,7 @@ def _read_collections():
 def _apply_path_ids(collections, parents=None):
     parents = parents or []
     for c in collections:
-        c["id_path"] = _id_path(c, parents)
+        c["idPath"] = _id_path(c, parents)
         _apply_path_ids(c.get("collections") or [], parents + [c])
 
 
