@@ -568,7 +568,7 @@ def _apply_path_ids(collections, parents=None):
 
 
 def _id_path(collection, parents):
-    return "/".join([c.get("id", "") for c in parents] + [collection.get("id", "")])
+    return "/".join([p.get("id", "") for p in parents] + [collection.get("id", "")])
 
 
 @json_resp
