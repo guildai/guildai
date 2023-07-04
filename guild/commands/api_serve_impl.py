@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import difflib
+import filecmp
 import json
 import logging
 import mimetypes
@@ -36,6 +38,7 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 DEFAULT_RUN_FILE_MAX_SIZE = 10**6
+DEFAULT_DIFF_MAX_LINES = 2 * 10**4
 
 
 class MethodNotSupported(serving_util.HTTPException):
@@ -110,6 +113,7 @@ def _serve(host, port):
 def ApiApp():
     routes = serving_util.Map(
         [
+            ("/ping", _handle_ping, ()),
             ("/runs/", _handle_runs, ()),
             ("/runs/<run_id>", _handle_run, ()),
             ("/runs/<run_id>/attrs/<attr_name>", _handle_run_attr, ()),
@@ -125,7 +129,7 @@ def ApiApp():
             ("/compare", _handle_compare, ()),
             ("/scalars", _handle_scalars, ()),
             ("/collections", _handle_collections, ()),
-            ("/ping", _handle_ping, ()),
+            ("/diff", _handle_diff, ()),
             ("/<path:path>", _handle_not_supported, ()),
         ]
     )
@@ -569,6 +573,93 @@ def _apply_path_ids(collections, parents=None):
 
 def _id_path(collection, parents):
     return "/".join([p.get("id", "") for p in parents] + [collection.get("id", "")])
+
+
+@json_resp
+def _handle_diff(req):
+    if req.method != "GET":
+        raise MethodNotSupported()
+    return _diff(req.args)
+
+
+def _diff(args):
+    lhs = args.get('lhs')
+    rhs = args.get('rhs')
+    if not lhs or not rhs:
+        raise serving_util.BadRequest("lhs and rhs paths are required")
+    max_lines = args.get('maxlines', type=int, default=DEFAULT_DIFF_MAX_LINES)
+    force = "force" in args
+    return _diff_files(lhs, rhs, max_lines, force)
+
+
+def _diff_files(lhs_path, rhs_path, max_lines, force):
+    lhs_full_path = os.path.join(var.runs_dir(), lhs_path)
+    rhs_full_path = os.path.join(var.runs_dir(), rhs_path)
+    if not force and _cmp_files(lhs_full_path, rhs_full_path):
+        return _diff_files_result(0)
+    lhs_lines = _read_file_lines(lhs_full_path, max_lines)
+    rhs_lines = _read_file_lines(rhs_full_path, max_lines)
+    diff_lines = _diff_lines(lhs_lines, rhs_lines)
+    return _diff_files_result(
+        _count_changes(diff_lines),
+        diff_lines,
+        len(lhs_lines),
+        len(rhs_lines),
+    )
+
+
+def _cmp_files(lhs, rhs):
+    try:
+        return filecmp.cmp(lhs, rhs)
+    except FileNotFoundError:
+        return False
+
+
+def _diff_files_result(
+    change_count,
+    lines=None,
+    lhs_line_count=None,
+    rhs_line_count=None,
+):
+    return {
+        "changeCount": change_count,
+        "lines": lines,
+        "lhsLineCount": lhs_line_count,
+        "rhsLineCount": rhs_line_count,
+    }
+
+
+def _read_file_lines(path, max_lines):
+    from guild.ansi_util import strip_ansi_format
+
+    if not os.path.exists(path):
+        return []
+    lines = []
+    for line in open(path):
+        lines.append(strip_ansi_format(line))
+        if len(lines) == max_lines:
+            break
+    return lines
+
+
+def _diff_lines(lhs_lines, rhs_lines):
+    return [_diff_line(line) for line in difflib._mdiff(lhs_lines, rhs_lines)]
+
+
+def _diff_line(line):
+    """Returns `difflib._mdiff` struct with None for missing line numbers.
+
+    The `difflib` interface we use for diffing, which is used when
+    generating HTML-formatted diff tables, uses an empty string when a
+    line number doesn't apply (i.e. in the case of a deleting line for
+    one side), We use None in this case.
+    """
+    [[n1, s1], [n2, s2], changed] = line
+    return [[n1 or None, s1], [n2 or None, s2], changed]
+
+
+def _count_changes(diff_lines):
+    return sum(line[2] for line in diff_lines)
 
 
 @json_resp
