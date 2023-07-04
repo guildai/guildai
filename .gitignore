@@ -12,3 +12,4 @@ published-results
 venv
 .venv
 .DS_Store
+.python-version
