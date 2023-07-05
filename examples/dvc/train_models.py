@@ -24,7 +24,7 @@ print("max_iters=%f" % max_iters)
 
 models = (
     svm.SVC(kernel="linear", C=C),
-    svm.LinearSVC(C=C, max_iter=max_iters),
+    svm.LinearSVC(C=C, max_iter=max_iters, dual='auto'),
     svm.SVC(kernel="rbf", gamma=gamma, C=C),
     svm.SVC(kernel="poly", degree=3, gamma="auto", C=C),
 )

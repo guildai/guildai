@@ -118,7 +118,7 @@ The run manifest shows the source code and resolved dependencies.
     s prepare_data.py 57ccaa3725415e99ec0b3d8323c060a73b3417bf prepare_data.py
     s requirements.txt bd2d0f656b9bf3b9a94a8670b5b3763274dd97f3 requirements.txt
     s setup.py 530130c38cdcf0b132a6a127d975012d34922939 setup.py
-    s train_models.py 99ef5d05581158a4d380c0313595cbe3d7f77946 train_models.py
+    s train_models.py fd8357a28cf78b85d4bf7727758202c44efa841a train_models.py
     s .dvc/config 3ef04083edec4c15909f60aea3f685e5551f5b69 .dvc/config
     i .dvc/.gitignore da39a3ee5e6b4b0d3255bfef95601890afd80709 dvcfile:hello.in
     i .dvc/cache - dvcfile:hello.in
