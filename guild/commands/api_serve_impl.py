@@ -688,8 +688,9 @@ def _run_manifest_index(run):
 
 def _run_manifest_index(run):
     return {
-        path: entry[0] if entry else None
+        path: entry
         for path, entry in run_manifest.iter_run_files(run.dir)
+        if entry
     }
 
 
@@ -748,6 +749,7 @@ def _manifest_attrs(entry, relpath, manifest_index):
     args = manifest_index.get(relpath)
     return {
         "mType": _manifest_type(args, entry, relpath),
+        "hash": _manifest_hash(args, entry),
     }
 
 
@@ -767,6 +769,16 @@ def _maybe_generated(entry, relpath):
     generated files.
     """
     return "g" if not entry.is_dir() and not _is_guild_path(relpath) else None
+
+
+def _manifest_hash(args, entry):
+    return args[2] if args else _maybe_generated_hash(entry)
+
+
+def _maybe_generated_hash(entry):
+    if os.path.isfile(entry.path):
+        return util.file_sha1(entry.path)
+    return None
 
 
 def _handle_run_file(_req, run_id, path):
