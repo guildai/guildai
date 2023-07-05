@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import logging
-import warnings
 
 from guild import _skopt as skopt
 
