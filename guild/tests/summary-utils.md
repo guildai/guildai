@@ -49,14 +49,14 @@ Create a Guild summary writer. This object is patched by the plugin.
 Log some scalars. Each call to `add_scalar` is also handled by the
 plugin, which prints the values.
 
-    >>> summaries.add_scalar("foo", 1.0)
-    guild-summary plugin got scalar foo=1.0 (step 0)
+    >>> summaries.add_scalar("foo", 1.1)
+    guild-summary plugin got scalar foo=1.1 (step 0)
 
-    >>> summaries.add_scalar("bar", 2.0, 1)
-    guild-summary plugin got scalar bar=2.0 (step 1)
+    >>> summaries.add_scalar("bar", 2.2, 1)
+    guild-summary plugin got scalar bar=2.2 (step 1)
 
-    >>> summaries.add_scalar("baz", 3.0, step=2)
-    guild-summary plugin got scalar baz=3.0 (step 2)
+    >>> summaries.add_scalar("baz", 3.3, step=2)
+    guild-summary plugin got scalar baz=3.3 (step 2)
 
     >>> summaries.close()
 
@@ -66,7 +66,7 @@ Show the scalars from the TF event files in the log dir.
     summary {
       value {
         tag: "foo"
-        simple_value: 1.0
+        simple_value: 1.1
       }
     }
     <BLANKLINE>
@@ -74,7 +74,7 @@ Show the scalars from the TF event files in the log dir.
     summary {
       value {
         tag: "bar"
-        simple_value: 2.0
+        simple_value: 2.2
       }
     }
     <BLANKLINE>
@@ -82,7 +82,7 @@ Show the scalars from the TF event files in the log dir.
     summary {
       value {
         tag: "baz"
-        simple_value: 3.0
+        simple_value: 3.3
       }
     }
 
@@ -105,14 +105,14 @@ Create a tensorboardX summary writer.
 
 Log some scalars.
 
-    >>> summaries.add_scalar("foo", 1.0)
-    tbx-summary plugin got scalar foo=1.0 (step 0)
+    >>> summaries.add_scalar("foo", 1.12)
+    tbx-summary plugin got scalar foo=1.12 (step 0)
 
-    >>> summaries.add_scalar("bar", 2.0, 1)
-    tbx-summary plugin got scalar bar=2.0 (step 1)
+    >>> summaries.add_scalar("bar", 2.23, 1)
+    tbx-summary plugin got scalar bar=2.23 (step 1)
 
-    >>> summaries.add_scalar("baz", 3.0, global_step=2)
-    tbx-summary plugin got scalar baz=3.0 (step 2)
+    >>> summaries.add_scalar("baz", 3.34, global_step=2)
+    tbx-summary plugin got scalar baz=3.34 (step 2)
 
     >>> summaries.close()
 
@@ -123,7 +123,7 @@ Show the scalars from the TF event files in the log dir.
     summary {
       value {
         tag: "foo"
-        simple_value: 1.0
+        simple_value: 1.12
       }
     }
     <BLANKLINE>
@@ -132,7 +132,7 @@ Show the scalars from the TF event files in the log dir.
     summary {
       value {
         tag: "bar"
-        simple_value: 2.0
+        simple_value: 2.23
       }
     }
     <BLANKLINE>
@@ -141,7 +141,7 @@ Show the scalars from the TF event files in the log dir.
     summary {
       value {
         tag: "baz"
-        simple_value: 3.0
+        simple_value: 3.34
       }
     }
 

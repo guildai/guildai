@@ -83,6 +83,13 @@ The events:
             content: "..."
           }
         }
+        tensor {
+          dtype: DT_FLOAT
+          tensor_shape {
+            dim {
+            }
+          }
+        }
       }
     }
     <BLANKLINE>
@@ -95,6 +102,13 @@ The events:
             content: "..."
           }
         }
+        tensor {
+          dtype: DT_FLOAT
+          tensor_shape {
+            dim {
+            }
+          }
+        }
       }
     }
     <BLANKLINE>
@@ -105,6 +119,13 @@ The events:
           plugin_data {
             plugin_name: "hparams"
             content: "..."
+          }
+        }
+        tensor {
+          dtype: DT_FLOAT
+          tensor_shape {
+            dim {
+            }
           }
         }
       }
