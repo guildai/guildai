@@ -17,10 +17,7 @@ import os
 import typing
 import warnings
 
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=Warning)
-    import numpy.core.umath_tests  # pylint: disable=unused-import
-    from guild import _skopt as skopt
+from guild import _skopt as skopt
 
 from guild import batch_util
 from guild import flag_util

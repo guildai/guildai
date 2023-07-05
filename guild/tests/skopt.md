@@ -1,12 +1,5 @@
 # Scikit optimize
 
-Before running tests with the `skopt` module, let's silence the
-warnings from `numpy.core.umath_tests`:
-
-    >>> import warnings
-    >>> warnings.filterwarnings("ignore", category=Warning)
-    >>> import numpy.core.umath_tests
-
 ## Bayesian optimization
 
 Support for Bayesian optimization is provided by `skopt.gp_minimize`
