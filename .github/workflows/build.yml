@@ -34,7 +34,6 @@ jobs:
           - ubuntu-latest
           - macos-latest
         python:
-          - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
@@ -107,7 +106,6 @@ jobs:
         os:
           - windows-latest
         python:
-          - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
@@ -178,7 +176,7 @@ jobs:
           - ubuntu-latest
         python:
           # Use oldest supported version of Python to create dist
-          - '3.7'
+          - '3.8'
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
