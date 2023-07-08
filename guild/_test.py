@@ -39,7 +39,7 @@ import guild
 from guild import _api as gapi
 from guild import ansi_util
 from guild import cli
-from guild import config as configlib
+from guild import config
 from guild import file_util
 from guild import guildfile
 from guild import init
@@ -659,9 +659,9 @@ def test_globals():
         "Project": Project,
         "Proxy": Proxy,
         "RunError": gapi.RunError,
-        "SetCwd": configlib.SetCwd,
-        "SetGuildHome": configlib.SetGuildHome,
-        "SetUserConfig": configlib.SetUserConfig,
+        "SetCwd": config.SetCwd,
+        "SetGuildHome": config.SetGuildHome,
+        "SetUserConfig": config.SetUserConfig,
         "StderrCapture": util.StderrCapture,
         "SysPath": SysPath,
         "TempFile": util.TempFile,
@@ -687,7 +687,7 @@ def test_globals():
         "find": find,
         "findl": file_util.find,
         "gapi": gapi,
-        "guild_home": configlib.guild_home,
+        "guild_home": config.guild_home,
         "guild": guild,
         "guildfile": guildfile,
         "isdir": os.path.isdir,
@@ -946,7 +946,7 @@ class Project:
             from guild import run_util
             from guild.commands import run_impl
 
-            with configlib.SetGuildHome(self.guild_home):
+            with config.SetGuildHome(self.guild_home):
                 run = util.find_apply(
                     [run_util.marked_or_latest_run_for_opspec, run_impl.one_run], spec
                 )
@@ -1103,7 +1103,7 @@ class Project:
 
 class _MockConfig:
     def __init__(self, data):
-        self.path = configlib.user_config_path()
+        self.path = config.user_config_path()
         self.data = data
 
     def read(self):
@@ -1115,12 +1115,12 @@ class UserConfig:
         self._config = _MockConfig(config)
 
     def __enter__(self):
-        configlib._user_config = self._config
+        config._user_config = self._config
 
     def __exit__(self, *exc):
         # None forces a lazy re-reread from disk, which is the correct
         # behavior for a reset here.
-        configlib._user_config = None
+        config._user_config = None
 
 
 class Proxy:
@@ -1390,7 +1390,7 @@ def _chdir(s):
 def _set_guild_home(path):
     if os.getenv("DEBUG") == "1":
         sys.stderr.write(f"Setting Guild home: {path}\n")
-    configlib.set_guild_home(path)
+    config.set_guild_home(path)
 
 
 def _compare_dirs(d1, d2):
