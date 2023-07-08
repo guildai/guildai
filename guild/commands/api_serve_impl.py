@@ -20,7 +20,9 @@ import mimetypes
 import os
 import sys
 
-from guild import config as configlib
+from werkzeug.datastructures import ImmutableMultiDict
+
+from guild import config
 from guild import filter as filterlib
 from guild import filter_util
 from guild import index as indexlib
@@ -129,6 +131,7 @@ def ApiApp():
             ("/compare", _handle_compare, ()),
             ("/scalars", _handle_scalars, ()),
             ("/collections", _handle_collections, ()),
+            ("/archives", _handle_archives, ()),
             ("/diff", _handle_diff, ()),
             ("/<path:path>", _handle_not_supported, ()),
         ]
@@ -186,7 +189,20 @@ def _runs_for_args(args):
 
 
 def _runs_dir(args):
-    return var.runs_dir(deleted="deleted" in args)
+    if "archive" in args:
+        return _archive_runs_dir(args)
+    if "deleted" in args:
+        return var.runs_dir(deleted=True)
+    return var.runs_dir()
+
+
+def _archive_runs_dir(args):
+    archive = args.get("archive")
+    assert archive
+    path = os.path.join(config.user_config_home(), "archives", archive)
+    if not os.path.exists(path):
+        raise serving_util.BadRequest(f"no such archive: {archive}")
+    return path
 
 
 def _runs_for_collection(args):
@@ -196,13 +212,14 @@ def _runs_for_collection(args):
     collection = _collection_for_name(collection_name)
     if not collection:
         raise serving_util.BadRequest(f"no such collection: {collection_name}")
-    return _runs_for_args(_CollectionArgsProxy(collection, args))
+    return _runs_for_args(_args_for_collection_runs(collection, args))
 
 
 def _collection_for_name(name):
-    config = configlib.user_config()
-    ids = name.split("/")
-    return _find_collection(ids, config.get("collections"))
+    return _find_collection(
+        name.split("/"),
+        config.user_config().get("collections"),
+    )
 
 
 def _find_collection(ids, collections):
@@ -217,69 +234,31 @@ def _find_collection(ids, collections):
     return None
 
 
-class _CollectionArgsProxy:
-    _proxied_args = (
-        "deleted",
-        "started",
-        "status",
-        "op",
-        "text",
-        "collection",
-        "run",
+def _args_for_collection_runs(collection, base_args):
+    return ImmutableMultiDict(
+        *[_strip_filter_args(base_args) + _collection_filter_args(collection)]
     )
 
-    def __init__(self, collection, args):
-        self.c = dict(collection)
-        self._apply_deleted(args)
 
-    def _apply_deleted(self, args):
-        # Apply 'deleted' from args as this determined where we apply
-        # the collection filter
-        if "deleted" in args:
-            self.c["deleted"] = args.get("deleted")
-        else:
-            # Ensure invalid config doesn't leak in args
-            self.c.pop("deleted", None)
+FILTER_ARGS = ("collection", "status", "op", "started", "text")
 
-    def get(self, name):
-        val = self._get(name)
-        if isinstance(val, list):
-            return val[0]
-        return val
 
-    def _get(self, name):
-        assert name in self._proxied_args, name
-        if name == "collection":
-            # Implementation explicitly prohibits recursive
-            # application of collections. While this is conceivable
-            # feature, we would need to check for cycles. In this
-            # case, the value is always None.
-            return None
-        val = self.c.get(self._map_arg_name(name))
-        return self._ensure_filter_text_prefix(val, name)
+def _strip_filter_args(args):
+    return [(name, val) for name, val in args.items() if name not in FILTER_ARGS]
 
-    @staticmethod
-    def _map_arg_name(name):
-        if name == "text":
-            return "filter"
-        return name
 
-    @staticmethod
-    def _ensure_filter_text_prefix(val, name):
-        if val is not None and name == "text":
-            return f"/{val}"
-        return val
+COLLECTION_FILTER_MAP = [
+    ("filter", "text"),
+    ("started", "started"),
+    ("status", "status"),
+]
 
-    def getlist(self, name):
-        val = self._get(name)
-        if val is None:
-            return []
-        if isinstance(val, list):
-            return val
-        return [val]
 
-    def __iter__(self):
-        return (name for name in self._proxied_args if self._get(name) is not None)
+def _collection_filter_args(collection):
+    return [
+        (name_out, collection[name_in]) for name_in, name_out in COLLECTION_FILTER_MAP
+        if name_in in collection
+    ]
 
 
 def _maybe_parsed_text_filter(args):
@@ -462,11 +441,18 @@ def _read_run_attr(run_id, attr_name):
 
 
 def _run_for_id(run_id):
-    for runs_dir in (var.runs_dir(), var.runs_dir(deleted=True)):
+    for runs_dir in _candidate_run_dirs():
         run_dir = os.path.join(runs_dir, run_id)
         if os.path.isdir(run_dir):
             return runlib.for_dir(run_dir)
     raise serving_util.NotFound()
+
+
+def _candidate_run_dirs():
+    yield var.runs_dir()
+    yield var.runs_dir(deleted=True)
+    for a in config.archives():
+        yield a.path
 
 
 @json_resp
@@ -559,7 +545,7 @@ def _handle_collections(req):
 
 
 def _read_collections():
-    collections = configlib.user_config().get("collections") or []
+    collections = config.user_config().get("collections") or []
     _apply_path_ids(collections)
     return collections
 
@@ -573,6 +559,21 @@ def _apply_path_ids(collections, parents=None):
 
 def _id_path(collection, parents):
     return "/".join([p.get("id", "") for p in parents] + [collection.get("id", "")])
+
+
+@json_resp
+def _handle_archives(req):
+    if req.method != "GET":
+        raise MethodNotSupported()
+    return _read_archives()
+
+
+def _read_archives():
+    return [_archive_attrs(a) for a in config.archives()]
+
+
+def _archive_attrs(archive):
+    return {"id": archive.name, "path": archive.path, **archive.get_all_metadata()}
 
 
 @json_resp
@@ -689,8 +690,7 @@ def _run_manifest_index(run):
 def _run_manifest_index(run):
     return {
         path: entry
-        for path, entry in run_manifest.iter_run_files(run.dir)
-        if entry
+        for path, entry in run_manifest.iter_run_files(run.dir) if entry
     }
 
 

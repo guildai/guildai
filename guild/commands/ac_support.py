@@ -22,7 +22,7 @@ def _omit_pycache(path):
 
 
 def ac_filename(ext, incomplete):
-    if _active_shell_supports_directives():
+    if active_shell_supports_directives():
         return _compgen_filenames("file", ext)
     return _list_dir(
         os.getcwd(),
@@ -125,7 +125,7 @@ def _list_dir_sort_key(path):
 
 
 def ac_dir(incomplete):
-    if _active_shell_supports_directives():
+    if active_shell_supports_directives():
         return ["!!dir"]
     return _list_dir(
         os.getcwd(), filters=[os.path.isdir, _omit_pycache], incomplete=incomplete
@@ -134,7 +134,7 @@ def ac_dir(incomplete):
 
 def ac_no_colon_wordbreak(values, incomplete):
     values = _values_for_incomplete(incomplete, values)
-    if _active_shell_supports_directives():
+    if active_shell_supports_directives():
         return ["!!no-colon-wordbreak"] + values
     return values
 
@@ -162,11 +162,11 @@ def _active_shell_supports_nospace():
     # zsh is a one-off shell that supports the nospace directive but
     # otherwise doesn't support directives. See
     # (../completions/zsh-guild for details).
-    return _active_shell_supports_directives() or _active_shell() == "zsh"
+    return active_shell_supports_directives() or _active_shell() == "zsh"
 
 
 def ac_batchfile(ext, incomplete):
-    if _active_shell_supports_directives():
+    if active_shell_supports_directives():
         return _compgen_filenames("batchfile", ext)
     batchfile_paths = _list_dir(
         os.getcwd(),
@@ -222,7 +222,7 @@ def _gen_ac_command(directive_filter, regex_filter, incomplete):
     import re
     import subprocess
 
-    if _active_shell_supports_directives():
+    if active_shell_supports_directives():
         if directive_filter:
             return [f"!!command:{directive_filter}"]
         return ["!!command"]
@@ -247,7 +247,7 @@ def _gen_ac_command(directive_filter, regex_filter, incomplete):
 
 
 def ac_run_filepath(run_dir, incomplete):
-    if _active_shell_supports_directives():
+    if active_shell_supports_directives():
         return [f"!!runfiles:{run_dir}"]
     return _list_dir(
         run_dir, filters=[_run_filepath_filter, _omit_pycache], incomplete=incomplete
@@ -276,7 +276,7 @@ def _active_shell():
     return os.getenv("_GUILD_COMPLETE_SHELL") or util.active_shell()
 
 
-def _active_shell_supports_directives():
+def active_shell_supports_directives():
     return _active_shell() in ("bash",)
 
 
@@ -289,3 +289,9 @@ def ac_assignments(key, values, value_incomplete):
 
 def _active_shell_requires_full_assign():
     return _active_shell() != "bash"
+
+
+def quote(l):
+    import shlex
+
+    return [shlex.quote(s) for s in l]

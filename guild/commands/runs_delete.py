@@ -21,6 +21,7 @@ from . import runs_support
 
 @click.command("delete, rm")
 @runs_support.runs_arg
+@runs_support.archive_option("Delete archived runs in PATH.")
 @runs_support.all_filters
 @remote_support.remote_option("Delete remote runs.")
 @click.option("-y", "--yes", help="Do not prompt before deleting.", is_flag=True)

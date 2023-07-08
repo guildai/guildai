@@ -111,8 +111,34 @@ def ac_digest(ctx, _param, incomplete):
     return sorted([d for d in digests if d and d.startswith(incomplete)])
 
 
-def ac_archive(_ctx, _param, incomplete):
-    return ac_support.ac_dir(incomplete) + ac_support.ac_filename(["zip"], incomplete)
+def ac_archive(ctx, param, incomplete):
+    return (
+        ac_support.ac_dir(incomplete)  #
+        + ac_support.ac_filename(["zip"], incomplete)  #
+        + ac_named_archive(ctx, param, incomplete, no_quote=True)
+    )
+
+
+def ac_named_archive(_ctx, _param, incomplete, no_quote=False):
+    """Returns named archives.
+
+    When used in isolation, values should be quoted as needed as they
+    can cotain spaces. If used with file system directives on systems
+    that support ac directives, values should not be quotes as their
+    spaces will be escaped by the shell support.
+    """
+    from guild import config
+
+    names = [
+        val for val in sorted([a.label or a.name for a in config.archives()])
+        if val.startswith(incomplete)
+    ]
+
+    return (
+        ac_support.quote(names)  #
+        if not no_quote or not ac_support.active_shell_supports_directives()  #
+        else names
+    )
 
 
 def runs_arg(fn):

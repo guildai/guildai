@@ -16,19 +16,14 @@ import click
 
 from guild import click_util
 
-from . import ac_support
 from . import runs_support
-
-
-def _ac_archive(_ctx, _param, incomplete):
-    return ac_support.ac_filename(["zip"], incomplete)
 
 
 def import_params(fn):
     click_util.append_params(
         fn,
         [
-            click.Argument(("archive",), shell_complete=_ac_archive),
+            click.Argument(("archive",), shell_complete=runs_support.ac_archive),
             runs_support.runs_arg,
             click.Option(
                 ("-m", "--move"),

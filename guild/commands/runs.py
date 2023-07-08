@@ -17,6 +17,7 @@ import click
 from guild import cli
 from guild import click_util
 
+from .runs_archive import archive_runs
 from .runs_comment import comment_runs
 from .runs_delete import delete_runs
 from .runs_diff import diff_runs
@@ -59,6 +60,7 @@ def _params_specified(kw):
     return any((kw[key] for key in kw))
 
 
+runs.add_command(archive_runs)
 runs.add_command(comment_runs)
 runs.add_command(delete_runs)
 runs.add_command(diff_runs)

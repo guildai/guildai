@@ -922,12 +922,43 @@ directories.
     >>> runs_import.import_runs.params[0].name
     'archive'
 
-The archive location for import is a directory or a zip file.
+The archive location for import is a directory, a zip file, or an
+archive name/label.
+
+Show completions for an environment without any archives.
+
+    >>> gh = mkdtemp()
+    >>> touch(path(gh, "config.yml"))
+    >>> with ZshCompletion():
+    ...     with SetGuildHome(gh):
+    ...         with Chdir(export_tmp):
+    ...             [_.value for _ in runs_import.import_runs.params[0].shell_complete(None, "")]
+    ['yyy/', 'xxx.zip', 'yyy/']
+
+Create an archive directory. Guild resolves using the directory as the
+archive name.
+
+    >>> mkdir(path(gh, "archives"))
+    >>> mkdir(path(gh, "archives", "archive-123"))
 
     >>> with ZshCompletion():
-    ...     with Chdir(export_tmp):
-    ...         [_.value for _ in runs_import.import_runs.params[0].shell_complete(None, "")]
-    ['xxx.zip', 'yyy/']
+    ...     with SetGuildHome(gh):
+    ...         with Chdir(export_tmp):
+    ...             [_.value for _ in runs_import.import_runs.params[0].shell_complete(None, "")]
+    ['yyy/', 'xxx.zip', 'yyy/', 'archive-123']
+
+Add `archive.json` to the archive directory to provide a label. Guild
+resolves using the archive label.
+
+    >>> write(path(gh, "archives", "archive-123", "archive.json"), """
+    ... {"label": "Sample Archive 123"}
+    ... """)
+
+    >>> with ZshCompletion():
+    ...     with SetGuildHome(gh):
+    ...         with Chdir(export_tmp):
+    ...             [_.value for _ in runs_import.import_runs.params[0].shell_complete(None, "")]
+    ['yyy/', 'xxx.zip', 'yyy/', "'Sample Archive 123'"]
 
 ## `init`
 

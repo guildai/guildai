@@ -27,6 +27,7 @@ Run the other tests.
       api-merge:                   ok
       api-ops:                     ok
       api-runs:                    ok
+      archive-cmd:                 ok
       autocomplete-bash:           ok
       autocomplete-zsh:            ok
       batch-basics:                ok

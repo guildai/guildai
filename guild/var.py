@@ -223,7 +223,7 @@ def _run_attr(run, name):
 
 def delete_runs(runs, permanent=False):
     for run in runs:
-        src = os.path.join(runs_dir(), run.id)
+        src = run.dir
         if permanent:
             _delete_run(src)
         else:

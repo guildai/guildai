@@ -82,6 +82,7 @@ doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr 
     guild.commands.api_serve
     guild.commands.api_serve_impl
     guild.commands.api_support
+    guild.commands.archive
     guild.commands.cat
     guild.commands.cat_impl
     guild.commands.check
@@ -139,6 +140,7 @@ doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr 
     guild.commands.run
     guild.commands.run_impl
     guild.commands.runs
+    guild.commands.runs_archive
     guild.commands.runs_comment
     guild.commands.runs_delete
     guild.commands.runs_diff

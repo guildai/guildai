@@ -16,6 +16,7 @@ Guild provides help text to users with the `--help` option.
     <BLANKLINE>
     Commands:
       api              CLI based API calls.
+      archive          Archive one or more runs.
       cat              Show contents of a run file.
       check            Check the Guild setup.
       comment          Add or remove run comments.
@@ -109,6 +110,7 @@ Guild provides help text to users with the `--help` option.
       --help                          Show this message and exit.
     <BLANKLINE>
     Commands:
+      archive     Archive one or more runs.
       comment     Add or remove run comments.
       delete, rm  Delete one or more runs.
       diff        Diff two runs.
@@ -139,7 +141,8 @@ the line below fails with an empty banner `Differences (unified diff
 with -expected +actual):`
 
     >>> pprint(json.loads(out))  # doctest: +REPORT_UDIFF -NORMALIZE_PATHS
-    {'commands': [{'help': 'Add or remove run comments.', 'term': 'comment'},
+    {'commands': [{'help': 'Archive one or more runs.', 'term': 'archive'},
+                  {'help': 'Add or remove run comments.', 'term': 'comment'},
                   {'help': 'Delete one or more runs.', 'term': 'delete, rm'},
                   {'help': 'Diff two runs.', 'term': 'diff'},
                   {'help': 'Export one or more runs.', 'term': 'export'},

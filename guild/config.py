@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import logging
 import os
 import sys
@@ -461,3 +462,54 @@ def _read_config_value(attr_path):
     for name in attr_path:
         cur = cur[name]
     return cur
+
+
+def archives():
+    home = archives_home()
+    if not os.path.exists(home):
+        return []
+
+    return [
+        Archive(name, path) for name, path in
+        [(name, os.path.join(home, name)) for name in os.listdir(home)]
+        if os.path.isdir(path)
+    ]
+
+
+def archives_home():
+    return os.path.join(user_config_home(), "archives")
+
+
+class Archive:
+    def __init__(self, name, path):
+        self.name = name
+        self.path = path
+        self._metadata = _try_archive_metadata(path)
+
+    @property
+    def label(self):
+        return self._metadata.get("label")
+
+    def get_metadata(self, name):
+        return self._metadata.get(name)
+
+    def get_all_metadata(self):
+        return self._metadata
+
+
+def _try_archive_metadata(path):
+    metadata_path = os.path.join(path, "archive.json")
+    if not os.path.exists(metadata_path):
+        return {}
+    try:
+        metadata = json.load(open(metadata_path))
+    except Exception as e:
+        log.error("reading %s: %s", metadata_path, e)
+        return {}
+    else:
+        if not isinstance(metadata, dict):
+            log.error(
+                "unexpected archive metadata in %s: %s", metadata_path, type(metadata)
+            )
+            return {}
+        return metadata

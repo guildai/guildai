@@ -20,6 +20,7 @@ import logging
 import os
 import re
 import typing
+import uuid
 
 # IMPORTANT: Keep expensive imports out of this list. This module is
 # used by several commands and any latency here will be automatically
@@ -162,8 +163,21 @@ def _runs_root_for_args(args):
     if archive and deleted:
         cli.error("--archive and --deleted cannot both be used")
     if archive:
-        return archive
+        return _validated_archive_path(archive)
     return var.runs_dir(deleted=deleted)
+
+
+def _validated_archive_path(archive_arg):
+    if os.path.exists(archive_arg):
+        return archive_arg
+    archive = _archive_for_name(archive_arg)
+    if archive:
+        return archive.path
+    cli.error(
+        f"'{archive_arg}' is not a valid archive - use a path to a "
+        "file/directory or specify an archive name returned by "
+        "'guild archive --list'."
+    )
 
 
 def _runs_filter(args, ctx):
@@ -484,8 +498,6 @@ def list_runs(args, ctx=None):
 
 def _list_runs(args, ctx):
     _check_list_runs_args(args, ctx)
-    if args.archive and not os.path.exists(args.archive):
-        cli.error(f"{args.archive} does not exist")
     runs = filtered_runs(args, ctx=ctx)
     if args.comments:
         _list_runs_comments(_limit_runs(runs, args), args, comment_index_format=False)
@@ -1336,12 +1348,11 @@ def export(args, ctx):
 
 
 def import_(args, ctx):
-    if not os.path.exists(args.archive):
-        cli.error(f"archive '{args.archive}' does not exist")
-    if _is_zip_archive(args.archive):
+    archive_path = _validated_archive_path(args.archive)
+    if _is_zip_archive(archive_path):
         if args.move:
             cli.error("'--move' cannot be used with zip archives")
-    elif os.path.isfile(args.archive):
+    elif os.path.isfile(archive_path):
         cli.error(
             f"invalid archive {args.archive} - expected a directory or a zip file"
         )
@@ -2078,3 +2089,90 @@ def _split_comment_user(user):
     if len(parts) == 2:
         return parts
     return parts[0], None
+
+
+def archive(args, ctx):
+    if args.list:
+        _print_archives(args)
+        raise SystemExit(0)
+    if not args.name:
+        cli.error("missing argument for NAME")
+
+    archive = _archive_for_name(args.name)
+    if not archive and not args.create:
+        cli.error(
+            f"archive '{args.name}' does not exist\n"
+            f"Try '{ctx.command_path} --list' to list available archives "
+            "or use the '--create' option."
+        )
+
+    archive_desc = "copy" if args.copy else "move"
+    preview = (
+        f"You are about to archive ({archive_desc}) the following "
+        f"runs to '{args.name}':"
+    )
+    confirm = "Continue?"
+    no_runs = "No runs to archive."
+
+    def archive_f(selected):
+        dest_dir = archive.path if archive else _create_archive(args)
+        if not os.path.exists(dest_dir):
+            cli.error(
+                f"archive directory {dest_dir} no longer exists\n"
+                "Try the command with a different archive or use '--create'."
+            )
+
+        try:
+            archived = run_util.export_runs(
+                selected,
+                dest_dir,
+                move=not args.copy,
+                copy_resources=args.copy_resources,
+            )
+        except run_util.RunsExportError as e:
+            cli.error(e.args[0])
+        else:
+            cli.out(f"Archived {len(archived)} run(s) to '{args.name}'", err=True)
+
+    runs_op(args, ctx, preview, confirm, no_runs, archive_f, ALL_RUNS_ARG, True)
+
+
+def _archive_for_name(name):
+    matching = [a for a in config.archives() if name in (a.label, a.name == name)]
+    return matching[0] if matching else None
+
+
+def _create_archive(args):
+    assert args.name
+    assert args.create
+
+    id = uuid.uuid4().hex
+    archive_dir = os.path.join(config.archives_home(), id)
+
+    cli.out(f"Creating '{args.name}'")
+
+    util.ensure_dir(archive_dir)
+    with open(os.path.join(archive_dir, "archive.json"), "w") as f:
+        json.dump(
+            {
+                "label": args.name,
+                **({
+                    "description": args.description
+                } if args.description else {})
+            }, f
+        )
+    return archive_dir
+
+
+def _print_archives(args):
+    cli.table(
+        [
+            {
+                "name": a.label or a.name,
+                "desc": a.get_metadata("description") or "",
+                "path": util.format_user_dir(a.path),
+            } for a in sorted(config.archives(), key=lambda a: a.label or a.name)
+        ],
+        cols=["name", "desc"],
+        detail=["path"] if args.verbose else []
+    )

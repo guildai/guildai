@@ -20,6 +20,7 @@ from guild import __version__ as guild_version
 from guild import click_util
 
 from .api import api
+from .archive import archive
 from .cat import cat
 from .check import check
 from .comment import comment
@@ -113,6 +114,7 @@ def main(args):
 
 
 main.add_command(api)
+main.add_command(archive)
 main.add_command(cat)
 main.add_command(check)
 main.add_command(comment)
