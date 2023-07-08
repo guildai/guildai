@@ -331,7 +331,7 @@ Run an optimizer batch.
     >>> run("guild runs -s")
     [1]  echo           completed  x=... y=2 z=c
     [2]  echo           completed  x=... y=2 z=c
-    [3]  echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.96 noise=0.1 prev-trials=batch random-starts=1 xi=0.05
+    [3]  echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.96 noise=0.1 prev-trials=sourcecode random-starts=1 xi=0.05
 
 Start a new optimization run using the first optimization run as a
 prototype.
@@ -342,17 +342,17 @@ prototype.
     INFO: [guild] Random start for optimization (1 of 1)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=c)
     ... 2 'c'
-    INFO: [guild] Found 1 previous trial(s) for use in optimization
+    INFO: [guild] Found 3 previous trial(s) for use in optimization
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=c)
     ... 2 'c'
 
     >>> run("guild runs -s")
     [1]   echo           completed  x=... y=2 z=c
     [2]   echo           completed  x=... y=2 z=c
-    [3]   echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.96 noise=0.1 prev-trials=batch random-starts=1 xi=0.05
+    [3]   echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.96 noise=0.1 prev-trials=sourcecode random-starts=1 xi=0.05
     [4]   echo           completed  x=... y=2 z=c
     [5]   echo           completed  x=... y=2 z=c
-    [6]   echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.96 noise=0.1 prev-trials=batch random-starts=1 xi=0.05
+    [6]   echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.96 noise=0.1 prev-trials=sourcecode random-starts=1 xi=0.05
 
 Generate another optimization run using the second optimizer run but
 with different flag values and an additional trial.
@@ -369,7 +369,7 @@ with different flag values and an additional trial.
     INFO: [guild] Random start for optimization (2 of 2)
     INFO: [guild] Running trial ...: echo (x=..., y=3, z=c)
     ... 3 'c'
-    INFO: [guild] Found 2 previous trial(s) for use in optimization
+    INFO: [guild] Found 6 previous trial(s) for use in optimization
     INFO: [guild] Running trial ...: echo (x=..., y=3, z=c)
     ... 3 'c'
 
@@ -377,10 +377,10 @@ with different flag values and an additional trial.
     [1]   echo           completed  x=... y=3 z=c
     [2]   echo           completed  x=... y=3 z=c
     [3]   echo           completed  x=... y=3 z=c
-    [4]   echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.5 noise=0.1 prev-trials=batch random-starts=2 xi=0.05
+    [4]   echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.5 noise=0.1 prev-trials=sourcecode random-starts=2 xi=0.05
     [5]   echo           completed  x=... y=2 z=c
     [6]   echo           completed  x=... y=2 z=c
-    [7]   echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.96 noise=0.1 prev-trials=batch random-starts=1 xi=0.05
+    [7]   echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.96 noise=0.1 prev-trials=sourcecode random-starts=1 xi=0.05
     [8]   echo           completed  x=... y=2 z=c
     [9]   echo           completed  x=... y=2 z=c
-    [10]  echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.96 noise=0.1 prev-trials=batch random-starts=1 xi=0.05
+    [10]  echo+skopt:gp  completed  acq-func=gp_hedge kappa=1.96 noise=0.1 prev-trials=sourcecode random-starts=1 xi=0.05

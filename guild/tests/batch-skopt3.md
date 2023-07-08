@@ -36,29 +36,32 @@ Start by generating some training runs.
     [3:...]  train.py  ...  completed  noise=0.1 x=-1.0
     <exit 0>
 
-### Batch Method
+### Source Code Method (default)
 
-The default method to select previous trials is to limit trials to the
-batch run.
+The default method to select previous trials is to limit trials to
+runs of the same operation and source code digest..
 
 Run each of the skopt sequential optimizers for a single trial and no
 random starts. We use labels to delete the runs for cleanup.
 
-    >>> run("guild run train.py x=[-1.0:1.0] -o gp -Fo random-starts=0 "
-    ...     "-m 1 -l delme -bl delme -y")
-    INFO: [guild] Random start for optimization (missing previous trials)
+    >>> run("guild run train.py x=[-1.0:1.0] -o gp "
+    ...     "-Fo random-starts=0 -m 1 -l delme -bl delme -y",
+    ...     ignore="The objective has been")
+    INFO: [guild] Found 3 previous trial(s) for use in optimization
     ...
     <exit 0>
 
-    >>> run("guild run train.py x=[-1.0:1.0] -o forest -Fo random-starts=0 "
-    ...     "-m 1 -l delme -bl delme -y")
-    INFO: [guild] Random start for optimization (missing previous trials)
+    >>> run("guild run train.py x=[-1.0:1.0] -o forest "
+    ...     "-Fo random-starts=0 -m 1 -l delme -bl delme -y",
+    ...     ignore="The objective has been")
+    INFO: [guild] Found 4 previous trial(s) for use in optimization
     ...
     <exit 0>
 
-    >>> run("guild run train.py x=[-1.0:1.0] -o gbrt -Fo random-starts=0 "
-    ...     "-m 1 -l delme -bl delme -y")
-    INFO: [guild] Random start for optimization (missing previous trials)
+    >>> run("guild run train.py x=[-1.0:1.0] -o gbrt "
+    ...     "-Fo random-starts=0 -m 1 -l delme -bl delme -y",
+    ...     ignore="The objective has been")
+    INFO: [guild] Found 5 previous trial(s) for use in optimization
     ...
     <exit 0>
 
@@ -70,28 +73,28 @@ Delete the runs in preparation for the next section.
     Deleted 6 run(s)
     <exit 0>
 
-### Source Code Method
+### Batch Method
 
-The 'sourcecode' method selects all runs with a matching source code digest.
+The 'batch' method selects all runs with a matching source code digest.
 
-    >>> run("guild run train.py x=[-1.0:1.0] -o gp -Fo prev-trials=sourcecode "
-    ...     "-Fo random-starts=0 -m 1 -l delme -bl delme -y",
-    ...     ignore="The objective has been")
-    INFO: [guild] Found 3 previous trial(s) for use in optimization
+    >>> run("guild run train.py x=[-1.0:1.0] -o gp -Fo random-starts=0 "
+    ...     "-Fo prev-trials=batch "
+    ...     "-m 1 -l delme -bl delme -y")
+    INFO: [guild] Random start for optimization (missing previous trials)
     ...
     <exit 0>
 
-    >>> run("guild run train.py x=[-1.0:1.0] -o forest -Fo prev-trials=sourcecode "
-    ...     "-Fo random-starts=0 -m 1 -l delme -bl delme -y",
-    ...     ignore="The objective has been")
-    INFO: [guild] Found 4 previous trial(s) for use in optimization
+    >>> run("guild run train.py x=[-1.0:1.0] -o forest -Fo random-starts=0 "
+    ...     "-Fo prev-trials=batch "
+    ...     "-m 1 -l delme -bl delme -y")
+    INFO: [guild] Random start for optimization (missing previous trials)
     ...
     <exit 0>
 
-    >>> run("guild run train.py x=[-1.0:1.0] -o gbrt -Fo prev-trials=sourcecode "
-    ...     "-Fo random-starts=0 -m 1 -l delme -bl delme -y",
-    ...     ignore="The objective has been")
-    INFO: [guild] Found 5 previous trial(s) for use in optimization
+    >>> run("guild run train.py x=[-1.0:1.0] -o gbrt -Fo random-starts=0 "
+    ...     "-Fo prev-trials=batch "
+    ...     "-m 1 -l delme -bl delme -y")
+    INFO: [guild] Random start for optimization (missing previous trials)
     ...
     <exit 0>
 

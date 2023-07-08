@@ -70,8 +70,8 @@ that we're not interested in so we use `LogCapture`.
 
     >>> with LogCapture():
     ...     project.run("m6:steps-batch")
-    INFO: [guild] running loss: m6:loss --max-trials 5 --opt-flag
-    random-starts=2 --optimize x='[0:100]'
+    INFO: [guild] running loss: m6:loss --max-trials 5 --opt-flag random-starts=2
+    --opt-flag prev-trials=batch --optimize x='[0:100]'
     INFO: [guild] Random start for optimization (1 of 2)
     INFO: [guild] Running trial ...: m6:loss (x=...)
     loss: ...
@@ -88,5 +88,5 @@ that we're not interested in so we use `LogCapture`.
     INFO: [guild] Running trial ...: m6:loss (x=...)
     loss: ...
 
-Note the the batch run is able to find previous trials even through
-the trials aren't children of the step parent.
+The the batch run is able to find previous trials even though the
+trials aren't children of the step parent.

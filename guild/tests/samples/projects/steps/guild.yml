@@ -152,6 +152,7 @@
           isolate-runs: no
     steps-batch:
       steps:
-        - run: loss x=[0:100] -O -m 5
+        - run: loss x=[0:100] -O --trials 5
           opt-flags:
             - random-starts=2
+            - prev-trials=batch
