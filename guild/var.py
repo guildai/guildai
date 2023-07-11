@@ -233,8 +233,7 @@ def delete_runs(runs, permanent=False):
 
 def purge_runs(runs):
     for run in runs:
-        src = os.path.join(runs_dir(deleted=True), run.id)
-        _delete_run(src)
+        _delete_run(run.dir)
 
 
 def _delete_run(src):
@@ -263,8 +262,11 @@ def _move_to_backup(path):
 
 def restore_runs(runs):
     for run in runs:
-        src = os.path.join(runs_dir(deleted=True), run.id)
+        src = os.path.join(run.dir)
         dest = os.path.join(runs_dir(), run.id)
+        if util.compare_paths(src, dest):
+            log.warning("%s is already restored, skipping", run.id)
+            continue
         _move(src, dest)
 
 
