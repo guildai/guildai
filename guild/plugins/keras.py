@@ -18,6 +18,7 @@ from guild import config
 from guild import op_util
 from guild import plugin as pluginlib
 from guild import python_util
+from guild import summary
 
 from .python_script import PythonScriptModelProxy
 from .python_script import PythonScriptOpdefSupport
@@ -27,8 +28,8 @@ KERAS_OUTPUT_SCALARS = [
     r" - ([a-z_]+): (\value)",
     r"Test loss: (?P<test_loss>\value)",
     r"Test accuracy: (?P<test_accuracy>\value)",
+    *summary.DEFAULT_OUTPUT_SCALARS
 ]
-
 
 class KerasScriptModelProxy(PythonScriptModelProxy):
     output_scalars = KERAS_OUTPUT_SCALARS
