@@ -351,7 +351,7 @@ def _run_deleted(run):
 
 def _exec_runs_op(req):
     op, run_ids = _decode_runs_op(req)
-    runs, missing, running = _runs_for_op(op, run_ids)
+    runs, missing, running = _runs_for_op(run_ids)
     if op == "delete":
         var.delete_runs(runs)
     elif op == "restore":
@@ -400,15 +400,16 @@ def _runs_for_op(op, run_ids):
     runs = []
     missing = []
     running = []
-    runs_dir = var.runs_dir(deleted=op in ("restore", "purge"))
     for run_id in run_ids:
-        run = _try_run_for_dir(os.path.join(runs_dir, run_id))
-        if not run:
+        try:
+            run = _run_for_id(run_id)
+        except serving_util.NotFound:
             missing.append(run_id)
-        elif run.status == "running":
-            running.append(run_id)
         else:
-            runs.append(run)
+            if run.status == "running":
+                running.append(run_id)
+            else:
+                runs.append(run)
     return runs, missing, running
 
 
