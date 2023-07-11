@@ -783,12 +783,16 @@ def _maybe_generated_hash(entry):
 
 
 def _handle_run_file(_req, run_id, path):
-    run = _run_for_id(run_id)
-    full_path = os.path.join(run.dir, path)
-
     def not_found(env, start_resp):
         app = _json_resp({"error": 404, "msg": "Not Found"}, 404)
         return app(env, start_resp)
+
+    try:
+        run = _run_for_id(run_id)
+    except serving_util.NotFound:
+        return not_found
+
+    full_path = os.path.join(run.dir, path)
 
     static_app = serving_util.SharedDataMiddleware(not_found, {full_path: full_path})
 
@@ -796,12 +800,12 @@ def _handle_run_file(_req, run_id, path):
         env["PATH_INFO"] = full_path
 
         def start_resp_allow_origin(status, headers):
-            headers.extend(
-                [
-                    ("Access-Control-Allow-Origin", "*"),
-                    ("Cache-Control", "no-cache"),
-                ]
-            )
+            _pop_header(headers, "Access-Control-Allow-Origin")
+            _pop_header(headers, "Cache-Control")
+            headers.extend([ #
+                ("Cache-Control", "no-cache"), #
+                ("Access-Control-Allow-Origin", "*")
+            ])
             _maybe_plain_text_type(full_path, headers)
             start_resp(status, headers)
 
@@ -810,14 +814,19 @@ def _handle_run_file(_req, run_id, path):
     return app
 
 
+def _pop_header(headers, name):
+    name_lower = name.lower()
+    return util.pop_find(headers, lambda h: h[0].lower() == name_lower)
+
+
 def _maybe_plain_text_type(path, headers):
-    content_type_h = util.pop_find(headers, lambda h: h[0].lower() == 'content-type')
-    if not content_type_h:
+    content_type_header = _pop_header(headers, "Content-Type")
+    if not content_type_header:
         return
     headers.append(
-        ('Content-Type', 'text/plain')  #
-        if _force_plain_text(path, content_type_h[1])  #
-        else content_type_h
+        ("Content-Type", "text/plain")  #
+        if _force_plain_text(path, content_type_header[1])  #
+        else content_type_header
     )
 
 
