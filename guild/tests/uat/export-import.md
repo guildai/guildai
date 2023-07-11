@@ -228,7 +228,8 @@ Invalid export location:
 Import non-existing archive:
 
     >>> run("guild import %s/missing-dir -y" % tmpdir)
-    guild: archive '.../missing-dir' does not exist
+    guild: ... is not a valid archive - use a path to a file/directory
+    or specify an archive name returned by 'guild archive --list'.
     <exit 1>
 
 Import a file rather than a directory:

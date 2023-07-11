@@ -64,7 +64,7 @@ Optimizer with default objective:
       acq-func: gp_hedge
       kappa: 1.96
       noise: gaussian
-      prev-trials: batch
+      prev-trials: sourcecode
       random-starts: 3
       xi: 0.05
     Continue? (Y/n)
@@ -78,7 +78,7 @@ Optimizer with explict objective:
       y: 2
     Optimizer flags:
       kappa: 1.96
-      prev-trials: batch
+      prev-trials: sourcecode
       random-starts: 3
       xi: 0.05
     Continue? (Y/n)
