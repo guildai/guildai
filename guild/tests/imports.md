@@ -237,10 +237,10 @@ doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr 
     guild.plugins.hiplot
     guild.plugins.import_argparse_flags_main
     guild.plugins.ipynb
-    guild.plugins.keras
     guild.plugins.memory
     guild.plugins.nbexec
     guild.plugins.perf
+    guild.plugins.python_frameworks
     guild.plugins.python_script
     guild.plugins.pytorch_flags
     guild.plugins.quarto_document

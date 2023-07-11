@@ -1,34 +1,36 @@
-# Keras support
+# Python Frameworks
 
-The plugin module:
+The `python_frameworks` module provides support for various Python
+frameworks.
 
-    >>> from guild.plugins import keras
+    >>> from guild.plugins import python_frameworks
+
+## Keras
 
 We'll use the `keras` project to illustrate Keras support.
 
     >>> project = sample("projects/keras")
 
-## Keras model proxy
+### Keras model proxy
 
-Keras support includes a model proxy, which is generated from a Keras
-script.
+The frameworks plugin detects Keras training or prediction scripts.
 
     >>> script_path = os.path.join(project, "fashion_mnist_mlp.py")
-    >>> model_proxy = keras.KerasScriptModelProxy(script_path)
+    >>> model = python_frameworks.model_for_script(script_path)
 
 Model name:
 
-    >>> model_proxy.modeldef.name
+    >>> model.modeldef.name
     ''
 
 Operations:
 
-    >>> model_proxy.modeldef.operations
+    >>> model.modeldef.operations
     [<guild.guildfile.OpDef 'fashion_mnist_mlp.py'>]
 
 Operation details:
 
-    >>> opdef = model_proxy.modeldef.operations[0]
+    >>> opdef = model.modeldef.operations[0]
 
     >>> opdef.flags
     [<guild.guildfile.FlagDef 'batch_size'>,
@@ -44,18 +46,19 @@ Operation details:
      'lr': 0.001,
      'lr_decay': 0.0}
 
-    # NOTE: As of 0.6.2 compare is None so that defaults are
-    # applied at runtime.
-    >>> print(opdef.compare)
-    None
+The primary function of the Keras support is to apply output scalar
+patterns that match Keras output. In addition, Keras supports default
+output scalar patterns so the user can log custom metrics.
 
     >>> pprint(opdef.output_scalars) # doctest: -NORMALIZE_PATHS
     ['Epoch (?P<step>[0-9]+)',
      ' - ([a-z_]+): (\\value)',
      'Test loss: (?P<test_loss>\\value)',
-     'Test accuracy: (?P<test_accuracy>\\value)']
+     'Test accuracy: (?P<test_accuracy>\\value)',
+     '\\key: +\\value\\s+\\((?:step\\s+)?(?P<step>\\step)\\)$',
+     '^(\\key):\\s+(\\value)(?:\\s+\\(.*\\))?$']
 
-## Keras model from Guild file
+### Keras model from Guild file
 
 The Guild file in `project` reference `fashion_mnist_fashion.py` as
 `main` for the `train` operation.
@@ -102,21 +105,17 @@ Flag vals:
     >>> opdef.flag_values() == opdef2.flag_values()
     True
 
-Compare colspecs:
-
-    >>> print(opdef2.compare)
-    None
-
-    >>> opdef.compare == opdef2.compare
-    True
-
-Output scalars:
+As in the case of the Python script, Keras support detects the use of
+Keras in a main module and applies the applicable output scalars to
+the op def.
 
     >>> pprint(opdef2.output_scalars) # doctest: -NORMALIZE_PATHS
     ['Epoch (?P<step>[0-9]+)',
      ' - ([a-z_]+): (\\value)',
      'Test loss: (?P<test_loss>\\value)',
-     'Test accuracy: (?P<test_accuracy>\\value)']
+     'Test accuracy: (?P<test_accuracy>\\value)',
+     '\\key: +\\value\\s+\\((?:step\\s+)?(?P<step>\\step)\\)$',
+     '^(\\key):\\s+(\\value)(?:\\s+\\(.*\\))?$']
 
     >>> opdef.output_scalars == opdef2.output_scalars
     True

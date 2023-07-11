@@ -102,7 +102,6 @@ Run the other tests.
       init-venv:                   ok
       ipy:                         ok
       isolate-runs-from-project:   ok
-      keras:                       ok
       labels:                      ok
       locks:                       ok
       logging:                     ok
@@ -134,6 +133,7 @@ Run the other tests.
       project-api:                 ok
       publish-runs:                ok
       publish-templates:           ok
+      python-frameworks:           ok
       python-script:               ok
       python-utils:                ok
       pythonpath:                  ok

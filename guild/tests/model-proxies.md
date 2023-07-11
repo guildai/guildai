@@ -41,7 +41,7 @@ And a helper function to resolve op specs:
 ## Keras scripts
 
     >>> resolve("keras-script.py")
-    (<guild.plugins.keras.KerasScriptModelProxy ..., 'keras-script.py')
+    (<guild.plugins.python_frameworks.PythonFrameworkModelProxy ...>, 'keras-script.py')
 
 ## Default batch processor
 

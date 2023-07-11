@@ -119,7 +119,22 @@ class PythonScriptModelProxy:
     plugins = []
     sourcecode = None
 
-    def __init__(self, script_path):
+    def __init__(
+        self,
+        script_path,
+        name=None,
+        output_scalars=None,
+        objective=None,
+        plugins=None,
+        sourcecode=None
+    ):
+        # Allow class overrides via constructor
+        self.name = name or self.name
+        self.output_scalars = output_scalars or self.output_scalars
+        self.objective = objective or self.objective
+        self.plugins = plugins or self.plugins
+        self.sourcecode = sourcecode or self.sourcecode
+
         assert script_path[-3:] == ".py", script_path
         self.script_path = script_path
         self.op_name = os.path.basename(script_path)

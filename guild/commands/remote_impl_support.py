@@ -265,7 +265,7 @@ def delete_runs(args):
 
 def _delete_runs_kw(args):
     names = _runs_select_names() + ["permanent", "yes"]
-    ignore = ["remote"]
+    ignore = ["remote", "archive"]
     return _arg_kw(args, names, ignore)
 
 
