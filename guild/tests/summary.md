@@ -228,13 +228,12 @@ Config capturing loss for a single step:
     >>> match([r"(\key)... (\value)"], ["loss... 2"])
     loss 2.0 0
 
-Capturing loss for multiple steps (step is not captured and is
-therefore always `0`):
+Capturing loss for multiple steps:
 
     >>> match([{"loss": r"(\value)"}], ["1", "2", "3"])
     loss 1.0 0
-    loss 2.0 0
-    loss 3.0 0
+    loss 2.0 1
+    loss 3.0 2
 
 Capturing loss for multiple steps:
 

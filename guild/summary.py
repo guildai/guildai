@@ -293,6 +293,8 @@ class OutputScalars:
         self._writer = SummaryWriter(output_dir)
         self._ignore = set(ignore or [])
         self._step = None
+        self._implied_step = None
+        self._implied_step_keys = set()
 
     def write(self, line):
         vals = _match_line(line, self._patterns)
@@ -300,13 +302,33 @@ class OutputScalars:
         if step is not None:
             self._step = step
         if vals:
+            step = self._step_for_line_keys(vals.keys())
             for key, val in sorted(vals.items()):
-                log.debug("scalar %s val=%s step=%s", key, val, self._step)
+                log.debug("scalar %s val=%s step=%s", key, val, step)
                 if key in self._ignore:
                     log.debug("skipping %s because it's in ignore list", key)
                     continue
-                self._writer.add_scalar(key, val, self._step)
+                self._writer.add_scalar(key, val, step)
                 self._writer.flush()
+
+    def _step_for_line_keys(self, line_keys):
+        if self._step is not None:
+            return self._step
+        return self._apply_implied_step(line_keys)
+
+    def _apply_implied_step(self, line_keys):
+        if any(key in self._implied_step_keys for key in line_keys):
+            # Encountered a key that was previously used to trigger an
+            # implicit key, increment step
+            self._implied_step += 1
+            self._implied_step_keys = set(line_keys)
+        else:
+            # Seeing new keys, don't increment but capture keys for
+            # subsequent checks
+            if self._implied_step is None:
+                self._implied_step = 0
+            self._implied_step_keys.update(line_keys)
+        return self._implied_step
 
     def close(self):
         self._writer.close()
