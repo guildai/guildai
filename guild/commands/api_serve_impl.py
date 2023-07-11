@@ -396,7 +396,7 @@ def _validate_op_run_ids(op):
     return run_ids
 
 
-def _runs_for_op(op, run_ids):
+def _runs_for_op(run_ids):
     runs = []
     missing = []
     running = []
