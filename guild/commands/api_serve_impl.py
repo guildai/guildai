@@ -282,7 +282,8 @@ def _generic_text_filter_expr(text):
         f"operation contains '{text}' "
         f"or label contains '{text}' "
         f"or tags contains '{text}' "
-        f"or id contains '{text}'"
+        f"or id contains '{text}' "
+        f"or sourcecode_digest contains '{text}'"
     )
 
 
@@ -342,6 +343,7 @@ def _run_base_attrs(run):
         "label": run.get("label"),
         "status": run.status,
         "deleted": _run_deleted(run),
+        "sourceCodeDigest": run.get("sourcecode_digest"),
     }
 
 
