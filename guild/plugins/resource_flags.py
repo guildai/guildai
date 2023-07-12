@@ -30,11 +30,22 @@ class ResourceFlagsPlugin(pluginlib.Plugin):
 
 def apply_resource_flags(opdef):
     for depdef in opdef.dependencies:
-        resdef, _res_location = op_dep.resource_def(depdef, {})
-        for source in resdef.sources:
-            flagdef = _flagdef_for_source(source, opdef)
-            if flagdef:
-                _apply_flagdef(flagdef, opdef, source)
+        try:
+            resdef, _res_location = op_dep.resource_def(depdef, {})
+        except op_dep.OpDependencyError as e:
+            log.warning(
+                "cannot find resource definition for dependency %s",
+                depdef.name,
+            )
+        else:
+            _apply_resdef_flags(resdef, opdef)
+
+
+def _apply_resdef_flags(resdef, opdef):
+    for source in resdef.sources:
+        flagdef = _flagdef_for_source(source, opdef)
+        if flagdef:
+            _apply_flagdef(flagdef, opdef, source)
 
 
 def _flagdef_for_source(source, opdef):
