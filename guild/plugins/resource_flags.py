@@ -32,7 +32,7 @@ def apply_resource_flags(opdef):
     for depdef in opdef.dependencies:
         try:
             resdef, _res_location = op_dep.resource_def(depdef, {})
-        except op_dep.OpDependencyError as e:
+        except op_dep.OpDependencyError:
             log.warning(
                 "cannot find resource definition for dependency %s",
                 depdef.name,
