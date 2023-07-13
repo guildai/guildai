@@ -268,12 +268,23 @@ def _op_compare(run, index, args):
 
 
 def _default_run_compare(run, index, args):
-    return _flag_compares(run) + _scalar_compares(run, index, args)
+    return (
+        _flag_compares(run)  #
+        + _logged_attr_compares(run, index)  #
+        + _scalar_compares(run, index, args)
+    )
 
 
 def _flag_compares(run):
     flags = run.get("flags") or {}
-    return [f"={name}" for name in sorted(flags)]
+    return [f"={name}" for name in util.natsorted(flags)]
+
+
+def _logged_attr_compares(run, index):
+    ignore = set(indexlib.CORE_ATTRS)
+    return util.natsorted(
+        [f".{name}" for name in index.run_attrs(run) if name not in ignore]
+    )
 
 
 def _scalar_compares(run, index, args):
@@ -291,7 +302,7 @@ def _scalar_cols(run, index, args):
         tag = str(s["tag"])
         if args.all_scalars or runs_impl.filter_default_scalar(tag):
             metrics.add(tag)
-    return sorted(metrics)
+    return util.natsorted(metrics)
 
 
 def _step_col(cols):

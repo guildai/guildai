@@ -16,6 +16,7 @@ import io
 import logging
 import re
 import sys
+import time
 
 from guild import tensorboard_util
 from guild import util
@@ -99,16 +100,21 @@ class SummaryWriter:
             self._writer = self._writer_init()
         return self._writer
 
-    def _add_summary(self, summary, step=None):
+    def _add_summary(self, summary, step=None, walltime=None):
         if step is not None:
             step = int(step)
-        event = tensorboard_util.Event(summary=summary, step=step)
+        if walltime is None:
+            walltime = _walltime_now()
+        event = tensorboard_util.Event(summary=summary, step=step, wall_time=walltime)
         self._get_writer().add_event(event)
 
-    def add_scalar(self, tag, val, step=None):
-        self._add_summary(_ScalarSummary(tag, val), step)
+    def add_text(self, tag, val, step=None, walltime=None):
+        self._add_summary(_TextSummary(tag, val), step, walltime)
 
-    def add_image(self, tag, image):
+    def add_scalar(self, tag, val, step=None, walltime=None):
+        self._add_summary(_ScalarSummary(tag, val), step, walltime)
+
+    def add_image(self, tag, image, step=None, walltime=None):
         from PIL import Image
 
         image = Image.open(image)
@@ -117,15 +123,15 @@ class SummaryWriter:
             summary = _ImageSummary(
                 tag, image.height, image.width, len(image.getbands()), encoded
             )
-            self._add_summary(summary)
+            self._add_summary(summary, step, walltime)
 
-    def add_hparam_experiment(self, hparams, metrics):
-        self._add_summary(_HParamExperiment(hparams, metrics))
+    def add_hparam_experiment(self, hparams, metrics, step=None, walltime=None):
+        self._add_summary(_HParamExperiment(hparams, metrics), step, walltime)
 
-    def add_hparam_session(self, name, hparams, status=None):
-        self._add_summary(_HParamSessionStart(name, hparams))
+    def add_hparam_session(self, name, hparams, status=None, step=None, walltime=None):
+        self._add_summary(_HParamSessionStart(name, hparams), step, walltime)
         if status:
-            self._add_summary(_HParamSessionEnd(status))
+            self._add_summary(_HParamSessionEnd(status), step, walltime)
 
     def flush(self):
         if self._writer:
@@ -140,6 +146,17 @@ class SummaryWriter:
 
     def __exit__(self, *_args):
         self.close()
+
+    def __del__(self):
+        self.close()
+
+
+def _walltime_now():
+    return time.time()
+
+
+def _TextSummary(tag, val):
+    return tensorboard_util.Text(tag, val)
 
 
 def _ScalarSummary(tag, val):

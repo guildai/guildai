@@ -36,6 +36,12 @@ def tensorboard_version_supported():
     return major_version >= 2
 
 
+def Text(tag, text):
+    from tensorboard.plugins.text.summary_v2 import text_pb
+
+    return text_pb(tag, text)
+
+
 def Summary(tag, **kw):
     from tensorboard.compat.proto.summary_pb2 import Summary
 

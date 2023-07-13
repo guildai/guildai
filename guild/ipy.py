@@ -177,6 +177,9 @@ class RunsSeries(pd.Series):
     def scalars_detail(self):
         return _runs_scalars_detail([self[0].value])
 
+    def logged_attrs(self):
+        return _runs_logged_attrs([self[0].value])
+
     def guild_flags(self):
         return _runs_flags([self[0].value])
 
@@ -217,6 +220,9 @@ class RunsDataFrame(pd.DataFrame):
 
     def scalars_detail(self):
         return _runs_scalars_detail(self._runs())
+
+    def logged_attrs(self):
+        return _runs_logged_attrs(self._runs())
 
     def guild_flags(self):
         return _runs_flags(self._runs())
@@ -698,6 +704,17 @@ def _runs_scalars_detail(runs):
     return pd.DataFrame(data, columns=cols)
 
 
+def _runs_logged_attrs(runs):
+    data = [_run_logged_attrs(run) for run in runs]
+    return pd.DataFrame(data)
+
+
+def _run_logged_attrs(run):
+    data = indexlib.logged_attrs(run)
+    data[_run_id_key(data)] = run.id
+    return data
+
+
 def _runs_flags(runs):
     data = [_run_flags_data(run) for run in runs]
     return pd.DataFrame(data)
@@ -705,11 +722,11 @@ def _runs_flags(runs):
 
 def _run_flags_data(run):
     data = run.get("flags") or {}
-    data[_run_flags_key(data)] = run.id
+    data[_run_id_key(data)] = run.id
     return data
 
 
-def _run_flags_key(flag_vals):
+def _run_id_key(flag_vals):
     run_key = "run"
     while run_key in flag_vals:
         run_key = "_" + run_key
@@ -719,17 +736,23 @@ def _run_flags_key(flag_vals):
 def _runs_compare(items):
     core_cols = ["run", "operation", "started", "time", "status", "label"]
     flag_cols = set()
+    logged_attr_cols = set()
     scalar_cols = set()
     data = []
     for item in items:
         row_data = {}
         data.append(row_data)
-        # Order matters here - we want flag vals to take precedence
-        # over scalar vals with the same name.
+        # Order of precedence: 1) core attrs, 2) flags, 3) logged attrs, 4) scalars
         _apply_scalar_data(item.value, scalar_cols, row_data)
+        _apply_logged_attr_data(item.value, logged_attr_cols, row_data)
         _apply_flag_data(item.value, flag_cols, row_data)
         _apply_run_core_data(item, core_cols, row_data)
-    cols = core_cols + sorted(flag_cols) + _sort_scalar_cols(scalar_cols, flag_cols)
+    cols = (
+        core_cols  #
+        + util.natsorted(flag_cols)  #
+        + util.natsorted(logged_attr_cols)  #
+        + _sort_scalar_cols(scalar_cols, flag_cols)
+    )
     return pd.DataFrame(data, columns=cols)
 
 
@@ -754,6 +777,12 @@ def _run_scalar_data(run):
             step = last_step
         data["step"] = step
     return data
+
+
+def _apply_logged_attr_data(run, cols, data):
+    for name, val in _run_logged_attrs(run).items():
+        cols.add(name)
+        data[name] = val
 
 
 def _apply_flag_data(run, cols, data):

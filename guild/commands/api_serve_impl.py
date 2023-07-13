@@ -119,7 +119,7 @@ def ApiApp():
             ("/runs/", _handle_runs, ()),
             ("/runs/<run_id>", _handle_run, ()),
             ("/runs/<run_id>/attrs/<attr_name>", _handle_run_attr, ()),
-            ("/runs/<run_id>/attrs", _handle_run_multi_attr, ()),
+            ("/runs/<run_id>/attrs", _handle_run_attrs, ()),
             ("/runs/<run_id>/scalars", _handle_run_scalars, ()),
             ("/runs/<run_id>/files/", _handle_run_files, ()),
             ("/runs/<run_id>/files/<path:path>", _handle_run_file, ()),
@@ -459,14 +459,18 @@ def _candidate_run_dirs():
 
 
 @json_resp
-def _handle_run_multi_attr(req, run_id):
+def _handle_run_attrs(req, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _read_multi_attr(run_id, req.args)
+    return _read_run_attrs(run_id, req.args)
 
 
-def _read_multi_attr(run_id, args):
-    return {attr_name: _read_run_attr(run_id, attr_name) for attr_name in args.keys()}
+def _read_run_attrs(run_id, index=None):
+    run = _run_for_id(run_id)
+    if not index:
+        index = indexlib.RunIndex()
+        index.refresh([run], ["attr"])
+    return index.run_attrs(run)
 
 
 @json_resp
@@ -501,10 +505,11 @@ def _handle_compare(req):
 def _read_compare_data(args):
     runs = var.runs(filter=_runs_base_filter(args))
     index = indexlib.RunIndex()
-    index.refresh(runs, ["scalar"])
+    index.refresh(runs, ["scalar", "attr"])
     return {
         run.id: {
             "flags": run.get("flags"),
+            "attrs": _read_run_attrs(run.id, index),
             "scalars": _read_run_scalars(run.id, index)
         }
         for run in runs

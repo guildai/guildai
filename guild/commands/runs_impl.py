@@ -870,6 +870,9 @@ def _run_info_data(run, args):
     if proto:
         data.append(("proto-flags", proto.get("flags") or {}))
     data.append(("scalars", _scalar_info(run, args)))
+    logged_attrs = _logged_attrs(run)
+    if logged_attrs:
+        data.append(("logged-attrs", logged_attrs))
     if args.comments:
         data.append(("comments", _format_comments_for_run_info(run)))
     if args.env:
@@ -951,9 +954,9 @@ def _split_scalar_key(key):
 
 
 def _iter_scalars(run, args):
-    from guild import index as indexlib  # expensive
+    from guild import index  # expensive
 
-    for s in indexlib.iter_run_scalars(run):
+    for s in index.iter_run_scalars(run):
         key = run_util.run_scalar_key(s)
         if args.all_scalars:
             yield key, _scalar_vals(s, args)
@@ -991,6 +994,12 @@ def _format_scalar_val(val, step):
     # this is a summary op.
     val = "nan" if val is None else val
     return f"{val} (step {step})"
+
+
+def _logged_attrs(run):
+    from guild import index  # expensive
+
+    return index.logged_attrs(run)
 
 
 def _format_run_manifest(run):
@@ -1095,7 +1104,7 @@ def _print_run_info_dict(name, val):
 def _sort_run_info_attr(name, val):
     if name == "scalars":
         return _sort_run_info_scalars(val)
-    return sorted(val.items())
+    return util.natsorted(val.items())
 
 
 def _sort_run_info_scalars(val):

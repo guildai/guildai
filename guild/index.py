@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glob
 import logging
 import os
 import sqlite3
@@ -26,13 +27,27 @@ log = logging.getLogger("guild")
 VERSION = 1
 DB_NAME = f"index_v{VERSION}.db"
 
+CORE_ATTRS = [
+    "id",
+    "run",
+    "operation",
+    "from",
+    "op",
+    "short_id",
+    "sourcecode",
+    "started",
+    "stopped",
+    "status",
+    "time",
+]
+
 
 class AttrReader:
     def __init__(self):
         self._data = {}
 
     def refresh(self, runs):
-        self._data = _runs_data(runs)
+        self._data = _runs_attr_data(runs)
 
     def read(self, run, attr):
         run_data = self._data.get(run.id)
@@ -42,22 +57,98 @@ class AttrReader:
         try:
             return run_data[attr]
         except KeyError:
+            # Fallback on run to support all run attributes
             return run.get(attr)
 
+    def read_all(self, run):
+        return self._data.get(run.id)
 
-def _runs_data(runs):
+
+def _runs_attr_data(runs):
     return {run.id: _run_attr_data(run) for run in runs}
 
 
 def _run_attr_data(run):
+    # Order is important - core overrides user attrs
+    return {**_run_logged_attrs(run), **_run_core_attrs(run)}
+
+
+def _run_logged_attrs(run):
+    from tensorboard.backend.event_processing.event_file_loader import EventFileLoader
+
+    attrs = {}
+    for path in glob.glob(os.path.join(run.dir, "*.tfevents.*.attrs")):
+        log.debug("Reading attrs from %s", path)
+        loader = EventFileLoader(path)
+        for event in loader.Load():
+            for val in event.summary.value:
+                if val.HasField("tensor"):
+                    if val.tensor.dtype == 7:
+                        try:
+                            text = b''.join(val.tensor.string_val).decode("utf_8")
+                        except Exception as e:
+                            log.warning(
+                                "Error decoding attr %s from %s: %s", val.tag, path, e
+                            )
+                        else:
+                            log.debug("Found attr %s=%s", val.tag, text)
+                            attrs[val.tag] = text
+    return attrs
+
+
+## Saved in commit as reference for future logged attr support
+
+# def _run_logged_attrs(run):
+#     user_data, src = _find_run_user_data(run)
+#     return _user_data_attrs(user_data, src) if user_data else {}
+
+# def _find_run_user_data(run):
+#     src = util.find_apply(
+#         [
+#             lambda: _maybe_run_path(run, "guildrun.json"),
+#             lambda: _maybe_run_path(run, "run.json")
+#         ]
+#     )
+#     if not src:
+#         return None, None
+#     return _run_user_data(src), src
+
+# def _maybe_run_path(run, path):
+#     full_path = os.path.join(run.dir, path)
+#     return full_path if os.path.exists(full_path) else None
+
+# def _run_user_data(src):
+#     try:
+#         data = json.load(open(src))
+#     except Exception as e:
+#         log.warning("Error loading %s: %s", src, e)
+#         return None
+#     else:
+#         if not isinstance(data, dict):
+#             log.warning("Invalid data in %s, expected dict", src)
+#             return None
+#         return data
+
+# def _user_data_attrs(data, src):
+#     try:
+#         attrs = data["attrs"]
+#     except KeyError:
+#         return {}
+#     else:
+#         if not isinstance(attrs, dict):
+#             log.warning("Invalid value for attrs in %s, expected dict", src)
+#             return {}
+#         return attrs
+
+
+def _run_core_attrs(run):
     opref = run.opref
     started = run.get("started")
     stopped = run.get("stopped")
     status = run.status
-    return {
+    data = {
         "id": run.id,
         "run": run.short_id,
-        "model": opref.model_name,
         "operation": run_util.format_operation(run),
         "from": run_util.format_pkg_name(run),
         "op": opref.op_name,
@@ -68,6 +159,8 @@ def _run_attr_data(run):
         "status": status,
         "time": run_util.calc_run_duration(status, started, stopped),
     }
+    assert sorted(data) == sorted(CORE_ATTRS), data
+    return data
 
 
 class FlagReader:
@@ -109,12 +202,12 @@ class ScalarReader:
                 self._maybe_refresh_run_scalars(run, path, cur_digest, scalars)
 
     def _maybe_refresh_run_scalars(self, run, path, cur_digest, scalars):
-        log.debug("found events in %s (digest %s)", path, cur_digest)
+        log.debug("Found events in %s (digest %s)", path, cur_digest)
         prefix = _scalar_prefix(path, run.path)
         last_digest = self._scalar_source_digest(run.id, prefix)
         if cur_digest != last_digest:
             log.debug(
-                "last digest for %s (%s) is stale, refreshing scalars",
+                "Last digest for %s (%s) is stale, refreshing scalars",
                 path,
                 last_digest or 'unset',
             )
@@ -342,6 +435,9 @@ class RunIndex:
     def run_attr(self, run, name):
         return self._attr_reader.read(run, name)
 
+    def run_attrs(self, run):
+        return self._attr_reader.read_all(run)
+
     def run_flag(self, run, name):
         return self._flag_reader.read(run, name)
 
@@ -406,3 +502,10 @@ def iter_run_scalars(run):
 def scalars(run, val="last_val", key=None):
     key = key or (lambda s: s["tag"])
     return {key(s): s[val] for s in iter_run_scalars(run)}
+
+
+def logged_attrs(run):
+    core = set(CORE_ATTRS)
+    index = RunIndex()
+    index.refresh([run], ["attr"])
+    return {key: val for key, val in index.run_attrs(run).items() if key not in core}
