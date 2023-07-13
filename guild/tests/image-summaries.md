@@ -109,6 +109,7 @@ We can use `tfevent.EventReader` to read the log events.
     >>> from guild.tfevent import EventReader
     >>> for event in EventReader(path(logdir, dirname(files[0]))):
     ...     print(event)
+    wall_time: ...
     summary {
       value {
         tag: "favicon-copy.png"
@@ -121,6 +122,7 @@ We can use `tfevent.EventReader` to read the log events.
       }
     }
     <BLANKLINE>
+    wall_time: ...
     summary {
       value {
         tag: "heart-copy.jpg"
@@ -171,6 +173,7 @@ And has a second image summary for `favicon-copy.png`:
 
     >>> for event in EventReader(path(logdir, dirname(files[0]))):
     ...     print(event)
+    wall_time: ...
     summary {
       value {
         tag: "favicon-copy.png"
@@ -183,6 +186,7 @@ And has a second image summary for `favicon-copy.png`:
       }
     }
     <BLANKLINE>
+    wall_time: ...
     summary {
       value {
         tag: "heart-copy.jpg"
@@ -195,6 +199,7 @@ And has a second image summary for `favicon-copy.png`:
       }
     }
     <BLANKLINE>
+    wall_time: ...
     summary {
       value {
         tag: "favicon-copy.png"

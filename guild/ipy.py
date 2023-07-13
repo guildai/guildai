@@ -710,9 +710,7 @@ def _runs_logged_attrs(runs):
 
 
 def _run_logged_attrs(run):
-    data = indexlib.logged_attrs(run)
-    data[_run_id_key(data)] = run.id
-    return data
+    return indexlib.logged_attrs(run)
 
 
 def _runs_flags(runs):

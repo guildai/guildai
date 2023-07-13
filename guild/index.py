@@ -33,6 +33,7 @@ CORE_ATTRS = [
     "operation",
     "from",
     "op",
+    "op_model",
     "short_id",
     "sourcecode",
     "started",
@@ -82,63 +83,16 @@ def _run_logged_attrs(run):
         loader = EventFileLoader(path)
         for event in loader.Load():
             for val in event.summary.value:
-                if val.HasField("tensor"):
-                    if val.tensor.dtype == 7:
-                        try:
-                            text = b''.join(val.tensor.string_val).decode("utf_8")
-                        except Exception as e:
-                            log.warning(
-                                "Error decoding attr %s from %s: %s", val.tag, path, e
-                            )
-                        else:
-                            log.debug("Found attr %s=%s", val.tag, text)
-                            attrs[val.tag] = text
+                if not val.HasField("tensor") or val.tensor.dtype != 7:
+                    continue
+                try:
+                    text = b''.join(val.tensor.string_val).decode("utf_8")
+                except Exception as e:
+                    log.warning("Error decoding attr %s from %s: %s", val.tag, path, e)
+                else:
+                    log.debug("Found attr %s=%s", val.tag, text)
+                    attrs[val.tag] = text
     return attrs
-
-
-## Saved in commit as reference for future logged attr support
-
-# def _run_logged_attrs(run):
-#     user_data, src = _find_run_user_data(run)
-#     return _user_data_attrs(user_data, src) if user_data else {}
-
-# def _find_run_user_data(run):
-#     src = util.find_apply(
-#         [
-#             lambda: _maybe_run_path(run, "guildrun.json"),
-#             lambda: _maybe_run_path(run, "run.json")
-#         ]
-#     )
-#     if not src:
-#         return None, None
-#     return _run_user_data(src), src
-
-# def _maybe_run_path(run, path):
-#     full_path = os.path.join(run.dir, path)
-#     return full_path if os.path.exists(full_path) else None
-
-# def _run_user_data(src):
-#     try:
-#         data = json.load(open(src))
-#     except Exception as e:
-#         log.warning("Error loading %s: %s", src, e)
-#         return None
-#     else:
-#         if not isinstance(data, dict):
-#             log.warning("Invalid data in %s, expected dict", src)
-#             return None
-#         return data
-
-# def _user_data_attrs(data, src):
-#     try:
-#         attrs = data["attrs"]
-#     except KeyError:
-#         return {}
-#     else:
-#         if not isinstance(attrs, dict):
-#             log.warning("Invalid value for attrs in %s, expected dict", src)
-#             return {}
-#         return attrs
 
 
 def _run_core_attrs(run):
@@ -152,6 +106,7 @@ def _run_core_attrs(run):
         "operation": run_util.format_operation(run),
         "from": run_util.format_pkg_name(run),
         "op": opref.op_name,
+        "op_model": opref.model_name,
         "short_id": run.short_id,
         "sourcecode": util.short_digest(run.get("sourcecode_digest")),
         "started": util.format_timestamp(started),

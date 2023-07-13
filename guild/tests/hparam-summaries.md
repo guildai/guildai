@@ -74,6 +74,7 @@ The events:
 
     >>> for event in EventReader(run_logdir):
     ...     print(event)
+    wall_time: ...
     summary {
       value {
         tag: "_hparams_/experiment"...
@@ -93,6 +94,7 @@ The events:
       }
     }
     <BLANKLINE>
+    wall_time: ...
     summary {
       value {
         tag: "_hparams_/session_start_info"...
@@ -112,6 +114,7 @@ The events:
       }
     }
     <BLANKLINE>
+    wall_time: ...
     summary {
       value {
         tag: "_hparams_/session_end_info"...
@@ -131,6 +134,7 @@ The events:
       }
     }
     <BLANKLINE>
+    wall_time: ...
     summary {
       value {
         tag: "x_metric"
@@ -138,6 +142,7 @@ The events:
       }
     }
     <BLANKLINE>
+    wall_time: ...
     summary {
       value {
         tag: "time"

@@ -63,6 +63,7 @@ plugin, which prints the values.
 Show the scalars from the TF event files in the log dir.
 
     >>> print_scalars(logdir)
+    wall_time: ...
     summary {
       value {
         tag: "foo"
@@ -70,6 +71,7 @@ Show the scalars from the TF event files in the log dir.
       }
     }
     <BLANKLINE>
+    wall_time: ...
     step: 1
     summary {
       value {
@@ -78,6 +80,7 @@ Show the scalars from the TF event files in the log dir.
       }
     }
     <BLANKLINE>
+    wall_time: ...
     step: 2
     summary {
       value {

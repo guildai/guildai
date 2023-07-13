@@ -124,7 +124,7 @@ List runs using various filters:
     ...  fixed:test              84.0
     ...  fixed:train  0.1  1.0
 
-    >>> filter("model = ''")
+    >>> filter("op_model = ''")
     run  operation  label
     ...  fail       oops
 

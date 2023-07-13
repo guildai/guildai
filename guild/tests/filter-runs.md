@@ -176,14 +176,14 @@ A  non-empty string value, while an odd term, is value and evaluates to True.
     util:test  e394b696
     util:test  a5520d13
 
-    >>> filter("model = ''")
+    >>> filter("op_model = ''")
     train  2dc1529b
     train  79ca9e64
     train  ac99cff4
     train  fe83a924
     train  fa6f74ad
 
-    >>> filter("model = util")
+    >>> filter("op_model = util")
     util:test  e394b696
     util:test  a5520d13
 
