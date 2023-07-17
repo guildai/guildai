@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="57.872765mm"
+   height="57.872765mm"
+   viewBox="0 0 205.06098 205.06098"
+   id="svg4813"
+   version="1.1"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="favicon-blue.svg">
+  <defs
+     id="defs4815" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.979899"
+     inkscape:cx="52.575193"
+     inkscape:cy="17.907387"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="2560"
+     inkscape:window-height="1363"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata4818">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(460.38763,-429.8317)">
+    <circle
+       style="fill:#283593;stroke:none;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
+       id="path4779"
+       cx="-357.85715"
+       cy="532.36218"
+       r="102.53049" />
+    <g
+       aria-label="g"
+       transform="scale(1.0294976,0.97134757)"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="text4710">
+      <path
+         d="m -335.74289,472.30196 h 21.78507 v 130.22627 q 0,21.30095 -22.75329,21.30095 h -40.4234 v -17.186 h 34.12994 q 4.35701,0 5.80935,-1.45233 1.45233,-1.45234 1.45233,-5.5673 v -20.09067 q -3.14673,9.4402 -15.00748,9.4402 h -8.71403 q -21.78506,0 -21.78506,-21.54301 v -73.5851 q 0,-21.54301 21.78506,-21.54301 h 8.71403 q 11.86075,0 15.00748,9.44019 z m -16.45982,99.00101 h 8.47197 q 4.35701,0 6.0514,-1.93645 1.93645,-1.93645 1.93645,-6.53552 v -64.38696 q 0,-4.59907 -1.93645,-6.53552 -1.69439,-1.93645 -6.0514,-1.93645 h -8.47197 q -4.35702,0 -5.80935,1.45234 -1.45234,1.21028 -1.45234,5.56729 v 67.29164 q 0,4.11496 1.45234,5.56729 1.45233,1.45234 5.80935,1.45234 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:242.05625916px;line-height:1.25;font-family:Teko;-inkscape-font-specification:Teko;fill:#ffffff;fill-opacity:1"
+         id="path892" />
+    </g>
+  </g>
+</svg>
