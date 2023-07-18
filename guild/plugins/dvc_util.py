@@ -169,7 +169,11 @@ def _filter_run_id(run, run_id_prefix):
 
 
 def _filter_run_dvc_stage(run, stage):
-    return run.get("dvc-stage") == stage
+    return dvc_attr(run, "stage") == stage
+
+
+def dvc_attr(run, name):
+    return (run.get("dvc") or {}).get(name)
 
 
 def _filter_run_status(run, status):

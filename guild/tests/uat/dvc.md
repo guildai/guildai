@@ -110,7 +110,7 @@ The run manifest shows the source code and resolved dependencies.
     s dvc.yaml 915c778af8ee728754c7196a565a495b00bda1d9 dvc.yaml
     s eval_models.py 0826586a3818783c2590952c27413a3305995287 eval_models.py
     s faketrain.py ac665f1c42be6e5096c30d7b588a8cbfedd55891 faketrain.py
-    s guild.yml 3387c13e7a59764599ddc9f960df3a15b49e6b00 guild.yml
+    s guild.yml d8e676666d27e2fb7cd31cd9fa5e7bb78b8185b0 guild.yml
     s hello.in.dvc 34fc482704b5d6e14520b1176fe78d841f94f111 hello.in.dvc
     s hello.py e02f0f99ee58b5e4cc1dc55fc5a5fbd2f1dc1a17 hello.py
     s iris.csv.dvc e3c585206b17f4af6643d631597041229130dfb7 iris.csv.dvc
@@ -536,7 +536,9 @@ Guild reads the values and writes them summaries.
       modle-2-score: 0.800000 (step 0)
       modle-3-score: 0.826... (step 0)
       modle-4-score: 0.813... (step 0)
-    <exit 0>
+    attributes:
+      dvc:
+        stage: eval-models
 
 ## Guild simulated stage with param flags
 
@@ -656,8 +658,9 @@ run provides the output files for the 'prepare-data' stage.
     id: ...
     operation: prepare-data-dvc-dep
     ...
-    dvc-stage: prepare-data
-    ...
+    attributes:
+      dvc:
+        stage: prepare-data
     <exit 0>
 
 The DvC train stage can use this run to satisfy its dependency.
@@ -724,14 +727,14 @@ specifies the stage.
     id: ...
     operation: dvc.yaml:faketrain
     ...
-    dvc-stage: faketrain
-    tags:
     flags:
       x: 0.3
     scalars:
       loss: ... (step 0)
       noise: ... (step 0)
-    <exit 0>
+    attributes:
+      dvc:
+        stage: faketrain
 
 ### Dependencies
 
@@ -827,14 +830,15 @@ Guild captures these parameters as flags.
     from: .../dvc.yaml
     status: completed
     ...
-    dvc-stage: train-models
-    ...
     flags:
       dvcstage:prepare-data: ...
       train.C: 1.0
       train.gamma: 0.7
       train.max-iters: 10000
     scalars:
+    attributes:
+      dvc:
+        stage: train-models
 
     >>> run("guild select --attr flags")
     dvcstage:prepare-data: ...

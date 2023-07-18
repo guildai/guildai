@@ -56,7 +56,8 @@
       description: Use DvC dependency to fetch required file if needed
       main: prepare_data
       run-attrs:
-        dvc-stage: prepare-data
+        dvc:
+          stage: prepare-data
       requires:
         - dvcfile: iris.csv
 
@@ -75,7 +76,8 @@
         - train.max-iters
         - train.gamma
       run-attrs:
-          dvc-stage: train-models
+        dvc:
+          stage: train-models
       requires:
         - config: params.json.in
           rename: params.json.in params.json
@@ -94,7 +96,8 @@
       flags-import:
         - eval.plot-spacing
       run-attrs:
-        dvc-stage: eval-models
+        dvc:
+          stage: eval-models
       requires:
         - dvcstage: prepare-data
         - dvcstage: train-models
