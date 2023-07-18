@@ -79,7 +79,6 @@ Show remote run info.
     flags:
       msg: hello run-2
     scalars:
-    <exit 0>
 
 Prompt to delete remote runs:
 

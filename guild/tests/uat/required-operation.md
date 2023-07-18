@@ -158,7 +158,6 @@ Info for the latest train run, including dependencies:
           - ../.../data1.txt
           - ../.../subdir
           uri: operation:prepare-data
-    <exit 0>
 
 Confirm that the latest train op used the data prep run we specified.
 

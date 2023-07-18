@@ -118,7 +118,6 @@ The `train` operation, defined in the Guild file, defines non-default columns:
       val#weights/mean_1: ... (step 540)
       val#weights/min_1: ... (step 540)
       val#weights/stddev: ... (step 540)
-    <exit 0>
 
 The `train` operation enables all plugins, so we have additional
 scalars that we can view by including the `-s` option to `runs info`.
@@ -222,7 +221,6 @@ View using runs info:
       val#weights/mean_1: ... (step 540)
       val#weights/min_1: ... (step 540)
       val#weights/stddev: ... (step 540)
-    <exit 0>
 
 Note the command, which uses the Python intreper (not listed
 explicitly above) to run the script directly.

@@ -94,6 +94,7 @@ as well:
       ...
       CUDA_VISIBLE_DEVICES: '1'
       ...
+    <exit 0>
 
 ## Staged Runs with GPUs specs
 

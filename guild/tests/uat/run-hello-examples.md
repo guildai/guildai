@@ -108,7 +108,6 @@ the `--deps` option of `guild runs info`:
           paths:
           - ../.../msg.out
           uri: operation:hello-file
-    <exit 0>
 
 Here's a preview of the command:
 

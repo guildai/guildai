@@ -54,7 +54,6 @@ Show latest staged run:
       noise: 0.1
       x: 3
     scalars:
-    <exit 0>
 
 List files for latest run:
 

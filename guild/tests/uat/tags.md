@@ -27,13 +27,11 @@ Default run labels contain tags:
 
     >>> run("guild runs")
     [1:...]  hello  ...  completed  blue msg='Hello Guild!'
-    <exit 0>
 
 Tags can be used as filters:
 
     >>> run("guild runs -Ft blue")
     [1:...]  hello  ...  completed  blue msg='Hello Guild!'
-    <exit 0>
 
     >>> run("guild runs -Ft green")
     <exit 0>
@@ -42,14 +40,12 @@ When used multiple times, tags expand selected runs:
 
     >>> run("guild runs -Ft green -Ft blue")
     [1:...]  hello  ...  completed  blue msg='Hello Guild!'
-    <exit 0>
 
 Tag filters are available in all run related commands. Delete only
 runs tagged with 'blue':
 
     >>> run("guild runs rm -Ft blue -y")
     Deleted 1 run(s)
-    <exit 0>
 
 Run tags can be modified at any time. First, generate a run with
 'green' tag:
@@ -61,7 +57,6 @@ used to synchronize the run label with the new tags.
 
     >>> run("guild tag -a red -a yellow -s -y")
     Modified tags for 1 run(s)
-    <exit 0>
 
     >>> run("guild runs info")
     id: ...
@@ -78,13 +73,11 @@ used to synchronize the run label with the new tags.
 
     >>> run("guild runs")
     [1:...]  hello  ...  completed  red yellow green msg='Hello Guild!'
-    <exit 0>
 
 Delete a tag:
 
     >>> run("guild tag -d red -s -y")
     Modified tags for 1 run(s)
-    <exit 0>
 
     >>> run("guild runs info")
     id: ...
@@ -98,13 +91,11 @@ Delete a tag:
 
     >>> run("guild runs")
     [1:...]  hello  ...  completed  yellow green msg='Hello Guild!'
-    <exit 0>
 
 Clear all tags:
 
     >>> run("guild tag -c -s -y")
     Modified tags for 1 run(s)
-    <exit 0>
 
     >>> run("guild runs info")
     id: ...
@@ -116,7 +107,6 @@ Clear all tags:
 
     >>> run("guild runs")
     [1:...]  hello  ...  completed  msg='Hello Guild!'
-    <exit 0>
 
 When a label is specified for a run, tags are not included in the
 label.
@@ -126,7 +116,6 @@ label.
     >>> run("guild runs")
     [1:...]  hello  ...  completed  hello run
     [2:...]  hello  ...  completed  msg='Hello Guild!'
-    <exit 0>
 
 The tags however are still set.
 
@@ -148,7 +137,6 @@ Add a new tag to all runs:
     >>> run("guild runs")
     [1:...]  hello  ...  completed  example hello run
     [2:...]  hello  ...  completed  example msg='Hello Guild!'
-    <exit 0>
 
     >>> run("guild runs info 1")
     id: ...
@@ -173,12 +161,10 @@ Repeat the addition of a tag. This is idempotent.
 
     >>> run("guild tag -a example : -s -y")
     Modified tags for 2 run(s)
-    <exit 0>
 
     >>> run("guild runs")
     [1:...]  hello  ...  completed  example hello run
     [2:...]  hello  ...  completed  example msg='Hello Guild!'
-    <exit 0>
 
     >>> run("guild runs info 1")
     id: ...
@@ -203,12 +189,10 @@ When --sync-labels is not specified, the run labels are not updated.
 
     >>> run("guild tag -d example : -y")
     Modified tags for 2 run(s)
-    <exit 0>
 
     >>> run("guild runs")
     [1:...]  hello  ...  completed  example hello run
     [2:...]  hello  ...  completed  example msg='Hello Guild!'
-    <exit 0>
 
 The tags, however, are modified.
 
@@ -250,7 +234,6 @@ List all tags:
 
     >>> run("guild tag --list-all")
     blue
-    <exit 0>
 
 Incompatible options:
 

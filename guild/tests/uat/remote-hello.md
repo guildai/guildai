@@ -328,7 +328,6 @@ Include manifest in output.
         - hello/__init__.py
         - hello/cat.py
         - hello/say.py
-    <exit 0>
 
 ## Show file contents
 
