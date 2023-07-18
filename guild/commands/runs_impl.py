@@ -863,16 +863,16 @@ def _print_run_info(run, args):
 
 def _run_info_data(run, args):
     data = []
-    _append_attr_data(run, args.private_attrs, data)
+    _append_core_attr_data(run, args.private_attrs, data)
     data.append(("tags", run.get("tags") or []))
     data.append(("flags", run.get("flags") or {}))
     proto = run.batch_proto
     if proto:
         data.append(("proto-flags", proto.get("flags") or {}))
     data.append(("scalars", _scalar_info(run, args)))
-    logged_attrs = _logged_attrs(run)
-    if logged_attrs:
-        data.append(("logged-attrs", logged_attrs))
+    other_attrs = _other_attrs(run, args.private_attrs)
+    if other_attrs:
+        data.append(("attributes", other_attrs))
     if args.comments:
         data.append(("comments", _format_comments_for_run_info(run)))
     if args.env:
@@ -906,15 +906,23 @@ def _format_comment_for_run_info(comment):
     }
 
 
-def _append_attr_data(run, include_private, data):
+def _append_core_attr_data(run, include_private, data):
     fmt_run = format_run(run)
     for name in RUN_DETAIL:
         data.append((name, fmt_run[name]))
-    for name in other_attr_names(run, include_private):
-        data.append((name, run_util.format_attr(run.get(name))))
     if include_private:
         data.append(("opref", str(run.opref)))
         data.append(("op", run.get("op")))
+
+
+def _other_attrs(run, include_private):
+    return {
+        **{
+            name: run.get(name)
+            for name in other_attr_names(run, include_private)
+        },
+        **_logged_attrs(run, include_private)
+    }
 
 
 def other_attr_names(run, include_private=False):
@@ -923,7 +931,17 @@ def other_attr_names(run, include_private=False):
         include = lambda x: x not in core_attrs
     else:
         include = lambda x: x[0] != "_" and x not in core_attrs
-    return [name for name in sorted(run.attr_names()) if include(name)]
+    return [name for name in util.natsorted(run.attr_names()) if include(name)]
+
+
+def _logged_attrs(run, include_private):
+    from guild import index  # expensive
+
+    return {
+        name: val
+        for name, val in index.logged_attrs(run).items()
+        if include_private or name[:1] != "_"
+    }
 
 
 def _scalar_info(run, args):
@@ -996,12 +1014,6 @@ def _format_scalar_val(val, step):
     return f"{val} (step {step})"
 
 
-def _logged_attrs(run):
-    from guild import index  # expensive
-
-    return index.logged_attrs(run)
-
-
 def _format_run_manifest(run):
     from guild import run_manifest
 
@@ -1043,7 +1055,7 @@ def _maybe_append_proto_data(run, data):
     proto = run.batch_proto
     if proto:
         proto_data = []
-        _append_attr_data(proto, True, proto_data)
+        _append_core_attr_data(proto, True, proto_data)
         data.append(("proto-run", proto_data))
 
 

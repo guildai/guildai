@@ -104,6 +104,7 @@ Run the other tests.
       isolate-runs-from-project:   ok
       labels:                      ok
       locks:                       ok
+      logged-attrs:                ok
       logging:                     ok
       long-run-names:              ok
       ls-cmd:                      ok

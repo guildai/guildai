@@ -49,15 +49,16 @@ Non-core attributes, however, are written.
     command: ...
     exit_status: 0
     pid:
-    another-custom: baz
-    custom: bar
-    yet-another-custom:
-      a: A
-      b: 123
-      c: 1.234
     tags:
     flags:
     scalars:
+    attributes:
+      another-custom: baz
+      custom: bar
+      yet-another-custom:
+        a: A
+        b: 123
+        c: 1.234
     <exit 0>
 
 ## Encoding of `[ynYN]` keys
@@ -74,14 +75,6 @@ these unquoted chars.
     id: ...
     operation: boolean-chars
     ...
-    custom:
-      N: 4
-      Y: 3
-      a: 5
-      n: 2
-      y: 1
-      z: 6
-    tags:
     flags:
       N: 44
       Y: 33
@@ -90,6 +83,14 @@ these unquoted chars.
       y: 11
       z: 66
     scalars:
+    attributes:
+      custom:
+        N: 4
+        Y: 3
+        a: 5
+        n: 2
+        y: 1
+        z: 6
 
     >>> run("guild cat -p .guild/attrs/custom")
     'N': 4

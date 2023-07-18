@@ -29,15 +29,16 @@ log = logging.getLogger("guild")
 
 
 class EventReader:
-    def __init__(self, dir, all_events=False):
+    def __init__(self, dir, all_events=False, path_filter=None):
         self.dir = dir
         self.all_events = all_events
+        self.path_filter = path_filter
 
     def __iter__(self):
         """Yields event for all available events in dir."""
         _ensure_tb_logging_patched()
         try:
-            for event in tensorboard_util.iter_tf_events(self.dir):
+            for event in tensorboard_util.iter_tf_events(self.dir, self.path_filter):
                 if self.all_events or event.HasField("summary"):
                     yield event
         except Exception as e:
@@ -61,7 +62,10 @@ class ScalarReader:
 
     def __iter__(self):
         """Yields (tag, val, step) for all scalars in dir."""
-        for event in EventReader(self.dir):
+        for event in EventReader(
+            self.dir,
+            lambda path: not path.endswith(".attrs"),
+        ):
             for val in event.summary.value:
                 scalar_info = _try_scalar_event(event, val)
                 if scalar_info is not None:
@@ -159,3 +163,57 @@ def _ensure_tb_logging_patched():
     disable outright info and debug logs here.
     """
     tensorboard_util.silence_info_logging()
+
+
+class AttrReader:
+    def __init__(self, dir):
+        self.dir = dir
+
+    def __iter__(self):
+        """Yields (tag, val) for all logged attrs in dir."""
+        for event in EventReader(
+            self.dir,
+            lambda path: path.endswith(".attrs"),
+        ):
+            for val in event.summary.value:
+                attr_info = _try_logged_attr(val)
+                if attr_info is not None:
+                    yield attr_info
+
+
+def _try_logged_attr(val):
+    if val.HasField("tensor"):
+        text = _try_tensor_text(val)
+        if text is not None:
+            return _strip_text_summary_suffix(val.tag), text
+    return None
+
+
+def _strip_text_summary_suffix(tag):
+    return tag[:-13] if tag.endswith("/text_summary") else tag
+
+
+def _try_tensor_text(val):
+    if not _is_text_tensor(val.tensor):
+        return None
+    try:
+        return b''.join(val.tensor.string_val).decode("utf_8")
+    except Exception as e:
+        log.warning("Error decoding attr %s: %s", val.tag, e)
+        return None
+
+
+def _is_text_tensor(t):
+    # See tensorboard.compat.tensorflow_stub.dtypes
+    return t.dtype == 7
+
+
+def attr_readers(root_path):
+    """Returns an iterator that yields (dir, reader) tuples.
+
+    `reader` is an instance of AttrReader that can be used to read
+    logged attributes in dir.
+    """
+    _ensure_tb_logging_patched()
+    for subdir_path in _tfevent_subdirs(root_path):
+        yield subdir_path, AttrReader(subdir_path)

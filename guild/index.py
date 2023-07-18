@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import glob
 import logging
 import os
 import sqlite3
@@ -75,24 +74,23 @@ def _run_attr_data(run):
 
 
 def _run_logged_attrs(run):
-    from tensorboard.backend.event_processing.event_file_loader import EventFileLoader
-
     attrs = {}
-    for path in glob.glob(os.path.join(run.dir, "*.tfevents.*.attrs")):
-        log.debug("Reading attrs from %s", path)
-        loader = EventFileLoader(path)
-        for event in loader.Load():
-            for val in event.summary.value:
-                if not val.HasField("tensor") or val.tensor.dtype != 7:
-                    continue
-                try:
-                    text = b''.join(val.tensor.string_val).decode("utf_8")
-                except Exception as e:
-                    log.warning("Error decoding attr %s from %s: %s", val.tag, path, e)
-                else:
-                    log.debug("Found attr %s=%s", val.tag, text)
-                    attrs[val.tag] = text
+    for path, reader in tfevent.attr_readers(run.dir):
+        prefix = _attr_prefix(path, run.dir)
+        for name, val in reader:
+            attrs[_attr_name(prefix, name)] = val
     return attrs
+
+
+def _attr_prefix(attrs_path, root):
+    rel_path = os.path.relpath(attrs_path, root)
+    if rel_path == ".":
+        return ""
+    return rel_path.replace(os.sep, "/")
+
+
+def _attr_name(prefix, name):
+    return f"{prefix}#{name}" if prefix else name
 
 
 def _run_core_attrs(run):
@@ -153,12 +151,12 @@ class ScalarReader:
 
     def refresh(self, runs):
         for run in runs:
-            for path, cur_digest, scalars in tfevent.scalar_readers(run.path):
-                self._maybe_refresh_run_scalars(run, path, cur_digest, scalars)
+            for path, cur_digest, reader in tfevent.scalar_readers(run.dir):
+                self._maybe_refresh_run_scalars(run, path, cur_digest, reader)
 
-    def _maybe_refresh_run_scalars(self, run, path, cur_digest, scalars):
+    def _maybe_refresh_run_scalars(self, run, path, cur_digest, reader):
         log.debug("Found events in %s (digest %s)", path, cur_digest)
-        prefix = _scalar_prefix(path, run.path)
+        prefix = _scalar_prefix(path, run.dir)
         last_digest = self._scalar_source_digest(run.id, prefix)
         if cur_digest != last_digest:
             log.debug(
@@ -166,10 +164,10 @@ class ScalarReader:
                 path,
                 last_digest or 'unset',
             )
-            self._refresh_run_scalars(run, prefix, cur_digest, last_digest, scalars)
+            self._refresh_run_scalars(run, prefix, cur_digest, last_digest, reader)
 
-    def _refresh_run_scalars(self, run, prefix, cur_digest, last_digest, scalars):
-        summarized = _summarize_scalars(scalars)
+    def _refresh_run_scalars(self, run, prefix, cur_digest, last_digest, reader):
+        summarized = _summarize_scalars(reader)
         if last_digest:
             self._del_scalars(run.id, prefix)
         self._write_summarized(run.id, prefix, summarized)
@@ -297,9 +295,9 @@ def _scalar_prefix(scalars_path, root):
     return rel_path.replace(os.sep, "/")
 
 
-def _summarize_scalars(scalars):
+def _summarize_scalars(reader):
     summarized = {}
-    for tag, val, step in scalars:
+    for tag, val, step in reader:
         # Don't use dict.setdefault to avoid repeated calls to
         # TagSummary.
         try:
@@ -460,7 +458,4 @@ def scalars(run, val="last_val", key=None):
 
 
 def logged_attrs(run):
-    core = set(CORE_ATTRS)
-    index = RunIndex()
-    index.refresh([run], ["attr"])
-    return {key: val for key, val in index.run_attrs(run).items() if key not in core}
+    return _run_logged_attrs(run)

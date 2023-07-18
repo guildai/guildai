@@ -103,12 +103,28 @@ def silence_info_logging():
     logger.debug = lambda *_args, **_kw: None
 
 
-def iter_tf_events(dir):
-    from tensorboard.backend.event_processing import event_accumulator
+def iter_tf_events(dir, path_filter=None):
+    from tensorboard.backend.event_processing import directory_watcher
+    from tensorboard.backend.event_processing import event_file_loader
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
-        return event_accumulator._GeneratorFromPath(dir).Load()
+        return directory_watcher.DirectoryWatcher(
+            dir,
+            event_file_loader.LegacyEventFileLoader,
+            _summary_events_file_filter(path_filter),
+        ).Load()
+
+
+def _summary_events_file_filter(path_filter=None):
+    from tensorboard.backend.event_processing import io_wrapper
+
+    def f(path):
+        return io_wrapper.IsSummaryEventsFile(path) and (
+            not path_filter or path_filter(path)
+        )
+
+    return f
 
 
 def hparams_hp_proto():
