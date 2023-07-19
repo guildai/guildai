@@ -119,7 +119,7 @@ def ApiApp():
             ("/runs/", _handle_runs, ()),
             ("/runs/<run_id>", _handle_run, ()),
             ("/runs/<run_id>/attrs/<attr_name>", _handle_run_attr, ()),
-            ("/runs/<run_id>/attrs", _handle_run_attrs, ()),
+            ("/runs/<run_id>/attributes", _handle_run_attributes, ()),
             ("/runs/<run_id>/scalars", _handle_run_scalars, ()),
             ("/runs/<run_id>/files/", _handle_run_files, ()),
             ("/runs/<run_id>/files/<path:path>", _handle_run_file, ()),
@@ -459,18 +459,21 @@ def _candidate_run_dirs():
 
 
 @json_resp
-def _handle_run_attrs(req, run_id):
+def _handle_run_attributes(req, run_id):
     if req.method != "GET":
         raise MethodNotSupported()
-    return _read_run_attrs(run_id, req.args)
+    return _read_run_other_attrs(run_id)
 
 
-def _read_run_attrs(run_id, index=None):
+def _read_run_other_attrs(run_id):
     run = _run_for_id(run_id)
-    if not index:
-        index = indexlib.RunIndex()
-        index.refresh([run], ["attr"])
-    return index.run_attrs(run)
+    index = indexlib.RunIndex()
+    index.refresh([run], ["attr"])
+    return {
+        name: val
+        for name, val in index.run_attrs(run).items()  #
+        if name not in indexlib.CORE_ATTRS
+    }
 
 
 @json_resp
@@ -509,7 +512,7 @@ def _read_compare_data(args):
     return {
         run.id: {
             "flags": run.get("flags"),
-            "attrs": _read_run_attrs(run.id, index),
+            "loggedAttrs": _read_run_other_attrs(run.id, index),
             "scalars": _read_run_scalars(run.id, index)
         }
         for run in runs

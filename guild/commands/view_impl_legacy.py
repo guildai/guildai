@@ -238,7 +238,13 @@ def _format_tags(tags):
 
 
 def _other_attrs(run):
-    return {name: run.get(name) for name in runs_impl.other_attr_names(run)}
+    return {name: run.get(name) for name in _other_attr_names(run)}
+
+
+def _other_attr_names(run):
+    core_attrs = runlib.CORE_RUN_ATTRS.union(runlib.LEGACY_RUN_ATTRS)
+    include = lambda x: x[0] != "_" and x not in core_attrs
+    return [name for name in util.natsorted(run.attr_names()) if include(name)]
 
 
 def _format_deps(deps):

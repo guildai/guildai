@@ -173,7 +173,8 @@ def _filter_run_dvc_stage(run, stage):
 
 
 def dvc_attr(run, name):
-    return (run.get("dvc") or {}).get(name)
+    dvc_attrs = run.get_opdef_attr("dvc") or run.get("dvc") or {}
+    return dvc_attrs.get(name)
 
 
 def _filter_run_status(run, status):

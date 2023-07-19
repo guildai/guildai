@@ -101,6 +101,7 @@ Run the other tests.
       init:                        ok
       init-venv:                   ok
       ipy:                         ok
+      ipy-2:                       ok
       isolate-runs-from-project:   ok
       labels:                      ok
       locks:                       ok

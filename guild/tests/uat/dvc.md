@@ -525,7 +525,7 @@ defined in 'dvc.yaml'.
      "modle-3-score": 0.826...,
      "modle-4-score": 0.813...}
 
-Guild reads the values and writes them summaries.
+Guild reads the values and writes them as summaries.
 
     >>> run("guild runs info")
     id: ...
@@ -536,9 +536,6 @@ Guild reads the values and writes them summaries.
       modle-2-score: 0.800000 (step 0)
       modle-3-score: 0.826... (step 0)
       modle-4-score: 0.813... (step 0)
-    attributes:
-      dvc:
-        stage: eval-models
 
 ## Guild simulated stage with param flags
 
@@ -651,8 +648,8 @@ The operation generates `iris.npy`.
     >>> run("guild ls -ng")
     iris.npy
 
-This operation writes a 'dvc:stage' attribute that indicates that the
-run provides the output files for the 'prepare-data' stage.
+This operation defines a run attribute that specifies that it provides
+the `prepare-data` dvc stage.
 
     >>> run("guild runs info")
     id: ...
@@ -661,7 +658,6 @@ run provides the output files for the 'prepare-data' stage.
     attributes:
       dvc:
         stage: prepare-data
-    <exit 0>
 
 The DvC train stage can use this run to satisfy its dependency.
 
@@ -720,21 +716,11 @@ We can run the stage as an operation, including as a batch.
     loss: ...
     <exit 0>
 
-When run directly, the run has a `dvc-stage` attribute, which
-specifies the stage.
+When run directly, the run has a `dvc` attribute, which specifies the
+stage.
 
-    >>> run("guild runs info")
-    id: ...
-    operation: dvc.yaml:faketrain
-    ...
-    flags:
-      x: 0.3
-    scalars:
-      loss: ... (step 0)
-      noise: ... (step 0)
-    attributes:
-      dvc:
-        stage: faketrain
+    >>> run("guild cat -p .guild/attrs/dvc")
+    stage: faketrain
 
 ### Dependencies
 
@@ -836,9 +822,6 @@ Guild captures these parameters as flags.
       train.gamma: 0.7
       train.max-iters: 10000
     scalars:
-    attributes:
-      dvc:
-        stage: train-models
 
     >>> run("guild select --attr flags")
     dvcstage:prepare-data: ...

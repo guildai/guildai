@@ -26,7 +26,7 @@ log = logging.getLogger("guild")
 VERSION = 1
 DB_NAME = f"index_v{VERSION}.db"
 
-CORE_ATTRS = [
+CORE_ATTRS = {
     "id",
     "run",
     "operation",
@@ -39,7 +39,7 @@ CORE_ATTRS = [
     "stopped",
     "status",
     "time",
-]
+}
 
 
 class AttrReader:
@@ -69,8 +69,16 @@ def _runs_attr_data(runs):
 
 
 def _run_attr_data(run):
-    # Order is important - core overrides user attrs
-    return {**_run_logged_attrs(run), **_run_core_attrs(run)}
+    # Order is important - core overrides user-defined attrs
+    return {
+        **_run_opdef_attrs(run),
+        **_run_logged_attrs(run),
+        **_run_core_attrs(run),
+    }
+
+
+def _run_opdef_attrs(run):
+    return run.get("opdef_attrs") or {}
 
 
 def _run_logged_attrs(run):

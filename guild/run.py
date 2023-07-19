@@ -24,6 +24,43 @@ from guild import opref as opreflib
 from guild import util
 from guild import yaml_util
 
+CORE_RUN_ATTRS = {
+    "cmd",
+    "deps",
+    "env",
+    "exit_status",
+    "flags",
+    "host",
+    "id",
+    "initialized",
+    "label",
+    "op",
+    "opdef_attrs",
+    "platform",
+    "plugins",
+    "random_seed",
+    "run_params",
+    "sourcecode_digest",
+    "started",
+    "stopped",
+    "user",
+    "user_flags",
+    "vcs_commit",
+
+    # TODO: The following are core but are associated with
+    # plugins. These should be defined by the plugin but there is
+    # currently no such interface.
+
+    "pip_freeze",
+    "r_sys_info",
+    "r_packages_loaded",
+}
+
+LEGACY_RUN_ATTRS = {
+    "resolved_deps",
+    "opdef",
+}
+
 
 class Run:
     __properties__ = [
@@ -182,6 +219,9 @@ class Run:
 
     def _attrs_dir(self):
         return os.path.join(self._guild_dir, "attrs")
+
+    def get_opdef_attr(self, name, default=None):
+        return (self.get("opdef_attrs") or {}).get(name, default)
 
     def __repr__(self):
         return f"<{self.__class__.__module__}.{self.__class__.__name__} '{self.id}'>"

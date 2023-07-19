@@ -67,42 +67,6 @@ RUN_DETAIL = [
 ALL_RUNS_ARG = [":"]
 LATEST_RUN_ARG = ["1"]
 
-CORE_RUN_ATTRS = [
-    "cmd",
-    "comments",
-    "compare",
-    "deps",
-    "env",
-    "exit_status",
-    "flags",
-    "host",
-    "id",
-    "initialized",
-    "label",
-    "marked",
-    "objective",
-    "op",
-    "pip_freeze",
-    "platform",
-    "plugins",
-    "random_seed",
-    "run_params",
-    "sourcecode_digest",
-    "started",
-    "stopped",
-    "tags",
-    "user",
-    "user_flags",
-    "vcs_commit",
-    "r_sys_info",
-    "r_packages_loaded",
-]
-
-LEGACY_RUN_ATTRS = [
-    "resolved_deps",
-    "opdef",
-]
-
 RUNS_PER_GROUP = 20
 
 STATUS_FILTERS = [
@@ -863,14 +827,14 @@ def _print_run_info(run, args):
 
 def _run_info_data(run, args):
     data = []
-    _append_core_attr_data(run, args.private_attrs, data)
+    _append_run_attr_data(run, args.private_attrs, data)
     data.append(("tags", run.get("tags") or []))
     data.append(("flags", run.get("flags") or {}))
     proto = run.batch_proto
     if proto:
         data.append(("proto-flags", proto.get("flags") or {}))
     data.append(("scalars", _scalar_info(run, args)))
-    other_attrs = _other_attrs(run, args.private_attrs)
+    other_attrs = _opdef_and_logged_attrs(run, args.private_attrs)
     if other_attrs:
         data.append(("attributes", other_attrs))
     if args.comments:
@@ -906,7 +870,7 @@ def _format_comment_for_run_info(comment):
     }
 
 
-def _append_core_attr_data(run, include_private, data):
+def _append_run_attr_data(run, include_private, data):
     fmt_run = format_run(run)
     for name in RUN_DETAIL:
         data.append((name, fmt_run[name]))
@@ -915,23 +879,13 @@ def _append_core_attr_data(run, include_private, data):
         data.append(("op", run.get("op")))
 
 
-def _other_attrs(run, include_private):
-    return {
-        **{
-            name: run.get(name)
-            for name in other_attr_names(run, include_private)
-        },
-        **_logged_attrs(run, include_private)
-    }
-
-
-def other_attr_names(run, include_private=False):
-    core_attrs = CORE_RUN_ATTRS + LEGACY_RUN_ATTRS
-    if include_private:
-        include = lambda x: x not in core_attrs
-    else:
-        include = lambda x: x[0] != "_" and x not in core_attrs
-    return [name for name in util.natsorted(run.attr_names()) if include(name)]
+def _opdef_and_logged_attrs(run, include_private):
+    return _filter_core_attrs(
+        {
+            **(run.get("opdef_attrs") or {}),
+            **_logged_attrs(run, include_private),
+        }
+    )
 
 
 def _logged_attrs(run, include_private):
@@ -942,6 +896,10 @@ def _logged_attrs(run, include_private):
         for name, val in index.logged_attrs(run).items()
         if include_private or name[:1] != "_"
     }
+
+
+def _filter_core_attrs(attrs):
+    return {name: attrs[name] for name in attrs if name not in runlib.CORE_RUN_ATTRS}
 
 
 def _scalar_info(run, args):
@@ -1055,7 +1013,7 @@ def _maybe_append_proto_data(run, data):
     proto = run.batch_proto
     if proto:
         proto_data = []
-        _append_core_attr_data(proto, True, proto_data)
+        _append_run_attr_data(proto, True, proto_data)
         data.append(("proto-run", proto_data))
 
 

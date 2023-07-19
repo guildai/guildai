@@ -2,7 +2,7 @@ op:
   main: guild.pass
   run-attrs:
 
-    # Exhaustive list copied from run_impl.CORE_RUN_ATTRS
+    # Exhaustive list copied from guild.run.CORE_RUN_ATTRS
     cmd: xxx
     deps: xxx
     env: xxx
@@ -15,6 +15,7 @@ op:
     op: xxx
     pip_freeze: xxx
     platform: xxx
+    plugins: xxx
     random_seed: xxx
     run_params: xxx
     sourcecode_digest: xxx
@@ -24,6 +25,7 @@ op:
     user_flags: xxx
     vcs_commit: xxx
 
+    # Legal run attrs
     custom: bar
     another-custom: baz
     yet-another-custom:
@@ -50,3 +52,12 @@ boolean-chars:
     N: 44
     a: 55
     z: 66
+
+logged:
+  run-attrs:
+    opdef-attr: red
+
+logged-core:
+  run-attrs:
+    custom-id: This attr is okay
+    custom-label: This attr is also okay

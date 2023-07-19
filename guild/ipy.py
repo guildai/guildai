@@ -177,8 +177,8 @@ class RunsSeries(pd.Series):
     def scalars_detail(self):
         return _runs_scalars_detail([self[0].value])
 
-    def logged_attrs(self):
-        return _runs_logged_attrs([self[0].value])
+    def attributes(self):
+        return _runs_attributes([self[0].value])
 
     def guild_flags(self):
         return _runs_flags([self[0].value])
@@ -221,8 +221,8 @@ class RunsDataFrame(pd.DataFrame):
     def scalars_detail(self):
         return _runs_scalars_detail(self._runs())
 
-    def logged_attrs(self):
-        return _runs_logged_attrs(self._runs())
+    def attributes(self):
+        return _runs_attributes(self._runs())
 
     def guild_flags(self):
         return _runs_flags(self._runs())
@@ -704,13 +704,16 @@ def _runs_scalars_detail(runs):
     return pd.DataFrame(data, columns=cols)
 
 
-def _runs_logged_attrs(runs):
-    data = [_run_logged_attrs(run) for run in runs]
+def _runs_attributes(runs):
+    data = [_run_attributes(run) for run in runs]
     return pd.DataFrame(data)
 
 
-def _run_logged_attrs(run):
-    return indexlib.logged_attrs(run)
+def _run_attributes(run):
+    return {
+        **(run.get("opdef_attrs") or {}),
+        **indexlib.logged_attrs(run),
+    }
 
 
 def _runs_flags(runs):
@@ -778,7 +781,7 @@ def _run_scalar_data(run):
 
 
 def _apply_logged_attr_data(run, cols, data):
-    for name, val in _run_logged_attrs(run).items():
+    for name, val in _run_attributes(run).items():
         cols.add(name)
         data[name] = val
 

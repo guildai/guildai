@@ -7,7 +7,7 @@ Custom attributes can be defined for an operation using the
 
 ## Custom attributes
 
-Guild prohibits use of 'core' attributes.
+Guild prohibits use of core attributes.
 
     >>> run("guild run op -y")  # doctest: +REPORT_UDIFF
     WARNING: Invalid run attribute 'cmd' (reserved attribute) - ignoring
@@ -22,6 +22,7 @@ Guild prohibits use of 'core' attributes.
     WARNING: Invalid run attribute 'op' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'pip_freeze' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'platform' (reserved attribute) - ignoring
+    WARNING: Invalid run attribute 'plugins' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'random_seed' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'run_params' (reserved attribute) - ignoring
     WARNING: Invalid run attribute 'sourcecode_digest' (reserved attribute) - ignoring
@@ -92,13 +93,14 @@ these unquoted chars.
         y: 1
         z: 6
 
-    >>> run("guild cat -p .guild/attrs/custom")
-    'N': 4
-    'Y': 3
-    a: 5
-    'n': 2
-    'y': 1
-    z: 6
+    >>> run("guild cat -p .guild/attrs/opdef_attrs")
+    custom:
+      'N': 4
+      'Y': 3
+      a: 5
+      'n': 2
+      'y': 1
+      z: 6
 
     >>> run("guild cat -p .guild/attrs/flags")
     'N': 44
@@ -107,3 +109,44 @@ these unquoted chars.
     'n': 22
     'y': 11
     z: 66
+
+## Logged attributes
+
+The `logged` operation logs various attributes using text summaries as
+well as defines a run attribute in the Guild file.
+
+    >>> run("guild run logged -y")
+    <exit 0>
+
+    >>> run("guild runs info")
+    id: ...
+    operation: logged
+    ...
+    attributes:
+      logged-1: green
+      logged-2: '{"numbers": [1, 3, 5], "color": "blue"}'
+      opdef-attr: red
+    <exit 0>
+
+The `logged-core` operation logs core attributes `id` and
+`label`. Guild ignores these logged attributes.
+
+    >>> cat("logged_core.py")
+    from guild import summary
+    <BLANKLINE>
+    attrs = summary.SummaryWriter(".", filename_suffix=".attrs")
+    attrs.add_text("id", "bbb")
+    attrs.add_text("label", "Trying to log a label")
+
+    >>> run("guild run logged-core --run-id aaa --label 'True label' -y")
+    <exit 0>
+
+    >>> run("guild runs info")
+    id: aaa
+    operation: logged-core
+    ...
+    label: True label
+    ...
+    attributes:
+      custom-id: This attr is okay
+      custom-label: This attr is also okay

@@ -75,31 +75,6 @@ RESPECIFIABLE_RUN_PARAMS = {
     "tags",
 }
 
-CORE_RUN_ATTRS = {
-    "cmd",
-    "deps",
-    "env",
-    "exit_status",
-    "flags",
-    "host",
-    "id",
-    "initialized",
-    "label",
-    "op",
-    "pip_freeze",
-    "platform",
-    "random_seed",
-    "run_params",
-    "sourcecode_digest",
-    "started",
-    "stopped",
-    "user",
-    "user_flags",
-    "vcs_commit",
-    "r_sys_info",
-    "r_packages_loaded",
-}
-
 ###################################################################
 # State
 ###################################################################
@@ -1259,14 +1234,27 @@ def _apply_system_attrs(op, attrs):
 def _apply_opdef_run_attrs(op, attrs):
     if not op._opdef or not op._opdef.run_attrs:
         return
-    for name, val in sorted(op._opdef.run_attrs.items()):
-        if name in CORE_RUN_ATTRS:
-            log.warning(
-                "Invalid run attribute '%s' (reserved attribute) - ignoring",
-                name,
-            )
-            continue
-        attrs[name] = val
+    opdef_attrs = _safe_opdef_attrs(op._opdef.run_attrs)
+    if opdef_attrs:
+        attrs["opdef_attrs"] = opdef_attrs
+
+
+def _safe_opdef_attrs(opdef_attrs):
+    return {
+        name: opdef_attrs[name]
+        for name in opdef_attrs  #
+        if _is_safe_run_attr(name)
+    }
+
+
+def _is_safe_run_attr(name):
+    if name in runlib.CORE_RUN_ATTRS:
+        log.warning(
+            "Invalid run attribute '%s' (reserved attribute) - ignoring",
+            name,
+        )
+        return False
+    return True
 
 
 # =================================================================
