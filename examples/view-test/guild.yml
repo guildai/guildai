@@ -1,0 +1,57 @@
+gen-files:
+  description: Generates sample output text files
+  main: files
+  flags-import: all
+
+iris-train:
+  description: Train SVM model on Iris data set
+  main: plot_iris_exercise
+  flags:
+    kernel:
+      description: SVM kernel type
+      default: rbf
+      choices: [linear, poly, rbf]
+    test_split:
+      description: Percentage of examples held out for test
+      default: 0.2
+    random_seed:
+      description: Seed used for shuffling data
+      default: 0
+    degree:
+      description: Degree of the poly kernel function
+      default: 3
+    gamma:
+      description: Kernel coefficient for rbf and poly
+      default: 10
+  output-scalars:
+    train_accuracy: 'Train accuracy: (\value)'
+    test_accuracy: 'Test accuracy: (\value)'
+
+iris-grid-search:
+  description: Grid search
+  steps:
+    - run: train
+      flags:
+        kernel: [linear, rbf]
+        gamma: logspace[-9:3:13]
+      tag: grid
+    - run: train
+      flags:
+        kernel: poly
+        degree: range[1:5]
+        gamma: logspace[-9:3:13]
+      tag: grid
+
+iris-optimize:
+  description: Bayesian optimization
+  steps:
+    - run: train
+      tag: gp
+      optimizer: gp
+      maximize: test_accuracy
+      flags:
+        kernel: [linear, rbf]
+        gamma: loguniform[1e-9:1e3]
+      max-trials: 100
+
+many_scalars.py: {}
