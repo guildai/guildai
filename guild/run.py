@@ -50,7 +50,6 @@ CORE_RUN_ATTRS = {
     # TODO: The following are core but are associated with
     # plugins. These should be defined by the plugin but there is
     # currently no such interface.
-
     "pip_freeze",
     "r_sys_info",
     "r_packages_loaded",
