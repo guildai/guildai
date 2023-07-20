@@ -150,3 +150,56 @@ The `logged-core` operation logs core attributes `id` and
     attributes:
       custom-id: This attr is okay
       custom-label: This attr is also okay
+
+## Output attributes
+
+Guild can capture attributes as output for a run.
+
+The default rules for output captures follow the pattern used by
+scalars, but apply to text values as well we numbers. By default,
+values containing spaces are not matched. This is to avoid
+accidentally matching log-style output.
+
+Output scalar patterns are applied first and take precedence over
+matching attributes.
+
+The `output.py` script in the sample project demonstrates a common
+case.
+
+    >>> run("guild run output.py -y")
+    model: cnn
+    xxx: will not be captured with default rules
+    loss: 0.123
+    acc: 0.765
+    loss: 0.012
+    acc: 0.876
+
+    >>> run("guild runs info")
+    id: ...
+    operation: output.py
+    ...
+    scalars:
+      acc: 0.876000 (step 1)
+      loss: 0.012000 (step 1)
+    attributes:
+      model: cnn
+
+The `output-2` operation, defined in the Guild file, runs the same
+operation, but disables output scalars and explicitly matches the
+otherwise ignored `xxx` attribute.
+
+    >>> run("guild run output-2 -y")
+    model: cnn
+    xxx: will not be captured with default rules
+    loss: 0.123
+    acc: 0.765
+    loss: 0.012
+    acc: 0.876
+
+    >>> run("guild runs info")
+    id: ...
+    operation: output-2
+    ...
+    scalars:
+    attributes:
+      xxx: will not be captured with default rules

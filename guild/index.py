@@ -98,7 +98,7 @@ def _attr_prefix(attrs_path, root):
 
 
 def _attr_name(prefix, name):
-    return f"{prefix}#{name}" if prefix else name
+    return f"{prefix}#{name}" if prefix and prefix != ".guild" else name
 
 
 def _run_core_attrs(run):

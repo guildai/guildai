@@ -66,7 +66,11 @@ Function to test patterns:
 
     >>> def test_p(p, s):
     ...     with LogCapture() as logs:
-    ...         compiled = summary._compile_patterns(f"^{p}$", None)
+    ...         compiled = summary._compile_patterns(
+    ...             f"^{p}$",
+    ...             None,
+    ...             summary.OUTPUT_SCALAR_ALIASES
+    ...         )
     ...     logs.print_all()
     ...     if not compiled:
     ...         return False
@@ -104,9 +108,9 @@ Test various patterns.
     >>> test_p(r"loss: (\d\d\d)", "loss: 123")
     True
 
-Guild supports the following aliases:
+Guild supports the following aliases for output scalars:
 
-    >>> summary.ALIASES  # doctest: -NORMALIZE_PATHS
+    >>> summary.OUTPUT_SCALAR_ALIASES  # doctest: -NORMALIZE_PATHS
     [(re.compile('\\\\key'), '...'),
      (re.compile('\\\\value'), '...'),
      (re.compile('\\\\step'), '...')]

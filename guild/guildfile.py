@@ -401,7 +401,9 @@ def _coerce_operation_attr(name, val, guildfile):
     if name == "python-path":
         return _coerce_op_python_path(val, guildfile)
     if name == "output-scalars":
-        return _coerce_output_scalars(val, guildfile)
+        return _coerce_output_capture(val, guildfile, "output-scalars")
+    if name == "output-attrs":
+        return _coerce_output_capture(val, guildfile, "output-attrs")
     if name == "sourcecode":
         return _coerce_select_files(val, guildfile)
     return val
@@ -451,7 +453,7 @@ def _coerce_op_python_path(data, guildfile):
     return _coerce_str_to_list(data, guildfile, "python-path")
 
 
-def _coerce_output_scalars(data, guildfile):
+def _coerce_output_capture(data, guildfile, attr_name):
     if data is None:
         return None
     if data is False:
@@ -464,7 +466,7 @@ def _coerce_output_scalars(data, guildfile):
         return data
     raise GuildfileError(
         guildfile,
-        f"invalid output-scalars {data!r}: expected a mapping, list, string, or false",
+        f"invalid {attr_name} {data!r}: expected a mapping, list, string, or false",
     )
 
 
@@ -1033,6 +1035,7 @@ class OpDef:
         self.flag_encoder = data.get("flag-encoder")
         self.default_max_trials = data.get("default-max-trials")
         self.output_scalars = data.get("output-scalars")
+        self.output_attrs = data.get("output-attrs")
         self.objective = data.get("objective")
         self.optimizers = _init_optimizers(data, self)
         self.publish = _init_publish(data.get("publish"), self)

@@ -515,6 +515,14 @@ def run_params(fn):
                 ),
             ),
             click.Option(
+                ("--test-output-attrs",),
+                metavar="OUTPUT",
+                help=(
+                    "Test output attributes on output. Use '-' to read from standard "
+                    "intput."
+                ),
+            ),
+            click.Option(
                 ("--test-sourcecode",),
                 help="Test source code selection.",
                 is_flag=True,

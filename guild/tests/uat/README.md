@@ -197,6 +197,7 @@ And test the `keras` example.
 ### Other examples
 
 - [custom-scalars-example](custom-scalars-example.md)
+- [custom-attrs-example](custom-attrs-example.md)
 - [flags-example](flags-example.md)
 
 ## Dependencies

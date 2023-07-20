@@ -171,14 +171,15 @@ class AttrReader:
 
     def __iter__(self):
         """Yields (tag, val) for all logged attrs in dir."""
-        for event in EventReader(
-            self.dir,
-            lambda path: path.endswith(".attrs"),
-        ):
+        for event in EventReader(self.dir, path_filter=_is_summary_attrs):
             for val in event.summary.value:
                 attr_info = _try_logged_attr(val)
                 if attr_info is not None:
                     yield attr_info
+
+
+def _is_summary_attrs(path):
+    return path.endswith(".attrs")
 
 
 def _try_logged_attr(val):

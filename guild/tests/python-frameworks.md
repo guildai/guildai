@@ -55,7 +55,7 @@ output scalar patterns so the user can log custom metrics.
      ' - ([a-z_]+): (\\value)',
      'Test loss: (?P<test_loss>\\value)',
      'Test accuracy: (?P<test_accuracy>\\value)',
-     '\\key: +\\value\\s+\\((?:step\\s+)?(?P<step>\\step)\\)$',
+     '\\key:\\s+\\value\\s+\\((?:step\\s+)?(?P<step>\\step)\\)$',
      '^(\\key):\\s+(\\value)(?:\\s+\\(.*\\))?$']
 
 ### Keras model from Guild file
@@ -114,7 +114,7 @@ the op def.
      ' - ([a-z_]+): (\\value)',
      'Test loss: (?P<test_loss>\\value)',
      'Test accuracy: (?P<test_accuracy>\\value)',
-     '\\key: +\\value\\s+\\((?:step\\s+)?(?P<step>\\step)\\)$',
+     '\\key:\\s+\\value\\s+\\((?:step\\s+)?(?P<step>\\step)\\)$',
      '^(\\key):\\s+(\\value)(?:\\s+\\(.*\\))?$']
 
     >>> opdef.output_scalars == opdef2.output_scalars

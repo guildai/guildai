@@ -14,7 +14,7 @@ directly with Python.
 
 We use the `fail.py` script in `optimizers` sample project.
 
-    >>> project = Project(sample("projects/optimizers"))
+    >>> use_project("optimizers")
 
 The project contains some invalid operation specs and as a result,
 generates warnings whenver an operation is run.
@@ -22,7 +22,7 @@ generates warnings whenver an operation is run.
 When we run `fail.py`, the script generates an error by raising an
 exception.
 
-    >>> project.run("fail.py")
+    >>> run("guild run fail.py -y")
     Traceback (most recent call last):
       File ".../fail.py", line 20, in <module>
         fail()
@@ -35,7 +35,7 @@ exception.
 
 When we run with the debug option, we get the full stack:
 
-    >>> project.run("fail.py", debug=True)
+    >>> run("guild --debug run fail.py -y")
     DEBUG: [guild] checking '.' for model sources
     ...
     DEBUG: [guild] loading module from '.../fail.py'
@@ -57,6 +57,7 @@ When we run with the debug option, we get the full stack:
       File ".../fail.py", line 14, in fail2
         raise Exception("FAIL")
     Exception: FAIL
+    DEBUG: [guild] attr Exception=FAIL
     <exit 1>
 
 Guild does not print stack information for calls to `sys.exit()` (or
@@ -64,14 +65,14 @@ Guild does not print stack information for calls to `sys.exit()` (or
 that, when set to a value other than `1`, causes the script to exit
 with a call to `sys.exit()` instead of raising an exception.
 
-    >>> project.run("fail.py", flags={"code": 2})
+    >>> run("guild run fail.py code=2 -y")
     FAIL
     <exit 2>
 
 The same behavior applies to modules run through a Guild file. In this
 case, the project defines a `fail` operation that runs `fail.py`.
 
-    >>> project.run("fail")
+    >>> run("guild run fail -y")
     Traceback (most recent call last):
       File ".../fail.py", line 20, in <module>
         fail()
@@ -82,7 +83,7 @@ case, the project defines a `fail` operation that runs `fail.py`.
     Exception: FAIL
     <exit 1>
 
-    >>> project.run("fail", flags={"code": 2})
+    >>> run("guild run fail code=2 -y")
     FAIL
     <exit 2>
 
@@ -91,14 +92,14 @@ case, the project defines a `fail` operation that runs `fail.py`.
 Guild loads modules using their package name so that `__package__` is
 correctly defined.
 
-    >>> project = Project(sample("projects/op-main-package"))
+    >>> use_project("op-main-package")
 
 The `op-main-package` contains operation defs that generate warnings
 due to mis-specifications (see tests below). These warnings are logged
 whenever the project Guild file is loaded. We can run a `pass` (no-op)
 operation to generate these warnings.
 
-    >>> project.run("pass")
+    >>> run("guild run pass -y")
     WARNING: cannot import flags from abc_123: No module named abc_123
     WARNING: cannot import flags from pkg: No module named pkg.__main__
     ('pkg' is a package and cannot be directly executed)
@@ -112,14 +113,14 @@ the module is loaded with global flag assignments.
 Here's the case where globals are not used (i.e. dest args):
 
     >>> with Env({"NO_WARN_FLAGS_IMPORT": "1"}):
-    ...     project.run("args")
+    ...     run("guild run args -y")
     hello from __main__ in pkg
     hello from pkg.main_impl in pkg
 
 Here's the case where globals are used:
 
     >>> with Env({"NO_WARN_FLAGS_IMPORT": "1"}):
-    ...    project.run("globals")
+    ...    run("guild run globals -y")
     hello from __main__ in pkg
     hello from pkg.main_impl in pkg
 
@@ -127,20 +128,20 @@ The same scheme applies when `main` contains a path to the package, as
 is the case with `op-args-2`.
 
     >>> with Env({"NO_IMPORT_FLAGS_CACHE": "1", "NO_WARN_FLAGS_IMPORT": "1"}):
-    ...     project.run("args-2")
+    ...     run("guild run args-2 -y")
     hello from __main__ in pkg
     hello from pkg.main_impl in pkg
 
 We can execute a package provided it contains a `__main__` module.
 
     >>> with Env({"NO_WARN_FLAGS_IMPORT": "1"}):
-    ...    project.run("pkg-main")
+    ...    run("guild run pkg-main -y")
     a package!
 
 A package that does not contain a `__main__` module causes an error.
 
     >>> with Env({"NO_WARN_FLAGS_IMPORT": "1"}):
-    ...     project.run("pkg")
+    ...     run("guild run pkg -y")
     guild: No module named pkg.__main__ ('pkg' is a package and cannot
     be directly executed)
     <exit 1>

@@ -1,0 +1,13 @@
+tf-summary:
+  exec: python logged_tf_summary.py
+
+output:
+  output-scalars:
+    loss: 'loss: (.*)'
+    acc: 'acc: (.*)'
+  output-attrs:
+    model: 'model: (.*)'
+
+logged_guild_summary.py:
+  run-attrs:
+    custom: 123

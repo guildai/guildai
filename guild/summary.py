@@ -23,21 +23,35 @@ from guild import util
 
 log = logging.getLogger("guild")
 
-ALIASES = [
-    (re.compile(r"\\key"), "[^ \t]+"),
-    (
-        re.compile(r"\\value"),
-        r"(?:[-+]?[0-9]*\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?"  #
-        r"|[nN][aA][nN]"  #
-        r"|[-+]?[iI][nN][fF])"
-    ),
-    (re.compile(r"\\step"), "[0-9]+"),
+KEY_PATTERN = r"[_a-zA-Z]\\S*"
+
+NUM_PATTERN = (
+    r"(?:[-+]?[0-9]*\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?"  #
+    r"|[nN][aA][nN]"  #
+    r"|[-+]?[iI][nN][fF])"
+)
+
+TERM_PATTERN = r"\\S+"
+
+STEP_PATTERN = r"[0-9]+"
+
+OUTPUT_SCALAR_ALIASES = [
+    (re.compile(r"\\key"), KEY_PATTERN),
+    (re.compile(r"\\value"), NUM_PATTERN),
+    (re.compile(r"\\step"), STEP_PATTERN),
+]
+
+OUTPUT_ATTR_ALIASES = [
+    (re.compile(r"\\key"), KEY_PATTERN),
+    (re.compile(r"\\value"), TERM_PATTERN),
 ]
 
 DEFAULT_OUTPUT_SCALARS = [
-    r"\key: +\value\s+\((?:step\s+)?(?P<step>\step)\)$",
+    r"\key:\s+\value\s+\((?:step\s+)?(?P<step>\step)\)$",
     r"^(\key):\s+(\value)(?:\s+\(.*\))?$",
 ]
+
+DEFAULT_OUTPUT_ATTRS = [r"(\key):\s+(\value)$"]
 
 HPARAM_TYPE_NUMBER = "number"
 HPARAM_TYPE_BOOL = "bool"
@@ -306,15 +320,16 @@ def _Status(status):
 
 class OutputScalars:
     def __init__(self, config, output_dir, ignore=None):
-        self._patterns = _init_patterns(config)
+        self._patterns = _init_patterns(config, OUTPUT_SCALAR_ALIASES)
         self._writer = SummaryWriter(output_dir)
         self._ignore = set(ignore or [])
         self._step = None
         self._implied_step = None
         self._implied_step_keys = set()
 
-    def write(self, line):
-        vals = _match_line(line, self._patterns)
+    def write(self, line, ignore=None):
+        ignore = self._ignore.union(ignore or [])
+        vals = _match_line(line, self._patterns, float)
         step = vals.pop("step", None)
         if step is not None:
             self._step = step
@@ -322,11 +337,12 @@ class OutputScalars:
             step = self._step_for_line_keys(vals.keys())
             for key, val in sorted(vals.items()):
                 log.debug("scalar %s val=%s step=%s", key, val, step)
-                if key in self._ignore:
+                if key in ignore:
                     log.debug("skipping %s because it's in ignore list", key)
                     continue
                 self._writer.add_scalar(key, val, step)
                 self._writer.flush()
+        return vals
 
     def _step_for_line_keys(self, line_keys):
         if self._step is not None:
@@ -358,40 +374,70 @@ class OutputScalars:
             sys.stdout.write(f"{key}: {p.pattern}\n")
 
 
-def _init_patterns(config):
+class OutputAttrs:
+    def __init__(self, config, output_dir, ignore=None):
+        self._patterns = _init_patterns(config, OUTPUT_ATTR_ALIASES)
+        self._writer = SummaryWriter(output_dir, filename_suffix=".attrs")
+        self._ignore = set(ignore or [])
+
+    def write(self, line, ignore=None):
+        ignore = self._ignore.union(ignore or [])
+        vals = _match_line(line, self._patterns)
+        if vals:
+            for key, val in sorted(vals.items()):
+                log.debug("attr %s=%s", key, val)
+                if key in ignore:
+                    log.debug("skipping %s because it's in ignore list", key)
+                    continue
+                self._writer.add_text(key, val)
+                self._writer.flush()
+        return vals
+
+    def close(self):
+        self._writer.close()
+
+    def flush(self):
+        self._writer.flush()
+
+    def print_patterns(self):
+        for key, p in self._patterns:
+            sys.stdout.write(f"{key}: {p.pattern}\n")
+
+
+def _init_patterns(config, aliases):
     if not isinstance(config, list):
         raise TypeError(f"invalid output scalar config: {config!r}")
     patterns = []
     for item in config:
-        patterns.extend(_config_item_patterns(item))
+        patterns.extend(_config_item_patterns(item, aliases))
     return patterns
 
 
-def _config_item_patterns(item):
+def _config_item_patterns(item, aliases):
     if isinstance(item, dict):
-        return _map_patterns(item)
+        return _map_patterns(item, aliases)
     if isinstance(item, str):
-        return _string_patterns(item)
+        return _string_patterns(item, aliases)
     log.warning("invalid item config: %r", item)
     return []
 
 
-def _map_patterns(map_config):
+def _map_patterns(map_config, aliases):
     patterns = []
     for key, val in sorted(map_config.items()):
-        patterns.extend(_compile_patterns(val, key))
+        patterns.extend(_compile_patterns(val, key, aliases))
     return patterns
 
 
-def _string_patterns(s):
-    return _compile_patterns(s, None)
+def _string_patterns(s, aliases):
+    return _compile_patterns(s, None, aliases)
 
 
-def _compile_patterns(val, key):
+def _compile_patterns(val, key, aliases):
     if not isinstance(val, str):
         log.warning("invalid output scalar pattern: %r", val)
         return []
-    val = _replace_aliases(val)
+    val = replace_aliases(val, aliases)
     try:
         p = re.compile(val)
     except Exception as e:
@@ -401,18 +447,18 @@ def _compile_patterns(val, key):
         return [(key, p)]
 
 
-def _replace_aliases(val):
-    for alias, repl in ALIASES:
+def replace_aliases(val, aliases):
+    for alias, repl in aliases:
         val = alias.sub(repl, val)
     return val
 
 
-def _match_line(line, patterns):
+def _match_line(line, patterns, conv=None):
     vals = {}
     line = _line_to_match(line)
     for key, p in patterns:
         for m in p.finditer(line):
-            _try_apply_match(m, key, vals)
+            _try_apply_match(m, key, conv, vals)
     return vals
 
 
@@ -422,17 +468,41 @@ def _line_to_match(line):
     return line.rstrip()
 
 
-def _try_apply_match(m, key, vals):
+def _try_apply_match(m, key, conv, vals):
     groupdict = m.groupdict()
     if groupdict:
-        _try_apply_groupdict(groupdict, vals)
-        return
+        _try_apply_groupdict(groupdict, conv, vals)
+    else:
+        _try_apply_match_groups(m, key, conv, vals)
+
+
+def _try_apply_groupdict(groupdict, conv, vals):
+    try:
+        key = groupdict["_key"]
+        val = groupdict["_val"]
+    except KeyError:
+        for key, s in groupdict.items():
+            _try_apply_conv(s, key, conv, vals)
+    else:
+        _try_apply_conv(val, key, conv, vals)
+
+
+def _try_apply_conv(s, key, conv, vals):
+    try:
+        val = conv(s) if conv else s
+    except (TypeError, ValueError):
+        pass
+    else:
+        vals[key] = val
+
+
+def _try_apply_match_groups(m, key, conv, vals):
     groups = m.groups()
     len_groups = len(groups)
     if len_groups == 1:
-        _try_apply_float(m.group(1), key, vals)
+        _try_apply_conv(m.group(1), key, conv, vals)
     elif len_groups == 2:
-        _try_apply_float(m.group(2), m.group(1), vals)
+        _try_apply_conv(m.group(2), m.group(1), conv, vals)
     else:
         logging.warning(
             "bad unnamed group count %i for %r (expected 1 or 2) skipping",
@@ -441,24 +511,23 @@ def _try_apply_match(m, key, vals):
         )
 
 
-def _try_apply_groupdict(groupdict, vals):
-    try:
-        key = groupdict["_key"]
-        val = groupdict["_val"]
-    except KeyError:
-        for key, s in groupdict.items():
-            _try_apply_float(s, key, vals)
-    else:
-        _try_apply_float(val, key, vals)
+class CombinedOutputs:
+    def __init__(self, outputs):
+        self._outputs = outputs
 
+    def write(self, line):
+        ignore = set()
+        for out in self._outputs:
+            captured = out.write(line, ignore)
+            ignore.update(captured)
 
-def _try_apply_float(s, key, vals):
-    try:
-        f = float(s)
-    except (TypeError, ValueError):
-        pass
-    else:
-        vals[key] = f
+    def close(self):
+        for out in self._outputs:
+            out.close()
+
+    def flush(self):
+        for out in self._outputs:
+            out.flush()
 
 
 class TestOutputLogger:
@@ -491,9 +560,9 @@ def _strip_u(s):
     return s
 
 
-def test_output(f, config, cb=None):
+def test_output(f, config, aliases, conv, cb=None):
     cb = cb or TestOutputLogger()
-    patterns = _init_patterns(config)
+    patterns = _init_patterns(config, aliases)
     for line in f:
         line = _line_to_match(line)
         cb.line(line)
@@ -504,5 +573,5 @@ def test_output(f, config, cb=None):
                 continue
             vals = {}
             for m in matches:
-                _try_apply_match(m, key, vals)
+                _try_apply_match(m, key, conv, vals)
             cb.pattern_matches(p.pattern, matches, vals)

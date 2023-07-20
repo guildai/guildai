@@ -111,6 +111,7 @@ class Operation(oplib.Operation):
         self._tags = []
         self._comment = None
         self._output_scalars = None
+        self._output_attrs = None
         self._sourcecode_root = None
         self._sourcecode_dest = None
         self._flags_extra = None
@@ -161,6 +162,7 @@ def _op_config_data(op):
         "python-requires": op._python_requires,
         "label-template": op._label_template,
         "output-scalars": op._output_scalars,
+        "output-attrs": op._output_attrs,
         "deps": op_util.op_deps_as_data(op.deps),
         "sourcecode": _op_sourcecode_data(op),
         "flags-extra": op._flags_extra,
@@ -183,6 +185,7 @@ def _apply_op_config_data(data, op):
     op._python_requires = data.get("python-requires")
     op._label_template = data.get("label-template")
     op._output_scalars = data.get("output-scalars")
+    op._output_attrs = data.get("output-attrs")
     op._sourcecode_root = data.get("sourcecode", {}).get("root")
     op._sourcecode_dest = (
         data.get("sourcecode", {}).get("dest")
@@ -905,6 +908,7 @@ def _op_init_config_for_opdef(
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_template if label_template is not None else opdef.label
     op._output_scalars = opdef.output_scalars
+    op._output_attrs = opdef.output_attrs
     op._sourcecode_dest = _opdef_sourcecode_dest(opdef)
     op._sourcecode_root = _opdef_sourcecode_root(opdef)
     op._flags_extra = _opdef_flags_extra(opdef)
@@ -1286,23 +1290,39 @@ def _op_init_callbacks_for_restart(op):
 
 
 def _init_output_summary(op, run):
-    if _output_scalars_disabled(op):
+    outputs = [
+        out for out in [
+            # Order matters here - scalars must be allowed to match
+            # first otherwise general captures will all be attrs
+            _init_output_scalars(op, run),
+            _init_output_attrs(op, run),
+        ] if out
+    ]
+    return summary.CombinedOutputs(outputs) if outputs else None
+
+
+def _init_output_scalars(op, run):
+    if _output_capture_disabled(op._output_scalars):
         return None
-    return _output_scalars_summary(op._output_scalars, op._op_flag_vals, run)
+    output_scalars, ignore = (
+        (op._output_scalars, None) if op._output_scalars is not None else
+        (summary.DEFAULT_OUTPUT_SCALARS, op._op_flag_vals.keys())
+    )
+    return summary.OutputScalars(output_scalars, run.guild_path(), ignore)
 
 
-def _output_scalars_disabled(op):
-    return op._output_scalars is not None and not op._output_scalars
+def _init_output_attrs(op, run):
+    if _output_capture_disabled(op._output_attrs):
+        return None
+    output_attrs, ignore = (
+        (op._output_attrs, None) if op._output_attrs is not None else
+        (summary.DEFAULT_OUTPUT_ATTRS, op._op_flag_vals.keys())
+    )
+    return summary.OutputAttrs(output_attrs, run.guild_path(), ignore)
 
 
-def _output_scalars_summary(output_scalars, flag_vals, run):
-    if output_scalars is None:
-        output_scalars = summary.DEFAULT_OUTPUT_SCALARS
-        ignore = flag_vals.keys()
-    else:
-        ignore = None
-    summary_path = run.guild_path()
-    return summary.OutputScalars(output_scalars, summary_path, ignore)
+def _output_capture_disabled(rules):
+    return rules is not None and not rules
 
 
 def _op_init_callbacks_for_op(op):
@@ -1752,6 +1772,7 @@ def _check_incompatible_with_restart(args):
         ("proto", "--proto"),
         ("run_dir", "--run-dir"),
         ("test_output_scalars", "--test-output-scalars"),
+        ("test_output_attrs", "--test-output-attrs"),
         ("test_sourcecode", "--test-sourcecode"),
         ("test_flags", "--test-flags"),
     ]
@@ -1790,6 +1811,8 @@ def _dispatch_op(S):
         _print_op_help(S)
     elif S.args.test_output_scalars:
         _test_output_scalars(S)
+    elif S.args.test_output_attrs:
+        _test_output_attrs(S)
     elif S.args.test_sourcecode:
         _test_sourcecode(S)
     elif S.args.test_flags:
@@ -1814,7 +1837,7 @@ def _print_op_help(S):
 
 
 ###################################################################
-# Test output scalars
+# Test output (scalars and attrs)
 ###################################################################
 
 
@@ -1833,11 +1856,23 @@ class TestOutputLogger(summary.TestOutputLogger):
 
 
 def _test_output_scalars(S):
-    if _output_scalars_disabled(S.user_op):
+    op = S.user_op
+    if _output_capture_disabled(op._output_scalars):
         cli.out("Output scalars disabled, nothing to test", err=True)
         return
-    output_scalars = S.user_op._output_scalars or summary.DEFAULT_OUTPUT_SCALARS
-    input_path = S.args.test_output_scalars
+    rules = (
+        op._output_scalars if op._output_scalars is not None else  #
+        summary.DEFAULT_OUTPUT_SCALARS
+    )
+    _test_output(
+        rules,
+        summary.OUTPUT_SCALAR_ALIASES,
+        float,
+        S.args.test_output_scalars,
+    )
+
+
+def _test_output(config, aliases, conv, input_path):
     logger = TestOutputLogger()
     if input_path == "-" and sys.stdin.isatty():
         cli.note(
@@ -1845,7 +1880,7 @@ def _test_output_scalars(S):
             "Use Ctrl-c or empty line to exit."
         )
     with _open_output(input_path) as f:
-        summary.test_output(f, output_scalars, logger)
+        summary.test_output(f, config, aliases, conv, logger)
 
 
 def _open_output(path):
@@ -1858,6 +1893,23 @@ def _open_output(path):
             cli.error(f"{path} does not exist")
         else:
             cli.error(f"error opening {path}: {e}")
+
+
+def _test_output_attrs(S):
+    op = S.user_op
+    if _output_capture_disabled(op._output_attrs):
+        cli.out("Output attrs disabled, nothing to test", err=True)
+        return
+    rules = (
+        op._output_attrs if op._output_attrs is not None else  #
+        summary.DEFAULT_OUTPUT_ATTRS
+    )
+    _test_output(
+        rules,
+        summary.OUTPUT_ATTR_ALIASES,
+        None,
+        S.args.test_output_attrs,
+    )
 
 
 ###################################################################
