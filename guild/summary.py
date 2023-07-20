@@ -47,11 +47,11 @@ OUTPUT_ATTR_ALIASES = [
 ]
 
 DEFAULT_OUTPUT_SCALARS = [
-    r"\key:\s+\value\s+\((?:step\s+)?(?P<step>\step)\)$",
+    r"^\key:\s+\value\s+\((?:step\s+)?(?P<step>\step)\)$",
     r"^(\key):\s+(\value)(?:\s+\(.*\))?$",
 ]
 
-DEFAULT_OUTPUT_ATTRS = [r"(\key):\s+(\value)$"]
+DEFAULT_OUTPUT_ATTRS = [r"^(\key):\s+(\value)$"]
 
 HPARAM_TYPE_NUMBER = "number"
 HPARAM_TYPE_BOOL = "bool"

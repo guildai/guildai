@@ -8,7 +8,7 @@ attributes is defined in `guild.summary.DEFAULT_OUTPUT_ATTRS`.
     >>> from guild import summary
 
     >>> summary.DEFAULT_OUTPUT_ATTRS
-    ['(\\key):\\s+(\\value)$']
+    ['^(\\key):\\s+(\\value)$']
 
 This pattern uses the `key` alias, which needs to be applied before
 evaluating output lines.

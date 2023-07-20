@@ -33,17 +33,17 @@ Test various examples using `--test-output-attrs`.
 
     >>> run("echo 'foo: 1.123' | guild run logged_guild_summary.py --test-output-attrs -")
     foo: 1.123
-      '([_a-zA-Z]\\S*):\\s+(\\S+)$': [('foo', '1.123')] (foo=1.123)
+      '^([_a-zA-Z]\\S*):\\s+(\\S+)$': [('foo', '1.123')] (foo=1.123)
 
     >>> run("echo 'foo: bar' | guild run logged_guild_summary.py --test-output-attrs -")
     foo: bar
-      '([_a-zA-Z]\\S*):\\s+(\\S+)$': [('foo', 'bar')] (foo=bar)
+      '^([_a-zA-Z]\\S*):\\s+(\\S+)$': [('foo', 'bar')] (foo=bar)
 
 By default Guild doesn't capture attrs with spaces.
 
     >>> run("echo 'foo: bar baz' | guild run logged_guild_summary.py --test-output-attrs -")
     foo: bar baz
-      '([_a-zA-Z]\\S*):\\s+(\\S+)$': <no matches>
+      '^([_a-zA-Z]\\S*):\\s+(\\S+)$': <no matches>
 
 Log using tensorboardX:
 

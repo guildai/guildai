@@ -54,7 +54,6 @@ All:
     .guild/attrs/stopped
     .guild/attrs/user
     .guild/attrs/user_flags
-    .guild/events.out.tfevents...attrs
     .guild/manifest
     .guild/opref
     .guild/output

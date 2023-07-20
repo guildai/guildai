@@ -33,12 +33,12 @@ test custom output scalar patterns against sample script output.
 
     >>> run("echo 'foo: 1.123' | guild run train.py --test-output-scalars -")
     foo: 1.123
-      '[_a-zA-Z]\\S*:\\s+(?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF])\\s+\\((?:step\\s+)?(?P<step>[0-9]+)\\)$': <no matches>
+      '^[_a-zA-Z]\\S*:\\s+(?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF])\\s+\\((?:step\\s+)?(?P<step>[0-9]+)\\)$': <no matches>
       '^([_a-zA-Z]\\S*):\\s+((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))(?:\\s+\\(.*\\))?$': [('foo', '1.123')] (foo=1.123)
 
     >>> run("echo 'bar' | guild run train.py --test-output-scalars -")
     bar
-      '[_a-zA-Z]\\S*:\\s+(?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF])\\s+\\((?:step\\s+)?(?P<step>[0-9]+)\\)$': <no matches>
+      '^[_a-zA-Z]\\S*:\\s+(?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF])\\s+\\((?:step\\s+)?(?P<step>[0-9]+)\\)$': <no matches>
       '^([_a-zA-Z]\\S*):\\s+((?:[-+]?[0-9]*\\.?(?:[0-9]+)?(?:[eE][-+]?[0-9]+)?|[nN][aA][nN]|[-+]?[iI][nN][fF]))(?:\\s+\\(.*\\))?$': <no matches>
 
 ## train
