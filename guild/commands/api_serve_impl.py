@@ -465,10 +465,11 @@ def _handle_run_attributes(req, run_id):
     return _read_run_other_attrs(run_id)
 
 
-def _read_run_other_attrs(run_id):
+def _read_run_other_attrs(run_id, index=None):
     run = _run_for_id(run_id)
-    index = indexlib.RunIndex()
-    index.refresh([run], ["attr"])
+    if not index:
+        index = indexlib.RunIndex()
+        index.refresh([run], ["attr"])
     return {
         name: val
         for name, val in index.run_attrs(run).items()  #
