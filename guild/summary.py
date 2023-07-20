@@ -342,7 +342,7 @@ class OutputScalars:
                     continue
                 self._writer.add_scalar(key, val, step)
                 self._writer.flush()
-        return vals
+        return {**vals, **({"step": step} if step is not None else {})}
 
     def _step_for_line_keys(self, line_keys):
         if self._step is not None:

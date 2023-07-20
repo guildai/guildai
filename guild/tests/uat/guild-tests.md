@@ -130,6 +130,7 @@ Run the other tests.
       op-utils:                    ok
       opref:                       ok
       ops:                         ok
+      output-attrs:                ok
       output-scalars:              ok
       package:                     ok
       plugins:                     ok
