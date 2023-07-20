@@ -227,6 +227,7 @@ def _run_kw(args):
         "save_trials",
         "test_flags",
         "test_output_scalars",
+        "test_output_attrs",
         "test_sourcecode",
         "yes",
     ]
