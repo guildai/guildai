@@ -1,4 +1,4 @@
-tf-summary:
+logged_tf_summary.py:
   exec: python logged_tf_summary.py
 
 output:
