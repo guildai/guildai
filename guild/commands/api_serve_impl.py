@@ -513,7 +513,7 @@ def _read_compare_data(args):
     return {
         run.id: {
             "flags": run.get("flags"),
-            "loggedAttrs": _read_run_other_attrs(run.id, index),
+            "attributes": _read_run_other_attrs(run.id, index),
             "scalars": _read_run_scalars(run.id, index)
         }
         for run in runs
