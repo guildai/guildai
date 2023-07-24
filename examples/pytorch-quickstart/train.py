@@ -43,7 +43,8 @@ for X, y in test_dataloader:
 # Get cpu, gpu or mps device for training.
 device = (
     "cuda" if torch.cuda.is_available() else
-    "mps" if torch.backends.mps.is_available() else "cpu"
+    "mps" if torch.backends.mps.is_available() else
+    "cpu"
 )
 print(f"Using {device} device")
 
@@ -55,11 +56,10 @@ class NeuralNetwork(nn.Module):
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
             *chain(
-                [nn.Linear(28
-                           * 28, layer_size), nn.ReLU()],
+                [nn.Linear(28 * 28, layer_size), nn.ReLU()],
                 *[
-                    [nn.Linear(layer_size, layer_size),
-                     nn.ReLU()] for _ in range(layer_count)
+                    [nn.Linear(layer_size, layer_size), nn.ReLU()]
+                    for _ in range(layer_count)
                 ],
                 [nn.Linear(layer_size, 10)],
             )
@@ -73,7 +73,7 @@ class NeuralNetwork(nn.Module):
 
 model = NeuralNetwork().to(device)
 print(model)
-print(f"Model digest {crc32(str(model).encode()):08x}")
+print(f"Model digest is {crc32(str(model).encode()):08x}")
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=lr)

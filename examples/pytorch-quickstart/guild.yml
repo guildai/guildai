@@ -1,32 +1,15 @@
 train.py:
-  flags-import: all
   requires:
     - operation: prepare_data.py
       name: data
+
+  flags-import: all
+
   output-scalars:
-    model_crc: 'model_crc: (\value)'
-    loss: 'loss: (\value)'
+    step: 'Epoch (\step)'
+    loss: '^loss: (\value)'
     test_acc: 'Accuracy: (\value)'
     test_loss: '.* Avg loss: (\value)'
 
-  # Futuristic...
-  output-tags:
-    # Canonical form -> 'model=<val>'
-    - tag: 'model=\1'
-      pattern: 'model: (.*)'
-
-    # Canonical form, no group -> 'model'
-    - tag: model
-      pattern: 'model: .*'
-
-    # Two strings: tag=0, pattern=1 -> 'model <val>'
-    - ['model \1', 'model: (.*)']
-
-    # One string: tag='\1', pattern -> '<val>'
-    - 'model: (.*)'
-
-    # Missing tag: tag='\1', pattern (same as one string)
-    - pattern: 'model: (.*)' # -> 'val'
-
-  some-other-thing:
-    model: 'model: (.*)'
+  output-attrs:
+    model_digest: Model digest ([a-f0-9]+)

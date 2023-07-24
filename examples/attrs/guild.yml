@@ -2,6 +2,7 @@ logged_tf_summary.py:
   exec: python logged_tf_summary.py
 
 output:
+  flags-import: all
   output-scalars:
     loss: 'loss: (.*)'
     acc: 'acc: (.*)'
