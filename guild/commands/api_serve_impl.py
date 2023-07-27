@@ -349,6 +349,7 @@ def _runs_base_filter(args):
     _apply_status_filter(args, filters)
     _apply_operation_filter(args, filters)
     _apply_started_filter(args, filters)
+    _apply_batch_filter(filters)
     return var.run_filter("all", filters) if filters else None
 
 
@@ -387,6 +388,10 @@ def _parse_timerange(spec):
         return timerange.parse_spec(spec)
     except ValueError as e:
         raise serving_util.BadRequest(*e.args)
+
+
+def _apply_batch_filter(filters):
+    filters.append(lambda run: run.opref.op_name != "+")
 
 
 def _run_base_attrs(run):
@@ -1005,6 +1010,6 @@ def _read_operations(args):
     return sorted(
         {
             run_util.format_operation(run, nowarn=True)
-            for run in var.runs(var.runs_dir(deleted="deleted" in args))
+            for run in var.runs(_runs_dir(args)) if run.opref.op_name != '+'
         }
     )
