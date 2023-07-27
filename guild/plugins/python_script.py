@@ -118,6 +118,7 @@ class PythonScriptModelProxy:
     objective = "loss"
     plugins = []
     sourcecode = None
+    tags = None
 
     def __init__(
         self,
@@ -154,6 +155,11 @@ class PythonScriptModelProxy:
                         objective=self.objective,
                         plugins=self.plugins,
                         sourcecode=self.sourcecode,
+                        tags=(
+                            self.tags  #
+                            if self.tags is not None  #
+                            else _tags_for_python_script(self.op_name)
+                        ),
                     )
                 }
             },
@@ -168,6 +174,7 @@ def _op_data_for_script(
     objective=None,
     plugins=None,
     sourcecode=None,
+    tags=None,
 ):
     plugins = plugins or []
     flags_data = _flags_data(script_path)
@@ -180,6 +187,7 @@ def _op_data_for_script(
         "objective": objective,
         "plugins": plugins,
         "sourcecode": sourcecode,
+        "tags": tags,
     }
 
 
@@ -205,6 +213,15 @@ def _script_module(rel_script_path):
 
 def _script_base(script_path, op_name):
     return script_path[:-len(op_name)]
+
+
+def _tags_for_python_script(name):
+    name = name.lower()
+    if 'train' in name:
+        return ['model']
+    if 'prepare' in name:
+        return ['dataset']
+    return None
 
 
 class PythonScriptPlugin(pluginlib.Plugin):

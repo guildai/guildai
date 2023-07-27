@@ -37,7 +37,8 @@ Empty Python script:
      'objective': None,
      'output-scalars': None,
      'plugins': [],
-     'sourcecode': None}
+     'sourcecode': None,
+     'tags': None}
 
 Simple script:
 
@@ -53,7 +54,8 @@ Simple script:
      'objective': None,
      'output-scalars': None,
      'plugins': [],
-     'sourcecode': None}
+     'sourcecode': None,
+     'tags': None}
 
 ## Run Python scripts as Guild operations
 
@@ -90,3 +92,48 @@ Simple script:
       skip_connections: yes
     scalars:
     <exit 0>
+
+## Default tags
+
+As of 0.10, Guild uses two default tags for Python scripts: 'model'
+and 'dataset', which are used according to the script name.
+
+If 'train' appears in the name, Guild assigns it the single tag
+'model'. If the name contains 'prepare', Guild assigns it the single
+tag 'dataset'.
+
+This feature is to encourage the categorization of Python scripts in
+View based on default **Models** and **Datasets** collections, which
+filter based on the 'model' and 'dataset' tags respectively.
+
+    >>> use_project(mkdtemp())
+
+    >>> write("train.py", "print('Sample model')")
+
+    >>> write("prepare.py", "print('Sample dataset')")
+
+    >>> run("guild run train.py -y")
+    Sample model
+    <exit 0>
+
+    >>> run("guild runs info")
+    id: ...
+    operation: train.py
+    ...
+    tags:
+      - model
+    flags:
+    scalars:
+
+    >>> run("guild run prepare.py -y")
+    Sample dataset
+    <exit 0>
+
+    >>> run("guild runs info")
+    id: ...
+    operation: prepare.py
+    ...
+    tags:
+      - dataset
+    flags:
+    scalars:

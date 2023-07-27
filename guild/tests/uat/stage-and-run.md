@@ -50,6 +50,7 @@ Show latest staged run:
     exit_status:
     pid:
     tags:
+      - model
     flags:
       noise: 0.1
       x: 3
@@ -77,6 +78,7 @@ List files for latest run:
       .guild/attrs/run_params
       .guild/attrs/sourcecode_digest
       .guild/attrs/started
+      .guild/attrs/tags
       .guild/attrs/user
       .guild/attrs/user_flags
       .guild/attrs/vcs_commit
