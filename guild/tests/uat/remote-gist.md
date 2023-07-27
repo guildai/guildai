@@ -131,6 +131,7 @@ Show remote run info.
     exit_status: 0
     pid:
     tags:
+      - model
     flags:
       noise: 0.1
       x: 0.1
