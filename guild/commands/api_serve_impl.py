@@ -42,6 +42,43 @@ log = logging.getLogger("guild")
 DEFAULT_RUN_FILE_MAX_SIZE = 10**6
 DEFAULT_DIFF_MAX_LINES = 2 * 10**4
 
+DEFAULT_COLLECTIONS = [
+    {
+        "id": "models",
+        "label": "Models",
+        "collections": [
+            {
+                "filter": "tags contains model",
+                "help": "Runs with 'model' tag",
+                "id": "all",
+                "label": "All models"
+            }
+        ]
+    }, {
+        "id": "datasets",
+        "label": "Datasets",
+        "collections": [
+            {
+                "filter": "tags contains dataset",
+                "help": "Runs with 'dataset' tag",
+                "id": "all",
+                "label": "All datasets"
+            }
+        ]
+    }, {
+        "id": "by-date",
+        "label": "By Date",
+        "collections": [
+            {
+                "help": "Runs started today",
+                "id": "today",
+                "label": "Today's Runs",
+                "started": "today"
+            }
+        ]
+    }
+]
+
 
 class MethodNotSupported(serving_util.HTTPException):
     code = 400
@@ -218,7 +255,7 @@ def _runs_for_collection(args):
 def _collection_for_name(name):
     return _find_collection(
         name.split("/"),
-        config.user_config().get("collections"),
+        config.user_config().get("collections") or DEFAULT_COLLECTIONS,
     )
 
 
@@ -576,7 +613,7 @@ def _handle_collections(req):
 
 
 def _read_collections():
-    collections = config.user_config().get("collections") or []
+    collections = config.user_config().get("collections") or DEFAULT_COLLECTIONS
     _apply_path_ids(collections)
     return collections
 
