@@ -181,7 +181,7 @@ def _read_runs(args):
 
 def _runs_for_args(args):
     return filter_util.filtered_runs(
-        _maybe_parsed_text_filter(args),
+        _maybe_parsed_filter(args),
         root=_runs_dir(args),
         base_filter=_runs_base_filter(args),
         base_runs=_runs_for_collection(args),
@@ -248,7 +248,7 @@ def _strip_filter_args(args):
 
 
 COLLECTION_FILTER_MAP = [
-    ("filter", "text"),
+    ("filter", "filter"),
     ("started", "started"),
     ("status", "status"),
 ]
@@ -261,23 +261,42 @@ def _collection_filter_args(collection):
     ]
 
 
-def _maybe_parsed_text_filter(args):
-    text = (args.get("text") or "").strip()
-    if not text:
+def _maybe_parsed_filter(args):
+    filter_expr = _maybe_filter_expr_for_args(args)
+    if not filter_expr:
         return None
     parser = filterlib.parser()
-    filter_expr = _maybe_filter_expr(text) or _generic_text_filter_expr(text)
     try:
         return parser.parse(filter_expr)
     except SyntaxError as e:
         raise serving_util.BadRequest(*e.args)
 
 
-def _maybe_filter_expr(text):
+def _maybe_filter_expr_for_args(args):
+    return util.find_apply(
+        [
+            _filter_arg,
+            _parsed_filter_text_arg,
+            _generic_text_filter,
+        ], args
+    )
+
+
+def _filter_arg(args):
+    return (args.get("filter") or "").strip() or None
+
+
+def _parsed_filter_text_arg(args):
+    text = (args.get("text") or "").strip()
+    if not text:
+        return None
     return text[1:] if text[:1] == "/" else None
 
 
-def _generic_text_filter_expr(text):
+def _generic_text_filter(args):
+    text = (args.get("text") or "").strip()
+    if not text:
+        return None
     return (
         f"operation contains '{text}' "
         f"or label contains '{text}' "
