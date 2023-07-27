@@ -464,7 +464,7 @@ def _iter_plugins():
 def _plugin_selected_for_op(plugin, opdef, configured_plugins):
     return (
         _configured_plugin(plugin, configured_plugins)
-        or _plugin_enabled_for_op(plugin, opdef)
+        and _plugin_enabled_for_op(plugin, opdef)
     )
 
 
