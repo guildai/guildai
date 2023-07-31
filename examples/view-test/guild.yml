@@ -55,3 +55,9 @@ iris-optimize:
       max-trials: 100
 
 many_scalars.py: {}
+
+upstream: {}
+
+downstream:
+  requires:
+    - operation: upstream
