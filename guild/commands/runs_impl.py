@@ -67,6 +67,42 @@ RUN_DETAIL = [
 ALL_RUNS_ARG = [":"]
 LATEST_RUN_ARG = ["1"]
 
+CORE_RUN_ATTRS = [
+    "cmd",
+    "comments",
+    "compare",
+    "deps",
+    "env",
+    "exit_status",
+    "flags",
+    "host",
+    "id",
+    "initialized",
+    "label",
+    "marked",
+    "objective",
+    "op",
+    "pip_freeze",
+    "platform",
+    "plugins",
+    "random_seed",
+    "run_params",
+    "sourcecode_digest",
+    "started",
+    "stopped",
+    "tags",
+    "user",
+    "user_flags",
+    "vcs_commit",
+    "r_sys_info",
+    "r_packages_loaded",
+]
+
+LEGACY_RUN_ATTRS = [
+    "resolved_deps",
+    "opdef",
+]
+
 RUNS_PER_GROUP = 20
 
 STATUS_FILTERS = [
@@ -877,6 +913,14 @@ def _append_run_attr_data(run, include_private, data):
     if include_private:
         data.append(("opref", str(run.opref)))
         data.append(("op", run.get("op")))
+
+def other_attr_names(run, include_private=False):
+    core_attrs = CORE_RUN_ATTRS + LEGACY_RUN_ATTRS
+    if include_private:
+        include = lambda x: x not in core_attrs
+    else:
+        include = lambda x: x[0] != "_" and x not in core_attrs
+    return [name for name in sorted(run.attr_names()) if include(name)]
 
 
 def _opdef_and_logged_attrs(run, include_private):

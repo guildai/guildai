@@ -299,4 +299,5 @@ doctest: +FIXME_CI  # Spurious warnings from matplotlib (CI is directing stderr 
     guild.util
     guild.var
     guild.vcs_util
+    guild.view
     guild.yaml_util
