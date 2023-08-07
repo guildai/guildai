@@ -95,7 +95,7 @@ Simple script:
 
 ## Default tags
 
-As of 0.10, Guild uses two default tags for Python scripts: 'model'
+As of 0.9.1, Guild uses two default tags for Python scripts: 'model'
 and 'dataset', which are used according to the script name.
 
 If 'train' appears in the name, Guild assigns it the single tag

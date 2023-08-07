@@ -1,6 +1,6 @@
 # archive command
 
-Guild 0.10 introduces an `archive` command.
+Guild 0.9.1 introduces an `archive` command.
 
 - Used to archive runs under Guild home
 - Similar to `export` but works with named archives
