@@ -4,9 +4,10 @@ hiplot
 ipython
 jinja2<3.2
 jupyter
-jupyter-server-proxy
-jupyter_contrib_nbextensions
+jupyter_server_proxy
+jupyter-contrib-nbextensions
 matplotlib
+notebook<7
 pandas
 tensorboardX
 twine

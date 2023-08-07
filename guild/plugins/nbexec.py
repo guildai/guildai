@@ -118,7 +118,7 @@ def _check_nbextensions():
     except ImportError:
         log.error(
             "jupyter_contrib_nbextensions is required to run Notebooks - "
-            "install it by running 'pip install jupyter_contrib_nbextensions' "
+            "install it by running 'pip install jupyter-contrib-nbextensions' "
             "and try again"
         )
         sys.exit(1)
