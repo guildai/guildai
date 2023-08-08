@@ -40,7 +40,6 @@ TB_DISABLED_PLUGINS = ["WhatIfToolPluginLoader"]
 
 class ViewData:
     """Interface for providing View related data."""
-
     def runs(self):
         """Returns a list of unformatted runs."""
         raise NotImplementedError()
