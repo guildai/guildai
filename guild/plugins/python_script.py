@@ -116,7 +116,7 @@ class PythonScriptModelProxy:
     name = ""
     output_scalars = None
     objective = "loss"
-    plugins = []
+    plugins = None
     sourcecode = None
     tags = None
 
@@ -176,7 +176,6 @@ def _op_data_for_script(
     sourcecode=None,
     tags=None,
 ):
-    plugins = plugins or []
     flags_data = _flags_data(script_path)
     flags_dest = flags_data.pop("$dest", None)
     return {

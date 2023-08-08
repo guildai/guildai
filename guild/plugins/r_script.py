@@ -57,7 +57,7 @@ class RScriptModelProxy:
     name = ""
     output_scalars = None
     objective = "loss"
-    plugins = []
+    plugins = None
 
     def __init__(self, script_path, op_name):
         assert script_path[-2:].upper() == ".R", script_path

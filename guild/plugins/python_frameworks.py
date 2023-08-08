@@ -57,8 +57,6 @@ def _has_call(script, calls):
 
 class PythonFrameworkModelProxy(PythonScriptModelProxy):
 
-    plugins = ["summaries"]
-
     def __init__(self, script_path, framework):
         super().__init__(script_path, output_scalars=framework.output_scalars)
         self.framework = framework.name

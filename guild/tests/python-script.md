@@ -36,7 +36,7 @@ Empty Python script:
      'flags-dest': 'globals',
      'objective': None,
      'output-scalars': None,
-     'plugins': [],
+     'plugins': None,
      'sourcecode': None,
      'tags': None}
 
@@ -53,7 +53,7 @@ Simple script:
      'flags-dest': 'globals',
      'objective': None,
      'output-scalars': None,
-     'plugins': [],
+     'plugins': None,
      'sourcecode': None,
      'tags': None}
 

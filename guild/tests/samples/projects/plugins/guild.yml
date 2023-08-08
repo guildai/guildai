@@ -1,0 +1,32 @@
+- model: ''
+  operations:
+    defaults:
+      main: guild.pass
+
+    disabled-list:
+      # Use exec as main requires python_script plugin
+      exec: python -c pass
+      plugins: []
+
+    disabled-boolean:
+      # Use exec as main requires python_script plugin
+      exec: python -c pass
+      plugins: no
+
+    explicit-str:
+      main: guild.pass
+      plugins: python_script
+
+    explicit-list:
+      main: guild.pass
+      plugins: [python_script, python_frameworks]
+
+- model: m
+  plugins: no
+  operations:
+    defaults:
+      exec: python -c pass
+    override:
+      main: guild.pass
+      plugins:
+        - python_script

@@ -437,22 +437,20 @@ def _default_opdef():
 def _op_init_plugins(op):
     if not op._opdef:
         return
-    op._plugins = _op_plugins(op._opdef)
+    op._plugins = _opdef_plugins(op._opdef)
     op.run_attrs["plugins"] = [p.name for p in op._plugins]
 
 
-def _op_plugins(opdef):
+def _opdef_plugins(opdef):
     configured_plugins = _configured_plugins(opdef)
     return [
         plugin for plugin in _iter_plugins()
-        if _plugin_selected_for_op(plugin, opdef, configured_plugins)
+        if _plugin_selected_for_op(plugin, configured_plugins, opdef)
     ]
 
 
 def _configured_plugins(opdef):
-    if opdef.plugins is not None:
-        return opdef.plugins or []
-    return opdef.modeldef.plugins or []
+    return opdef.plugins if opdef.plugins is not None else opdef.modeldef.plugins
 
 
 def _iter_plugins():
@@ -461,10 +459,10 @@ def _iter_plugins():
     return [p for _name, p in pluginlib.iter_plugins()]
 
 
-def _plugin_selected_for_op(plugin, opdef, configured_plugins):
+def _plugin_selected_for_op(plugin, configured_plugins, opdef):
     return (
         _configured_plugin(plugin, configured_plugins)
-        and _plugin_enabled_for_op(plugin, opdef)
+        if configured_plugins is not None else _plugin_enabled_for_op(plugin, opdef)
     )
 
 

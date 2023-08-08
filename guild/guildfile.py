@@ -976,10 +976,10 @@ def _init_resources(data, modeldef):
 
 
 def _init_plugins(data, guildfile):
-    if data is None:
+    if data is None or data is True:
         return None
     if data is False:
-        return False
+        return []
     return _coerce_str_to_list(data, guildfile, "plugins")
 
 
