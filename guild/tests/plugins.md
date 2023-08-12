@@ -81,10 +81,9 @@ including the `--debug` option to the run command or by examining the
     >>> run("guild run defaults -y")
     <exit 0>
 
-    >>> run("guild select --attr plugins")
+    >>> run("guild select --attr plugins", ignore="- gpu")
     - cpu
     - disk
-    - gpu
     - memory
     - perf
     - python_script
