@@ -7,7 +7,7 @@ jupyter
 jupyter_server_proxy
 jupyter-contrib-nbextensions
 matplotlib
-notebook<7
+notebook<8
 pandas
 tensorboardX
 twine
