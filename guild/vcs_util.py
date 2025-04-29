@@ -327,7 +327,7 @@ def _maybe_warn_git_not_installed(cwd):
             "in Guild user config [2].\n"
             "\n"
             "[1] https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)\n"
-            "[2] https://my.guildai.org/t/user-config-reference\n"
+            "[2] https://guildai.org/t/user-config-reference\n"
             "\n"
             "To disable this warning, set 'NO_WARN_GIT_MISSING=1'\n"
         )

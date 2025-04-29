@@ -71,9 +71,9 @@ is subject to change without notice. However, it is stable and is not
 likely to change in a backward-incompatible way.
 
 If you need to extend Guild and can't find a precedent in the built-in
-plugins, please feel free to [post a question](https://my.guildai.org)
-or [open an issue](https://github.com/guildai/guildai/issues) on GitHub
-to get help/advice.
+plugins, please feel free to [post a question](https://guildai.org) or
+[open an issue](https://github.com/guildai/guildai/issues) on GitHub to
+get help/advice.
 
 Refer to [TEST.md](TEST.md) for sample usage. To run the tests, use
 `guild check -t TEST.md` from this directory.

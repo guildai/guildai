@@ -121,12 +121,14 @@ def _apply_resource_flagdefs(opdef, flag_vals):
 
 def _candidate_flag_names_for_source(source):
     return [
-        name for name in [
+        name
+        for name in [
             source.flag_name,
             source.name,
             source.uri,
             source.parsed_uri.path,
-        ] if name
+        ]
+        if name
     ]
 
 
@@ -625,7 +627,7 @@ def run(args):
     to `--max-trials` runs using flag values and flag configuration.
 
     For details on available optimizers and their behavior, refer to
-    https://guild.ai/optimizers/.
+    https://guildai.org/optimizers/.
 
     ### Limit Trials
 

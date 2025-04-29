@@ -170,7 +170,7 @@ class GistRemote(meta_sync.MetaSyncRemote):
                 f"file '{self._gist_readme_name}') for user {self.user}\n"
                 "If the gist is private, you must specify a valid access token with "
                 "GIST_ACCESS_TOKEN.\nFor more information see "
-                "https://my.guildai.org/docs/gists."
+                "https://guildai.org/docs/gists."
             )
         return gist
 
@@ -468,7 +468,7 @@ def _required_gist_access_token(env):
             "missing required environment variable GIST_ACCESS_TOKEN\n"
             "This operation requires a GitHub personal access token for "
             "creating gists.\n"
-            "See https://my.guildai.org/docs/gists for more information."
+            "See https://guildai.org/docs/gists for more information."
         ) from e
 
 
@@ -478,7 +478,7 @@ def _gist_readme_content(user, remote_name):
         "[install Guild AI](https://guildai.org/install) and run "
         f"`guild pull gist:{user}/{remote_name}`. "
         "For more information about Guild AI Gist based repositories, see "
-        "[Guild AI - Gists](https://my.guildai.org/docs/gists)."
+        "[Guild AI - Gists](https://guildai.org/docs/gists)."
     )
 
 

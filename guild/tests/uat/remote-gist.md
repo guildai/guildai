@@ -18,7 +18,7 @@ Check status again to confirm the gist doesn't exit.
     '[Guild AI] guild-uat.md') for user ...
     If the gist is private, you must specify a valid access token
     with GIST_ACCESS_TOKEN.
-    For more information see https://my.guildai.org/docs/gists.
+    For more information see https://guildai.org/docs/gists.
     <exit 1>
 
 Create the gist.
@@ -285,7 +285,7 @@ Permanently delete the remote hello runs.
     '[Guild AI] guild-uat.md') for user ...
     If the gist is private, you must specify a valid access token
     with GIST_ACCESS_TOKEN.
-    For more information see https://my.guildai.org/docs/gists.
+    For more information see https://guildai.org/docs/gists.
     <exit 1>
 
 ## Not supported commands

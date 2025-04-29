@@ -677,7 +677,7 @@ def _maybe_symlink_error(err_msg, err_code):
         raise SystemExit(
             "You do not have sufficient privilege to perform this operation\n\n"
             "For help, see "
-            "https://my.guildai.org/docs/windows#symbolic-links-privileges-in-windows",
+            "https://guildai.org/docs/windows#symbolic-links-privileges-in-windows",
             err_code,
         )
 

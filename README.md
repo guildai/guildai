@@ -22,8 +22,8 @@ For more on features, see [Guild AI - Features](https://guildai.org).
 
 Important links:
 
-- **[Get Started with Guild AI](https://my.guildai.org/start)**
-- **[Get Help with Guild AI](https://my.guildai.org)**
+- **[Get Started with Guild AI](https://guildai.org/start)**
+- **[Get Help with Guild AI](https://guildai.org)**
 - **[Latest Release on PyPI](https://pypi.python.org/pypi/guildai)**
-- **[Documentation](https://my.guildai.org/docs/)**
+- **[Documentation](https://guildai.org/docs/)**
 - **[Issues on GitHub](https://github.com/guildai/guildai/issues)**

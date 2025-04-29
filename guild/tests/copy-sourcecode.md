@@ -1150,7 +1150,7 @@ Test the source code copy rules for `test.py`.
     in Guild user config [2].
     <BLANKLINE>
     [1] https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-    [2] https://my.guildai.org/t/user-config-reference
+    [2] https://guildai.org/t/user-config-reference
     <BLANKLINE>
     To disable this warning, set 'NO_WARN_GIT_MISSING=1'
     <BLANKLINE>

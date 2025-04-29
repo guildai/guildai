@@ -50,7 +50,7 @@ guild run test.py --break submod.add
 
 ### Break On Error
 
-Use the [`run`](https://my.guildai.org/commands/run) comment
+Use the [`run`](https://guildai.org/commands/run) comment
 `--break-on-error` option to enter into a post mortem debug session when
 an unhandled Python error occurs.
 
