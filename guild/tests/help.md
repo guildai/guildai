@@ -10,8 +10,8 @@ It's used to format help for a guildfile.
 
 ## Package description
 
-The `package_description` function returns a restructured text
-formatted string.
+The `package_description` function returns a restructured text formatted
+string.
 
     >>> print(guild.help.package_description(gf)) # doctest: +REPORT_UDIFF -NORMALIZE_WHITESPACE
     Models
@@ -108,7 +108,7 @@ Guild supports Markdown rendering via `guildfile_markdown_help`.
     <BLANKLINE>
     ``` $ pip install guildai ```
     <BLANKLINE>
-    Refer to [Install Guild AI](https://guild.ai/install) for detailed
+    Refer to [Install Guild AI](https://guildai.org/install) for detailed
     instructions.
     <BLANKLINE>
     To run a model operation use:
@@ -122,7 +122,7 @@ Guild supports Markdown rendering via `guildfile_markdown_help`.
     Refer to the operations below for a list of supported flags.
     <BLANKLINE>
     For additional help using Guild, see [Guild AI
-    Documentation](https://guild.ai/docs).
+    Documentation](https://guildai.org/docs).
     <BLANKLINE>
     ## Models
     <BLANKLINE>

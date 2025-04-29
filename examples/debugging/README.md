@@ -16,23 +16,24 @@ Guild supports three breakpoint types:
 
 ### Break at Line Number
 
-Use `guild run --break 1` to break on the first line of the main
-module. Use a different number as needed.
+Use `guild run --break 1` to break on the first line of the main module.
+Use a different number as needed.
 
 To try this, change to this project and run:
 
-``` command
+```command
 guild run test.py --break 1
 ```
 
-To break in a different module, specify the module or script path
-along with the line number in the format `MODULE:LINE`. For example,
-to break on line 10 of a module named `models.py`, use `guild run
---break models:10`. Note that you can omit the `.py` extension.
+To break in a different module, specify the module or script path along
+with the line number in the format `MODULE:LINE`. For example, to break
+on line 10 of a module named `models.py`, use
+`guild run --break models:10`. Note that you can omit the `.py`
+extension.
 
 To see this working, run:
 
-``` command
+```command
 guild run test.py --break submod:1
 ```
 
@@ -43,19 +44,19 @@ option in the format `MODULE.FUNCTION_NAME`.
 
 To try this, run:
 
-``` command
+```command
 guild run test.py --break submod.add
 ```
 
 ### Break On Error
 
-Use the [`run`](https://my.guild.ai/commands/run) comment
-`--break-on-error` option to enter into a post mortem debug session
-when an unhandled Python error occurs.
+Use the [`run`](https://my.guildai.org/commands/run) comment
+`--break-on-error` option to enter into a post mortem debug session when
+an unhandled Python error occurs.
 
 To illustrate, run `error.py` with `--break-on-error`:
 
-``` command
+```command
 guild run error.py --break-on-error
 ```
 

@@ -73,7 +73,7 @@ def remotes():
     are defined in ``~/.guild/config.yml`` under the ``remotes``
     section.
 
-    For a list of supported remotes, see https://guild.ai/remotes/.
+    For a list of supported remotes, see https://guildai.org/remotes/.
 
     """
 

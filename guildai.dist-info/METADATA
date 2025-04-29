@@ -2,9 +2,9 @@ Metadata-Version: 2.0
 Name: guildai
 Version: 1!0
 Summary: Experiment tracking, ML developer tools
-Home-page: https://guild.ai
+Home-page: https://guildai.org
 Author: Guild AI
-Author-email: packages@guild.ai
+Author-email: packages@guildai.org
 License: Apache 2.0
 Keywords: guild guildai tensorflow keras pytorch mxnet xgboost scikit-learn
 Platform: UNKNOWN
@@ -63,11 +63,11 @@ toolkit that automates and optimizes machine learning experiments.
 - Run operations remotely on cloud accelerators
 - Package and distribute models for easy reproducibility
 
-For details, see [Guild AI website](https://guild.ai).
+For details, see [Guild AI website](https://guildai.org).
 
 Important links:
 
 - **[Latest release on PyPI](https://pypi.python.org/pypi/guildai)**
-- **[Guild AI website](https://guild.ai)**
-- **[Documentation](https://my.guild.ai/docs/)**
+- **[Guild AI website](https://guildai.org)**
+- **[Documentation](https://my.guildai.org/docs/)**
 - **[Open issues](https://github.com/guildai/guildai/issues)**

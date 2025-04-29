@@ -209,7 +209,7 @@ def _write_markdown_help_overview(out):
         $ pip install guildai
         ```
 
-        Refer to [Install Guild AI](https://guild.ai/install) for
+        Refer to [Install Guild AI](https://guildai.org/install) for
         detailed instructions.
 
         To run a model operation use:
@@ -226,7 +226,7 @@ def _write_markdown_help_overview(out):
         supported flags.
 
         For additional help using Guild, see [Guild AI
-        Documentation](https://guild.ai/docs).
+        Documentation](https://guildai.org/docs).
         """
         )
     )
@@ -447,7 +447,8 @@ def _format_flag_choices_dl(choices, out):
             (
                 flag_util.encode_flag_val(choice.alias or choice.value),
                 "\n\n".join(choice.description.strip().split("\n")),
-            ) for choice in choices
+            )
+            for choice in choices
         ],
         preserve_paragraphs=True,
     )
@@ -544,8 +545,7 @@ def print_op_help(opdef):
 
 def _format_op_deps_dl(opdef):
     model_resources = {
-        res.name: res.description or ""
-        for res in opdef.modeldef.resources
+        res.name: res.description or "" for res in opdef.modeldef.resources
     }
     formatted = [
         (dep.spec, _dep_description(dep, model_resources)) for dep in opdef.dependencies

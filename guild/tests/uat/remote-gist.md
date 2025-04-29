@@ -1,7 +1,7 @@
 # Remote Gist
 
-For these tests we use a remote `guild-uat-gist`, which must be
-defined and available as a prerequisite to running the tests.
+For these tests we use a remote `guild-uat-gist`, which must be defined
+and available as a prerequisite to running the tests.
 
 ## Init remote
 
@@ -18,7 +18,7 @@ Check status again to confirm the gist doesn't exit.
     '[Guild AI] guild-uat.md') for user ...
     If the gist is private, you must specify a valid access token
     with GIST_ACCESS_TOKEN.
-    For more information see https://my.guild.ai/docs/gists.
+    For more information see https://my.guildai.org/docs/gists.
     <exit 1>
 
 Create the gist.
@@ -285,7 +285,7 @@ Permanently delete the remote hello runs.
     '[Guild AI] guild-uat.md') for user ...
     If the gist is private, you must specify a valid access token
     with GIST_ACCESS_TOKEN.
-    For more information see https://my.guild.ai/docs/gists.
+    For more information see https://my.guildai.org/docs/gists.
     <exit 1>
 
 ## Not supported commands

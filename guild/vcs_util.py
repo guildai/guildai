@@ -327,7 +327,7 @@ def _maybe_warn_git_not_installed(cwd):
             "in Guild user config [2].\n"
             "\n"
             "[1] https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)\n"
-            "[2] https://my.guild.ai/t/user-config-reference\n"
+            "[2] https://my.guildai.org/t/user-config-reference\n"
             "\n"
             "To disable this warning, set 'NO_WARN_GIT_MISSING=1'\n"
         )
@@ -386,7 +386,8 @@ def _git_ls_ignored_cmd(extended_patterns_file, directory_flag):
 
 def _exclude_args_for_patterns_file(patterns_file):
     return [
-        arg for pattern in _exclude_patterns_file_entries(patterns_file)
+        arg
+        for pattern in _exclude_patterns_file_entries(patterns_file)
         for arg in ["-x", pattern]
     ]
 
@@ -404,7 +405,8 @@ def _exclude_patterns_file_entries(src):
 
 def _dirs_for_git_ignored(ignored, root_dir):
     return [
-        _strip_trailing_slash(path) for path in ignored
+        _strip_trailing_slash(path)
+        for path in ignored
         if os.path.isdir(os.path.join(root_dir, path))
     ]
 
@@ -420,6 +422,7 @@ class _GitignoreSelectRule(FileSelectRule):
     in place of a select '*' select rule - with the exception that git
     ignored files are not selected.
     """
+
     def __init__(self, ignored):
         super().__init__(True, [])
         self.ignored = set(_normalize_paths(ignored))

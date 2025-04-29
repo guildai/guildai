@@ -1,4 +1,3 @@
-
 # `gpkg.mnist` package info
 
 Use `guild packages info PKG` to show information about a package:
@@ -9,15 +8,14 @@ Use `guild packages info PKG` to show information about a package:
     summary: CNN and multinomial logistic regression classifiers for MNIST digits (Guild AI)
     home-page: https://github.com/guildai/index/tree/master/gpkg/mnist
     author: Guild AI
-    author-email: packages@guild.ai
+    author-email: packages@guildai.org
     license: Apache 2.0
     location: .../lib/python.../site-packages
     requires:
     required-by:
     <exit 0>
 
-We can use the `--verbose` and `--files` flags to get more
-information.
+We can use the `--verbose` and `--files` flags to get more information.
 
     >>> run("guild packages info gpkg.mnist --verbose --files") # doctest: +REPORT_UDIFF
     name: gpkg.mnist
@@ -25,7 +23,7 @@ information.
     summary: CNN and multinomial logistic regression classifiers for MNIST digits (Guild AI)
     home-page: https://github.com/guildai/index/tree/master/gpkg/mnist
     author: Guild AI
-    author-email: packages@guild.ai
+    author-email: packages@guildai.org
     license: Apache 2.0
     location: .../lib/python.../site-packages
     requires:

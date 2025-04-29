@@ -39,7 +39,7 @@ pip-upload:
 	make pip-package
 	export VER=`$(PYTHON) -c 'import guild; print(guild.__version__)'`; \
 	export TWINE_PASSWORD=`gpg --quiet --batch -d .pypi-creds.gpg`; \
-	twine upload -si packages@guild.ai -u guildai dist/guildai-$$VER*.whl
+	twine upload -si packages@guildai.org -u guildai dist/guildai-$$VER*.whl
 
 pip-clean:
 	rm -rf build dist guildai.egg-info

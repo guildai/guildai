@@ -124,8 +124,8 @@ Let's add a file to the subdirectory.
 
     >>> touch("hello-3")
 
-The file is not yet part of a commit, so we still get `NoCommit` for
-the subdir.
+The file is not yet part of a commit, so we still get `NoCommit` for the
+subdir.
 
     >>> vcs_util.commit_for_dir(subdir)
     Traceback (most recent call last):
@@ -187,8 +187,8 @@ specs.
     >>> git_version = vcs_util.git_version()
     >>> check_result = vcs_util.check_git_ls_files()
 
-If Git meets the ls-files target (i.e. is at least version 2.32.0),
-the check `error` is None.
+If Git meets the ls-files target (i.e. is at least version 2.32.0), the
+check `error` is None.
 
     >>> print(check_result.error, check_result.out)  # doctest: +GIT_LS_FILES_TARGET
     None ...
@@ -202,8 +202,8 @@ check:
 
 ## Git executable
 
-Guild uses the `PATH` environment variable to locate the Git
-executable. However, it can also be specified in user config under the
+Guild uses the `PATH` environment variable to locate the Git executable.
+However, it can also be specified in user config under the
 `git.exeutable`.
 
 For tests, we assume that Git is available on `PATH`.
@@ -227,7 +227,6 @@ Guild caches read values from
 
 If we specify an invalid path for the Git executable in user config,
 Guild doesn't see it because it caches results from previous calls.
-
 
     >>> with UserConfig({"git": {"executable": "not-a-valid-git-exe"}}):
     ...     vcs_util.git_version()
@@ -253,17 +252,15 @@ Reset the state and try again.
     >>> vcs_util.git_version()
     (..., ..., ...)
 
-When used in the context of source code copying, Guild handles a
-missing or invalid Git exe by logging a warning message when run for
-Git repos.
+When used in the context of source code copying, Guild handles a missing
+or invalid Git exe by logging a warning message when run for Git repos.
 
 To illustrate, first create a project that is not a Git repo.
 
     >>> project_dir = mkdtemp()
     >>> touch(path(project_dir, "test.py"))
 
-Guild uses the `git` executable to determine if a project is a Git
-repo.
+Guild uses the `git` executable to determine if a project is a Git repo.
 
     >>> vcs_util.git_project_select_rules(project_dir)
     Traceback (most recent call last):
@@ -280,8 +277,8 @@ the project.
      <guild.file_util.FileSelectRule ...>]
 
 However, when we intentionally disable Git by using invalid
-configuration, Guild is unable to process the project source code
-files. In this case Guild prints a warning message.
+configuration, Guild is unable to process the project source code files.
+In this case Guild prints a warning message.
 
 We need to reset the Git exe state.
 
@@ -302,14 +299,13 @@ Call `git_project_select_rules` using invalid configuration.
     in Guild user config [2].
     <BLANKLINE>
     [1] https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-    [2] https://my.guild.ai/t/user-config-reference
+    [2] https://my.guildai.org/t/user-config-reference
     <BLANKLINE>
     To disable this warning, set 'NO_WARN_GIT_MISSING=1'
 
 Guild does show the warning if the project is not a Git repo.
 
-The invalid Git exe is cached so we don't need to run with user
-config.
+The invalid Git exe is cached so we don't need to run with user config.
 
     >>> vcs_util._git_exe._val
     'not-a-git-exe'

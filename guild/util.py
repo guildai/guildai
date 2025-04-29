@@ -269,8 +269,7 @@ class LoopingThread(threading.Thread):
 
 def safe_osenv():
     return {
-        name: val
-        for name, val in os.environ.items() if name not in UNSAFE_OS_ENVIRON
+        name: val for name, val in os.environ.items() if name not in UNSAFE_OS_ENVIRON
     }
 
 
@@ -544,8 +543,7 @@ def resolve_refs(val, kv, undefined=_raise_error_marker):
 
 def resolve_all_refs(kv, undefined=_raise_error_marker):
     return {
-        name: _resolve_refs_recurse(kv[name], kv, undefined, [])
-        for name in sorted(kv)
+        name: _resolve_refs_recurse(kv[name], kv, undefined, []) for name in sorted(kv)
     }
 
 
@@ -633,7 +631,7 @@ def subpath(path, start, sep=None):
         raise ValueError(path, start)
     start_with_sep = ensure_trailing_sep(start, sep)
     if path.startswith(start_with_sep):
-        return path[len(start_with_sep):]
+        return path[len(start_with_sep) :]
     raise ValueError(path, start)
 
 
@@ -679,18 +677,20 @@ def _maybe_symlink_error(err_msg, err_code):
         raise SystemExit(
             "You do not have sufficient privilege to perform this operation\n\n"
             "For help, see "
-            "https://my.guild.ai/docs/windows#symbolic-links-privileges-in-windows",
+            "https://my.guildai.org/docs/windows#symbolic-links-privileges-in-windows",
             err_code,
         )
 
 
-_text_ext = set([
-    ".csv",
-    ".md",
-    ".py",
-    ".sh",
-    ".txt",
-])
+_text_ext = set(
+    [
+        ".csv",
+        ".md",
+        ".py",
+        ".sh",
+        ".txt",
+    ]
+)
 
 _binary_ext = set(
     [
@@ -781,9 +781,8 @@ def is_text_file(path, ignore_ext=False):
     nontext_ratio1 = float(len(low_chars)) / float(len(sample))
     high_chars = sample.translate(None, _printable_high_ascii)
     nontext_ratio2 = float(len(high_chars)) / float(len(sample))
-    likely_binary = (
-        (nontext_ratio1 > 0.3 and nontext_ratio2 < 0.05)
-        or (nontext_ratio1 > 0.8 and nontext_ratio2 > 0.8)
+    likely_binary = (nontext_ratio1 > 0.3 and nontext_ratio2 < 0.05) or (
+        nontext_ratio1 > 0.8 and nontext_ratio2 > 0.8
     )
     detected_encoding = chardet.detect(sample)
     decodable_as_unicode = False
@@ -917,7 +916,7 @@ def format_user_dir(s):
         return s
     user_dir = os.path.expanduser("~")
     if s.startswith(user_dir):
-        return os.path.join("~", s[len(user_dir) + 1:])
+        return os.path.join("~", s[len(user_dir) + 1 :])
     return s
 
 
@@ -1072,6 +1071,7 @@ def copytree(src, dest, preserve_links=True):
 
 class CopyFilter:
     """Interface of `copy_filter` used with `select_copytree()`."""
+
     def delete_excluded_dirs(self, parent, dirs):
         """Delete excluded dirs prior to copy tree traversal.
 
@@ -1241,7 +1241,7 @@ def _simplify_shlex_quote(s):
         if not s.endswith(pattern_end):
             continue
         repl_end = "".join(reversed(repl_start))
-        stripped = s[len(pattern_start):-len(pattern_end)]
+        stripped = s[len(pattern_start) : -len(pattern_end)]
         return repl_start + stripped + repl_end
     return s
 
@@ -1367,7 +1367,7 @@ def _nested_config_dest(name, config, nested_name_prefix=""):
         except KeyError:
             pass
         else:
-            attr_name = name[len(name_trial) + 1:]
+            attr_name = name[len(name_trial) + 1 :]
             if not attr_name:
                 return name_trial, config
             if not isinstance(val, dict):
@@ -1458,8 +1458,7 @@ def shorten_path(path, max_len=28, ellipsis="\u2026", sep=os.path.sep):
         side.append(part)
         pop_r = not pop_r
     shortened = os.path.sep.join(
-        [os.path.sep.join(l), ellipsis,
-         os.path.sep.join(reversed(r))]
+        [os.path.sep.join(l), ellipsis, os.path.sep.join(reversed(r))]
     )
     if len(shortened) >= len(path):
         return path
@@ -1742,20 +1741,16 @@ def test_windows_symlinks():
 class PropertyCache:
     def __init__(self, properties):
         self._vals = {
-            name: default
-            for name, default, _callback, _timeout in properties
+            name: default for name, default, _callback, _timeout in properties
         }
         self._expirations = {
-            name: 0
-            for name, _default, _callback, _timeout in properties
+            name: 0 for name, _default, _callback, _timeout in properties
         }
         self._timeouts = {
-            name: timeout
-            for name, _default, _callback, timeout in properties
+            name: timeout for name, _default, _callback, timeout in properties
         }
         self._callbacks = {
-            name: callback
-            for name, _default, callback, _timeout in properties
+            name: callback for name, _default, callback, _timeout in properties
         }
 
     def get(self, name, *args, **kw):

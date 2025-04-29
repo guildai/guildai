@@ -23,9 +23,8 @@ from . import remote_support
 def _ac_all_tests(ctx, param, incomplete):
     if ctx.params.get("remote"):
         return []
-    return (
-        _ac_builtin_tests(ctx, param, incomplete)
-        + ac_support.ac_filename(["md", "txt"], incomplete)
+    return _ac_builtin_tests(ctx, param, incomplete) + ac_support.ac_filename(
+        ["md", "txt"], incomplete
     )
 
 
@@ -92,10 +91,10 @@ def _ac_builtin_tests(ctx, _param, incomplete):
 @click.option(
     "--offline/--no-offline",
     default=None,
-    help="Don't check guild.ai for latest versions.",
+    help="Don't check guildai.org for latest versions.",
     is_flag=True,
 )
-@click.option("--check-url", hidden=True, default="http://api.guild.ai/check")
+@click.option("--check-url", hidden=True, default="http://api.guildai.org/check")
 @click.option("--uat", hidden=True, is_flag=True)
 @click.option("--force-uat", hidden=True, is_flag=True)
 @click.option("--external", hidden=True)

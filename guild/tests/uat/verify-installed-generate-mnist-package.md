@@ -1,5 +1,5 @@
 ---
-doctest: -PY3 +PY37  # 2022-04-11 on python 3.8+, wheels are not available for h5py<3, so we fail to build. These tests can't currently pass on python 3.8+
+doctest: -PY3 +PY37 # 2022-04-11 on python 3.8+, wheels are not available for h5py<3, so we fail to build. These tests can't currently pass on python 3.8+
 ---
 
 # Verify installed generated `mnist` package
@@ -10,7 +10,7 @@ doctest: -PY3 +PY37  # 2022-04-11 on python 3.8+, wheels are not available for h
     summary: CNN and multinomial logistic regression classifiers for MNIST digits (Guild AI)
     home-page: https://github.com/guildai/index/tree/master/gpkg/mnist
     author: Guild AI
-    author-email: packages@guild.ai
+    author-email: packages@guildai.org
     license: Apache 2.0
     location: /.../lib/python.../site-packages
     requires:...

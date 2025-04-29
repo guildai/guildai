@@ -47,10 +47,12 @@ class GistRemoteType(remotelib.RemoteType):
     def remote_for_spec(self, spec):
         name = f"gist:{spec}"
         user, gist_name = _parse_spec(spec)
-        config = remotelib.RemoteConfig({
-            "user": user,
-            "gist-name": gist_name,
-        })
+        config = remotelib.RemoteConfig(
+            {
+                "user": user,
+                "gist-name": gist_name,
+            }
+        )
         return GistRemote(name, config)
 
 
@@ -168,7 +170,7 @@ class GistRemote(meta_sync.MetaSyncRemote):
                 f"file '{self._gist_readme_name}') for user {self.user}\n"
                 "If the gist is private, you must specify a valid access token with "
                 "GIST_ACCESS_TOKEN.\nFor more information see "
-                "https://my.guild.ai/docs/gists."
+                "https://my.guildai.org/docs/gists."
             )
         return gist
 
@@ -466,17 +468,17 @@ def _required_gist_access_token(env):
             "missing required environment variable GIST_ACCESS_TOKEN\n"
             "This operation requires a GitHub personal access token for "
             "creating gists.\n"
-            "See https://my.guild.ai/docs/gists for more information."
+            "See https://my.guildai.org/docs/gists for more information."
         ) from e
 
 
 def _gist_readme_content(user, remote_name):
     return (
         "This is a Guild AI runs repository. To access runs, "
-        "[install Guild AI](https://guild.ai/install) and run "
+        "[install Guild AI](https://guildai.org/install) and run "
         f"`guild pull gist:{user}/{remote_name}`. "
         "For more information about Guild AI Gist based repositories, see "
-        "[Guild AI - Gists](https://my.guild.ai/docs/gists)."
+        "[Guild AI - Gists](https://my.guildai.org/docs/gists)."
     )
 
 

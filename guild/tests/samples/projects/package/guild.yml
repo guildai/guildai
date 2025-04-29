@@ -4,15 +4,14 @@
   url: https://github.com/guildai/index/tree/master/hello
   modelfile: https://github.com/guildai/index/tree/master/hello/MODEL
   author: Guild AI
-  author-email: packages@guild.ai
+  author-email: packages@guildai.org
   license: Apache 2.0
   tags: [example, model]
   data-files:
     - a.txt
 
 - model: model-1
-  description:
-    A sample model.
+  description: A sample model.
 
     Line 1
 

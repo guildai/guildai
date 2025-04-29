@@ -1,11 +1,11 @@
 # Packaging
 
-Guild supports the creation of Guild-specific *packages*. A package is
-a Python wheel distribution and can be installed using any tool that
+Guild supports the creation of Guild-specific _packages_. A package is a
+Python wheel distribution and can be installed using any tool that
 supports installing that format.
 
-For these tests, we'll use a writable directory, which will contain
-our project files and generated files.
+For these tests, we'll use a writable directory, which will contain our
+project files and generated files.
 
     >>> project = mkdtemp()
 
@@ -25,8 +25,8 @@ Copy project files from the sample `package` project.
 Packages are built from guildfiles. Packages contain the guildfile and
 other required files.
 
-The package we'll build is defined in the project guildfile. Let's
-load that.
+The package we'll build is defined in the project guildfile. Let's load
+that.
 
     >>> use_project(project)
     >>> gf = guildfile.for_dir(".")
@@ -48,7 +48,7 @@ Packages specify how to build the package. Here are some attributes:
     'https://github.com/guildai/index/tree/master/hello'
 
     >>> pkg.author_email
-    'packages@guild.ai'
+    'packages@guildai.org'
 
 The `package` command generates a Python wheel using the package
 definition in the Guild file.
@@ -94,8 +94,8 @@ Use `twine` to check the generated distribution.
 
 ## Default packages
 
-If a package def isn't specified, Guild will use the name of the
-default model as the package name.
+If a package def isn't specified, Guild will use the name of the default
+model as the package name.
 
 Create a project with a Guild file that does not contain a package def.
 
@@ -135,8 +135,8 @@ package.
     ...
     <exit 0>
 
-If a Guild file doesn't contain a package def or a model def, it
-creates a package named 'gpkg.anonymous_DIGEST'.
+If a Guild file doesn't contain a package def or a model def, it creates
+a package named 'gpkg.anonymous_DIGEST'.
 
     >>> cd(mkdtemp())
     >>> write("guild.yml", """
@@ -165,9 +165,8 @@ A project must have a Guild file to be packaged.
 ## Name conflicts with local Python packages
 
 The package name in the Guild file generates a unique Python package,
-which contains the project data files. If a local Python package
-exists with the same name, Guild `package` fails with an error
-message.
+which contains the project data files. If a local Python package exists
+with the same name, Guild `package` fails with an error message.
 
 We use the `package-name-conflict` project to illustrate.
 
