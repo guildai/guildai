@@ -37,7 +37,7 @@ resources. A resource identified by a name. When specified, resources
 have numeric values that indicate available or required
 resources. When specified for a cluster, the value indicates the
 available named resource for the cluster. When specified for a run,
-the value indicates the required named resoure.
+the value indicates the required named resource.
 
 Available resources are specified for clusters using the `resources`
 flag.
@@ -58,7 +58,7 @@ resources (resource names are arbitrary).
     [2:...]  op.py  ...  staged  dask:foo=5 sleep=2
     <exit 0>
 
-Run the staged operations using a scheduler with 7 avaialble foo
+Run the staged operations using a scheduler with 7 available foo
 resources. Because there isn't enough foo to run both operations
 concurrently, each is run in series.
 
@@ -118,7 +118,7 @@ Run a scheduler without defining available foo.
     INFO: [guild] ... Starting Dask scheduler
     ...
     INFO: [guild] ... Processing staged runs
-    INFO: [guild] ... Ignorning staged run ... (requires resources not defined for cluster: foo)
+    INFO: [guild] ... Ignoring staged run ... (requires resources not defined for cluster: foo)
     ...
     INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
@@ -161,7 +161,7 @@ Run the same scenario for with a scheduler with some missing resources.
     >>> run("guild run dask:scheduler resources='foo=1' run-once=yes -y")
     INFO: [guild] ... Starting Dask scheduler
     ...
-    INFO: [guild] ... Ignorning staged run ... (requires resources not defined for cluster: bar, baz)
+    INFO: [guild] ... Ignoring staged run ... (requires resources not defined for cluster: bar, baz)
     ...
     INFO: [guild] ... Stopping Dask cluster...
     <exit 0>
@@ -211,7 +211,7 @@ A Dask scheduler can be used to limit operations to running in series
 on GPUs.
 
 - Start a scheduler with resources for each GPU. The numeric value
-  should be either the maximium number of runs for each GPU or the
+  should be either the maximum number of runs for each GPU or the
   total GPU memory.
 
 - Stage runs using the `--gpus` option and a tag that specifies the

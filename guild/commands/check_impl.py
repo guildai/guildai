@@ -261,7 +261,7 @@ def _attr(name, val):
 def _safe_apply(check, f, *args, **kw):
     """Always return a string for application f(*args, **kw).
 
-    If f(*args, **kw) fails, returns a higlighted error message and
+    If f(*args, **kw) fails, returns a highlighted error message and
     sets error flag on check.
     """
     try:

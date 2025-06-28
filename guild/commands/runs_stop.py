@@ -35,7 +35,7 @@ def runs_stop_params(fn):
             click.Option(
                 ("--force",),
                 help=(
-                    "Forceably stop the runs after a period of time (specified by "
+                    "Forcibly stop the runs after a period of time (specified by "
                     "'--timeout')."
                 ),
                 is_flag=True,

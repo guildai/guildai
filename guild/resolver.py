@@ -289,7 +289,7 @@ def oprefs_for_source(source):
         try:
             oprefs.append(guild.opref.OpRef.for_string(spec))
         except guild.opref.OpRefError as e:
-            raise ResolutionError(f"inavlid operation reference {spec!r}") from e
+            raise ResolutionError(f"invalid operation reference {spec!r}") from e
     return oprefs
 
 

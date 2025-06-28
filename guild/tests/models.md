@@ -8,7 +8,7 @@ Models are managed using the `guild.model` module:
 
     >>> import guild.model
 
-Models are dicovered along a model path, which is identical in concept
+Models are discovered along a model path, which is identical in concept
 to the Python path. Models are advertised within the path using Python
 distribution entry points under the "guild.models"
 group. Additionally, model source directories may be placed on the

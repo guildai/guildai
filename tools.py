@@ -59,7 +59,7 @@ def _examples_for_test(test_file):
 
 
 def _register_doctest_options():
-    # Options are regstered in `guild._test`
+    # Options are registered in `guild._test`
     from guild import _test as _
 
 

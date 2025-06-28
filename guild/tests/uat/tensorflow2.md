@@ -9,7 +9,7 @@ doctest: +FIXME  # Shows our TF summary patching is broken
 # TensorFlow 2.0
 
 These tests use `guild.tfevent`, which requires that we call
-`_ensure_tb_logging_patched` to supress TensorFlow logging noise.
+`_ensure_tb_logging_patched` to suppress TensorFlow logging noise.
 
     >>> from guild import tfevent
     >>> tfevent._ensure_tb_logging_patched()

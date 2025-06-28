@@ -1,4 +1,4 @@
-## Initialzing a virtual environment
+## Initializing a virtual environment
 
 `guild init` creates a new Python virtual environment when either
 `--venv` is specified or any of the virtual environment related

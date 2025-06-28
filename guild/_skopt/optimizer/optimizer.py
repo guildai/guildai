@@ -226,7 +226,7 @@ class Optimizer(object):
             raise ValueError(
                 "%s has to be a regressor." % base_estimator)
 
-        # treat per second acqusition function specially
+        # treat per second acquisition function specially
         is_multi_regressor = isinstance(base_estimator, MultiOutputRegressor)
         if "ps" in self.acq_func and not is_multi_regressor:
             self.base_estimator_ = MultiOutputRegressor(base_estimator)
@@ -563,7 +563,7 @@ class Optimizer(object):
                 if self.acq_optimizer == "sampling":
                     next_x = X[np.argmin(values)]
 
-                # Use BFGS to find the mimimum of the acquisition function, the
+                # Use BFGS to find the minimum of the acquisition function, the
                 # minimization starts from `n_restarts_optimizer` different
                 # points and the best minimum is used
                 elif self.acq_optimizer == "lbfgs":

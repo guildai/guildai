@@ -142,7 +142,7 @@ def _ensure_config_dep_attrs(source):
     """Ensures that a dep source is configured resolving a config.
 
     Specificlaly, sets 'always_resolve' and 'replace_existing' both to
-    True if they are not alreay set. This ensures that a run restart
+    True if they are not already set. This ensures that a run restart
     will resolve any new flag values by re-resolving the config source.
     """
     if source.always_resolve is None:

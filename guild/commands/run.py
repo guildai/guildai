@@ -283,7 +283,7 @@ def run_params(fn):
                 ("--gpus",),
                 metavar="DEVICES",
                 help=(
-                    "Limit availabe GPUs to DEVICES, a comma separated list of "
+                    "Limit available GPUs to DEVICES, a comma separated list of "
                     "device IDs. By default all GPUs are available. Cannot be"
                     "used with --no-gpus."
                 ),
@@ -513,7 +513,7 @@ def run_params(fn):
                 metavar="OUTPUT",
                 help=(
                     "Test output scalars on output. Use '-' to read from standard "
-                    "intput."
+                    "input."
                 ),
             ),
             click.Option(
@@ -521,7 +521,7 @@ def run_params(fn):
                 metavar="OUTPUT",
                 help=(
                     "Test output attributes on output. Use '-' to read from standard "
-                    "intput."
+                    "input."
                 ),
             ),
             click.Option(

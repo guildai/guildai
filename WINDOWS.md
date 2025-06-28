@@ -24,7 +24,7 @@ Helpful links for C++ dev tools:
 
 At least when running from source, symlinks fail with "symbolic link
 privilege not held". The workaround is to run the command console as
-Admin. In theory adding "Create symbolic links" priviledge (Local
+Admin. In theory adding "Create symbolic links" privilege (Local
 Group Policy Editor under Compuater Configuration > Windows Settings >
 Security Settings > Local Policies > User Rights Assignment) should
 work, but it didn't. I tried both "Everyone" and my user.

@@ -29,7 +29,7 @@ of applicable plugins. What we see here is a partial decoupling where
 some functionality lives in plugins and some lives in core.
 
 This is true of Guild file configuration as well. Refer to "design
-notes" in `guild.guildfile` module source code for additional thougts.
+notes" in `guild.guildfile` module source code for additional thoughts.
 """
 
 import csv
@@ -371,7 +371,7 @@ class RunOutput:
             lock.release()
 
     def _acquire_output_lock(self, timeout=60):
-        """Polling verison of acquire to support timeouts on Python 2."""
+        """Polling version of acquire to support timeouts on Python 2."""
         timeout_at = time.time() + timeout
         while time.time() < timeout_at:
             if self._output_lock.acquire(False):
@@ -805,7 +805,7 @@ def _apply_template_transform(t, val):
         return _t_default(val, arg)
     if name == "basename":
         if arg:
-            log.warning("ignoring argment to baseline in %r", t)
+            log.warning("ignoring argument to baseline in %r", t)
         return _t_basename(val)
     if name == "unquote":
         return _t_unquote(val)
@@ -1544,7 +1544,7 @@ def args_to_flags(args):
     `other_args` is a list of args that cannot be converted to flag
     values.
 
-    If args contains `--` then all args before the last occuring `--`
+    If args contains `--` then all args before the last occurring `--`
     are included in `other_args`.
 
     Uses `yaml_util.decode_yaml()` to decode flag arg values.

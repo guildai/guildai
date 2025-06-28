@@ -638,7 +638,7 @@ Verify that the expected run was resolved.
 
     >>> assert_resolved_run("2")
 
-Run upstream again. The second, most recent succesful run is used for
+Run upstream again. The second, most recent successful run is used for
 subsequent operation resolutions.
 
     >>> run("guild run upstream -y")

@@ -200,7 +200,7 @@ by default. To ensure that the environment is logged, we must specify
     ...               "guild --debug run test -y",
     ...               env={"DEBUG_ENV": "1"})
 
-Verify that the operaiton env is logged under the `DEBUG` log level.
+Verify that the operation env is logged under the `DEBUG` log level.
 
     >>> print(out)
     ???

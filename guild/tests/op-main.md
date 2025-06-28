@@ -17,7 +17,7 @@ We use the `fail.py` script in `optimizers` sample project.
     >>> use_project("optimizers")
 
 The project contains some invalid operation specs and as a result,
-generates warnings whenver an operation is run.
+generates warnings whenever an operation is run.
 
 When we run `fail.py`, the script generates an error by raising an
 exception.

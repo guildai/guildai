@@ -11,7 +11,7 @@ CLI*](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html). E
 the CLI is installed on your system and that you have access to the
 applicable S3 resource. Refer to [*Configuration and credential file
 settings*](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
-for details on configuing your S3 credentials.
+for details on configuring your S3 credentials.
 
 The example uses two operations:
 

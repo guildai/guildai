@@ -167,5 +167,5 @@ Syntax errors:
     <exit 1>
 
     >>> filter("(")
-    guild: syntax error in filter - unexpected end of expresion
+    guild: syntax error in filter - unexpected end of expression
     <exit 1>

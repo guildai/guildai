@@ -108,7 +108,7 @@ def _base_decoders_for_type(flag_type):
         return _number_decoders()
     if flag_type == "boolean":
         return [(_boolean_type, (ValueError, yaml.YAMLError))]
-    log.warning("uknown flag type %s, assuming 'auto'", flag_type)
+    log.warning("unknown flag type %s, assuming 'auto'", flag_type)
     return []
 
 

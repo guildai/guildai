@@ -168,7 +168,7 @@ case).
     True <bool>
 
 When we pass complex types, they are converted to strings using
-Python's `str` type contructor.
+Python's `str` type constructor.
 
     >>> flags = "f5='{a: 1.123, b: 2.234}' f6='!!set {1,2,3}' f7='{a: [1,2,3], b: 123, c: !!set {1,2,3}}'"
 

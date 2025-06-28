@@ -164,7 +164,7 @@ def _init_manifest_index(run):
 
 def _manifest_index_entry(entry, run):
     if len(entry) not in (4, 5):
-        log.warning("unexpected manfiest entry for run %s: %s", run.id, entry)
+        log.warning("unexpected manifest entry for run %s: %s", run.id, entry)
         return None
     file_type = entry[0]
     run_path = entry[1]

@@ -114,7 +114,7 @@ def _runs_under_parent_f(root):
     runs_parent = os.getenv("GUILD_RUNS_PARENT")
     if not runs_parent:
         return None
-    log.debug("limitting to runs under parent %s", runs_parent)
+    log.debug("limiting to runs under parent %s", runs_parent)
     return lambda: _runs_for_parent(runs_parent, root)
 
 

@@ -101,7 +101,7 @@ README.html: README.md
 	markdown_py README.md > README.html
 
 format-code:
-	@echo Formating Guild source code
+	@echo Formatting Guild source code
 	@yapf -vv -r -i setup.py tools.py guild examples
 
 coverage-check:

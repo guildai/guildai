@@ -123,7 +123,7 @@ def ac_named_archive(_ctx, _param, incomplete, no_quote=False):
     """Returns named archives.
 
     When used in isolation, values should be quoted as needed as they
-    can cotain spaces. If used with file system directives on systems
+    can contain spaces. If used with file system directives on systems
     that support ac directives, values should not be quotes as their
     spaces will be escaped by the shell support.
     """

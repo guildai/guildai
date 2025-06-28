@@ -1357,7 +1357,7 @@ def _nested_config_dest(name, config, nested_name_prefix=""):
     `config`. If neither a dot-named entry nor a nested entry exists
     in `config`, implicitly creates a nested entry.
 
-    For examples, see *Applying values to existing configuation* in
+    For examples, see *Applying values to existing configuration* in
     `guild/tests/util.md`.
     """
     assert isinstance(config, dict), config

@@ -681,7 +681,7 @@ parts, it logs an error message and omits the file from
 
 To illustrate, we need a run with a manifest that contains invalid
 entries. We create one entry with too few parts to split and another
-entry with an usupported file type.
+entry with an unsupported file type.
 
     >>> from guild.manifest import Manifest
     >>> from guild.run import for_dir as run_for_dir
@@ -701,5 +701,5 @@ entry with an usupported file type.
     [?] barfoo -> file:barfoo
 
     >>> log.print_all()
-    WARNING: unexpected manfiest entry for run ...: ['z', 'foobar']
+    WARNING: unexpected manifest entry for run ...: ['z', 'foobar']
     WARNING: unknown manifest file type 'z' for run file 'barfoo'

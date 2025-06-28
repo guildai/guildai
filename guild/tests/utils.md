@@ -471,7 +471,7 @@ An explicit dict is okay:
     >>> nc({"1.2": {}, "1.1.1": 111, "1.2.1": 121})
     {'1': {'1': {'1': 111}, '2': {'1': 121}}}
 
-### Applying values to existing configuation
+### Applying values to existing configuration
 
 `apply_nested_config()` can be used to apply config to existing
 values. If the specified data structure contains sections with
@@ -544,7 +544,7 @@ Dot-name applied to empty matches:
     >>> nc({"a.b.c.d": 1}, {"a": {"b": {"c": {"d": {}}}}})
     {'a': {'b': {'c': {'d': 1}}}}
 
-Dot-name applied to match and additional configuation:
+Dot-name applied to match and additional configuration:
 
     >>> nc({"a.b.c.d": 1}, {"a.b.c": {"d": 2, "e": 3}})
     {'a.b.c': {'d': 1, 'e': 3}}
@@ -825,7 +825,7 @@ The active shell is provided as a shell string using
     ...         proc_path.append(_quote(p.name()))
     ...         p = p.parent()
     ...     print(f"Unknown active shell - proc path: {' < '.join(proc_path)}")
-    ...     print(f"Expexted one of: {', '.join(_KNOWN_SHELLS)}")
+    ...     print(f"Expected one of: {', '.join(_KNOWN_SHELLS)}")
 
 ### Active shell caching
 

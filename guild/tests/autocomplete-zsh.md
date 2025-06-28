@@ -101,7 +101,7 @@ Providing a prefix limits the tests shown.
 
 ## Runs Init
 
-To illustate the various auto completion scenarions, we generate a
+To illustate the various auto completion scenarios, we generate a
 number of runs.
 
     >>> project = ac_project = Project(sample("projects", "autocomplete"))
@@ -296,7 +296,7 @@ Note that we can autocomplete on non-source code files.
 While we could fix this for zsh, we cannot easily fix this for bash or
 other completion schemes that rely on compgen utils. These external
 calls would require complex filters to hide non-applicable files (or
-worse, dynamically generatred mirrored directories wiht the applicable
+worse, dynamically generatred mirrored directories with the applicable
 files). For consistency across shell environments, we currently
 maintain this behavior, even though it's technically incorrect. Note
 that this applied only to autocompletion paths and does not impact the
@@ -628,7 +628,7 @@ Various other options that don't work with path:
 ### `cmd` arg
 
 The implementation for `cmd` is to list all available executables on
-the system. For our tests, we createa an isolated env to control the
+the system. For our tests, we create an isolated env to control the
 listed commands.
 
     >>> bin_dir = mkdtemp()

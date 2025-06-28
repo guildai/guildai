@@ -31,7 +31,7 @@ from guild import run as runlib
 from guild import run_check
 from guild import util
 
-log = None  # intialized in _init_logging
+log = None  # initialized in _init_logging
 
 STEP_USED_PARAMS = (
     "additional_deps",

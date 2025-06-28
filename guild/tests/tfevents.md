@@ -11,7 +11,7 @@ We can log TF events are using `guild.summary.SummaryWriter`.
 
     >>> from guild.summary import SummaryWriter
 
-We'll create our events log in a temp diretory:
+We'll create our events log in a temp directory:
 
     >>> logdir = mkdtemp()
     >>> dir(logdir)

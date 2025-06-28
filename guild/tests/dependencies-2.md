@@ -270,7 +270,7 @@ also requires `msg.txt`, which does exist and can be resolved.
 ### test-all
 
 The operation `test-all` uses steps to run a series of
-opertaions. Each step defines `check` criteria to verify the
+operations. Each step defines `check` criteria to verify the
 resolution of files.
 
     >>> run("guild run test-all -y")  # doctest: +REPORT_UDIFF

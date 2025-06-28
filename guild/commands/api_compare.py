@@ -66,7 +66,7 @@ def _compare_args_with_id(args):
 
 
 def _relocate_id_col_to_run_col(compare_data):
-    """Returns transformated compare data to include the full run ID as the first col.
+    """Returns transformed compare data to include the full run ID as the first col.
 
     Compare data uses the short run ID to represent a 'run'. The short
     run ID is more suitable for typical compare use cases, where the

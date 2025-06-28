@@ -119,10 +119,10 @@ TODO
 R things to test:
 
 - support of `config:<filename>` and `<filename>` - yaml and R files
-- test unparseable R script
+- test unparsable R script
 - test flag named 'y' (need to quote when we write attrs)
 - test for loaded packages attr
-- test assigments of every flag type (confirm that ints can be
+- test assignments of every flag type (confirm that ints can be
   assigned to ints, etc.) - look for issues with ints and float vals
 
 Other things to test:

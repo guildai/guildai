@@ -1980,7 +1980,7 @@ class _CopyLogger:
     copy and which are skipped.
 
     No files are copied when this pattern is used. The activity
-    perfomed by `copy_sourecode()` is only logged.
+    performed by `copy_sourecode()` is only logged.
     """
 
     root = None

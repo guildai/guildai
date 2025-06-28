@@ -51,7 +51,7 @@ Keys must start with a letter or an underscore.
 The default pattern does not match keys with spaces. This is to avoid
 unintentional matches with common output.
 
-    >>> test_p("WARNING: Invalid intput")
+    >>> test_p("WARNING: Invalid input")
     <no match>
 
 However, Guild will capture output like this:

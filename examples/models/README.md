@@ -36,7 +36,7 @@ mnist-intro:evaluate   Evaluate a trained model using test data
 mnist-intro:train      Train the MNIST model
 ```
 
-Note that each model shares the same set of operatio names. These are
+Note that each model shares the same set of operation names. These are
 defined in a shared config:
 
 ``` yaml

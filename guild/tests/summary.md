@@ -431,7 +431,7 @@ next to each scalar:
 Note the steps order is 1, 3, 2... This is intentional to show that
 Guild captures the step for associated with each scalar. In this
 example, the scalar value `4` is associated with step `2`. From the
-user standpoint is a bug - the step is accidentally omited. Guild's
+user standpoint is a bug - the step is accidentally omitted. Guild's
 behavior, however, is by design: Guild uses the last logged step,
 regardless of whether it is lower than previously logged steps.
 

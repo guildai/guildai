@@ -37,7 +37,7 @@ def inspect(args):
     """Inspect a TensorFlow checkpoint or graph.
 
     `PATH` is the path to the checkpoint file (usually ending in
-    ``.ckpt``) or to a protobuf seralized graph (usually ending in
+    ``.ckpt``) or to a protobuf serialized graph (usually ending in
     ``.pb``).
 
     """

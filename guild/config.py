@@ -168,7 +168,7 @@ def _guild_home_current_scheme():
 
 
 def _explicit_activated_env_guild_home():
-    """Returns path to existing `.guild` for an acticated env.
+    """Returns path to existing `.guild` for an activated env.
 
     If `.guild` does not exist, returns None.
 

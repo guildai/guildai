@@ -21,7 +21,7 @@ package. The first refers to the `mnist` project on PyPI. The second
 refers to `gpkg.mnist` on PyPI. The third refers to a local guildfile
 distribution in a directory named `mnist`.
 
-Guild namespaces are manged with the `guild.namespace` module:
+Guild namespaces are managed with the `guild.namespace` module:
 
     >>> from guild import namespace
 

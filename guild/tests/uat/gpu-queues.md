@@ -145,7 +145,7 @@ Confirm that the queue refused to start the run for the right reason:
     >>> run("guild cat --output -Fl q1")
     INFO: [guild] ... Starting queue
     INFO: [guild] ... Waiting for staged runs
-    INFO: [guild] ... Ignorning staged run ... (GPU spec mismatch: run is 2, queue is 1)
+    INFO: [guild] ... Ignoring staged run ... (GPU spec mismatch: run is 2, queue is 1)
     <exit 0>
 
 We can start another queue, which is associated with GPU `2`, to start

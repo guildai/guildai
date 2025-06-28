@@ -57,7 +57,7 @@ runs in progress. To force a scheduler to wait until other runs finish \
 before starting a staged run, set wait-for-running to true when \
 starting the scheduler.
 
-If the Bokeh Python package is installed, the schduler runs a \
+If the Bokeh Python package is installed, the scheduler runs a \
 dashboard application by default on port 8787. Specify a different \
 port or binding address using the dashboard-address flag. To disable \
 the dashboard, specify no for dashboard-address.

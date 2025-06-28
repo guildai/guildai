@@ -157,7 +157,7 @@ def _event_files_digest(dir):
 
 
 def _ensure_tb_logging_patched():
-    """Patch tb logging to supress noisy info and debug logs.
+    """Patch tb logging to suppress noisy info and debug logs.
 
     TB has become very chatty and we want to control our logs. We
     disable outright info and debug logs here.

@@ -75,7 +75,7 @@ def _flag_data_for_file(source):
     avoid passing required files as command arguments.
 
     The source `type` is `string` to avoid the side-effects of using
-    `path` (e.g. convertion of the value to an absolute path).
+    `path` (e.g. conversion of the value to an absolute path).
     """
     assert source.parsed_uri.scheme == "file", source.parsed_uri
     if not source.flag_name:
@@ -162,7 +162,7 @@ MERGE_FLAGDEF_ATTRS = ("arg_skip", "default")
 # List of flag attributes that are always set even if a user has
 # explicitly configured one. These values are forced because changing
 # them could result in unintended/buggy behavior (e.g. setting the
-# type of an operation flag to number, which coflicts with the
+# type of an operation flag to number, which conflicts with the
 # required type of string for run IDs).
 #
 # Attributes are specified with corresponding source types (source URI

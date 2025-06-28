@@ -145,7 +145,7 @@ def _filter_syntax_error(e) -> typing.NoReturn:
     m = re.search(r"line (\d+), pos (\d+): (.*)", e)
     if not m:
         if e == "Syntax error at EOF":
-            cli.error("syntax error in filter - unexpected end of expresion")
+            cli.error("syntax error in filter - unexpected end of expression")
         else:
             cli.error(f"invalid filter expression: {e}")
     elif m.group(1) == "1":

@@ -155,7 +155,7 @@ multiple `prepare-data` runs:
 $ guild run prepare-data
 ```
 
-Confirm you have mutiple prepare-data runs:
+Confirm you have multiple prepare-data runs:
 
 ```
 $ guild runs -o prepare-data

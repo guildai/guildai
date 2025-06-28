@@ -76,7 +76,7 @@ def _format_duration(seconds):
 def _log_function(log, now, pids):
     # Tricky function that decides whether to log as info or debug.
     # Uses lazily assigned log state to determine whether pids have
-    # changed or LOG_HEARTBEAT seconds have ellapsed since the last
+    # changed or LOG_HEARTBEAT seconds have elapsed since the last
     # info msg.
     try:
         last_pids = sorted(log.last_pids)

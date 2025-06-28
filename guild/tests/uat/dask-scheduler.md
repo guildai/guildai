@@ -55,14 +55,14 @@ Check the run status.
     [6]  dask:scheduler  running    ...
     <exit 0>
 
-Stop the sceduler.
+Stop the scheduler.
 
     >>> run("guild stop -y")
     Stopping ... (pid ...)
     <exit 0>
 
 Wait a moment and check scheduler output. We can't be certain of the
-order of log statements but we know there are five runs outputing
+order of log statements but we know there are five runs outputting
 `Waiting for 2 second(s)`.
 
     >>> sleep(2)

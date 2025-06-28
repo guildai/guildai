@@ -70,7 +70,7 @@ Optimizer with default objective:
     Continue? (Y/n)
     <exit ...>
 
-Optimizer with explict objective:
+Optimizer with explicit objective:
 
     >>> run("guild run test.py x=[1:100] -o gbrt -X foo -m10", timeout=5)
     You are about to run test.py with skopt:gbrt optimizer (10 trials, maximize foo)

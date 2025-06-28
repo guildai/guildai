@@ -251,7 +251,7 @@ lost:
 
 ## Exceptions to YAML decoding
 
-### Anonymouse flag functions
+### Anonymous flag functions
 
 Guild supports a special syntax for [flag
 functions](flag-functions.md). In one case, this syntax conflicts with
@@ -479,7 +479,7 @@ An unsupported type logs a warning.
     1
 
     >>> logs.print_all()
-    WARNING: uknown flag type foo, assuming 'auto'
+    WARNING: unknown flag type foo, assuming 'auto'
 
 ### Sequences
 

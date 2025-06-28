@@ -90,7 +90,7 @@ And get the list of copied soure code files:
 
 ## Max source code file size
 
-Guild also guards against copying souce code files that are too big.
+Guild also guards against copying source code files that are too big.
 
 The max file size is defined by
 `op_util.MAX_DEFAULT_SOURCECODE_FILE_SIZE`.

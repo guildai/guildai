@@ -403,7 +403,7 @@ def _strip_exit_0(s):
     """Removes trailing '\n<exit 0>' from s.
 
     Use to optionally omit `<exit 0>` at the end of run output that is
-    expected to succed.
+    expected to succeed.
     """
     if s.endswith("\n<exit 0>\n"):
         return s[:-9]

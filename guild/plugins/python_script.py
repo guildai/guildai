@@ -23,14 +23,14 @@ includes operations that define `main` or `steps`.
 
 The logic specific to handling `main` in the core ought to be moved to
 this plugin. I.e. support for `main` should be defined by and handled
-exlusively by the Python script plugin or similar Python language
+exclusively by the Python script plugin or similar Python language
 plugin.
 
 The logic specific to handling `steps` in the core ought to be moved
 to a new `steps` plugin.
 
 This refactoring is a matter of cleanup and not strictly needed as the
-Python plugin will ship with Guild for the forseeable future. The
+Python plugin will ship with Guild for the foreseeable future. The
 strict separation of concerns would have Guild core only responsible
 for executing an OS command as specified by an `op_cmd` structure
 (command args, cwd, and environment). Any alternative configuration
@@ -92,7 +92,7 @@ class PythonScriptOpdefSupport:
     def python_script_opdef_loaded(self, opdef):
         """Called by Python plugin when an opdef is loaded.
 
-        Gives implementor an opportunity to modify the opdef.
+        Gives implementer an opportunity to modify the opdef.
         """
 
 

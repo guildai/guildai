@@ -1,6 +1,6 @@
 # Stage and modify queue
 
-These tests verify that a queue runs the souce code from the staged
+These tests verify that a queue runs the source code from the staged
 run and not from the original project.
 
 It supports this workflow:

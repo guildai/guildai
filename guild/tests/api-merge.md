@@ -635,7 +635,7 @@ the following reasons:
   spec.
 
 - In the case where a source code file overlaps with a generated file,
-  the generated file may be presumed as preferrable as it's the most
+  the generated file may be presumed as preferable as it's the most
   recent version of the file.
 
 At this point `dep-1` is modified by the generated file. We can't

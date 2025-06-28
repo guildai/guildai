@@ -4,7 +4,7 @@
 
 ## Git
 
-Use a temp diretory for a Git repo.
+Use a temp directory for a Git repo.
 
     >>> repo = mkdtemp()
     >>> cd(repo)
