@@ -372,7 +372,7 @@ The `inline` flag is used to change the resolved source.
 which is otherwise implicitly disabled by the resource flag. It
 renames the default arg name to `infile-path`. It also sets the flag
 type to `path`, which has the effect of resolving the value as an
-absoluate path.
+absolute path.
 
     >>> run("guild run file-source-with-flag-2 -y")  # doctest: -WINDOWS
     Resolving infile

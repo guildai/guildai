@@ -128,7 +128,7 @@ def _env_from_file(path):
     else:
         env_str = util.try_read(path)
     if not env_str:
-        log.warning("cannot read remote env from %s - ignorning", path)
+        log.warning("cannot read remote env from %s - ignoring", path)
         return {}
     return _decode_env(env_str)
 

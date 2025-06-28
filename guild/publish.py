@@ -722,7 +722,7 @@ class _CopyRunFilesFilter(util.CopyFilter):
     performs two tasks: remove dirs from the list of traversals and
     provide a default select result for a candidate path.
 
-    `.guild` are always removed from dirs lists for travesal as there
+    `.guild` are always removed from dirs lists for traversal as there
     are no files under `.guild` that are considered for selection.
 
     Linked directories are also removed unless `state.include_links`

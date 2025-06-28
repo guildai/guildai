@@ -467,7 +467,7 @@ def _ensure_parent_mod_loaded(parent_mod_name):
 def _node_filter_for_globals(globals):
     """Filters ast nodes in support of setting globals for exec.
 
-    Removes initial assigns of any variables occuring in
+    Removes initial assigns of any variables occurring in
     `globals`. This is to allow globals to provide the initial
     value. Subsequent assigns are not removed under the assumption
     that are re-defining the initial variable value.

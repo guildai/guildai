@@ -395,7 +395,7 @@ Non existing run values:
 
 ## Invalid filter rsyntax
 
-Syntax errors propogate as exceptions.
+Syntax errors propagate as exceptions.
 
     >>> filter("and id = foo")
     Traceback (most recent call last):

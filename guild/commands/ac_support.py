@@ -211,7 +211,7 @@ def _gen_ac_command(directive_filter, regex_filter, incomplete):
     available on `PATH`. This is a platform-specific approach that
     relies on `/bin/sh`. When `/bin/sh` is used to find executables,
     `regex_filter` if specified is used to filter
-    results. `regex_filter` is not used when the actve shell supports
+    results. `regex_filter` is not used when the active shell supports
     directives. If `regex_filter` is not specified, the list of
     commands not further filtered beyond commands starting with
     `incomplete`.

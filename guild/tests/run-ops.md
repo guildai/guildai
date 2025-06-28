@@ -106,7 +106,7 @@ And resolve again:
 
 ## Op for batch spec
 
-The special characeter '+' indicates that the operation should be a
+The special character '+' indicates that the operation should be a
 batch run.
 
     >>> resolve_model_op("+", cwd)

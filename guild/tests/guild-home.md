@@ -132,7 +132,7 @@ user home for invalid directory locations.
 
 ### `.guild` from current directory
 
-Let's demonstrate using a sample nested hiearchy.
+Let's demonstrate using a sample nested hierarchy.
 
     >>> tmp = mkdtemp()
     >>> mkdir(path(tmp, "a"))

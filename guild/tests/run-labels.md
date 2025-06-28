@@ -141,12 +141,12 @@ Let's restart the run with new flag values.
 
     >>> last_run = project.list_runs()[0]
 
-    >>> run(restart=last_run.id, s="yello")
+    >>> run(restart=last_run.id, s="yellow")
 
 And the label:
 
     >>> print_last_run()
-    op  i:4, f:2.0, b:yes, s:yello
+    op  i:4, f:2.0, b:yes, s:yellow
 
 Guild saves the label template in the `op` attribute.
 
@@ -181,23 +181,23 @@ described above.
 
 Let's run `op.py` in a batch to generate two trials:
 
-    >>> run("op.py", i=[1,2], s="yello")
+    >>> run("op.py", i=[1,2], s="yellow")
 
 Let's list the last three runs, which include the batch and the two
 trials:
 
     >>> print_runs(3)
-    op.py   b=yes f=2.0 i=2 s=yello
-    op.py   b=yes f=2.0 i=1 s=yello
+    op.py   b=yes f=2.0 i=2 s=yellow
+    op.py   b=yes f=2.0 i=1 s=yellow
     op.py+
 
 Here's the same result running `op`:
 
-    >>> run("op", i=[1,2], s="yello", b=False)
+    >>> run("op", i=[1,2], s="yellow", b=False)
 
     >>> print_runs(3)
-    op   i:2, f:2.0, b:no, s:yello
-    op   i:1, f:2.0, b:no, s:yello
+    op   i:2, f:2.0, b:no, s:yellow
+    op   i:1, f:2.0, b:no, s:yellow
     op+
 
 In this case, we specify an explicit label for the trials:

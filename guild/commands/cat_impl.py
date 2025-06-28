@@ -60,7 +60,7 @@ def _path(run, args):
 def _check_non_output_args(args):
     if args.path or args.sourcecode:
         cli.out(
-            "--output cannot be used with other options - ignorning other options",
+            "--output cannot be used with other options - ignoring other options",
             err=True,
         )
 

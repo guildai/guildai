@@ -89,7 +89,7 @@ that the runs have been restarted by filtering on started time.
 
 ## Step pre-run validation errors
 
-When prepraring to run a step, `steps_main` creates a link to a
+When preparing to run a step, `steps_main` creates a link to a
 non-existing run directory. This ensures that it can detect a run that
 was not started, e.g. due to a validation error.
 

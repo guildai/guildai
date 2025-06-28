@@ -231,11 +231,11 @@ indicating the range that falls within the reference time and the
 range that occurs just prior to the reference time respectively. For
 example, "this hour" indicates that the range should fall within the
 reference time hour as defined by the range "00:00" and
-"00:59". Similarly, "last hour" secifies the range in the hour prior
+"00:59". Similarly, "last hour" specifies the range in the hour prior
 to the reference time.
 
 Ranges can also be specified using the syntax "N <unit(s)> ago". For
-example, "1 hour ago" specifies the range of one hour occuring prior
+example, "1 hour ago" specifies the range of one hour occurring prior
 to the reference time hour start.
 
 Below are examples applied to our reference time.

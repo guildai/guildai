@@ -206,7 +206,7 @@ Filter by expression.
 These tests run various versions of the `ls` command to show files
 for the latest run.
 
-`ls` is generated from the run manfiest.
+`ls` is generated from the run manifest.
 
     >>> run("guild cat -p .guild/manifest -r guild-uat")  # doctest: +REPORT_UDIFF
     s README.md 60eb176260122f67440d8cea65f7dc86b8331b9c README.md

@@ -296,7 +296,7 @@ omits input cells from the generates HTML.
 
 ### Issue 301
 
-Fix for comments appearning on the last line of a cell.
+Fix for comments appearing on the last line of a cell.
 
     >>> run("guild run reg_301.ipynb -y")
     INFO: [guild] Initializing reg_301.ipynb for run

@@ -5,7 +5,7 @@ doctest: -PY3 +PY37 # 2022-04-11 these tests fail on github actions because TF 1
 # TensorFlow 1.x tests
 
 These tests use `guild.tfevent`, which requires that we call
-`_ensure_tb_logging_patched` to supress TensorFlow logging noise.
+`_ensure_tb_logging_patched` to suppress TensorFlow logging noise.
 
     >>> import guild.tfevent
     >>> guild.tfevent._ensure_tb_logging_patched()

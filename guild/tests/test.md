@@ -1,6 +1,6 @@
 # Guild test support
 
-## Test output cheker
+## Test output checker
 
 `guild._test.Py23DocChecker` applies various transformations to "want"
 and "got" strings used in doctests.
@@ -137,16 +137,16 @@ status code is `0`, we can omit the asserted exit code for brevity.
 We simulate the exit code output by printing it directly.
 
     >>> print("""Sample output - line 1
-    ... Sample outout - line 2
+    ... Sample output - line 2
     ... <exit 0>""")
     Sample output - line 1
-    Sample outout - line 2
+    Sample output - line 2
 
 We can also include the exit status.
 
     >>> print("""Sample output - line 1
-    ... Sample outout - line 2
+    ... Sample output - line 2
     ... <exit 0>""")
     Sample output - line 1
-    Sample outout - line 2
+    Sample output - line 2
     <exit 0>

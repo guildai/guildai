@@ -109,7 +109,7 @@ When initializing the new run, Guild re-generates the manifest for the
 actual copied files.
 
 Because the source code for the original run (the prototype) did not
-change, the manfiest files should be identical.
+change, the manifest files should be identical.
 
     >>> diff(path(echo_1_dir, ".guild", "manifest"),
     ...      path(echo_2_dir, ".guild", "manifest"))

@@ -69,7 +69,7 @@ class RunsMonitor(util.LoopingThread):
 
         Note that run links are created initially by this
         function. Any errors result from user input will propagate
-        during this call. Similar errors occuring after the monitor is
+        during this call. Similar errors occurring after the monitor is
         started will be logged but will not propagate.
         """
         interval = interval or DEFAULT_MONITOR_INTERVAL

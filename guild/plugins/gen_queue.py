@@ -236,7 +236,7 @@ def _run_gpus(run):
 def _handle_gpu_mismatch(run, run_gpus, state):
     if run.id not in state._logged_gpu_mismatch:
         log.info(
-            "Ignorning staged run %s (GPU spec mismatch: run is %s, queue is %s)",
+            "Ignoring staged run %s (GPU spec mismatch: run is %s, queue is %s)",
             run.id,
             run_gpus,
             state.gpus,
@@ -321,7 +321,7 @@ def _stop(state):
 def simulate_batch():
     """Ensure that the current queue run looks like a batch run to Guild.
 
-    Creates a proto dir to mimick the appearance of a batch. This
+    Creates a proto dir to mimic the appearance of a batch. This
     ensures that the queue doesn't show up in compare and other
     facilities that ignore batch runs by default.
     """

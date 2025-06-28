@@ -226,7 +226,7 @@ In this case, the selected run files are determined by the operation
 ### All run files
 
 The `--all-files` option tells Guild to copy all run files with the
-excetion of links. Links can be copied using `--include-links` (see below).
+exception of links. Links can be copied using `--include-links` (see below).
 
     >>> publish_dest = mkdtemp()
 
@@ -483,7 +483,7 @@ The `flags.yml` file contains the flag values used for the run.
 
 ### Output
 
-`output.txt` contains the combined standard outout and standard error
+`output.txt` contains the combined standard output and standard error
 for the run.
 
     >>> cat(path(publish_dest, "ccc", "output.txt"))

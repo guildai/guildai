@@ -134,11 +134,11 @@ def _flags_data_for_notebook(notebook_path, opdef=None, cache=None):
 def _iter_notebook_flag_data(notebook_path, opdef=None):
     """Iterator that returns name, flag_data for notebooks flags.
 
-    Notebook flag data is derrived from inspecting the notebook for
+    Notebook flag data is derived from inspecting the notebook for
     global assigns and by applying replacement patterns optionally
     provided by operation flag defs.
 
-    If opdef is provided and a flag provides a replacement patter, it
+    If opdef is provided and a flag provides a replacement pattern, it
     takes precedence over values from global assigns.
     """
     seen = set()

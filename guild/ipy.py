@@ -336,7 +336,7 @@ def _model_op_main(model, op_name):
 def _op_main_for_exec(exec_):
     """Looks for main module in exec spec for model op.
 
-    Raises `ValueError` if exec spec is empty or not in the exepcted
+    Raises `ValueError` if exec spec is empty or not in the expected
     format.
     """
     if not exec_:

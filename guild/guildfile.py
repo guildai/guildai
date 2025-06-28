@@ -262,7 +262,7 @@ class Guildfile:
 
     def _apply_package(self, name, data):
         if self.package:
-            raise GuildfileError(self, "mutiple package definitions")
+            raise GuildfileError(self, "multiple package definitions")
         self.package = PackageDef(name, data, self)
 
     @property

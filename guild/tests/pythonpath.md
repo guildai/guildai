@@ -94,7 +94,7 @@ Use `run_cmd` for `run` so we can use `run` as a variable below.
 
 When Guild runs a Python script directly, it uses `guild.op_main` as
 an intermediary to process flag values and make them available to the
-target script accoding to the `flags-dest` interface.
+target script according to the `flags-dest` interface.
 
     >>> run_cmd("guild run sys_path_test.py --print-cmd")
     ??? -um guild.op_main sys_path_test
@@ -381,7 +381,7 @@ system path as it did in with the `subdir` operation.
     >>> assert_path(sys_path[2], guild.__pkgdir__)
     >>> assert_not_project(sys_path)
 
-## Non-Python opertion
+## Non-Python operation
 
 Non-Python operations do not define `PYTHONPATH`.
 

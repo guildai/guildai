@@ -470,7 +470,7 @@ Additional listeners still get notified.
 
     >>> python_util.listen_function(howdy, "say", say_again)
 
-In this final test we'll just call the function directoy from our
+In this final test we'll just call the function directory from our
 module without reimporting it.
 
     >>> howdy.say("Bye!")

@@ -109,7 +109,7 @@ def select(ctx, args):
     help by running `guild compare --help`.
 
     Other run filters are applied before selecting a minimum or
-    maximium scalar value.
+    maximum scalar value.
 
     {{ runs_support.all_filters }}
 

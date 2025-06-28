@@ -7,7 +7,7 @@ This test assumes we're running under the source tree, which indicates
     guild 0.9.1
     <exit 0>
 
-Use `check` to verfiy that we are running the expected version:
+Use `check` to verify that we are running the expected version:
 
     >>> run("guild check -n --version '==0.9.1'")
     <exit 0>

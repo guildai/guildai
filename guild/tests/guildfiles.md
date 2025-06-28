@@ -1384,7 +1384,7 @@ The order in which parents are listed in an extends list determines
 how parent values are applied. This rule is followed: as a parent is
 applied to a child, the child takes on the values of the parent _as if
 it defined those values itself_. Parents cannot redefine an attribute
-that was defined by a perviously applied parent.
+that was defined by a previously applied parent.
 
 Here's an example that uses two configs, `a` and `b`:
 

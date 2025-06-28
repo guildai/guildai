@@ -945,7 +945,7 @@ def partial_dependence_1D(space, model, i, samples,
 
     # dim_locs[i] is the (column index of the) start of dim i in
     # sample_points.
-    # This is usefull when we are using one hot encoding, i.e using
+    # This is useful when we are using one hot encoding, i.e using
     # categorical values
     dim_locs = np.cumsum([0] + [d.transformed_size for d in space.dimensions])
 
@@ -1027,7 +1027,7 @@ def partial_dependence_2D(space, model, i, j, samples,
 
     # dim_locs[i] is the (column index of the) start of dim i in
     # sample_points.
-    # This is usefull when we are using one hot encoding, i.e using
+    # This is useful when we are using one hot encoding, i.e using
     # categorical values
     dim_locs = np.cumsum([0] + [d.transformed_size for d in space.dimensions])
 

@@ -184,12 +184,12 @@ class Sobol(InitialPointGenerator):
                 m += 1
 
             #  Expand this bit pattern to separate components
-            #  of the logical array INCLUD.
+            #  of the logical array INCLUDE.
             j = self.poly[i - 1]
-            includ = np.zeros(m)
+            include = np.zeros(m)
             for k in range(m, 0, -1):
                 j2 = j // 2
-                includ[k - 1] = (j != 2 * j2)
+                include[k - 1] = (j != 2 * j2)
                 j = j2
 
             #  Calculate the remaining elements of row I as explained
@@ -199,7 +199,7 @@ class Sobol(InitialPointGenerator):
                 p2 = 1
                 for k in range(1, m + 1):
                     p2 *= 2
-                    if includ[k - 1]:
+                    if include[k - 1]:
                         newv = np.bitwise_xor(
                             int(newv), int(p2 * self.v[i - 1, j - k - 1]))
                 self.v[i - 1, j - 1] = newv

@@ -537,7 +537,7 @@ class _NoChanges(Exception):
 
 def _git_commit(local_repo, msg, env):
     cmd = [_git_cmd(), "-C", local_repo, "commit", "-m", msg]
-    log.debug("commiting for %s", local_repo)
+    log.debug("committing for %s", local_repo)
     result = _subprocess_quiet(cmd, extra_env=env, allowed_returncodes=(0, 1))
     if result == 1:
         raise _NoChanges()

@@ -63,7 +63,7 @@ Let's delete them in preparation for the next set of tests.
 
 ## Flag list values
 
-A batch is run impicitly whenever a list of values is specified for a
+A batch is run implicitly whenever a list of values is specified for a
 flag.
 
 Let's run `say.py` with a list of one `msg` flag value:

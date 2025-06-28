@@ -544,7 +544,7 @@ missing module does not register as a warning.
     <BLANKLINE>
     Use 'guild run --help' for a list of options.
 
-### Synax error
+### Syntax error
 
 Guild cannot even inspect a module with a syntax error.
 

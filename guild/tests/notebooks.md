@@ -52,7 +52,7 @@ as a notebook. The operation is configured to import all flags but
 
 ## Apply Flag Values to Source
 
-Guild supports two methods of value assigment:
+Guild supports two methods of value assignment:
 
 - Replace single value assignments with a new flag value
 - Replace matching regular expressions with flag values

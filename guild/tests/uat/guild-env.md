@@ -20,7 +20,7 @@ Activate non-existing as an explicit directory:
     guild-env: cannot find a Guild environment in ...
     <exit 1>
 
-Guild activates `venv` first if it exsts. In this case we create fake
+Guild activates `venv` first if it exists. In this case we create fake
 envs under `venv` and `env`.
 
     >>> quiet("mkdir -p env/bin")

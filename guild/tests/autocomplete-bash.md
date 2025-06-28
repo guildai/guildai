@@ -85,7 +85,7 @@ Providing a prefix limits the tests shown.
 
 ## Runs Init
 
-To illustate the various auto completion scenarions, we generate a
+To illustate the various auto completion scenarios, we generate a
 number of runs.
 
     >>> project = Project(sample("projects", "autocomplete"))

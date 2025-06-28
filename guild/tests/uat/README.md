@@ -112,7 +112,7 @@ Guild provides Keras packages under the `keras` package
 namespace. These tests demonstrate installing and training the
 `keras-mlp` model provided in the `keras.mnist` package.
 
-First we'll install the package and confirm the availbility of models
+First we'll install the package and confirm the availability of models
 and operations.
 
 - [install-keras-mnist-package](install-keras-mnist-package.md)
@@ -135,7 +135,7 @@ Next we'll train the `mnist-mlp` model.
 ### `mnist` example
 
 The `mnist` example is similar to the package of the same name. It
-maintains its lineage from privious Guild releases by providing
+maintains its lineage from previous Guild releases by providing
 `expert` and `intro` models, which correspond to the TensorFlow
 tutorial examples.
 
@@ -183,7 +183,7 @@ The `keras` example demonstrates how plugins can enumerate models in a
 directory and provide operations for compatible models.
 
 For our tests of the example model, we'll first uninstall some
-packages that were installed in pervious tests.
+packages that were installed in previous tests.
 
 - [uninstall-keras-packages](uninstall-keras-packages.md)
 
@@ -227,7 +227,7 @@ And test the `keras` example.
 
 Guild packages are generated from source directories that contain
 guildfiles with a package definition. They may contain models and
-their required scripts as well as package resoures.
+their required scripts as well as package resources.
 
 For our tests, we'll build and install packages using sources from the
 [`guild-index` GitHub repository](https://github.com/guildai/index).

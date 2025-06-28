@@ -163,7 +163,7 @@ disable=
         no-else-return,                  # This was recently applied to `try...else` blocks,
                                          # which is being incorrectly lumped into `if...else`
                                          # blocks (these are completely different expressions)
-                                         # and the rule forces the (arugable) anti-pattern of
+                                         # and the rule forces the (arguable) anti-pattern of
                                          # accessing variables defined in a `try` block from
                                          # outside the block. The nominal value of the pattern
                                          # they're trying to encourage (avoid nesting for `if...else`

@@ -26,7 +26,7 @@ def output_options(fn):
             click.Option(
                 ("-f", "--format"),
                 is_flag=True,
-                help="Format the JSON outout.",
+                help="Format the JSON output.",
             )
         ],
     )

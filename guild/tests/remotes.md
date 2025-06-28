@@ -164,7 +164,7 @@ Guild home may be specified using `guild-home`.
     'foo'
 
 If `venv-path` or `guild-env` is specified, and `guild-home` is not
-specified, Guild home is derrived from the venv path.
+specified, Guild home is derived from the venv path.
 
     >>> ssh = ssh_remote({
     ...     "venv-path": "foo"
@@ -189,7 +189,7 @@ specified, Guild home is derrived from the venv path.
     'bar'
 
 If `conda-env` is specified and `guild-home` is not specified, Guild
-home is derrived from `conda-env`.
+home is derived from `conda-env`.
 
     >>> ssh = ssh_remote({
     ...     "conda-env": "foo/bar"

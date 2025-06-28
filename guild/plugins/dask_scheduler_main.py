@@ -143,7 +143,7 @@ def _dashboard_address(args):
 
 
 def _false_flag_for_arg(s):
-    """Returns False IIF s is an empty string otherwise returns None.
+    """Returns False IF s is an empty string otherwise returns None.
 
     Use to test if an arg is a False flag. Guild passes False values
     as empty strings assuming that argparse `type=boolean` is used to
@@ -341,7 +341,7 @@ def _check_run_resources(run_resources, run, state):
 def _handle_missing_resources(missing_resources, run, state):
     if run.id not in state._logged_missing_resoures:
         log.info(
-            "Ignorning staged run %s (requires resources not defined for cluster: %s)",
+            "Ignoring staged run %s (requires resources not defined for cluster: %s)",
             run.id,
             ", ".join(sorted(missing_resources)),
         )

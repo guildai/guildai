@@ -27,7 +27,7 @@ Time is recorded as an epochs timestamp.
 
 ## Comments in runs list
 
-The `-c, --comments` option is used to inlude comments in the runs
+The `-c, --comments` option is used to include comments in the runs
 list.
 
     >>> run("guild -H '%s' runs -c" % project.guild_home)

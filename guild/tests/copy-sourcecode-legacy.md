@@ -595,7 +595,7 @@ Using no (False):
     >>> run("disabled")
     <empty>
 
-Specifying an emty list of specs:
+Specifying an empty list of specs:
 
     >>> print_config("disabled2")
     model-sourcecode:
@@ -640,7 +640,7 @@ Using an exclude spec:
 ## Model and op config interactions
 
 Source code config can be specified at the model level as well as the
-operaiton level. Model level specs are applied first, followed by op
+operation level. Model level specs are applied first, followed by op
 level specs. This lets operations append rules to the model level
 rules, which are evaluated subsequently and therefore can change model
 level select behavior.

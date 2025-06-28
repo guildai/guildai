@@ -1595,7 +1595,7 @@ class Grammar:
 
         self.UsedPrecedence = (
             set()
-        )  # Precedence rules that were actually used by the grammer.
+        )  # Precedence rules that were actually used by the grammar.
         # This is only used to provide error checking and to generate
         # a warning about unused precedence rules.
 

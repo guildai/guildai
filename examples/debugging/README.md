@@ -60,7 +60,7 @@ To illustrate, run `error.py` with `--break-on-error`:
 guild run error.py --break-on-error
 ```
 
-The script intentially generates a `ZeroDivisionError` error. When the
+The script intentionally generates a `ZeroDivisionError` error. When the
 error occurs, Guild shows the error and Python traceback and starts a
 post mortem debug session. From this session you can use the [pdb
 commands] to evaluate the Python state at the time the error occurs.

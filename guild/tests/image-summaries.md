@@ -6,7 +6,7 @@ TensorBoard.
 1. A run generates one or more images.
 
 2. While running, Guild TensorBoard scans run dirs for generated images
-   and includs them in an ephemeral summary log so they appear in
+   and includes them in an ephemeral summary log so they appear in
    TensorBoard for the applicable run.
 
 To illustrate we use the `image-summaries` project.

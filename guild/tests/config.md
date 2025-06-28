@@ -236,7 +236,7 @@ programs in that environment. We assume - we do not verify - that the
 path is configured to run the environment-specific Python VM.
 
 If a virtual environment is not activated, we do not assume `which
-python`, which could yield an undesireable system Python VM. Rather,
+python`, which could yield an undesirable system Python VM. Rather,
 we assume the VM used to run Guild itself.
 
 To summarize, we use any explicitly defined VM (via
@@ -245,10 +245,10 @@ definition. Otherwise we look to for a signal that the user has
 deliberately configured `PATH` to include the desired Python VM. For
 this we use the heuristic of an activated Python environment. If we
 have no indicator that `PATH` is explicitly configured with a Python
-VM, we fall back on the current Python VM - i.e. `sys.executabe`.
+VM, we fall back on the current Python VM - i.e. `sys.executable`.
 
 Without any environment the Python exe is the same as
-`sys.exectuable`.
+`sys.executable`.
 
     >>> with Env({}, replace=True):
     ...     exe = config.python_exe()

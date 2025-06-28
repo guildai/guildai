@@ -839,7 +839,7 @@ reasons:
 - Selected from an upstream run (`operation` type)
 - Selected from an archive (`file` or remote URL type)
 
-Guild indentifies project-local dependencies -- i.e. files specified
+Guild identifies project-local dependencies -- i.e. files specified
 with the `file` type -- and removes them from source code file lists,
 regardless of the source code rules.
 
@@ -878,7 +878,7 @@ configuration (gitignore and guildignore) copies `config.yml`.
       hello.pyc
       hello.sh
 
-With older verions of Git:
+With older versions of Git:
 
     >>> run("guild run default --test-sourcecode")
     ... # doctest: +REPORT_UDIFF -GIT_LS_FILES_TARGET

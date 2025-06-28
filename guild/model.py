@@ -81,7 +81,7 @@ class GuildfileModel(Model):
     """A model associated with a guildfile.
 
     These are generated from GuildfileDistribution instances
-    (i.e. distributions that are derrived from modefiles).
+    (i.e. distributions that are derived from modefiles).
     """
     def _init_modeldef(self):
         assert isinstance(self.dist, GuildfileDistribution), self.dist
