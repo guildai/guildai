@@ -101,3 +101,10 @@ split_before_logical_operator = true
 ##split_penalty_for_added_line_split = 30
 ##split_penalty_import_names = 0
 ##split_penalty_logical_operator = 300
+
+[tool.codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = '.git*,*.svg,venv,package-lock.json,*.css,dist,*.csv,*acoustic_grand_piano-ogg.js,lookup-error'
+check-hidden = true
+ignore-regex = '^\s*"image/\S+": ".*|.{300,}'
+ignore-words-list = 'tahn'
