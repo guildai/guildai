@@ -33,7 +33,7 @@ def _guild_versions():
     from urllib.request import urlopen
 
     def f():
-        resp = urlopen("https://pypi.org/pypi/guildai/json")
+        resp = urlopen("https://pypi.org/pypi/guildai/json", timeout=10)
         data = json.loads(resp.read())
         return sorted(data.get("releases") or {})
 
